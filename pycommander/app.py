@@ -11,6 +11,7 @@ from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
 from .fileops import copy_items, delete_items, format_size, is_system, move_items, roots
+from .icons import ShellIconProvider
 
 
 class FilePane(ttk.Frame):
@@ -24,11 +25,12 @@ class FilePane(ttk.Frame):
         self.history: list[Path] = []
         self.sort_column = "name"
         self.reverse = False
-        self.show_hidden = True
-        self.show_system = True
+        self.show_hidden = False
+        self.show_system = False
         self.mode = "files"
         self.display_title = self.path.name or str(self.path)
-        self.heading_labels = {"name": "Name", "ext": "Ext", "size": "Size", "modified": "Date", "attr": "Attr"}
+        self.heading_labels = {"name": "Name", "ext": "Ext", "size": "Size", "modified": "Date Modified", "attr": "Attr"}
+        self.icons = ShellIconProvider()
 
         bar = ttk.Frame(self)
         bar.pack(fill="x", pady=(0, 3))
@@ -44,7 +46,9 @@ class FilePane(ttk.Frame):
 
         frame = ttk.Frame(self)
         frame.pack(fill="both", expand=True)
-        self.tree = ttk.Treeview(frame, columns=self.columns, show="headings", selectmode="extended", style="Inactive.Treeview")
+        self.tree = ttk.Treeview(frame, columns=self.columns, show="tree headings", selectmode="extended", style="Inactive.Treeview")
+        self.tree.heading("#0", text="")
+        self.tree.column("#0", width=24, minwidth=24, stretch=False)
         widths = {"name": 260, "ext": 55, "size": 85, "modified": 135, "attr": 55}
         for col in self.columns:
             marker = " ▲" if col == self.sort_column else ""
@@ -112,12 +116,11 @@ class FilePane(ttk.Frame):
                     stat = p.stat()
                     is_dir = p.is_dir()
                     total += 0 if is_dir else stat.st_size
-                    icon = self.icon_for(p, is_dir)
-                    values = (f"{icon} [{p.name}]" if is_dir else f"{icon} {p.name}", "" if is_dir else p.suffix[1:],
+                    values = (f"[{p.name}]" if is_dir else p.name, "" if is_dir else p.suffix[1:],
                               "<DIR>" if is_dir else format_size(stat.st_size),
                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
                               ("d" if is_dir else "-") + ("h" if p.name.startswith(".") else "-"))
-                    iid = self.tree.insert("", "end", values=values, tags=(str(p),))
+                    iid = self.tree.insert("", "end", image=self.icons.get(p, is_dir), values=values, tags=(str(p),))
                     if str(p) in selected:
                         self.tree.selection_add(iid)
                 except OSError:
@@ -139,19 +142,6 @@ class FilePane(ttk.Frame):
             if tags:
                 result.append(Path(tags[0]))
         return result
-
-    @staticmethod
-    def icon_for(path: Path, is_dir: bool | None = None) -> str:
-        if is_dir if is_dir is not None else path.is_dir():
-            return "📁"
-        suffix = path.suffix.casefold()
-        if suffix in {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".svg"}:
-            return "🖼"
-        if suffix in {".zip", ".7z", ".rar", ".tar", ".gz"}:
-            return "📦"
-        if suffix in {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".md"}:
-            return "📄"
-        return "▫"
 
     def open_selected(self, _event=None) -> None:
         items = self.selected_paths()
@@ -208,8 +198,7 @@ class FilePane(ttk.Frame):
                 try:
                     stat = item.stat()
                     is_dir = item.is_dir()
-                    icon = self.icon_for(item, is_dir)
-                    self.tree.insert("", "end", values=(f"{icon} {item.relative_to(self.path)}",
+                    self.tree.insert("", "end", image=self.icons.get(item, is_dir), values=(str(item.relative_to(self.path)),
                         "" if is_dir else item.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"), "d-" if is_dir else "--"),
                         tags=(str(item),))
@@ -375,8 +364,8 @@ class Commander(tk.Tk):
     def _restore_panel_options(self, tabs: PaneTabs, side: str) -> None:
         column = self.config_data.get(side, "sort_column", fallback="name")
         descending = self.config_data.getboolean(side, "sort_descending", fallback=False)
-        show_hidden = self.config_data.getboolean(side, "show_hidden", fallback=True)
-        show_system = self.config_data.getboolean(side, "show_system", fallback=True)
+        show_hidden = self.config_data.getboolean(side, "show_hidden", fallback=False)
+        show_system = self.config_data.getboolean(side, "show_system", fallback=False)
         for pane in tabs.panes():
             pane.sort_column = column if column in pane.columns else "name"
             pane.reverse = descending
@@ -437,8 +426,8 @@ class Commander(tk.Tk):
         menu.add_cascade(label="Files", menu=files)
         view = tk.Menu(menu, tearoff=False)
         visibility = tk.Menu(view, tearoff=False)
-        self.show_hidden_var = tk.BooleanVar(value=True)
-        self.show_system_var = tk.BooleanVar(value=True)
+        self.show_hidden_var = tk.BooleanVar(value=False)
+        self.show_system_var = tk.BooleanVar(value=False)
         visibility.add_checkbutton(label="Show Hidden", variable=self.show_hidden_var,
                                    command=self.set_hidden_visibility)
         visibility.add_checkbutton(label="Show System", variable=self.show_system_var,
