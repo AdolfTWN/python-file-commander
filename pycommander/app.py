@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-from .fileops import copy_items, delete_items, format_size, move_items, roots
+from .fileops import copy_items, delete_items, format_size, is_system, move_items, roots
 
 
 class FilePane(ttk.Frame):
@@ -25,7 +25,9 @@ class FilePane(ttk.Frame):
         self.sort_column = "name"
         self.reverse = False
         self.show_hidden = True
+        self.show_system = True
         self.mode = "files"
+        self.display_title = self.path.name or str(self.path)
         self.heading_labels = {"name": "Name", "ext": "Ext", "size": "Size", "modified": "Date", "attr": "Attr"}
 
         bar = ttk.Frame(self)
@@ -68,6 +70,7 @@ class FilePane(ttk.Frame):
                 self.history.append(self.path)
             self.path = path
             self.mode = "files"
+            self.display_title = path.name or str(path)
             self.path_var.set(str(path))
             if os.name == "nt":
                 self.drive.set(path.anchor)
@@ -89,10 +92,11 @@ class FilePane(ttk.Frame):
         self.on_change()
 
     def refresh(self) -> None:
-        selected = {self.tree.set(i, "name") for i in self.tree.selection()}
+        selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
         self.tree.delete(*self.tree.get_children())
         try:
-            entries = [p for p in self.path.iterdir() if self.show_hidden or not p.name.startswith(".")]
+            entries = [p for p in self.path.iterdir()
+                       if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
             def key(p: Path):
                 try:
                     stat = p.stat()
@@ -108,12 +112,13 @@ class FilePane(ttk.Frame):
                     stat = p.stat()
                     is_dir = p.is_dir()
                     total += 0 if is_dir else stat.st_size
-                    values = (f"[{p.name}]" if is_dir else p.name, "" if is_dir else p.suffix[1:],
+                    icon = self.icon_for(p, is_dir)
+                    values = (f"{icon} [{p.name}]" if is_dir else f"{icon} {p.name}", "" if is_dir else p.suffix[1:],
                               "<DIR>" if is_dir else format_size(stat.st_size),
                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
                               ("d" if is_dir else "-") + ("h" if p.name.startswith(".") else "-"))
                     iid = self.tree.insert("", "end", values=values, tags=(str(p),))
-                    if p.name in selected:
+                    if str(p) in selected:
                         self.tree.selection_add(iid)
                 except OSError:
                     continue
@@ -135,6 +140,19 @@ class FilePane(ttk.Frame):
                 result.append(Path(tags[0]))
         return result
 
+    @staticmethod
+    def icon_for(path: Path, is_dir: bool | None = None) -> str:
+        if is_dir if is_dir is not None else path.is_dir():
+            return "📁"
+        suffix = path.suffix.casefold()
+        if suffix in {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".svg"}:
+            return "🖼"
+        if suffix in {".zip", ".7z", ".rar", ".tar", ".gz"}:
+            return "📦"
+        if suffix in {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".md"}:
+            return "📄"
+        return "▫"
+
     def open_selected(self, _event=None) -> None:
         items = self.selected_paths()
         if not items:
@@ -150,6 +168,7 @@ class FilePane(ttk.Frame):
 
     def show_preview(self, item: Path) -> None:
         self.mode = "preview"
+        self.display_title = item.name
         self.tree.delete(*self.tree.get_children())
         self.path_var.set(f"[Preview] {item}")
         try:
@@ -171,11 +190,13 @@ class FilePane(ttk.Frame):
             for line in details:
                 self.tree.insert("", "end", values=(line, "", "", "", ""))
             self.status.configure(text=f"Previewing {item.name}")
+            self.on_change()
         except OSError as exc:
             messagebox.showerror("Preview failed", str(exc))
 
     def search(self, query: str) -> None:
         self.mode = "search"
+        self.display_title = f"Search: {query}"
         self.tree.delete(*self.tree.get_children())
         self.path_var.set(f"[Search] {query} in {self.path}")
         query = query.casefold()
@@ -187,7 +208,8 @@ class FilePane(ttk.Frame):
                 try:
                     stat = item.stat()
                     is_dir = item.is_dir()
-                    self.tree.insert("", "end", values=(str(item.relative_to(self.path)),
+                    icon = self.icon_for(item, is_dir)
+                    self.tree.insert("", "end", values=(f"{icon} {item.relative_to(self.path)}",
                         "" if is_dir else item.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"), "d-" if is_dir else "--"),
                         tags=(str(item),))
@@ -197,11 +219,17 @@ class FilePane(ttk.Frame):
                 except OSError:
                     continue
             self.status.configure(text=f"{count} match(es)" + (" (limited to 2000)" if count == 2000 else ""))
+            self.on_change()
         except OSError as exc:
             messagebox.showerror("Search failed", str(exc))
 
     def toggle_hidden(self) -> None:
         self.show_hidden = not self.show_hidden
+        self.refresh()
+        self.on_change()
+
+    def toggle_system(self) -> None:
+        self.show_system = not self.show_system
         self.refresh()
         self.on_change()
 
@@ -234,7 +262,7 @@ class PaneTabs(ttk.Notebook):
             return
         try:
             pane = self.current()
-            self.tab(pane, text=pane.path.name or str(pane.path))
+            self.tab(pane, text=pane.display_title)
         except (tk.TclError, AttributeError):
             pass
         self.on_change()
@@ -293,12 +321,12 @@ class Commander(tk.Tk):
         actions = ttk.Frame(self)
         actions.pack(fill="x", padx=5, pady=(0, 5))
         for text, command in (("F3 Preview", self.preview), ("F4 Search", self.search), ("F5 Copy", self.copy), ("F6 Move", self.move),
-                              ("F7 New folder", self.mkdir), ("F8 Delete", self.delete), ("F2 Rename", self.rename),
+                              ("F7 New folder", self.mkdir), ("Del Delete", self.delete), ("F2 Rename", self.rename),
                               ("Ctrl+R Refresh", self.refresh)):
             ttk.Button(actions, text=text, command=command).pack(side="left", fill="x", expand=True, padx=1)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
-            "move": "<F6>", "new_folder": "<F7>", "delete": "<F8>", "refresh": "<Control-r>",
+            "move": "<F6>", "new_folder": "<F7>", "delete": "<Delete>", "refresh": "<Control-r>",
             "enter_folder": "<Right>", "parent_folder": "<Left>", "new_tab": "<Control-Up>",
             "close_tab": "<Control-w>", "select_all": "<Control-a>",
             "copy_path": "<Control-Shift-C>", "toggle_hidden": "<Control-h>",
@@ -348,10 +376,12 @@ class Commander(tk.Tk):
         column = self.config_data.get(side, "sort_column", fallback="name")
         descending = self.config_data.getboolean(side, "sort_descending", fallback=False)
         show_hidden = self.config_data.getboolean(side, "show_hidden", fallback=True)
+        show_system = self.config_data.getboolean(side, "show_system", fallback=True)
         for pane in tabs.panes():
             pane.sort_column = column if column in pane.columns else "name"
             pane.reverse = descending
             pane.show_hidden = show_hidden
+            pane.show_system = show_system
             for col in pane.columns:
                 marker = (" ▼" if descending else " ▲") if col == pane.sort_column else ""
                 pane.tree.heading(col, text=pane.heading_labels[col] + marker)
@@ -377,6 +407,7 @@ class Commander(tk.Tk):
             self.config_data.set(side, "sort_column", current.sort_column)
             self.config_data.set(side, "sort_descending", str(current.reverse).lower())
             self.config_data.set(side, "show_hidden", str(current.show_hidden).lower())
+            self.config_data.set(side, "show_system", str(current.show_system).lower())
         if not self.config_data.has_section("window"):
             self.config_data.add_section("window")
         if not self.config_data.has_section("state"):
@@ -404,10 +435,22 @@ class Commander(tk.Tk):
         files.add_separator()
         files.add_command(label="Exit", command=self.destroy)
         menu.add_cascade(label="Files", menu=files)
+        view = tk.Menu(menu, tearoff=False)
+        visibility = tk.Menu(view, tearoff=False)
+        self.show_hidden_var = tk.BooleanVar(value=True)
+        self.show_system_var = tk.BooleanVar(value=True)
+        visibility.add_checkbutton(label="Show Hidden", variable=self.show_hidden_var,
+                                   command=self.set_hidden_visibility)
+        visibility.add_checkbutton(label="Show System", variable=self.show_system_var,
+                                   command=self.set_system_visibility)
+        view.add_cascade(label="File Visibility", menu=visibility)
+        menu.add_cascade(label="View", menu=view)
         self.config(menu=menu)
 
     def set_active(self, pane: FilePane) -> None:
         self.active = pane
+        self.show_hidden_var.set(pane.show_hidden)
+        self.show_system_var.set(pane.show_system)
         if hasattr(self, "left_tabs"):
             for candidate in self.left_tabs.panes() + self.right_tabs.panes():
                 candidate.set_active_appearance(candidate is pane)
@@ -464,7 +507,19 @@ class Commander(tk.Tk):
         self.clipboard_clear(); self.clipboard_append(value)
 
     def toggle_hidden(self) -> None:
-        self.panes()[0].toggle_hidden()
+        source = self.panes()[0]
+        source.toggle_hidden()
+        self.show_hidden_var.set(source.show_hidden)
+
+    def set_hidden_visibility(self) -> None:
+        source = self.panes()[0]
+        source.show_hidden = self.show_hidden_var.get()
+        source.refresh(); source.on_change()
+
+    def set_system_visibility(self) -> None:
+        source = self.panes()[0]
+        source.show_system = self.show_system_var.get()
+        source.refresh(); source.on_change()
 
     def _run(self, verb: str, operation) -> None:
         source, target = self.panes()

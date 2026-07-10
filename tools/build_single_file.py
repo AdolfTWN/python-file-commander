@@ -12,11 +12,7 @@ def build() -> Path:
 
     fileops = fileops.replace("from __future__ import annotations\n\n", "", 1)
     app = app.replace("from __future__ import annotations\n\n", "", 1)
-    app = app.replace(
-        "from .fileops import copy_items, delete_items, format_size, move_items, roots\n\n",
-        "",
-        1,
-    )
+    app = "\n".join(line for line in app.splitlines() if not line.startswith("from .fileops import ")) + "\n"
     banner = '''"""Portable Python File Commander.
 
 Generated from the pycommander package. Requires only Python 3.10+ with Tk.

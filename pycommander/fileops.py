@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import ctypes
 from pathlib import Path
 
 
@@ -42,3 +43,11 @@ def roots() -> list[Path]:
     if os.name != "nt":
         return [Path("/")]
     return [Path(f"{letter}:\\") for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if Path(f"{letter}:\\").exists()]
+
+
+def is_system(path: Path) -> bool:
+    """Return whether Windows marks a path with the SYSTEM attribute."""
+    if os.name != "nt":
+        return False
+    attributes = ctypes.windll.kernel32.GetFileAttributesW(str(path))
+    return attributes != 0xFFFFFFFF and bool(attributes & 0x4)
