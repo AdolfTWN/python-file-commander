@@ -29,6 +29,8 @@ Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copi
 
 `View > File Visibility` independently shows or hides Hidden and Windows System files. Both are hidden by default.
 
+`View > Font Size` provides Small (100%), Medium (150%), Large (200%), and Huge (300%). The choice is saved in `pfc.ini`.
+
 All persistent state is kept in the single `pfc.ini` beside `pfc.py`. It is updated after navigation, tab, sorting, display, active-panel, hotkey, and window changes so tabs and paths survive an unexpected shutdown. Hotkeys can be changed in its `[hotkeys]` section.
 
 > File operations use your current Windows permissions. Delete is permanent in this initial version.

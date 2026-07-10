@@ -6,6 +6,7 @@ import json
 import subprocess
 import sys
 import tkinter as tk
+import tkinter.font as tkfont
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
@@ -48,7 +49,9 @@ class FilePane(ttk.Frame):
         frame.pack(fill="both", expand=True)
         self.tree = ttk.Treeview(frame, columns=self.columns, show="tree headings", selectmode="extended", style="Inactive.Treeview")
         self.tree.heading("#0", text="")
-        self.tree.column("#0", width=24, minwidth=24, stretch=False)
+        # Root items still reserve Treeview indentation before their image. Keep
+        # a wide gutter so the Shell icon never paints across the Name boundary.
+        self.tree.column("#0", width=42, minwidth=42, stretch=False)
         widths = {"name": 260, "ext": 55, "size": 85, "modified": 135, "attr": 55}
         for col in self.columns:
             marker = " ▲" if col == self.sort_column else ""
@@ -286,11 +289,20 @@ class Commander(tk.Tk):
         self.geometry(self.config_data.get("window", "geometry", fallback="1200x720"))
         self.minsize(800, 480)
         self.active: FilePane | None = None
+        self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
+        self._font_scales = {"small": 1.0, "medium": 1.5, "large": 2.0, "huge": 3.0}
+        self._base_font_sizes = {}
+        for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont", "TkHeadingFont", "TkCaptionFont"):
+            try:
+                self._base_font_sizes[name] = tkfont.nametofont(name).cget("size")
+            except tk.TclError:
+                pass
         style = ttk.Style(self)
         style.configure("Active.Treeview", background="white", fieldbackground="white")
         style.map("Active.Treeview", background=[("selected", "#1683e2")], foreground=[("selected", "white")])
         style.configure("Inactive.Treeview", background="white", fieldbackground="white")
         style.map("Inactive.Treeview", background=[("selected", "#91a9bd")], foreground=[("selected", "white")])
+        self.apply_font_size(save=False)
         self._build_menu()
         split = ttk.Panedwindow(self, orient="horizontal")
         split.pack(fill="both", expand=True, padx=5, pady=5)
@@ -401,8 +413,11 @@ class Commander(tk.Tk):
             self.config_data.add_section("window")
         if not self.config_data.has_section("state"):
             self.config_data.add_section("state")
+        if not self.config_data.has_section("view"):
+            self.config_data.add_section("view")
         self.config_data.set("window", "geometry", self.geometry())
         self.config_data.set("state", "active_panel", "left" if self.active in self.left_tabs.panes() else "right")
+        self.config_data.set("view", "font_size", self.font_size_var.get())
         temporary = self.ini_path.with_suffix(".ini.tmp")
         try:
             with temporary.open("w", encoding="utf-8") as stream:
@@ -433,6 +448,12 @@ class Commander(tk.Tk):
         visibility.add_checkbutton(label="Show System", variable=self.show_system_var,
                                    command=self.set_system_visibility)
         view.add_cascade(label="File Visibility", menu=visibility)
+        font_size = tk.Menu(view, tearoff=False)
+        for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
+                             ("Large (200%)", "large"), ("Huge (300%)", "huge")):
+            font_size.add_radiobutton(label=label, value=value, variable=self.font_size_var,
+                                      command=self.apply_font_size)
+        view.add_cascade(label="Font Size", menu=font_size)
         menu.add_cascade(label="View", menu=view)
         self.config(menu=menu)
 
@@ -509,6 +530,19 @@ class Commander(tk.Tk):
         source = self.panes()[0]
         source.show_system = self.show_system_var.get()
         source.refresh(); source.on_change()
+
+    def apply_font_size(self, save: bool = True) -> None:
+        scale = self._font_scales.get(self.font_size_var.get(), 1.0)
+        if self.font_size_var.get() not in self._font_scales:
+            self.font_size_var.set("small")
+        for name, base in self._base_font_sizes.items():
+            size = max(1, round(abs(base) * scale))
+            tkfont.nametofont(name).configure(size=-size if base < 0 else size)
+        row_height = max(22, round(22 * scale))
+        ttk.Style(self).configure("Active.Treeview", rowheight=row_height)
+        ttk.Style(self).configure("Inactive.Treeview", rowheight=row_height)
+        if save:
+            self.save_config()
 
     def _run(self, verb: str, operation) -> None:
         source, target = self.panes()
