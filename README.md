@@ -33,6 +33,8 @@ Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copi
 
 Keyboard navigation is end-to-end: Tab switches panels, Ctrl+Tab and Ctrl+Shift+Tab cycle the active panel's tabs, Ctrl+L focuses the path, Esc returns to the file list, Alt+F/Alt+V open the header menus, and F1 (or clicking the Python File Commander header) opens the built-in keyboard guide.
 
+The dark application header keeps the PFC window visually distinct. Its right side shows a compact two-second clipboard summary: file Copy/Cut state, item count and first filename, or a whitespace-normalized truncated text preview. Busy clipboards keep the last useful summary instead of interrupting work.
+
 Ctrl+C, Ctrl+X, and Ctrl+V use the native Windows file clipboard, so files and folders can be copied or moved between PFC, its panels and tabs, and Windows File Explorer.
 
 F9 compares one selected item in each panel (or two items in the active panel) in a separate tabbed Compare window. Auto detection supports aligned text with source-accurate line numbers, CSV/TSV tables, binary hex with SHA-256, and recursive folder comparison. F7/F8 navigate with Diff <</>>. Esc closes the active comparison tab, or the window when only one tab remains. File comparisons auto-refresh every two seconds when either source changes; recursive folder comparisons avoid polling to protect performance. Main and Compare tabs use a shared high-contrast active-tab style.

@@ -535,10 +535,12 @@ class Commander(tk.Tk):
         self._ready = True
         self._save_job = None
         self._auto_refresh_job = None
+        self._clipboard_job = None
         self.bind("<Configure>", self._schedule_save)
         self.set_active(self.active)
         self.save_config()
         self._schedule_auto_refresh(250)
+        self._schedule_clipboard_summary(250)
 
     def _install_priority_hotkeys(self, hotkeys, commands) -> None:
         """Run tab navigation before Tk widget/class bindings can consume Tab."""
@@ -665,6 +667,8 @@ class Commander(tk.Tk):
     def close_app(self) -> None:
         if self._auto_refresh_job is not None:
             self.after_cancel(self._auto_refresh_job)
+        if self._clipboard_job is not None:
+            self.after_cancel(self._clipboard_job)
         self.save_config()
         self.destroy()
 
@@ -688,13 +692,17 @@ class Commander(tk.Tk):
 
     def _build_menu(self) -> None:
         menu_font = tkfont.nametofont("TkMenuFont")
-        header = ttk.Frame(self, padding=(5, 2))
+        header_bg, header_fg, active_bg = "#243b53", "#f4f8fb", "#365b78"
+        header = tk.Frame(self, background=header_bg, padx=5, pady=4)
         header.pack(fill="x")
-        title = ttk.Label(header, text="Python File Commander", font=tkfont.nametofont("TkCaptionFont"),
-                          cursor="hand2")
+        title = tk.Label(header, text="Python File Commander", font=tkfont.nametofont("TkCaptionFont"),
+                         background=header_bg, foreground=header_fg, cursor="hand2")
         title.pack(side="left", padx=(2, 10))
         title.bind("<Button-1>", lambda _event: self.show_help())
-        files_button = tk.Menubutton(header, text="Files", font=menu_font, relief="flat", padx=6)
+        button_style = dict(font=menu_font, relief="flat", borderwidth=0, padx=7,
+                            background=header_bg, foreground=header_fg,
+                            activebackground=active_bg, activeforeground="#ffffff")
+        files_button = tk.Menubutton(header, text="Files", **button_style)
         files_button.pack(side="left")
         files = tk.Menu(files_button, tearoff=False, font=menu_font)
         files_button.configure(menu=files)
@@ -705,8 +713,8 @@ class Commander(tk.Tk):
         files.add_command(label="Copy Path\tF11", command=self.copy_paths)
         files.add_command(label="Change Dir\tF12", command=self.change_dir)
         files.add_separator()
-        files.add_command(label="Exit", command=self.destroy)
-        view_button = tk.Menubutton(header, text="View", font=menu_font, relief="flat", padx=6)
+        files.add_command(label="Exit", command=self.close_app)
+        view_button = tk.Menubutton(header, text="View", **button_style)
         view_button.pack(side="left")
         view = tk.Menu(view_button, tearoff=False, font=menu_font)
         view_button.configure(menu=view)
@@ -724,11 +732,41 @@ class Commander(tk.Tk):
             font_size.add_radiobutton(label=label, value=value, variable=self.font_size_var,
                                       command=self.apply_font_size)
         view.add_cascade(label="Font Size", menu=font_size)
+        self.clipboard_summary = tk.Label(header, text="Clipboard: checking…", anchor="e", width=1,
+                                          font=tkfont.nametofont("TkDefaultFont"),
+                                          background=header_bg, foreground="#c9e5f5")
+        self.clipboard_summary.pack(side="right", fill="x", expand=True, padx=(12, 4))
         self.files_menu_button = files_button
         self.view_menu_button = view_button
         self.files_menu = files
         self.view_menu = view
         self.config(menu="")
+
+    def _schedule_clipboard_summary(self, delay=2000) -> None:
+        self._clipboard_job = self.after(delay, self._update_clipboard_summary)
+
+    def _update_clipboard_summary(self) -> None:
+        self._clipboard_job = None
+        try:
+            paths, cut = get_file_clipboard()
+            if paths:
+                action = "Cut" if cut else "Copy"
+                first = paths[0].name or str(paths[0])
+                extra = f" +{len(paths) - 1}" if len(paths) > 1 else ""
+                summary = f"Clipboard: {action} {len(paths)} — {first}{extra}"
+            else:
+                try:
+                    value = self.clipboard_get()
+                    compact = " ".join(value.split())
+                    preview = compact[:64] + ("…" if len(compact) > 64 else "")
+                    summary = f"Clipboard: {preview}" if preview else "Clipboard: empty"
+                except tk.TclError:
+                    summary = "Clipboard: non-text content"
+            self.clipboard_summary.configure(text=summary)
+        except (OSError, MemoryError):
+            pass  # Keep the last useful summary while another app owns the clipboard.
+        if self.winfo_exists():
+            self._schedule_clipboard_summary()
 
     def set_active(self, pane: FilePane) -> None:
         self.active = pane
