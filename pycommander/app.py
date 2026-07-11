@@ -341,9 +341,9 @@ class Commander(tk.Tk):
             except tk.TclError:
                 pass
         style = ttk.Style(self)
-        style.configure("Active.Treeview", background="white", fieldbackground="white")
+        style.configure("Active.Treeview", background="white", fieldbackground="white", indent=6)
         style.map("Active.Treeview", background=[("selected", "#1683e2")], foreground=[("selected", "white")])
-        style.configure("Inactive.Treeview", background="white", fieldbackground="white")
+        style.configure("Inactive.Treeview", background="white", fieldbackground="white", indent=6)
         style.map("Inactive.Treeview", background=[("selected", "#91a9bd")], foreground=[("selected", "white")])
         style.configure("PFC.TNotebook", background="#9eafbd", borderwidth=1)
         style.configure("PFC.TNotebook.Tab", background="#c7d3dd", foreground="#243442",

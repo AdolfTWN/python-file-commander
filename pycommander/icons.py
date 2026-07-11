@@ -51,10 +51,11 @@ def _png_from_bgra(raw: bytes, size: int) -> bytes:
 class ShellIconProvider:
     """Caches native Windows Shell icons as Tk images."""
 
-    def __init__(self, size: int = 16) -> None:
+    def __init__(self, size: int = 16, text_gap: int | None = None) -> None:
         self.size = size
+        self.text_gap = max(4, round(size * 0.3)) if text_gap is None else text_gap
         self.cache: dict[str, PhotoImage] = {}
-        self.blank = PhotoImage(width=size, height=size)
+        self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
     def get(self, path: Path, is_dir: bool) -> PhotoImage:
         if os.name != "nt":
@@ -62,8 +63,14 @@ class ShellIconProvider:
         suffix = path.suffix.casefold()
         key = "<folder>" if is_dir else (str(path) if suffix in {".exe", ".lnk", ".ico"} else suffix or "<file>")
         if key not in self.cache:
-            self.cache[key] = self._load(path) or self.blank
+            icon = self._load(path)
+            self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
         return self.cache[key]
+
+    def _with_text_gap(self, icon: PhotoImage) -> PhotoImage:
+        padded = PhotoImage(width=self.size + self.text_gap, height=self.size)
+        padded.tk.call(str(padded), "copy", str(icon), "-to", 0, 0)
+        return padded
 
     def _load(self, path: Path) -> PhotoImage | None:
         shell32, user32, gdi32 = ctypes.windll.shell32, ctypes.windll.user32, ctypes.windll.gdi32

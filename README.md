@@ -23,7 +23,7 @@ The portable file is generated from the maintainable package source:
 python tools/build_single_file.py
 ```
 
-Current core: two resizable panes, tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons, multi-select, rename (F2), preview in the other panel (F3), recursive name search (F4), copy (F5), move (F6), new folder (F7), permanent delete (Del), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Preview tabs show the previewed filename.
+Current core: two resizable panes, tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons with a compact left gutter and padded filename gap, multi-select, rename (F2), preview in the other panel (F3), recursive name search (F4), copy (F5), move (F6), new folder (F7), permanent delete (Del), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Preview tabs show the previewed filename.
 
 Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the selected path, and Ctrl+H toggles hidden files.
 
