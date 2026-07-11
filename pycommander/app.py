@@ -88,9 +88,9 @@ class FilePane(ttk.Frame):
         ttk.Button(bar, text="↑", width=3, command=self.up).pack(side="left", padx=2)
         ttk.Button(bar, text="⌂", width=3, command=lambda: self.navigate(Path.home())).pack(side="left")
         self.path_var = tk.StringVar()
-        entry = ttk.Entry(bar, textvariable=self.path_var)
-        entry.pack(side="left", fill="x", expand=True, padx=(4, 0))
-        entry.bind("<Return>", lambda _e: self.navigate(Path(self.path_var.get())))
+        self.path_entry = ttk.Entry(bar, textvariable=self.path_var)
+        self.path_entry.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        self.path_entry.bind("<Return>", lambda _e: self.navigate(Path(self.path_var.get())))
 
         frame = ttk.Frame(self)
         frame.pack(fill="both", expand=True)
@@ -470,6 +470,10 @@ class Commander(tk.Tk):
             "copy_path": "<Control-Shift-C>", "toggle_hidden": "<Control-h>",
             "clipboard_copy": "<Control-c>", "clipboard_cut": "<Control-x>",
             "clipboard_paste": "<Control-v>",
+            "next_tab": "<Control-Tab>", "previous_tab": "<Control-Shift-Tab>",
+            "switch_panel": "<Tab>", "focus_path": "<Control-l>",
+            "focus_files": "<Escape>", "help": "<F1>",
+            "files_menu": "<Alt-f>", "view_menu": "<Alt-v>",
             "compare": "<F9>",
         }
         commands = {
@@ -480,6 +484,12 @@ class Commander(tk.Tk):
             "copy_path": self.copy_path, "toggle_hidden": self.toggle_hidden,
             "clipboard_copy": self.clipboard_copy, "clipboard_cut": self.clipboard_cut,
             "clipboard_paste": self.clipboard_paste,
+            "next_tab": lambda: self.switch_tab(1),
+            "previous_tab": lambda: self.switch_tab(-1),
+            "switch_panel": self.switch_panel, "focus_path": self.focus_path,
+            "focus_files": self.focus_files, "help": self.show_help,
+            "files_menu": lambda: self.show_header_menu("files"),
+            "view_menu": lambda: self.show_header_menu("view"),
             "compare": self.compare_selected,
         }
         if not self.config_data.has_section("hotkeys"):
@@ -628,7 +638,10 @@ class Commander(tk.Tk):
         menu_font = tkfont.nametofont("TkMenuFont")
         header = ttk.Frame(self, padding=(5, 2))
         header.pack(fill="x")
-        ttk.Label(header, text="Python File Commander", font=tkfont.nametofont("TkCaptionFont")).pack(side="left", padx=(2, 10))
+        title = ttk.Label(header, text="Python File Commander", font=tkfont.nametofont("TkCaptionFont"),
+                          cursor="hand2")
+        title.pack(side="left", padx=(2, 10))
+        title.bind("<Button-1>", lambda _event: self.show_help())
         files_button = tk.Menubutton(header, text="Files", font=menu_font, relief="flat", padx=6)
         files_button.pack(side="left")
         files = tk.Menu(files_button, tearoff=False, font=menu_font)
@@ -659,6 +672,8 @@ class Commander(tk.Tk):
         view.add_cascade(label="Font Size", menu=font_size)
         self.files_menu_button = files_button
         self.view_menu_button = view_button
+        self.files_menu = files
+        self.view_menu = view
         self.config(menu="")
 
     def set_active(self, pane: FilePane) -> None:
@@ -685,6 +700,59 @@ class Commander(tk.Tk):
         source = self.active or self.left_tabs.current()
         left_panes = [self.left_tabs.nametowidget(tab) for tab in self.left_tabs.tabs()]
         return (source, self.right_tabs.current() if source in left_panes else self.left_tabs.current())
+
+    def _tabs_for(self, pane: FilePane) -> PaneTabs:
+        return self.left_tabs if pane in self.left_tabs.panes() else self.right_tabs
+
+    def switch_tab(self, direction: int) -> str:
+        source = self.active or self.left_tabs.current()
+        tabs = self._tabs_for(source)
+        tab_ids = tabs.tabs()
+        if tab_ids:
+            index = (tabs.index(tabs.select()) + direction) % len(tab_ids)
+            tabs.select(tab_ids[index])
+            tabs.current().tree.focus_set()
+        return "break"
+
+    def switch_panel(self) -> str:
+        source = self.active or self.left_tabs.current()
+        target = self.right_tabs.current() if source in self.left_tabs.panes() else self.left_tabs.current()
+        self.set_active(target)
+        target.tree.focus_set()
+        return "break"
+
+    def focus_path(self) -> str:
+        source = self.panes()[0]
+        source.path_entry.focus_set()
+        source.path_entry.selection_range(0, "end")
+        return "break"
+
+    def focus_files(self) -> str:
+        source = self.panes()[0]
+        source.tree.focus_set()
+        return "break"
+
+    def show_help(self) -> str:
+        messagebox.showinfo(
+            "Python File Commander — Keyboard Guide",
+            "Navigation\n"
+            "↑/↓ Select item    Right Enter folder    Left Parent folder\n"
+            "Tab Switch panel    Ctrl+Tab / Ctrl+Shift+Tab Switch tabs\n"
+            "Ctrl+Up Clone folder in a new tab    Ctrl+W Close tab\n"
+            "Ctrl+L Edit path    Esc Return to file list\n\n"
+            "File operations\n"
+            "F2 Rename    F3 Preview    F4 Search    F5 Copy to other panel\n"
+            "F6 Move to other panel    F7 New folder    F9 Compare    Del Delete\n"
+            "Ctrl+C / Ctrl+X / Ctrl+V Copy, cut, and paste with File Explorer\n"
+            "Ctrl+A Select all    Ctrl+Shift+C Copy path    Ctrl+H Hidden files\n\n"
+            "F1 opens this guide.", parent=self)
+        return "break"
+
+    def show_header_menu(self, which: str) -> str:
+        button = self.files_menu_button if which == "files" else self.view_menu_button
+        menu = self.files_menu if which == "files" else self.view_menu
+        menu.tk_popup(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
+        return "break"
 
     def refresh(self) -> None:
         self.left_tabs.current().refresh(); self.right_tabs.current().refresh()
