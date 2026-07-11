@@ -494,10 +494,13 @@ class Commander(tk.Tk):
         }
         if not self.config_data.has_section("hotkeys"):
             self.config_data.add_section("hotkeys")
+        configured_hotkeys = {}
         for name, default in defaults.items():
             key = self.config_data.get("hotkeys", name, fallback=default)
             self.config_data.set("hotkeys", name, key)
+            configured_hotkeys[name] = key
             self.bind_all(key, lambda _e, fn=commands[name]: fn())
+        self._install_priority_hotkeys(configured_hotkeys, commands)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
         self._ready = True
         self._save_job = None
@@ -506,6 +509,21 @@ class Commander(tk.Tk):
         self.set_active(self.active)
         self.save_config()
         self._schedule_auto_refresh(250)
+
+    def _install_priority_hotkeys(self, hotkeys, commands) -> None:
+        """Run tab navigation before Tk widget/class bindings can consume Tab."""
+        tag = f"PFCKeyboard{id(self)}"
+        for name in ("switch_panel", "next_tab", "previous_tab", "enter_folder", "parent_folder"):
+            self.bind_class(tag, hotkeys[name], lambda _event, fn=commands[name]: fn())
+
+        def prepend(widget):
+            tags = widget.bindtags()
+            if tag not in tags:
+                widget.bindtags((tag, *tags))
+            for child in widget.winfo_children():
+                prepend(child)
+
+        prepend(self)
 
     @staticmethod
     def _find_ini_path() -> Path:
@@ -760,11 +778,19 @@ class Commander(tk.Tk):
     def open(self) -> None:
         self.panes()[0].open_selected()
 
-    def enter_folder(self) -> None:
+    def enter_folder(self) -> str | None:
+        source = self.panes()[0]
+        if self.focus_get() is not source.tree:
+            return None
         self.open()
+        return "break"
 
-    def parent_folder(self) -> None:
-        self.panes()[0].up()
+    def parent_folder(self) -> str | None:
+        source = self.panes()[0]
+        if self.focus_get() is not source.tree:
+            return None
+        source.up()
+        return "break"
 
     def preview(self) -> None:
         source, target = self.panes()
