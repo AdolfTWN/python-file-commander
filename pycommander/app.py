@@ -16,7 +16,9 @@ from .icons import ShellIconProvider
 
 
 class FilePane(ttk.Frame):
-    columns = ("name", "ext", "size", "modified", "attr")
+    columns = ("ext", "size", "modified", "attr")
+    all_sort_columns = ("name", "ext", "size", "modified", "attr")
+    base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135, "attr": 55}
 
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None) -> None:
         super().__init__(master)
@@ -48,17 +50,16 @@ class FilePane(ttk.Frame):
         frame = ttk.Frame(self)
         frame.pack(fill="both", expand=True)
         self.tree = ttk.Treeview(frame, columns=self.columns, show="tree headings", selectmode="extended", style="Inactive.Treeview")
-        self.tree.heading("#0", text="")
-        # Root items still reserve Treeview indentation before their image. Keep
-        # a wide gutter so the Shell icon never paints across the Name boundary.
-        self.tree.column("#0", width=42, minwidth=42, stretch=False)
-        widths = {"name": 260, "ext": 55, "size": 85, "modified": 135, "attr": 55}
+        self.tree.heading("#0", text="Name ▲", command=lambda: self.change_sort("name"))
+        self.tree.column("#0", width=self.base_widths["name"], minwidth=120, stretch=True)
         for col in self.columns:
-            marker = " ▲" if col == self.sort_column else ""
+            marker = ""
             self.tree.heading(col, text=self.heading_labels[col] + marker, command=lambda c=col: self.change_sort(c))
-            self.tree.column(col, width=widths[col], stretch=col == "name", anchor="e" if col == "size" else "w")
+            self.tree.column(col, width=self.base_widths[col], stretch=False, anchor="e" if col == "size" else "w")
         scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scroll.set)
+        horizontal = ttk.Scrollbar(frame, orient="horizontal", command=self.tree.xview)
+        self.tree.configure(yscrollcommand=scroll.set, xscrollcommand=horizontal.set)
+        horizontal.pack(side="bottom", fill="x")
         self.tree.pack(side="left", fill="both", expand=True)
         scroll.pack(side="right", fill="y")
         self.tree.bind("<Double-1>", self.open_selected)
@@ -92,9 +93,10 @@ class FilePane(ttk.Frame):
     def change_sort(self, column: str) -> None:
         self.reverse = not self.reverse if self.sort_column == column else False
         self.sort_column = column
-        for col in self.columns:
+        for col in self.all_sort_columns:
             marker = (" ▲" if not self.reverse else " ▼") if col == self.sort_column else ""
-            self.tree.heading(col, text=self.heading_labels[col] + marker)
+            target = "#0" if col == "name" else col
+            self.tree.heading(target, text=self.heading_labels[col] + marker)
         self.refresh()
         self.on_change()
 
@@ -119,11 +121,11 @@ class FilePane(ttk.Frame):
                     stat = p.stat()
                     is_dir = p.is_dir()
                     total += 0 if is_dir else stat.st_size
-                    values = (f"[{p.name}]" if is_dir else p.name, "" if is_dir else p.suffix[1:],
-                              "<DIR>" if is_dir else format_size(stat.st_size),
+                    name = f"[{p.name}]" if is_dir else p.name
+                    values = ("" if is_dir else p.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
                               ("d" if is_dir else "-") + ("h" if p.name.startswith(".") else "-"))
-                    iid = self.tree.insert("", "end", image=self.icons.get(p, is_dir), values=values, tags=(str(p),))
+                    iid = self.tree.insert("", "end", text=name, image=self.icons.get(p, is_dir), values=values, tags=(str(p),))
                     if str(p) in selected:
                         self.tree.selection_add(iid)
                 except OSError:
@@ -181,7 +183,7 @@ class FilePane(ttk.Frame):
             else:
                 details.append("Binary file: metadata preview only.")
             for line in details:
-                self.tree.insert("", "end", values=(line, "", "", "", ""))
+                self.tree.insert("", "end", text=line, values=("", "", "", ""))
             self.status.configure(text=f"Previewing {item.name}")
             self.on_change()
         except OSError as exc:
@@ -201,7 +203,7 @@ class FilePane(ttk.Frame):
                 try:
                     stat = item.stat()
                     is_dir = item.is_dir()
-                    self.tree.insert("", "end", image=self.icons.get(item, is_dir), values=(str(item.relative_to(self.path)),
+                    self.tree.insert("", "end", text=str(item.relative_to(self.path)), image=self.icons.get(item, is_dir), values=(
                         "" if is_dir else item.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"), "d-" if is_dir else "--"),
                         tags=(str(item),))
@@ -227,6 +229,15 @@ class FilePane(ttk.Frame):
 
     def set_active_appearance(self, active: bool) -> None:
         self.tree.configure(style="Active.Treeview" if active else "Inactive.Treeview")
+
+    def apply_scale(self, scale: float) -> None:
+        icon_size = max(16, round(16 * scale))
+        if self.icons.size != icon_size:
+            self.icons = ShellIconProvider(icon_size)
+        self.tree.column("#0", width=round(self.base_widths["name"] * scale), minwidth=120, stretch=True)
+        for column in self.columns:
+            self.tree.column(column, width=round(self.base_widths[column] * scale))
+        self.refresh()
 
 
 class PaneTabs(ttk.Notebook):
@@ -319,6 +330,7 @@ class Commander(tk.Tk):
         self._restore_panel_options(self.left_tabs, "left")
         self._restore_panel_options(self.right_tabs, "right")
         self.active = self.right_tabs.current() if self.config_data.get("state", "active_panel", fallback="left") == "right" else self.left_tabs.current()
+        self.apply_font_size(save=False)
         actions = ttk.Frame(self)
         actions.pack(fill="x", padx=5, pady=(0, 5))
         for text, command in (("F3 Preview", self.preview), ("F4 Search", self.search), ("F5 Copy", self.copy), ("F6 Move", self.move),
@@ -379,13 +391,13 @@ class Commander(tk.Tk):
         show_hidden = self.config_data.getboolean(side, "show_hidden", fallback=False)
         show_system = self.config_data.getboolean(side, "show_system", fallback=False)
         for pane in tabs.panes():
-            pane.sort_column = column if column in pane.columns else "name"
+            pane.sort_column = column if column in pane.all_sort_columns else "name"
             pane.reverse = descending
             pane.show_hidden = show_hidden
             pane.show_system = show_system
-            for col in pane.columns:
+            for col in pane.all_sort_columns:
                 marker = (" ▼" if descending else " ▲") if col == pane.sort_column else ""
-                pane.tree.heading(col, text=pane.heading_labels[col] + marker)
+                pane.tree.heading("#0" if col == "name" else col, text=pane.heading_labels[col] + marker)
             pane.refresh()
 
     def _schedule_save(self, _event=None) -> None:
@@ -431,16 +443,17 @@ class Commander(tk.Tk):
         self.destroy()
 
     def _build_menu(self) -> None:
-        menu = tk.Menu(self)
-        files = tk.Menu(menu, tearoff=False)
+        menu_font = tkfont.nametofont("TkMenuFont")
+        menu = tk.Menu(self, font=menu_font)
+        files = tk.Menu(menu, tearoff=False, font=menu_font)
         files.add_command(label="Preview in other panel\tF3", command=self.preview)
         files.add_command(label="Search\tF4", command=self.search)
         files.add_command(label="Rename\tF2", command=self.rename)
         files.add_separator()
         files.add_command(label="Exit", command=self.destroy)
         menu.add_cascade(label="Files", menu=files)
-        view = tk.Menu(menu, tearoff=False)
-        visibility = tk.Menu(view, tearoff=False)
+        view = tk.Menu(menu, tearoff=False, font=menu_font)
+        visibility = tk.Menu(view, tearoff=False, font=menu_font)
         self.show_hidden_var = tk.BooleanVar(value=False)
         self.show_system_var = tk.BooleanVar(value=False)
         visibility.add_checkbutton(label="Show Hidden", variable=self.show_hidden_var,
@@ -448,7 +461,7 @@ class Commander(tk.Tk):
         visibility.add_checkbutton(label="Show System", variable=self.show_system_var,
                                    command=self.set_system_visibility)
         view.add_cascade(label="File Visibility", menu=visibility)
-        font_size = tk.Menu(view, tearoff=False)
+        font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
                              ("Large (200%)", "large"), ("Huge (300%)", "huge")):
             font_size.add_radiobutton(label=label, value=value, variable=self.font_size_var,
@@ -541,6 +554,9 @@ class Commander(tk.Tk):
         row_height = max(22, round(22 * scale))
         ttk.Style(self).configure("Active.Treeview", rowheight=row_height)
         ttk.Style(self).configure("Inactive.Treeview", rowheight=row_height)
+        if hasattr(self, "left_tabs"):
+            for pane in self.left_tabs.panes() + self.right_tabs.panes():
+                pane.apply_scale(scale)
         if save:
             self.save_config()
 

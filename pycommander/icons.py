@@ -85,7 +85,11 @@ class ShellIconProvider:
         gdi32.DeleteObject.argtypes = [ctypes.c_void_p]
         gdi32.DeleteDC.argtypes = [ctypes.c_void_p]
         info = _SHFILEINFO()
-        if not shell32.SHGetFileInfoW(str(path), 0, ctypes.byref(info), ctypes.sizeof(info), 0x100 | 0x1):
+        # The small Shell handle reliably contains alpha on all supported Windows
+        # versions. DrawIconEx scales it to the selected UI profile; some large
+        # handles render fully transparent when converted through a 32-bit DIB.
+        flags = 0x1 | 0x100
+        if not shell32.SHGetFileInfoW(str(path), 0, ctypes.byref(info), ctypes.sizeof(info), flags):
             return None
         screen = user32.GetDC(None)
         memory = gdi32.CreateCompatibleDC(screen)
