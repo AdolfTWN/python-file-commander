@@ -14,6 +14,7 @@ from tkinter import messagebox, simpledialog, ttk
 from .fileops import copy_items, delete_items, format_size, is_system, move_items, roots
 from .icons import ShellIconProvider
 from .compare import CompareWindow
+from .tabs import ChamferNotebook
 
 
 class FilePane(ttk.Frame):
@@ -271,9 +272,12 @@ class FilePane(ttk.Frame):
         self.refresh()
 
 
-class PaneTabs(ttk.Notebook):
-    def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None) -> None:
-        super().__init__(master, style="PFC.TNotebook")
+class PaneTabs(ChamferNotebook):
+    def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None,
+                 color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None) -> None:
+        self.color_for = color_for
+        self.on_tab_color = on_tab_color
+        super().__init__(master, on_color_changed=self._color_changed)
         self.on_activate = on_activate
         self.on_change = on_change
         self.bind("<<NotebookTabChanged>>", lambda _e: self._tab_changed())
@@ -283,7 +287,7 @@ class PaneTabs(ttk.Notebook):
     def add_tab(self, path: Path, notify: bool = True) -> FilePane:
         pane = FilePane(self, self.on_activate, self._pane_changed)
         pane.navigate(path)
-        self.add(pane, text=path.name or str(path))
+        self.add(pane, text=path.name or str(path), color=self.color_for(path))
         self.select(pane)
         pane.tree.focus_set()
         if notify:
@@ -297,6 +301,8 @@ class PaneTabs(ttk.Notebook):
         try:
             pane = self.current()
             self.tab(pane, text=pane.display_title)
+            if pane.mode == "files":
+                self.set_color(pane, self.color_for(pane.path), notify=False)
         except (tk.TclError, AttributeError):
             pass
         self.on_change()
@@ -319,6 +325,9 @@ class PaneTabs(ttk.Notebook):
     def panes(self) -> list[FilePane]:
         return [self.nametowidget(tab) for tab in self.tabs()]
 
+    def _color_changed(self, pane, color) -> None:
+        self.on_tab_color(pane.path, color)
+
 
 class Commander(tk.Tk):
     def __init__(self) -> None:
@@ -327,6 +336,10 @@ class Commander(tk.Tk):
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
+        try:
+            self._tab_colors = json.loads(self.config_data.get("tab_colors", "colors", fallback="{}"))
+        except (json.JSONDecodeError, TypeError):
+            self._tab_colors = {}
         self.title("Python File Commander")
         self.geometry(self.config_data.get("window", "geometry", fallback="1200x720"))
         self.minsize(800, 480)
@@ -364,8 +377,10 @@ class Commander(tk.Tk):
         split.pack(fill="both", expand=True, padx=5, pady=5)
         left_paths = self._saved_paths("left")
         right_paths = self._saved_paths("right")
-        self.left_tabs = PaneTabs(split, self.set_active, self.save_config, left_paths)
-        self.right_tabs = PaneTabs(split, self.set_active, self.save_config, right_paths)
+        self.left_tabs = PaneTabs(split, self.set_active, self.save_config, left_paths,
+                                  self.get_tab_color, self.set_tab_color)
+        self.right_tabs = PaneTabs(split, self.set_active, self.save_config, right_paths,
+                                   self.get_tab_color, self.set_tab_color)
         self.left = self.left_tabs.current()
         self.right = self.right_tabs.current()
         split.add(self.left_tabs, weight=1)
@@ -478,9 +493,12 @@ class Commander(tk.Tk):
             self.config_data.add_section("view")
         if not self.config_data.has_section("refresh"):
             self.config_data.add_section("refresh")
+        if not self.config_data.has_section("tab_colors"):
+            self.config_data.add_section("tab_colors")
         self.config_data.set("window", "geometry", self.geometry())
         self.config_data.set("state", "active_panel", "left" if self.active in self.left_tabs.panes() else "right")
         self.config_data.set("view", "font_size", self.font_size_var.get())
+        self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         refresh_defaults = {"auto_refresh": "true", "active_interval_ms": "2000",
                             "background_interval_ms": "10000", "network_interval_ms": "5000"}
         for key, value in refresh_defaults.items():
@@ -555,9 +573,20 @@ class Commander(tk.Tk):
         self.active = pane
         self.show_hidden_var.set(pane.show_hidden)
         self.show_system_var.set(pane.show_system)
-        if hasattr(self, "left_tabs"):
+        if hasattr(self, "left_tabs") and hasattr(self, "right_tabs"):
             for candidate in self.left_tabs.panes() + self.right_tabs.panes():
                 candidate.set_active_appearance(candidate is pane)
+        self.save_config()
+
+    def get_tab_color(self, path: Path) -> str:
+        return self._tab_colors.get(str(path), "default")
+
+    def set_tab_color(self, path: Path, color: str) -> None:
+        key = str(path)
+        if color == "default":
+            self._tab_colors.pop(key, None)
+        else:
+            self._tab_colors[key] = color
         self.save_config()
 
     def panes(self) -> tuple[FilePane, FilePane]:

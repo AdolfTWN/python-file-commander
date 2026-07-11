@@ -8,6 +8,8 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox, ttk
 
+from .tabs import ChamferNotebook
+
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
                  ".ini", ".cfg", ".log", ".yaml", ".yml", ".sql", ".bat", ".ps1", ".c", ".h",
@@ -200,7 +202,7 @@ class CompareWindow(tk.Toplevel):
         self.title("PFC Compare")
         self.geometry(config.get("compare", "geometry", fallback="1400x850"))
         self.protocol("WM_DELETE_WINDOW", self.close)
-        self.notebook = ttk.Notebook(self, style="PFC.TNotebook"); self.notebook.pack(fill="both", expand=True)
+        self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
         self.bind("<Escape>", lambda _e: self.close_active())

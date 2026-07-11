@@ -184,6 +184,139 @@ class ShellIconProvider:
             return None
 
 
+import tkinter as tk
+import tkinter.font as tkfont
+from tkinter import ttk
+
+
+TAB_COLORS = {
+    "default": ("Default", "#c7d3dd"),
+    "amber": ("Amber", "#f2c14e"),
+    "coral": ("Coral", "#f58b68"),
+    "pink": ("Pink", "#e96ba8"),
+    "violet": ("Violet", "#8d7be5"),
+    "teal": ("Teal", "#55b9ae"),
+}
+
+
+class ChamferNotebook(ttk.Frame):
+    """A small Notebook-compatible container with canvas-drawn colored tabs."""
+
+    def __init__(self, master, on_color_changed=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.on_color_changed = on_color_changed or (lambda _child, _color: None)
+        self._tabs = []
+        self._texts = {}
+        self._colors = {}
+        self._selected = None
+        self._hitboxes = []
+        self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
+        self.bar.pack(fill="x", side="top")
+        self.bar.bind("<Button-1>", self._click)
+        self.bar.bind("<Button-3>", self._popup)
+        self.bar.bind("<Configure>", lambda _e: self._draw())
+
+    def add(self, child, text="", color="default", **_kwargs):
+        if child not in self._tabs:
+            self._tabs.append(child)
+        self._texts[child] = text
+        self._colors[child] = color if color in TAB_COLORS else "default"
+        self.select(child)
+
+    def tabs(self):
+        return tuple(str(child) for child in self._tabs)
+
+    def select(self, tab=None):
+        if tab is None:
+            return str(self._selected) if self._selected is not None else ""
+        child = self._resolve(tab)
+        if child is self._selected:
+            return str(child)
+        if self._selected is not None:
+            self._selected.pack_forget()
+        self._selected = child
+        child.pack(fill="both", expand=True, side="top")
+        self._draw()
+        self.event_generate("<<NotebookTabChanged>>")
+        return str(child)
+
+    def forget(self, tab):
+        child = self._resolve(tab)
+        was_selected = child is self._selected
+        child.pack_forget()
+        self._tabs.remove(child)
+        self._texts.pop(child, None); self._colors.pop(child, None)
+        if was_selected:
+            self._selected = None
+            if self._tabs:
+                self.select(self._tabs[min(len(self._tabs) - 1, 0)])
+        self._draw()
+
+    def tab(self, tab, **options):
+        child = self._resolve(tab)
+        if "text" in options:
+            self._texts[child] = options["text"]; self._draw()
+        return {"text": self._texts.get(child, "")}
+
+    def index(self, tab):
+        return self._tabs.index(self._resolve(tab))
+
+    def set_color(self, tab, color, notify=True):
+        child = self._resolve(tab)
+        self._colors[child] = color if color in TAB_COLORS else "default"
+        self._draw()
+        if notify:
+            self.on_color_changed(child, self._colors[child])
+
+    def _resolve(self, tab):
+        if tab in self._tabs:
+            return tab
+        return self.nametowidget(tab)
+
+    def _draw(self):
+        self.bar.delete("all"); self._hitboxes.clear()
+        font = tkfont.nametofont("TkDefaultFont")
+        height = max(30, font.metrics("linespace") + 13)
+        self.bar.configure(height=height)
+        x, overlap, chamfer = 3, 7, max(8, round(height * 0.28))
+        for child in self._tabs:
+            text = self._texts.get(child, "")
+            width = max(58, font.measure(text) + 28)
+            color = TAB_COLORS[self._colors.get(child, "default")][1]
+            selected = child is self._selected
+            top = 1 if selected else 5
+            points = (x, height, x, top + chamfer, x + chamfer, top,
+                      x + width - chamfer, top, x + width, top + chamfer, x + width, height)
+            self.bar.create_polygon(points, fill=color, outline="#3b5265" if selected else "#718596",
+                                    width=2 if selected else 1)
+            self.bar.create_text(x + width / 2, (top + height) / 2 + 1, text=text, font=font,
+                                 fill="#10202c")
+            self._hitboxes.append((x, x + width, child))
+            x += width - overlap
+        self.bar.configure(scrollregion=(0, 0, max(x + overlap, self.bar.winfo_width()), height))
+
+    def _at(self, x):
+        for left, right, child in reversed(self._hitboxes):
+            if left <= x <= right:
+                return child
+        return None
+
+    def _click(self, event):
+        child = self._at(event.x)
+        if child is not None:
+            self.select(child)
+
+    def _popup(self, event):
+        child = self._at(event.x)
+        if child is None:
+            return
+        self.select(child)
+        menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        for key, (label, _color) in TAB_COLORS.items():
+            menu.add_command(label=label, command=lambda value=key: self.set_color(child, value))
+        menu.tk_popup(event.x_root, event.y_root)
+
+
 import csv
 import difflib
 import hashlib
@@ -191,6 +324,7 @@ import os
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox, ttk
+
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -384,7 +518,7 @@ class CompareWindow(tk.Toplevel):
         self.title("PFC Compare")
         self.geometry(config.get("compare", "geometry", fallback="1400x850"))
         self.protocol("WM_DELETE_WINDOW", self.close)
-        self.notebook = ttk.Notebook(self, style="PFC.TNotebook"); self.notebook.pack(fill="both", expand=True)
+        self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
         self.bind("<Escape>", lambda _e: self.close_active())
@@ -689,9 +823,12 @@ class FilePane(ttk.Frame):
         self.refresh()
 
 
-class PaneTabs(ttk.Notebook):
-    def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None) -> None:
-        super().__init__(master, style="PFC.TNotebook")
+class PaneTabs(ChamferNotebook):
+    def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None,
+                 color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None) -> None:
+        self.color_for = color_for
+        self.on_tab_color = on_tab_color
+        super().__init__(master, on_color_changed=self._color_changed)
         self.on_activate = on_activate
         self.on_change = on_change
         self.bind("<<NotebookTabChanged>>", lambda _e: self._tab_changed())
@@ -701,7 +838,7 @@ class PaneTabs(ttk.Notebook):
     def add_tab(self, path: Path, notify: bool = True) -> FilePane:
         pane = FilePane(self, self.on_activate, self._pane_changed)
         pane.navigate(path)
-        self.add(pane, text=path.name or str(path))
+        self.add(pane, text=path.name or str(path), color=self.color_for(path))
         self.select(pane)
         pane.tree.focus_set()
         if notify:
@@ -715,6 +852,8 @@ class PaneTabs(ttk.Notebook):
         try:
             pane = self.current()
             self.tab(pane, text=pane.display_title)
+            if pane.mode == "files":
+                self.set_color(pane, self.color_for(pane.path), notify=False)
         except (tk.TclError, AttributeError):
             pass
         self.on_change()
@@ -737,6 +876,9 @@ class PaneTabs(ttk.Notebook):
     def panes(self) -> list[FilePane]:
         return [self.nametowidget(tab) for tab in self.tabs()]
 
+    def _color_changed(self, pane, color) -> None:
+        self.on_tab_color(pane.path, color)
+
 
 class Commander(tk.Tk):
     def __init__(self) -> None:
@@ -745,6 +887,10 @@ class Commander(tk.Tk):
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
+        try:
+            self._tab_colors = json.loads(self.config_data.get("tab_colors", "colors", fallback="{}"))
+        except (json.JSONDecodeError, TypeError):
+            self._tab_colors = {}
         self.title("Python File Commander")
         self.geometry(self.config_data.get("window", "geometry", fallback="1200x720"))
         self.minsize(800, 480)
@@ -782,8 +928,10 @@ class Commander(tk.Tk):
         split.pack(fill="both", expand=True, padx=5, pady=5)
         left_paths = self._saved_paths("left")
         right_paths = self._saved_paths("right")
-        self.left_tabs = PaneTabs(split, self.set_active, self.save_config, left_paths)
-        self.right_tabs = PaneTabs(split, self.set_active, self.save_config, right_paths)
+        self.left_tabs = PaneTabs(split, self.set_active, self.save_config, left_paths,
+                                  self.get_tab_color, self.set_tab_color)
+        self.right_tabs = PaneTabs(split, self.set_active, self.save_config, right_paths,
+                                   self.get_tab_color, self.set_tab_color)
         self.left = self.left_tabs.current()
         self.right = self.right_tabs.current()
         split.add(self.left_tabs, weight=1)
@@ -896,9 +1044,12 @@ class Commander(tk.Tk):
             self.config_data.add_section("view")
         if not self.config_data.has_section("refresh"):
             self.config_data.add_section("refresh")
+        if not self.config_data.has_section("tab_colors"):
+            self.config_data.add_section("tab_colors")
         self.config_data.set("window", "geometry", self.geometry())
         self.config_data.set("state", "active_panel", "left" if self.active in self.left_tabs.panes() else "right")
         self.config_data.set("view", "font_size", self.font_size_var.get())
+        self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         refresh_defaults = {"auto_refresh": "true", "active_interval_ms": "2000",
                             "background_interval_ms": "10000", "network_interval_ms": "5000"}
         for key, value in refresh_defaults.items():
@@ -973,9 +1124,20 @@ class Commander(tk.Tk):
         self.active = pane
         self.show_hidden_var.set(pane.show_hidden)
         self.show_system_var.set(pane.show_system)
-        if hasattr(self, "left_tabs"):
+        if hasattr(self, "left_tabs") and hasattr(self, "right_tabs"):
             for candidate in self.left_tabs.panes() + self.right_tabs.panes():
                 candidate.set_active_appearance(candidate is pane)
+        self.save_config()
+
+    def get_tab_color(self, path: Path) -> str:
+        return self._tab_colors.get(str(path), "default")
+
+    def set_tab_color(self, path: Path, color: str) -> None:
+        key = str(path)
+        if color == "default":
+            self._tab_colors.pop(key, None)
+        else:
+            self._tab_colors[key] = color
         self.save_config()
 
     def panes(self) -> tuple[FilePane, FilePane]:
