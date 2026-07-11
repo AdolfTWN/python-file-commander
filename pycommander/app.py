@@ -451,10 +451,14 @@ class Commander(tk.Tk):
         self.apply_font_size(save=False)
         actions = ttk.Frame(self)
         actions.pack(fill="x", padx=5, pady=(0, 5))
-        for text, command in (("F3 Preview", self.preview), ("F4 Search", self.search), ("F5 Copy", self.copy), ("F6 Move", self.move),
-                              ("F7 New folder", self.mkdir), ("Del Delete", self.delete), ("F2 Rename", self.rename),
-                              ("F9 Compare", self.compare_selected)):
-            ttk.Button(actions, text=text, command=command).pack(side="left", fill="x", expand=True, padx=1)
+        for text, command in (("F2 Rename", self.rename), ("F3 Preview", self.preview),
+                              ("F4 Search", self.search), ("F5 Copy", self.copy),
+                              ("F6 Move", self.move), ("F7 New folder", self.mkdir),
+                              ("F8", None), ("F9 Compare", self.compare_selected)):
+            button = ttk.Button(actions, text=text, command=command)
+            if command is None:
+                button.state(["disabled"])
+            button.pack(side="left", fill="x", expand=True, padx=1)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
             "move": "<F6>", "new_folder": "<F7>", "delete": "<Delete>", "refresh": "<Control-r>",
