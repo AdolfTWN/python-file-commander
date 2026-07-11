@@ -33,7 +33,7 @@ Visible folders auto-refresh adaptively: every 2 seconds while PFC is focused, e
 
 `View > File Visibility` independently shows or hides Hidden and Windows System files. Both are hidden by default.
 
-`View > Font Size` provides Small (100%), Medium (150%), Large (200%), and Huge (300%). Fonts, the in-client application header and menus, row heights, native Shell icons, and the icon gutter scale together. The choice is saved in `pfc.ini`. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
+`View > Font Size` provides Small (100%), Medium (150%), Large (200%), and Huge (300%). Fonts, the in-client application header and menus, tab geometry, path controls, row heights, native Shell icons, and the icon gutter scale and reflow together. The choice is saved in `pfc.ini`. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
 
 All persistent state is kept in the single `pfc.ini` beside `pfc.py`. It is updated after navigation, tab, sorting, display, active-panel, hotkey, and window changes so tabs and paths survive an unexpected shutdown. Hotkeys can be changed in its `[hotkeys]` section.
 

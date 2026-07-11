@@ -84,6 +84,9 @@ class ChamferNotebook(ttk.Frame):
         if notify:
             self.on_color_changed(child, self._colors[child])
 
+    def redraw(self):
+        self._draw()
+
     def _resolve(self, tab):
         if tab in self._tabs:
             return tab
@@ -94,16 +97,17 @@ class ChamferNotebook(ttk.Frame):
         font = tkfont.nametofont("TkDefaultFont")
         height = max(30, font.metrics("linespace") + 13)
         self.bar.configure(height=height)
-        x, overlap, chamfer = 3, 7, max(8, round(height * 0.28))
+        x, overlap, chamfer = 3, 9, max(8, round(height * 0.30))
         drawings = []
         for child in self._tabs:
             text = self._texts.get(child, "")
-            width = max(58, font.measure(text) + 28)
-            color = TAB_COLORS[self._colors.get(child, "default")][1]
             selected = child is self._selected
-            top = 1 if selected else 5
-            points = (x, height, x, top + chamfer, x + chamfer, top,
-                      x + width - chamfer, top, x + width, top + chamfer, x + width, height)
+            width = max(58, font.measure(text) + 28 + (14 if selected else 0))
+            color = TAB_COLORS[self._colors.get(child, "default")][1]
+            top = 0 if selected else max(5, round(height * 0.22))
+            bottom = height if selected else height - 3
+            points = (x, bottom, x, top + chamfer, x + chamfer, top,
+                      x + width - chamfer, top, x + width, top + chamfer, x + width, bottom)
             drawings.append((selected, points, color, text, x, width, top, child))
             self._hitboxes.append((x, x + width, child))
             x += width - overlap
@@ -111,8 +115,12 @@ class ChamferNotebook(ttk.Frame):
         # both neighbours instead of being covered by the tab to its right.
         for selected, points, color, text, left, width, top, child in sorted(drawings, key=lambda item: item[0]):
             self.bar.create_polygon(points, fill=color, outline="#3b5265" if selected else "#718596",
-                                    width=2 if selected else 1)
-            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
+                                    width=3 if selected else 1)
+            if selected:
+                self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
+                                     fill=color, width=4)
+            draw_font = (font.actual("family"), font.actual("size"), "bold") if selected else font
+            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=draw_font,
                                  fill="#10202c")
         self.bar.configure(scrollregion=(0, 0, max(x + overlap, self.bar.winfo_width()), height))
 

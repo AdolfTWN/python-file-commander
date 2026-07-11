@@ -685,11 +685,20 @@ class Commander(tk.Tk):
             size = max(1, round(abs(base) * scale))
             tkfont.nametofont(name).configure(size=-size if base < 0 else size)
         row_height = max(22, round(22 * scale))
-        ttk.Style(self).configure("Active.Treeview", rowheight=row_height)
-        ttk.Style(self).configure("Inactive.Treeview", rowheight=row_height)
+        style = ttk.Style(self)
+        style.configure("Active.Treeview", rowheight=row_height)
+        style.configure("Inactive.Treeview", rowheight=row_height)
+        control_padding = max(1, round(3 * scale))
+        style.configure("TEntry", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
+        style.configure("TCombobox", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
+        style.configure("TButton", font=tkfont.nametofont("TkDefaultFont"), padding=control_padding)
         if hasattr(self, "left_tabs"):
             for pane in self.left_tabs.panes() + self.right_tabs.panes():
                 pane.apply_scale(scale)
+            self.left_tabs.redraw(); self.right_tabs.redraw()
+        if self.compare_window is not None and self.compare_window.winfo_exists():
+            self.compare_window.notebook.redraw()
+        self.update_idletasks()
         if save:
             self.save_config()
 

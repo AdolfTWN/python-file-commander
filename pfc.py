@@ -268,6 +268,9 @@ class ChamferNotebook(ttk.Frame):
         if notify:
             self.on_color_changed(child, self._colors[child])
 
+    def redraw(self):
+        self._draw()
+
     def _resolve(self, tab):
         if tab in self._tabs:
             return tab
@@ -278,16 +281,17 @@ class ChamferNotebook(ttk.Frame):
         font = tkfont.nametofont("TkDefaultFont")
         height = max(30, font.metrics("linespace") + 13)
         self.bar.configure(height=height)
-        x, overlap, chamfer = 3, 7, max(8, round(height * 0.28))
+        x, overlap, chamfer = 3, 9, max(8, round(height * 0.30))
         drawings = []
         for child in self._tabs:
             text = self._texts.get(child, "")
-            width = max(58, font.measure(text) + 28)
-            color = TAB_COLORS[self._colors.get(child, "default")][1]
             selected = child is self._selected
-            top = 1 if selected else 5
-            points = (x, height, x, top + chamfer, x + chamfer, top,
-                      x + width - chamfer, top, x + width, top + chamfer, x + width, height)
+            width = max(58, font.measure(text) + 28 + (14 if selected else 0))
+            color = TAB_COLORS[self._colors.get(child, "default")][1]
+            top = 0 if selected else max(5, round(height * 0.22))
+            bottom = height if selected else height - 3
+            points = (x, bottom, x, top + chamfer, x + chamfer, top,
+                      x + width - chamfer, top, x + width, top + chamfer, x + width, bottom)
             drawings.append((selected, points, color, text, x, width, top, child))
             self._hitboxes.append((x, x + width, child))
             x += width - overlap
@@ -295,8 +299,12 @@ class ChamferNotebook(ttk.Frame):
         # both neighbours instead of being covered by the tab to its right.
         for selected, points, color, text, left, width, top, child in sorted(drawings, key=lambda item: item[0]):
             self.bar.create_polygon(points, fill=color, outline="#3b5265" if selected else "#718596",
-                                    width=2 if selected else 1)
-            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
+                                    width=3 if selected else 1)
+            if selected:
+                self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
+                                     fill=color, width=4)
+            draw_font = (font.actual("family"), font.actual("size"), "bold") if selected else font
+            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=draw_font,
                                  fill="#10202c")
         self.bar.configure(scrollregion=(0, 0, max(x + overlap, self.bar.winfo_width()), height))
 
@@ -1245,11 +1253,20 @@ class Commander(tk.Tk):
             size = max(1, round(abs(base) * scale))
             tkfont.nametofont(name).configure(size=-size if base < 0 else size)
         row_height = max(22, round(22 * scale))
-        ttk.Style(self).configure("Active.Treeview", rowheight=row_height)
-        ttk.Style(self).configure("Inactive.Treeview", rowheight=row_height)
+        style = ttk.Style(self)
+        style.configure("Active.Treeview", rowheight=row_height)
+        style.configure("Inactive.Treeview", rowheight=row_height)
+        control_padding = max(1, round(3 * scale))
+        style.configure("TEntry", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
+        style.configure("TCombobox", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
+        style.configure("TButton", font=tkfont.nametofont("TkDefaultFont"), padding=control_padding)
         if hasattr(self, "left_tabs"):
             for pane in self.left_tabs.panes() + self.right_tabs.panes():
                 pane.apply_scale(scale)
+            self.left_tabs.redraw(); self.right_tabs.redraw()
+        if self.compare_window is not None and self.compare_window.winfo_exists():
+            self.compare_window.notebook.redraw()
+        self.update_idletasks()
         if save:
             self.save_config()
 
