@@ -200,10 +200,10 @@ class CompareWindow(tk.Toplevel):
         self.title("PFC Compare")
         self.geometry(config.get("compare", "geometry", fallback="1400x850"))
         self.protocol("WM_DELETE_WINDOW", self.close)
-        self.notebook = ttk.Notebook(self); self.notebook.pack(fill="both", expand=True)
+        self.notebook = ttk.Notebook(self, style="PFC.TNotebook"); self.notebook.pack(fill="both", expand=True)
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
-        self.bind("<Escape>", lambda _e: self.close())
+        self.bind("<Escape>", lambda _e: self.close_active())
 
     def add(self, left: Path, right: Path, requested="Auto"):
         kind = detect_compare_type(left, right) if requested == "Auto" else requested
@@ -225,3 +225,13 @@ class CompareWindow(tk.Toplevel):
         if not self.config_data.has_section("compare"): self.config_data.add_section("compare")
         self.config_data.set("compare", "geometry", self.geometry())
         self.save_config(); self.destroy()
+
+    def close_active(self):
+        tabs = self.notebook.tabs()
+        if len(tabs) <= 1:
+            self.close()
+            return
+        current = self.notebook.select()
+        widget = self.nametowidget(current)
+        self.notebook.forget(current)
+        widget.destroy()

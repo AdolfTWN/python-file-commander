@@ -273,7 +273,7 @@ class FilePane(ttk.Frame):
 
 class PaneTabs(ttk.Notebook):
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None) -> None:
-        super().__init__(master)
+        super().__init__(master, style="PFC.TNotebook")
         self.on_activate = on_activate
         self.on_change = on_change
         self.bind("<<NotebookTabChanged>>", lambda _e: self._tab_changed())
@@ -345,6 +345,13 @@ class Commander(tk.Tk):
         style.map("Active.Treeview", background=[("selected", "#1683e2")], foreground=[("selected", "white")])
         style.configure("Inactive.Treeview", background="white", fieldbackground="white")
         style.map("Inactive.Treeview", background=[("selected", "#91a9bd")], foreground=[("selected", "white")])
+        style.configure("PFC.TNotebook", background="#9eafbd", borderwidth=1)
+        style.configure("PFC.TNotebook.Tab", background="#c7d3dd", foreground="#243442",
+                        padding=(10, 5), borderwidth=1)
+        style.map("PFC.TNotebook.Tab",
+                  background=[("selected", "#1683e2"), ("active", "#dce7ef")],
+                  foreground=[("selected", "#005a9e"), ("active", "#10202c")],
+                  expand=[("selected", (1, 1, 1, 0))])
         self.apply_font_size(save=False)
         self._build_menu()
         split = ttk.Panedwindow(self, orient="horizontal")
