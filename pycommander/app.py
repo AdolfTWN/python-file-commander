@@ -4,6 +4,7 @@ import os
 import configparser
 import ctypes
 import json
+import shutil
 import subprocess
 import sys
 import tkinter as tk
@@ -13,6 +14,7 @@ from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
 from .fileops import copy_items, delete_items, format_size, is_system, move_items, roots
+from .clipboard import clear_file_clipboard, get_file_clipboard, set_file_clipboard
 from .icons import ShellIconProvider
 from .compare import CompareWindow
 from .tabs import ChamferNotebook
@@ -465,6 +467,8 @@ class Commander(tk.Tk):
             "enter_folder": "<Right>", "parent_folder": "<Left>", "new_tab": "<Control-Up>",
             "close_tab": "<Control-w>", "select_all": "<Control-a>",
             "copy_path": "<Control-Shift-C>", "toggle_hidden": "<Control-h>",
+            "clipboard_copy": "<Control-c>", "clipboard_cut": "<Control-x>",
+            "clipboard_paste": "<Control-v>",
             "compare": "<F9>",
         }
         commands = {
@@ -473,6 +477,8 @@ class Commander(tk.Tk):
             "enter_folder": self.enter_folder, "parent_folder": self.parent_folder, "new_tab": self.new_tab,
             "close_tab": self.close_tab, "select_all": self.select_all,
             "copy_path": self.copy_path, "toggle_hidden": self.toggle_hidden,
+            "clipboard_copy": self.clipboard_copy, "clipboard_cut": self.clipboard_cut,
+            "clipboard_paste": self.clipboard_paste,
             "compare": self.compare_selected,
         }
         if not self.config_data.has_section("hotkeys"):
@@ -723,6 +729,44 @@ class Commander(tk.Tk):
         items = source.selected_paths()
         value = str(items[0] if items else source.path)
         self.clipboard_clear(); self.clipboard_append(value)
+
+    def clipboard_copy(self) -> None:
+        self._set_file_clipboard(cut=False)
+
+    def clipboard_cut(self) -> None:
+        self._set_file_clipboard(cut=True)
+
+    def _set_file_clipboard(self, cut: bool) -> None:
+        if self._clipboard_is_text_control():
+            return
+        items = self.panes()[0].selected_paths()
+        if not items:
+            return
+        try:
+            set_file_clipboard(items, cut=cut)
+        except (OSError, MemoryError) as exc:
+            messagebox.showerror("Clipboard failed", str(exc), parent=self)
+
+    def clipboard_paste(self) -> None:
+        if self._clipboard_is_text_control():
+            return
+        destination = self.panes()[0].path
+        try:
+            items, cut = get_file_clipboard()
+            items = [item for item in items if item.exists()]
+            if not items:
+                return
+            operation = move_items if cut else copy_items
+            operation(items, destination)
+            if cut:
+                clear_file_clipboard()
+            self.refresh()
+        except (OSError, MemoryError, shutil.Error) as exc:
+            messagebox.showerror("Paste failed", str(exc), parent=self)
+
+    def _clipboard_is_text_control(self) -> bool:
+        focused = self.focus_get()
+        return isinstance(focused, (tk.Entry, tk.Text, ttk.Entry, ttk.Combobox))
 
     def toggle_hidden(self) -> None:
         source = self.panes()[0]

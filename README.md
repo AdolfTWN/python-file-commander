@@ -29,6 +29,8 @@ Current core: two resizable panes, chamfered color-customizable and lockable tab
 
 Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the selected path, and Ctrl+H toggles hidden files.
 
+Ctrl+C, Ctrl+X, and Ctrl+V use the native Windows file clipboard, so files and folders can be copied or moved between PFC, its panels and tabs, and Windows File Explorer.
+
 F9 compares one selected item in each panel (or two items in the active panel) in a separate tabbed Compare window. Auto detection supports aligned text with source-accurate line numbers, CSV/TSV tables, binary hex with SHA-256, and recursive folder comparison. F7/F8 navigate differences. Esc closes the active comparison tab, or the window when only one tab remains. Main and Compare tabs use a shared high-contrast active-tab style.
 
 Visible folders auto-refresh adaptively: every 2 seconds while PFC is focused, every 10 seconds in the background, and every 5 seconds for UNC network paths. A lightweight signature prevents unnecessary Treeview rebuilds, while Ctrl+R remains available as a manual fallback.
