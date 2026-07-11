@@ -37,6 +37,23 @@ def hide_private_console() -> bool:
     return True
 
 
+def relaunch_with_pythonw() -> bool:
+    """Hand a Windows GUI launch from python.exe to pythonw.exe once."""
+    if os.name != "nt" or os.environ.get("PFC_PYTHONW") == "1":
+        return False
+    executable = Path(sys.executable)
+    if executable.name.casefold() == "pythonw.exe":
+        return False
+    pythonw = executable.with_name("pythonw.exe")
+    if not pythonw.is_file():
+        return False
+    environment = os.environ.copy()
+    environment["PFC_PYTHONW"] = "1"
+    subprocess.Popen([str(pythonw), *sys.argv], cwd=os.getcwd(), env=environment,
+                     close_fds=True, creationflags=0x00000008)  # DETACHED_PROCESS
+    return True
+
+
 class FilePane(ttk.Frame):
     columns = ("ext", "size", "modified", "attr")
     all_sort_columns = ("name", "ext", "size", "modified", "attr")
@@ -773,5 +790,7 @@ class Commander(tk.Tk):
 
 
 def main() -> None:
+    if relaunch_with_pythonw():
+        return
     hide_private_console()
     Commander().mainloop()
