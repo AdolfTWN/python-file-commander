@@ -8,7 +8,12 @@ from pycommander.compare import aligned_text, detect_compare_type, file_hash, fo
 class CompareTests(unittest.TestCase):
     def test_text_alignment_marks_changed_line(self):
         rows, differences = aligned_text("same\nold\n", "same\nnew\n")
-        self.assertEqual(rows, [("same", "same"), ("old", "new")])
+        self.assertEqual(rows, [(1, "same", 1, "same"), (2, "old", 2, "new")])
+        self.assertEqual(differences, [2])
+
+    def test_inserted_line_has_no_left_line_number(self):
+        rows, differences = aligned_text("one\nthree\n", "one\ntwo\nthree\n")
+        self.assertEqual(rows, [(1, "one", 1, "one"), (None, "", 2, "two"), (2, "three", 3, "three")])
         self.assertEqual(differences, [2])
 
     def test_type_detection_and_hash(self):

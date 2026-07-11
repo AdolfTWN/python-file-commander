@@ -218,16 +218,17 @@ def file_hash(path: Path) -> str:
     return digest.hexdigest()
 
 
-def aligned_text(left: str, right: str) -> tuple[list[tuple[str, str]], list[int]]:
+def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int | None, str]], list[int]]:
     a, b = left.splitlines(), right.splitlines()
-    rows: list[tuple[str, str]] = []
+    rows: list[tuple[int | None, str, int | None, str]] = []
     differences: list[int] = []
     matcher = difflib.SequenceMatcher(None, a, b, autojunk=False)
     for tag, a0, a1, b0, b1 in matcher.get_opcodes():
         length = max(a1 - a0, b1 - b0)
         for offset in range(length):
-            rows.append((a[a0 + offset] if a0 + offset < a1 else "",
-                         b[b0 + offset] if b0 + offset < b1 else ""))
+            has_left, has_right = a0 + offset < a1, b0 + offset < b1
+            rows.append((a0 + offset + 1 if has_left else None, a[a0 + offset] if has_left else "",
+                         b0 + offset + 1 if has_right else None, b[b0 + offset] if has_right else ""))
             if tag != "equal":
                 differences.append(len(rows))
     return rows, differences
@@ -252,8 +253,10 @@ class SideBySideText(ttk.Frame):
         for widget, lines in ((self.left, left_lines), (self.right, right_lines)):
             widget.tag_configure("diff", background="#ffe1a8")
             widget.tag_configure("current", background="#ffb347")
-            for number, line in enumerate(lines, 1):
-                widget.insert("end", f"{number:>6}  {line}\n", "diff" if number in differences else "")
+            for display_row, item in enumerate(lines, 1):
+                source_number, line = item if isinstance(item, tuple) else (display_row, item)
+                number_text = "" if source_number is None else str(source_number)
+                widget.insert("end", f"{number_text:>6}  {line}\n", "diff" if display_row in differences else "")
             widget.configure(state="disabled")
 
     def _scroll(self, *args):
@@ -281,7 +284,7 @@ class TextCompare(ttk.Frame):
         a = left.read_text(encoding="utf-8", errors="replace")
         b = right.read_text(encoding="utf-8", errors="replace")
         rows, differences = aligned_text(a, b)
-        view = SideBySideText(self, [row[0] for row in rows], [row[1] for row in rows], differences,
+        view = SideBySideText(self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
                               f"{len(differences)} different line(s)")
         view.pack(fill="both", expand=True)
 
@@ -363,7 +366,7 @@ class TableCompare(TextCompare):
         ttk.Frame.__init__(self, master)
         a, b = "\n".join(rows(left)), "\n".join(rows(right))
         aligned, differences = aligned_text(a, b)
-        SideBySideText(self, [r[0] for r in aligned], [r[1] for r in aligned], differences,
+        SideBySideText(self, [(r[0], r[1]) for r in aligned], [(r[2], r[3]) for r in aligned], differences,
                        f"{len(differences)} different row(s)").pack(fill="both", expand=True)
 
 
@@ -377,6 +380,7 @@ class CompareWindow(tk.Toplevel):
         self.notebook = ttk.Notebook(self); self.notebook.pack(fill="both", expand=True)
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
+        self.bind("<Escape>", lambda _e: self.close())
 
     def add(self, left: Path, right: Path, requested="Auto"):
         kind = detect_compare_type(left, right) if requested == "Auto" else requested

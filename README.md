@@ -27,7 +27,7 @@ Current core: two resizable panes, tabs, drive/path navigation, marked column so
 
 Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the selected path, and Ctrl+H toggles hidden files.
 
-F9 compares one selected item in each panel (or two items in the active panel) in a separate tabbed Compare window. Auto detection supports aligned text, CSV/TSV tables, binary hex with SHA-256, and recursive folder comparison. F7/F8 navigate differences inside the Compare window.
+F9 compares one selected item in each panel (or two items in the active panel) in a separate tabbed Compare window. Auto detection supports aligned text with source-accurate line numbers, CSV/TSV tables, binary hex with SHA-256, and recursive folder comparison. F7/F8 navigate differences and Esc closes the Compare window.
 
 `View > File Visibility` independently shows or hides Hidden and Windows System files. Both are hidden by default.
 
