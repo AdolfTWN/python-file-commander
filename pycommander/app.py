@@ -495,6 +495,7 @@ class Commander(tk.Tk):
             "next_tab": "<Control-Tab>", "previous_tab": "<Control-Shift-Tab>",
             "switch_panel": "<Tab>", "focus_path": "<Control-l>",
             "focus_files": "<Escape>", "help": "<F1>",
+            "select_previous": "<Up>", "select_next": "<Down>",
             "files_menu": "<Alt-f>", "view_menu": "<Alt-v>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
             "compare": "<F9>",
@@ -511,6 +512,8 @@ class Commander(tk.Tk):
             "previous_tab": lambda: self.switch_tab(-1),
             "switch_panel": self.switch_panel, "focus_path": self.focus_path,
             "focus_files": self.focus_files, "help": self.show_help,
+            "select_previous": lambda: self.move_selection(-1),
+            "select_next": lambda: self.move_selection(1),
             "files_menu": lambda: self.show_header_menu("files"),
             "view_menu": lambda: self.show_header_menu("view"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
@@ -523,7 +526,8 @@ class Commander(tk.Tk):
             key = self.config_data.get("hotkeys", name, fallback=default)
             self.config_data.set("hotkeys", name, key)
             configured_hotkeys[name] = key
-            self.bind_all(key, lambda _e, fn=commands[name]: fn())
+            if name not in {"select_previous", "select_next"}:
+                self.bind_all(key, lambda _e, fn=commands[name]: fn())
         self._install_priority_hotkeys(configured_hotkeys, commands)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
         self._ready = True
@@ -539,6 +543,10 @@ class Commander(tk.Tk):
         tag = f"PFCKeyboard{id(self)}"
         for name in ("switch_panel", "next_tab", "previous_tab", "enter_folder", "parent_folder"):
             self.bind_class(tag, hotkeys[name], lambda _event, fn=commands[name]: fn())
+        self.bind_class(tag, hotkeys["select_previous"],
+                        lambda event: None if event.state & 0x5 else self.move_selection(-1))
+        self.bind_class(tag, hotkeys["select_next"],
+                        lambda event: None if event.state & 0x5 else self.move_selection(1))
 
         def prepend(widget):
             tags = widget.bindtags()
@@ -776,6 +784,25 @@ class Commander(tk.Tk):
         source.focus_file_list()
         return "break"
 
+    def move_selection(self, direction: int) -> str | None:
+        source = self.panes()[0]
+        if self.focus_get() is not source.tree:
+            return None
+        children = source.tree.get_children()
+        if not children:
+            return "break"
+        selected = source.tree.selection()
+        current = selected[0] if selected and selected[0] in children else source.tree.focus()
+        try:
+            index = children.index(current)
+        except ValueError:
+            index = 0
+        target = children[max(0, min(index + direction, len(children) - 1))]
+        source.tree.selection_set(target)
+        source.tree.focus(target)
+        source.tree.see(target)
+        return "break"
+
     def show_help(self) -> str:
         existing = getattr(self, "help_window", None)
         if existing is not None and existing.winfo_exists():
@@ -842,6 +869,7 @@ class Commander(tk.Tk):
         if self.focus_get() is not source.tree:
             return None
         source.up()
+        source.focus_file_list()
         return "break"
 
     def preview(self) -> None:
