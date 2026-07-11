@@ -331,10 +331,11 @@ class PaneTabs(ChamferNotebook):
             self.add_tab(path, notify=False)
 
     def add_tab(self, path: Path, notify: bool = True) -> FilePane:
+        position = self.index(self.select()) + 1 if self.tabs() else 0
         pane = FilePane(self, self.on_activate, self._pane_changed)
         pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
         pane.navigate(path)
-        self.add(pane, text=path.name or str(path), color=self.color_for(path))
+        self.add(pane, text=path.name or str(path), color="default", position=position)
         self.select(pane)
         pane.tree.focus_set()
         if notify:

@@ -339,9 +339,12 @@ class ChamferNotebook(ttk.Frame):
         self.bar.bind("<Button-3>", self._popup)
         self.bar.bind("<Configure>", lambda _e: self._draw())
 
-    def add(self, child, text="", color="default", lock="unlocked", **_kwargs):
+    def add(self, child, text="", color="default", lock="unlocked", position=None, **_kwargs):
         if child not in self._tabs:
-            self._tabs.append(child)
+            if position is None:
+                self._tabs.append(child)
+            else:
+                self._tabs.insert(max(0, min(position, len(self._tabs))), child)
         self._texts[child] = text
         self._colors[child] = color if color in TAB_COLORS else "default"
         self._locks[child] = lock if lock in {"unlocked", "locked", "reset"} else "unlocked"
@@ -1039,10 +1042,11 @@ class PaneTabs(ChamferNotebook):
             self.add_tab(path, notify=False)
 
     def add_tab(self, path: Path, notify: bool = True) -> FilePane:
+        position = self.index(self.select()) + 1 if self.tabs() else 0
         pane = FilePane(self, self.on_activate, self._pane_changed)
         pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
         pane.navigate(path)
-        self.add(pane, text=path.name or str(path), color=self.color_for(path))
+        self.add(pane, text=path.name or str(path), color="default", position=position)
         self.select(pane)
         pane.tree.focus_set()
         if notify:
