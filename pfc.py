@@ -202,12 +202,14 @@ TAB_COLORS = {
 class ChamferNotebook(ttk.Frame):
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
-    def __init__(self, master, on_color_changed=None, **kwargs):
+    def __init__(self, master, on_color_changed=None, on_lock_changed=None, **kwargs):
         super().__init__(master, **kwargs)
         self.on_color_changed = on_color_changed or (lambda _child, _color: None)
+        self.on_lock_changed = on_lock_changed or (lambda _child, _mode: None)
         self._tabs = []
         self._texts = {}
         self._colors = {}
+        self._locks = {}
         self._selected = None
         self._hitboxes = []
         self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
@@ -216,11 +218,12 @@ class ChamferNotebook(ttk.Frame):
         self.bar.bind("<Button-3>", self._popup)
         self.bar.bind("<Configure>", lambda _e: self._draw())
 
-    def add(self, child, text="", color="default", **_kwargs):
+    def add(self, child, text="", color="default", lock="unlocked", **_kwargs):
         if child not in self._tabs:
             self._tabs.append(child)
         self._texts[child] = text
         self._colors[child] = color if color in TAB_COLORS else "default"
+        self._locks[child] = lock if lock in {"unlocked", "locked", "reset"} else "unlocked"
         self.select(child)
 
     def tabs(self):
@@ -245,7 +248,7 @@ class ChamferNotebook(ttk.Frame):
         was_selected = child is self._selected
         child.pack_forget()
         self._tabs.remove(child)
-        self._texts.pop(child, None); self._colors.pop(child, None)
+        self._texts.pop(child, None); self._colors.pop(child, None); self._locks.pop(child, None)
         if was_selected:
             self._selected = None
             if self._tabs:
@@ -268,6 +271,13 @@ class ChamferNotebook(ttk.Frame):
         if notify:
             self.on_color_changed(child, self._colors[child])
 
+    def set_lock(self, tab, mode, notify=True):
+        child = self._resolve(tab)
+        self._locks[child] = mode if mode in {"unlocked", "locked", "reset"} else "unlocked"
+        self._draw()
+        if notify:
+            self.on_lock_changed(child, self._locks[child])
+
     def redraw(self):
         self._draw()
 
@@ -285,6 +295,9 @@ class ChamferNotebook(ttk.Frame):
         drawings = []
         for child in self._tabs:
             text = self._texts.get(child, "")
+            lock = self._locks.get(child, "unlocked")
+            if lock != "unlocked":
+                text = f"🔒 {text}" if lock == "locked" else f"↩🔒 {text}"
             selected = child is self._selected
             width = max(58, font.measure(text) + 28 + (14 if selected else 0))
             color = TAB_COLORS[self._colors.get(child, "default")][1]
@@ -331,6 +344,13 @@ class ChamferNotebook(ttk.Frame):
         menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
         for key, (label, _color) in TAB_COLORS.items():
             menu.add_command(label=label, command=lambda value=key: self.set_color(child, value))
+        menu.add_separator()
+        lock_mode = tk.StringVar(value=self._locks.get(child, "unlocked"))
+        for label, value in (("Unlocked", "unlocked"),
+                             ("Lock (open folder in new tab)", "locked"),
+                             ("Lock, but allow folder changes", "reset")):
+            menu.add_radiobutton(label=label, value=value, variable=lock_mode,
+                                 command=lambda mode=value: self.set_lock(child, mode))
         menu.tk_popup(event.x_root, event.y_root)
 
 
@@ -639,6 +659,9 @@ class FilePane(ttk.Frame):
         self.show_system = False
         self.mode = "files"
         self.display_title = self.path.name or str(self.path)
+        self.lock_mode = "unlocked"
+        self.locked_path: Path | None = None
+        self.on_locked_navigation = lambda _path: None
         self._signature = None
         self.heading_labels = {"name": "Name", "ext": "Ext", "size": "Size", "modified": "Date Modified", "attr": "Attr"}
         self.icons = ShellIconProvider()
@@ -677,11 +700,14 @@ class FilePane(ttk.Frame):
         self.status.pack(fill="x", pady=(3, 0))
         self.navigate(self.path)
 
-    def navigate(self, path: Path) -> None:
+    def navigate(self, path: Path, bypass_lock: bool = False) -> None:
         try:
             path = path.expanduser().resolve()
             if not path.is_dir():
                 raise NotADirectoryError(path)
+            if not bypass_lock and self.lock_mode == "locked" and path != self.path:
+                self.on_locked_navigation(path)
+                return
             if path != self.path:
                 self.history.append(self.path)
             self.path = path
@@ -882,7 +908,8 @@ class PaneTabs(ChamferNotebook):
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None) -> None:
         self.color_for = color_for
         self.on_tab_color = on_tab_color
-        super().__init__(master, on_color_changed=self._color_changed)
+        super().__init__(master, on_color_changed=self._color_changed,
+                         on_lock_changed=self._lock_changed)
         self.on_activate = on_activate
         self.on_change = on_change
         self.bind("<<NotebookTabChanged>>", lambda _e: self._tab_changed())
@@ -891,6 +918,7 @@ class PaneTabs(ChamferNotebook):
 
     def add_tab(self, path: Path, notify: bool = True) -> FilePane:
         pane = FilePane(self, self.on_activate, self._pane_changed)
+        pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
         pane.navigate(path)
         self.add(pane, text=path.name or str(path), color=self.color_for(path))
         self.select(pane)
@@ -906,8 +934,6 @@ class PaneTabs(ChamferNotebook):
         try:
             pane = self.current()
             self.tab(pane, text=pane.display_title)
-            if pane.mode == "files":
-                self.set_color(pane, self.color_for(pane.path), notify=False)
         except (tk.TclError, AttributeError):
             pass
         self.on_change()
@@ -918,6 +944,16 @@ class PaneTabs(ChamferNotebook):
         except tk.TclError:
             return
         self.on_change()
+
+    def select(self, tab=None):
+        if tab is None:
+            return super().select()
+        previous = self._selected
+        result = super().select(tab)
+        if previous is not None and previous is not self._selected:
+            if previous.lock_mode == "reset" and previous.locked_path is not None:
+                previous.navigate(previous.locked_path, bypass_lock=True)
+        return result
 
     def current(self) -> FilePane:
         return self.nametowidget(self.select())
@@ -931,7 +967,12 @@ class PaneTabs(ChamferNotebook):
         return [self.nametowidget(tab) for tab in self.tabs()]
 
     def _color_changed(self, pane, color) -> None:
-        self.on_tab_color(pane.path, color)
+        self.on_change()
+
+    def _lock_changed(self, pane, mode) -> None:
+        pane.lock_mode = mode
+        pane.locked_path = None if mode == "unlocked" else pane.path
+        self.on_change()
 
 
 class Commander(tk.Tk):
@@ -1059,11 +1100,24 @@ class Commander(tk.Tk):
         descending = self.config_data.getboolean(side, "sort_descending", fallback=False)
         show_hidden = self.config_data.getboolean(side, "show_hidden", fallback=False)
         show_system = self.config_data.getboolean(side, "show_system", fallback=False)
-        for pane in tabs.panes():
+        try:
+            colors = json.loads(self.config_data.get(side, "tab_colors", fallback="[]"))
+            locks = json.loads(self.config_data.get(side, "tab_locks", fallback="[]"))
+            locked_paths = json.loads(self.config_data.get(side, "locked_paths", fallback="[]"))
+        except (json.JSONDecodeError, TypeError):
+            colors, locks, locked_paths = [], [], []
+        for index, pane in enumerate(tabs.panes()):
             pane.sort_column = column if column in pane.all_sort_columns else "name"
             pane.reverse = descending
             pane.show_hidden = show_hidden
             pane.show_system = show_system
+            color = colors[index] if index < len(colors) else self.get_tab_color(pane.path)
+            tabs.set_color(pane, color, notify=False)
+            mode = locks[index] if index < len(locks) else "unlocked"
+            pane.lock_mode = mode if mode in {"unlocked", "locked", "reset"} else "unlocked"
+            locked = Path(locked_paths[index]) if index < len(locked_paths) else pane.path
+            pane.locked_path = locked if pane.lock_mode != "unlocked" and locked.is_dir() else None
+            tabs.set_lock(pane, pane.lock_mode, notify=False)
             for col in pane.all_sort_columns:
                 marker = (" ▼" if descending else " ▲") if col == pane.sort_column else ""
                 pane.tree.heading("#0" if col == "name" else col, text=pane.heading_labels[col] + marker)
@@ -1083,7 +1137,13 @@ class Commander(tk.Tk):
             if not self.config_data.has_section(side):
                 self.config_data.add_section(side)
             panes = tabs.panes()
-            self.config_data.set(side, "tabs", json.dumps([str(p.path) for p in panes]))
+            saved_paths = [p.locked_path if p.lock_mode == "reset" and p.locked_path else p.path for p in panes]
+            self.config_data.set(side, "tabs", json.dumps([str(path) for path in saved_paths]))
+            self.config_data.set(side, "tab_colors", json.dumps([
+                tabs._colors.get(p, "default") for p in panes]))
+            self.config_data.set(side, "tab_locks", json.dumps([p.lock_mode for p in panes]))
+            self.config_data.set(side, "locked_paths", json.dumps([
+                str(p.locked_path or p.path) for p in panes]))
             self.config_data.set(side, "selected", str(tabs.index(tabs.select())))
             current = tabs.current()
             self.config_data.set(side, "sort_column", current.sort_column)

@@ -18,12 +18,14 @@ TAB_COLORS = {
 class ChamferNotebook(ttk.Frame):
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
-    def __init__(self, master, on_color_changed=None, **kwargs):
+    def __init__(self, master, on_color_changed=None, on_lock_changed=None, **kwargs):
         super().__init__(master, **kwargs)
         self.on_color_changed = on_color_changed or (lambda _child, _color: None)
+        self.on_lock_changed = on_lock_changed or (lambda _child, _mode: None)
         self._tabs = []
         self._texts = {}
         self._colors = {}
+        self._locks = {}
         self._selected = None
         self._hitboxes = []
         self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
@@ -32,11 +34,12 @@ class ChamferNotebook(ttk.Frame):
         self.bar.bind("<Button-3>", self._popup)
         self.bar.bind("<Configure>", lambda _e: self._draw())
 
-    def add(self, child, text="", color="default", **_kwargs):
+    def add(self, child, text="", color="default", lock="unlocked", **_kwargs):
         if child not in self._tabs:
             self._tabs.append(child)
         self._texts[child] = text
         self._colors[child] = color if color in TAB_COLORS else "default"
+        self._locks[child] = lock if lock in {"unlocked", "locked", "reset"} else "unlocked"
         self.select(child)
 
     def tabs(self):
@@ -61,7 +64,7 @@ class ChamferNotebook(ttk.Frame):
         was_selected = child is self._selected
         child.pack_forget()
         self._tabs.remove(child)
-        self._texts.pop(child, None); self._colors.pop(child, None)
+        self._texts.pop(child, None); self._colors.pop(child, None); self._locks.pop(child, None)
         if was_selected:
             self._selected = None
             if self._tabs:
@@ -84,6 +87,13 @@ class ChamferNotebook(ttk.Frame):
         if notify:
             self.on_color_changed(child, self._colors[child])
 
+    def set_lock(self, tab, mode, notify=True):
+        child = self._resolve(tab)
+        self._locks[child] = mode if mode in {"unlocked", "locked", "reset"} else "unlocked"
+        self._draw()
+        if notify:
+            self.on_lock_changed(child, self._locks[child])
+
     def redraw(self):
         self._draw()
 
@@ -101,6 +111,9 @@ class ChamferNotebook(ttk.Frame):
         drawings = []
         for child in self._tabs:
             text = self._texts.get(child, "")
+            lock = self._locks.get(child, "unlocked")
+            if lock != "unlocked":
+                text = f"🔒 {text}" if lock == "locked" else f"↩🔒 {text}"
             selected = child is self._selected
             width = max(58, font.measure(text) + 28 + (14 if selected else 0))
             color = TAB_COLORS[self._colors.get(child, "default")][1]
@@ -147,4 +160,11 @@ class ChamferNotebook(ttk.Frame):
         menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
         for key, (label, _color) in TAB_COLORS.items():
             menu.add_command(label=label, command=lambda value=key: self.set_color(child, value))
+        menu.add_separator()
+        lock_mode = tk.StringVar(value=self._locks.get(child, "unlocked"))
+        for label, value in (("Unlocked", "unlocked"),
+                             ("Lock (open folder in new tab)", "locked"),
+                             ("Lock, but allow folder changes", "reset")):
+            menu.add_radiobutton(label=label, value=value, variable=lock_mode,
+                                 command=lambda mode=value: self.set_lock(child, mode))
         menu.tk_popup(event.x_root, event.y_root)
