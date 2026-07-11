@@ -546,8 +546,8 @@ class SideBySideText(ttk.Frame):
         self.differences = differences
         self.diff_index = -1
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
-        ttk.Button(toolbar, text="F7 Previous", command=self.previous).pack(side="left")
-        ttk.Button(toolbar, text="F8 Next", command=self.next).pack(side="left", padx=3)
+        ttk.Button(toolbar, text="F7 Diff <<", command=self.previous).pack(side="left")
+        ttk.Button(toolbar, text="F8 Diff >>", command=self.next).pack(side="left", padx=3)
         ttk.Label(toolbar, text=status_text).pack(side="left", padx=10)
         body = ttk.Panedwindow(self, orient="horizontal"); body.pack(fill="both", expand=True)
         self.left = tk.Text(body, wrap="none", undo=False)
@@ -680,6 +680,8 @@ class CompareWindow(tk.Toplevel):
     def __init__(self, master, config, save_config):
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
+        self.comparisons = {}
+        self._refresh_job = None
         self.title("PFC Compare")
         self.geometry(config.get("compare", "geometry", fallback="1400x850"))
         self.protocol("WM_DELETE_WINDOW", self.close)
@@ -687,17 +689,54 @@ class CompareWindow(tk.Toplevel):
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
         self.bind("<Escape>", lambda _e: self.close_active())
+        self._schedule_refresh()
+
+    @staticmethod
+    def _signature(left: Path, right: Path):
+        if left.is_dir() or right.is_dir():
+            return None
+        try:
+            return tuple((path.stat().st_mtime_ns, path.stat().st_size) for path in (left, right))
+        except OSError:
+            return None
+
+    def _make_frame(self, left: Path, right: Path, kind: str):
+        if kind == "Folder": return FolderCompare(self.notebook, left, right, self.add)
+        if kind == "Text": return TextCompare(self.notebook, left, right)
+        if kind == "Table": return TableCompare(self.notebook, left, right)
+        return BinaryCompare(self.notebook, left, right)
 
     def add(self, left: Path, right: Path, requested="Auto"):
         kind = detect_compare_type(left, right) if requested == "Auto" else requested
         if left.is_dir() != right.is_dir():
             messagebox.showerror("Compare", "Select two files or two folders.", parent=self); return
-        if kind == "Folder": frame = FolderCompare(self.notebook, left, right, self.add)
-        elif kind == "Text": frame = TextCompare(self.notebook, left, right)
-        elif kind == "Table": frame = TableCompare(self.notebook, left, right)
-        else: frame = BinaryCompare(self.notebook, left, right)
+        frame = self._make_frame(left, right, kind)
         self.notebook.add(frame, text=f"{kind}: {left.name} ↔ {right.name}")
-        self.notebook.select(frame); self.deiconify(); self.lift(); self.focus_force()
+        self.comparisons[frame] = (left, right, kind, self._signature(left, right))
+        self.notebook.select(frame); self.after_idle(self.activate)
+
+    def activate(self):
+        self.deiconify(); self.lift(); self.focus_force()
+
+    def _schedule_refresh(self):
+        self._refresh_job = self.after(2000, self._auto_refresh)
+
+    def _auto_refresh(self):
+        self._refresh_job = None
+        if self.notebook.tabs():
+            frame = self.nametowidget(self.notebook.select())
+            details = self.comparisons.get(frame)
+            if details:
+                left, right, kind, previous = details
+                current = self._signature(left, right)
+                if current is not None and current != previous:
+                    index = self.notebook.index(frame)
+                    title = self.notebook.tab(frame)["text"]
+                    self.notebook.forget(frame); self.comparisons.pop(frame, None); frame.destroy()
+                    replacement = self._make_frame(left, right, kind)
+                    self.notebook.add(replacement, text=title, position=index)
+                    self.comparisons[replacement] = (left, right, kind, current)
+        if self.winfo_exists(): self._schedule_refresh()
 
     def _navigate(self, method):
         frame = self.nametowidget(self.notebook.select())
@@ -705,6 +744,8 @@ class CompareWindow(tk.Toplevel):
             if isinstance(child, SideBySideText): getattr(child, method)(); return
 
     def close(self):
+        if self._refresh_job is not None:
+            self.after_cancel(self._refresh_job); self._refresh_job = None
         if not self.config_data.has_section("compare"): self.config_data.add_section("compare")
         self.config_data.set("compare", "geometry", self.geometry())
         self.save_config(); self.destroy()
@@ -717,6 +758,7 @@ class CompareWindow(tk.Toplevel):
         current = self.notebook.select()
         widget = self.nametowidget(current)
         self.notebook.forget(current)
+        self.comparisons.pop(widget, None)
         widget.destroy()
 
 
@@ -776,33 +818,37 @@ class PreviewWindow(tk.Toplevel):
         self.search_var = tk.StringVar()
         self.matches = []
         self.match_index = -1
+        self._signature = None
+        self._refresh_job = None
         self.title("PFC Preview")
         self.geometry(config.get("preview", "geometry", fallback="1100x720"))
         self.minsize(640, 400)
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.bind("<Escape>", lambda _event: self.close())
         self.bind("<Control-f>", lambda _event: self.focus_search())
-        self.bind("<Control-r>", lambda _event: self.load())
         self.bind("<Alt-Left>", lambda _event: self.previous_file())
         self.bind("<Alt-Right>", lambda _event: self.next_file())
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
-        ttk.Button(toolbar, text="Previous", command=self.previous_file).pack(side="left")
-        ttk.Button(toolbar, text="Next", command=self.next_file).pack(side="left", padx=(3, 10))
-        ttk.Button(toolbar, text="Reload", command=self.load).pack(side="left")
-        ttk.Label(toolbar, text="View:").pack(side="left", padx=(12, 3))
-        mode = ttk.Combobox(toolbar, width=7, state="readonly", textvariable=self.mode_var,
+        file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
+        ttk.Button(file_row, text="File <<", command=self.previous_file).pack(side="left")
+        ttk.Button(file_row, text="File >>", command=self.next_file).pack(side="left", padx=(3, 10))
+        ttk.Label(file_row, text="View:").pack(side="left", padx=(4, 3))
+        mode = ttk.Combobox(file_row, width=7, state="readonly", textvariable=self.mode_var,
                             values=("Auto", "Text", "Hex"))
         mode.pack(side="left"); mode.bind("<<ComboboxSelected>>", lambda _event: self.load())
-        ttk.Checkbutton(toolbar, text="Wrap", variable=self.wrap_var, command=self.set_wrap).pack(side="left", padx=10)
-        ttk.Label(toolbar, text="Find:").pack(side="left", padx=(8, 3))
-        self.search = ttk.Entry(toolbar, textvariable=self.search_var, width=24)
+        ttk.Checkbutton(file_row, text="Wrap", variable=self.wrap_var,
+                        command=self.set_wrap).pack(side="left", padx=10)
+        find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
+        ttk.Label(find_row, text="Find:").pack(side="left", padx=(0, 3))
+        self.search = ttk.Entry(find_row, textvariable=self.search_var, width=24)
         self.search.pack(side="left", fill="x", expand=True)
         self.search.bind("<Return>", lambda _event: self.find_next())
         self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
-        ttk.Button(toolbar, text="Previous match", command=self.find_previous).pack(side="left", padx=(4, 2))
-        ttk.Button(toolbar, text="Next match", command=self.find_next).pack(side="left")
-        ttk.Checkbutton(toolbar, text="Case sensitive", variable=self.case_var,
+        find_actions = ttk.Frame(toolbar); find_actions.pack(fill="x", pady=(3, 0))
+        ttk.Button(find_actions, text="Find Prev", command=self.find_previous).pack(side="left")
+        ttk.Button(find_actions, text="Find Next", command=self.find_next).pack(side="left", padx=(3, 0))
+        ttk.Checkbutton(find_actions, text="Case sensitive", variable=self.case_var,
                         command=self.find_all).pack(side="left", padx=(8, 0))
 
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
@@ -817,6 +863,8 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("current_match", background="#ffb347")
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
         self.load()
+        self._schedule_refresh()
+        self.after_idle(self.activate)
 
     @property
     def path(self) -> Path:
@@ -825,7 +873,30 @@ class PreviewWindow(tk.Toplevel):
     def show(self, files, selected) -> None:
         self.files = list(files)
         self.index = self.files.index(selected) if selected in self.files else 0
-        self.load(); self.deiconify(); self.lift(); self.focus_force()
+        self.load(); self.activate()
+
+    def activate(self) -> None:
+        self.deiconify(); self.lift(); self.focus_force(); self.text.focus_set()
+
+    def _path_signature(self):
+        try:
+            path = self.path
+            if path.is_dir():
+                return tuple(sorted((item.name, item.stat().st_mtime_ns, item.stat().st_size)
+                                    for item in path.iterdir()))
+            stat = path.stat(); return stat.st_mtime_ns, stat.st_size
+        except OSError:
+            return None
+
+    def _schedule_refresh(self) -> None:
+        self._refresh_job = self.after(2000, self._auto_refresh)
+
+    def _auto_refresh(self) -> None:
+        self._refresh_job = None
+        signature = self._path_signature()
+        if signature != self._signature:
+            self.load()
+        if self.winfo_exists(): self._schedule_refresh()
 
     def load(self) -> None:
         path = self.path
@@ -861,6 +932,7 @@ class PreviewWindow(tk.Toplevel):
             self.text.insert("1.0", f"Cannot preview file:\n{exc}")
             self.status.configure(text=str(path))
         self.text.configure(state="disabled")
+        self._signature = self._path_signature()
         self.find_all()
 
     def set_wrap(self) -> None:
@@ -903,6 +975,8 @@ class PreviewWindow(tk.Toplevel):
         if self.files: self.index = (self.index + 1) % len(self.files); self.load()
 
     def close(self) -> None:
+        if self._refresh_job is not None:
+            self.after_cancel(self._refresh_job); self._refresh_job = None
         if not self.config_data.has_section("preview"): self.config_data.add_section("preview")
         self.config_data.set("preview", "geometry", self.geometry())
         self.config_data.set("preview", "wrap", str(self.wrap_var.get()).lower())

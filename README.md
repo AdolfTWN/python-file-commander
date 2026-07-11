@@ -27,7 +27,7 @@ python tools/build_single_file.py
 
 Current core: two resizable panes, chamfered color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons with a compact left gutter and padded filename gap, multi-select, rename (F2), popup viewer (F3), recursive name search (F4), copy (F5), move (F6), new folder (F7), permanent delete (Del), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Tab-specific colors and locks are saved in `pfc.ini`.
 
-F3 opens a reusable popup viewer with Esc close, Auto/Text/Hex modes, text wrapping, reload, previous/next file navigation, case-sensitive content search, match navigation, encoding and truncation details, and a full-path status bar. Preview geometry and wrapping preference are saved in `pfc.ini`.
+F3 opens a reusable popup viewer with Esc close, Auto/Text/Hex modes, text wrapping, two-second auto-refresh, File <</>> navigation, case-sensitive content search, Find Prev/Next navigation, encoding and truncation details, and a full-path status bar. Its responsive three-row toolbar remains usable at narrow widths. Preview geometry and wrapping preference are saved in `pfc.ini`.
 
 Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the first selected path or current folder, F11 copies every selected full path as newline-separated text, F12 focuses and selects the current path for direct paste-and-Enter navigation, and Ctrl+H toggles hidden files.
 
@@ -35,7 +35,7 @@ Keyboard navigation is end-to-end: Tab switches panels, Ctrl+Tab and Ctrl+Shift+
 
 Ctrl+C, Ctrl+X, and Ctrl+V use the native Windows file clipboard, so files and folders can be copied or moved between PFC, its panels and tabs, and Windows File Explorer.
 
-F9 compares one selected item in each panel (or two items in the active panel) in a separate tabbed Compare window. Auto detection supports aligned text with source-accurate line numbers, CSV/TSV tables, binary hex with SHA-256, and recursive folder comparison. F7/F8 navigate differences. Esc closes the active comparison tab, or the window when only one tab remains. Main and Compare tabs use a shared high-contrast active-tab style.
+F9 compares one selected item in each panel (or two items in the active panel) in a separate tabbed Compare window. Auto detection supports aligned text with source-accurate line numbers, CSV/TSV tables, binary hex with SHA-256, and recursive folder comparison. F7/F8 navigate with Diff <</>>. Esc closes the active comparison tab, or the window when only one tab remains. File comparisons auto-refresh every two seconds when either source changes; recursive folder comparisons avoid polling to protect performance. Main and Compare tabs use a shared high-contrast active-tab style.
 
 Visible folders auto-refresh adaptively: every 2 seconds while PFC is focused, every 10 seconds in the background, and every 5 seconds for UNC network paths. A lightweight signature prevents unnecessary Treeview rebuilds, while Ctrl+R remains available as a manual fallback.
 

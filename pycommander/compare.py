@@ -65,8 +65,8 @@ class SideBySideText(ttk.Frame):
         self.differences = differences
         self.diff_index = -1
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
-        ttk.Button(toolbar, text="F7 Previous", command=self.previous).pack(side="left")
-        ttk.Button(toolbar, text="F8 Next", command=self.next).pack(side="left", padx=3)
+        ttk.Button(toolbar, text="F7 Diff <<", command=self.previous).pack(side="left")
+        ttk.Button(toolbar, text="F8 Diff >>", command=self.next).pack(side="left", padx=3)
         ttk.Label(toolbar, text=status_text).pack(side="left", padx=10)
         body = ttk.Panedwindow(self, orient="horizontal"); body.pack(fill="both", expand=True)
         self.left = tk.Text(body, wrap="none", undo=False)
@@ -199,6 +199,8 @@ class CompareWindow(tk.Toplevel):
     def __init__(self, master, config, save_config):
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
+        self.comparisons = {}
+        self._refresh_job = None
         self.title("PFC Compare")
         self.geometry(config.get("compare", "geometry", fallback="1400x850"))
         self.protocol("WM_DELETE_WINDOW", self.close)
@@ -206,17 +208,54 @@ class CompareWindow(tk.Toplevel):
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
         self.bind("<Escape>", lambda _e: self.close_active())
+        self._schedule_refresh()
+
+    @staticmethod
+    def _signature(left: Path, right: Path):
+        if left.is_dir() or right.is_dir():
+            return None
+        try:
+            return tuple((path.stat().st_mtime_ns, path.stat().st_size) for path in (left, right))
+        except OSError:
+            return None
+
+    def _make_frame(self, left: Path, right: Path, kind: str):
+        if kind == "Folder": return FolderCompare(self.notebook, left, right, self.add)
+        if kind == "Text": return TextCompare(self.notebook, left, right)
+        if kind == "Table": return TableCompare(self.notebook, left, right)
+        return BinaryCompare(self.notebook, left, right)
 
     def add(self, left: Path, right: Path, requested="Auto"):
         kind = detect_compare_type(left, right) if requested == "Auto" else requested
         if left.is_dir() != right.is_dir():
             messagebox.showerror("Compare", "Select two files or two folders.", parent=self); return
-        if kind == "Folder": frame = FolderCompare(self.notebook, left, right, self.add)
-        elif kind == "Text": frame = TextCompare(self.notebook, left, right)
-        elif kind == "Table": frame = TableCompare(self.notebook, left, right)
-        else: frame = BinaryCompare(self.notebook, left, right)
+        frame = self._make_frame(left, right, kind)
         self.notebook.add(frame, text=f"{kind}: {left.name} ↔ {right.name}")
-        self.notebook.select(frame); self.deiconify(); self.lift(); self.focus_force()
+        self.comparisons[frame] = (left, right, kind, self._signature(left, right))
+        self.notebook.select(frame); self.after_idle(self.activate)
+
+    def activate(self):
+        self.deiconify(); self.lift(); self.focus_force()
+
+    def _schedule_refresh(self):
+        self._refresh_job = self.after(2000, self._auto_refresh)
+
+    def _auto_refresh(self):
+        self._refresh_job = None
+        if self.notebook.tabs():
+            frame = self.nametowidget(self.notebook.select())
+            details = self.comparisons.get(frame)
+            if details:
+                left, right, kind, previous = details
+                current = self._signature(left, right)
+                if current is not None and current != previous:
+                    index = self.notebook.index(frame)
+                    title = self.notebook.tab(frame)["text"]
+                    self.notebook.forget(frame); self.comparisons.pop(frame, None); frame.destroy()
+                    replacement = self._make_frame(left, right, kind)
+                    self.notebook.add(replacement, text=title, position=index)
+                    self.comparisons[replacement] = (left, right, kind, current)
+        if self.winfo_exists(): self._schedule_refresh()
 
     def _navigate(self, method):
         frame = self.nametowidget(self.notebook.select())
@@ -224,6 +263,8 @@ class CompareWindow(tk.Toplevel):
             if isinstance(child, SideBySideText): getattr(child, method)(); return
 
     def close(self):
+        if self._refresh_job is not None:
+            self.after_cancel(self._refresh_job); self._refresh_job = None
         if not self.config_data.has_section("compare"): self.config_data.add_section("compare")
         self.config_data.set("compare", "geometry", self.geometry())
         self.save_config(); self.destroy()
@@ -236,4 +277,5 @@ class CompareWindow(tk.Toplevel):
         current = self.notebook.select()
         widget = self.nametowidget(current)
         self.notebook.forget(current)
+        self.comparisons.pop(widget, None)
         widget.destroy()
