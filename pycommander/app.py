@@ -332,7 +332,8 @@ class PaneTabs(ChamferNotebook):
 
     def add_tab(self, path: Path, notify: bool = True) -> FilePane:
         position = self.index(self.select()) + 1 if self.tabs() else 0
-        pane = FilePane(self, self.on_activate, self._pane_changed)
+        pane = FilePane(self, self.on_activate)
+        pane.on_change = lambda source=pane: self._pane_changed(source)
         pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
         pane.navigate(path)
         self.add(pane, text=path.name or str(path), color="default", position=position)
@@ -342,12 +343,11 @@ class PaneTabs(ChamferNotebook):
             self.on_change()
         return pane
 
-    def _pane_changed(self) -> None:
+    def _pane_changed(self, pane: FilePane) -> None:
         if not self.tabs():
             self.on_change()
             return
         try:
-            pane = self.current()
             self.tab(pane, text=pane.display_title)
         except (tk.TclError, AttributeError):
             pass
@@ -457,7 +457,8 @@ class Commander(tk.Tk):
         for text, command in (("F2 Rename", self.rename), ("F3 Preview", self.preview),
                               ("F4 Search", self.search), ("F5 Copy", self.copy),
                               ("F6 Move", self.move), ("F7 New folder", self.mkdir),
-                              ("F8", None), ("F9 Compare", self.compare_selected)):
+                              ("F8", None), ("F9 Compare", self.compare_selected),
+                              ("F11 Copy Path", self.copy_paths), ("F12 Change Dir", self.change_dir)):
             button = ttk.Button(actions, text=text, command=command)
             if command is None:
                 button.state(["disabled"])
@@ -474,6 +475,7 @@ class Commander(tk.Tk):
             "switch_panel": "<Tab>", "focus_path": "<Control-l>",
             "focus_files": "<Escape>", "help": "<F1>",
             "files_menu": "<Alt-f>", "view_menu": "<Alt-v>",
+            "copy_paths": "<F11>", "change_dir": "<F12>",
             "compare": "<F9>",
         }
         commands = {
@@ -490,6 +492,7 @@ class Commander(tk.Tk):
             "focus_files": self.focus_files, "help": self.show_help,
             "files_menu": lambda: self.show_header_menu("files"),
             "view_menu": lambda: self.show_header_menu("view"),
+            "copy_paths": self.copy_paths, "change_dir": self.change_dir,
             "compare": self.compare_selected,
         }
         if not self.config_data.has_section("hotkeys"):
@@ -761,6 +764,7 @@ class Commander(tk.Tk):
             "File operations\n"
             "F2 Rename    F3 Preview    F4 Search    F5 Copy to other panel\n"
             "F6 Move to other panel    F7 New folder    F9 Compare    Del Delete\n"
+            "F11 Copy all selected paths    F12 Change directory by path\n"
             "Ctrl+C / Ctrl+X / Ctrl+V Copy, cut, and paste with File Explorer\n"
             "Ctrl+A Select all    Ctrl+Shift+C Copy path    Ctrl+H Hidden files\n\n"
             "F1 opens this guide.", parent=self)
@@ -824,6 +828,30 @@ class Commander(tk.Tk):
         items = source.selected_paths()
         value = str(items[0] if items else source.path)
         self.clipboard_clear(); self.clipboard_append(value)
+
+    def copy_paths(self) -> str:
+        items = self.panes()[0].selected_paths()
+        if items:
+            self.clipboard_clear()
+            self.clipboard_append("\n".join(str(item.resolve()) for item in items))
+            self.update_idletasks()
+        return "break"
+
+    def change_dir(self) -> str:
+        source = self.panes()[0]
+        initial = str(source.path)
+        try:
+            candidate = self.clipboard_get().strip().strip('"')
+            if candidate and Path(candidate).expanduser().is_dir():
+                initial = candidate
+        except (tk.TclError, OSError):
+            pass
+        value = simpledialog.askstring("Change Directory", "Folder path:",
+                                       initialvalue=initial, parent=self)
+        if value:
+            source.navigate(Path(value.strip().strip('"')))
+            source.tree.focus_set()
+        return "break"
 
     def clipboard_copy(self) -> None:
         self._set_file_clipboard(cut=False)
