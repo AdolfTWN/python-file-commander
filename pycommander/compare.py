@@ -65,10 +65,26 @@ class SideBySideText(ttk.Frame):
         super().__init__(master)
         self.differences = differences
         self.diff_index = -1
+        self.matches, self.match_index = [], -1
+        self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
-        ttk.Button(toolbar, text="F7 Diff <<", command=self.previous).pack(side="left")
-        ttk.Button(toolbar, text="F8 Diff >>", command=self.next).pack(side="left", padx=3)
-        ttk.Label(toolbar, text=status_text).pack(side="left", padx=10)
+        diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
+        ttk.Button(diff_row, text="F7 Diff <<", command=self.previous).pack(side="left")
+        ttk.Button(diff_row, text="F8 Diff >>", command=self.next).pack(side="left", padx=3)
+        ttk.Label(diff_row, text=status_text).pack(side="left", padx=10)
+        find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
+        ttk.Label(find_row, text="Find:").pack(side="left")
+        self.search = ttk.Entry(find_row, textvariable=self.search_var)
+        self.search.pack(side="left", fill="x", expand=True, padx=(3, 4))
+        self.search.bind("<Return>", lambda _event: self.find_next())
+        self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
+        self.find_status = ttk.Label(find_row, width=12, anchor="e")
+        self.find_status.pack(side="right", padx=(8, 3))
+        find_actions = ttk.Frame(toolbar); find_actions.pack(fill="x", pady=(0, 2))
+        ttk.Button(find_actions, text="Find Prev", command=self.find_previous).pack(side="left")
+        ttk.Button(find_actions, text="Find Next", command=self.find_next).pack(side="left", padx=(3, 0))
+        ttk.Checkbutton(find_actions, text="Case sensitive", variable=self.case_var,
+                        command=self.find_all).pack(side="left", padx=(8, 0))
         body = ttk.Panedwindow(self, orient="horizontal"); body.pack(fill="both", expand=True)
         self.left = tk.Text(body, wrap="none", undo=False)
         self.right = tk.Text(body, wrap="none", undo=False)
@@ -79,11 +95,44 @@ class SideBySideText(ttk.Frame):
         for widget, lines in ((self.left, left_lines), (self.right, right_lines)):
             widget.tag_configure("diff", background="#ffe1a8")
             widget.tag_configure("current", background="#ffb347")
+            widget.tag_configure("match", background="#fff0a6")
+            widget.tag_configure("current_match", background="#ff9f43")
             for display_row, item in enumerate(lines, 1):
                 source_number, line = item if isinstance(item, tuple) else (display_row, item)
                 number_text = "" if source_number is None else str(source_number)
                 widget.insert("end", f"{number_text:>6}  {line}\n", "diff" if display_row in differences else "")
             widget.configure(state="disabled")
+
+    def focus_search(self):
+        self.search.focus_set(); self.search.selection_range(0, "end"); return "break"
+
+    def find_all(self):
+        self.matches, self.match_index = [], -1
+        needle = self.search_var.get()
+        for widget in (self.left, self.right):
+            widget.tag_remove("match", "1.0", "end"); widget.tag_remove("current_match", "1.0", "end")
+            if not needle: continue
+            start = "1.0"
+            while True:
+                found = widget.search(needle, start, stopindex="end", nocase=not self.case_var.get())
+                if not found: break
+                end = f"{found}+{len(needle)}c"
+                self.matches.append((widget, found, end)); widget.tag_add("match", found, end); start = end
+        self.find_status.configure(text=f"{len(self.matches)} match(es)" if needle else "")
+
+    def _find(self, direction):
+        previous = self.match_index; self.find_all()
+        if not self.matches: return "break"
+        self.match_index = (previous + direction) % len(self.matches)
+        for widget in (self.left, self.right): widget.tag_remove("current_match", "1.0", "end")
+        widget, start, end = self.matches[self.match_index]
+        widget.tag_add("current_match", start, end); widget.see(start)
+        other = self.right if widget is self.left else self.left; other.yview_moveto(widget.yview()[0])
+        self.find_status.configure(text=f"{self.match_index + 1}/{len(self.matches)}")
+        return "break"
+
+    def find_next(self): return self._find(1)
+    def find_previous(self): return self._find(-1)
 
     def _scroll(self, *args):
         self.left.yview(*args); self.right.yview(*args)
@@ -160,27 +209,68 @@ class FolderCompare(ttk.Frame):
         bar = ttk.Frame(self); bar.pack(fill="x")
         self.show_identical = tk.BooleanVar(value=False)
         ttk.Checkbutton(bar, text="Show identical", variable=self.show_identical, command=self.populate).pack(side="left")
+        self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
+        find_row = ttk.Frame(self); find_row.pack(fill="x", pady=(3, 2))
+        ttk.Label(find_row, text="Find:").pack(side="left")
+        self.search = ttk.Entry(find_row, textvariable=self.search_var)
+        self.search.pack(side="left", fill="x", expand=True, padx=(3, 4))
+        self.search.bind("<Return>", lambda _event: self.find_next())
+        self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
+        self.find_status = ttk.Label(find_row, width=10, anchor="e"); self.find_status.pack(side="right", padx=4)
+        find_actions = ttk.Frame(self); find_actions.pack(fill="x", pady=(0, 2))
+        ttk.Button(find_actions, text="Find Prev", command=self.find_previous).pack(side="left")
+        ttk.Button(find_actions, text="Find Next", command=self.find_next).pack(side="left", padx=(3, 0))
+        ttk.Checkbutton(find_actions, text="Case sensitive", variable=self.case_var,
+                        command=self.find_all).pack(side="left", padx=(8, 0))
         self.tree = ttk.Treeview(self, columns=("status", "path", "left", "right"), show="headings")
         for col, width in (("status", 110), ("path", 420), ("left", 130), ("right", 130)):
             self.tree.heading(col, text=col.title()); self.tree.column(col, width=width)
         self.tree.pack(fill="both", expand=True)
+        self.tree.tag_configure("find_match", background="#fff0a6")
+        self.tree.tag_configure("current_match", background="#ff9f43")
         self.rows = list(folder_rows(left, right)); self.open_detail = open_detail
+        self.item_paths, self.matches, self.match_index = {}, [], -1
         self.tree.bind("<Double-1>", self._open); self.populate()
 
     def populate(self):
         self.tree.delete(*self.tree.get_children())
+        self.item_paths = {}
         for status, path, left, right in self.rows:
             if status == "Identical" and not self.show_identical.get(): continue
-            self.tree.insert("", "end", values=(status, path,
+            iid = self.tree.insert("", "end", values=(status, path,
                 "—" if left is None else ("<DIR>" if left.is_dir() else left.stat().st_size),
-                "—" if right is None else ("<DIR>" if right.is_dir() else right.stat().st_size)),
-                tags=(str(left or ""), str(right or "")))
+                "—" if right is None else ("<DIR>" if right.is_dir() else right.stat().st_size)))
+            self.item_paths[iid] = (left, right)
+        self.find_all()
+
+    def focus_search(self):
+        self.search.focus_set(); self.search.selection_range(0, "end"); return "break"
+
+    def find_all(self):
+        self.matches, self.match_index = [], -1; needle = self.search_var.get()
+        for iid in self.tree.get_children():
+            self.tree.item(iid, tags=())
+            haystack = " ".join(str(value) for value in self.tree.item(iid, "values"))
+            matched = needle in haystack if self.case_var.get() else needle.casefold() in haystack.casefold()
+            if needle and matched:
+                self.matches.append(iid); self.tree.item(iid, tags=("find_match",))
+        self.find_status.configure(text=f"{len(self.matches)} match(es)" if needle else "")
+
+    def _find(self, direction):
+        previous = self.match_index; self.find_all()
+        if not self.matches: return "break"
+        self.match_index = (previous + direction) % len(self.matches); iid = self.matches[self.match_index]
+        self.tree.item(iid, tags=("current_match",)); self.tree.selection_set(iid); self.tree.focus(iid); self.tree.see(iid)
+        self.find_status.configure(text=f"{self.match_index + 1}/{len(self.matches)}"); return "break"
+
+    def find_next(self): return self._find(1)
+    def find_previous(self): return self._find(-1)
 
     def _open(self, _event=None):
         selected = self.tree.selection()
         if selected:
-            left, right = self.tree.item(selected[0], "tags")
-            if left and right and Path(left).is_file() and Path(right).is_file(): self.open_detail(Path(left), Path(right))
+            left, right = self.item_paths.get(selected[0], (None, None))
+            if left and right and left.is_file() and right.is_file(): self.open_detail(left, right)
 
 
 class TableCompare(TextCompare):
@@ -208,6 +298,7 @@ class CompareWindow(tk.Toplevel):
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
+        self.bind("<Control-f>", lambda _e: self.focus_search())
         self.bind("<Escape>", lambda _e: self.close_active())
         install_button_tooltips(self)
         self._schedule_refresh()
@@ -265,6 +356,15 @@ class CompareWindow(tk.Toplevel):
         frame = self.nametowidget(self.notebook.select())
         for child in frame.winfo_children():
             if isinstance(child, SideBySideText): getattr(child, method)(); return
+
+    def focus_search(self):
+        frame = self.nametowidget(self.notebook.select())
+        pending = [frame]
+        while pending:
+            widget = pending.pop(0)
+            if hasattr(widget, "focus_search"): return widget.focus_search()
+            pending.extend(widget.winfo_children())
+        return "break"
 
     def close(self):
         if self._refresh_job is not None:
