@@ -1,0 +1,21 @@
+import unittest
+from pathlib import Path
+
+from pycommander.preview import decode_text, looks_text, render_hex
+
+
+class PreviewTests(unittest.TestCase):
+    def test_text_detection_and_decoding(self):
+        self.assertTrue(looks_text(Path("notes.txt"), b"hello\nworld"))
+        self.assertFalse(looks_text(Path("data.bin"), b"a\x00b"))
+        self.assertEqual(decode_text(b"hello"), ("hello", "UTF-8"))
+
+    def test_hex_has_offset_bytes_and_ascii(self):
+        rendered = render_hex(b"ABC\x00")
+        self.assertIn("00000000", rendered)
+        self.assertIn("41 42 43 00", rendered)
+        self.assertIn("|ABC.|", rendered)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -17,6 +17,7 @@ from .fileops import copy_items, delete_items, format_size, is_system, move_item
 from .clipboard import clear_file_clipboard, get_file_clipboard, set_file_clipboard
 from .icons import ShellIconProvider
 from .compare import CompareWindow
+from .preview import PreviewWindow
 from .tabs import ChamferNotebook
 
 
@@ -427,10 +428,11 @@ class Commander(tk.Tk):
         self.minsize(800, 480)
         self.active: FilePane | None = None
         self.compare_window = None
+        self.preview_window = None
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
         self._font_scales = {"small": 1.0, "medium": 1.5, "large": 2.0, "huge": 3.0}
         self._base_font_sizes = {}
-        for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont", "TkHeadingFont", "TkCaptionFont"):
+        for name in ("TkDefaultFont", "TkTextFont", "TkFixedFont", "TkMenuFont", "TkHeadingFont", "TkCaptionFont"):
             try:
                 self._base_font_sizes[name] = tkfont.nametofont(name).cget("size")
             except tk.TclError:
@@ -697,7 +699,7 @@ class Commander(tk.Tk):
         files = tk.Menu(files_button, tearoff=False, font=menu_font)
         files_button.configure(menu=files)
         files.add_command(label="Rename\tF2", command=self.rename)
-        files.add_command(label="Preview in other panel\tF3", command=self.preview)
+        files.add_command(label="Preview\tF3", command=self.preview)
         files.add_command(label="Search\tF4", command=self.search)
         files.add_command(label="Compare\tF9", command=self.compare_selected)
         files.add_command(label="Copy Path\tF11", command=self.copy_paths)
@@ -873,10 +875,20 @@ class Commander(tk.Tk):
         return "break"
 
     def preview(self) -> None:
-        source, target = self.panes()
+        source, _ = self.panes()
         items = source.selected_paths()
-        if items:
-            target.show_preview(items[0])
+        if not items:
+            return
+        ordered = []
+        for iid in source.tree.get_children():
+            tags = source.tree.item(iid, "tags")
+            if tags:
+                ordered.append(Path(tags[0]))
+        if self.preview_window is None or not self.preview_window.winfo_exists():
+            self.preview_window = PreviewWindow(self, self.config_data, self.save_config,
+                                                ordered or items, items[0])
+        else:
+            self.preview_window.show(ordered or items, items[0])
 
     def search(self) -> None:
         source, _ = self.panes()

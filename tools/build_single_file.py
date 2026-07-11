@@ -12,6 +12,7 @@ def build() -> Path:
     icons = (ROOT / "pycommander" / "icons.py").read_text(encoding="utf-8")
     tabs = (ROOT / "pycommander" / "tabs.py").read_text(encoding="utf-8")
     compare = (ROOT / "pycommander" / "compare.py").read_text(encoding="utf-8")
+    preview = (ROOT / "pycommander" / "preview.py").read_text(encoding="utf-8")
     app = (ROOT / "pycommander" / "app.py").read_text(encoding="utf-8")
 
     fileops = fileops.replace("from __future__ import annotations\n\n", "", 1)
@@ -20,6 +21,8 @@ def build() -> Path:
     tabs = tabs.replace("from __future__ import annotations\n\n", "", 1)
     compare = compare.replace("from __future__ import annotations\n\n", "", 1)
     compare = "\n".join(line for line in compare.splitlines() if not line.startswith("from .")) + "\n"
+    preview = preview.replace("from __future__ import annotations\n\n", "", 1)
+    preview = "\n".join(line for line in preview.splitlines() if not line.startswith("from .")) + "\n"
     app = app.replace("from __future__ import annotations\n\n", "", 1)
     app = "\n".join(line for line in app.splitlines() if not line.startswith("from .")) + "\n"
     banner = '''"""Portable Python File Commander.
@@ -32,7 +35,7 @@ from __future__ import annotations
 
 '''
     output = ROOT / "pfc.py"
-    output.write_text(banner + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + tabs + "\n\n" + compare + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
+    output.write_text(banner + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + tabs + "\n\n" + compare + "\n\n" + preview + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
     return output
 
 
