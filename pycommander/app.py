@@ -18,6 +18,7 @@ from .clipboard import clear_file_clipboard, get_file_clipboard, set_file_clipbo
 from .icons import ShellIconProvider
 from .compare import CompareWindow
 from .preview import PreviewWindow
+from .search import SearchWindow
 from .tooltip import MenuToolTip, install_button_tooltips
 from .tabs import ChamferNotebook
 
@@ -238,6 +239,12 @@ class FilePane(ttk.Frame):
                 result.append(Path(tags[0]))
         return result
 
+    def select_path(self, path: Path) -> None:
+        for iid in self.tree.get_children():
+            tags = self.tree.item(iid, "tags")
+            if tags and Path(tags[0]) == path:
+                self.tree.selection_set(iid); self.tree.focus(iid); self.tree.see(iid); break
+
     def focus_file_list(self) -> None:
         children = self.tree.get_children()
         selected = self.tree.selection()
@@ -435,6 +442,7 @@ class Commander(tk.Tk):
         self.active: FilePane | None = None
         self.compare_window = None
         self.preview_window = None
+        self.search_window = None
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
         self._font_scales = {"small": 1.0, "medium": 1.5, "large": 2.0, "huge": 3.0}
         self._base_font_sizes = {}
@@ -951,17 +959,29 @@ class Commander(tk.Tk):
             tags = source.tree.item(iid, "tags")
             if tags:
                 ordered.append(Path(tags[0]))
+        self.preview_paths(ordered or items, items[0])
+
+    def preview_paths(self, paths, selected) -> None:
         if self.preview_window is None or not self.preview_window.winfo_exists():
-            self.preview_window = PreviewWindow(self, self.config_data, self.save_config,
-                                                ordered or items, items[0])
-        else:
-            self.preview_window.show(ordered or items, items[0])
+            self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected)
+        else: self.preview_window.show(paths, selected)
 
     def search(self) -> None:
         source, _ = self.panes()
-        query = simpledialog.askstring("Search", "File or folder name contains:", parent=self)
-        if query:
-            source.search(query)
+        if self.search_window is None or not self.search_window.winfo_exists():
+            self.search_window = SearchWindow(self, self.config_data, self.save_config, source.path,
+                                              lambda path, pane=source: self.go_to_search_result(path, pane),
+                                              self.preview_paths)
+        else:
+            self.search_window.path_var.set(str(source.path))
+            self.search_window.on_go = lambda path, pane=source: self.go_to_search_result(path, pane)
+            self.search_window.activate()
+
+    def go_to_search_result(self, path: Path, source: FilePane) -> None:
+        self.set_active(source)
+        if path.is_dir(): source.navigate(path)
+        elif source.navigate(path.parent): source.select_path(path)
+        source.focus_file_list(); self.lift(); self.focus_force()
 
     def new_tab(self) -> None:
         source, _ = self.panes()
