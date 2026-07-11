@@ -878,10 +878,14 @@ class Commander(tk.Tk):
 
     def copy_paths(self) -> str:
         items = self.panes()[0].selected_paths()
-        if items:
-            self.clipboard_clear()
-            self.clipboard_append("\n".join(str(item.resolve()) for item in items))
-            self.update_idletasks()
+        if not items:
+            messagebox.showinfo("Copy Path", "Select one or more files or folders.", parent=self)
+            return "break"
+        self.clipboard_clear()
+        self.clipboard_append("\n".join(str(item.resolve()) for item in items))
+        self.update_idletasks()
+        noun = "path" if len(items) == 1 else "paths"
+        messagebox.showinfo("Copy Path", f"{len(items)} {noun} copied to clipboard.", parent=self)
         return "break"
 
     def change_dir(self) -> str:
