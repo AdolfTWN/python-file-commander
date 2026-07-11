@@ -90,7 +90,7 @@ class FilePane(ttk.Frame):
         self.path_var = tk.StringVar()
         self.path_entry = ttk.Entry(bar, textvariable=self.path_var)
         self.path_entry.pack(side="left", fill="x", expand=True, padx=(4, 0))
-        self.path_entry.bind("<Return>", lambda _e: self.navigate(Path(self.path_var.get())))
+        self.path_entry.bind("<Return>", self.navigate_from_entry)
 
         frame = ttk.Frame(self)
         frame.pack(fill="both", expand=True)
@@ -114,14 +114,14 @@ class FilePane(ttk.Frame):
         self.status.pack(fill="x", pady=(3, 0))
         self.navigate(self.path)
 
-    def navigate(self, path: Path, bypass_lock: bool = False) -> None:
+    def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
         try:
             path = path.expanduser().resolve()
             if not path.is_dir():
                 raise NotADirectoryError(path)
             if not bypass_lock and self.lock_mode == "locked" and path != self.path:
                 self.on_locked_navigation(path)
-                return
+                return False
             if path != self.path:
                 self.history.append(self.path)
             self.path = path
@@ -132,11 +132,18 @@ class FilePane(ttk.Frame):
                 self.drive.set(path.anchor)
             self.refresh()
             self.on_change()
+            return True
         except OSError as exc:
             messagebox.showerror("Cannot open folder", str(exc))
+            return False
 
     def up(self) -> None:
         self.navigate(self.path.parent)
+
+    def navigate_from_entry(self, _event=None) -> str:
+        if self.navigate(Path(self.path_var.get().strip().strip('"'))):
+            self.focus_file_list()
+        return "break"
 
     def change_sort(self, column: str) -> None:
         self.reverse = not self.reverse if self.sort_column == column else False
@@ -878,20 +885,7 @@ class Commander(tk.Tk):
         return "break"
 
     def change_dir(self) -> str:
-        source = self.panes()[0]
-        initial = str(source.path)
-        try:
-            candidate = self.clipboard_get().strip().strip('"')
-            if candidate and Path(candidate).expanduser().is_dir():
-                initial = candidate
-        except (tk.TclError, OSError):
-            pass
-        value = simpledialog.askstring("Change Dir", "Folder path:",
-                                       initialvalue=initial, parent=self)
-        if value:
-            source.navigate(Path(value.strip().strip('"')))
-            source.tree.focus_set()
-        return "break"
+        return self.focus_path()
 
     def clipboard_copy(self) -> None:
         self._set_file_clipboard(cut=False)

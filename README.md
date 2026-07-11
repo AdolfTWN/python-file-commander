@@ -27,7 +27,7 @@ python tools/build_single_file.py
 
 Current core: two resizable panes, chamfered color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons with a compact left gutter and padded filename gap, multi-select, rename (F2), preview in the other panel (F3), recursive name search (F4), copy (F5), move (F6), new folder (F7), permanent delete (Del), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Tab-specific colors and locks are saved in `pfc.ini`. Preview tabs show the previewed filename.
 
-Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the first selected path or current folder, F11 copies every selected full path as newline-separated text, F12 changes folder from a pasted path, and Ctrl+H toggles hidden files.
+Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the first selected path or current folder, F11 copies every selected full path as newline-separated text, F12 focuses and selects the current path for direct paste-and-Enter navigation, and Ctrl+H toggles hidden files.
 
 Keyboard navigation is end-to-end: Tab switches panels, Ctrl+Tab and Ctrl+Shift+Tab cycle the active panel's tabs, Ctrl+L focuses the path, Esc returns to the file list, Alt+F/Alt+V open the header menus, and F1 (or clicking the Python File Commander header) opens the built-in keyboard guide.
 
