@@ -13,6 +13,7 @@ from tkinter import messagebox, simpledialog, ttk
 
 from .fileops import copy_items, delete_items, format_size, is_system, move_items, roots
 from .icons import ShellIconProvider
+from .compare import CompareWindow
 
 
 class FilePane(ttk.Frame):
@@ -300,6 +301,7 @@ class Commander(tk.Tk):
         self.geometry(self.config_data.get("window", "geometry", fallback="1200x720"))
         self.minsize(800, 480)
         self.active: FilePane | None = None
+        self.compare_window = None
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
         self._font_scales = {"small": 1.0, "medium": 1.5, "large": 2.0, "huge": 3.0}
         self._base_font_sizes = {}
@@ -335,7 +337,7 @@ class Commander(tk.Tk):
         actions.pack(fill="x", padx=5, pady=(0, 5))
         for text, command in (("F3 Preview", self.preview), ("F4 Search", self.search), ("F5 Copy", self.copy), ("F6 Move", self.move),
                               ("F7 New folder", self.mkdir), ("Del Delete", self.delete), ("F2 Rename", self.rename),
-                              ("Ctrl+R Refresh", self.refresh)):
+                              ("F9 Compare", self.compare_selected)):
             ttk.Button(actions, text=text, command=command).pack(side="left", fill="x", expand=True, padx=1)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
@@ -343,6 +345,7 @@ class Commander(tk.Tk):
             "enter_folder": "<Right>", "parent_folder": "<Left>", "new_tab": "<Control-Up>",
             "close_tab": "<Control-w>", "select_all": "<Control-a>",
             "copy_path": "<Control-Shift-C>", "toggle_hidden": "<Control-h>",
+            "compare": "<F9>",
         }
         commands = {
             "rename": self.rename, "preview": self.preview, "search": self.search, "copy": self.copy,
@@ -350,6 +353,7 @@ class Commander(tk.Tk):
             "enter_folder": self.enter_folder, "parent_folder": self.parent_folder, "new_tab": self.new_tab,
             "close_tab": self.close_tab, "select_all": self.select_all,
             "copy_path": self.copy_path, "toggle_hidden": self.toggle_hidden,
+            "compare": self.compare_selected,
         }
         if not self.config_data.has_section("hotkeys"):
             self.config_data.add_section("hotkeys")
@@ -448,6 +452,7 @@ class Commander(tk.Tk):
         files = tk.Menu(menu, tearoff=False, font=menu_font)
         files.add_command(label="Preview in other panel\tF3", command=self.preview)
         files.add_command(label="Search\tF4", command=self.search)
+        files.add_command(label="Compare selected\tF9", command=self.compare_selected)
         files.add_command(label="Rename\tF2", command=self.rename)
         files.add_separator()
         files.add_command(label="Exit", command=self.destroy)
@@ -543,6 +548,25 @@ class Commander(tk.Tk):
         source = self.panes()[0]
         source.show_system = self.show_system_var.get()
         source.refresh(); source.on_change()
+
+    def compare_selected(self) -> None:
+        source, target = self.panes()
+        left_items = self.left_tabs.current().selected_paths()
+        right_items = self.right_tabs.current().selected_paths()
+        if len(left_items) == 1 and len(right_items) == 1:
+            left, right = left_items[0], right_items[0]
+        else:
+            active_items = source.selected_paths()
+            if len(active_items) != 2:
+                messagebox.showinfo("Compare", "Select one item in each panel, or two items in the active panel.", parent=self)
+                return
+            left, right = active_items
+        try:
+            if self.compare_window is None or not self.compare_window.winfo_exists():
+                self.compare_window = CompareWindow(self, self.config_data, self.save_config)
+            self.compare_window.add(left, right)
+        except OSError as exc:
+            messagebox.showerror("Compare failed", str(exc), parent=self)
 
     def apply_font_size(self, save: bool = True) -> None:
         scale = self._font_scales.get(self.font_size_var.get(), 1.0)
