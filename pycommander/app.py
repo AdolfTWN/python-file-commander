@@ -541,16 +541,20 @@ class Commander(tk.Tk):
         header = ttk.Frame(self, padding=(5, 2))
         header.pack(fill="x")
         ttk.Label(header, text="Python File Commander", font=tkfont.nametofont("TkCaptionFont")).pack(side="left", padx=(2, 10))
-        files = tk.Menu(self, tearoff=False, font=menu_font)
+        files_button = tk.Menubutton(header, text="Files", font=menu_font, relief="flat", padx=6)
+        files_button.pack(side="left")
+        files = tk.Menu(files_button, tearoff=False, font=menu_font)
+        files_button.configure(menu=files)
         files.add_command(label="Preview in other panel\tF3", command=self.preview)
         files.add_command(label="Search\tF4", command=self.search)
         files.add_command(label="Compare selected\tF9", command=self.compare_selected)
         files.add_command(label="Rename\tF2", command=self.rename)
         files.add_separator()
         files.add_command(label="Exit", command=self.destroy)
-        files_button = tk.Menubutton(header, text="Files", menu=files, font=menu_font, relief="flat", padx=6)
-        files_button.pack(side="left")
-        view = tk.Menu(self, tearoff=False, font=menu_font)
+        view_button = tk.Menubutton(header, text="View", font=menu_font, relief="flat", padx=6)
+        view_button.pack(side="left")
+        view = tk.Menu(view_button, tearoff=False, font=menu_font)
+        view_button.configure(menu=view)
         visibility = tk.Menu(view, tearoff=False, font=menu_font)
         self.show_hidden_var = tk.BooleanVar(value=False)
         self.show_system_var = tk.BooleanVar(value=False)
@@ -565,8 +569,8 @@ class Commander(tk.Tk):
             font_size.add_radiobutton(label=label, value=value, variable=self.font_size_var,
                                       command=self.apply_font_size)
         view.add_cascade(label="Font Size", menu=font_size)
-        view_button = tk.Menubutton(header, text="View", menu=view, font=menu_font, relief="flat", padx=6)
-        view_button.pack(side="left")
+        self.files_menu_button = files_button
+        self.view_menu_button = view_button
         self.config(menu="")
 
     def set_active(self, pane: FilePane) -> None:
