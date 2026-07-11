@@ -134,6 +134,7 @@ class FilePane(ttk.Frame):
             self.on_change()
             return True
         except OSError as exc:
+            self.path_var.set(str(self.path))
             messagebox.showerror("Cannot open folder", str(exc))
             return False
 
