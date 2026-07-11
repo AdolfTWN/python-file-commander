@@ -476,7 +476,7 @@ class ChamferNotebook(ttk.Frame):
         lock_mode = tk.StringVar(value=self._locks.get(child, "unlocked"))
         for label, value in (("Unlocked", "unlocked"),
                              ("Lock (open folder in new tab)", "locked"),
-                             ("Lock, but allow folder changes", "reset")):
+                             ("Lock (open folder is allowed)", "reset")):
             menu.add_radiobutton(label=label, value=value, variable=lock_mode,
                                  command=lambda mode=value: self.set_lock(child, mode))
         menu.tk_popup(event.x_root, event.y_root)
@@ -1395,10 +1395,12 @@ class Commander(tk.Tk):
         files_button.pack(side="left")
         files = tk.Menu(files_button, tearoff=False, font=menu_font)
         files_button.configure(menu=files)
+        files.add_command(label="Rename\tF2", command=self.rename)
         files.add_command(label="Preview in other panel\tF3", command=self.preview)
         files.add_command(label="Search\tF4", command=self.search)
-        files.add_command(label="Compare selected\tF9", command=self.compare_selected)
-        files.add_command(label="Rename\tF2", command=self.rename)
+        files.add_command(label="Compare\tF9", command=self.compare_selected)
+        files.add_command(label="Copy Path\tF11", command=self.copy_paths)
+        files.add_command(label="Change Dir\tF12", command=self.change_dir)
         files.add_separator()
         files.add_command(label="Exit", command=self.destroy)
         view_button = tk.Menubutton(header, text="View", font=menu_font, relief="flat", padx=6)
@@ -1494,7 +1496,7 @@ class Commander(tk.Tk):
         dialog.resizable(False, False)
         body = ttk.Frame(dialog, padding=18)
         body.pack(fill="both", expand=True)
-        ttk.Label(body, text="Keyboard shortcuts not shown on the main toolbar",
+        ttk.Label(body, text="Keyboard shortcuts not shown on the bottom action bar",
                   font=tkfont.nametofont("TkHeadingFont")).pack(anchor="w", pady=(0, 12))
         guide = (
             "Navigation\n"
@@ -1509,7 +1511,7 @@ class Commander(tk.Tk):
             "Selection and clipboard\n"
             "Ctrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\n"
             "Ctrl+A  Select all    Del  Permanently delete\n"
-            "Ctrl+Shift+C  Copy first selected path\n"
+            "Ctrl+Shift+C  Copy selected or current path\n"
             "Ctrl+H  Toggle hidden files\n"
             "Alt+F / Alt+V  Open Files / View menu"
         )
@@ -1599,7 +1601,7 @@ class Commander(tk.Tk):
                 initial = candidate
         except (tk.TclError, OSError):
             pass
-        value = simpledialog.askstring("Change Directory", "Folder path:",
+        value = simpledialog.askstring("Change Dir", "Folder path:",
                                        initialvalue=initial, parent=self)
         if value:
             source.navigate(Path(value.strip().strip('"')))

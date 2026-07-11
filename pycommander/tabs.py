@@ -171,7 +171,7 @@ class ChamferNotebook(ttk.Frame):
         lock_mode = tk.StringVar(value=self._locks.get(child, "unlocked"))
         for label, value in (("Unlocked", "unlocked"),
                              ("Lock (open folder in new tab)", "locked"),
-                             ("Lock, but allow folder changes", "reset")):
+                             ("Lock (open folder is allowed)", "reset")):
             menu.add_radiobutton(label=label, value=value, variable=lock_mode,
                                  command=lambda mode=value: self.set_lock(child, mode))
         menu.tk_popup(event.x_root, event.y_root)
