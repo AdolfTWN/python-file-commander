@@ -775,20 +775,21 @@ class Commander(tk.Tk):
     def _update_clipboard_summary(self) -> None:
         self._clipboard_job = None
         try:
-            paths, cut = get_file_clipboard()
+            paths, _cut = get_file_clipboard()
             if paths:
-                action = "Cut" if cut else "Copy"
-                first = paths[0].name or str(paths[0])
-                extra = f" +{len(paths) - 1}" if len(paths) > 1 else ""
-                summary = f"Clipboard: {action} {len(paths)} — {first}{extra}"
+                folders = sum(path.is_dir() for path in paths)
+                files = len(paths) - folders
+                parts = []
+                if files: parts.append(f"{files} {'File' if files == 1 else 'Files'}")
+                if folders: parts.append(f"{folders} {'Folder' if folders == 1 else 'Folders'}")
+                summary = f"Clipboard: {', '.join(parts)}"
             else:
                 try:
                     value = self.clipboard_get()
-                    compact = " ".join(value.split())
-                    preview = compact[:64] + ("…" if len(compact) > 64 else "")
-                    summary = f"Clipboard: {preview}" if preview else "Clipboard: empty"
+                    size = len(value.encode("utf-8"))
+                    summary = f"Clipboard: Strings {size:,} Bytes" if value else "Clipboard: Empty"
                 except tk.TclError:
-                    summary = "Clipboard: non-text content"
+                    summary = "Clipboard: OBJ"
             self.clipboard_summary.configure(text=summary)
         except (OSError, MemoryError):
             pass  # Keep the last useful summary while another app owns the clipboard.

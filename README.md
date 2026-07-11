@@ -33,7 +33,7 @@ Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copi
 
 Keyboard navigation is end-to-end: Tab switches panels, Ctrl+Tab and Ctrl+Shift+Tab cycle the active panel's tabs, Ctrl+L focuses the path, Esc returns to the file list, Alt+F/Alt+V open the header menus, and F1 (or clicking the Python File Commander header) opens the built-in keyboard guide.
 
-The dark application header keeps the PFC window visually distinct. Its right side shows a compact two-second clipboard summary: file Copy/Cut state, item count and first filename, or a whitespace-normalized truncated text preview. Busy clipboards keep the last useful summary instead of interrupting work.
+The dark application header keeps the PFC window visually distinct. Its right side shows a privacy-safe two-second clipboard summary without content or filenames: UTF-8 string byte size, file/folder counts, `OBJ` for other formats, or `Empty`. Busy clipboards keep the last useful summary instead of interrupting work.
 
 View > File Visibility > Show File Extension is enabled by default. Turning it off hides only the final suffix in the Name column (for example, `archive.tar.gz` becomes `archive.tar`) while the Ext column remains unchanged. The setting is saved per panel. Buttons and menu items throughout the main, Preview and Compare windows show concise help after a five-second hover.
 
