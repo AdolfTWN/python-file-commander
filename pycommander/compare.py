@@ -9,6 +9,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from .tabs import ChamferNotebook
+from .tooltip import install_button_tooltips
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -208,6 +209,7 @@ class CompareWindow(tk.Toplevel):
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
         self.bind("<Escape>", lambda _e: self.close_active())
+        install_button_tooltips(self)
         self._schedule_refresh()
 
     @staticmethod
@@ -230,6 +232,7 @@ class CompareWindow(tk.Toplevel):
         if left.is_dir() != right.is_dir():
             messagebox.showerror("Compare", "Select two files or two folders.", parent=self); return
         frame = self._make_frame(left, right, kind)
+        install_button_tooltips(frame)
         self.notebook.add(frame, text=f"{kind}: {left.name} ↔ {right.name}")
         self.comparisons[frame] = (left, right, kind, self._signature(left, right))
         self.notebook.select(frame); self.after_idle(self.activate)
@@ -253,6 +256,7 @@ class CompareWindow(tk.Toplevel):
                     title = self.notebook.tab(frame)["text"]
                     self.notebook.forget(frame); self.comparisons.pop(frame, None); frame.destroy()
                     replacement = self._make_frame(left, right, kind)
+                    install_button_tooltips(replacement)
                     self.notebook.add(replacement, text=title, position=index)
                     self.comparisons[replacement] = (left, right, kind, current)
         if self.winfo_exists(): self._schedule_refresh()

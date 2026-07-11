@@ -18,6 +18,7 @@ from .clipboard import clear_file_clipboard, get_file_clipboard, set_file_clipbo
 from .icons import ShellIconProvider
 from .compare import CompareWindow
 from .preview import PreviewWindow
+from .tooltip import MenuToolTip, install_button_tooltips
 from .tabs import ChamferNotebook
 
 
@@ -72,6 +73,7 @@ class FilePane(ttk.Frame):
         self.reverse = False
         self.show_hidden = False
         self.show_system = False
+        self.show_extensions = True
         self.mode = "files"
         self.display_title = self.path.name or str(self.path)
         self.lock_mode = "unlocked"
@@ -113,6 +115,7 @@ class FilePane(ttk.Frame):
         self.tree.bind("<FocusIn>", lambda _e: self.on_activate(self))
         self.status = ttk.Label(self, anchor="w")
         self.status.pack(fill="x", pady=(3, 0))
+        install_button_tooltips(self)
         self.navigate(self.path)
 
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
@@ -180,7 +183,8 @@ class FilePane(ttk.Frame):
                     stat = p.stat()
                     is_dir = p.is_dir()
                     total += 0 if is_dir else stat.st_size
-                    name = f"[{p.name}]" if is_dir else p.name
+                    visible_name = p.name if is_dir or self.show_extensions else p.stem
+                    name = f"[{visible_name}]" if is_dir else visible_name
                     values = ("" if is_dir else p.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
                               ("d" if is_dir else "-") + ("h" if p.name.startswith(".") else "-"))
@@ -300,7 +304,9 @@ class FilePane(ttk.Frame):
                 try:
                     stat = item.stat()
                     is_dir = item.is_dir()
-                    self.tree.insert("", "end", text=str(item.relative_to(self.path)), image=self.icons.get(item, is_dir), values=(
+                    relative = item.relative_to(self.path)
+                    display = str(relative if is_dir or self.show_extensions else relative.with_name(item.stem))
+                    self.tree.insert("", "end", text=display, image=self.icons.get(item, is_dir), values=(
                         "" if is_dir else item.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"), "d-" if is_dir else "--"),
                         tags=(str(item),))
@@ -486,6 +492,7 @@ class Commander(tk.Tk):
             if command is None:
                 button.state(["disabled"])
             button.pack(side="left", fill="x", expand=True, padx=1)
+        install_button_tooltips(self)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
             "move": "<F6>", "new_folder": "<F7>", "delete": "<Delete>", "refresh": "<Control-r>",
@@ -587,6 +594,7 @@ class Commander(tk.Tk):
         descending = self.config_data.getboolean(side, "sort_descending", fallback=False)
         show_hidden = self.config_data.getboolean(side, "show_hidden", fallback=False)
         show_system = self.config_data.getboolean(side, "show_system", fallback=False)
+        show_extensions = self.config_data.getboolean(side, "show_extensions", fallback=True)
         try:
             colors = json.loads(self.config_data.get(side, "tab_colors", fallback="[]"))
             locks = json.loads(self.config_data.get(side, "tab_locks", fallback="[]"))
@@ -598,6 +606,7 @@ class Commander(tk.Tk):
             pane.reverse = descending
             pane.show_hidden = show_hidden
             pane.show_system = show_system
+            pane.show_extensions = show_extensions
             color = colors[index] if index < len(colors) else self.get_tab_color(pane.path)
             tabs.set_color(pane, color, notify=False)
             mode = locks[index] if index < len(locks) else "unlocked"
@@ -637,6 +646,7 @@ class Commander(tk.Tk):
             self.config_data.set(side, "sort_descending", str(current.reverse).lower())
             self.config_data.set(side, "show_hidden", str(current.show_hidden).lower())
             self.config_data.set(side, "show_system", str(current.show_system).lower())
+            self.config_data.set(side, "show_extensions", str(current.show_extensions).lower())
         if not self.config_data.has_section("window"):
             self.config_data.add_section("window")
         if not self.config_data.has_section("state"):
@@ -721,10 +731,13 @@ class Commander(tk.Tk):
         visibility = tk.Menu(view, tearoff=False, font=menu_font)
         self.show_hidden_var = tk.BooleanVar(value=False)
         self.show_system_var = tk.BooleanVar(value=False)
+        self.show_extensions_var = tk.BooleanVar(value=True)
         visibility.add_checkbutton(label="Show Hidden", variable=self.show_hidden_var,
                                    command=self.set_hidden_visibility)
         visibility.add_checkbutton(label="Show System", variable=self.show_system_var,
                                    command=self.set_system_visibility)
+        visibility.add_checkbutton(label="Show File Extension", variable=self.show_extensions_var,
+                                   command=self.set_extension_visibility)
         view.add_cascade(label="File Visibility", menu=visibility)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
@@ -740,6 +753,20 @@ class Commander(tk.Tk):
         self.view_menu_button = view_button
         self.files_menu = files
         self.view_menu = view
+        menu_help = {
+            "Rename\tF2": "Rename the selected item.", "Preview\tF3": "Open PFC Preview.",
+            "Search\tF4": "Search below the current folder.", "Compare\tF9": "Compare selected items.",
+            "Copy Path\tF11": "Copy all selected full paths.",
+            "Change Dir\tF12": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
+            "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
+            "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
+            "File Visibility": "Choose which file names and attributes are visible.",
+            "Font Size": "Scale PFC fonts, controls, tabs and icons.",
+        }
+        self._files_menu_tooltip = MenuToolTip(files, menu_help)
+        self._view_menu_tooltip = MenuToolTip(view, menu_help)
+        self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
+        self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
         self.config(menu="")
 
     def _schedule_clipboard_summary(self, delay=2000) -> None:
@@ -772,6 +799,7 @@ class Commander(tk.Tk):
         self.active = pane
         self.show_hidden_var.set(pane.show_hidden)
         self.show_system_var.set(pane.show_system)
+        self.show_extensions_var.set(pane.show_extensions)
         if hasattr(self, "left_tabs") and hasattr(self, "right_tabs"):
             for candidate in self.left_tabs.panes() + self.right_tabs.panes():
                 candidate.set_active_appearance(candidate is pane)
@@ -1021,6 +1049,11 @@ class Commander(tk.Tk):
     def set_system_visibility(self) -> None:
         source = self.panes()[0]
         source.show_system = self.show_system_var.get()
+        source.refresh(); source.on_change()
+
+    def set_extension_visibility(self) -> None:
+        source = self.panes()[0]
+        source.show_extensions = self.show_extensions_var.get()
         source.refresh(); source.on_change()
 
     def compare_selected(self) -> None:

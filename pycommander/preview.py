@@ -4,6 +4,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from pathlib import Path
 from tkinter import ttk
+from .tooltip import install_button_tooltips
 
 
 TEXT_EXTENSIONS = {
@@ -100,6 +101,7 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("match", background="#fff0a6")
         self.text.tag_configure("current_match", background="#ffb347")
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
+        install_button_tooltips(self)
         self.load()
         self._schedule_refresh()
         self.after_idle(self.activate)

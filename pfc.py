@@ -482,6 +482,104 @@ class ChamferNotebook(ttk.Frame):
         menu.tk_popup(event.x_root, event.y_root)
 
 
+import tkinter as tk
+from tkinter import ttk
+
+
+BUTTON_HELP = {
+    "↑": "Go to the parent folder.", "⌂": "Go to your home folder.",
+    "F2 Rename": "Rename the selected item.", "F3 Preview": "Open the selected item in PFC Preview.",
+    "F4 Search": "Search for files and folders below the current path.",
+    "F5 Copy": "Copy selected items to the opposite panel.",
+    "F6 Move": "Move selected items to the opposite panel.", "F7 New folder": "Create a folder here.",
+    "F8": "Reserved for a future action.", "F9 Compare": "Compare selected files or folders.",
+    "F11 Copy Path": "Copy all selected full paths as text.",
+    "F12 Change Dir": "Focus and select the path bar for direct paste.",
+    "File <<": "Preview the previous item.", "File >>": "Preview the next item.",
+    "Find Prev": "Go to the previous search match.", "Find Next": "Go to the next search match.",
+    "F7 Diff <<": "Go to the previous difference.", "F8 Diff >>": "Go to the next difference.",
+    "Previous": "Go to the previous item.", "Next": "Go to the next item.",
+    "Files": "Open file operations.", "View": "Open display settings.", "OK": "Close this window.",
+}
+
+
+class ToolTip:
+    def __init__(self, widget, text, delay=5000):
+        self.widget, self.text, self.delay = widget, text, delay
+        self.job = self.popup = None
+        widget.bind("<Enter>", self._enter, add="+")
+        widget.bind("<Leave>", self.hide, add="+")
+        widget.bind("<Button>", self.hide, add="+")
+
+    def _enter(self, _event=None):
+        self.hide(); self.job = self.widget.after(self.delay, self.show)
+
+    def show(self):
+        self.job = None
+        if not self.widget.winfo_exists(): return
+        self.popup = tk.Toplevel(self.widget.winfo_toplevel())
+        self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
+        x, y = self.widget.winfo_pointerxy()
+        self.popup.geometry(f"+{x + 14}+{y + 18}")
+        tk.Label(self.popup, text=self.text, justify="left", background="#fffbd6",
+                 foreground="#18232c", relief="solid", borderwidth=1, padx=7, pady=4).pack()
+
+    def hide(self, _event=None):
+        if self.job is not None:
+            try: self.widget.after_cancel(self.job)
+            except tk.TclError: pass
+            self.job = None
+        if self.popup is not None:
+            try: self.popup.destroy()
+            except tk.TclError: pass
+            self.popup = None
+
+
+class MenuToolTip:
+    def __init__(self, menu, descriptions, delay=5000):
+        self.menu, self.descriptions, self.delay = menu, descriptions, delay
+        self.job = self.popup = self.last_index = None
+        menu.bind("<<MenuSelect>>", self._selected, add="+")
+        menu.bind("<Unmap>", self.hide, add="+")
+
+    def _selected(self, _event=None):
+        try: index = self.menu.index("active")
+        except tk.TclError: index = None
+        if index == self.last_index: return
+        self.hide(); self.last_index = index
+        if index is not None and self.menu.type(index) != "separator":
+            self.job = self.menu.after(self.delay, lambda: self.show(index))
+
+    def show(self, index):
+        self.job = None
+        try: label = self.menu.entrycget(index, "label")
+        except tk.TclError: return
+        text = self.descriptions.get(label, label.replace("\t", " — "))
+        self.popup = tk.Toplevel(self.menu.winfo_toplevel())
+        self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
+        x, y = self.menu.winfo_pointerxy(); self.popup.geometry(f"+{x + 14}+{y + 18}")
+        tk.Label(self.popup, text=text, justify="left", background="#fffbd6",
+                 foreground="#18232c", relief="solid", borderwidth=1, padx=7, pady=4).pack()
+
+    def hide(self, _event=None):
+        if self.job is not None:
+            try: self.menu.after_cancel(self.job)
+            except tk.TclError: pass
+            self.job = None
+        if self.popup is not None:
+            try: self.popup.destroy()
+            except tk.TclError: pass
+            self.popup = None
+
+
+def install_button_tooltips(root) -> None:
+    for widget in root.winfo_children():
+        if isinstance(widget, (ttk.Button, tk.Button, tk.Menubutton)) and not hasattr(widget, "_pfc_tooltip"):
+            text = str(widget.cget("text"))
+            widget._pfc_tooltip = ToolTip(widget, BUTTON_HELP.get(text, f"Activate {text}."))
+        install_button_tooltips(widget)
+
+
 import csv
 import difflib
 import hashlib
@@ -689,6 +787,7 @@ class CompareWindow(tk.Toplevel):
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
         self.bind("<Escape>", lambda _e: self.close_active())
+        install_button_tooltips(self)
         self._schedule_refresh()
 
     @staticmethod
@@ -711,6 +810,7 @@ class CompareWindow(tk.Toplevel):
         if left.is_dir() != right.is_dir():
             messagebox.showerror("Compare", "Select two files or two folders.", parent=self); return
         frame = self._make_frame(left, right, kind)
+        install_button_tooltips(frame)
         self.notebook.add(frame, text=f"{kind}: {left.name} ↔ {right.name}")
         self.comparisons[frame] = (left, right, kind, self._signature(left, right))
         self.notebook.select(frame); self.after_idle(self.activate)
@@ -734,6 +834,7 @@ class CompareWindow(tk.Toplevel):
                     title = self.notebook.tab(frame)["text"]
                     self.notebook.forget(frame); self.comparisons.pop(frame, None); frame.destroy()
                     replacement = self._make_frame(left, right, kind)
+                    install_button_tooltips(replacement)
                     self.notebook.add(replacement, text=title, position=index)
                     self.comparisons[replacement] = (left, right, kind, current)
         if self.winfo_exists(): self._schedule_refresh()
@@ -862,6 +963,7 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("match", background="#fff0a6")
         self.text.tag_configure("current_match", background="#ffb347")
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
+        install_button_tooltips(self)
         self.load()
         self._schedule_refresh()
         self.after_idle(self.activate)
@@ -1049,6 +1151,7 @@ class FilePane(ttk.Frame):
         self.reverse = False
         self.show_hidden = False
         self.show_system = False
+        self.show_extensions = True
         self.mode = "files"
         self.display_title = self.path.name or str(self.path)
         self.lock_mode = "unlocked"
@@ -1090,6 +1193,7 @@ class FilePane(ttk.Frame):
         self.tree.bind("<FocusIn>", lambda _e: self.on_activate(self))
         self.status = ttk.Label(self, anchor="w")
         self.status.pack(fill="x", pady=(3, 0))
+        install_button_tooltips(self)
         self.navigate(self.path)
 
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
@@ -1157,7 +1261,8 @@ class FilePane(ttk.Frame):
                     stat = p.stat()
                     is_dir = p.is_dir()
                     total += 0 if is_dir else stat.st_size
-                    name = f"[{p.name}]" if is_dir else p.name
+                    visible_name = p.name if is_dir or self.show_extensions else p.stem
+                    name = f"[{visible_name}]" if is_dir else visible_name
                     values = ("" if is_dir else p.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
                               ("d" if is_dir else "-") + ("h" if p.name.startswith(".") else "-"))
@@ -1277,7 +1382,9 @@ class FilePane(ttk.Frame):
                 try:
                     stat = item.stat()
                     is_dir = item.is_dir()
-                    self.tree.insert("", "end", text=str(item.relative_to(self.path)), image=self.icons.get(item, is_dir), values=(
+                    relative = item.relative_to(self.path)
+                    display = str(relative if is_dir or self.show_extensions else relative.with_name(item.stem))
+                    self.tree.insert("", "end", text=display, image=self.icons.get(item, is_dir), values=(
                         "" if is_dir else item.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"), "d-" if is_dir else "--"),
                         tags=(str(item),))
@@ -1463,6 +1570,7 @@ class Commander(tk.Tk):
             if command is None:
                 button.state(["disabled"])
             button.pack(side="left", fill="x", expand=True, padx=1)
+        install_button_tooltips(self)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
             "move": "<F6>", "new_folder": "<F7>", "delete": "<Delete>", "refresh": "<Control-r>",
@@ -1564,6 +1672,7 @@ class Commander(tk.Tk):
         descending = self.config_data.getboolean(side, "sort_descending", fallback=False)
         show_hidden = self.config_data.getboolean(side, "show_hidden", fallback=False)
         show_system = self.config_data.getboolean(side, "show_system", fallback=False)
+        show_extensions = self.config_data.getboolean(side, "show_extensions", fallback=True)
         try:
             colors = json.loads(self.config_data.get(side, "tab_colors", fallback="[]"))
             locks = json.loads(self.config_data.get(side, "tab_locks", fallback="[]"))
@@ -1575,6 +1684,7 @@ class Commander(tk.Tk):
             pane.reverse = descending
             pane.show_hidden = show_hidden
             pane.show_system = show_system
+            pane.show_extensions = show_extensions
             color = colors[index] if index < len(colors) else self.get_tab_color(pane.path)
             tabs.set_color(pane, color, notify=False)
             mode = locks[index] if index < len(locks) else "unlocked"
@@ -1614,6 +1724,7 @@ class Commander(tk.Tk):
             self.config_data.set(side, "sort_descending", str(current.reverse).lower())
             self.config_data.set(side, "show_hidden", str(current.show_hidden).lower())
             self.config_data.set(side, "show_system", str(current.show_system).lower())
+            self.config_data.set(side, "show_extensions", str(current.show_extensions).lower())
         if not self.config_data.has_section("window"):
             self.config_data.add_section("window")
         if not self.config_data.has_section("state"):
@@ -1698,10 +1809,13 @@ class Commander(tk.Tk):
         visibility = tk.Menu(view, tearoff=False, font=menu_font)
         self.show_hidden_var = tk.BooleanVar(value=False)
         self.show_system_var = tk.BooleanVar(value=False)
+        self.show_extensions_var = tk.BooleanVar(value=True)
         visibility.add_checkbutton(label="Show Hidden", variable=self.show_hidden_var,
                                    command=self.set_hidden_visibility)
         visibility.add_checkbutton(label="Show System", variable=self.show_system_var,
                                    command=self.set_system_visibility)
+        visibility.add_checkbutton(label="Show File Extension", variable=self.show_extensions_var,
+                                   command=self.set_extension_visibility)
         view.add_cascade(label="File Visibility", menu=visibility)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
@@ -1717,6 +1831,20 @@ class Commander(tk.Tk):
         self.view_menu_button = view_button
         self.files_menu = files
         self.view_menu = view
+        menu_help = {
+            "Rename\tF2": "Rename the selected item.", "Preview\tF3": "Open PFC Preview.",
+            "Search\tF4": "Search below the current folder.", "Compare\tF9": "Compare selected items.",
+            "Copy Path\tF11": "Copy all selected full paths.",
+            "Change Dir\tF12": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
+            "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
+            "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
+            "File Visibility": "Choose which file names and attributes are visible.",
+            "Font Size": "Scale PFC fonts, controls, tabs and icons.",
+        }
+        self._files_menu_tooltip = MenuToolTip(files, menu_help)
+        self._view_menu_tooltip = MenuToolTip(view, menu_help)
+        self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
+        self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
         self.config(menu="")
 
     def _schedule_clipboard_summary(self, delay=2000) -> None:
@@ -1749,6 +1877,7 @@ class Commander(tk.Tk):
         self.active = pane
         self.show_hidden_var.set(pane.show_hidden)
         self.show_system_var.set(pane.show_system)
+        self.show_extensions_var.set(pane.show_extensions)
         if hasattr(self, "left_tabs") and hasattr(self, "right_tabs"):
             for candidate in self.left_tabs.panes() + self.right_tabs.panes():
                 candidate.set_active_appearance(candidate is pane)
@@ -1998,6 +2127,11 @@ class Commander(tk.Tk):
     def set_system_visibility(self) -> None:
         source = self.panes()[0]
         source.show_system = self.show_system_var.get()
+        source.refresh(); source.on_change()
+
+    def set_extension_visibility(self) -> None:
+        source = self.panes()[0]
+        source.show_extensions = self.show_extensions_var.get()
         source.refresh(); source.on_change()
 
     def compare_selected(self) -> None:
