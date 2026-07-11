@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import configparser
+import ctypes
 import json
 import subprocess
 import sys
@@ -15,6 +16,25 @@ from .fileops import copy_items, delete_items, format_size, is_system, move_item
 from .icons import ShellIconProvider
 from .compare import CompareWindow
 from .tabs import ChamferNotebook
+
+
+def hide_private_console() -> bool:
+    """Hide a console created only for PFC, without hiding a user's shell."""
+    if os.name != "nt":
+        return False
+    kernel32, user32 = ctypes.windll.kernel32, ctypes.windll.user32
+    kernel32.GetConsoleWindow.restype = ctypes.c_void_p
+    process_ids = (ctypes.c_uint32 * 64)()
+    count = kernel32.GetConsoleProcessList(process_ids, len(process_ids))
+    # An existing CMD/PowerShell console includes at least the shell and Python.
+    if count != 1:
+        return False
+    window = kernel32.GetConsoleWindow()
+    if not window:
+        return False
+    user32.ShowWindow.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    user32.ShowWindow(window, 0)  # SW_HIDE
+    return True
 
 
 class FilePane(ttk.Frame):
@@ -753,4 +773,5 @@ class Commander(tk.Tk):
 
 
 def main() -> None:
+    hide_private_console()
     Commander().mainloop()

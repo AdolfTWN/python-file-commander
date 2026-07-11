@@ -10,6 +10,8 @@ Requires Python 3.10+ with Tk support:
 python run.py
 ```
 
+On Windows, `python pfc.py` automatically hides a console that belongs only to PFC, leaving one taskbar app. A shared CMD/PowerShell window is detected and kept visible. `pythonw pfc.py` remains an alternative when available.
+
 For transfer to a restricted office computer, copy only
 `pfc.py` plus `pfc.ini` and run:
 
