@@ -352,6 +352,12 @@ class Commander(tk.Tk):
                   background=[("selected", "#1683e2"), ("active", "#dce7ef")],
                   foreground=[("selected", "#005a9e"), ("active", "#10202c")],
                   expand=[("selected", (1, 1, 1, 0))])
+        flat_item_layout = [("Treeitem.padding", {"sticky": "nswe", "children": [
+            ("Treeitem.image", {"side": "left", "sticky": ""}),
+            ("Treeitem.text", {"side": "left", "sticky": ""}),
+        ]})]
+        style.layout("Active.Treeview.Item", flat_item_layout)
+        style.layout("Inactive.Treeview.Item", flat_item_layout)
         self.apply_font_size(save=False)
         self._build_menu()
         split = ttk.Panedwindow(self, orient="horizontal")
@@ -514,16 +520,19 @@ class Commander(tk.Tk):
 
     def _build_menu(self) -> None:
         menu_font = tkfont.nametofont("TkMenuFont")
-        menu = tk.Menu(self, font=menu_font)
-        files = tk.Menu(menu, tearoff=False, font=menu_font)
+        header = ttk.Frame(self, padding=(5, 2))
+        header.pack(fill="x")
+        ttk.Label(header, text="Python File Commander", font=tkfont.nametofont("TkCaptionFont")).pack(side="left", padx=(2, 10))
+        files = tk.Menu(self, tearoff=False, font=menu_font)
         files.add_command(label="Preview in other panel\tF3", command=self.preview)
         files.add_command(label="Search\tF4", command=self.search)
         files.add_command(label="Compare selected\tF9", command=self.compare_selected)
         files.add_command(label="Rename\tF2", command=self.rename)
         files.add_separator()
         files.add_command(label="Exit", command=self.destroy)
-        menu.add_cascade(label="Files", menu=files)
-        view = tk.Menu(menu, tearoff=False, font=menu_font)
+        files_button = tk.Menubutton(header, text="Files", menu=files, font=menu_font, relief="flat", padx=6)
+        files_button.pack(side="left")
+        view = tk.Menu(self, tearoff=False, font=menu_font)
         visibility = tk.Menu(view, tearoff=False, font=menu_font)
         self.show_hidden_var = tk.BooleanVar(value=False)
         self.show_system_var = tk.BooleanVar(value=False)
@@ -538,8 +547,9 @@ class Commander(tk.Tk):
             font_size.add_radiobutton(label=label, value=value, variable=self.font_size_var,
                                       command=self.apply_font_size)
         view.add_cascade(label="Font Size", menu=font_size)
-        menu.add_cascade(label="View", menu=view)
-        self.config(menu=menu)
+        view_button = tk.Menubutton(header, text="View", menu=view, font=menu_font, relief="flat", padx=6)
+        view_button.pack(side="left")
+        self.config(menu="")
 
     def set_active(self, pane: FilePane) -> None:
         self.active = pane
