@@ -115,8 +115,6 @@ class ChamferNotebook(ttk.Frame):
         for child in self._tabs:
             text = self._texts.get(child, "")
             lock = self._locks.get(child, "unlocked")
-            if lock != "unlocked":
-                text = f"🔒 {text}" if lock == "locked" else f"↩🔒 {text}"
             selected = child is self._selected
             width = max(58, font.measure(text) + 28 + (14 if selected else 0))
             color = TAB_COLORS[self._colors.get(child, "default")][1]
@@ -124,14 +122,20 @@ class ChamferNotebook(ttk.Frame):
             bottom = height if selected else height - 3
             points = (x, bottom, x, top + chamfer, x + chamfer, top,
                       x + width - chamfer, top, x + width, top + chamfer, x + width, bottom)
-            drawings.append((selected, points, color, text, x, width, top, child))
+            drawings.append((selected, points, color, text, x, width, top, child, lock, chamfer))
             self._hitboxes.append((x, x + width, child))
             x += width - overlap
         # Paint the selected polygon last so its chamfered edges sit in front of
         # both neighbours instead of being covered by the tab to its right.
-        for selected, points, color, text, left, width, top, child in sorted(drawings, key=lambda item: item[0]):
+        for selected, points, color, text, left, width, top, child, lock, tab_chamfer in sorted(
+                drawings, key=lambda item: item[0]):
             self.bar.create_polygon(points, fill=color, outline="#3b5265" if selected else "#718596",
                                     width=3 if selected else 1)
+            if lock != "unlocked":
+                self.bar.create_line(left + tab_chamfer + 2, top + 2,
+                                     left + width - tab_chamfer - 2, top + 2,
+                                     fill="#3b5265", width=3,
+                                     dash=() if lock == "locked" else (5, 3))
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)

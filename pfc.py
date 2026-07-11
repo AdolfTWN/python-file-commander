@@ -420,8 +420,6 @@ class ChamferNotebook(ttk.Frame):
         for child in self._tabs:
             text = self._texts.get(child, "")
             lock = self._locks.get(child, "unlocked")
-            if lock != "unlocked":
-                text = f"🔒 {text}" if lock == "locked" else f"↩🔒 {text}"
             selected = child is self._selected
             width = max(58, font.measure(text) + 28 + (14 if selected else 0))
             color = TAB_COLORS[self._colors.get(child, "default")][1]
@@ -429,14 +427,20 @@ class ChamferNotebook(ttk.Frame):
             bottom = height if selected else height - 3
             points = (x, bottom, x, top + chamfer, x + chamfer, top,
                       x + width - chamfer, top, x + width, top + chamfer, x + width, bottom)
-            drawings.append((selected, points, color, text, x, width, top, child))
+            drawings.append((selected, points, color, text, x, width, top, child, lock, chamfer))
             self._hitboxes.append((x, x + width, child))
             x += width - overlap
         # Paint the selected polygon last so its chamfered edges sit in front of
         # both neighbours instead of being covered by the tab to its right.
-        for selected, points, color, text, left, width, top, child in sorted(drawings, key=lambda item: item[0]):
+        for selected, points, color, text, left, width, top, child, lock, tab_chamfer in sorted(
+                drawings, key=lambda item: item[0]):
             self.bar.create_polygon(points, fill=color, outline="#3b5265" if selected else "#718596",
                                     width=3 if selected else 1)
+            if lock != "unlocked":
+                self.bar.create_line(left + tab_chamfer + 2, top + 2,
+                                     left + width - tab_chamfer - 2, top + 2,
+                                     fill="#3b5265", width=3,
+                                     dash=() if lock == "locked" else (5, 3))
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
@@ -936,6 +940,17 @@ class FilePane(ttk.Frame):
                 result.append(Path(tags[0]))
         return result
 
+    def focus_file_list(self) -> None:
+        children = self.tree.get_children()
+        selected = self.tree.selection()
+        target = selected[0] if selected else (children[0] if children else None)
+        if target is not None:
+            if not selected:
+                self.tree.selection_set(target)
+            self.tree.focus(target)
+            self.tree.see(target)
+        self.tree.focus_set()
+
     def open_selected(self, _event=None) -> None:
         items = self.selected_paths()
         if not items:
@@ -1066,7 +1081,9 @@ class PaneTabs(ChamferNotebook):
 
     def _tab_changed(self) -> None:
         try:
-            self.on_activate(self.current())
+            pane = self.current()
+            self.on_activate(pane)
+            self.after_idle(pane.focus_file_list)
         except tk.TclError:
             return
         self.on_change()
@@ -1443,14 +1460,14 @@ class Commander(tk.Tk):
         if tab_ids:
             index = (tabs.index(tabs.select()) + direction) % len(tab_ids)
             tabs.select(tab_ids[index])
-            tabs.current().tree.focus_set()
+            tabs.current().focus_file_list()
         return "break"
 
     def switch_panel(self) -> str:
         source = self.active or self.left_tabs.current()
         target = self.right_tabs.current() if source in self.left_tabs.panes() else self.left_tabs.current()
         self.set_active(target)
-        target.tree.focus_set()
+        target.focus_file_list()
         return "break"
 
     def focus_path(self) -> str:
@@ -1461,24 +1478,49 @@ class Commander(tk.Tk):
 
     def focus_files(self) -> str:
         source = self.panes()[0]
-        source.tree.focus_set()
+        source.focus_file_list()
         return "break"
 
     def show_help(self) -> str:
-        messagebox.showinfo(
-            "Python File Commander — Keyboard Guide",
+        existing = getattr(self, "help_window", None)
+        if existing is not None and existing.winfo_exists():
+            existing.lift()
+            existing.focus_force()
+            return "break"
+        dialog = tk.Toplevel(self)
+        self.help_window = dialog
+        dialog.title("Python File Commander — Keyboard Guide")
+        dialog.transient(self)
+        dialog.resizable(False, False)
+        body = ttk.Frame(dialog, padding=18)
+        body.pack(fill="both", expand=True)
+        ttk.Label(body, text="Keyboard shortcuts not shown on the main toolbar",
+                  font=tkfont.nametofont("TkHeadingFont")).pack(anchor="w", pady=(0, 12))
+        guide = (
             "Navigation\n"
-            "↑/↓ Select item    Right Enter folder    Left Parent folder\n"
-            "Tab Switch panel    Ctrl+Tab / Ctrl+Shift+Tab Switch tabs\n"
-            "Ctrl+Up Clone folder in a new tab    Ctrl+W Close tab\n"
-            "Ctrl+L Edit path    Esc Return to file list\n\n"
-            "File operations\n"
-            "F2 Rename    F3 Preview    F4 Search    F5 Copy to other panel\n"
-            "F6 Move to other panel    F7 New folder    F9 Compare    Del Delete\n"
-            "F11 Copy all selected paths    F12 Change directory by path\n"
-            "Ctrl+C / Ctrl+X / Ctrl+V Copy, cut, and paste with File Explorer\n"
-            "Ctrl+A Select all    Ctrl+Shift+C Copy path    Ctrl+H Hidden files\n\n"
-            "F1 opens this guide.", parent=self)
+            "↑ / ↓  Select item\n"
+            "Right / Left  Enter folder / return to parent\n"
+            "Tab  Switch panel\n"
+            "Ctrl+Tab / Ctrl+Shift+Tab  Next / previous tab\n"
+            "Ctrl+Up  Clone current folder in a new tab\n"
+            "Ctrl+W  Close current tab\n"
+            "Ctrl+L  Focus and select the path\n"
+            "Esc  Return focus to the file list\n\n"
+            "Selection and clipboard\n"
+            "Ctrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\n"
+            "Ctrl+A  Select all    Del  Permanently delete\n"
+            "Ctrl+Shift+C  Copy first selected path\n"
+            "Ctrl+H  Toggle hidden files\n"
+            "Alt+F / Alt+V  Open Files / View menu"
+        )
+        ttk.Label(body, text=guide, justify="left").pack(anchor="w")
+        button = ttk.Button(body, text="OK", command=dialog.destroy)
+        button.pack(anchor="e", pady=(16, 0))
+        dialog.bind("<Escape>", lambda _event: dialog.destroy())
+        dialog.bind("<Return>", lambda _event: dialog.destroy())
+        dialog.protocol("WM_DELETE_WINDOW", dialog.destroy)
+        dialog.grab_set()
+        button.focus_set()
         return "break"
 
     def show_header_menu(self, which: str) -> str:
