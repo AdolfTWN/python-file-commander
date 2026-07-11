@@ -434,6 +434,7 @@ class FilePane(ttk.Frame):
         self.show_system = False
         self.mode = "files"
         self.display_title = self.path.name or str(self.path)
+        self._signature = None
         self.heading_labels = {"name": "Name", "ext": "Ext", "size": "Size", "modified": "Date Modified", "attr": "Attr"}
         self.icons = ShellIconProvider()
 
@@ -504,10 +505,12 @@ class FilePane(ttk.Frame):
 
     def refresh(self) -> None:
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
+        scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
         try:
             entries = [p for p in self.path.iterdir()
                        if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
+            self._signature = self.signature_for(entries)
             def key(p: Path):
                 try:
                     stat = p.stat()
@@ -539,8 +542,35 @@ class FilePane(ttk.Frame):
                 self.tree.selection_set(children[0])
                 self.tree.focus(children[0])
                 self.tree.see(children[0])
+            elif children:
+                self.tree.yview_moveto(scroll_position)
         except OSError as exc:
             messagebox.showerror("Cannot read folder", str(exc))
+
+    @staticmethod
+    def signature_for(entries) -> tuple:
+        signature = []
+        for path in entries:
+            try:
+                stat = path.stat()
+                signature.append((path.name, stat.st_size, stat.st_mtime_ns, stat.st_mode))
+            except OSError:
+                signature.append((path.name, None, None, None))
+        return tuple(sorted(signature))
+
+    def refresh_if_changed(self) -> bool:
+        if self.mode != "files":
+            return False
+        try:
+            entries = [p for p in self.path.iterdir()
+                       if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
+            signature = self.signature_for(entries)
+        except OSError:
+            return False
+        if signature == self._signature:
+            return False
+        self.refresh()
+        return True
 
     def selected_paths(self) -> list[Path]:
         result = []
@@ -765,9 +795,11 @@ class Commander(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.close_app)
         self._ready = True
         self._save_job = None
+        self._auto_refresh_job = None
         self.bind("<Configure>", self._schedule_save)
         self.set_active(self.active)
         self.save_config()
+        self._schedule_auto_refresh(250)
 
     @staticmethod
     def _find_ini_path() -> Path:
@@ -832,9 +864,16 @@ class Commander(tk.Tk):
             self.config_data.add_section("state")
         if not self.config_data.has_section("view"):
             self.config_data.add_section("view")
+        if not self.config_data.has_section("refresh"):
+            self.config_data.add_section("refresh")
         self.config_data.set("window", "geometry", self.geometry())
         self.config_data.set("state", "active_panel", "left" if self.active in self.left_tabs.panes() else "right")
         self.config_data.set("view", "font_size", self.font_size_var.get())
+        refresh_defaults = {"auto_refresh": "true", "active_interval_ms": "2000",
+                            "background_interval_ms": "10000", "network_interval_ms": "5000"}
+        for key, value in refresh_defaults.items():
+            if not self.config_data.has_option("refresh", key):
+                self.config_data.set("refresh", key, value)
         temporary = self.ini_path.with_suffix(".ini.tmp")
         try:
             with temporary.open("w", encoding="utf-8") as stream:
@@ -844,8 +883,28 @@ class Commander(tk.Tk):
             pass
 
     def close_app(self) -> None:
+        if self._auto_refresh_job is not None:
+            self.after_cancel(self._auto_refresh_job)
         self.save_config()
         self.destroy()
+
+    def _schedule_auto_refresh(self, delay=None) -> None:
+        if not self.winfo_exists():
+            return
+        if delay is None:
+            focused = self.focus_displayof() is not None
+            paths = (self.left_tabs.current().path, self.right_tabs.current().path)
+            network = any(str(path).startswith("\\\\") for path in paths)
+            key = "network_interval_ms" if network else ("active_interval_ms" if focused else "background_interval_ms")
+            delay = self.config_data.getint("refresh", key, fallback=5000)
+        self._auto_refresh_job = self.after(max(500, delay), self._auto_refresh_tick)
+
+    def _auto_refresh_tick(self) -> None:
+        self._auto_refresh_job = None
+        if self.config_data.getboolean("refresh", "auto_refresh", fallback=True):
+            self.left_tabs.current().refresh_if_changed()
+            self.right_tabs.current().refresh_if_changed()
+        self._schedule_auto_refresh()
 
     def _build_menu(self) -> None:
         menu_font = tkfont.nametofont("TkMenuFont")

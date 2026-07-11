@@ -29,6 +29,8 @@ Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copi
 
 F9 compares one selected item in each panel (or two items in the active panel) in a separate tabbed Compare window. Auto detection supports aligned text with source-accurate line numbers, CSV/TSV tables, binary hex with SHA-256, and recursive folder comparison. F7/F8 navigate differences and Esc closes the Compare window.
 
+Visible folders auto-refresh adaptively: every 2 seconds while PFC is focused, every 10 seconds in the background, and every 5 seconds for UNC network paths. A lightweight signature prevents unnecessary Treeview rebuilds, while Ctrl+R remains available as a manual fallback.
+
 `View > File Visibility` independently shows or hides Hidden and Windows System files. Both are hidden by default.
 
 `View > Font Size` provides Small (100%), Medium (150%), Large (200%), and Huge (300%). Fonts, menus, row heights, native Shell icons, and the icon gutter scale together. The choice is saved in `pfc.ini`. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting.
