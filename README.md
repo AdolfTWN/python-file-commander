@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.8.5**
+Current version: **v0.8.6**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar two-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -27,7 +27,7 @@ The portable file is generated from the maintainable package source:
 python tools/build_single_file.py
 ```
 
-Current core: two resizable panes, chamfered color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons with a compact left gutter and padded filename gap, multi-select, rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), new folder (F7), safe Recycle Bin delete (Del), explicit permanent delete (Shift+Del), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Tab-specific colors and locks are saved in `pfc.ini`.
+Current core: two resizable panes, color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons with a compact left gutter and padded filename gap, multi-select, rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), new folder (F7), safe Recycle Bin delete (Del), explicit permanent delete (Shift+Del), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Tab-specific colors and locks are saved in `pfc.ini`.
 
 Copy, move, and clipboard paste detect name conflicts and offer Replace, Skip, Keep Both, Cancel, and Apply to All. Multi-item operations open a copyable result window listing exact failed paths with Retry Failed. Files > Continue After File Errors controls whether remaining items continue after a failure and defaults on. The Files menu groups clipboard operations, opposite-panel operations, rename/new folder, both delete modes, safety switches, Favorites, Recent Folders, Preview, Search, Compare, paths, and Exit.
 
@@ -37,7 +37,7 @@ Internal drag-and-drop copies selected items by default; holding Shift changes t
 
 The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) tracks user-visible changes from v0.8.0 onward.
 
-View > Tab Style provides Soft Rounded (default), Slanted, Chamfered (the original shape), and Compact. Compact uses a low-height shape with a vertical left edge and steep curved bottom-right skirt. The selection applies immediately to both main panels and Compare tabs, scales with the chosen font size, and is saved in `pfc.ini`.
+View > Tab Style provides Right Skirt (default), Rounded, and Squarish. Right Skirt uses a low-height shape with a vertical left edge and steep curved bottom-right skirt. The selection applies immediately to both main panels and Compare tabs, scales with the chosen font size, and is saved in `pfc.ini`; legacy Compact settings migrate automatically to Right Skirt.
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. Results stream into sortable-style detail columns and support Enter/double-click Go to File, F3 Preview and multi-selection Copy Path. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 

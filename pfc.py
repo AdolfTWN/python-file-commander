@@ -675,10 +675,9 @@ TAB_COLORS = {
 }
 
 TAB_STYLES = {
-    "rounded": "Soft Rounded",
-    "slanted": "Slanted",
-    "chamfered": "Chamfered",
-    "compact": "Compact",
+    "right_skirt": "Right Skirt",
+    "rounded": "Rounded",
+    "squarish": "Squarish",
 }
 
 
@@ -686,7 +685,7 @@ class ChamferNotebook(ttk.Frame):
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
     def __init__(self, master, on_color_changed=None, on_lock_changed=None,
-                 tab_style="rounded", **kwargs):
+                 tab_style="right_skirt", **kwargs):
         super().__init__(master, **kwargs)
         self.on_color_changed = on_color_changed or (lambda _child, _color: None)
         self.on_lock_changed = on_lock_changed or (lambda _child, _mode: None)
@@ -695,7 +694,9 @@ class ChamferNotebook(ttk.Frame):
         self._colors = {}
         self._locks = {}
         self._selected = None
-        self._tab_style = tab_style if tab_style in TAB_STYLES else "rounded"
+        if tab_style == "compact":
+            tab_style = "right_skirt"
+        self._tab_style = tab_style if tab_style in TAB_STYLES else "right_skirt"
         self._hitboxes = []
         self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
         self.bar.pack(fill="x", side="top")
@@ -770,7 +771,9 @@ class ChamferNotebook(ttk.Frame):
         self._draw()
 
     def set_style(self, style):
-        self._tab_style = style if style in TAB_STYLES else "rounded"
+        if style == "compact":
+            style = "right_skirt"
+        self._tab_style = style if style in TAB_STYLES else "right_skirt"
         self._draw()
 
     def _resolve(self, tab):
@@ -781,20 +784,20 @@ class ChamferNotebook(ttk.Frame):
     def _draw(self):
         self.bar.delete("all"); self._hitboxes.clear()
         font = tkfont.nametofont("TkDefaultFont")
-        compact = self._tab_style == "compact"
-        height = max(27 if compact else 30, font.metrics("linespace") + (9 if compact else 13))
+        right_skirt = self._tab_style == "right_skirt"
+        height = max(27 if right_skirt else 30, font.metrics("linespace") + (9 if right_skirt else 13))
         self.bar.configure(height=height)
-        overlap = {"rounded": 2, "slanted": 11, "chamfered": 9, "compact": -2}[self._tab_style]
+        overlap = {"right_skirt": -2, "rounded": 2, "squarish": 0}[self._tab_style]
         x = 3
         drawings = []
         for child in self._tabs:
             text = self._texts.get(child, "")
             lock = self._locks.get(child, "unlocked")
             selected = child is self._selected
-            padding = 20 if compact else 28
-            width = max(52 if compact else 58, font.measure(text) + padding + (10 if selected else 0))
+            padding = 20 if right_skirt else 28
+            width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
             color = TAB_COLORS[self._colors.get(child, "default")][1]
-            top = 0 if selected else max(4, round(height * (0.18 if compact else 0.22)))
+            top = 0 if selected else max(4, round(height * (0.18 if right_skirt else 0.22)))
             bottom = height if selected else height - 3
             corner = max(6, round(height * 0.28))
             if self._tab_style == "rounded":
@@ -803,11 +806,7 @@ class ChamferNotebook(ttk.Frame):
                           x + width - corner, top, x + width - corner, top,
                           x + width, top + corner, x + width, top + corner, x + width, bottom)
                 smooth, inset = True, corner
-            elif self._tab_style == "slanted":
-                slant = max(10, round(height * 0.42))
-                points = (x, bottom, x + slant, top, x + width - slant, top, x + width, bottom)
-                smooth, inset = False, slant
-            elif self._tab_style == "compact":
+            elif self._tab_style == "right_skirt":
                 tail = max(9, round(height * 0.32))
                 skirt_height = max(12, round(height * 0.42))
                 points = (x, bottom, x, top,
@@ -818,14 +817,12 @@ class ChamferNotebook(ttk.Frame):
                           x + width + tail, bottom)
                 smooth, inset = False, 5
             else:
-                chamfer = max(8, round(height * 0.30))
-                points = (x, bottom, x, top + chamfer, x + chamfer, top,
-                          x + width - chamfer, top, x + width, top + chamfer, x + width, bottom)
-                smooth, inset = False, chamfer
+                points = (x, bottom, x, top, x + width, top, x + width, bottom)
+                smooth, inset = False, 4
             drawings.append((selected, points, color, text, x, width, top, child, lock, inset, smooth))
             self._hitboxes.append((x, x + width, child))
             x += width - overlap
-        # Paint the selected polygon last so its chamfered edges sit in front of
+        # Paint the selected polygon last so its edges sit in front of
         # both neighbours instead of being covered by the tab to its right.
         for selected, points, color, text, left, width, top, child, lock, tab_inset, smooth in sorted(
                 drawings, key=lambda item: item[0]):
@@ -1831,12 +1828,13 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.8.5"
+__version__ = "0.8.6"
 
 
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/14"
 VERSION_HISTORY = (
+    ("v0.8.6", "2026/07/14", "Right Skirt is now the default tab style; choices are streamlined to Right Skirt, Rounded, and Squarish."),
     ("v0.8.5", "2026/07/14", "Compact tabs use a vertical left edge and a steep curved bottom-right skirt."),
     ("v0.8.4", "2026/07/14", "Selectable Soft Rounded, Slanted, Chamfered, and Compact tab shapes saved in pfc.ini."),
     ("v0.8.3", "2026/07/14", "Internal drag-and-drop with Copy/Shift+Move visuals; aligned menu accelerators; version history menu."),
@@ -1848,7 +1846,7 @@ VERSION_HISTORY = (
 
 def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
-        "view": {"font_size": "small", "tab_style": "rounded"},
+        "view": {"font_size": "small", "tab_style": "right_skirt"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -2245,7 +2243,7 @@ class FilePane(ttk.Frame):
 class PaneTabs(ChamferNotebook):
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None,
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None,
-                 on_drag=lambda _action, _pane, _event: None, tab_style="rounded") -> None:
+                 on_drag=lambda _action, _pane, _event: None, tab_style="right_skirt") -> None:
         self.color_for = color_for
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
@@ -2380,7 +2378,12 @@ class Commander(tk.Tk):
         self._drag_ghost = None
         self._drag_highlight = None
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
-        self.tab_style_var = tk.StringVar(value=self.config_data.get("view", "tab_style", fallback="rounded"))
+        saved_tab_style = self.config_data.get("view", "tab_style", fallback="right_skirt")
+        if saved_tab_style == "compact":
+            saved_tab_style = "right_skirt"
+        elif saved_tab_style not in TAB_STYLES:
+            saved_tab_style = "right_skirt"
+        self.tab_style_var = tk.StringVar(value=saved_tab_style)
         self.recycle_bin_var = tk.BooleanVar(
             value=self.config_data.getboolean("operations", "send_delete_to_recycle_bin", fallback=True))
         self.continue_errors_var = tk.BooleanVar(
@@ -2807,10 +2810,9 @@ class Commander(tk.Tk):
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
         self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
-            "Soft Rounded": "Rounded upper corners with minimal overlap.",
-            "Slanted": "Strong angled sides like physical index tabs.",
-            "Chamfered": "The original PFC clipped-corner style.",
-            "Compact": "A lower tab strip that uses less vertical space.",
+            "Right Skirt": "Low-height tab with a vertical left edge and steep bottom-right skirt.",
+            "Rounded": "Rounded upper corners with minimal overlap.",
+            "Squarish": "Straight rectangular edges with no slant or skirt.",
         })
         self.config(menu="")
 
@@ -3348,8 +3350,10 @@ class Commander(tk.Tk):
 
     def apply_tab_style(self, save: bool = True) -> None:
         style = self.tab_style_var.get()
+        if style == "compact":
+            style = "right_skirt"; self.tab_style_var.set(style)
         if style not in TAB_STYLES:
-            style = "rounded"; self.tab_style_var.set(style)
+            style = "right_skirt"; self.tab_style_var.set(style)
         if hasattr(self, "left_tabs"):
             self.left_tabs.set_style(style); self.right_tabs.set_style(style)
         if self.compare_window is not None and self.compare_window.winfo_exists():

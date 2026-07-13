@@ -15,10 +15,9 @@ TAB_COLORS = {
 }
 
 TAB_STYLES = {
-    "rounded": "Soft Rounded",
-    "slanted": "Slanted",
-    "chamfered": "Chamfered",
-    "compact": "Compact",
+    "right_skirt": "Right Skirt",
+    "rounded": "Rounded",
+    "squarish": "Squarish",
 }
 
 
@@ -26,7 +25,7 @@ class ChamferNotebook(ttk.Frame):
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
     def __init__(self, master, on_color_changed=None, on_lock_changed=None,
-                 tab_style="rounded", **kwargs):
+                 tab_style="right_skirt", **kwargs):
         super().__init__(master, **kwargs)
         self.on_color_changed = on_color_changed or (lambda _child, _color: None)
         self.on_lock_changed = on_lock_changed or (lambda _child, _mode: None)
@@ -35,7 +34,9 @@ class ChamferNotebook(ttk.Frame):
         self._colors = {}
         self._locks = {}
         self._selected = None
-        self._tab_style = tab_style if tab_style in TAB_STYLES else "rounded"
+        if tab_style == "compact":
+            tab_style = "right_skirt"
+        self._tab_style = tab_style if tab_style in TAB_STYLES else "right_skirt"
         self._hitboxes = []
         self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
         self.bar.pack(fill="x", side="top")
@@ -110,7 +111,9 @@ class ChamferNotebook(ttk.Frame):
         self._draw()
 
     def set_style(self, style):
-        self._tab_style = style if style in TAB_STYLES else "rounded"
+        if style == "compact":
+            style = "right_skirt"
+        self._tab_style = style if style in TAB_STYLES else "right_skirt"
         self._draw()
 
     def _resolve(self, tab):
@@ -121,20 +124,20 @@ class ChamferNotebook(ttk.Frame):
     def _draw(self):
         self.bar.delete("all"); self._hitboxes.clear()
         font = tkfont.nametofont("TkDefaultFont")
-        compact = self._tab_style == "compact"
-        height = max(27 if compact else 30, font.metrics("linespace") + (9 if compact else 13))
+        right_skirt = self._tab_style == "right_skirt"
+        height = max(27 if right_skirt else 30, font.metrics("linespace") + (9 if right_skirt else 13))
         self.bar.configure(height=height)
-        overlap = {"rounded": 2, "slanted": 11, "chamfered": 9, "compact": -2}[self._tab_style]
+        overlap = {"right_skirt": -2, "rounded": 2, "squarish": 0}[self._tab_style]
         x = 3
         drawings = []
         for child in self._tabs:
             text = self._texts.get(child, "")
             lock = self._locks.get(child, "unlocked")
             selected = child is self._selected
-            padding = 20 if compact else 28
-            width = max(52 if compact else 58, font.measure(text) + padding + (10 if selected else 0))
+            padding = 20 if right_skirt else 28
+            width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
             color = TAB_COLORS[self._colors.get(child, "default")][1]
-            top = 0 if selected else max(4, round(height * (0.18 if compact else 0.22)))
+            top = 0 if selected else max(4, round(height * (0.18 if right_skirt else 0.22)))
             bottom = height if selected else height - 3
             corner = max(6, round(height * 0.28))
             if self._tab_style == "rounded":
@@ -143,11 +146,7 @@ class ChamferNotebook(ttk.Frame):
                           x + width - corner, top, x + width - corner, top,
                           x + width, top + corner, x + width, top + corner, x + width, bottom)
                 smooth, inset = True, corner
-            elif self._tab_style == "slanted":
-                slant = max(10, round(height * 0.42))
-                points = (x, bottom, x + slant, top, x + width - slant, top, x + width, bottom)
-                smooth, inset = False, slant
-            elif self._tab_style == "compact":
+            elif self._tab_style == "right_skirt":
                 tail = max(9, round(height * 0.32))
                 skirt_height = max(12, round(height * 0.42))
                 points = (x, bottom, x, top,
@@ -158,14 +157,12 @@ class ChamferNotebook(ttk.Frame):
                           x + width + tail, bottom)
                 smooth, inset = False, 5
             else:
-                chamfer = max(8, round(height * 0.30))
-                points = (x, bottom, x, top + chamfer, x + chamfer, top,
-                          x + width - chamfer, top, x + width, top + chamfer, x + width, bottom)
-                smooth, inset = False, chamfer
+                points = (x, bottom, x, top, x + width, top, x + width, bottom)
+                smooth, inset = False, 4
             drawings.append((selected, points, color, text, x, width, top, child, lock, inset, smooth))
             self._hitboxes.append((x, x + width, child))
             x += width - overlap
-        # Paint the selected polygon last so its chamfered edges sit in front of
+        # Paint the selected polygon last so its edges sit in front of
         # both neighbours instead of being covered by the tab to its right.
         for selected, points, color, text, left, width, top, child, lock, tab_inset, smooth in sorted(
                 drawings, key=lambda item: item[0]):

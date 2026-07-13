@@ -34,10 +34,10 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) == "command"]
-            assert "Current version: v0.8.5" in version_labels and "v0.8.5" in version_labels
+            assert "Current version: v0.8.6" in version_labels and "v0.8.6" in version_labels
             version_index = next(index for index in range(app.versions_menu.index("end") + 1)
                                  if app.versions_menu.type(index) == "command" and
-                                 app.versions_menu.entrycget(index, "label") == "v0.8.5")
+                                 app.versions_menu.entrycget(index, "label") == "v0.8.6")
             assert app.versions_menu.entrycget(version_index, "accelerator") == "2026/07/14"
             assert app.recycle_bin_var.get() and app.continue_errors_var.get()
             assert ini_path.exists(), "pfc.ini was not generated on first launch"
@@ -48,21 +48,21 @@ def main() -> None:
             assert saved.get("hotkeys", "permanent_delete") == "<Shift-Delete>"
             assert saved.get("hotkeys", "versions_menu") == "<Alt-h>"
             assert saved.get("navigation", "favorites") != "[]"
-            assert app.tab_style_var.get() == "rounded"
-            rounded_height = int(float(app.left_tabs.bar.cget("height")))
-            for style in ("slanted", "chamfered", "compact", "rounded"):
+            assert app.tab_style_var.get() == "right_skirt"
+            skirt_height = int(float(app.left_tabs.bar.cget("height")))
+            for style in ("rounded", "squarish", "right_skirt"):
                 app.tab_style_var.set(style); app.apply_tab_style(); app.update_idletasks()
                 assert app.left_tabs._tab_style == style and app.right_tabs._tab_style == style
-            compact_height = None
-            app.tab_style_var.set("compact"); app.apply_tab_style(); app.update_idletasks()
-            compact_height = int(float(app.left_tabs.bar.cget("height")))
-            assert compact_height <= rounded_height
+            app.tab_style_var.set("right_skirt"); app.apply_tab_style(); app.update_idletasks()
+            assert int(float(app.left_tabs.bar.cget("height"))) == skirt_height
             last_tab_right = app.left_tabs._hitboxes[-1][1]
             polygon_right = max(max(app.left_tabs.bar.coords(item)[::2])
                                 for item in app.left_tabs.bar.find_all()
                                 if app.left_tabs.bar.type(item) == "polygon")
-            assert polygon_right > last_tab_right, "Compact tab skirt is missing"
-            app.tab_style_var.set("rounded"); app.apply_tab_style()
+            assert polygon_right > last_tab_right, "Right Skirt extension is missing"
+            app.tab_style_var.set("compact"); app.apply_tab_style(save=False)
+            assert app.tab_style_var.get() == "right_skirt"
+            assert app.left_tabs._tab_style == "right_skirt"
             app.deiconify(); app.update_idletasks(); app.update()
             source, target = app.left_tabs.current(), app.right_tabs.current()
             event = SimpleNamespace(x_root=target.tree.winfo_rootx() + 12,

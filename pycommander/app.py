@@ -28,6 +28,7 @@ from .tabs import ChamferNotebook, TAB_STYLES
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.8.6", "2026/07/14", "Right Skirt is now the default tab style; choices are streamlined to Right Skirt, Rounded, and Squarish."),
     ("v0.8.5", "2026/07/14", "Compact tabs use a vertical left edge and a steep curved bottom-right skirt."),
     ("v0.8.4", "2026/07/14", "Selectable Soft Rounded, Slanted, Chamfered, and Compact tab shapes saved in pfc.ini."),
     ("v0.8.3", "2026/07/14", "Internal drag-and-drop with Copy/Shift+Move visuals; aligned menu accelerators; version history menu."),
@@ -39,7 +40,7 @@ VERSION_HISTORY = (
 
 def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
-        "view": {"font_size": "small", "tab_style": "rounded"},
+        "view": {"font_size": "small", "tab_style": "right_skirt"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -436,7 +437,7 @@ class FilePane(ttk.Frame):
 class PaneTabs(ChamferNotebook):
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None,
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None,
-                 on_drag=lambda _action, _pane, _event: None, tab_style="rounded") -> None:
+                 on_drag=lambda _action, _pane, _event: None, tab_style="right_skirt") -> None:
         self.color_for = color_for
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
@@ -571,7 +572,12 @@ class Commander(tk.Tk):
         self._drag_ghost = None
         self._drag_highlight = None
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
-        self.tab_style_var = tk.StringVar(value=self.config_data.get("view", "tab_style", fallback="rounded"))
+        saved_tab_style = self.config_data.get("view", "tab_style", fallback="right_skirt")
+        if saved_tab_style == "compact":
+            saved_tab_style = "right_skirt"
+        elif saved_tab_style not in TAB_STYLES:
+            saved_tab_style = "right_skirt"
+        self.tab_style_var = tk.StringVar(value=saved_tab_style)
         self.recycle_bin_var = tk.BooleanVar(
             value=self.config_data.getboolean("operations", "send_delete_to_recycle_bin", fallback=True))
         self.continue_errors_var = tk.BooleanVar(
@@ -998,10 +1004,9 @@ class Commander(tk.Tk):
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
         self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
-            "Soft Rounded": "Rounded upper corners with minimal overlap.",
-            "Slanted": "Strong angled sides like physical index tabs.",
-            "Chamfered": "The original PFC clipped-corner style.",
-            "Compact": "A lower tab strip that uses less vertical space.",
+            "Right Skirt": "Low-height tab with a vertical left edge and steep bottom-right skirt.",
+            "Rounded": "Rounded upper corners with minimal overlap.",
+            "Squarish": "Straight rectangular edges with no slant or skirt.",
         })
         self.config(menu="")
 
@@ -1539,8 +1544,10 @@ class Commander(tk.Tk):
 
     def apply_tab_style(self, save: bool = True) -> None:
         style = self.tab_style_var.get()
+        if style == "compact":
+            style = "right_skirt"; self.tab_style_var.set(style)
         if style not in TAB_STYLES:
-            style = "rounded"; self.tab_style_var.set(style)
+            style = "right_skirt"; self.tab_style_var.set(style)
         if hasattr(self, "left_tabs"):
             self.left_tabs.set_style(style); self.right_tabs.set_style(style)
         if self.compare_window is not None and self.compare_window.winfo_exists():
