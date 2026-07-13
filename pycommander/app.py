@@ -14,7 +14,7 @@ from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
 from . import __version__
-from .fileops import copy_items, delete_items, format_size, is_system, move_items, roots
+from .fileops import OperationFailure, OperationResult, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
 from .clipboard import clear_file_clipboard, get_file_clipboard, set_file_clipboard
 from .icons import ShellIconProvider
 from .compare import CompareWindow
@@ -26,6 +26,34 @@ from .tabs import ChamferNotebook
 
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
+
+
+def ensure_config_defaults(config: configparser.ConfigParser) -> None:
+    defaults = {
+        "view": {"font_size": "small"},
+        "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
+                    "background_interval_ms": "10000", "network_interval_ms": "5000"},
+        "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
+        "navigation": {"favorites": "[]", "recent_folders": "[]"},
+    }
+    for section, values in defaults.items():
+        if not config.has_section(section):
+            config.add_section(section)
+        for key, value in values.items():
+            if not config.has_option(section, key):
+                config.set(section, key, value)
+
+
+def write_config_atomic(config: configparser.ConfigParser, path: Path) -> None:
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    try:
+        with temporary.open("w", encoding="utf-8") as stream:
+            config.write(stream)
+        temporary.replace(path)
+    except OSError:
+        try: temporary.unlink(missing_ok=True)
+        except OSError: pass
+        raise
 
 
 def hide_private_console() -> bool:
@@ -430,6 +458,44 @@ class PaneTabs(ChamferNotebook):
         self.on_change()
 
 
+class ConflictDialog(tk.Toplevel):
+    def __init__(self, parent, source: Path, target: Path) -> None:
+        super().__init__(parent)
+        self.result = ("cancel", False)
+        self.apply_all = tk.BooleanVar(value=False)
+        self.title("File conflict"); self.resizable(False, False); self.transient(parent)
+        body = ttk.Frame(self, padding=12); body.pack(fill="both", expand=True)
+        ttk.Label(body, text="An item with the same name already exists.",
+                  font=tkfont.nametofont("TkHeadingFont")).pack(anchor="w", pady=(0, 8))
+        ttk.Label(body, text=f"Source: {source}\nTarget: {target}", justify="left",
+                  wraplength=720).pack(anchor="w")
+        ttk.Checkbutton(body, text="Apply this choice to all remaining conflicts",
+                        variable=self.apply_all).pack(anchor="w", pady=(12, 8))
+        buttons = ttk.Frame(body); buttons.pack(fill="x")
+        first_button = None
+        for text, action in (("Replace", "replace"), ("Skip", "skip"),
+                             ("Keep Both", "keep_both"), ("Cancel", "cancel")):
+            button = ttk.Button(buttons, text=text, command=lambda value=action: self.choose(value))
+            button.pack(side="left", padx=3)
+            if first_button is None: first_button = button
+        self.bind("<Escape>", lambda _event: self.choose("cancel"))
+        self.protocol("WM_DELETE_WINDOW", lambda: self.choose("cancel"))
+        self.update_idletasks()
+        self.geometry(f"+{parent.winfo_rootx() + 60}+{parent.winfo_rooty() + 80}")
+        self.grab_set(); self.lift(); self.focus_force()
+        if first_button is not None: first_button.focus_set()
+
+    def choose(self, action: str) -> None:
+        self.result = (action, self.apply_all.get() if action != "cancel" else False)
+        self.destroy()
+
+    @classmethod
+    def ask(cls, parent, source: Path, target: Path) -> tuple[str, bool]:
+        dialog = cls(parent, source, target)
+        parent.wait_window(dialog)
+        return dialog.result
+
+
 class Commander(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
@@ -437,6 +503,7 @@ class Commander(tk.Tk):
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
+        ensure_config_defaults(self.config_data)
         try:
             self._tab_colors = json.loads(self.config_data.get("tab_colors", "colors", fallback="{}"))
         except (json.JSONDecodeError, TypeError):
@@ -449,6 +516,12 @@ class Commander(tk.Tk):
         self.preview_window = None
         self.search_window = None
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
+        self.recycle_bin_var = tk.BooleanVar(
+            value=self.config_data.getboolean("operations", "send_delete_to_recycle_bin", fallback=True))
+        self.continue_errors_var = tk.BooleanVar(
+            value=self.config_data.getboolean("operations", "continue_after_error", fallback=True))
+        self.favorites = self._load_navigation_paths("favorites")
+        self.recent_folders = self._load_navigation_paths("recent_folders")
         self._font_scales = {"small": 1.0, "medium": 1.5, "large": 2.0, "huge": 3.0}
         self._base_font_sizes = {}
         for name in ("TkDefaultFont", "TkTextFont", "TkFixedFont", "TkMenuFont", "TkHeadingFont", "TkCaptionFont"):
@@ -521,10 +594,12 @@ class Commander(tk.Tk):
             "files_menu": "<Alt-f>", "view_menu": "<Alt-v>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
             "compare": "<F9>",
+            "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
+            "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
         }
         commands = {
             "rename": self.rename, "preview": self.preview, "search": self.search, "copy": self.copy,
-            "move": self.move, "new_folder": self.mkdir, "delete": self.delete, "refresh": self.refresh,
+            "move": self.move, "new_folder": self.mkdir, "delete": self.delete_hotkey, "refresh": self.refresh,
             "enter_folder": self.enter_folder, "parent_folder": self.parent_folder, "new_tab": self.new_tab,
             "close_tab": self.close_tab, "select_all": self.select_all,
             "copy_path": self.copy_path, "toggle_hidden": self.toggle_hidden,
@@ -540,6 +615,10 @@ class Commander(tk.Tk):
             "view_menu": lambda: self.show_header_menu("view"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
             "compare": self.compare_selected,
+            "permanent_delete": lambda: self.delete_hotkey(permanent=True),
+            "toggle_favorite": self.toggle_favorite,
+            "favorites_menu": lambda: self._show_folder_menu(self.favorites_menu, self._rebuild_favorites_menu),
+            "recent_menu": lambda: self._show_folder_menu(self.recent_menu, self._rebuild_recent_menu),
         }
         if not self.config_data.has_section("hotkeys"):
             self.config_data.add_section("hotkeys")
@@ -548,7 +627,7 @@ class Commander(tk.Tk):
             key = self.config_data.get("hotkeys", name, fallback=default)
             self.config_data.set("hotkeys", name, key)
             configured_hotkeys[name] = key
-            if name not in {"select_previous", "select_next"}:
+            if name not in {"select_previous", "select_next", "permanent_delete"}:
                 self.bind_all(key, lambda _e, fn=commands[name]: fn())
         self._install_priority_hotkeys(configured_hotkeys, commands)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
@@ -571,6 +650,8 @@ class Commander(tk.Tk):
                         lambda event: None if event.state & 0x5 else self.move_selection(-1))
         self.bind_class(tag, hotkeys["select_next"],
                         lambda event: None if event.state & 0x5 else self.move_selection(1))
+        self.bind_class(tag, hotkeys["permanent_delete"],
+                        lambda _event: (commands["permanent_delete"](), "break")[1])
 
         def prepend(widget):
             tags = widget.bindtags()
@@ -587,6 +668,27 @@ class Commander(tk.Tk):
         if executable.name.casefold() == "pfc.py":
             return executable.with_name("pfc.ini")
         return Path(__file__).resolve().parents[1] / "pfc.ini"
+
+    def _load_navigation_paths(self, key: str) -> list[Path]:
+        try:
+            values = json.loads(self.config_data.get("navigation", key, fallback="[]"))
+            return [Path(value) for value in values if isinstance(value, str)]
+        except (json.JSONDecodeError, TypeError):
+            return []
+
+    @staticmethod
+    def _deduplicate_paths(paths: list[Path], limit: int | None = None) -> list[Path]:
+        result, seen = [], set()
+        for path in paths:
+            key = os.path.normcase(str(path))
+            if key not in seen:
+                seen.add(key); result.append(path)
+            if limit is not None and len(result) >= limit:
+                break
+        return result
+
+    def _record_recent(self, path: Path) -> None:
+        self.recent_folders = self._deduplicate_paths([path, *self.recent_folders], 20)
 
     def _saved_paths(self, side: str) -> list[Path]:
         try:
@@ -639,9 +741,12 @@ class Commander(tk.Tk):
             self.after_cancel(self._save_job)
         self._save_job = self.after(250, self.save_config)
 
-    def save_config(self) -> None:
+    def save_config(self, record_recent: bool = True) -> None:
         if not self._ready:
             return
+        ensure_config_defaults(self.config_data)
+        if record_recent and self.active is not None:
+            self._record_recent(self.active.path)
         for side, tabs in (("left", self.left_tabs), ("right", self.right_tabs)):
             if not self.config_data.has_section(side):
                 self.config_data.add_section(side)
@@ -674,16 +779,12 @@ class Commander(tk.Tk):
         self.config_data.set("state", "active_panel", "left" if self.active in self.left_tabs.panes() else "right")
         self.config_data.set("view", "font_size", self.font_size_var.get())
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
-        refresh_defaults = {"auto_refresh": "true", "active_interval_ms": "2000",
-                            "background_interval_ms": "10000", "network_interval_ms": "5000"}
-        for key, value in refresh_defaults.items():
-            if not self.config_data.has_option("refresh", key):
-                self.config_data.set("refresh", key, value)
-        temporary = self.ini_path.with_suffix(".ini.tmp")
+        self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
+        self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
+        self.config_data.set("navigation", "favorites", json.dumps([str(path) for path in self.favorites], ensure_ascii=False))
+        self.config_data.set("navigation", "recent_folders", json.dumps([str(path) for path in self.recent_folders], ensure_ascii=False))
         try:
-            with temporary.open("w", encoding="utf-8") as stream:
-                self.config_data.write(stream)
-            temporary.replace(self.ini_path)
+            write_config_atomic(self.config_data, self.ini_path)
         except OSError:
             pass
 
@@ -730,7 +831,29 @@ class Commander(tk.Tk):
         files_button.pack(side="left")
         files = tk.Menu(files_button, tearoff=False, font=menu_font)
         files_button.configure(menu=files)
+        files.add_command(label="Copy to Clipboard\tCtrl+C", command=self.clipboard_copy)
+        files.add_command(label="Cut to Clipboard\tCtrl+X", command=self.clipboard_cut)
+        files.add_command(label="Paste\tCtrl+V", command=self.clipboard_paste)
+        files.add_separator()
+        files.add_command(label="Copy to Other Panel\tF5", command=self.copy)
+        files.add_command(label="Move to Other Panel\tF6", command=self.move)
         files.add_command(label="Rename\tF2", command=self.rename)
+        files.add_command(label="New Folder\tF7", command=self.mkdir)
+        files.add_separator()
+        files.add_command(label="Delete\tDel", command=self.delete)
+        files.add_command(label="Permanent Delete\tShift+Del", command=lambda: self.delete(permanent=True))
+        files.add_checkbutton(label="Send Delete to Recycle Bin", variable=self.recycle_bin_var,
+                              command=self.save_config)
+        files.add_checkbutton(label="Continue After File Errors", variable=self.continue_errors_var,
+                              command=self.save_config)
+        files.add_separator()
+        self.favorites_menu = tk.Menu(files, tearoff=False, font=menu_font,
+                                      postcommand=self._rebuild_favorites_menu)
+        self.recent_menu = tk.Menu(files, tearoff=False, font=menu_font,
+                                   postcommand=self._rebuild_recent_menu)
+        files.add_cascade(label="Favorites", menu=self.favorites_menu)
+        files.add_cascade(label="Recent Folders", menu=self.recent_menu)
+        files.add_separator()
         files.add_command(label="Preview\tF3", command=self.preview)
         files.add_command(label="Search\tF4", command=self.search)
         files.add_command(label="Compare\tF9", command=self.compare_selected)
@@ -768,7 +891,18 @@ class Commander(tk.Tk):
         self.files_menu = files
         self.view_menu = view
         menu_help = {
+            "Copy to Clipboard\tCtrl+C": "Copy selected items for PFC or File Explorer.",
+            "Cut to Clipboard\tCtrl+X": "Cut selected items for PFC or File Explorer.",
+            "Paste\tCtrl+V": "Paste clipboard items into the active folder.",
+            "Copy to Other Panel\tF5": "Copy selected items to the opposite panel.",
+            "Move to Other Panel\tF6": "Move selected items to the opposite panel.",
             "Rename\tF2": "Rename the selected item.", "Preview\tF3": "Open PFC Preview.",
+            "New Folder\tF7": "Create a folder in the active panel.",
+            "Delete\tDel": "Delete using the selected Recycle Bin policy.",
+            "Permanent Delete\tShift+Del": "Permanently delete after a warning.",
+            "Send Delete to Recycle Bin": "When enabled, Del sends items to the Windows Recycle Bin.",
+            "Continue After File Errors": "Continue remaining items, then show exact failures and retry options.",
+            "Favorites": "Open or maintain favorite folders.", "Recent Folders": "Open recently visited folders.",
             "Search\tF4": "Search below the current folder.", "Compare\tF9": "Compare selected items.",
             "Copy Path\tF11": "Copy all selected full paths.",
             "Change Dir\tF12": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
@@ -911,9 +1045,12 @@ class Commander(tk.Tk):
             "Ctrl+W  Close current tab\n"
             "Ctrl+L  Focus and select the path\n"
             "Esc  Return focus to the file list\n\n"
+            "Favorite and recent folders\n"
+            "Ctrl+D  Add/remove current folder as a favorite\n"
+            "Ctrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\n"
             "Selection and clipboard\n"
             "Ctrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\n"
-            "Ctrl+A  Select all    Del  Permanently delete\n"
+            "Ctrl+A  Select all    Shift+Del  Permanent delete with warning\n"
             "Ctrl+Shift+C  Copy selected or current path\n"
             "Ctrl+H  Toggle hidden files\n"
             "Alt+F / Alt+V  Open Files / View menu"
@@ -933,6 +1070,52 @@ class Commander(tk.Tk):
         menu = self.files_menu if which == "files" else self.view_menu
         menu.tk_popup(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
         return "break"
+
+    def _show_folder_menu(self, menu: tk.Menu, rebuild) -> str:
+        rebuild()
+        menu.tk_popup(self.files_menu_button.winfo_rootx(),
+                      self.files_menu_button.winfo_rooty() + self.files_menu_button.winfo_height())
+        return "break"
+
+    def _rebuild_favorites_menu(self) -> None:
+        menu = self.favorites_menu; menu.delete(0, "end")
+        current = self.panes()[0].path
+        normalized = os.path.normcase(str(current))
+        existing = any(os.path.normcase(str(path)) == normalized for path in self.favorites)
+        menu.add_command(label=("Remove Current Folder" if existing else "Add Current Folder") + "\tCtrl+D",
+                         command=self.toggle_favorite)
+        if self.favorites:
+            menu.add_separator()
+            for path in self.favorites:
+                menu.add_command(label=str(path), command=lambda target=path: self.navigate_to_folder(target))
+
+    def _rebuild_recent_menu(self) -> None:
+        menu = self.recent_menu; menu.delete(0, "end")
+        if self.recent_folders:
+            for path in self.recent_folders:
+                menu.add_command(label=str(path), command=lambda target=path: self.navigate_to_folder(target))
+            menu.add_separator()
+            menu.add_command(label="Clear Recent Folders", command=self.clear_recent_folders)
+        else:
+            menu.add_command(label="No recent folders", state="disabled")
+
+    def toggle_favorite(self) -> str:
+        current = self.panes()[0].path
+        normalized = os.path.normcase(str(current))
+        remaining = [path for path in self.favorites if os.path.normcase(str(path)) != normalized]
+        self.favorites = remaining if len(remaining) != len(self.favorites) else [current, *self.favorites]
+        self.favorites = self._deduplicate_paths(self.favorites)
+        self.save_config()
+        return "break"
+
+    def clear_recent_folders(self) -> None:
+        self.recent_folders = []
+        self.save_config(record_recent=False)
+
+    def navigate_to_folder(self, path: Path) -> None:
+        source = self.panes()[0]
+        if source.navigate(path):
+            self._record_recent(source.path); source.focus_file_list(); self.save_config()
 
     def refresh(self) -> None:
         self.left_tabs.current().refresh(); self.right_tabs.current().refresh()
@@ -1055,10 +1238,10 @@ class Commander(tk.Tk):
             if not items:
                 return
             operation = move_items if cut else copy_items
-            operation(items, destination)
-            if cut:
+            result = self._execute_transfer("Move" if cut else "Copy", operation, items,
+                                            destination, confirm=False)
+            if cut and result is not None and result.successful:
                 clear_file_clipboard()
-            self.refresh()
         except (OSError, MemoryError, shutil.Error) as exc:
             messagebox.showerror("Paste failed", str(exc), parent=self)
 
@@ -1130,18 +1313,67 @@ class Commander(tk.Tk):
         if save:
             self.save_config()
 
+    def _conflict_resolver(self):
+        shared_action = None
+        def resolve(source: Path, target: Path) -> str:
+            nonlocal shared_action
+            if shared_action is not None:
+                return shared_action
+            action, apply_all = ConflictDialog.ask(self, source, target)
+            if apply_all:
+                shared_action = action
+            return action
+        return resolve
+
+    def _show_operation_result(self, verb: str, result: OperationResult, retry=None) -> None:
+        if not result.failures and not result.skipped:
+            return
+        details = [f"{verb}: {len(result.completed)} completed, {len(result.skipped)} skipped, "
+                   f"{len(result.failures)} failed.", ""]
+        details.extend(f"SKIPPED: {path}" for path in result.skipped)
+        for failure in result.failures:
+            destination = f" -> {failure.target}" if failure.target else ""
+            details.append(f"FAILED: {failure.source}{destination}\n  {failure.message}")
+        report = "\n".join(details)
+        dialog = tk.Toplevel(self); dialog.title(f"{verb} result"); dialog.transient(self)
+        dialog.geometry("760x420"); dialog.minsize(540, 280)
+        ttk.Label(dialog, text=details[0], font=tkfont.nametofont("TkHeadingFont"),
+                  padding=(8, 8, 8, 4)).pack(anchor="w")
+        text = tk.Text(dialog, wrap="word", height=12, font=tkfont.nametofont("TkFixedFont"))
+        text.insert("1.0", report); text.configure(state="disabled"); text.pack(fill="both", expand=True, padx=8)
+        buttons = ttk.Frame(dialog, padding=8); buttons.pack(fill="x")
+        def copy_report():
+            self.clipboard_clear(); self.clipboard_append(report); self.update_idletasks()
+        ttk.Button(buttons, text="Copy Details", command=copy_report).pack(side="left")
+        if retry is not None and result.failures:
+            def retry_failed():
+                failed = [failure.source for failure in result.failures]
+                dialog.destroy(); retry(failed)
+            ttk.Button(buttons, text="Retry Failed", command=retry_failed).pack(side="left", padx=4)
+        ttk.Button(buttons, text="Close", command=dialog.destroy).pack(side="right")
+        dialog.bind("<Escape>", lambda _event: dialog.destroy())
+        dialog.lift(); dialog.focus_force()
+
+    def _execute_transfer(self, verb: str, operation, items: list[Path], destination: Path,
+                          confirm: bool = True) -> OperationResult | None:
+        if not items:
+            return None
+        if confirm and not messagebox.askyesno(verb, f"{verb} {len(items)} selected item(s) to:\n{destination}?",
+                                               parent=self):
+            return None
+        try:
+            result = operation(items, destination, self._conflict_resolver(), self.continue_errors_var.get())
+        except (OSError, shutil.Error) as exc:
+            result = OperationResult(failures=[OperationFailure(items[0], destination, str(exc))])
+        self.refresh()
+        self._show_operation_result(verb, result,
+                                    retry=lambda failed: self._execute_transfer(verb, operation, failed,
+                                                                                destination, confirm=False))
+        return result
+
     def _run(self, verb: str, operation) -> None:
         source, target = self.panes()
-        items = source.selected_paths()
-        if not items:
-            return
-        if not messagebox.askyesno(verb, f"{verb} {len(items)} selected item(s) to:\n{target.path}?"):
-            return
-        try:
-            operation(items, target.path)
-            self.refresh()
-        except OSError as exc:
-            messagebox.showerror(f"{verb} failed", str(exc))
+        self._execute_transfer(verb, operation, source.selected_paths(), target.path)
 
     def copy(self) -> None:
         self._run("Copy", copy_items)
@@ -1149,14 +1381,36 @@ class Commander(tk.Tk):
     def move(self) -> None:
         self._run("Move", move_items)
 
-    def delete(self) -> None:
+    def delete(self, permanent: bool = False) -> None:
         source, _ = self.panes()
         items = source.selected_paths()
-        if items and messagebox.askyesno("Permanent delete", f"Permanently delete {len(items)} selected item(s)?"):
-            try:
-                delete_items(items); self.refresh()
-            except OSError as exc:
-                messagebox.showerror("Delete failed", str(exc))
+        if not items:
+            return
+        permanent = permanent or not self.recycle_bin_var.get()
+        if permanent:
+            prompt = ("This cannot be undone.\n\n"
+                      f"Permanently delete {len(items)} selected item(s)?")
+            if not messagebox.askyesno("Permanent delete warning", prompt, icon="warning", parent=self):
+                return
+            operation, verb = delete_items, "Permanent delete"
+        else:
+            if not messagebox.askyesno("Recycle Bin", f"Move {len(items)} selected item(s) to the Recycle Bin?",
+                                       parent=self):
+                return
+            operation, verb = recycle_items, "Recycle"
+        result = operation(items, self.continue_errors_var.get()); self.refresh()
+        self._show_operation_result(verb, result,
+                                    retry=lambda failed: self._retry_delete(failed, permanent))
+
+    def delete_hotkey(self, permanent: bool = False) -> None:
+        if not self._clipboard_is_text_control():
+            self.delete(permanent=permanent)
+
+    def _retry_delete(self, items: list[Path], permanent: bool) -> None:
+        operation, verb = (delete_items, "Permanent delete") if permanent else (recycle_items, "Recycle")
+        result = operation(items, self.continue_errors_var.get()); self.refresh()
+        self._show_operation_result(verb, result,
+                                    retry=lambda failed: self._retry_delete(failed, permanent))
 
     def mkdir(self) -> None:
         source, _ = self.panes()

@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.8.0**
+Current version: **v0.8.1**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar two-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -27,7 +27,11 @@ The portable file is generated from the maintainable package source:
 python tools/build_single_file.py
 ```
 
-Current core: two resizable panes, chamfered color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons with a compact left gutter and padded filename gap, multi-select, rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), new folder (F7), permanent delete (Del), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Tab-specific colors and locks are saved in `pfc.ini`.
+Current core: two resizable panes, chamfered color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons with a compact left gutter and padded filename gap, multi-select, rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), new folder (F7), safe Recycle Bin delete (Del), explicit permanent delete (Shift+Del), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Tab-specific colors and locks are saved in `pfc.ini`.
+
+Copy, move, and clipboard paste detect name conflicts and offer Replace, Skip, Keep Both, Cancel, and Apply to All. Multi-item operations open a copyable result window listing exact failed paths with Retry Failed. Files > Continue After File Errors controls whether remaining items continue after a failure and defaults on. The Files menu groups clipboard operations, opposite-panel operations, rename/new folder, both delete modes, safety switches, Favorites, Recent Folders, Preview, Search, Compare, paths, and Exit.
+
+Favorites and the 20 most recent folders are stored in `pfc.ini`. Ctrl+D adds/removes the current folder, Ctrl+B opens Favorites, and Ctrl+Shift+R opens Recent Folders. All entries are also available from the Files menu.
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. Results stream into sortable-style detail columns and support Enter/double-click Go to File, F3 Preview and multi-selection Copy Path. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 
@@ -51,9 +55,9 @@ Visible folders auto-refresh adaptively: every 2 seconds while PFC is focused, e
 
 `View > Font Size` provides Small (100%), Medium (150%), Large (200%), and Huge (300%). Fonts, the in-client application header and menus, tab geometry, path controls, row heights, native Shell icons, and the icon gutter scale and reflow together. The choice is saved in `pfc.ini`. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
 
-All persistent state is kept in the single `pfc.ini` beside `pfc.py`. It is updated after navigation, tab, sorting, display, active-panel, hotkey, and window changes so tabs and paths survive an unexpected shutdown. Hotkeys can be changed in its `[hotkeys]` section.
+All persistent state is kept in the single `pfc.ini` beside `pfc.py`. If it is absent, PFC creates it with safe defaults on first launch. It is updated after navigation, tab, sorting, display, active-panel, hotkey, and window changes so tabs and paths survive an unexpected shutdown. Hotkeys can be changed in its `[hotkeys]` section.
 
-> File operations use your current Windows permissions. Delete is permanent in this initial version.
+> File operations use your current Windows permissions. Del uses the Windows Recycle Bin by default; Shift+Del always shows an irreversible permanent-delete warning. Network locations are never silently treated as safely recyclable.
 
 ## Scope and roadmap
 
@@ -61,13 +65,13 @@ The original project is a mature Pascal application with a large plugin ecosyste
 
 ### v1.0 readiness, in ROI order
 
-1. **Safe delete to Windows Recycle Bin**, with permanent delete kept as an explicit secondary action. This removes the largest everyday data-loss risk.
-2. **Copy/move/paste conflict handling**: Replace, Skip, Keep Both, and Apply to All, with clear source/target metadata. Silent merging or accidental overwrite is not acceptable for v1.0.
+1. **Completed in v0.8.1 — Safe delete to Windows Recycle Bin**, with permanent delete kept as an explicit secondary action.
+2. **Completed in v0.8.1 — Copy/move/paste conflict handling**: Replace, Skip, Keep Both, Cancel, and Apply to All.
 3. **Background operation queue** with progress, cancel, retry, and a final success/failure summary so large file operations never freeze navigation.
 4. **Quick in-panel filter** that narrows the current file list while typing, separate from the deeper F4 search. This is a frequent office workflow with low interaction cost.
-5. **Favorites and recent folders**, fully keyboard accessible, for repeatedly visited project and shared-drive locations.
-6. **Partial-failure reporting and recovery** for multi-file operations: continue/stop choices, the exact failed paths, and a copyable diagnostic summary.
-7. **Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes.
+5. **Completed in v0.8.1 — Favorites and recent folders**, fully keyboard accessible.
+6. **Completed in v0.8.1 — Partial-failure reporting and recovery** with continued processing, exact failed paths, copyable diagnostics, and retry.
+7. **In progress — Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes. Automated coverage now includes non-ASCII conflicts, same-folder safety, partial failures, atomic default INI creation, and portable privacy; environment-dependent Windows cases remain release smoke tests.
 8. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
 
 After items 1–6 are complete, the appropriate milestone is **v0.9.0**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing, folder synchronization actions, and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
