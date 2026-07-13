@@ -59,7 +59,18 @@ All persistent state is kept in the single `pfc.ini` beside `pfc.py`. It is upda
 
 The original project is a mature Pascal application with a large plugin ecosystem. This is a clean-room Python implementation of the workflow, not a line-by-line port.
 
-High-value next steps: tabs and favorites, background operation queue with progress/cancel, safe Recycle Bin delete, quick search/filter, file viewer, directory comparison/sync, archive browsing, checksums, configurable shortcuts, and persistent settings.
+### v1.0 readiness, in ROI order
+
+1. **Safe delete to Windows Recycle Bin**, with permanent delete kept as an explicit secondary action. This removes the largest everyday data-loss risk.
+2. **Copy/move/paste conflict handling**: Replace, Skip, Keep Both, and Apply to All, with clear source/target metadata. Silent merging or accidental overwrite is not acceptable for v1.0.
+3. **Background operation queue** with progress, cancel, retry, and a final success/failure summary so large file operations never freeze navigation.
+4. **Quick in-panel filter** that narrows the current file list while typing, separate from the deeper F4 search. This is a frequent office workflow with low interaction cost.
+5. **Favorites and recent folders**, fully keyboard accessible, for repeatedly visited project and shared-drive locations.
+6. **Partial-failure reporting and recovery** for multi-file operations: continue/stop choices, the exact failed paths, and a copyable diagnostic summary.
+7. **Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes.
+8. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
+
+After items 1–6 are complete, the appropriate milestone is **v0.9.0**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing, folder synchronization actions, and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
 
 Low-ROI features deferred until the office workflow is complete:
 
