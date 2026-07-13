@@ -28,7 +28,7 @@ from .tabs import ChamferNotebook, TAB_STYLES
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
-    ("v0.8.5", "2026/07/14", "Compact tabs use a vertical left edge and a subtle bottom-right skirt."),
+    ("v0.8.5", "2026/07/14", "Compact tabs use a vertical left edge and a pronounced bottom-right skirt."),
     ("v0.8.4", "2026/07/14", "Selectable Soft Rounded, Slanted, Chamfered, and Compact tab shapes saved in pfc.ini."),
     ("v0.8.3", "2026/07/14", "Internal drag-and-drop with Copy/Shift+Move visuals; aligned menu accelerators; version history menu."),
     ("v0.8.2", "2026/07/14", "Paste Outlook virtual attachments and identify them in the clipboard summary."),

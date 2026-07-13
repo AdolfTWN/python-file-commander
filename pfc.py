@@ -808,10 +808,10 @@ class ChamferNotebook(ttk.Frame):
                 points = (x, bottom, x + slant, top, x + width - slant, top, x + width, bottom)
                 smooth, inset = False, slant
             elif self._tab_style == "compact":
-                tail = max(7, round(height * 0.28))
+                tail = max(12, round(height * 0.45))
                 points = (x, bottom, x, top,
                           x + width - 5, top, x + width, top + 5,
-                          x + width, bottom - 4, x + width + tail, bottom)
+                          x + width, bottom - 7, x + width + tail, bottom)
                 smooth, inset = False, 5
             else:
                 chamfer = max(8, round(height * 0.30))
@@ -1833,7 +1833,7 @@ __version__ = "0.8.5"
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/14"
 VERSION_HISTORY = (
-    ("v0.8.5", "2026/07/14", "Compact tabs use a vertical left edge and a subtle bottom-right skirt."),
+    ("v0.8.5", "2026/07/14", "Compact tabs use a vertical left edge and a pronounced bottom-right skirt."),
     ("v0.8.4", "2026/07/14", "Selectable Soft Rounded, Slanted, Chamfered, and Compact tab shapes saved in pfc.ini."),
     ("v0.8.3", "2026/07/14", "Internal drag-and-drop with Copy/Shift+Move visuals; aligned menu accelerators; version history menu."),
     ("v0.8.2", "2026/07/14", "Paste Outlook virtual attachments and identify them in the clipboard summary."),
