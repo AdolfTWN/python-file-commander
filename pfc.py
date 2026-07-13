@@ -1835,12 +1835,13 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.8.7"
+__version__ = "0.8.8"
 
 
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/14"
 VERSION_HISTORY = (
+    ("v0.8.8", "2026/07/14", "All v0.8.x release notes are shown together in one changes window."),
     ("v0.8.7", "2026/07/14", "Version history is grouped into a single v0.8.x Releases submenu."),
     ("v0.8.6", "2026/07/14", "Right Skirt is now the default tab style; choices are streamlined to Right Skirt, Rounded, and Squarish."),
     ("v0.8.5", "2026/07/14", "Compact tabs use a vertical left edge and a steep curved bottom-right skirt."),
@@ -2776,16 +2777,13 @@ class Commander(tk.Tk):
         versions_button.configure(menu=versions)
         versions.add_command(label=f"Current version: v{__version__}", state="disabled")
         versions.add_separator()
-        version_series_menus = {}
+        version_series = []
         for version, build_date, notes in VERSION_HISTORY:
             series = version.rsplit(".", 1)[0] + ".x"
-            if series not in version_series_menus:
-                series_menu = tk.Menu(versions, tearoff=False, font=menu_font)
-                version_series_menus[series] = series_menu
-                versions.add_cascade(label=f"{series} Releases", menu=series_menu)
-            version_series_menus[series].add_command(
-                label=version, accelerator=build_date,
-                command=lambda value=version: self.show_version_notes(value))
+            if series not in version_series:
+                version_series.append(series)
+                versions.add_command(label=f"{series} Changes",
+                                     command=lambda value=series: self.show_version_series(value))
         self.clipboard_summary = tk.Label(header, text="Clipboard: checking…", anchor="e", width=1,
                                           font=tkfont.nametofont("TkDefaultFont"),
                                           background=header_bg, foreground="#c9e5f5")
@@ -2796,7 +2794,7 @@ class Commander(tk.Tk):
         self.files_menu = files
         self.view_menu = view
         self.versions_menu = versions
-        self.version_series_menus = version_series_menus
+        self.version_series = tuple(version_series)
         menu_help = {
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
@@ -2822,13 +2820,8 @@ class Commander(tk.Tk):
         self._files_menu_tooltip = MenuToolTip(files, menu_help)
         self._view_menu_tooltip = MenuToolTip(view, menu_help)
         self._versions_menu_tooltip = MenuToolTip(
-            versions, {f"{series} Releases": f"Show all releases in the {series} series."
-                       for series in version_series_menus})
-        self._version_series_tooltips = [
-            MenuToolTip(menu, {version: notes for version, _date, notes in VERSION_HISTORY
-                               if version.rsplit(".", 1)[0] + ".x" == series})
-            for series, menu in version_series_menus.items()
-        ]
+            versions, {f"{series} Changes": f"Show every {series} release in one window."
+                       for series in version_series})
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
         self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
@@ -3111,10 +3104,17 @@ class Commander(tk.Tk):
         menu.tk_popup(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
         return "break"
 
-    def show_version_notes(self, version: str) -> None:
-        item = next(((date, notes) for label, date, notes in VERSION_HISTORY if label == version), None)
-        date, notes = item if item else ("Unknown", "No notes available.")
-        messagebox.showinfo(f"Python File Commander {version}", f"Build {date}\n\n{notes}", parent=self)
+    def version_series_notes(self, series: str) -> tuple[str, str]:
+        items = [(version, date, notes) for version, date, notes in VERSION_HISTORY
+                 if version.rsplit(".", 1)[0] + ".x" == series]
+        title = f"Python File Commander — {series} Changes"
+        body = "\n\n".join(f"{version} — Build {date}\n{notes}"
+                           for version, date, notes in items)
+        return title, body or "No release notes available."
+
+    def show_version_series(self, series: str) -> None:
+        title, body = self.version_series_notes(series)
+        messagebox.showinfo(title, body, parent=self)
 
     def _show_folder_menu(self, menu: tk.Menu, rebuild) -> str:
         rebuild()

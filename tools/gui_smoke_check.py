@@ -34,12 +34,23 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.8.7", "v0.8.x Releases"]
-            release_menu = app.version_series_menus["v0.8.x"]
-            release_labels = [release_menu.entrycget(index, "label")
-                              for index in range(release_menu.index("end") + 1)]
-            assert release_labels == [f"v0.8.{minor}" for minor in range(7, -1, -1)]
-            assert release_menu.entrycget(0, "accelerator") == "2026/07/14"
+            assert version_labels == ["Current version: v0.8.8", "v0.8.x Changes"]
+            assert app.version_series == ("v0.8.x",)
+            notes_title, notes_body = app.version_series_notes("v0.8.x")
+            assert notes_title == "Python File Commander — v0.8.x Changes"
+            for minor in range(8, -1, -1):
+                assert f"v0.8.{minor} — Build " in notes_body
+            captured = []
+            original_showinfo = pfc.messagebox.showinfo
+            pfc.messagebox.showinfo = lambda title, body, **_kwargs: captured.append((title, body))
+            try:
+                changes_index = next(index for index in range(app.versions_menu.index("end") + 1)
+                                     if app.versions_menu.type(index) == "command" and
+                                     app.versions_menu.entrycget(index, "label") == "v0.8.x Changes")
+                app.versions_menu.invoke(changes_index)
+            finally:
+                pfc.messagebox.showinfo = original_showinfo
+            assert captured == [(notes_title, notes_body)], "Changes must open in one combined window"
             assert app.recycle_bin_var.get() and app.continue_errors_var.get()
             assert ini_path.exists(), "pfc.ini was not generated on first launch"
             app.toggle_favorite()

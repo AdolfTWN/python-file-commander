@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.8.7**
+Current version: **v0.8.8**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar two-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -35,7 +35,7 @@ Favorites and the 20 most recent folders are stored in `pfc.ini`. Ctrl+D adds/re
 
 Internal drag-and-drop copies selected items by default; holding Shift changes the action to Move. Drop onto the other visible panel to use its current folder, or onto any visible folder row to use that folder. A floating action/count/destination card follows the pointer and folder targets are highlighted. Drops reuse PFC's conflict, partial-failure, and recovery handling. External Explorer/Outlook OLE drag-and-drop is not included.
 
-The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) tracks user-visible changes and groups every v0.8.x release in one `v0.8.x Releases` submenu.
+The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) opens one `v0.8.x Changes` window containing every release note from that series.
 
 View > Tab Style provides Right Skirt (default), Rounded, and Squarish. All three use the same height at every font scale. Right Skirt has a vertical left edge and steep curved bottom-right skirt; Rounded curves only the top corners and keeps a square bottom. The selection applies immediately to both main panels and Compare tabs and is saved in `pfc.ini`; legacy Compact settings migrate automatically to Right Skirt.
 
