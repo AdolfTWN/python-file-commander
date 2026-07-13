@@ -1,5 +1,7 @@
 # Python File Commander
 
+Current version: **v0.8.0**
+
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar two-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
 ## Run

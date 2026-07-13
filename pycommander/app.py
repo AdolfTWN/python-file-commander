@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
+from . import __version__
 from .fileops import copy_items, delete_items, format_size, is_system, move_items, roots
 from .clipboard import clear_file_clipboard, get_file_clipboard, set_file_clipboard
 from .icons import ShellIconProvider
@@ -717,7 +718,7 @@ class Commander(tk.Tk):
         header_bg, header_fg, active_bg = "#243b53", "#f4f8fb", "#365b78"
         header = tk.Frame(self, background=header_bg, padx=5, pady=4)
         header.pack(fill="x")
-        title = tk.Label(header, text=f"Python File Commander   {BUILD_DATE}",
+        title = tk.Label(header, text=f"Python File Commander   v{__version__}   Build {BUILD_DATE}",
                          font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
         title.pack(side="left", padx=(2, 10))

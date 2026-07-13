@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,6 +18,11 @@ def build() -> Path:
     preview = (ROOT / "pycommander" / "preview.py").read_text(encoding="utf-8")
     search = (ROOT / "pycommander" / "search.py").read_text(encoding="utf-8")
     app = (ROOT / "pycommander" / "app.py").read_text(encoding="utf-8")
+    package = (ROOT / "pycommander" / "__init__.py").read_text(encoding="utf-8")
+    version_match = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', package, re.MULTILINE)
+    if version_match is None:
+        raise RuntimeError("pycommander.__version__ is missing")
+    app = app.replace("from . import __version__\n", f'__version__ = "{version_match.group(1)}"\n', 1)
     build_date = datetime.now().strftime("%Y/%m/%d")
     app = app.replace('BUILD_DATE = datetime.now().strftime("%Y/%m/%d")',
                       f'BUILD_DATE = "{build_date}"', 1)
