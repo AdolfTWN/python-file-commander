@@ -1,5 +1,6 @@
 """Build the portable single-file edition from the maintainable package sources."""
 
+from datetime import datetime
 from pathlib import Path
 
 
@@ -16,6 +17,9 @@ def build() -> Path:
     preview = (ROOT / "pycommander" / "preview.py").read_text(encoding="utf-8")
     search = (ROOT / "pycommander" / "search.py").read_text(encoding="utf-8")
     app = (ROOT / "pycommander" / "app.py").read_text(encoding="utf-8")
+    build_date = datetime.now().strftime("%Y/%m/%d")
+    app = app.replace('BUILD_DATE = datetime.now().strftime("%Y/%m/%d")',
+                      f'BUILD_DATE = "{build_date}"', 1)
 
     fileops = fileops.replace("from __future__ import annotations\n\n", "", 1)
     clipboard = clipboard.replace("from __future__ import annotations\n\n", "", 1)

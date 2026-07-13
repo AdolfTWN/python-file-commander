@@ -23,6 +23,10 @@ from .tooltip import MenuToolTip, install_button_tooltips
 from .tabs import ChamferNotebook
 
 
+# The single-file builder replaces this fallback with a fixed date literal.
+BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
+
+
 def hide_private_console() -> bool:
     """Hide a console created only for PFC, without hiding a user's shell."""
     if os.name != "nt":
@@ -713,7 +717,7 @@ class Commander(tk.Tk):
         header_bg, header_fg, active_bg = "#243b53", "#f4f8fb", "#365b78"
         header = tk.Frame(self, background=header_bg, padx=5, pady=4)
         header.pack(fill="x")
-        title = tk.Label(header, text=f"Python File Commander   {datetime.now():%Y/%m/%d}",
+        title = tk.Label(header, text=f"Python File Commander   {BUILD_DATE}",
                          font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
         title.pack(side="left", padx=(2, 10))
