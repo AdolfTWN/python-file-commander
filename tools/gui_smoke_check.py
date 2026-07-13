@@ -33,12 +33,13 @@ def main() -> None:
             assert accelerators["Permanent Delete"] == "Shift+Del"
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
-                              if app.versions_menu.type(index) == "command"]
-            assert "Current version: v0.8.6" in version_labels and "v0.8.6" in version_labels
-            version_index = next(index for index in range(app.versions_menu.index("end") + 1)
-                                 if app.versions_menu.type(index) == "command" and
-                                 app.versions_menu.entrycget(index, "label") == "v0.8.6")
-            assert app.versions_menu.entrycget(version_index, "accelerator") == "2026/07/14"
+                              if app.versions_menu.type(index) in {"command", "cascade"}]
+            assert version_labels == ["Current version: v0.8.7", "v0.8.x Releases"]
+            release_menu = app.version_series_menus["v0.8.x"]
+            release_labels = [release_menu.entrycget(index, "label")
+                              for index in range(release_menu.index("end") + 1)]
+            assert release_labels == [f"v0.8.{minor}" for minor in range(7, -1, -1)]
+            assert release_menu.entrycget(0, "accelerator") == "2026/07/14"
             assert app.recycle_bin_var.get() and app.continue_errors_var.get()
             assert ini_path.exists(), "pfc.ini was not generated on first launch"
             app.toggle_favorite()
