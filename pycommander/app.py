@@ -21,6 +21,7 @@ from .icons import ShellIconProvider
 from .compare import CompareWindow
 from .preview import PreviewWindow
 from .search import SearchWindow
+from .multirename import MultiRenameWindow
 from .tooltip import MenuToolTip, install_button_tooltips
 from .tabs import ChamferNotebook, TAB_STYLES
 
@@ -28,6 +29,7 @@ from .tabs import ChamferNotebook, TAB_STYLES
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.9.0", "2026/07/14", "Folder Compare with cancellable scanning and Safe Sync dry runs, Quick Filter, and Multi-Rename with preview/undo. Inspired and advocated by Yoda."),
     ("v0.8.8", "2026/07/14", "Consolidated version tracking: all v0.8.x milestone notes are shown together in one changes window."),
     ("v0.8.6", "2026/07/14", "Selectable tab shapes saved in pfc.ini; streamlined to equal-height Right Skirt (default), Rounded, and Squarish styles."),
     ("v0.8.3", "2026/07/14", "Internal Copy/Shift+Move drag-and-drop, Outlook virtual-attachment paste, aligned menu accelerators, and version tracking."),
@@ -124,6 +126,8 @@ class FilePane(ttk.Frame):
         self.locked_path: Path | None = None
         self.on_locked_navigation = lambda _path: None
         self._signature = None
+        self.quick_filter_var = tk.StringVar()
+        self.quick_filter_visible = False
         self._drag_press_item = None
         self._drag_press_xy = None
         self._dragging = False
@@ -164,6 +168,14 @@ class FilePane(ttk.Frame):
         self.tree.bind("<B1-Motion>", self._drag_motion, add="+")
         self.tree.bind("<ButtonRelease-1>", self._drag_release, add="+")
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
+        self.quick_filter_bar = ttk.Frame(self)
+        ttk.Label(self.quick_filter_bar, text="Quick Filter:").pack(side="left")
+        self.quick_filter_entry = ttk.Entry(self.quick_filter_bar, textvariable=self.quick_filter_var)
+        self.quick_filter_entry.pack(side="left", fill="x", expand=True, padx=(4, 3))
+        ttk.Button(self.quick_filter_bar, text="×", width=3, command=self.clear_quick_filter).pack(side="right")
+        self.quick_filter_entry.bind("<Escape>", lambda _event: self.clear_quick_filter())
+        self.quick_filter_entry.bind("<Return>", lambda _event: self.focus_file_list())
+        self.quick_filter_var.trace_add("write", self._quick_filter_changed)
         self.status = ttk.Label(self, anchor="w")
         self.status.pack(fill="x", pady=(3, 0))
         install_button_tooltips(self)
@@ -251,6 +263,9 @@ class FilePane(ttk.Frame):
             entries = [p for p in self.path.iterdir()
                        if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
             self._signature = self.signature_for(entries)
+            needle = self.quick_filter_var.get().strip().casefold()
+            if needle:
+                entries = [path for path in entries if needle in path.name.casefold()]
             def key(p: Path):
                 try:
                     stat = p.stat()
@@ -276,7 +291,8 @@ class FilePane(ttk.Frame):
                         self.tree.selection_add(iid)
                 except OSError:
                     continue
-            self.status.configure(text=f"{len(entries)} items   {format_size(total)}")
+            filter_status = f"   Filter: {self.quick_filter_var.get().strip()}" if needle else ""
+            self.status.configure(text=f"{len(entries)} items   {format_size(total)}{filter_status}")
             current = self.tree.selection()
             children = self.tree.get_children()
             if not current and children:
@@ -337,6 +353,36 @@ class FilePane(ttk.Frame):
             self.tree.focus(target)
             self.tree.see(target)
         self.tree.focus_set()
+
+    def _quick_filter_changed(self, *_args) -> None:
+        if self.mode == "files":
+            self.refresh()
+            self.on_change()
+
+    def set_quick_filter(self, value: str) -> None:
+        self.quick_filter_var.set(value)
+        if value and not self.quick_filter_visible:
+            self.quick_filter_bar.pack(fill="x", pady=(2, 0), before=self.status)
+            self.quick_filter_visible = True
+
+    def toggle_quick_filter(self) -> str:
+        if not self.quick_filter_visible:
+            self.quick_filter_bar.pack(fill="x", pady=(2, 0), before=self.status)
+            self.quick_filter_visible = True
+            if self.mode != "files":
+                self.mode = "files"; self.path_var.set(str(self.path)); self.refresh()
+            self.quick_filter_entry.focus_set(); self.quick_filter_entry.selection_range(0, "end")
+        else:
+            self.clear_quick_filter()
+        return "break"
+
+    def clear_quick_filter(self) -> str:
+        self.quick_filter_var.set("")
+        if self.quick_filter_visible:
+            self.quick_filter_bar.pack_forget(); self.quick_filter_visible = False
+        self.focus_file_list()
+        self.on_change()
+        return "break"
 
     def open_selected(self, _event=None) -> None:
         items = self.selected_paths()
@@ -566,6 +612,8 @@ class Commander(tk.Tk):
         self.compare_window = None
         self.preview_window = None
         self.search_window = None
+        self.multi_rename_window = None
+        self._rename_undo = []
         self._drag_state = None
         self._drag_ghost = None
         self._drag_highlight = None
@@ -659,6 +707,7 @@ class Commander(tk.Tk):
             "compare": "<F9>",
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
+            "quick_filter": "<Control-y>", "multi_rename": "<Control-m>",
         }
         commands = {
             "rename": self.rename, "preview": self.preview, "search": self.search, "copy": self.copy,
@@ -683,6 +732,8 @@ class Commander(tk.Tk):
             "toggle_favorite": self.toggle_favorite,
             "favorites_menu": lambda: self._show_folder_menu(self.favorites_menu, self._rebuild_favorites_menu),
             "recent_menu": lambda: self._show_folder_menu(self.recent_menu, self._rebuild_recent_menu),
+            "quick_filter": lambda: self.panes()[0].toggle_quick_filter(),
+            "multi_rename": self.multi_rename,
         }
         if not self.config_data.has_section("hotkeys"):
             self.config_data.add_section("hotkeys")
@@ -778,14 +829,16 @@ class Commander(tk.Tk):
             colors = json.loads(self.config_data.get(side, "tab_colors", fallback="[]"))
             locks = json.loads(self.config_data.get(side, "tab_locks", fallback="[]"))
             locked_paths = json.loads(self.config_data.get(side, "locked_paths", fallback="[]"))
+            filters = json.loads(self.config_data.get(side, "tab_filters", fallback="[]"))
         except (json.JSONDecodeError, TypeError):
-            colors, locks, locked_paths = [], [], []
+            colors, locks, locked_paths, filters = [], [], [], []
         for index, pane in enumerate(tabs.panes()):
             pane.sort_column = column if column in pane.all_sort_columns else "name"
             pane.reverse = descending
             pane.show_hidden = show_hidden
             pane.show_system = show_system
             pane.show_extensions = show_extensions
+            pane.set_quick_filter(filters[index] if index < len(filters) else "")
             color = colors[index] if index < len(colors) else self.get_tab_color(pane.path)
             tabs.set_color(pane, color, notify=False)
             mode = locks[index] if index < len(locks) else "unlocked"
@@ -822,6 +875,8 @@ class Commander(tk.Tk):
             self.config_data.set(side, "tab_locks", json.dumps([p.lock_mode for p in panes]))
             self.config_data.set(side, "locked_paths", json.dumps([
                 str(p.locked_path or p.path) for p in panes]))
+            self.config_data.set(side, "tab_filters", json.dumps([
+                p.quick_filter_var.get() for p in panes], ensure_ascii=False))
             self.config_data.set(side, "selected", str(tabs.index(tabs.select())))
             current = tabs.current()
             self.config_data.set(side, "sort_column", current.sort_column)
@@ -905,6 +960,7 @@ class Commander(tk.Tk):
         files.add_command(label="Copy to Other Panel", accelerator="F5", command=self.copy)
         files.add_command(label="Move to Other Panel", accelerator="F6", command=self.move)
         files.add_command(label="Rename", accelerator="F2", command=self.rename)
+        files.add_command(label="Multi-Rename", accelerator="Ctrl+M", command=self.multi_rename)
         files.add_command(label="New Folder", accelerator="F7", command=self.mkdir)
         files.add_separator()
         files.add_command(label="Delete", accelerator="Del", command=self.delete)
@@ -954,11 +1010,14 @@ class Commander(tk.Tk):
             tab_style.add_radiobutton(label=label, value=value, variable=self.tab_style_var,
                                       command=self.apply_tab_style)
         view.add_cascade(label="Tab Style", menu=tab_style)
+        view.add_command(label="Quick Filter", accelerator="Ctrl+Y",
+                         command=lambda: self.panes()[0].toggle_quick_filter())
         versions_button = tk.Menubutton(header, text="Versions", **button_style)
         versions_button.pack(side="left")
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
         versions_button.configure(menu=versions)
         versions.add_command(label=f"Current version: v{__version__}", state="disabled")
+        versions.add_command(label="Inspired & Advocated by Yoda", state="disabled")
         versions.add_separator()
         version_series = []
         for version, build_date, notes in VERSION_HISTORY:
@@ -985,6 +1044,7 @@ class Commander(tk.Tk):
             "Copy to Other Panel": "Copy selected items to the opposite panel.",
             "Move to Other Panel": "Move selected items to the opposite panel.",
             "Rename": "Rename the selected item.", "Preview": "Open PFC Preview.",
+            "Multi-Rename": "Preview and rename multiple selected items; Ctrl+Z undoes the last batch.",
             "New Folder": "Create a folder in the active panel.",
             "Delete": "Delete using the selected Recycle Bin policy.",
             "Permanent Delete": "Permanently delete after a warning.",
@@ -999,6 +1059,7 @@ class Commander(tk.Tk):
             "File Visibility": "Choose which file names and attributes are visible.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
+            "Quick Filter": "Filter the active file list as you type; Esc clears it.",
         }
         self._files_menu_tooltip = MenuToolTip(files, menu_help)
         self._view_menu_tooltip = MenuToolTip(view, menu_help)
@@ -1268,6 +1329,7 @@ class Commander(tk.Tk):
             "Ctrl+A  Select all    Shift+Del  Permanent delete with warning\n"
             "Ctrl+Shift+C  Copy selected or current path\n"
             "Ctrl+H  Toggle hidden files\n"
+            "Ctrl+Y  Quick Filter current panel    Ctrl+M  Multi-Rename selected items\n"
             "Alt+F / Alt+V / Alt+H  Open Files / View / Versions menu"
         )
         ttk.Label(body, text=guide, justify="left").pack(anchor="w")
@@ -1512,7 +1574,9 @@ class Commander(tk.Tk):
         source, target = self.panes()
         left_items = self.left_tabs.current().selected_paths()
         right_items = self.right_tabs.current().selected_paths()
-        if len(left_items) == 1 and len(right_items) == 1:
+        if not left_items and not right_items:
+            left, right = self.left_tabs.current().path, self.right_tabs.current().path
+        elif len(left_items) == 1 and len(right_items) == 1:
             left, right = left_items[0], right_items[0]
         else:
             active_items = source.selected_paths()
@@ -1522,11 +1586,28 @@ class Commander(tk.Tk):
             left, right = active_items
         try:
             if self.compare_window is None or not self.compare_window.winfo_exists():
-                self.compare_window = CompareWindow(self, self.config_data, self.save_config)
+                self.compare_window = CompareWindow(self, self.config_data, self.save_config,
+                                                    self.execute_sync_plans)
                 self.compare_window.notebook.set_style(self.tab_style_var.get())
             self.compare_window.add(left, right)
         except OSError as exc:
             messagebox.showerror("Compare failed", str(exc), parent=self)
+
+    def execute_sync_plans(self, plans: list[tuple[Path, Path]]) -> OperationResult:
+        result = OperationResult(); resolver = self._conflict_resolver()
+        for index, (source, target) in enumerate(plans):
+            try:
+                partial = copy_items([source], target.parent, resolver, self.continue_errors_var.get())
+            except (OSError, shutil.Error) as exc:
+                partial = OperationResult(failures=[OperationFailure(source, target, str(exc))])
+            result.completed.extend(partial.completed)
+            result.skipped.extend(partial.skipped)
+            result.failures.extend(partial.failures)
+            if partial.failures and not self.continue_errors_var.get():
+                result.skipped.extend(source for source, _target in plans[index + 1:])
+                break
+        self.refresh(); self._show_operation_result("Safe Sync", result)
+        return result
 
     def apply_font_size(self, save: bool = True) -> None:
         scale = self._font_scales.get(self.font_size_var.get(), 1.0)
@@ -1677,6 +1758,8 @@ class Commander(tk.Tk):
     def rename(self) -> None:
         source, _ = self.panes()
         items = source.selected_paths()
+        if len(items) > 1:
+            self.multi_rename(); return
         if len(items) != 1:
             messagebox.showinfo("Rename", "Select exactly one item."); return
         name = simpledialog.askstring("Rename", "New name:", initialvalue=items[0].name, parent=self)
@@ -1685,6 +1768,15 @@ class Commander(tk.Tk):
                 items[0].rename(items[0].with_name(name)); self.refresh()
             except OSError as exc:
                 messagebox.showerror("Rename failed", str(exc))
+
+    def multi_rename(self) -> None:
+        items = self.panes()[0].selected_paths()
+        if len(items) < 2:
+            messagebox.showinfo("Multi-Rename", "Select two or more items first.", parent=self)
+            return
+        if self.multi_rename_window is not None and self.multi_rename_window.winfo_exists():
+            self.multi_rename_window.destroy()
+        self.multi_rename_window = MultiRenameWindow(self, items, self._rename_undo, self.refresh)
 
 
 def main() -> None:

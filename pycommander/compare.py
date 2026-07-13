@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import csv
 import difflib
+import fnmatch
 import hashlib
 import os
+import queue
+import threading
+from datetime import datetime
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox, ttk
@@ -188,27 +192,113 @@ class BinaryCompare(ttk.Frame):
         SideBySideText(self, left_lines, right_lines, diff_lines, status).pack(fill="both", expand=True)
 
 
-def folder_rows(left: Path, right: Path):
-    left_items = {str(p.relative_to(left)).casefold(): p for p in left.rglob("*")}
-    right_items = {str(p.relative_to(right)).casefold(): p for p in right.rglob("*")}
+def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=False,
+                cancelled=lambda: False):
+    patterns = [item.strip() for item in masks.split(";") if item.strip()] or ["*"]
+    def collect(root):
+        iterator = root.rglob("*") if recursive else root.iterdir()
+        result = {}
+        for path in iterator:
+            if cancelled():
+                break
+            relative = str(path.relative_to(root))
+            if path.is_dir() or any(fnmatch.fnmatch(path.name.casefold(), pattern.casefold())
+                                    for pattern in patterns):
+                result[relative.casefold()] = path
+        return result
+    left_items, right_items = collect(left), collect(right)
     for key in sorted(left_items.keys() | right_items.keys()):
+        if cancelled():
+            return
         a, b = left_items.get(key), right_items.get(key)
         display = str((a.relative_to(left) if a else b.relative_to(right)))
-        if a is None: status = "Right only"
-        elif b is None: status = "Left only"
-        elif a.is_dir() != b.is_dir(): status = "Type mismatch"
-        elif a.is_dir(): status = "Identical"
-        elif a.stat().st_size == b.stat().st_size and file_hash(a) == file_hash(b): status = "Identical"
-        else: status = "Different"
+        try:
+            if a is None: status = "Right only"
+            elif b is None: status = "Left only"
+            elif a.is_dir() != b.is_dir(): status = "Type mismatch"
+            elif a.is_dir(): status = "Identical"
+            else:
+                a_stat, b_stat = a.stat(), b.stat()
+                if a_stat.st_size != b_stat.st_size:
+                    status = "Different"
+                elif by_content and file_hash(a) == file_hash(b):
+                    status = "Identical"
+                elif by_content:
+                    status = "Left newer" if a_stat.st_mtime_ns > b_stat.st_mtime_ns else (
+                        "Right newer" if b_stat.st_mtime_ns > a_stat.st_mtime_ns else "Different")
+                elif a_stat.st_mtime_ns == b_stat.st_mtime_ns:
+                    status = "Identical"
+                else:
+                    status = "Left newer" if a_stat.st_mtime_ns > b_stat.st_mtime_ns else "Right newer"
+        except OSError:
+            status = "Unknown"
         yield status, display, a, b
 
 
+class SyncPlanDialog(tk.Toplevel):
+    def __init__(self, parent, plans):
+        super().__init__(parent)
+        self.result = False
+        self.title("Safe Sync — Dry Run")
+        self.geometry("1000x560"); self.minsize(680, 380); self.transient(parent)
+        ttk.Label(self, text=f"Review all {len(plans)} copy operation(s)",
+                  font="TkHeadingFont", padding=(8, 8, 8, 2)).pack(anchor="w")
+        ttk.Label(self, text="Copy only — no files or folders will be deleted.",
+                  padding=(8, 0, 8, 6)).pack(anchor="w")
+        self.tree = ttk.Treeview(self, columns=("source", "destination"), show="headings")
+        self.tree.heading("source", text="Source"); self.tree.heading("destination", text="Destination")
+        self.tree.column("source", width=470); self.tree.column("destination", width=470)
+        for source, target in plans:
+            self.tree.insert("", "end", values=(str(source), str(target)))
+        scroll = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y", padx=(0, 8)); self.tree.pack(fill="both", expand=True, padx=(8, 0))
+        buttons = ttk.Frame(self, padding=8); buttons.pack(fill="x")
+        ttk.Button(buttons, text="Cancel", command=self.cancel).pack(side="right")
+        execute = ttk.Button(buttons, text="Execute Copy Plan", command=self.execute)
+        execute.pack(side="right", padx=(0, 4))
+        self.bind("<Escape>", lambda _event: self.cancel())
+        self.bind("<Control-Return>", lambda _event: self.execute())
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+        self.grab_set(); self.lift(); self.focus_force(); execute.focus_set()
+
+    def execute(self):
+        self.result = True; self.destroy()
+
+    def cancel(self):
+        self.result = False; self.destroy()
+
+    @classmethod
+    def ask(cls, parent, plans):
+        dialog = cls(parent, plans); parent.wait_window(dialog); return dialog.result
+
+
 class FolderCompare(ttk.Frame):
-    def __init__(self, master, left: Path, right: Path, open_detail):
+    def __init__(self, master, left: Path, right: Path, open_detail, sync_executor=None):
         super().__init__(master)
+        self.left_root, self.right_root = left, right
+        self.open_detail, self.sync_executor = open_detail, sync_executor
+        self.rows, self.actions, self.item_paths, self.item_keys = [], {}, {}, {}
+        self.matches, self.match_index = [], -1
+        self._scan_queue, self._cancel_event, self._scanning = queue.Queue(), threading.Event(), False
+        self.sort_column, self.sort_reverse = "path", False
+        paths = ttk.Frame(self); paths.pack(fill="x", pady=(2, 1))
+        ttk.Label(paths, text=f"Left: {left}").pack(side="left", fill="x", expand=True)
+        ttk.Label(paths, text=f"Right: {right}").pack(side="right", fill="x", expand=True)
         bar = ttk.Frame(self); bar.pack(fill="x")
-        self.show_identical = tk.BooleanVar(value=False)
-        ttk.Checkbutton(bar, text="Show identical", variable=self.show_identical, command=self.populate).pack(side="left")
+        ttk.Label(bar, text="Mask:").pack(side="left")
+        self.mask_var = tk.StringVar(value="*")
+        ttk.Entry(bar, textvariable=self.mask_var, width=20).pack(side="left", fill="x", expand=True, padx=(3, 8))
+        ttk.Button(bar, text="Compare", command=self.start_scan).pack(side="left", padx=(0, 2))
+        ttk.Button(bar, text="Cancel", command=self.cancel_scan).pack(side="left")
+        options = ttk.Frame(self); options.pack(fill="x", pady=(2, 1))
+        self.recursive_var = tk.BooleanVar(value=True)
+        self.content_var = tk.BooleanVar(value=False)
+        self.differences_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(options, text="Recursive", variable=self.recursive_var).pack(side="left")
+        ttk.Checkbutton(options, text="By content", variable=self.content_var).pack(side="left", padx=(5, 0))
+        ttk.Checkbutton(options, text="Differences only", variable=self.differences_var,
+                        command=self.populate).pack(side="left", padx=(5, 0))
         self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
         find_row = ttk.Frame(self); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text="Find:").pack(side="left")
@@ -222,26 +312,183 @@ class FolderCompare(ttk.Frame):
         ttk.Button(find_actions, text="Find Next", command=self.find_next).pack(side="left", padx=(3, 0))
         ttk.Checkbutton(find_actions, text="Case sensitive", variable=self.case_var,
                         command=self.find_all).pack(side="left", padx=(8, 0))
-        self.tree = ttk.Treeview(self, columns=("status", "path", "left", "right"), show="headings")
-        for col, width in (("status", 110), ("path", 420), ("left", 130), ("right", 130)):
-            self.tree.heading(col, text=col.title()); self.tree.column(col, width=width)
+        actions = ttk.Frame(self); actions.pack(fill="x", pady=(0, 3))
+        ttk.Button(actions, text="Ctrl+→ Copy →", command=lambda: self.set_action("right")).pack(side="left")
+        ttk.Button(actions, text="Ctrl+← ← Copy", command=lambda: self.set_action("left")).pack(side="left", padx=3)
+        ttk.Button(actions, text="Space Skip", command=lambda: self.set_action("skip")).pack(side="left")
+        sync_row = ttk.Frame(self); sync_row.pack(fill="x", pady=(0, 3))
+        ttk.Button(sync_row, text="Dry Run && Sync", command=self.dry_run).pack(side="left")
+        ttk.Label(sync_row, text="Copy only — no automatic delete").pack(side="left", padx=(8, 0))
+        self.scan_status = ttk.Label(sync_row, text="Ready", anchor="e")
+        self.scan_status.pack(side="right", fill="x", expand=True, padx=8)
+        self.tree = ttk.Treeview(self, columns=("action", "status", "path", "left", "right"),
+                                 show="headings", selectmode="extended")
+        for col, width in (("action", 70), ("status", 105), ("path", 390), ("left", 125), ("right", 125)):
+            self.tree.heading(col, text=col.title(), command=lambda value=col: self.change_sort(value))
+            self.tree.column(col, width=width, anchor="center" if col == "action" else "w")
         self.tree.pack(fill="both", expand=True)
         self.tree.tag_configure("find_match", background="#fff0a6")
         self.tree.tag_configure("current_match", background="#ff9f43")
-        self.rows = list(folder_rows(left, right)); self.open_detail = open_detail
-        self.item_paths, self.matches, self.match_index = {}, [], -1
-        self.tree.bind("<Double-1>", self._open); self.populate()
+        self.tree.tag_configure("different", foreground="#a00000")
+        self.tree.tag_configure("left", foreground="#006c3b")
+        self.tree.tag_configure("right", foreground="#005ca8")
+        self.tree.bind("<Double-1>", self._open)
+        self.tree.bind("<Return>", self._open)
+        self.tree.bind("<Control-Right>", lambda _e: self.set_action("right"))
+        self.tree.bind("<Control-Left>", lambda _e: self.set_action("left"))
+        self.tree.bind("<space>", lambda _e: self.set_action("skip"))
+        self.start_scan()
+
+    @staticmethod
+    def _detail(path):
+        if path is None: return "—"
+        try:
+            if path.is_dir(): return "<DIR>"
+            stat = path.stat()
+            return f"{stat.st_size:,} B  {datetime.fromtimestamp(stat.st_mtime):%Y-%m-%d %H:%M}"
+        except OSError:
+            return "?"
+
+    def start_scan(self):
+        if self._scanning:
+            self._cancel_event.set()
+        self._cancel_event = threading.Event(); self._scanning = True
+        self.scan_status.configure(text="Scanning…  Esc cancels")
+        recursive, masks, by_content = self.recursive_var.get(), self.mask_var.get(), self.content_var.get()
+        cancel = self._cancel_event
+        def worker():
+            try:
+                rows = list(folder_rows(self.left_root, self.right_root, recursive, masks, by_content,
+                                        cancel.is_set))
+                self._scan_queue.put((cancel, rows, None))
+            except OSError as exc:
+                self._scan_queue.put((cancel, [], str(exc)))
+        threading.Thread(target=worker, daemon=True).start()
+        self.after(60, self._poll_scan)
+        return "break"
+
+    def _poll_scan(self):
+        try:
+            cancel, rows, error = self._scan_queue.get_nowait()
+        except queue.Empty:
+            if self.winfo_exists() and self._scanning: self.after(60, self._poll_scan)
+            return
+        if cancel is not self._cancel_event:
+            if self.winfo_exists() and self._scanning: self.after(60, self._poll_scan)
+            return
+        self._scanning = False
+        if cancel.is_set():
+            self.scan_status.configure(text="Scan cancelled")
+            return
+        if error:
+            self.scan_status.configure(text="Scan failed")
+            messagebox.showerror("Folder Compare", error, parent=self)
+            return
+        self.rows, self.actions = rows, {}
+        different = sum(status != "Identical" for status, *_rest in rows)
+        self.scan_status.configure(text=f"{len(rows)} item(s), {different} different")
+        self.populate()
+        children = self.tree.get_children()
+        if children:
+            self.tree.selection_set(children[0]); self.tree.focus(children[0]); self.tree.see(children[0])
+        self.tree.focus_set()
+
+    def cancel_scan(self):
+        if not self._scanning:
+            return False
+        self._cancel_event.set(); self._scanning = False
+        self.scan_status.configure(text="Scan cancelled")
+        return True
+
+    def change_sort(self, column):
+        selected_keys = {self.item_keys.get(iid) for iid in self.tree.selection()}
+        self.sort_reverse = not self.sort_reverse if column == self.sort_column else False
+        self.sort_column = column
+        for value in ("action", "status", "path", "left", "right"):
+            marker = (" ▼" if self.sort_reverse else " ▲") if value == column else ""
+            self.tree.heading(value, text=value.title() + marker)
+        self.populate()
+        for iid in self.tree.get_children():
+            if self.item_keys.get(iid) in selected_keys:
+                self.tree.selection_add(iid); self.tree.focus(iid); self.tree.see(iid)
+        self.tree.focus_set()
 
     def populate(self):
         self.tree.delete(*self.tree.get_children())
-        self.item_paths = {}
-        for status, path, left, right in self.rows:
-            if status == "Identical" and not self.show_identical.get(): continue
-            iid = self.tree.insert("", "end", values=(status, path,
-                "—" if left is None else ("<DIR>" if left.is_dir() else left.stat().st_size),
-                "—" if right is None else ("<DIR>" if right.is_dir() else right.stat().st_size)))
+        self.item_paths, self.item_keys = {}, {}
+        action_label = {"right": "→", "left": "←", "skip": "Skip"}
+        visible = [row for row in self.rows if not (self.differences_var.get() and row[0] == "Identical")]
+        index = {"status": 0, "path": 1, "left": 2, "right": 3}
+        if self.sort_column == "action":
+            visible.sort(key=lambda row: self.actions.get(row[1], ""), reverse=self.sort_reverse)
+        elif self.sort_column in {"left", "right"}:
+            path_index = index[self.sort_column]
+            def metadata_key(row):
+                path = row[path_index]
+                if path is None: return (0, 0, 0)
+                try:
+                    stat = path.stat(); return (2 if path.is_dir() else 1, stat.st_size, stat.st_mtime_ns)
+                except OSError:
+                    return (0, 0, 0)
+            visible.sort(key=metadata_key, reverse=self.sort_reverse)
+        else:
+            visible.sort(key=lambda row: str(row[index[self.sort_column]]).casefold(), reverse=self.sort_reverse)
+        for status, path, left, right in visible:
+            tag = "left" if status in {"Left only", "Left newer"} else (
+                "right" if status in {"Right only", "Right newer"} else "different")
+            iid = self.tree.insert("", "end", values=(action_label.get(self.actions.get(path), ""),
+                status, path, self._detail(left), self._detail(right)), tags=(tag,))
             self.item_paths[iid] = (left, right)
+            self.item_keys[iid] = path
         self.find_all()
+
+    def set_action(self, action):
+        selected = self.tree.selection()
+        selected_keys = {self.item_keys.get(iid) for iid in selected}
+        for iid in selected:
+            left, right = self.item_paths.get(iid, (None, None)); key = self.item_keys.get(iid)
+            if key is None: continue
+            if action == "right" and left is not None:
+                self.actions[key] = action
+            elif action == "left" and right is not None:
+                self.actions[key] = action
+            elif action == "skip":
+                self.actions[key] = action
+        self.populate()
+        for iid in self.tree.get_children():
+            if self.item_keys.get(iid) in selected_keys:
+                self.tree.selection_add(iid)
+        return "break"
+
+    def _plans(self):
+        plans = []
+        by_key = {path: (left, right) for _status, path, left, right in self.rows}
+        for key, action in self.actions.items():
+            left, right = by_key.get(key, (None, None))
+            if action == "right" and left is not None:
+                plans.append((left, self.right_root / key))
+            elif action == "left" and right is not None:
+                plans.append((right, self.left_root / key))
+        plans.sort(key=lambda item: len(item[1].parts))
+        filtered = []
+        for source, target in plans:
+            if any(parent_source.is_dir() and parent_target in target.parents
+                   for parent_source, parent_target in filtered):
+                continue
+            filtered.append((source, target))
+        return filtered
+
+    def dry_run(self):
+        plans = self._plans()
+        if not plans:
+            messagebox.showinfo("Safe Sync", "Select rows and assign Copy → or ← Copy first.", parent=self)
+            return "break"
+        if not SyncPlanDialog.ask(self, plans):
+            return "break"
+        if self.sync_executor is not None:
+            self.sync_executor(plans)
+            self.start_scan()
+        return "break"
 
     def focus_search(self):
         self.search.focus_set(); self.search.selection_range(0, "end"); return "break"
@@ -249,18 +496,23 @@ class FolderCompare(ttk.Frame):
     def find_all(self):
         self.matches, self.match_index = [], -1; needle = self.search_var.get()
         for iid in self.tree.get_children():
-            self.tree.item(iid, tags=())
+            status = self.tree.set(iid, "status")
+            base = "left" if status in {"Left only", "Left newer"} else (
+                "right" if status in {"Right only", "Right newer"} else "different")
             haystack = " ".join(str(value) for value in self.tree.item(iid, "values"))
             matched = needle in haystack if self.case_var.get() else needle.casefold() in haystack.casefold()
             if needle and matched:
-                self.matches.append(iid); self.tree.item(iid, tags=("find_match",))
+                self.matches.append(iid); self.tree.item(iid, tags=(base, "find_match"))
+            else:
+                self.tree.item(iid, tags=(base,))
         self.find_status.configure(text=f"{len(self.matches)} match(es)" if needle else "")
 
     def _find(self, direction):
         previous = self.match_index; self.find_all()
         if not self.matches: return "break"
         self.match_index = (previous + direction) % len(self.matches); iid = self.matches[self.match_index]
-        self.tree.item(iid, tags=("current_match",)); self.tree.selection_set(iid); self.tree.focus(iid); self.tree.see(iid)
+        self.tree.item(iid, tags=(*self.tree.item(iid, "tags"), "current_match"))
+        self.tree.selection_set(iid); self.tree.focus(iid); self.tree.see(iid)
         self.find_status.configure(text=f"{self.match_index + 1}/{len(self.matches)}"); return "break"
 
     def find_next(self): return self._find(1)
@@ -287,9 +539,10 @@ class TableCompare(TextCompare):
 
 
 class CompareWindow(tk.Toplevel):
-    def __init__(self, master, config, save_config):
+    def __init__(self, master, config, save_config, sync_executor=None):
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
+        self.sync_executor = sync_executor
         self.comparisons = {}
         self._refresh_job = None
         self.title("PFC Compare")
@@ -313,7 +566,8 @@ class CompareWindow(tk.Toplevel):
             return None
 
     def _make_frame(self, left: Path, right: Path, kind: str):
-        if kind == "Folder": return FolderCompare(self.notebook, left, right, self.add)
+        if kind == "Folder":
+            return FolderCompare(self.notebook, left, right, self.add, self.sync_executor)
         if kind == "Text": return TextCompare(self.notebook, left, right)
         if kind == "Table": return TableCompare(self.notebook, left, right)
         return BinaryCompare(self.notebook, left, right)
@@ -371,15 +625,19 @@ class CompareWindow(tk.Toplevel):
             self.after_cancel(self._refresh_job); self._refresh_job = None
         if not self.config_data.has_section("compare"): self.config_data.add_section("compare")
         self.config_data.set("compare", "geometry", self.geometry())
+        for frame in list(self.comparisons):
+            if hasattr(frame, "cancel_scan"): frame.cancel_scan()
         self.save_config(); self.destroy()
 
     def close_active(self):
         tabs = self.notebook.tabs()
+        current = self.notebook.select()
+        widget = self.nametowidget(current)
+        if hasattr(widget, "cancel_scan") and widget.cancel_scan():
+            return
         if len(tabs) <= 1:
             self.close()
             return
-        current = self.notebook.select()
-        widget = self.nametowidget(current)
         self.notebook.forget(current)
         self.comparisons.pop(widget, None)
         widget.destroy()

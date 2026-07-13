@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 import sys
 import configparser
+import time
 from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -23,7 +24,7 @@ def main() -> None:
                       if app.files_menu.type(index) not in {"separator", "tearoff"}]
             required = {"Copy to Clipboard", "Paste", "Delete", "Permanent Delete",
                         "Send Delete to Recycle Bin",
-                        "Continue After File Errors", "Favorites", "Recent Folders"}
+                        "Continue After File Errors", "Favorites", "Recent Folders", "Multi-Rename"}
             assert required.issubset(labels), required.difference(labels)
             accelerators = {app.files_menu.entrycget(index, "label"):
                             app.files_menu.entrycget(index, "accelerator")
@@ -34,8 +35,12 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.8.8", "v0.8.x Changes"]
-            assert app.version_series == ("v0.8.x",)
+            assert version_labels == ["Current version: v0.9.0", "Inspired & Advocated by Yoda",
+                                      "v0.9.x Changes", "v0.8.x Changes"]
+            assert app.version_series == ("v0.9.x", "v0.8.x")
+            v09_title, v09_body = app.version_series_notes("v0.9.x")
+            assert v09_title == "Python File Commander — v0.9.x Changes"
+            assert "v0.9.0 — Build 2026/07/14" in v09_body and "Yoda" in v09_body
             notes_title, notes_body = app.version_series_notes("v0.8.x")
             assert notes_title == "Python File Commander — v0.8.x Changes"
             expected_minors = (8, 6, 3, 1, 0)
@@ -62,6 +67,8 @@ def main() -> None:
             assert saved.getboolean("operations", "send_delete_to_recycle_bin")
             assert saved.get("hotkeys", "permanent_delete") == "<Shift-Delete>"
             assert saved.get("hotkeys", "versions_menu") == "<Alt-h>"
+            assert saved.get("hotkeys", "quick_filter") == "<Control-y>"
+            assert saved.get("hotkeys", "multi_rename") == "<Control-m>"
             assert saved.get("navigation", "favorites") != "[]"
             assert app.tab_style_var.get() == "right_skirt"
             skirt_height = int(float(app.left_tabs.bar.cget("height")))
@@ -88,6 +95,50 @@ def main() -> None:
             app.tab_style_var.set("compact"); app.apply_tab_style(save=False)
             assert app.tab_style_var.get() == "right_skirt"
             assert app.left_tabs._tab_style == "right_skirt"
+            quick_root = Path(raw) / "quick-filter"; quick_root.mkdir()
+            (quick_root / "alpha-report.txt").write_text("a", encoding="utf-8")
+            (quick_root / "beta-report.txt").write_text("b", encoding="utf-8")
+            source_pane = app.left_tabs.current(); source_pane.navigate(quick_root)
+            source_pane.set_quick_filter("alpha"); app.update()
+            assert len(source_pane.tree.get_children()) == 1
+            assert source_pane.selected_paths()[0].name == "alpha-report.txt"
+            app.save_config(); saved.read(ini_path, encoding="utf-8")
+            assert "alpha" in saved.get("left", "tab_filters")
+            source_pane.clear_quick_filter(); app.update()
+            assert len(source_pane.tree.get_children()) == 2
+            source_pane.tree.selection_set(source_pane.tree.get_children())
+            app.multi_rename(); app.update()
+            rename_window = app.multi_rename_window
+            assert rename_window is not None and rename_window.winfo_exists()
+            assert len(rename_window.tree.get_children()) == 2
+            rename_window.mask_var.set("[N]_renamed"); app.update()
+            assert "disabled" not in rename_window.apply_button.state()
+            rename_window.destroy(); app.multi_rename_window = None
+
+            compare_left, compare_right = Path(raw) / "compare-left", Path(raw) / "compare-right"
+            compare_left.mkdir(); compare_right.mkdir()
+            (compare_left / "copy-me.txt").write_text("sync", encoding="utf-8")
+            planned = []
+            compare_window = pfc.CompareWindow(app, app.config_data, app.save_config,
+                                                lambda plans: planned.extend(plans))
+            compare_window.withdraw(); compare_window.add(compare_left, compare_right)
+            folder_frame = compare_window.nametowidget(compare_window.notebook.select())
+            deadline = time.time() + 3
+            while folder_frame._scanning and time.time() < deadline:
+                app.update(); time.sleep(0.01)
+            assert not folder_frame._scanning
+            assert compare_window.focus_get() is folder_frame.tree
+            row = next(iid for iid in folder_frame.tree.get_children()
+                       if folder_frame.item_keys[iid] == "copy-me.txt")
+            folder_frame.tree.selection_set(row); folder_frame.set_action("right")
+            original_plan_ask = pfc.SyncPlanDialog.__dict__["ask"]
+            pfc.SyncPlanDialog.ask = classmethod(lambda _cls, _parent, _plans: True)
+            try:
+                folder_frame.dry_run()
+            finally:
+                pfc.SyncPlanDialog.ask = original_plan_ask
+            assert planned == [(compare_left / "copy-me.txt", compare_right / "copy-me.txt")]
+            compare_window.close()
             app.deiconify(); app.update_idletasks(); app.update()
             source, target = app.left_tabs.current(), app.right_tabs.current()
             event = SimpleNamespace(x_root=target.tree.winfo_rootx() + 12,
