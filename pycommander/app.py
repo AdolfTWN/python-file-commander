@@ -29,12 +29,32 @@ from .tabs import ChamferNotebook, TAB_STYLES
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
-    ("v0.9.0", "2026/07/14", "Folder Compare with cancellable scanning and Safe Sync dry runs, Quick Filter, and Multi-Rename with preview/undo. Inspired and advocated by Yoda."),
-    ("v0.8.8", "2026/07/14", "Consolidated version tracking: all v0.8.x milestone notes are shown together in one changes window."),
-    ("v0.8.6", "2026/07/14", "Selectable tab shapes saved in pfc.ini; streamlined to equal-height Right Skirt (default), Rounded, and Squarish styles."),
-    ("v0.8.3", "2026/07/14", "Internal Copy/Shift+Move drag-and-drop, Outlook virtual-attachment paste, aligned menu accelerators, and version tracking."),
-    ("v0.8.1", "2026/07/14", "Recycle Bin delete, safe conflict handling, Favorites/Recent folders, and operation recovery."),
-    ("v0.8.0", "2026/07/13", "First versioned beta with dual panels, tabs, Preview, Search, Compare, keyboard workflow, and portable INI."),
+    ("v0.9.0", "2026/07/14", (
+        "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.",
+        "Added: Per-tab Quick Filter for the active file list.",
+        "Added: Multi-Rename with live preview, validation, rollback, and in-session undo.",
+    )),
+    ("v0.8.8", "2026/07/14", (
+        "Adjusted: Combined the v0.8.x change history into one window.",
+    )),
+    ("v0.8.6", "2026/07/14", (
+        "Added: Right Skirt, Rounded, and Squarish tab styles with saved preference.",
+        "Adjusted: Made Right Skirt the default and kept all tab styles at equal height.",
+    )),
+    ("v0.8.3", "2026/07/14", (
+        "Added: Internal drag-and-drop with Copy and Shift+Move destination feedback.",
+        "Added: Outlook attachment paste with attachment-aware clipboard summary.",
+        "Adjusted: Aligned menu actions and keyboard shortcuts into separate columns.",
+    )),
+    ("v0.8.1", "2026/07/14", (
+        "Added: Recycle Bin delete and explicit Shift+Del permanent delete.",
+        "Added: Copy, move, and paste conflict choices with partial-failure recovery.",
+        "Added: Keyboard-accessible Favorites and Recent Folders.",
+    )),
+    ("v0.8.0", "2026/07/13", (
+        "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.",
+        "Added: Preview, Search, Compare, and end-to-end keyboard operation.",
+    )),
 )
 
 
@@ -1017,7 +1037,6 @@ class Commander(tk.Tk):
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
         versions_button.configure(menu=versions)
         versions.add_command(label=f"Current version: v{__version__}", state="disabled")
-        versions.add_command(label="Inspired & Advocated by Yoda", state="disabled")
         versions.add_separator()
         version_series = []
         for version, build_date, notes in VERSION_HISTORY:
@@ -1026,6 +1045,9 @@ class Commander(tk.Tk):
                 version_series.append(series)
                 versions.add_command(label=f"{series} Changes",
                                      command=lambda value=series: self.show_version_series(value))
+        versions.add_separator()
+        versions.add_command(label="Yoda — Portable App Advocate",
+                             command=self.show_yoda_note)
         self.clipboard_summary = tk.Label(header, text="Clipboard: checking…", anchor="e", width=1,
                                           font=tkfont.nametofont("TkDefaultFont"),
                                           background=header_bg, foreground="#c9e5f5")
@@ -1064,8 +1086,9 @@ class Commander(tk.Tk):
         self._files_menu_tooltip = MenuToolTip(files, menu_help)
         self._view_menu_tooltip = MenuToolTip(view, menu_help)
         self._versions_menu_tooltip = MenuToolTip(
-            versions, {f"{series} Changes": f"Show every {series} release in one window."
-                       for series in version_series})
+            versions, {**{f"{series} Changes": f"Show every {series} release in one window."
+                         for series in version_series},
+                       "Yoda — Portable App Advocate": "About the advocate who helped bring this portable app into being."})
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
         self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
@@ -1353,13 +1376,23 @@ class Commander(tk.Tk):
         items = [(version, date, notes) for version, date, notes in VERSION_HISTORY
                  if version.rsplit(".", 1)[0] + ".x" == series]
         title = f"Python File Commander — {series} Changes"
-        body = "\n\n".join(f"{version} — Build {date}\n{notes}"
+        body = "\n\n".join(f"{version} — Build {date}\n" +
+                           "\n".join(f"• {note}" for note in notes)
                            for version, date, notes in items)
         return title, body or "No release notes available."
 
     def show_version_series(self, series: str) -> None:
         title, body = self.version_series_notes(series)
         messagebox.showinfo(title, body, parent=self)
+
+    def show_yoda_note(self) -> None:
+        body = (
+            "Yoda is the advocate who helped bring this portable app into being.\n\n"
+            "Please report any issues you encounter so they can be reviewed and improved.\n\n"
+            "Use file operations carefully, especially Move, Replace, Safe Sync, and "
+            "Permanent Delete."
+        )
+        messagebox.showinfo("Python File Commander — Yoda", body, parent=self)
 
     def _show_folder_menu(self, menu: tk.Menu, rebuild) -> str:
         rebuild()

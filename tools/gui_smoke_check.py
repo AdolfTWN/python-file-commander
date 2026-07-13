@@ -35,12 +35,13 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.9.0", "Inspired & Advocated by Yoda",
-                                      "v0.9.x Changes", "v0.8.x Changes"]
+            assert version_labels == ["Current version: v0.9.0", "v0.9.x Changes",
+                                      "v0.8.x Changes", "Yoda — Portable App Advocate"]
             assert app.version_series == ("v0.9.x", "v0.8.x")
             v09_title, v09_body = app.version_series_notes("v0.9.x")
             assert v09_title == "Python File Commander — v0.9.x Changes"
-            assert "v0.9.0 — Build 2026/07/14" in v09_body and "Yoda" in v09_body
+            assert "v0.9.0 — Build 2026/07/14" in v09_body
+            assert "• Added: Folder Compare" in v09_body and "Yoda" not in v09_body
             notes_title, notes_body = app.version_series_notes("v0.8.x")
             assert notes_title == "Python File Commander — v0.8.x Changes"
             expected_minors = (8, 6, 3, 1, 0)
@@ -59,6 +60,21 @@ def main() -> None:
             finally:
                 pfc.messagebox.showinfo = original_showinfo
             assert captured == [(notes_title, notes_body)], "Changes must open in one combined window"
+            assert all(line.startswith("• Added:") or line.startswith("• Adjusted:")
+                       for line in v09_body.splitlines() + notes_body.splitlines()
+                       if line.startswith("•"))
+            captured.clear()
+            pfc.messagebox.showinfo = lambda title, body, **_kwargs: captured.append((title, body))
+            try:
+                yoda_index = next(
+                    index for index in range(app.versions_menu.index("end") + 1)
+                    if app.versions_menu.type(index) == "command" and
+                    app.versions_menu.entrycget(index, "label") == "Yoda — Portable App Advocate")
+                app.versions_menu.invoke(yoda_index)
+            finally:
+                pfc.messagebox.showinfo = original_showinfo
+            assert captured and "advocate who helped bring this portable app into being" in captured[0][1]
+            assert "report any issues" in captured[0][1] and "Use file operations carefully" in captured[0][1]
             assert app.recycle_bin_var.get() and app.continue_errors_var.get()
             assert ini_path.exists(), "pfc.ini was not generated on first launch"
             app.toggle_favorite()
