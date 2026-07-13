@@ -141,11 +141,18 @@ class ChamferNotebook(ttk.Frame):
             bottom = height if selected else height - 3
             corner = max(6, round(height * 0.28))
             if self._tab_style == "rounded":
-                points = (x, bottom, x, top + corner, x, top + corner,
-                          x + corner, top, x + corner, top,
-                          x + width - corner, top, x + width - corner, top,
-                          x + width, top + corner, x + width, top + corner, x + width, bottom)
-                smooth, inset = True, corner
+                half_corner = round(corner * 0.45)
+                points = (x, bottom,
+                          x, top + corner,
+                          x + 1, top + half_corner,
+                          x + half_corner, top + 1,
+                          x + corner, top,
+                          x + width - corner, top,
+                          x + width - half_corner, top + 1,
+                          x + width - 1, top + half_corner,
+                          x + width, top + corner,
+                          x + width, bottom)
+                smooth, inset = False, corner
             elif self._tab_style == "right_skirt":
                 tail = max(9, round(height * 0.32))
                 skirt_height = max(12, round(height * 0.42))

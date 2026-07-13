@@ -53,6 +53,13 @@ def main() -> None:
             for style in ("rounded", "squarish", "right_skirt"):
                 app.tab_style_var.set(style); app.apply_tab_style(); app.update_idletasks()
                 assert app.left_tabs._tab_style == style and app.right_tabs._tab_style == style
+            app.tab_style_var.set("rounded"); app.apply_tab_style(); app.update_idletasks()
+            rounded_polygons = [item for item in app.left_tabs.bar.find_all()
+                                if app.left_tabs.bar.type(item) == "polygon"]
+            assert rounded_polygons
+            assert all(app.left_tabs.bar.itemcget(item, "smooth") in {"0", "false"}
+                       for item in rounded_polygons), "Rounded bottoms must remain square"
+            assert all(len(app.left_tabs.bar.coords(item)) > 8 for item in rounded_polygons)
             app.tab_style_var.set("right_skirt"); app.apply_tab_style(); app.update_idletasks()
             assert int(float(app.left_tabs.bar.cget("height"))) == skirt_height
             last_tab_right = app.left_tabs._hitboxes[-1][1]
