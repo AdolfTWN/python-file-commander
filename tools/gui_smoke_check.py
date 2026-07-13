@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 import sys
 import configparser
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import pfc
@@ -20,10 +21,24 @@ def main() -> None:
             labels = [app.files_menu.entrycget(index, "label")
                       for index in range(app.files_menu.index("end") + 1)
                       if app.files_menu.type(index) not in {"separator", "tearoff"}]
-            required = {"Copy to Clipboard\tCtrl+C", "Paste\tCtrl+V", "Delete\tDel",
-                        "Permanent Delete\tShift+Del", "Send Delete to Recycle Bin",
+            required = {"Copy to Clipboard", "Paste", "Delete", "Permanent Delete",
+                        "Send Delete to Recycle Bin",
                         "Continue After File Errors", "Favorites", "Recent Folders"}
             assert required.issubset(labels), required.difference(labels)
+            accelerators = {app.files_menu.entrycget(index, "label"):
+                            app.files_menu.entrycget(index, "accelerator")
+                            for index in range(app.files_menu.index("end") + 1)
+                            if app.files_menu.type(index) == "command"}
+            assert accelerators["Copy to Clipboard"] == "Ctrl+C"
+            assert accelerators["Permanent Delete"] == "Shift+Del"
+            version_labels = [app.versions_menu.entrycget(index, "label")
+                              for index in range(app.versions_menu.index("end") + 1)
+                              if app.versions_menu.type(index) == "command"]
+            assert "Current version: v0.8.3" in version_labels and "v0.8.3" in version_labels
+            version_index = next(index for index in range(app.versions_menu.index("end") + 1)
+                                 if app.versions_menu.type(index) == "command" and
+                                 app.versions_menu.entrycget(index, "label") == "v0.8.3")
+            assert app.versions_menu.entrycget(version_index, "accelerator") == "2026/07/14"
             assert app.recycle_bin_var.get() and app.continue_errors_var.get()
             assert ini_path.exists(), "pfc.ini was not generated on first launch"
             app.toggle_favorite()
@@ -31,7 +46,21 @@ def main() -> None:
             saved = configparser.ConfigParser(); saved.read(ini_path, encoding="utf-8")
             assert saved.getboolean("operations", "send_delete_to_recycle_bin")
             assert saved.get("hotkeys", "permanent_delete") == "<Shift-Delete>"
+            assert saved.get("hotkeys", "versions_menu") == "<Alt-h>"
             assert saved.get("navigation", "favorites") != "[]"
+            app.deiconify(); app.update_idletasks(); app.update()
+            source, target = app.left_tabs.current(), app.right_tabs.current()
+            event = SimpleNamespace(x_root=target.tree.winfo_rootx() + 12,
+                                    y_root=target.tree.winfo_rooty() + target.tree.winfo_height() - 8,
+                                    state=0)
+            assert source.selected_paths(), "Source pane has no selected item for drag smoke check"
+            app._handle_internal_drag("start", source, event)
+            assert app._drag_state is not None and app._drag_state["target"] is not None
+            event.state = 1; app._handle_internal_drag("motion", source, event)
+            assert app._drag_state["mode"] == "move"
+            app._handle_internal_drag("cancel", source, event)
+            assert app._drag_state is None and app._drag_ghost is None
+            app.withdraw()
             print("GUI smoke check passed")
         finally:
             if app is not None:

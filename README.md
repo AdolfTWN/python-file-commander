@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.8.2**
+Current version: **v0.8.3**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar two-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -32,6 +32,10 @@ Current core: two resizable panes, chamfered color-customizable and lockable tab
 Copy, move, and clipboard paste detect name conflicts and offer Replace, Skip, Keep Both, Cancel, and Apply to All. Multi-item operations open a copyable result window listing exact failed paths with Retry Failed. Files > Continue After File Errors controls whether remaining items continue after a failure and defaults on. The Files menu groups clipboard operations, opposite-panel operations, rename/new folder, both delete modes, safety switches, Favorites, Recent Folders, Preview, Search, Compare, paths, and Exit.
 
 Favorites and the 20 most recent folders are stored in `pfc.ini`. Ctrl+D adds/removes the current folder, Ctrl+B opens Favorites, and Ctrl+Shift+R opens Recent Folders. All entries are also available from the Files menu.
+
+Internal drag-and-drop copies selected items by default; holding Shift changes the action to Move. Drop onto the other visible panel to use its current folder, or onto any visible folder row to use that folder. A floating action/count/destination card follows the pointer and folder targets are highlighted. Drops reuse PFC's conflict, partial-failure, and recovery handling. External Explorer/Outlook OLE drag-and-drop is not included.
+
+The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) tracks user-visible changes from v0.8.0 onward.
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. Results stream into sortable-style detail columns and support Enter/double-click Go to File, F3 Preview and multi-selection Copy Path. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 
