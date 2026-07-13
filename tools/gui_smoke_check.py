@@ -50,9 +50,12 @@ def main() -> None:
             assert saved.get("navigation", "favorites") != "[]"
             assert app.tab_style_var.get() == "right_skirt"
             skirt_height = int(float(app.left_tabs.bar.cget("height")))
+            style_heights = set()
             for style in ("rounded", "squarish", "right_skirt"):
                 app.tab_style_var.set(style); app.apply_tab_style(); app.update_idletasks()
                 assert app.left_tabs._tab_style == style and app.right_tabs._tab_style == style
+                style_heights.add(int(float(app.left_tabs.bar.cget("height"))))
+            assert len(style_heights) == 1, "All tab styles must use the same height"
             app.tab_style_var.set("rounded"); app.apply_tab_style(); app.update_idletasks()
             rounded_polygons = [item for item in app.left_tabs.bar.find_all()
                                 if app.left_tabs.bar.type(item) == "polygon"]

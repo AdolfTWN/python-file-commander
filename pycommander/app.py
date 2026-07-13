@@ -1004,7 +1004,7 @@ class Commander(tk.Tk):
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
         self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
-            "Right Skirt": "Low-height tab with a vertical left edge and steep bottom-right skirt.",
+            "Right Skirt": "Full-height tab with a vertical left edge and steep bottom-right skirt.",
             "Rounded": "Rounded top corners with straight sides and a square bottom.",
             "Squarish": "Straight rectangular edges with no slant or skirt.",
         })

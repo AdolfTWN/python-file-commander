@@ -125,7 +125,7 @@ class ChamferNotebook(ttk.Frame):
         self.bar.delete("all"); self._hitboxes.clear()
         font = tkfont.nametofont("TkDefaultFont")
         right_skirt = self._tab_style == "right_skirt"
-        height = max(27 if right_skirt else 30, font.metrics("linespace") + (9 if right_skirt else 13))
+        height = max(30, font.metrics("linespace") + 13)
         self.bar.configure(height=height)
         overlap = {"right_skirt": -2, "rounded": 2, "squarish": 0}[self._tab_style]
         x = 3
@@ -137,7 +137,7 @@ class ChamferNotebook(ttk.Frame):
             padding = 20 if right_skirt else 28
             width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
             color = TAB_COLORS[self._colors.get(child, "default")][1]
-            top = 0 if selected else max(4, round(height * (0.18 if right_skirt else 0.22)))
+            top = 0 if selected else max(4, round(height * 0.22))
             bottom = height if selected else height - 3
             corner = max(6, round(height * 0.28))
             if self._tab_style == "rounded":
