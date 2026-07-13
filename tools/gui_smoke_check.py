@@ -34,10 +34,10 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) == "command"]
-            assert "Current version: v0.8.4" in version_labels and "v0.8.4" in version_labels
+            assert "Current version: v0.8.5" in version_labels and "v0.8.5" in version_labels
             version_index = next(index for index in range(app.versions_menu.index("end") + 1)
                                  if app.versions_menu.type(index) == "command" and
-                                 app.versions_menu.entrycget(index, "label") == "v0.8.4")
+                                 app.versions_menu.entrycget(index, "label") == "v0.8.5")
             assert app.versions_menu.entrycget(version_index, "accelerator") == "2026/07/14"
             assert app.recycle_bin_var.get() and app.continue_errors_var.get()
             assert ini_path.exists(), "pfc.ini was not generated on first launch"
@@ -57,6 +57,11 @@ def main() -> None:
             app.tab_style_var.set("compact"); app.apply_tab_style(); app.update_idletasks()
             compact_height = int(float(app.left_tabs.bar.cget("height")))
             assert compact_height <= rounded_height
+            last_tab_right = app.left_tabs._hitboxes[-1][1]
+            polygon_right = max(max(app.left_tabs.bar.coords(item)[::2])
+                                for item in app.left_tabs.bar.find_all()
+                                if app.left_tabs.bar.type(item) == "polygon")
+            assert polygon_right > last_tab_right, "Compact tab skirt is missing"
             app.tab_style_var.set("rounded"); app.apply_tab_style()
             app.deiconify(); app.update_idletasks(); app.update()
             source, target = app.left_tabs.current(), app.right_tabs.current()
