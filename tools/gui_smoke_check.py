@@ -38,8 +38,11 @@ def main() -> None:
             assert app.version_series == ("v0.8.x",)
             notes_title, notes_body = app.version_series_notes("v0.8.x")
             assert notes_title == "Python File Commander — v0.8.x Changes"
-            for minor in range(8, -1, -1):
+            expected_minors = (8, 6, 3, 1, 0)
+            for minor in expected_minors:
                 assert f"v0.8.{minor} — Build " in notes_body
+            for merged_minor in (7, 5, 4, 2):
+                assert f"v0.8.{merged_minor} — Build " not in notes_body
             captured = []
             original_showinfo = pfc.messagebox.showinfo
             pfc.messagebox.showinfo = lambda title, body, **_kwargs: captured.append((title, body))

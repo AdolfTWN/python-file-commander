@@ -28,13 +28,9 @@ from .tabs import ChamferNotebook, TAB_STYLES
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
-    ("v0.8.8", "2026/07/14", "All v0.8.x release notes are shown together in one changes window."),
-    ("v0.8.7", "2026/07/14", "Version history is grouped into a single v0.8.x Releases submenu."),
-    ("v0.8.6", "2026/07/14", "Right Skirt is now the default tab style; choices are streamlined to Right Skirt, Rounded, and Squarish."),
-    ("v0.8.5", "2026/07/14", "Compact tabs use a vertical left edge and a steep curved bottom-right skirt."),
-    ("v0.8.4", "2026/07/14", "Selectable Soft Rounded, Slanted, Chamfered, and Compact tab shapes saved in pfc.ini."),
-    ("v0.8.3", "2026/07/14", "Internal drag-and-drop with Copy/Shift+Move visuals; aligned menu accelerators; version history menu."),
-    ("v0.8.2", "2026/07/14", "Paste Outlook virtual attachments and identify them in the clipboard summary."),
+    ("v0.8.8", "2026/07/14", "Consolidated version tracking: all v0.8.x milestone notes are shown together in one changes window."),
+    ("v0.8.6", "2026/07/14", "Selectable tab shapes saved in pfc.ini; streamlined to equal-height Right Skirt (default), Rounded, and Squarish styles."),
+    ("v0.8.3", "2026/07/14", "Internal Copy/Shift+Move drag-and-drop, Outlook virtual-attachment paste, aligned menu accelerators, and version tracking."),
     ("v0.8.1", "2026/07/14", "Recycle Bin delete, safe conflict handling, Favorites/Recent folders, and operation recovery."),
     ("v0.8.0", "2026/07/13", "First versioned beta with dual panels, tabs, Preview, Search, Compare, keyboard workflow, and portable INI."),
 )
