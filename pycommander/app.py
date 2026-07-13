@@ -7,6 +7,7 @@ import json
 import shutil
 import subprocess
 import sys
+import tempfile
 import tkinter as tk
 import tkinter.font as tkfont
 from datetime import datetime
@@ -15,7 +16,7 @@ from tkinter import messagebox, simpledialog, ttk
 
 from . import __version__
 from .fileops import OperationFailure, OperationResult, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
-from .clipboard import clear_file_clipboard, get_file_clipboard, set_file_clipboard
+from .clipboard import clear_file_clipboard, extract_virtual_files, get_file_clipboard, get_virtual_file_descriptors, set_file_clipboard
 from .icons import ShellIconProvider
 from .compare import CompareWindow
 from .preview import PreviewWindow
@@ -932,12 +933,17 @@ class Commander(tk.Tk):
                 if folders: parts.append(f"{folders} {'Folder' if folders == 1 else 'Folders'}")
                 summary = f"Clipboard: {', '.join(parts)}"
             else:
-                try:
-                    value = self.clipboard_get()
-                    size = len(value.encode("utf-8"))
-                    summary = f"Clipboard: Strings {size:,} Bytes" if value else "Clipboard: Empty"
-                except tk.TclError:
-                    summary = "Clipboard: OBJ"
+                virtual_files = get_virtual_file_descriptors()
+                if virtual_files:
+                    count = len(virtual_files)
+                    summary = f"Clipboard: {count} {'Attachment' if count == 1 else 'Attachments'}"
+                else:
+                    try:
+                        value = self.clipboard_get()
+                        size = len(value.encode("utf-8"))
+                        summary = f"Clipboard: Strings {size:,} Bytes" if value else "Clipboard: Empty"
+                    except tk.TclError:
+                        summary = "Clipboard: OBJ"
             self.clipboard_summary.configure(text=summary)
         except (OSError, MemoryError):
             pass  # Keep the last useful summary while another app owns the clipboard.
@@ -1236,6 +1242,17 @@ class Commander(tk.Tk):
             items, cut = get_file_clipboard()
             items = [item for item in items if item.exists()]
             if not items:
+                if not get_virtual_file_descriptors():
+                    return
+                with tempfile.TemporaryDirectory(prefix="pfc-outlook-") as raw:
+                    virtual_items, failures = extract_virtual_files(Path(raw))
+                    if virtual_items:
+                        self._execute_transfer("Copy Outlook attachment", copy_items, virtual_items,
+                                               destination, confirm=False, allow_retry=False)
+                    if failures:
+                        result = OperationResult(failures=[
+                            OperationFailure(Path(name), destination, message) for name, message in failures])
+                        self._show_operation_result("Outlook attachment paste", result)
                 return
             operation = move_items if cut else copy_items
             result = self._execute_transfer("Move" if cut else "Copy", operation, items,
@@ -1355,7 +1372,7 @@ class Commander(tk.Tk):
         dialog.lift(); dialog.focus_force()
 
     def _execute_transfer(self, verb: str, operation, items: list[Path], destination: Path,
-                          confirm: bool = True) -> OperationResult | None:
+                          confirm: bool = True, allow_retry: bool = True) -> OperationResult | None:
         if not items:
             return None
         if confirm and not messagebox.askyesno(verb, f"{verb} {len(items)} selected item(s) to:\n{destination}?",
@@ -1366,9 +1383,9 @@ class Commander(tk.Tk):
         except (OSError, shutil.Error) as exc:
             result = OperationResult(failures=[OperationFailure(items[0], destination, str(exc))])
         self.refresh()
-        self._show_operation_result(verb, result,
-                                    retry=lambda failed: self._execute_transfer(verb, operation, failed,
-                                                                                destination, confirm=False))
+        retry = (lambda failed: self._execute_transfer(verb, operation, failed, destination,
+                                                        confirm=False, allow_retry=allow_retry)) if allow_retry else None
+        self._show_operation_result(verb, result, retry=retry)
         return result
 
     def _run(self, verb: str, operation) -> None:

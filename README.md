@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.8.1**
+Current version: **v0.8.2**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar two-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -45,7 +45,7 @@ The dark application header keeps the PFC window visually distinct. Its right si
 
 View > File Visibility > Show File Extension is enabled by default. Turning it off hides only the final suffix in the Name column (for example, `archive.tar.gz` becomes `archive.tar`) while the Ext column remains unchanged. The setting is saved per panel. Buttons and menu items throughout the main, Preview and Compare windows show concise help after a five-second hover.
 
-Ctrl+C, Ctrl+X, and Ctrl+V use the native Windows file clipboard, so files and folders can be copied or moved between PFC, its panels and tabs, and Windows File Explorer.
+Ctrl+C, Ctrl+X, and Ctrl+V use the native Windows file clipboard, so files and folders can be copied or moved between PFC, its panels and tabs, and Windows File Explorer. Ctrl+V also accepts Outlook's virtual attachment clipboard (`FileGroupDescriptorW`/indexed `FileContents`) and materializes one or multiple attachments into the active folder before applying PFC's normal conflict policy. The header identifies this content as `1 Attachment` or `N Attachments` instead of the generic `OBJ`.
 
 F9 compares one selected item in each panel (or two items in the active panel) in a separate tabbed Compare window. Auto detection supports aligned text with source-accurate line numbers, CSV/TSV tables, binary hex with SHA-256, and recursive folder comparison. F7/F8 navigate with Diff <</>>. Ctrl+F, Find Prev/Next and Case sensitive search work in Text, Table, Binary and Folder comparisons with all/current-match highlighting. Esc closes the active comparison tab, or the window when only one tab remains. File comparisons auto-refresh every two seconds when either source changes; recursive folder comparisons avoid polling to protect performance. Main and Compare tabs use a shared high-contrast active-tab style.
 
