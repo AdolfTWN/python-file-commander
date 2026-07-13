@@ -55,6 +55,8 @@ class SearchWindow(tk.Toplevel):
         self.config_data, self.save_config = config, save_config
         self.on_go, self.on_preview = on_go, on_preview
         self.results, self.worker = [], None
+        self.item_data = {}
+        self.sort_column, self.sort_reverse = "name", False
         self.cancel_event = threading.Event(); self.messages = queue.Queue(); self.poll_job = None
         self.path_var = tk.StringVar(value=str(start_path))
         self.mask_var = tk.StringVar(value=config.get("search", "mask", fallback="*"))
@@ -71,11 +73,13 @@ class SearchWindow(tk.Toplevel):
         self.bind("<F3>", lambda _e: self.preview_selected())
 
         form = ttk.Frame(self, padding=7); form.pack(fill="x")
+        self.mask_entry = None
         for row, (label, variable) in enumerate((("Start in:", self.path_var), ("Name/mask:", self.mask_var),
                                                  ("Containing text:", self.content_var))):
             ttk.Label(form, text=label).grid(row=row, column=0, sticky="w", padx=(0, 5), pady=2)
             entry = ttk.Entry(form, textvariable=variable); entry.grid(row=row, column=1, columnspan=7, sticky="ew", pady=2)
             entry.bind("<Return>", lambda _event: self.start())
+            if row == 1: self.mask_entry = entry
         options = ttk.Frame(form); options.grid(row=3, column=0, columnspan=8, sticky="ew", pady=(5, 2))
         ttk.Label(options, text="Depth:").pack(side="left")
         ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=8,
@@ -102,16 +106,36 @@ class SearchWindow(tk.Toplevel):
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
         columns = ("folder", "size", "modified", "ext")
         self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended")
-        self.tree.heading("#0", text="Name"); self.tree.column("#0", width=260)
+        self.tree.heading("#0", text="Name ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260)
         for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60)):
-            self.tree.heading(col, text=col.title()); self.tree.column(col, width=width, anchor="e" if col == "size" else "w")
+            self.tree.heading(col, text=col.title(), command=lambda c=col: self.change_sort(c))
+            self.tree.column(col, width=width, anchor="e" if col == "size" else "w")
         scroll = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview); self.tree.configure(yscrollcommand=scroll.set)
         self.tree.pack(side="left", fill="both", expand=True); scroll.pack(side="right", fill="y")
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         install_button_tooltips(self); self.after_idle(self.activate)
 
-    def activate(self): self.deiconify(); self.lift(); self.focus_force()
+    def activate(self):
+        self.deiconify(); self.lift(); self.focus_force()
+        if self.mask_entry is not None:
+            self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end"); self.mask_entry.icursor("end")
+
+    def change_sort(self, column):
+        self.sort_reverse = not self.sort_reverse if self.sort_column == column else False
+        self.sort_column = column
+        self._apply_sort()
+
+    def _apply_sort(self):
+        column = self.sort_column
+        labels = {"name": "Name", "folder": "Folder", "size": "Size", "modified": "Modified", "ext": "Ext"}
+        for name, label in labels.items():
+            marker = (" ▲" if not self.sort_reverse else " ▼") if name == column else ""
+            self.tree.heading("#0" if name == "name" else name, text=label + marker)
+        for index, iid in enumerate(sorted(self.tree.get_children(),
+                                            key=lambda item: self.item_data[item][column],
+                                            reverse=self.sort_reverse)):
+            self.tree.move(iid, "", index)
 
     def criteria(self):
         def number(value, factor=1):
@@ -128,7 +152,7 @@ class SearchWindow(tk.Toplevel):
         if self.worker and self.worker.is_alive(): return
         criteria = self.criteria()
         if not criteria["root"].is_dir(): messagebox.showerror("Search", "Start path is not a folder.", parent=self); return
-        self.tree.delete(*self.tree.get_children()); self.results=[]; self.cancel_event.clear()
+        self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text="Searching…")
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
@@ -162,24 +186,38 @@ class SearchWindow(tk.Toplevel):
             except queue.Empty: break
             if message[0] == "item":
                 _, path, stat = message; self.results.append(path)
-                self.tree.insert("", "end", text=path.name, values=(str(path.parent), "<DIR>" if path.is_dir() else f"{stat.st_size:,}",
-                                 datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"), "" if path.is_dir() else path.suffix[1:]))
+                iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
+                                       values=(str(path.parent), "<DIR>" if path.is_dir() else f"{stat.st_size:,}",
+                                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
+                                               "" if path.is_dir() else path.suffix[1:]))
+                self.item_data[iid] = {"name": path.name.casefold(), "folder": str(path.parent).casefold(),
+                                       "size": stat.st_size, "modified": stat.st_mtime,
+                                       "ext": ("" if path.is_dir() else path.suffix[1:]).casefold()}
                 self.status.configure(text=f"{len(self.results)} found")
             elif message[0] == "done":
                 _, count, cancelled, limited = message; suffix = " — cancelled" if cancelled else (" — limit reached" if limited else "")
                 self.status.configure(text=f"{count} found{suffix}"); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
+                self._apply_sort()
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 messagebox.showerror("Search failed", message[1], parent=self)
         if self.worker and self.worker.is_alive(): self.poll_job = self.after(80, self._poll)
 
-    def selected_paths(self): return [self.results[self.tree.index(iid)] for iid in self.tree.selection()]
+    def selected_paths(self):
+        return [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.selection()
+                if self.tree.item(iid, "tags")]
     def go_selected(self):
         paths=self.selected_paths()
-        if paths: self.on_go(paths[0])
+        if paths:
+            self.on_go(paths[0])
+            try: self.lower(self.master)
+            except tk.TclError: pass
     def preview_selected(self):
         paths=self.selected_paths()
-        if paths: self.on_preview(self.results, paths[0])
+        if paths:
+            ordered = [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.get_children()
+                       if self.tree.item(iid, "tags")]
+            self.on_preview(ordered, paths[0])
     def copy_paths(self):
         paths=self.selected_paths()
         if paths: self.clipboard_clear(); self.clipboard_append("\n".join(map(str, paths))); self.update_idletasks()

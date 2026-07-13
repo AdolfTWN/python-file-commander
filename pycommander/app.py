@@ -713,7 +713,8 @@ class Commander(tk.Tk):
         header_bg, header_fg, active_bg = "#243b53", "#f4f8fb", "#365b78"
         header = tk.Frame(self, background=header_bg, padx=5, pady=4)
         header.pack(fill="x")
-        title = tk.Label(header, text="Python File Commander", font=tkfont.nametofont("TkCaptionFont"),
+        title = tk.Label(header, text=f"Python File Commander   {datetime.now():%Y/%m/%d}",
+                         font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
         title.pack(side="left", padx=(2, 10))
         title.bind("<Button-1>", lambda _event: self.show_help())
@@ -981,7 +982,10 @@ class Commander(tk.Tk):
         self.set_active(source)
         if path.is_dir(): source.navigate(path)
         elif source.navigate(path.parent): source.select_path(path)
+        source.update_idletasks()
+        if path.is_file(): source.select_path(path)
         source.focus_file_list(); self.lift(); self.focus_force()
+        if path.is_file(): self.after_idle(lambda: (source.select_path(path), source.focus_file_list()))
 
     def new_tab(self) -> None:
         source, _ = self.panes()
