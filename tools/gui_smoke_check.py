@@ -34,10 +34,10 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) == "command"]
-            assert "Current version: v0.8.3" in version_labels and "v0.8.3" in version_labels
+            assert "Current version: v0.8.4" in version_labels and "v0.8.4" in version_labels
             version_index = next(index for index in range(app.versions_menu.index("end") + 1)
                                  if app.versions_menu.type(index) == "command" and
-                                 app.versions_menu.entrycget(index, "label") == "v0.8.3")
+                                 app.versions_menu.entrycget(index, "label") == "v0.8.4")
             assert app.versions_menu.entrycget(version_index, "accelerator") == "2026/07/14"
             assert app.recycle_bin_var.get() and app.continue_errors_var.get()
             assert ini_path.exists(), "pfc.ini was not generated on first launch"
@@ -48,6 +48,16 @@ def main() -> None:
             assert saved.get("hotkeys", "permanent_delete") == "<Shift-Delete>"
             assert saved.get("hotkeys", "versions_menu") == "<Alt-h>"
             assert saved.get("navigation", "favorites") != "[]"
+            assert app.tab_style_var.get() == "rounded"
+            rounded_height = int(float(app.left_tabs.bar.cget("height")))
+            for style in ("slanted", "chamfered", "compact", "rounded"):
+                app.tab_style_var.set(style); app.apply_tab_style(); app.update_idletasks()
+                assert app.left_tabs._tab_style == style and app.right_tabs._tab_style == style
+            compact_height = None
+            app.tab_style_var.set("compact"); app.apply_tab_style(); app.update_idletasks()
+            compact_height = int(float(app.left_tabs.bar.cget("height")))
+            assert compact_height <= rounded_height
+            app.tab_style_var.set("rounded"); app.apply_tab_style()
             app.deiconify(); app.update_idletasks(); app.update()
             source, target = app.left_tabs.current(), app.right_tabs.current()
             event = SimpleNamespace(x_root=target.tree.winfo_rootx() + 12,

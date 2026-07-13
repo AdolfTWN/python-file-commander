@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.8.3**
+Current version: **v0.8.4**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar two-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -36,6 +36,8 @@ Favorites and the 20 most recent folders are stored in `pfc.ini`. Ctrl+D adds/re
 Internal drag-and-drop copies selected items by default; holding Shift changes the action to Move. Drop onto the other visible panel to use its current folder, or onto any visible folder row to use that folder. A floating action/count/destination card follows the pointer and folder targets are highlighted. Drops reuse PFC's conflict, partial-failure, and recovery handling. External Explorer/Outlook OLE drag-and-drop is not included.
 
 The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) tracks user-visible changes from v0.8.0 onward.
+
+View > Tab Style provides Soft Rounded (default), Slanted, Chamfered (the original shape), and Compact. The selection applies immediately to both main panels and Compare tabs, scales with the chosen font size, and is saved in `pfc.ini`.
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. Results stream into sortable-style detail columns and support Enter/double-click Go to File, F3 Preview and multi-selection Copy Path. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 

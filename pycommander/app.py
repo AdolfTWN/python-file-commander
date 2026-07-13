@@ -22,12 +22,13 @@ from .compare import CompareWindow
 from .preview import PreviewWindow
 from .search import SearchWindow
 from .tooltip import MenuToolTip, install_button_tooltips
-from .tabs import ChamferNotebook
+from .tabs import ChamferNotebook, TAB_STYLES
 
 
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.8.4", "2026/07/14", "Selectable Soft Rounded, Slanted, Chamfered, and Compact tab shapes saved in pfc.ini."),
     ("v0.8.3", "2026/07/14", "Internal drag-and-drop with Copy/Shift+Move visuals; aligned menu accelerators; version history menu."),
     ("v0.8.2", "2026/07/14", "Paste Outlook virtual attachments and identify them in the clipboard summary."),
     ("v0.8.1", "2026/07/14", "Recycle Bin delete, safe conflict handling, Favorites/Recent folders, and operation recovery."),
@@ -37,7 +38,7 @@ VERSION_HISTORY = (
 
 def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
-        "view": {"font_size": "small"},
+        "view": {"font_size": "small", "tab_style": "rounded"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -434,12 +435,12 @@ class FilePane(ttk.Frame):
 class PaneTabs(ChamferNotebook):
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None,
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None,
-                 on_drag=lambda _action, _pane, _event: None) -> None:
+                 on_drag=lambda _action, _pane, _event: None, tab_style="rounded") -> None:
         self.color_for = color_for
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
         super().__init__(master, on_color_changed=self._color_changed,
-                         on_lock_changed=self._lock_changed)
+                         on_lock_changed=self._lock_changed, tab_style=tab_style)
         self.on_activate = on_activate
         self.on_change = on_change
         self.bind("<<NotebookTabChanged>>", lambda _e: self._tab_changed())
@@ -569,6 +570,7 @@ class Commander(tk.Tk):
         self._drag_ghost = None
         self._drag_highlight = None
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
+        self.tab_style_var = tk.StringVar(value=self.config_data.get("view", "tab_style", fallback="rounded"))
         self.recycle_bin_var = tk.BooleanVar(
             value=self.config_data.getboolean("operations", "send_delete_to_recycle_bin", fallback=True))
         self.continue_errors_var = tk.BooleanVar(
@@ -607,9 +609,11 @@ class Commander(tk.Tk):
         left_paths = self._saved_paths("left")
         right_paths = self._saved_paths("right")
         self.left_tabs = PaneTabs(split, self.set_active, self.save_config, left_paths,
-                                  self.get_tab_color, self.set_tab_color, self._handle_internal_drag)
+                                  self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
+                                  self.tab_style_var.get())
         self.right_tabs = PaneTabs(split, self.set_active, self.save_config, right_paths,
-                                   self.get_tab_color, self.set_tab_color, self._handle_internal_drag)
+                                   self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
+                                   self.tab_style_var.get())
         self.left = self.left_tabs.current()
         self.right = self.right_tabs.current()
         split.add(self.left_tabs, weight=1)
@@ -620,6 +624,7 @@ class Commander(tk.Tk):
         self._restore_panel_options(self.right_tabs, "right")
         self.active = self.right_tabs.current() if self.config_data.get("state", "active_panel", fallback="left") == "right" else self.left_tabs.current()
         self.apply_font_size(save=False)
+        self.apply_tab_style(save=False)
         actions = ttk.Frame(self)
         actions.pack(fill="x", padx=5, pady=(0, 5))
         for text, command in (("F2 Rename", self.rename), ("F3 Preview", self.preview),
@@ -832,6 +837,7 @@ class Commander(tk.Tk):
         self.config_data.set("window", "geometry", self.geometry())
         self.config_data.set("state", "active_panel", "left" if self.active in self.left_tabs.panes() else "right")
         self.config_data.set("view", "font_size", self.font_size_var.get())
+        self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
@@ -938,6 +944,11 @@ class Commander(tk.Tk):
             font_size.add_radiobutton(label=label, value=value, variable=self.font_size_var,
                                       command=self.apply_font_size)
         view.add_cascade(label="Font Size", menu=font_size)
+        tab_style = tk.Menu(view, tearoff=False, font=menu_font)
+        for value, label in TAB_STYLES.items():
+            tab_style.add_radiobutton(label=label, value=value, variable=self.tab_style_var,
+                                      command=self.apply_tab_style)
+        view.add_cascade(label="Tab Style", menu=tab_style)
         versions_button = tk.Menubutton(header, text="Versions", **button_style)
         versions_button.pack(side="left")
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
@@ -977,6 +988,7 @@ class Commander(tk.Tk):
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
+            "Tab Style": "Choose the shape used by main and Compare tabs.",
         }
         self._files_menu_tooltip = MenuToolTip(files, menu_help)
         self._view_menu_tooltip = MenuToolTip(view, menu_help)
@@ -984,6 +996,12 @@ class Commander(tk.Tk):
             versions, {version: notes for version, _date, notes in VERSION_HISTORY})
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
+        self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
+            "Soft Rounded": "Rounded upper corners with minimal overlap.",
+            "Slanted": "Strong angled sides like physical index tabs.",
+            "Chamfered": "The original PFC clipped-corner style.",
+            "Compact": "A lower tab strip that uses less vertical space.",
+        })
         self.config(menu="")
 
     def _schedule_clipboard_summary(self, delay=2000) -> None:
@@ -1488,6 +1506,7 @@ class Commander(tk.Tk):
         try:
             if self.compare_window is None or not self.compare_window.winfo_exists():
                 self.compare_window = CompareWindow(self, self.config_data, self.save_config)
+                self.compare_window.notebook.set_style(self.tab_style_var.get())
             self.compare_window.add(left, right)
         except OSError as exc:
             messagebox.showerror("Compare failed", str(exc), parent=self)
@@ -1514,6 +1533,17 @@ class Commander(tk.Tk):
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.notebook.redraw()
         self.update_idletasks()
+        if save:
+            self.save_config()
+
+    def apply_tab_style(self, save: bool = True) -> None:
+        style = self.tab_style_var.get()
+        if style not in TAB_STYLES:
+            style = "rounded"; self.tab_style_var.set(style)
+        if hasattr(self, "left_tabs"):
+            self.left_tabs.set_style(style); self.right_tabs.set_style(style)
+        if self.compare_window is not None and self.compare_window.winfo_exists():
+            self.compare_window.notebook.set_style(style)
         if save:
             self.save_config()
 
