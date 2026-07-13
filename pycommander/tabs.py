@@ -148,10 +148,14 @@ class ChamferNotebook(ttk.Frame):
                 points = (x, bottom, x + slant, top, x + width - slant, top, x + width, bottom)
                 smooth, inset = False, slant
             elif self._tab_style == "compact":
-                tail = max(12, round(height * 0.45))
+                tail = max(9, round(height * 0.32))
+                skirt_height = max(12, round(height * 0.42))
                 points = (x, bottom, x, top,
                           x + width - 5, top, x + width, top + 5,
-                          x + width, bottom - 7, x + width + tail, bottom)
+                          x + width, bottom - skirt_height,
+                          x + width + 1, bottom - 8,
+                          x + width + 4, bottom - 4,
+                          x + width + tail, bottom)
                 smooth, inset = False, 5
             else:
                 chamfer = max(8, round(height * 0.30))

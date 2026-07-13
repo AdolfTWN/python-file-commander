@@ -37,7 +37,7 @@ Internal drag-and-drop copies selected items by default; holding Shift changes t
 
 The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) tracks user-visible changes from v0.8.0 onward.
 
-View > Tab Style provides Soft Rounded (default), Slanted, Chamfered (the original shape), and Compact. Compact uses a low-height shape with a vertical left edge and pronounced bottom-right skirt. The selection applies immediately to both main panels and Compare tabs, scales with the chosen font size, and is saved in `pfc.ini`.
+View > Tab Style provides Soft Rounded (default), Slanted, Chamfered (the original shape), and Compact. Compact uses a low-height shape with a vertical left edge and steep curved bottom-right skirt. The selection applies immediately to both main panels and Compare tabs, scales with the chosen font size, and is saved in `pfc.ini`.
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. Results stream into sortable-style detail columns and support Enter/double-click Go to File, F3 Preview and multi-selection Copy Path. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 
