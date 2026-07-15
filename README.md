@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.9.0**
+Current version: **v0.10.0 — Shell Integration & Context Actions**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar two-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -27,13 +27,15 @@ The portable file is generated from the maintainable package source:
 python tools/build_single_file.py
 ```
 
-Current core: two resizable panes, color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons, multi-select, rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), new folder (F7), Folder Compare/Safe Sync (F9), safe Recycle Bin delete (Del), explicit permanent delete (Shift+Del), Quick Filter (Ctrl+Y), Multi-Rename (Ctrl+M), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Tab-specific colors, locks, and Quick Filters are saved in `pfc.ini`.
+Current core: two resizable panes, color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons, multi-select, rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), new folder (F7), Folder Compare/Safe Sync (F9), safe Recycle Bin delete (Del), explicit permanent delete (Shift+Del), Quick Filter (Ctrl+Y), Multi-Rename (Ctrl+M), and refresh (Ctrl+R). Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Drag a tab with the mouse to change its sequence; main-panel order is saved immediately. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Tab-specific order, colors, locks, and Quick Filters are saved in `pfc.ini`.
+
+Right-click a file or folder for a compact menu of frequent operations: open, open folder in a new tab, preview, compare, clipboard actions, paste into the clicked folder, copy/move to the opposite panel, rename/multi-rename, copy path, and both delete modes. Right-click preserves an existing multi-selection; Shift+F10 or the Menu key opens the same menu from the keyboard. Disabled entries clearly indicate operations that need one item, two items, or a folder.
 
 Copy, move, and clipboard paste detect name conflicts and offer Replace, Skip, Keep Both, Cancel, and Apply to All. Multi-item operations open a copyable result window listing exact failed paths with Retry Failed. Files > Continue After File Errors controls whether remaining items continue after a failure and defaults on. The Files menu groups clipboard operations, opposite-panel operations, rename/new folder, both delete modes, safety switches, Favorites, Recent Folders, Preview, Search, Compare, paths, and Exit.
 
 Favorites and the 20 most recent folders are stored in `pfc.ini`. Ctrl+D adds/removes the current folder, Ctrl+B opens Favorites, and Ctrl+Shift+R opens Recent Folders. All entries are also available from the Files menu.
 
-Internal drag-and-drop copies selected items by default; holding Shift changes the action to Move. Drop onto the other visible panel to use its current folder, or onto any visible folder row to use that folder. A floating action/count/destination card follows the pointer and folder targets are highlighted. Drops reuse PFC's conflict, partial-failure, and recovery handling. External Explorer/Outlook OLE drag-and-drop is not included.
+Internal drag-and-drop copies selected items by default; holding Shift changes the action to Move. Drop onto the other visible panel to use its current folder, or onto any visible folder row to use that folder. A floating action/count/destination card follows the pointer and folder targets are highlighted. Drops reuse PFC's conflict, partial-failure, and recovery handling. Native Windows Shell integration also accepts files and folders dragged in from File Explorer (Copy by default, Shift+drop to Move) and exports selected PFC items to File Explorer with standard Windows Copy/Move modifier behavior. Outlook virtual attachments remain supported through Copy/Paste rather than direct drag.
 
 The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) opens one concise, bulleted changes window per version series. Its separate `Yoda — Portable App Advocate` item identifies Yoda as the advocate who helped bring this portable app into being, asks users to report problems, and reminds them to use file operations carefully. Version bumps are reserved for meaningful feature milestones instead of individual visual refinements.
 
@@ -84,7 +86,7 @@ The original project is a mature Pascal application with a large plugin ecosyste
 7. **In progress — Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes. Automated coverage now includes non-ASCII conflicts, same-folder safety, partial failures, atomic default INI creation, and portable privacy; environment-dependent Windows cases remain release smoke tests.
 8. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
 
-Items 1–6 are now complete and the project is **v0.9.0**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
+Items 1–6 are complete and the project is now **v0.10.0**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
 
 Low-ROI features deferred until the office workflow is complete:
 

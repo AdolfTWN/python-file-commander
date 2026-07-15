@@ -25,10 +25,11 @@ class ChamferNotebook(ttk.Frame):
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
     def __init__(self, master, on_color_changed=None, on_lock_changed=None,
-                 tab_style="right_skirt", **kwargs):
+                 on_tabs_reordered=None, tab_style="right_skirt", **kwargs):
         super().__init__(master, **kwargs)
         self.on_color_changed = on_color_changed or (lambda _child, _color: None)
         self.on_lock_changed = on_lock_changed or (lambda _child, _mode: None)
+        self.on_tabs_reordered = on_tabs_reordered or (lambda: None)
         self._tabs = []
         self._texts = {}
         self._colors = {}
@@ -38,9 +39,15 @@ class ChamferNotebook(ttk.Frame):
             tab_style = "right_skirt"
         self._tab_style = tab_style if tab_style in TAB_STYLES else "right_skirt"
         self._hitboxes = []
+        self._drag_tab = None
+        self._drag_start_x = 0
+        self._drag_original_order = ()
+        self._drag_moved = False
         self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
         self.bar.pack(fill="x", side="top")
-        self.bar.bind("<Button-1>", self._click)
+        self.bar.bind("<ButtonPress-1>", self._tab_press)
+        self.bar.bind("<B1-Motion>", self._tab_motion)
+        self.bar.bind("<ButtonRelease-1>", self._tab_release)
         self.bar.bind("<Button-3>", self._popup)
         self.bar.bind("<Configure>", lambda _e: self._draw())
 
@@ -92,6 +99,20 @@ class ChamferNotebook(ttk.Frame):
 
     def index(self, tab):
         return self._tabs.index(self._resolve(tab))
+
+    def reorder(self, tab, position, notify=True):
+        child = self._resolve(tab)
+        old_position = self._tabs.index(child)
+        new_position = max(0, min(int(position), len(self._tabs) - 1))
+        if old_position == new_position:
+            return False
+        self._tabs.pop(old_position)
+        self._tabs.insert(new_position, child)
+        self._draw()
+        if notify:
+            self.on_tabs_reordered()
+            self.event_generate("<<NotebookTabsReordered>>")
+        return True
 
     def set_color(self, tab, color, notify=True):
         child = self._resolve(tab)
@@ -198,10 +219,43 @@ class ChamferNotebook(ttk.Frame):
                 return child
         return None
 
-    def _click(self, event):
+    def _tab_press(self, event):
         child = self._at(event.x)
         if child is not None:
             self.select(child)
+            self._drag_tab = child
+            self._drag_start_x = event.x
+            self._drag_original_order = tuple(self._tabs)
+            self._drag_moved = False
+
+    def _tab_motion(self, event):
+        child = self._drag_tab
+        if child is None:
+            return
+        if not self._drag_moved and abs(event.x - self._drag_start_x) < 5:
+            return
+        self._drag_moved = True
+        self.bar.configure(cursor="fleur")
+        insertion = 0
+        for left, right, _candidate in self._hitboxes:
+            if event.x > (left + right) / 2:
+                insertion += 1
+        current = self._tabs.index(child)
+        if insertion > current:
+            insertion -= 1
+        self.reorder(child, insertion, notify=False)
+
+    def _tab_release(self, _event):
+        if self._drag_tab is None:
+            return
+        changed = self._drag_moved and tuple(self._tabs) != self._drag_original_order
+        self._drag_tab = None
+        self._drag_original_order = ()
+        self._drag_moved = False
+        self.bar.configure(cursor="")
+        if changed:
+            self.on_tabs_reordered()
+            self.event_generate("<<NotebookTabsReordered>>")
 
     def _popup(self, event):
         child = self._at(event.x)

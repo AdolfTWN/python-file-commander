@@ -22,6 +22,7 @@ from .compare import CompareWindow
 from .preview import PreviewWindow
 from .search import SearchWindow
 from .multirename import MultiRenameWindow
+from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
 from .tooltip import MenuToolTip, install_button_tooltips
 from .tabs import ChamferNotebook, TAB_STYLES
 
@@ -29,6 +30,11 @@ from .tabs import ChamferNotebook, TAB_STYLES
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.10.0", "2026/07/16", (
+        "Added: Mouse drag reordering for tabs with persistent panel order.",
+        "Added: Native file drag-and-drop between PFC and Windows File Explorer.",
+        "Added: File and folder context menu with frequent operations and keyboard access.",
+    )),
     ("v0.9.0", "2026/07/14", (
         "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.",
         "Added: Per-tab Quick Filter for the active file list.",
@@ -128,11 +134,13 @@ class FilePane(ttk.Frame):
     base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135, "attr": 55}
 
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None,
-                 on_drag=lambda _action, _pane, _event: None) -> None:
+                 on_drag=lambda _action, _pane, _event: None,
+                 on_context=lambda _pane, _path, _x, _y: None) -> None:
         super().__init__(master)
         self.on_activate = on_activate
         self.on_change = on_change
         self.on_drag = on_drag
+        self.on_context = on_context
         self.path = Path.home()
         self.history: list[Path] = []
         self.sort_column = "name"
@@ -187,6 +195,9 @@ class FilePane(ttk.Frame):
         self.tree.bind("<ButtonPress-1>", self._drag_press, add="+")
         self.tree.bind("<B1-Motion>", self._drag_motion, add="+")
         self.tree.bind("<ButtonRelease-1>", self._drag_release, add="+")
+        self.tree.bind("<Button-3>", self._context_click)
+        self.tree.bind("<Shift-F10>", self._context_keyboard)
+        self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text="Quick Filter:").pack(side="left")
@@ -200,6 +211,15 @@ class FilePane(ttk.Frame):
         self.status.pack(fill="x", pady=(3, 0))
         install_button_tooltips(self)
         self.navigate(self.path)
+        try:
+            self.shell_drop_target = ShellFileDropTarget(self.tree, self._shell_files_dropped)
+        except OSError:
+            self.shell_drop_target = None
+
+    def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
+        self.on_drag("external_drop", self, {
+            "paths": list(paths), "x_root": x_root, "y_root": y_root, "move": move,
+        })
 
     def _drag_press(self, event):
         if self.tree.identify_region(event.x, event.y) not in {"tree", "cell"}:
@@ -232,6 +252,32 @@ class FilePane(ttk.Frame):
             self.on_drag("drop", self, event)
         self._drag_press_item = None; self._drag_press_xy = None; self._dragging = False
         return "break" if was_dragging else None
+
+    def _context_click(self, event):
+        iid = self.tree.identify_row(event.y)
+        if not iid:
+            return None
+        if iid not in self.tree.selection():
+            self.tree.selection_set(iid)
+        self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
+        tags = self.tree.item(iid, "tags")
+        if tags:
+            self.on_context(self, Path(tags[0]), event.x_root, event.y_root)
+        return "break"
+
+    def _context_keyboard(self, _event=None):
+        iid = self.tree.focus() or (self.tree.selection()[0] if self.tree.selection() else "")
+        if not iid:
+            return "break"
+        if iid not in self.tree.selection():
+            self.tree.selection_set(iid)
+        self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
+        tags, box = self.tree.item(iid, "tags"), self.tree.bbox(iid)
+        if tags:
+            x = self.tree.winfo_rootx() + (box[0] + 20 if box else 20)
+            y = self.tree.winfo_rooty() + (box[1] + box[3] if box else 20)
+            self.on_context(self, Path(tags[0]), x, y)
+        return "break"
 
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
         try:
@@ -501,12 +547,16 @@ class FilePane(ttk.Frame):
 class PaneTabs(ChamferNotebook):
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None,
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None,
-                 on_drag=lambda _action, _pane, _event: None, tab_style="right_skirt") -> None:
+                 on_drag=lambda _action, _pane, _event: None,
+                 on_context=lambda _pane, _path, _x, _y: None,
+                 tab_style="right_skirt") -> None:
         self.color_for = color_for
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
+        self.on_context = on_context
         super().__init__(master, on_color_changed=self._color_changed,
-                         on_lock_changed=self._lock_changed, tab_style=tab_style)
+                         on_lock_changed=self._lock_changed,
+                         on_tabs_reordered=self._tabs_reordered, tab_style=tab_style)
         self.on_activate = on_activate
         self.on_change = on_change
         self.bind("<<NotebookTabChanged>>", lambda _e: self._tab_changed())
@@ -515,7 +565,8 @@ class PaneTabs(ChamferNotebook):
 
     def add_tab(self, path: Path, notify: bool = True) -> FilePane:
         position = self.index(self.select()) + 1 if self.tabs() else 0
-        pane = FilePane(self, self.on_activate, on_drag=self.on_drag)
+        pane = FilePane(self, self.on_activate, on_drag=self.on_drag,
+                        on_context=self.on_context)
         pane.on_change = lambda source=pane: self._pane_changed(source)
         pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
         pane.navigate(path)
@@ -572,6 +623,9 @@ class PaneTabs(ChamferNotebook):
     def _lock_changed(self, pane, mode) -> None:
         pane.lock_mode = mode
         pane.locked_path = None if mode == "unlocked" else pane.path
+        self.on_change()
+
+    def _tabs_reordered(self) -> None:
         self.on_change()
 
 
@@ -683,10 +737,10 @@ class Commander(tk.Tk):
         right_paths = self._saved_paths("right")
         self.left_tabs = PaneTabs(split, self.set_active, self.save_config, left_paths,
                                   self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
-                                  self.tab_style_var.get())
+                                  self._show_file_context_menu, self.tab_style_var.get())
         self.right_tabs = PaneTabs(split, self.set_active, self.save_config, right_paths,
                                    self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
-                                   self.tab_style_var.get())
+                                   self._show_file_context_menu, self.tab_style_var.get())
         self.left = self.left_tabs.current()
         self.right = self.right_tabs.current()
         split.add(self.left_tabs, weight=1)
@@ -1242,6 +1296,18 @@ class Commander(tk.Tk):
         self._drag_ghost = None
 
     def _handle_internal_drag(self, action: str, pane: FilePane, event) -> None:
+        if action == "external_drop":
+            paths = [Path(path) for path in event["paths"] if Path(path).exists()]
+            if not paths:
+                return
+            target = self._drop_target_at(event["x_root"], event["y_root"])
+            target_pane, destination = (target[0], target[1]) if target else (pane, pane.path)
+            move = bool(event["move"])
+            self._execute_transfer("Explorer Drag Move" if move else "Explorer Drag Copy",
+                                   move_items if move else copy_items,
+                                   paths, destination, confirm=False)
+            self.set_active(target_pane); target_pane.focus_file_list()
+            return
         if action == "start":
             items = pane.selected_paths()
             if not items:
@@ -1250,6 +1316,17 @@ class Commander(tk.Tk):
             pane.tree.configure(cursor="fleur"); self._create_drag_ghost(); self._update_internal_drag(event)
             return
         if action == "motion":
+            if (self._drag_state is not None and
+                    not point_belongs_to_process(event.x_root, event.y_root)):
+                state = self._drag_state
+                self._finish_internal_drag(); self._drag_state = None
+                try:
+                    effect = start_shell_drag(pane.tree.winfo_id(), state["items"])
+                    if effect in {DROPEFFECT_COPY, DROPEFFECT_MOVE}:
+                        self.after(250, self.refresh)
+                except OSError as exc:
+                    messagebox.showerror("Explorer drag failed", str(exc), parent=self)
+                return
             self._update_internal_drag(event); return
         if action == "cancel":
             self._finish_internal_drag(); self._drag_state = None; return
@@ -1267,6 +1344,82 @@ class Commander(tk.Tk):
                                move_items if move else copy_items,
                                state["items"], destination, confirm=False)
         self.set_active(target_pane); target_pane.focus_file_list()
+
+    def _build_file_context_menu(self, pane: FilePane, clicked: Path) -> tk.Menu:
+        self.set_active(pane)
+        items = pane.selected_paths()
+        single = len(items) == 1
+        clicked_folder = clicked.is_dir()
+        left_items = self.left_tabs.current().selected_paths()
+        right_items = self.right_tabs.current().selected_paths()
+        can_compare = ((len(left_items) == 1 and len(right_items) == 1) or
+                       len(items) == 2)
+        old_menu = getattr(self, "file_context_menu", None)
+        if old_menu is not None:
+            try: old_menu.destroy()
+            except tk.TclError: pass
+        menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        self.file_context_menu = menu
+        normal_if = lambda condition: "normal" if condition else "disabled"
+        menu.add_command(label="Open / Enter Folder", accelerator="Enter",
+                         state=normal_if(single), command=pane.open_selected)
+        menu.add_command(label="Open Folder in New Tab", state=normal_if(single and clicked_folder),
+                         command=lambda: self._open_folder_in_new_tab(pane, clicked))
+        menu.add_command(label="Preview", accelerator="F3",
+                         state=normal_if(single and clicked.is_file()), command=self.preview)
+        menu.add_command(label="Compare", accelerator="F9",
+                         state=normal_if(can_compare), command=self.compare_selected)
+        menu.add_separator()
+        menu.add_command(label="Copy to Clipboard", accelerator="Ctrl+C", command=self.clipboard_copy)
+        menu.add_command(label="Cut to Clipboard", accelerator="Ctrl+X", command=self.clipboard_cut)
+        paste_destination = clicked if clicked_folder else pane.path
+        paste_label = "Paste into This Folder" if clicked_folder else "Paste into Current Folder"
+        menu.add_command(label=paste_label, accelerator="Ctrl+V",
+                         command=lambda target=paste_destination: self._clipboard_paste_to(target))
+        menu.add_separator()
+        menu.add_command(label="Copy to Other Panel", accelerator="F5", command=self.copy)
+        menu.add_command(label="Move to Other Panel", accelerator="F6", command=self.move)
+        menu.add_separator()
+        menu.add_command(label="Rename", accelerator="F2",
+                         state=normal_if(single), command=self.rename)
+        menu.add_command(label="Multi-Rename", accelerator="Ctrl+M",
+                         state=normal_if(len(items) > 1), command=self.multi_rename)
+        menu.add_command(label="Copy Path", accelerator="F11", command=self.copy_paths)
+        menu.add_separator()
+        menu.add_command(label="Delete", accelerator="Del", command=self.delete_hotkey)
+        menu.add_command(label="Permanent Delete", accelerator="Shift+Del",
+                         command=lambda: self.delete_hotkey(permanent=True))
+        descriptions = {
+            "Open / Enter Folder": "Open the selected file or enter the selected folder.",
+            "Open Folder in New Tab": "Open this folder in a new tab beside the current tab.",
+            "Preview": "Open the selected file in PFC Preview.",
+            "Compare": "Compare one item from each panel or two selected items.",
+            "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
+            "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
+            "Paste into This Folder": "Paste clipboard items directly into the clicked folder.",
+            "Paste into Current Folder": "Paste clipboard items into the current panel folder.",
+            "Copy to Other Panel": "Copy selected items to the opposite panel.",
+            "Move to Other Panel": "Move selected items to the opposite panel.",
+            "Rename": "Rename the selected item.",
+            "Multi-Rename": "Preview and rename all selected items.",
+            "Copy Path": "Copy all selected full paths as text.",
+            "Delete": "Delete using the configured Recycle Bin policy.",
+            "Permanent Delete": "Permanently delete after a warning.",
+        }
+        self._file_context_tooltip = MenuToolTip(menu, descriptions)
+        return menu
+
+    def _show_file_context_menu(self, pane: FilePane, clicked: Path,
+                                x_root: int, y_root: int) -> None:
+        menu = self._build_file_context_menu(pane, clicked)
+        try:
+            menu.tk_popup(int(x_root), int(y_root))
+        finally:
+            menu.grab_release()
+
+    def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
+        if path.is_dir():
+            self.active = self._tabs_for(pane).add_tab(path)
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
@@ -1554,7 +1707,11 @@ class Commander(tk.Tk):
     def clipboard_paste(self) -> None:
         if self._clipboard_is_text_control():
             return
-        destination = self.panes()[0].path
+        self._clipboard_paste_to(self.panes()[0].path)
+
+    def _clipboard_paste_to(self, destination: Path) -> None:
+        if not destination.is_dir():
+            return
         try:
             items, cut = get_file_clipboard()
             items = [item for item in items if item.exists()]

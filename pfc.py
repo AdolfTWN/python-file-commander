@@ -685,10 +685,11 @@ class ChamferNotebook(ttk.Frame):
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
     def __init__(self, master, on_color_changed=None, on_lock_changed=None,
-                 tab_style="right_skirt", **kwargs):
+                 on_tabs_reordered=None, tab_style="right_skirt", **kwargs):
         super().__init__(master, **kwargs)
         self.on_color_changed = on_color_changed or (lambda _child, _color: None)
         self.on_lock_changed = on_lock_changed or (lambda _child, _mode: None)
+        self.on_tabs_reordered = on_tabs_reordered or (lambda: None)
         self._tabs = []
         self._texts = {}
         self._colors = {}
@@ -698,9 +699,15 @@ class ChamferNotebook(ttk.Frame):
             tab_style = "right_skirt"
         self._tab_style = tab_style if tab_style in TAB_STYLES else "right_skirt"
         self._hitboxes = []
+        self._drag_tab = None
+        self._drag_start_x = 0
+        self._drag_original_order = ()
+        self._drag_moved = False
         self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
         self.bar.pack(fill="x", side="top")
-        self.bar.bind("<Button-1>", self._click)
+        self.bar.bind("<ButtonPress-1>", self._tab_press)
+        self.bar.bind("<B1-Motion>", self._tab_motion)
+        self.bar.bind("<ButtonRelease-1>", self._tab_release)
         self.bar.bind("<Button-3>", self._popup)
         self.bar.bind("<Configure>", lambda _e: self._draw())
 
@@ -752,6 +759,20 @@ class ChamferNotebook(ttk.Frame):
 
     def index(self, tab):
         return self._tabs.index(self._resolve(tab))
+
+    def reorder(self, tab, position, notify=True):
+        child = self._resolve(tab)
+        old_position = self._tabs.index(child)
+        new_position = max(0, min(int(position), len(self._tabs) - 1))
+        if old_position == new_position:
+            return False
+        self._tabs.pop(old_position)
+        self._tabs.insert(new_position, child)
+        self._draw()
+        if notify:
+            self.on_tabs_reordered()
+            self.event_generate("<<NotebookTabsReordered>>")
+        return True
 
     def set_color(self, tab, color, notify=True):
         child = self._resolve(tab)
@@ -858,10 +879,43 @@ class ChamferNotebook(ttk.Frame):
                 return child
         return None
 
-    def _click(self, event):
+    def _tab_press(self, event):
         child = self._at(event.x)
         if child is not None:
             self.select(child)
+            self._drag_tab = child
+            self._drag_start_x = event.x
+            self._drag_original_order = tuple(self._tabs)
+            self._drag_moved = False
+
+    def _tab_motion(self, event):
+        child = self._drag_tab
+        if child is None:
+            return
+        if not self._drag_moved and abs(event.x - self._drag_start_x) < 5:
+            return
+        self._drag_moved = True
+        self.bar.configure(cursor="fleur")
+        insertion = 0
+        for left, right, _candidate in self._hitboxes:
+            if event.x > (left + right) / 2:
+                insertion += 1
+        current = self._tabs.index(child)
+        if insertion > current:
+            insertion -= 1
+        self.reorder(child, insertion, notify=False)
+
+    def _tab_release(self, _event):
+        if self._drag_tab is None:
+            return
+        changed = self._drag_moved and tuple(self._tabs) != self._drag_original_order
+        self._drag_tab = None
+        self._drag_original_order = ()
+        self._drag_moved = False
+        self.bar.configure(cursor="")
+        if changed:
+            self.on_tabs_reordered()
+            self.event_generate("<<NotebookTabsReordered>>")
 
     def _popup(self, event):
         child = self._at(event.x)
@@ -2278,6 +2332,270 @@ class MultiRenameWindow(tk.Toplevel):
         return "break"
 
 
+import ctypes
+import os
+from pathlib import Path
+
+
+DROPEFFECT_NONE = 0
+DROPEFFECT_COPY = 1
+DROPEFFECT_MOVE = 2
+WM_DROPFILES = 0x0233
+GWL_WNDPROC = -4
+UINT_MAX = 0xFFFFFFFF
+VK_SHIFT = 0x10
+
+
+class _GUID(ctypes.Structure):
+    _fields_ = [("Data1", ctypes.c_uint32), ("Data2", ctypes.c_uint16),
+                ("Data3", ctypes.c_uint16), ("Data4", ctypes.c_ubyte * 8)]
+
+
+class _POINT(ctypes.Structure):
+    _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
+
+
+IID_IDATAOBJECT = _GUID(
+    0x0000010E, 0x0000, 0x0000,
+    (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
+)
+
+
+def _failed(status: int) -> bool:
+    return status < 0
+
+
+def _status_text(status: int) -> str:
+    return f"0x{status & 0xFFFFFFFF:08X}"
+
+
+def _release_interface(pointer: int) -> None:
+    if not pointer:
+        return
+    table = ctypes.cast(pointer, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
+    release = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)(table[2])
+    release(pointer)
+
+
+class ShellDataObject:
+    """Shell IDataObject for direct children selected in one PFC panel."""
+
+    def __init__(self, paths) -> None:
+        if os.name != "nt":
+            raise OSError("Windows Shell drag-and-drop is available only on Windows.")
+        self.paths = [Path(value).resolve() for value in paths]
+        if not self.paths:
+            raise OSError("No files are selected for dragging.")
+        parents = {os.path.normcase(str(path.parent)) for path in self.paths}
+        if len(parents) != 1:
+            raise OSError("Shell drag items must come from the same folder.")
+        if any(not path.exists() for path in self.paths):
+            raise OSError("A selected drag item no longer exists.")
+        self.pointer = 0
+        self._pidls: list[int] = []
+        self._ole_initialized = False
+        self._create()
+
+    def _create(self) -> None:
+        ole32, shell32 = ctypes.windll.ole32, ctypes.windll.shell32
+        ole32.OleInitialize.argtypes = [ctypes.c_void_p]
+        ole32.OleInitialize.restype = ctypes.c_long
+        initialized = ole32.OleInitialize(None)
+        if _failed(initialized):
+            raise OSError(f"Cannot initialize Windows drag-and-drop ({_status_text(initialized)}).")
+        self._ole_initialized = True
+        shell32.SHParseDisplayName.argtypes = [ctypes.c_wchar_p, ctypes.c_void_p,
+                                               ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint32,
+                                               ctypes.POINTER(ctypes.c_uint32)]
+        shell32.SHParseDisplayName.restype = ctypes.c_long
+        shell32.ILFindLastID.argtypes = [ctypes.c_void_p]
+        shell32.ILFindLastID.restype = ctypes.c_void_p
+        shell32.SHCreateDataObject.argtypes = [ctypes.c_void_p, ctypes.c_uint,
+                                               ctypes.POINTER(ctypes.c_void_p), ctypes.c_void_p,
+                                               ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p)]
+        shell32.SHCreateDataObject.restype = ctypes.c_long
+        try:
+            parent = self._parse(str(self.paths[0].parent))
+            self._pidls.append(parent)
+            children = []
+            for path in self.paths:
+                absolute = self._parse(str(path))
+                self._pidls.append(absolute)
+                children.append(shell32.ILFindLastID(absolute))
+            child_array = (ctypes.c_void_p * len(children))(*children)
+            result = ctypes.c_void_p()
+            status = shell32.SHCreateDataObject(parent, len(children), child_array, None,
+                                                ctypes.byref(IID_IDATAOBJECT), ctypes.byref(result))
+            if _failed(status) or not result.value:
+                raise OSError(f"Windows could not create drag data ({_status_text(status)}).")
+            self.pointer = result.value
+        except Exception:
+            self.close()
+            raise
+
+    def _parse(self, path: str) -> int:
+        pointer, attributes = ctypes.c_void_p(), ctypes.c_uint32()
+        status = ctypes.windll.shell32.SHParseDisplayName(
+            path, None, ctypes.byref(pointer), 0, ctypes.byref(attributes))
+        if _failed(status) or not pointer.value:
+            raise OSError(f"Windows could not identify drag item: {path} ({_status_text(status)}).")
+        return pointer.value
+
+    def close(self) -> None:
+        if os.name != "nt":
+            return
+        if self.pointer:
+            _release_interface(self.pointer)
+            self.pointer = 0
+        for pidl in self._pidls:
+            ctypes.windll.ole32.CoTaskMemFree(ctypes.c_void_p(pidl))
+        self._pidls.clear()
+        if self._ole_initialized:
+            ctypes.windll.ole32.OleUninitialize()
+            self._ole_initialized = False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, _type, _value, _traceback):
+        self.close()
+
+
+def start_shell_drag(hwnd: int, paths) -> int:
+    """Run the native Shell drag loop and return its DROPEFFECT value."""
+    if os.name != "nt":
+        raise OSError("Windows Shell drag-and-drop is available only on Windows.")
+    shell32 = ctypes.windll.shell32
+    shell32.SHDoDragDrop.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+                                     ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
+    shell32.SHDoDragDrop.restype = ctypes.c_long
+    effect = ctypes.c_uint32(DROPEFFECT_NONE)
+    with ShellDataObject(paths) as data:
+        status = shell32.SHDoDragDrop(ctypes.c_void_p(hwnd), ctypes.c_void_p(data.pointer), None,
+                                     DROPEFFECT_COPY | DROPEFFECT_MOVE, ctypes.byref(effect))
+        if _failed(status):
+            raise OSError(f"Windows drag-and-drop failed ({_status_text(status)}).")
+    return effect.value
+
+
+def point_belongs_to_process(x: int, y: int, process_id: int | None = None) -> bool:
+    """Return whether the top window under a screen point belongs to this process."""
+    if os.name != "nt":
+        return True
+    user32 = ctypes.windll.user32
+    user32.WindowFromPoint.argtypes = [_POINT]
+    user32.WindowFromPoint.restype = ctypes.c_void_p
+    user32.GetWindowThreadProcessId.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32)]
+    user32.GetWindowThreadProcessId.restype = ctypes.c_uint32
+    hwnd = user32.WindowFromPoint(_POINT(int(x), int(y)))
+    if not hwnd:
+        return False
+    owner = ctypes.c_uint32()
+    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+    return owner.value == (process_id or os.getpid())
+
+
+if os.name == "nt":
+    _WNDPROC = ctypes.WINFUNCTYPE(ctypes.c_ssize_t, ctypes.c_void_p, ctypes.c_uint,
+                                  ctypes.c_size_t, ctypes.c_ssize_t)
+else:
+    _WNDPROC = None
+
+
+class ShellFileDropTarget:
+    """Legacy Explorer file-drop target attached to a Tk widget HWND."""
+
+    def __init__(self, widget, callback) -> None:
+        self.widget = widget
+        self.callback = callback
+        self.hwnd = 0
+        self.old_proc = 0
+        self._window_proc = None
+        if os.name == "nt":
+            self.install()
+
+    @property
+    def active(self) -> bool:
+        return bool(self.hwnd and self.old_proc and self._window_proc)
+
+    def install(self) -> None:
+        if self.active or os.name != "nt":
+            return
+        user32, shell32 = ctypes.windll.user32, ctypes.windll.shell32
+        self.hwnd = int(self.widget.winfo_id())
+        self._window_proc = _WNDPROC(self._dispatch)
+        user32.SetWindowLongPtrW.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
+        user32.SetWindowLongPtrW.restype = ctypes.c_void_p
+        ctypes.set_last_error(0)
+        previous = user32.SetWindowLongPtrW(
+            ctypes.c_void_p(self.hwnd), GWL_WNDPROC,
+            ctypes.cast(self._window_proc, ctypes.c_void_p))
+        if not previous:
+            error = ctypes.get_last_error()
+            self._window_proc = None
+            self.hwnd = 0
+            raise OSError(error, "Cannot enable Windows Explorer file drop.")
+        self.old_proc = int(previous)
+        shell32.DragAcceptFiles.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        shell32.DragAcceptFiles(ctypes.c_void_p(self.hwnd), True)
+        self.widget.bind("<Destroy>", lambda _event: self.close(), add="+")
+
+    def _dispatch(self, hwnd, message, wparam, lparam):
+        if message == WM_DROPFILES:
+            try:
+                paths, x_root, y_root, move = self._read_drop(wparam)
+                self.widget.after_idle(
+                    lambda values=paths, x=x_root, y=y_root, shift=move:
+                    self.callback(values, x, y, shift))
+            except Exception:
+                pass
+            return 0
+        user32 = ctypes.windll.user32
+        user32.CallWindowProcW.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint,
+                                           ctypes.c_size_t, ctypes.c_ssize_t]
+        user32.CallWindowProcW.restype = ctypes.c_ssize_t
+        return user32.CallWindowProcW(ctypes.c_void_p(self.old_proc), hwnd, message, wparam, lparam)
+
+    def _read_drop(self, handle: int):
+        shell32, user32 = ctypes.windll.shell32, ctypes.windll.user32
+        shell32.DragQueryFileW.argtypes = [ctypes.c_void_p, ctypes.c_uint,
+                                           ctypes.c_wchar_p, ctypes.c_uint]
+        shell32.DragQueryFileW.restype = ctypes.c_uint
+        shell32.DragQueryPoint.argtypes = [ctypes.c_void_p, ctypes.POINTER(_POINT)]
+        shell32.DragQueryPoint.restype = ctypes.c_int
+        shell32.DragFinish.argtypes = [ctypes.c_void_p]
+        try:
+            count = shell32.DragQueryFileW(ctypes.c_void_p(handle), UINT_MAX, None, 0)
+            paths = []
+            for index in range(count):
+                length = shell32.DragQueryFileW(ctypes.c_void_p(handle), index, None, 0)
+                buffer = ctypes.create_unicode_buffer(length + 1)
+                shell32.DragQueryFileW(ctypes.c_void_p(handle), index, buffer, len(buffer))
+                paths.append(Path(buffer.value))
+            point = _POINT()
+            shell32.DragQueryPoint(ctypes.c_void_p(handle), ctypes.byref(point))
+            user32.ClientToScreen.argtypes = [ctypes.c_void_p, ctypes.POINTER(_POINT)]
+            user32.ClientToScreen(ctypes.c_void_p(self.hwnd), ctypes.byref(point))
+            user32.GetKeyState.argtypes = [ctypes.c_int]
+            move = bool(user32.GetKeyState(VK_SHIFT) & 0x8000)
+            return paths, point.x, point.y, move
+        finally:
+            shell32.DragFinish(ctypes.c_void_p(handle))
+
+    def close(self) -> None:
+        if not self.active or os.name != "nt":
+            return
+        user32, shell32 = ctypes.windll.user32, ctypes.windll.shell32
+        shell32.DragAcceptFiles(ctypes.c_void_p(self.hwnd), False)
+        user32.IsWindow.argtypes = [ctypes.c_void_p]
+        if user32.IsWindow(ctypes.c_void_p(self.hwnd)):
+            user32.SetWindowLongPtrW(ctypes.c_void_p(self.hwnd), GWL_WNDPROC,
+                                     ctypes.c_void_p(self.old_proc))
+        self.hwnd = 0
+        self.old_proc = 0
+        self._window_proc = None
+
+
 import os
 import configparser
 import ctypes
@@ -2292,12 +2610,17 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.9.0"
+__version__ = "0.10.0"
 
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/14"
+BUILD_DATE = "2026/07/16"
 VERSION_HISTORY = (
+    ("v0.10.0", "2026/07/16", (
+        "Added: Mouse drag reordering for tabs with persistent panel order.",
+        "Added: Native file drag-and-drop between PFC and Windows File Explorer.",
+        "Added: File and folder context menu with frequent operations and keyboard access.",
+    )),
     ("v0.9.0", "2026/07/14", (
         "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.",
         "Added: Per-tab Quick Filter for the active file list.",
@@ -2397,11 +2720,13 @@ class FilePane(ttk.Frame):
     base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135, "attr": 55}
 
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None,
-                 on_drag=lambda _action, _pane, _event: None) -> None:
+                 on_drag=lambda _action, _pane, _event: None,
+                 on_context=lambda _pane, _path, _x, _y: None) -> None:
         super().__init__(master)
         self.on_activate = on_activate
         self.on_change = on_change
         self.on_drag = on_drag
+        self.on_context = on_context
         self.path = Path.home()
         self.history: list[Path] = []
         self.sort_column = "name"
@@ -2456,6 +2781,9 @@ class FilePane(ttk.Frame):
         self.tree.bind("<ButtonPress-1>", self._drag_press, add="+")
         self.tree.bind("<B1-Motion>", self._drag_motion, add="+")
         self.tree.bind("<ButtonRelease-1>", self._drag_release, add="+")
+        self.tree.bind("<Button-3>", self._context_click)
+        self.tree.bind("<Shift-F10>", self._context_keyboard)
+        self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text="Quick Filter:").pack(side="left")
@@ -2469,6 +2797,15 @@ class FilePane(ttk.Frame):
         self.status.pack(fill="x", pady=(3, 0))
         install_button_tooltips(self)
         self.navigate(self.path)
+        try:
+            self.shell_drop_target = ShellFileDropTarget(self.tree, self._shell_files_dropped)
+        except OSError:
+            self.shell_drop_target = None
+
+    def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
+        self.on_drag("external_drop", self, {
+            "paths": list(paths), "x_root": x_root, "y_root": y_root, "move": move,
+        })
 
     def _drag_press(self, event):
         if self.tree.identify_region(event.x, event.y) not in {"tree", "cell"}:
@@ -2501,6 +2838,32 @@ class FilePane(ttk.Frame):
             self.on_drag("drop", self, event)
         self._drag_press_item = None; self._drag_press_xy = None; self._dragging = False
         return "break" if was_dragging else None
+
+    def _context_click(self, event):
+        iid = self.tree.identify_row(event.y)
+        if not iid:
+            return None
+        if iid not in self.tree.selection():
+            self.tree.selection_set(iid)
+        self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
+        tags = self.tree.item(iid, "tags")
+        if tags:
+            self.on_context(self, Path(tags[0]), event.x_root, event.y_root)
+        return "break"
+
+    def _context_keyboard(self, _event=None):
+        iid = self.tree.focus() or (self.tree.selection()[0] if self.tree.selection() else "")
+        if not iid:
+            return "break"
+        if iid not in self.tree.selection():
+            self.tree.selection_set(iid)
+        self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
+        tags, box = self.tree.item(iid, "tags"), self.tree.bbox(iid)
+        if tags:
+            x = self.tree.winfo_rootx() + (box[0] + 20 if box else 20)
+            y = self.tree.winfo_rooty() + (box[1] + box[3] if box else 20)
+            self.on_context(self, Path(tags[0]), x, y)
+        return "break"
 
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
         try:
@@ -2770,12 +3133,16 @@ class FilePane(ttk.Frame):
 class PaneTabs(ChamferNotebook):
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None, initial_paths=None,
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None,
-                 on_drag=lambda _action, _pane, _event: None, tab_style="right_skirt") -> None:
+                 on_drag=lambda _action, _pane, _event: None,
+                 on_context=lambda _pane, _path, _x, _y: None,
+                 tab_style="right_skirt") -> None:
         self.color_for = color_for
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
+        self.on_context = on_context
         super().__init__(master, on_color_changed=self._color_changed,
-                         on_lock_changed=self._lock_changed, tab_style=tab_style)
+                         on_lock_changed=self._lock_changed,
+                         on_tabs_reordered=self._tabs_reordered, tab_style=tab_style)
         self.on_activate = on_activate
         self.on_change = on_change
         self.bind("<<NotebookTabChanged>>", lambda _e: self._tab_changed())
@@ -2784,7 +3151,8 @@ class PaneTabs(ChamferNotebook):
 
     def add_tab(self, path: Path, notify: bool = True) -> FilePane:
         position = self.index(self.select()) + 1 if self.tabs() else 0
-        pane = FilePane(self, self.on_activate, on_drag=self.on_drag)
+        pane = FilePane(self, self.on_activate, on_drag=self.on_drag,
+                        on_context=self.on_context)
         pane.on_change = lambda source=pane: self._pane_changed(source)
         pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
         pane.navigate(path)
@@ -2841,6 +3209,9 @@ class PaneTabs(ChamferNotebook):
     def _lock_changed(self, pane, mode) -> None:
         pane.lock_mode = mode
         pane.locked_path = None if mode == "unlocked" else pane.path
+        self.on_change()
+
+    def _tabs_reordered(self) -> None:
         self.on_change()
 
 
@@ -2952,10 +3323,10 @@ class Commander(tk.Tk):
         right_paths = self._saved_paths("right")
         self.left_tabs = PaneTabs(split, self.set_active, self.save_config, left_paths,
                                   self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
-                                  self.tab_style_var.get())
+                                  self._show_file_context_menu, self.tab_style_var.get())
         self.right_tabs = PaneTabs(split, self.set_active, self.save_config, right_paths,
                                    self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
-                                   self.tab_style_var.get())
+                                   self._show_file_context_menu, self.tab_style_var.get())
         self.left = self.left_tabs.current()
         self.right = self.right_tabs.current()
         split.add(self.left_tabs, weight=1)
@@ -3511,6 +3882,18 @@ class Commander(tk.Tk):
         self._drag_ghost = None
 
     def _handle_internal_drag(self, action: str, pane: FilePane, event) -> None:
+        if action == "external_drop":
+            paths = [Path(path) for path in event["paths"] if Path(path).exists()]
+            if not paths:
+                return
+            target = self._drop_target_at(event["x_root"], event["y_root"])
+            target_pane, destination = (target[0], target[1]) if target else (pane, pane.path)
+            move = bool(event["move"])
+            self._execute_transfer("Explorer Drag Move" if move else "Explorer Drag Copy",
+                                   move_items if move else copy_items,
+                                   paths, destination, confirm=False)
+            self.set_active(target_pane); target_pane.focus_file_list()
+            return
         if action == "start":
             items = pane.selected_paths()
             if not items:
@@ -3519,6 +3902,17 @@ class Commander(tk.Tk):
             pane.tree.configure(cursor="fleur"); self._create_drag_ghost(); self._update_internal_drag(event)
             return
         if action == "motion":
+            if (self._drag_state is not None and
+                    not point_belongs_to_process(event.x_root, event.y_root)):
+                state = self._drag_state
+                self._finish_internal_drag(); self._drag_state = None
+                try:
+                    effect = start_shell_drag(pane.tree.winfo_id(), state["items"])
+                    if effect in {DROPEFFECT_COPY, DROPEFFECT_MOVE}:
+                        self.after(250, self.refresh)
+                except OSError as exc:
+                    messagebox.showerror("Explorer drag failed", str(exc), parent=self)
+                return
             self._update_internal_drag(event); return
         if action == "cancel":
             self._finish_internal_drag(); self._drag_state = None; return
@@ -3536,6 +3930,82 @@ class Commander(tk.Tk):
                                move_items if move else copy_items,
                                state["items"], destination, confirm=False)
         self.set_active(target_pane); target_pane.focus_file_list()
+
+    def _build_file_context_menu(self, pane: FilePane, clicked: Path) -> tk.Menu:
+        self.set_active(pane)
+        items = pane.selected_paths()
+        single = len(items) == 1
+        clicked_folder = clicked.is_dir()
+        left_items = self.left_tabs.current().selected_paths()
+        right_items = self.right_tabs.current().selected_paths()
+        can_compare = ((len(left_items) == 1 and len(right_items) == 1) or
+                       len(items) == 2)
+        old_menu = getattr(self, "file_context_menu", None)
+        if old_menu is not None:
+            try: old_menu.destroy()
+            except tk.TclError: pass
+        menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        self.file_context_menu = menu
+        normal_if = lambda condition: "normal" if condition else "disabled"
+        menu.add_command(label="Open / Enter Folder", accelerator="Enter",
+                         state=normal_if(single), command=pane.open_selected)
+        menu.add_command(label="Open Folder in New Tab", state=normal_if(single and clicked_folder),
+                         command=lambda: self._open_folder_in_new_tab(pane, clicked))
+        menu.add_command(label="Preview", accelerator="F3",
+                         state=normal_if(single and clicked.is_file()), command=self.preview)
+        menu.add_command(label="Compare", accelerator="F9",
+                         state=normal_if(can_compare), command=self.compare_selected)
+        menu.add_separator()
+        menu.add_command(label="Copy to Clipboard", accelerator="Ctrl+C", command=self.clipboard_copy)
+        menu.add_command(label="Cut to Clipboard", accelerator="Ctrl+X", command=self.clipboard_cut)
+        paste_destination = clicked if clicked_folder else pane.path
+        paste_label = "Paste into This Folder" if clicked_folder else "Paste into Current Folder"
+        menu.add_command(label=paste_label, accelerator="Ctrl+V",
+                         command=lambda target=paste_destination: self._clipboard_paste_to(target))
+        menu.add_separator()
+        menu.add_command(label="Copy to Other Panel", accelerator="F5", command=self.copy)
+        menu.add_command(label="Move to Other Panel", accelerator="F6", command=self.move)
+        menu.add_separator()
+        menu.add_command(label="Rename", accelerator="F2",
+                         state=normal_if(single), command=self.rename)
+        menu.add_command(label="Multi-Rename", accelerator="Ctrl+M",
+                         state=normal_if(len(items) > 1), command=self.multi_rename)
+        menu.add_command(label="Copy Path", accelerator="F11", command=self.copy_paths)
+        menu.add_separator()
+        menu.add_command(label="Delete", accelerator="Del", command=self.delete_hotkey)
+        menu.add_command(label="Permanent Delete", accelerator="Shift+Del",
+                         command=lambda: self.delete_hotkey(permanent=True))
+        descriptions = {
+            "Open / Enter Folder": "Open the selected file or enter the selected folder.",
+            "Open Folder in New Tab": "Open this folder in a new tab beside the current tab.",
+            "Preview": "Open the selected file in PFC Preview.",
+            "Compare": "Compare one item from each panel or two selected items.",
+            "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
+            "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
+            "Paste into This Folder": "Paste clipboard items directly into the clicked folder.",
+            "Paste into Current Folder": "Paste clipboard items into the current panel folder.",
+            "Copy to Other Panel": "Copy selected items to the opposite panel.",
+            "Move to Other Panel": "Move selected items to the opposite panel.",
+            "Rename": "Rename the selected item.",
+            "Multi-Rename": "Preview and rename all selected items.",
+            "Copy Path": "Copy all selected full paths as text.",
+            "Delete": "Delete using the configured Recycle Bin policy.",
+            "Permanent Delete": "Permanently delete after a warning.",
+        }
+        self._file_context_tooltip = MenuToolTip(menu, descriptions)
+        return menu
+
+    def _show_file_context_menu(self, pane: FilePane, clicked: Path,
+                                x_root: int, y_root: int) -> None:
+        menu = self._build_file_context_menu(pane, clicked)
+        try:
+            menu.tk_popup(int(x_root), int(y_root))
+        finally:
+            menu.grab_release()
+
+    def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
+        if path.is_dir():
+            self.active = self._tabs_for(pane).add_tab(path)
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
@@ -3823,7 +4293,11 @@ class Commander(tk.Tk):
     def clipboard_paste(self) -> None:
         if self._clipboard_is_text_control():
             return
-        destination = self.panes()[0].path
+        self._clipboard_paste_to(self.panes()[0].path)
+
+    def _clipboard_paste_to(self, destination: Path) -> None:
+        if not destination.is_dir():
+            return
         try:
             items, cut = get_file_clipboard()
             items = [item for item in items if item.exists()]
