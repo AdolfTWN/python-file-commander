@@ -36,13 +36,17 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.11.0", "v0.11.x Changes", "v0.10.x Changes",
+            assert version_labels == ["Current version: v0.11.1", "v0.11.x Changes", "v0.10.x Changes",
                                       "v0.9.x Changes", "v0.8.x Changes",
                                       "Yoda — Portable App Advocate"]
             assert app.version_series == ("v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
             v11_title, v11_body = app.version_series_notes("v0.11.x")
             assert v11_title == "Python File Commander — v0.11.x Changes"
+            assert "v0.11.1 — Build 2026/07/16" in v11_body
             assert "v0.11.0 — Build 2026/07/16" in v11_body
+            assert "• Adjusted: UI language changes apply immediately" in v11_body
+            assert "• Adjusted: Improved font rendering" in v11_body
+            assert "• Adjusted: Replaced compact version pop-ups" in v11_body
             assert "• Added: Configurable two-to-four-panel layout" in v11_body
             assert "• Added: Visual clipboard summary" in v11_body
             assert "• Added: English, Traditional Chinese" in v11_body
@@ -63,22 +67,22 @@ def main() -> None:
                 assert f"v0.8.{minor} — Build " in notes_body
             for merged_minor in (7, 5, 4, 2):
                 assert f"v0.8.{merged_minor} — Build " not in notes_body
-            captured = []
-            original_showinfo = pfc.messagebox.showinfo
-            pfc.messagebox.showinfo = lambda title, body, **_kwargs: captured.append((title, body))
-            try:
-                changes_index = next(index for index in range(app.versions_menu.index("end") + 1)
-                                     if app.versions_menu.type(index) == "command" and
-                                     app.versions_menu.entrycget(index, "label") == "v0.8.x Changes")
-                app.versions_menu.invoke(changes_index)
-            finally:
-                pfc.messagebox.showinfo = original_showinfo
-            assert captured == [(notes_title, notes_body)], "Changes must open in one combined window"
+            changes_index = next(index for index in range(app.versions_menu.index("end") + 1)
+                                 if app.versions_menu.type(index) == "command" and
+                                 app.versions_menu.entrycget(index, "label") == "v0.8.x Changes")
+            app.versions_menu.invoke(changes_index); app.update_idletasks()
+            assert app.version_window is not None and app.version_window.winfo_exists()
+            assert app.version_window.title() == notes_title
+            assert app.version_text.get("1.0", "end-1c") == notes_body
+            assert app.version_text.cget("font") == str(pfc.tkfont.nametofont("TkDefaultFont"))
+            assert app.version_window.winfo_width() >= 720 and app.version_window.winfo_height() >= 500
+            app.version_window.destroy()
             assert "Windows File Explorer" not in v09_body
             assert all(line.startswith("• Added:") or line.startswith("• Adjusted:")
                        for line in v11_body.splitlines() + v10_body.splitlines() + v09_body.splitlines() + notes_body.splitlines()
                        if line.startswith("•"))
-            captured.clear()
+            captured = []
+            original_showinfo = pfc.messagebox.showinfo
             pfc.messagebox.showinfo = lambda title, body, **_kwargs: captured.append((title, body))
             try:
                 yoda_index = next(
@@ -295,6 +299,14 @@ def main() -> None:
             finally:
                 pfc.point_belongs_to_process = original_point_owner
             assert app._drag_state is None and app._drag_ghost is None
+            selected_before = app.active.tree.selection()
+            path_before = app.active.path
+            app.ui_language_var.set("zh_TW"); app.apply_ui_language(); app.update()
+            assert app.files_menu_button.cget("text") == "檔案"
+            assert app.active.tree.heading("#0", "text").startswith("名稱")
+            assert app.active.path == path_before and app.active.tree.selection() == selected_before
+            app.ui_language_var.set("en"); app.apply_ui_language(); app.update()
+            assert app.files_menu_button.cget("text") == "Files"
             app.withdraw()
             print("GUI smoke check passed", flush=True)
         finally:
@@ -303,10 +315,10 @@ def main() -> None:
             pfc.Commander._find_ini_path = original
 
     localized = {
-        "en": ("Files", "View", "Name"),
-        "zh_TW": ("檔案", "檢視", "名稱"),
-        "zh_CN": ("文件", "查看", "名称"),
-        "ko": ("파일", "보기", "이름"),
+        "en": ("Files", "View", "Name", "v0.11.x Changes", "• Added: Configurable"),
+        "zh_TW": ("檔案", "檢視", "名稱", "v0.11.x 變更內容", "• 新增：可設定"),
+        "zh_CN": ("文件", "查看", "名称", "v0.11.x 更新内容", "• 新增：可配置"),
+        "ko": ("파일", "보기", "이름", "v0.11.x 변경 내용", "• 추가: 패널 상태"),
     }
     original = pfc.Commander._find_ini_path
     with tempfile.TemporaryDirectory() as raw:
@@ -321,6 +333,11 @@ def main() -> None:
                 assert app.left_tabs.current().tree.heading("#0", "text").startswith(expected[2])
                 assert app.language_menu.entrycget(0, "label") == "English"
                 assert app.language_menu.entrycget(1, "label") == "繁體中文"
+                title, body = app.version_series_notes("v0.11.x")
+                assert expected[3] in title
+                assert expected[4] in body
+                missing_notes = app.version_series_notes("v9.9.x")[1]
+                assert (missing_notes == "No release notes available.") == (code == "en")
             finally:
                 app.destroy()
     pfc.Commander._find_ini_path = original

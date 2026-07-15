@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.11.0 — Multi-Panel & Localization**
+Current version: **v0.11.1 — Live Localization & Display Polish**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -41,7 +41,11 @@ The Files menu uses the native accelerator column so actions remain left-aligned
 
 View > Tab Style provides Right Skirt (default), Rounded, and Squarish. All three use the same height at every font scale. Right Skirt has a vertical left edge and steep curved bottom-right skirt; Rounded curves only the top corners and keeps a square bottom. The selection applies immediately to all main panels and Compare tabs and is saved in `pfc.ini`; legacy Compact settings migrate automatically to Right Skirt.
 
-View > UI Language provides English (default), Traditional Chinese, Simplified Chinese, and Korean. Language names are shown in their native scripts, and file-management terms follow each platform language's familiar conventions. The selection is saved in `pfc.ini` and applies consistently to the main window, context menus, Preview, Search, Compare, Multi-Rename, common dialogs, and the keyboard guide after restarting PFC.
+View > UI Language provides English (default), Traditional Chinese, Simplified Chinese, and Korean. Language names are shown in their native scripts, and file-management terms follow each platform language's familiar conventions. The selection is saved in `pfc.ini` and applies immediately—without restarting—to the main window and any open Preview, Search, Compare, or Multi-Rename window.
+
+On Windows, PFC uses Segoe UI for the interface, Cascadia Mono or Consolas for fixed-width content, and the best available process DPI-awareness mode for smoother text on scaled and mixed-DPI displays.
+
+Versions > v0.x.x Changes opens a large, resizable release-notes window. Its heading, description text, and controls follow the selected UI font size and update with live language changes.
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. Results stream into sortable-style detail columns and support Enter/double-click Go to File, F3 Preview and multi-selection Copy Path. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 
@@ -88,7 +92,7 @@ The original project is a mature Pascal application with a large plugin ecosyste
 7. **In progress — Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes. Automated coverage now includes non-ASCII conflicts, same-folder safety, partial failures, atomic default INI creation, and portable privacy; environment-dependent Windows cases remain release smoke tests.
 8. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
 
-Items 1–6 are complete and the project is now **v0.11.0**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
+Items 1–6 are complete and the project is now **v0.11.1**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
 
 Low-ROI features deferred until the office workflow is complete:
 

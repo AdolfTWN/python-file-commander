@@ -11,7 +11,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from .tooltip import install_button_tooltips
-from .i18n import tr
+from .i18n import retranslate_widgets, tr
 
 
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
@@ -86,8 +86,9 @@ class SearchWindow(tk.Toplevel):
             if row == 1: self.mask_entry = entry
         options = ttk.Frame(form); options.grid(row=3, column=0, columnspan=8, sticky="ew", pady=(5, 2))
         ttk.Label(options, text=tr("Depth:")).pack(side="left")
-        ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=8,
-                     values=tuple(self.depth_values)).pack(side="left", padx=(3, 10))
+        self.depth_combo = ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=8,
+                                        values=tuple(self.depth_values))
+        self.depth_combo.pack(side="left", padx=(3, 10))
         ttk.Checkbutton(options, text=tr("Files"), variable=self.files_var).pack(side="left")
         ttk.Checkbutton(options, text=tr("Folders"), variable=self.folders_var).pack(side="left", padx=(3, 10))
         ttk.Checkbutton(options, text=tr("Case sensitive"), variable=self.case_var).pack(side="left")
@@ -119,6 +120,20 @@ class SearchWindow(tk.Toplevel):
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def apply_language(self, old_language: str) -> None:
+        depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
+        retranslate_widgets(self, old_language)
+        self.depth_values = {tr("Current"): "Current", "1": "1", "2": "2", "3": "3",
+                             "5": "5", tr("All"): "All"}
+        self.depth_combo.configure(values=tuple(self.depth_values))
+        self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
+        self.title(tr("PFC Search"))
+        self._apply_sort()
+        if self.worker is not None and self.worker.is_alive():
+            self.status.configure(text=tr("Searching…"))
+        elif self.results:
+            self.status.configure(text=tr("{count} found", count=len(self.results)))
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()

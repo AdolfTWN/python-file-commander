@@ -5,7 +5,7 @@ import tkinter.font as tkfont
 from pathlib import Path
 from tkinter import ttk
 from .tooltip import install_button_tooltips
-from .i18n import tr
+from .i18n import retranslate_widgets, tr
 
 
 TEXT_EXTENSIONS = {
@@ -75,9 +75,10 @@ class PreviewWindow(tk.Toplevel):
         ttk.Button(file_row, text=tr("File <<"), command=self.previous_file).pack(side="left")
         ttk.Button(file_row, text=tr("File >>"), command=self.next_file).pack(side="left", padx=(3, 10))
         ttk.Label(file_row, text=tr("View:")).pack(side="left", padx=(4, 3))
-        mode = ttk.Combobox(file_row, width=7, state="readonly", textvariable=self.mode_var,
-                            values=tuple(self.mode_values))
-        mode.pack(side="left"); mode.bind("<<ComboboxSelected>>", lambda _event: self.load())
+        self.mode_combo = ttk.Combobox(file_row, width=7, state="readonly", textvariable=self.mode_var,
+                                       values=tuple(self.mode_values))
+        self.mode_combo.pack(side="left")
+        self.mode_combo.bind("<<ComboboxSelected>>", lambda _event: self.load())
         ttk.Checkbutton(file_row, text=tr("Wrap"), variable=self.wrap_var,
                         command=self.set_wrap).pack(side="left", padx=10)
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
@@ -107,6 +108,14 @@ class PreviewWindow(tk.Toplevel):
         self.load()
         self._schedule_refresh()
         self.after_idle(self.activate)
+
+    def apply_language(self, old_language: str) -> None:
+        mode = self.mode_values.get(self.mode_var.get(), self.mode_var.get())
+        retranslate_widgets(self, old_language)
+        self.mode_values = {tr("Auto"): "Auto", tr("Text"): "Text", tr("Hex"): "Hex"}
+        self.mode_combo.configure(values=tuple(self.mode_values))
+        self.mode_var.set(next(label for label, value in self.mode_values.items() if value == mode))
+        self.load()
 
     @property
     def path(self) -> Path:

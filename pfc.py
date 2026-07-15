@@ -32,6 +32,33 @@ def tr(text: str, **values) -> str:
     return translated.format(**values) if values else translated
 
 
+def source_text(text: str, language: str) -> str | None:
+    if language == "en":
+        keys = {key for translations in _TRANSLATIONS.values() for key in translations}
+        return text if text in keys else None
+    for source, translated in _TRANSLATIONS.get(language, {}).items():
+        if translated == text:
+            return source
+    return None
+
+
+def retranslate_widgets(root, old_language: str) -> None:
+    pending = [root]
+    while pending:
+        widget = pending.pop()
+        pending.extend(widget.winfo_children())
+        try:
+            text = widget.cget("text")
+        except Exception:
+            continue
+        source = source_text(str(text), old_language)
+        if source is not None:
+            try:
+                widget.configure(text=tr(source))
+            except Exception:
+                pass
+
+
 _TRANSLATIONS = {
     "en": {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel    Ctrl+M  Multi-Rename selected items\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
@@ -97,6 +124,31 @@ _TRANSLATIONS = {
         "{verb} {count} selected item(s) to:\n{destination}?": "要將選取的 {count} 個項目{verb}到：\n{destination}？", "{verb} result": "{verb}結果", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}：完成 {completed} 個、略過 {skipped} 個、失敗 {failed} 個。",
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
+        "No release notes available.": "沒有可用的版本資訊。",
+        "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "新增：可設定 2 至 4 面板版面配置，並保存面板狀態及支援下一面板操作。",
+        "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "新增：視覺化剪貼簿摘要，顯示重疊的原生圖示與精簡的剩餘項目數量。",
+        "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "新增：英文、繁體中文、簡體中文及韓文使用者介面。",
+        "Adjusted: UI language changes apply immediately without restarting.": "調整：介面語言變更會立即套用，不需重新啟動。",
+        "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.": "調整：使用 Windows 原生字型與 DPI 感知改善字型顯示品質。",
+        "Adjusted: Replaced compact version pop-ups with a scalable release-notes window.": "調整：以可縮放的版本紀錄視窗取代狹小的版本彈窗。",
+        "Version Change History": "版本變更紀錄",
+        "Added: Mouse drag reordering for tabs with persistent panel order.": "新增：可用滑鼠拖曳重新排列分頁，並保存各面板的分頁順序。",
+        "Added: Native file drag-and-drop between PFC and Windows File Explorer.": "新增：PFC 與 Windows 檔案總管之間的原生檔案拖放功能。",
+        "Added: File and folder context menu with frequent operations and keyboard access.": "新增：提供常用操作及鍵盤存取的檔案與資料夾右鍵選單。",
+        "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.": "新增：資料夾比較，支援背景掃描、篩選、內容檢查及僅複製的安全同步預演。",
+        "Added: Per-tab Quick Filter for the active file list.": "新增：每個分頁各自保存的目前檔案清單快速篩選。",
+        "Added: Multi-Rename with live preview, validation, rollback, and in-session undo.": "新增：批次重新命名，支援即時預覽、驗證、回復及工作階段內復原。",
+        "Adjusted: Combined the v0.8.x change history into one window.": "調整：將 v0.8.x 變更記錄合併至單一視窗。",
+        "Added: Right Skirt, Rounded, and Squarish tab styles with saved preference.": "新增：右側裙襬、圓角及方形分頁樣式，並保存偏好設定。",
+        "Adjusted: Made Right Skirt the default and kept all tab styles at equal height.": "調整：將右側裙襬設為預設樣式，並統一所有分頁樣式的高度。",
+        "Added: Internal drag-and-drop with Copy and Shift+Move destination feedback.": "新增：PFC 內部拖放，支援複製、Shift+移動及目的地回饋。",
+        "Added: Outlook attachment paste with attachment-aware clipboard summary.": "新增：Outlook 附件貼上及可辨識附件的剪貼簿摘要。",
+        "Adjusted: Aligned menu actions and keyboard shortcuts into separate columns.": "調整：將選單動作與鍵盤快速鍵分欄對齊。",
+        "Added: Recycle Bin delete and explicit Shift+Del permanent delete.": "新增：資源回收筒刪除及明確的 Shift+Del 永久刪除。",
+        "Added: Copy, move, and paste conflict choices with partial-failure recovery.": "新增：複製、移動及貼上衝突選項，並支援部分失敗後復原。",
+        "Added: Keyboard-accessible Favorites and Recent Folders.": "新增：可完全使用鍵盤操作的我的最愛與最近使用的資料夾。",
+        "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "新增：雙檔案面板、分頁、導覽、排序及可攜式 INI 設定。",
+        "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "新增：預覽、搜尋、比較及端到端鍵盤操作。",
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板    Ctrl+M  批次重新命名\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
@@ -137,6 +189,31 @@ _TRANSLATIONS = {
         "{verb} {count} selected item(s) to:\n{destination}?": "要将选择的 {count} 个项目{verb}到：\n{destination}？", "{verb} result": "{verb}结果", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}：完成 {completed} 个、跳过 {skipped} 个、失败 {failed} 个。",
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
+        "No release notes available.": "没有可用的版本信息。",
+        "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "新增：可配置 2 至 4 面板布局，并保存面板状态及支持下一面板操作。",
+        "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "新增：可视化剪贴板摘要，显示重叠的原生图标与精简的剩余项目数量。",
+        "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "新增：英文、繁体中文、简体中文及韩文用户界面。",
+        "Adjusted: UI language changes apply immediately without restarting.": "调整：界面语言更改会立即应用，无需重新启动。",
+        "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.": "调整：使用 Windows 原生字体和 DPI 感知改善字体显示质量。",
+        "Adjusted: Replaced compact version pop-ups with a scalable release-notes window.": "调整：以可缩放的版本记录窗口取代狭小的版本弹窗。",
+        "Version Change History": "版本变更记录",
+        "Added: Mouse drag reordering for tabs with persistent panel order.": "新增：可用鼠标拖动重新排列选项卡，并保存各面板的选项卡顺序。",
+        "Added: Native file drag-and-drop between PFC and Windows File Explorer.": "新增：PFC 与 Windows 文件资源管理器之间的原生文件拖放功能。",
+        "Added: File and folder context menu with frequent operations and keyboard access.": "新增：提供常用操作及键盘访问的文件与文件夹右键菜单。",
+        "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.": "新增：文件夹比较，支持后台扫描、筛选、内容检查及仅复制的安全同步预演。",
+        "Added: Per-tab Quick Filter for the active file list.": "新增：每个选项卡独立保存的当前文件列表快速筛选。",
+        "Added: Multi-Rename with live preview, validation, rollback, and in-session undo.": "新增：批量重命名，支持实时预览、验证、回滚及会话内撤销。",
+        "Adjusted: Combined the v0.8.x change history into one window.": "调整：将 v0.8.x 更新记录合并到单一窗口。",
+        "Added: Right Skirt, Rounded, and Squarish tab styles with saved preference.": "新增：右侧裙边、圆角及方形选项卡样式，并保存偏好设置。",
+        "Adjusted: Made Right Skirt the default and kept all tab styles at equal height.": "调整：将右侧裙边设为默认样式，并统一所有选项卡样式的高度。",
+        "Added: Internal drag-and-drop with Copy and Shift+Move destination feedback.": "新增：PFC 内部拖放，支持复制、Shift+移动及目标位置反馈。",
+        "Added: Outlook attachment paste with attachment-aware clipboard summary.": "新增：Outlook 附件粘贴及可识别附件的剪贴板摘要。",
+        "Adjusted: Aligned menu actions and keyboard shortcuts into separate columns.": "调整：将菜单操作与键盘快捷键分列对齐。",
+        "Added: Recycle Bin delete and explicit Shift+Del permanent delete.": "新增：回收站删除及明确的 Shift+Del 永久删除。",
+        "Added: Copy, move, and paste conflict choices with partial-failure recovery.": "新增：复制、移动及粘贴冲突选项，并支持部分失败后恢复。",
+        "Added: Keyboard-accessible Favorites and Recent Folders.": "新增：可完全使用键盘操作的收藏夹与最近使用的文件夹。",
+        "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "新增：双文件面板、选项卡、导航、排序及便携式 INI 设置。",
+        "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "新增：预览、搜索、比较及端到端键盘操作。",
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板    Ctrl+M  批量重命名\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
@@ -174,6 +251,31 @@ _TRANSLATIONS = {
         "{verb} {count} selected item(s) to:\n{destination}?": "선택한 항목 {count}개를 다음 위치로 {verb}하시겠습니까?\n{destination}", "{verb} result": "{verb} 결과", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}: 완료 {completed}개, 건너뜀 {skipped}개, 실패 {failed}개.",
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
+        "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "추가: 패널 상태 저장 및 다음 패널 작업을 지원하는 2~4개 패널 레이아웃.",
+        "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "추가: 겹쳐진 기본 아이콘과 간결한 나머지 항목 수를 표시하는 시각적 클립보드 요약.",
+        "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "추가: 영어, 중국어 번체, 중국어 간체 및 한국어 사용자 인터페이스.",
+        "Adjusted: UI language changes apply immediately without restarting.": "조정: UI 언어 변경 사항이 재시작 없이 즉시 적용됩니다.",
+        "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.": "조정: Windows 기본 글꼴과 DPI 인식을 사용하여 글꼴 렌더링을 개선했습니다.",
+        "Adjusted: Replaced compact version pop-ups with a scalable release-notes window.": "조정: 작은 버전 팝업을 크기 조절 가능한 릴리스 정보 창으로 교체했습니다.",
+        "Version Change History": "버전 변경 기록",
+        "Added: Mouse drag reordering for tabs with persistent panel order.": "추가: 마우스로 탭 순서를 바꾸고 패널별 탭 순서를 저장하는 기능.",
+        "Added: Native file drag-and-drop between PFC and Windows File Explorer.": "추가: PFC와 Windows 파일 탐색기 사이의 기본 파일 끌어서 놓기 기능.",
+        "Added: File and folder context menu with frequent operations and keyboard access.": "추가: 자주 쓰는 작업과 키보드 접근을 제공하는 파일 및 폴더 바로 가기 메뉴.",
+        "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.": "추가: 백그라운드 검사, 필터, 내용 확인 및 복사 전용 안전 동기화 미리 실행을 지원하는 폴더 비교.",
+        "Added: Per-tab Quick Filter for the active file list.": "추가: 활성 파일 목록을 위한 탭별 빠른 필터.",
+        "Added: Multi-Rename with live preview, validation, rollback, and in-session undo.": "추가: 실시간 미리 보기, 유효성 검사, 롤백 및 세션 내 실행 취소를 지원하는 일괄 이름 바꾸기.",
+        "Adjusted: Combined the v0.8.x change history into one window.": "조정: v0.8.x 변경 내역을 하나의 창으로 통합.",
+        "Added: Right Skirt, Rounded, and Squarish tab styles with saved preference.": "추가: 설정을 저장하는 오른쪽 스커트, 둥근 모서리 및 사각형 탭 스타일.",
+        "Adjusted: Made Right Skirt the default and kept all tab styles at equal height.": "조정: 오른쪽 스커트를 기본값으로 지정하고 모든 탭 스타일의 높이를 동일하게 유지.",
+        "Added: Internal drag-and-drop with Copy and Shift+Move destination feedback.": "추가: 복사, Shift+이동 및 대상 위치 안내를 지원하는 PFC 내부 끌어서 놓기.",
+        "Added: Outlook attachment paste with attachment-aware clipboard summary.": "추가: Outlook 첨부 파일 붙여넣기 및 첨부 파일을 인식하는 클립보드 요약.",
+        "Adjusted: Aligned menu actions and keyboard shortcuts into separate columns.": "조정: 메뉴 작업과 키보드 바로 가기를 별도 열에 맞춤.",
+        "Added: Recycle Bin delete and explicit Shift+Del permanent delete.": "추가: 휴지통 삭제 및 명시적인 Shift+Del 완전 삭제.",
+        "Added: Copy, move, and paste conflict choices with partial-failure recovery.": "추가: 부분 실패 복구를 지원하는 복사, 이동 및 붙여넣기 충돌 선택 항목.",
+        "Added: Keyboard-accessible Favorites and Recent Folders.": "추가: 키보드로 사용할 수 있는 즐겨찾기 및 최근 폴더.",
+        "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "추가: 탭, 탐색, 정렬 및 포터블 INI 설정을 지원하는 이중 파일 패널.",
+        "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "추가: 미리 보기, 검색, 비교 및 전체 키보드 작업.",
         "Keyboard guide body": "탐색\n↑ / ↓  항목 선택\nRight / Left  폴더로 이동 / 상위 폴더로 이동\nTab  패널 전환\nCtrl+Tab / Ctrl+Shift+Tab  다음 / 이전 탭\nCtrl+Up  현재 폴더를 새 탭에 복제\nCtrl+W  현재 탭 닫기\nCtrl+L  경로에 포커스하고 선택\nEsc  파일 목록으로 포커스 복귀\n\n즐겨찾기 및 최근 폴더\nCtrl+D  현재 폴더를 즐겨찾기에 추가 / 제거\nCtrl+B  즐겨찾기 열기    Ctrl+Shift+R  최근 폴더 열기\n\nPFC 내부 끌어서 놓기\n패널 또는 폴더 행으로 끌어 복사    Shift를 누르면 이동\n\n선택 및 클립보드\nCtrl+C / Ctrl+X / Ctrl+V  파일 탐색기와 복사 / 잘라내기 / 붙여넣기\nCtrl+A  모두 선택    Shift+Del  경고 후 완전히 삭제\nCtrl+Shift+C  선택 항목 또는 현재 경로 복사\nCtrl+H  숨김 파일 전환\nCtrl+Y  현재 패널 빠른 필터    Ctrl+M  선택 항목 일괄 이름 바꾸기\nAlt+F / Alt+V / Alt+H  파일 / 보기 / 버전 메뉴 열기",
     },
 }
@@ -1269,7 +1371,7 @@ def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int
 
 
 class SideBySideText(ttk.Frame):
-    def __init__(self, master, left_lines, right_lines, differences, status_text=""):
+    def __init__(self, master, left_lines, right_lines, differences, status_text="", status_factory=None):
         super().__init__(master)
         self.differences = differences
         self.diff_index = -1
@@ -1277,9 +1379,13 @@ class SideBySideText(ttk.Frame):
         self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
         diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
-        ttk.Button(diff_row, text=f"F7 {tr('Diff <<')}", command=self.previous).pack(side="left")
-        ttk.Button(diff_row, text=f"F8 {tr('Diff >>')}", command=self.next).pack(side="left", padx=3)
-        ttk.Label(diff_row, text=status_text).pack(side="left", padx=10)
+        self.status_factory = status_factory or (lambda: status_text)
+        self.previous_button = ttk.Button(diff_row, text=f"F7 {tr('Diff <<')}", command=self.previous)
+        self.previous_button.pack(side="left")
+        self.next_button = ttk.Button(diff_row, text=f"F8 {tr('Diff >>')}", command=self.next)
+        self.next_button.pack(side="left", padx=3)
+        self.diff_status = ttk.Label(diff_row, text=self.status_factory())
+        self.diff_status.pack(side="left", padx=10)
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
         self.search = ttk.Entry(find_row, textvariable=self.search_var)
@@ -1310,6 +1416,13 @@ class SideBySideText(ttk.Frame):
                 number_text = "" if source_number is None else str(source_number)
                 widget.insert("end", f"{number_text:>6}  {line}\n", "diff" if display_row in differences else "")
             widget.configure(state="disabled")
+
+    def apply_language(self, old_language: str) -> None:
+        retranslate_widgets(self, old_language)
+        self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
+        self.next_button.configure(text=f"F8 {tr('Diff >>')}")
+        self.diff_status.configure(text=self.status_factory())
+        self.find_all()
 
     def focus_search(self):
         self.search.focus_set(); self.search.selection_range(0, "end"); return "break"
@@ -1367,9 +1480,13 @@ class TextCompare(ttk.Frame):
         a = left.read_text(encoding="utf-8", errors="replace")
         b = right.read_text(encoding="utf-8", errors="replace")
         rows, differences = aligned_text(a, b)
-        view = SideBySideText(self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
-                              tr("{count} different line(s)", count=len(differences)))
-        view.pack(fill="both", expand=True)
+        self.view = SideBySideText(
+            self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
+            status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count))
+        self.view.pack(fill="both", expand=True)
+
+    def apply_language(self, old_language: str) -> None:
+        self.view.apply_language(old_language)
 
 
 class BinaryCompare(ttk.Frame):
@@ -1391,10 +1508,18 @@ class BinaryCompare(ttk.Frame):
                 text = "".join(chr(byte) if 32 <= byte < 127 else "." for byte in chunk)
                 return f"{offset:08X}  {hexdump:<47}  {text}"
             left_lines.append(render(ca)); right_lines.append(render(cb))
-        status = tr("SHA-256: {result}; first offset: {offset}",
-                    result=tr("identical") if file_hash(left) == file_hash(right) else tr("different"),
-                    offset=f"0x{different_offsets[0]:X}" if different_offsets else tr("none"))
-        SideBySideText(self, left_lines, right_lines, diff_lines, status).pack(fill="both", expand=True)
+        identical = file_hash(left) == file_hash(right)
+        first_offset = f"0x{different_offsets[0]:X}" if different_offsets else None
+        status_factory = lambda: tr(
+            "SHA-256: {result}; first offset: {offset}",
+            result=tr("identical") if identical else tr("different"),
+            offset=first_offset or tr("none"))
+        self.view = SideBySideText(self, left_lines, right_lines, diff_lines,
+                                   status_factory=status_factory)
+        self.view.pack(fill="both", expand=True)
+
+    def apply_language(self, old_language: str) -> None:
+        self.view.apply_language(old_language)
 
 
 def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=False,
@@ -1488,8 +1613,10 @@ class FolderCompare(ttk.Frame):
         self._scan_queue, self._cancel_event, self._scanning = queue.Queue(), threading.Event(), False
         self.sort_column, self.sort_reverse = "path", False
         paths = ttk.Frame(self); paths.pack(fill="x", pady=(2, 1))
-        ttk.Label(paths, text=f"{tr('Left')}: {left}").pack(side="left", fill="x", expand=True)
-        ttk.Label(paths, text=f"{tr('Right')}: {right}").pack(side="right", fill="x", expand=True)
+        self.left_path_label = ttk.Label(paths, text=f"{tr('Left')}: {left}")
+        self.left_path_label.pack(side="left", fill="x", expand=True)
+        self.right_path_label = ttk.Label(paths, text=f"{tr('Right')}: {right}")
+        self.right_path_label.pack(side="right", fill="x", expand=True)
         bar = ttk.Frame(self); bar.pack(fill="x")
         ttk.Label(bar, text=tr("Mask:")).pack(side="left")
         self.mask_var = tk.StringVar(value="*")
@@ -1543,6 +1670,25 @@ class FolderCompare(ttk.Frame):
         self.tree.bind("<Control-Left>", lambda _e: self.set_action("left"))
         self.tree.bind("<space>", lambda _e: self.set_action("skip"))
         self.start_scan()
+
+    def apply_language(self, old_language: str) -> None:
+        selected_keys = {self.item_keys.get(iid) for iid in self.tree.selection()}
+        retranslate_widgets(self, old_language)
+        self.left_path_label.configure(text=f"{tr('Left')}: {self.left_root}")
+        self.right_path_label.configure(text=f"{tr('Right')}: {self.right_root}")
+        for column in ("action", "status", "path", "left", "right"):
+            marker = (" ▲" if not self.sort_reverse else " ▼") if column == self.sort_column else ""
+            self.tree.heading(column, text=tr(column.title()) + marker)
+        self.populate()
+        for iid in self.tree.get_children():
+            if self.item_keys.get(iid) in selected_keys:
+                self.tree.selection_add(iid)
+        if self._scanning:
+            self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
+        elif self.rows:
+            different = sum(1 for row in self.rows if row[0] != "Identical")
+            self.scan_status.configure(text=tr("{count} item(s), {different} different",
+                                                count=len(self.rows), different=different))
 
     @staticmethod
     def _detail(path):
@@ -1739,8 +1885,10 @@ class TableCompare(TextCompare):
         ttk.Frame.__init__(self, master)
         a, b = "\n".join(rows(left)), "\n".join(rows(right))
         aligned, differences = aligned_text(a, b)
-        SideBySideText(self, [(r[0], r[1]) for r in aligned], [(r[2], r[3]) for r in aligned], differences,
-                       tr("{count} different row(s)", count=len(differences))).pack(fill="both", expand=True)
+        self.view = SideBySideText(
+            self, [(r[0], r[1]) for r in aligned], [(r[2], r[3]) for r in aligned], differences,
+            status_factory=lambda count=len(differences): tr("{count} different row(s)", count=count))
+        self.view.pack(fill="both", expand=True)
 
 
 class CompareWindow(tk.Toplevel):
@@ -1760,6 +1908,15 @@ class CompareWindow(tk.Toplevel):
         self.bind("<Escape>", lambda _e: self.close_active())
         install_button_tooltips(self)
         self._schedule_refresh()
+
+    def apply_language(self, old_language: str) -> None:
+        retranslate_widgets(self, old_language)
+        self.title(tr("PFC Compare"))
+        for frame, (left, right, kind, _signature) in self.comparisons.items():
+            if hasattr(frame, "apply_language"):
+                frame.apply_language(old_language)
+            self.notebook.tab(frame, text=f"{tr(kind)}: {left.name} ↔ {right.name}")
+        self.notebook.redraw()
 
     @staticmethod
     def _signature(left: Path, right: Path):
@@ -1921,9 +2078,10 @@ class PreviewWindow(tk.Toplevel):
         ttk.Button(file_row, text=tr("File <<"), command=self.previous_file).pack(side="left")
         ttk.Button(file_row, text=tr("File >>"), command=self.next_file).pack(side="left", padx=(3, 10))
         ttk.Label(file_row, text=tr("View:")).pack(side="left", padx=(4, 3))
-        mode = ttk.Combobox(file_row, width=7, state="readonly", textvariable=self.mode_var,
-                            values=tuple(self.mode_values))
-        mode.pack(side="left"); mode.bind("<<ComboboxSelected>>", lambda _event: self.load())
+        self.mode_combo = ttk.Combobox(file_row, width=7, state="readonly", textvariable=self.mode_var,
+                                       values=tuple(self.mode_values))
+        self.mode_combo.pack(side="left")
+        self.mode_combo.bind("<<ComboboxSelected>>", lambda _event: self.load())
         ttk.Checkbutton(file_row, text=tr("Wrap"), variable=self.wrap_var,
                         command=self.set_wrap).pack(side="left", padx=10)
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
@@ -1953,6 +2111,14 @@ class PreviewWindow(tk.Toplevel):
         self.load()
         self._schedule_refresh()
         self.after_idle(self.activate)
+
+    def apply_language(self, old_language: str) -> None:
+        mode = self.mode_values.get(self.mode_var.get(), self.mode_var.get())
+        retranslate_widgets(self, old_language)
+        self.mode_values = {tr("Auto"): "Auto", tr("Text"): "Text", tr("Hex"): "Hex"}
+        self.mode_combo.configure(values=tuple(self.mode_values))
+        self.mode_var.set(next(label for label, value in self.mode_values.items() if value == mode))
+        self.load()
 
     @property
     def path(self) -> Path:
@@ -2156,8 +2322,9 @@ class SearchWindow(tk.Toplevel):
             if row == 1: self.mask_entry = entry
         options = ttk.Frame(form); options.grid(row=3, column=0, columnspan=8, sticky="ew", pady=(5, 2))
         ttk.Label(options, text=tr("Depth:")).pack(side="left")
-        ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=8,
-                     values=tuple(self.depth_values)).pack(side="left", padx=(3, 10))
+        self.depth_combo = ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=8,
+                                        values=tuple(self.depth_values))
+        self.depth_combo.pack(side="left", padx=(3, 10))
         ttk.Checkbutton(options, text=tr("Files"), variable=self.files_var).pack(side="left")
         ttk.Checkbutton(options, text=tr("Folders"), variable=self.folders_var).pack(side="left", padx=(3, 10))
         ttk.Checkbutton(options, text=tr("Case sensitive"), variable=self.case_var).pack(side="left")
@@ -2189,6 +2356,20 @@ class SearchWindow(tk.Toplevel):
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def apply_language(self, old_language: str) -> None:
+        depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
+        retranslate_widgets(self, old_language)
+        self.depth_values = {tr("Current"): "Current", "1": "1", "2": "2", "3": "3",
+                             "5": "5", tr("All"): "All"}
+        self.depth_combo.configure(values=tuple(self.depth_values))
+        self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
+        self.title(tr("PFC Search"))
+        self._apply_sort()
+        if self.worker is not None and self.worker.is_alive():
+            self.status.configure(text=tr("Searching…"))
+        elif self.results:
+            self.status.configure(text=tr("{count} found", count=len(self.results)))
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()
@@ -2455,6 +2636,13 @@ class MultiRenameWindow(tk.Toplevel):
 
     def _activate(self):
         self.deiconify(); self.lift(); self.focus_force(); self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end")
+
+    def apply_language(self, old_language: str) -> None:
+        retranslate_widgets(self, old_language)
+        self.title(tr("PFC Multi-Rename"))
+        for column in ("old", "new", "status"):
+            self.tree.heading(column, text=tr(column.title()))
+        self.update_preview()
 
     def _plan(self):
         try:
@@ -2794,7 +2982,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.11.0"
+__version__ = "0.11.1"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -2802,6 +2990,11 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/16"
 VERSION_HISTORY = (
+    ("v0.11.1", "2026/07/16", (
+        "Adjusted: UI language changes apply immediately without restarting.",
+        "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.",
+        "Adjusted: Replaced compact version pop-ups with a scalable release-notes window.",
+    )),
     ("v0.11.0", "2026/07/16", (
         "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.",
         "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.",
@@ -2886,6 +3079,51 @@ def hide_private_console() -> bool:
     user32.ShowWindow.argtypes = [ctypes.c_void_p, ctypes.c_int]
     user32.ShowWindow(window, 0)  # SW_HIDE
     return True
+
+
+def enable_windows_dpi_awareness() -> bool:
+    """Request the sharpest supported Windows DPI mode before Tk is created."""
+    if os.name != "nt":
+        return False
+    try:
+        bits = ctypes.sizeof(ctypes.c_void_p) * 8
+        context = ctypes.c_void_p(-4 & ((1 << bits) - 1))  # PER_MONITOR_AWARE_V2
+        if ctypes.windll.user32.SetProcessDpiAwarenessContext(context):
+            return True
+    except (AttributeError, OSError, ValueError):
+        pass
+    try:
+        if ctypes.windll.shcore.SetProcessDpiAwareness(2) in (0, -2147024891):
+            return True
+    except (AttributeError, OSError):
+        pass
+    try:
+        return bool(ctypes.windll.user32.SetProcessDPIAware())
+    except (AttributeError, OSError):
+        return False
+
+
+def preferred_font_families(available) -> tuple[str, str]:
+    names = {str(name).casefold(): str(name) for name in available}
+    interface = names.get("segoe ui", "Segoe UI")
+    fixed = next((names[name.casefold()] for name in ("Cascadia Mono", "Consolas")
+                  if name.casefold() in names), "TkFixedFont")
+    return interface, fixed
+
+
+def configure_native_fonts(root) -> None:
+    """Use ClearType-friendly native families while retaining current font sizes."""
+    interface, fixed = preferred_font_families(tkfont.families(root))
+    for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont", "TkHeadingFont",
+                 "TkCaptionFont", "TkSmallCaptionFont", "TkTooltipFont"):
+        try:
+            tkfont.nametofont(name, root=root).configure(family=interface)
+        except tk.TclError:
+            pass
+    try:
+        tkfont.nametofont("TkFixedFont", root=root).configure(family=fixed)
+    except tk.TclError:
+        pass
 
 
 def relaunch_with_pythonw() -> bool:
@@ -2993,6 +3231,19 @@ class FilePane(ttk.Frame):
             self.shell_drop_target = ShellFileDropTarget(self.tree, self._shell_files_dropped)
         except OSError:
             self.shell_drop_target = None
+
+    def apply_language(self) -> None:
+        self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
+                               "modified": tr("Date Modified"), "attr": tr("Attr")}
+        for column in self.all_sort_columns:
+            marker = (" ▼" if self.reverse else " ▲") if column == self.sort_column else ""
+            self.tree.heading("#0" if column == "name" else column,
+                              text=self.heading_labels[column] + marker)
+        for child in self.quick_filter_bar.winfo_children():
+            if isinstance(child, ttk.Label):
+                child.configure(text=tr("Quick Filter:"))
+                break
+        self.refresh()
 
     def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
         self.on_drag("external_drop", self, {
@@ -3448,7 +3699,9 @@ class ConflictDialog(tk.Toplevel):
 
 class Commander(tk.Tk):
     def __init__(self) -> None:
+        enable_windows_dpi_awareness()
         super().__init__()
+        configure_native_fonts(self)
         self._ready = False
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()
@@ -3468,6 +3721,8 @@ class Commander(tk.Tk):
         self.preview_window = None
         self.search_window = None
         self.multi_rename_window = None
+        self.version_window = None
+        self.version_window_series = None
         self._rename_undo = []
         self._drag_state = None
         self._drag_ghost = None
@@ -3501,6 +3756,9 @@ class Commander(tk.Tk):
             except tk.TclError:
                 pass
         style = ttk.Style(self)
+        style.configure(".", font=tkfont.nametofont("TkDefaultFont"))
+        style.configure("Treeview", font=tkfont.nametofont("TkDefaultFont"))
+        style.configure("Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
         style.configure("Active.Treeview", background="white", fieldbackground="white", indent=6)
         style.map("Active.Treeview", background=[("selected", "#1683e2")], foreground=[("selected", "white")])
         style.configure("Inactive.Treeview", background="white", fieldbackground="white", indent=6)
@@ -3544,17 +3802,21 @@ class Commander(tk.Tk):
         self.active = self.panel_tabs[active_index].current()
         self.apply_font_size(save=False)
         self.apply_tab_style(save=False)
-        actions = ttk.Frame(self)
+        actions = ttk.Frame(self); self.actions_frame = actions
         actions.pack(fill="x", padx=5, pady=(0, 5))
-        for text, command in ((f"F2 {tr('Rename')}", self.rename), (f"F3 {tr('Preview')}", self.preview),
-                              (f"F4 {tr('Search')}", self.search), (f"F5 {tr('Copy')}", self.copy),
-                              (f"F6 {tr('Move')}", self.move), (f"F7 {tr('New Folder')}", self.mkdir),
-                              ("F8", None), (f"F9 {tr('Compare')}", self.compare_selected),
-                              (f"F11 {tr('Copy Path')}", self.copy_paths), (f"F12 {tr('Change Dir')}", self.change_dir)):
+        self.action_buttons = []
+        for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
+                                       ("F4", "Search", self.search), ("F5", "Copy", self.copy),
+                                       ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
+                                       ("F8", "", None), ("F9", "Compare", self.compare_selected),
+                                       ("F11", "Copy Path", self.copy_paths),
+                                       ("F12", "Change Dir", self.change_dir)):
+            text = f"{hotkey} {tr(label)}".rstrip()
             button = ttk.Button(actions, text=text, command=command)
             if command is None:
                 button.state(["disabled"])
             button.pack(side="left", fill="x", expand=True, padx=1)
+            self.action_buttons.append((button, hotkey, label))
         install_button_tooltips(self)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
@@ -3806,10 +4068,17 @@ class Commander(tk.Tk):
         self._schedule_auto_refresh()
 
     def _build_menu(self) -> None:
+        previous_header = getattr(self, "header", None)
+        if previous_header is not None and previous_header.winfo_exists():
+            previous_header.destroy()
         menu_font = tkfont.nametofont("TkMenuFont")
         header_bg, header_fg, active_bg = "#243b53", "#f4f8fb", "#365b78"
         header = tk.Frame(self, background=header_bg, padx=5, pady=4)
-        header.pack(fill="x")
+        if hasattr(self, "split"):
+            header.pack(fill="x", before=self.split)
+        else:
+            header.pack(fill="x")
+        self.header = header
         title = tk.Label(header, text=f"Python File Commander   v{__version__}   {tr('Build')} {BUILD_DATE}",
                          font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
@@ -4107,9 +4376,42 @@ class Commander(tk.Tk):
             self.save_config()
 
     def apply_ui_language(self) -> None:
+        # Run after the menu command returns so rebuilding the header does not
+        # destroy the menu while Tk is still dispatching its callback.
+        self.after_idle(self._apply_ui_language_now)
+
+    def _apply_ui_language_now(self) -> None:
+        language = self.ui_language_var.get()
+        old_language = get_language()
+        if language == old_language:
+            return
+        focused = self.focus_get()
+        set_language(language)
+        self._build_menu()
+        for button, hotkey, label in self.action_buttons:
+            button.configure(text=f"{hotkey} {tr(label)}".rstrip())
+        for pane in self.all_panes():
+            pane.apply_language()
+        for window in (self.preview_window, self.search_window,
+                       self.compare_window, self.multi_rename_window):
+            if window is not None and window.winfo_exists() and hasattr(window, "apply_language"):
+                window.apply_language(old_language)
+        if self.version_window is not None and self.version_window.winfo_exists():
+            self._render_version_window()
+        if self._clipboard_job is not None:
+            self.after_cancel(self._clipboard_job)
+            self._clipboard_job = None
+        self._clipboard_visual_key = None
+        self._update_clipboard_summary()
         self.save_config()
-        messagebox.showinfo(tr("Language saved"),
-                            tr("Restart PFC to apply the selected UI language."), parent=self)
+
+        def restore_focus():
+            try:
+                target = focused if focused is not None and focused.winfo_exists() else self.active.tree
+                target.focus_set()
+            except tk.TclError:
+                self.active.tree.focus_set()
+        self.after_idle(restore_focus)
 
     def visible_panes(self) -> list[FilePane]:
         return [tabs.current() for tabs in self.visible_panel_tabs()]
@@ -4427,15 +4729,61 @@ class Commander(tk.Tk):
     def version_series_notes(self, series: str) -> tuple[str, str]:
         items = [(version, date, notes) for version, date, notes in VERSION_HISTORY
                  if version.rsplit(".", 1)[0] + ".x" == series]
-        title = f"Python File Commander — {series} Changes"
-        body = "\n\n".join(f"{version} — Build {date}\n" +
-                           "\n".join(f"• {note}" for note in notes)
-                           for version, date, notes in items)
-        return title, body or "No release notes available."
+        title = f"Python File Commander — {tr('{series} Changes', series=series)}"
+        body = "\n\n".join(f"{version} — {tr('Build')} {date}\n" +
+                            "\n".join(f"• {tr(note)}" for note in notes)
+                            for version, date, notes in items)
+        return title, body or tr("No release notes available.")
 
     def show_version_series(self, series: str) -> None:
-        title, body = self.version_series_notes(series)
-        messagebox.showinfo(title, body, parent=self)
+        self.version_window_series = series
+        if self.version_window is None or not self.version_window.winfo_exists():
+            dialog = tk.Toplevel(self)
+            self.version_window = dialog
+            dialog.transient(self)
+            dialog.minsize(720, 500)
+            width = max(720, min(1050, dialog.winfo_screenwidth() - 100))
+            height = max(500, min(760, dialog.winfo_screenheight() - 140))
+            dialog.geometry(f"{width}x{height}")
+            dialog.protocol("WM_DELETE_WINDOW", dialog.destroy)
+            dialog.bind("<Escape>", lambda _event: dialog.destroy())
+            dialog.bind("<Control-w>", lambda _event: dialog.destroy())
+
+            frame = ttk.Frame(dialog, padding=16)
+            frame.pack(fill="both", expand=True)
+            self.version_heading = ttk.Label(frame, font=tkfont.nametofont("TkHeadingFont"))
+            self.version_heading.pack(anchor="w", pady=(0, 10))
+            content = ttk.Frame(frame)
+            content.pack(fill="both", expand=True)
+            self.version_text = tk.Text(content, wrap="word", relief="solid", borderwidth=1,
+                                        padx=14, pady=12, font=tkfont.nametofont("TkDefaultFont"),
+                                        cursor="arrow", takefocus=True)
+            scrollbar = ttk.Scrollbar(content, orient="vertical", command=self.version_text.yview)
+            self.version_text.configure(yscrollcommand=scrollbar.set)
+            self.version_text.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
+            self.version_close_button = ttk.Button(frame, command=dialog.destroy)
+            self.version_close_button.pack(anchor="e", pady=(12, 0))
+        self._render_version_window()
+        self.version_window.deiconify()
+        self.version_window.lift()
+        self.version_window.focus_force()
+        self.version_text.focus_set()
+
+    def _render_version_window(self) -> None:
+        if (self.version_window is None or not self.version_window.winfo_exists() or
+                self.version_window_series is None):
+            return
+        title, body = self.version_series_notes(self.version_window_series)
+        self.version_window.title(title)
+        self.version_heading.configure(text=tr("Version Change History"))
+        self.version_close_button.configure(text=tr("Close"))
+        position = self.version_text.yview()[0]
+        self.version_text.configure(state="normal")
+        self.version_text.delete("1.0", "end")
+        self.version_text.insert("1.0", body)
+        self.version_text.configure(state="disabled")
+        self.version_text.yview_moveto(position)
 
     def show_yoda_note(self) -> None:
         body = (

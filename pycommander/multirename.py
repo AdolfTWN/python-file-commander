@@ -6,7 +6,7 @@ from pathlib import Path
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import messagebox, ttk
-from .i18n import tr
+from .i18n import retranslate_widgets, tr
 
 
 INVALID_NAME_CHARS = set('<>:"/\\|?*')
@@ -140,6 +140,13 @@ class MultiRenameWindow(tk.Toplevel):
 
     def _activate(self):
         self.deiconify(); self.lift(); self.focus_force(); self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end")
+
+    def apply_language(self, old_language: str) -> None:
+        retranslate_widgets(self, old_language)
+        self.title(tr("PFC Multi-Rename"))
+        for column in ("old", "new", "status"):
+            self.tree.heading(column, text=tr(column.title()))
+        self.update_preview()
 
     def _plan(self):
         try:

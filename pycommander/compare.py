@@ -14,7 +14,7 @@ from tkinter import messagebox, ttk
 
 from .tabs import ChamferNotebook
 from .tooltip import install_button_tooltips
-from .i18n import tr
+from .i18n import retranslate_widgets, tr
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -66,7 +66,7 @@ def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int
 
 
 class SideBySideText(ttk.Frame):
-    def __init__(self, master, left_lines, right_lines, differences, status_text=""):
+    def __init__(self, master, left_lines, right_lines, differences, status_text="", status_factory=None):
         super().__init__(master)
         self.differences = differences
         self.diff_index = -1
@@ -74,9 +74,13 @@ class SideBySideText(ttk.Frame):
         self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
         diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
-        ttk.Button(diff_row, text=f"F7 {tr('Diff <<')}", command=self.previous).pack(side="left")
-        ttk.Button(diff_row, text=f"F8 {tr('Diff >>')}", command=self.next).pack(side="left", padx=3)
-        ttk.Label(diff_row, text=status_text).pack(side="left", padx=10)
+        self.status_factory = status_factory or (lambda: status_text)
+        self.previous_button = ttk.Button(diff_row, text=f"F7 {tr('Diff <<')}", command=self.previous)
+        self.previous_button.pack(side="left")
+        self.next_button = ttk.Button(diff_row, text=f"F8 {tr('Diff >>')}", command=self.next)
+        self.next_button.pack(side="left", padx=3)
+        self.diff_status = ttk.Label(diff_row, text=self.status_factory())
+        self.diff_status.pack(side="left", padx=10)
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
         self.search = ttk.Entry(find_row, textvariable=self.search_var)
@@ -107,6 +111,13 @@ class SideBySideText(ttk.Frame):
                 number_text = "" if source_number is None else str(source_number)
                 widget.insert("end", f"{number_text:>6}  {line}\n", "diff" if display_row in differences else "")
             widget.configure(state="disabled")
+
+    def apply_language(self, old_language: str) -> None:
+        retranslate_widgets(self, old_language)
+        self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
+        self.next_button.configure(text=f"F8 {tr('Diff >>')}")
+        self.diff_status.configure(text=self.status_factory())
+        self.find_all()
 
     def focus_search(self):
         self.search.focus_set(); self.search.selection_range(0, "end"); return "break"
@@ -164,9 +175,13 @@ class TextCompare(ttk.Frame):
         a = left.read_text(encoding="utf-8", errors="replace")
         b = right.read_text(encoding="utf-8", errors="replace")
         rows, differences = aligned_text(a, b)
-        view = SideBySideText(self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
-                              tr("{count} different line(s)", count=len(differences)))
-        view.pack(fill="both", expand=True)
+        self.view = SideBySideText(
+            self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
+            status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count))
+        self.view.pack(fill="both", expand=True)
+
+    def apply_language(self, old_language: str) -> None:
+        self.view.apply_language(old_language)
 
 
 class BinaryCompare(ttk.Frame):
@@ -188,10 +203,18 @@ class BinaryCompare(ttk.Frame):
                 text = "".join(chr(byte) if 32 <= byte < 127 else "." for byte in chunk)
                 return f"{offset:08X}  {hexdump:<47}  {text}"
             left_lines.append(render(ca)); right_lines.append(render(cb))
-        status = tr("SHA-256: {result}; first offset: {offset}",
-                    result=tr("identical") if file_hash(left) == file_hash(right) else tr("different"),
-                    offset=f"0x{different_offsets[0]:X}" if different_offsets else tr("none"))
-        SideBySideText(self, left_lines, right_lines, diff_lines, status).pack(fill="both", expand=True)
+        identical = file_hash(left) == file_hash(right)
+        first_offset = f"0x{different_offsets[0]:X}" if different_offsets else None
+        status_factory = lambda: tr(
+            "SHA-256: {result}; first offset: {offset}",
+            result=tr("identical") if identical else tr("different"),
+            offset=first_offset or tr("none"))
+        self.view = SideBySideText(self, left_lines, right_lines, diff_lines,
+                                   status_factory=status_factory)
+        self.view.pack(fill="both", expand=True)
+
+    def apply_language(self, old_language: str) -> None:
+        self.view.apply_language(old_language)
 
 
 def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=False,
@@ -285,8 +308,10 @@ class FolderCompare(ttk.Frame):
         self._scan_queue, self._cancel_event, self._scanning = queue.Queue(), threading.Event(), False
         self.sort_column, self.sort_reverse = "path", False
         paths = ttk.Frame(self); paths.pack(fill="x", pady=(2, 1))
-        ttk.Label(paths, text=f"{tr('Left')}: {left}").pack(side="left", fill="x", expand=True)
-        ttk.Label(paths, text=f"{tr('Right')}: {right}").pack(side="right", fill="x", expand=True)
+        self.left_path_label = ttk.Label(paths, text=f"{tr('Left')}: {left}")
+        self.left_path_label.pack(side="left", fill="x", expand=True)
+        self.right_path_label = ttk.Label(paths, text=f"{tr('Right')}: {right}")
+        self.right_path_label.pack(side="right", fill="x", expand=True)
         bar = ttk.Frame(self); bar.pack(fill="x")
         ttk.Label(bar, text=tr("Mask:")).pack(side="left")
         self.mask_var = tk.StringVar(value="*")
@@ -340,6 +365,25 @@ class FolderCompare(ttk.Frame):
         self.tree.bind("<Control-Left>", lambda _e: self.set_action("left"))
         self.tree.bind("<space>", lambda _e: self.set_action("skip"))
         self.start_scan()
+
+    def apply_language(self, old_language: str) -> None:
+        selected_keys = {self.item_keys.get(iid) for iid in self.tree.selection()}
+        retranslate_widgets(self, old_language)
+        self.left_path_label.configure(text=f"{tr('Left')}: {self.left_root}")
+        self.right_path_label.configure(text=f"{tr('Right')}: {self.right_root}")
+        for column in ("action", "status", "path", "left", "right"):
+            marker = (" ▲" if not self.sort_reverse else " ▼") if column == self.sort_column else ""
+            self.tree.heading(column, text=tr(column.title()) + marker)
+        self.populate()
+        for iid in self.tree.get_children():
+            if self.item_keys.get(iid) in selected_keys:
+                self.tree.selection_add(iid)
+        if self._scanning:
+            self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
+        elif self.rows:
+            different = sum(1 for row in self.rows if row[0] != "Identical")
+            self.scan_status.configure(text=tr("{count} item(s), {different} different",
+                                                count=len(self.rows), different=different))
 
     @staticmethod
     def _detail(path):
@@ -536,8 +580,10 @@ class TableCompare(TextCompare):
         ttk.Frame.__init__(self, master)
         a, b = "\n".join(rows(left)), "\n".join(rows(right))
         aligned, differences = aligned_text(a, b)
-        SideBySideText(self, [(r[0], r[1]) for r in aligned], [(r[2], r[3]) for r in aligned], differences,
-                       tr("{count} different row(s)", count=len(differences))).pack(fill="both", expand=True)
+        self.view = SideBySideText(
+            self, [(r[0], r[1]) for r in aligned], [(r[2], r[3]) for r in aligned], differences,
+            status_factory=lambda count=len(differences): tr("{count} different row(s)", count=count))
+        self.view.pack(fill="both", expand=True)
 
 
 class CompareWindow(tk.Toplevel):
@@ -557,6 +603,15 @@ class CompareWindow(tk.Toplevel):
         self.bind("<Escape>", lambda _e: self.close_active())
         install_button_tooltips(self)
         self._schedule_refresh()
+
+    def apply_language(self, old_language: str) -> None:
+        retranslate_widgets(self, old_language)
+        self.title(tr("PFC Compare"))
+        for frame, (left, right, kind, _signature) in self.comparisons.items():
+            if hasattr(frame, "apply_language"):
+                frame.apply_language(old_language)
+            self.notebook.tab(frame, text=f"{tr(kind)}: {left.name} ↔ {right.name}")
+        self.notebook.redraw()
 
     @staticmethod
     def _signature(left: Path, right: Path):

@@ -25,7 +25,7 @@ from .multirename import MultiRenameWindow
 from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
 from .tooltip import MenuToolTip, install_button_tooltips
 from .tabs import ChamferNotebook, TAB_STYLES
-from .i18n import LANGUAGES, set_language, tr
+from .i18n import LANGUAGES, get_language, set_language, tr
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -33,6 +33,11 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.11.1", "2026/07/16", (
+        "Adjusted: UI language changes apply immediately without restarting.",
+        "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.",
+        "Adjusted: Replaced compact version pop-ups with a scalable release-notes window.",
+    )),
     ("v0.11.0", "2026/07/16", (
         "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.",
         "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.",
@@ -117,6 +122,51 @@ def hide_private_console() -> bool:
     user32.ShowWindow.argtypes = [ctypes.c_void_p, ctypes.c_int]
     user32.ShowWindow(window, 0)  # SW_HIDE
     return True
+
+
+def enable_windows_dpi_awareness() -> bool:
+    """Request the sharpest supported Windows DPI mode before Tk is created."""
+    if os.name != "nt":
+        return False
+    try:
+        bits = ctypes.sizeof(ctypes.c_void_p) * 8
+        context = ctypes.c_void_p(-4 & ((1 << bits) - 1))  # PER_MONITOR_AWARE_V2
+        if ctypes.windll.user32.SetProcessDpiAwarenessContext(context):
+            return True
+    except (AttributeError, OSError, ValueError):
+        pass
+    try:
+        if ctypes.windll.shcore.SetProcessDpiAwareness(2) in (0, -2147024891):
+            return True
+    except (AttributeError, OSError):
+        pass
+    try:
+        return bool(ctypes.windll.user32.SetProcessDPIAware())
+    except (AttributeError, OSError):
+        return False
+
+
+def preferred_font_families(available) -> tuple[str, str]:
+    names = {str(name).casefold(): str(name) for name in available}
+    interface = names.get("segoe ui", "Segoe UI")
+    fixed = next((names[name.casefold()] for name in ("Cascadia Mono", "Consolas")
+                  if name.casefold() in names), "TkFixedFont")
+    return interface, fixed
+
+
+def configure_native_fonts(root) -> None:
+    """Use ClearType-friendly native families while retaining current font sizes."""
+    interface, fixed = preferred_font_families(tkfont.families(root))
+    for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont", "TkHeadingFont",
+                 "TkCaptionFont", "TkSmallCaptionFont", "TkTooltipFont"):
+        try:
+            tkfont.nametofont(name, root=root).configure(family=interface)
+        except tk.TclError:
+            pass
+    try:
+        tkfont.nametofont("TkFixedFont", root=root).configure(family=fixed)
+    except tk.TclError:
+        pass
 
 
 def relaunch_with_pythonw() -> bool:
@@ -224,6 +274,19 @@ class FilePane(ttk.Frame):
             self.shell_drop_target = ShellFileDropTarget(self.tree, self._shell_files_dropped)
         except OSError:
             self.shell_drop_target = None
+
+    def apply_language(self) -> None:
+        self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
+                               "modified": tr("Date Modified"), "attr": tr("Attr")}
+        for column in self.all_sort_columns:
+            marker = (" ▼" if self.reverse else " ▲") if column == self.sort_column else ""
+            self.tree.heading("#0" if column == "name" else column,
+                              text=self.heading_labels[column] + marker)
+        for child in self.quick_filter_bar.winfo_children():
+            if isinstance(child, ttk.Label):
+                child.configure(text=tr("Quick Filter:"))
+                break
+        self.refresh()
 
     def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
         self.on_drag("external_drop", self, {
@@ -679,7 +742,9 @@ class ConflictDialog(tk.Toplevel):
 
 class Commander(tk.Tk):
     def __init__(self) -> None:
+        enable_windows_dpi_awareness()
         super().__init__()
+        configure_native_fonts(self)
         self._ready = False
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()
@@ -699,6 +764,8 @@ class Commander(tk.Tk):
         self.preview_window = None
         self.search_window = None
         self.multi_rename_window = None
+        self.version_window = None
+        self.version_window_series = None
         self._rename_undo = []
         self._drag_state = None
         self._drag_ghost = None
@@ -732,6 +799,9 @@ class Commander(tk.Tk):
             except tk.TclError:
                 pass
         style = ttk.Style(self)
+        style.configure(".", font=tkfont.nametofont("TkDefaultFont"))
+        style.configure("Treeview", font=tkfont.nametofont("TkDefaultFont"))
+        style.configure("Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
         style.configure("Active.Treeview", background="white", fieldbackground="white", indent=6)
         style.map("Active.Treeview", background=[("selected", "#1683e2")], foreground=[("selected", "white")])
         style.configure("Inactive.Treeview", background="white", fieldbackground="white", indent=6)
@@ -775,17 +845,21 @@ class Commander(tk.Tk):
         self.active = self.panel_tabs[active_index].current()
         self.apply_font_size(save=False)
         self.apply_tab_style(save=False)
-        actions = ttk.Frame(self)
+        actions = ttk.Frame(self); self.actions_frame = actions
         actions.pack(fill="x", padx=5, pady=(0, 5))
-        for text, command in ((f"F2 {tr('Rename')}", self.rename), (f"F3 {tr('Preview')}", self.preview),
-                              (f"F4 {tr('Search')}", self.search), (f"F5 {tr('Copy')}", self.copy),
-                              (f"F6 {tr('Move')}", self.move), (f"F7 {tr('New Folder')}", self.mkdir),
-                              ("F8", None), (f"F9 {tr('Compare')}", self.compare_selected),
-                              (f"F11 {tr('Copy Path')}", self.copy_paths), (f"F12 {tr('Change Dir')}", self.change_dir)):
+        self.action_buttons = []
+        for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
+                                       ("F4", "Search", self.search), ("F5", "Copy", self.copy),
+                                       ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
+                                       ("F8", "", None), ("F9", "Compare", self.compare_selected),
+                                       ("F11", "Copy Path", self.copy_paths),
+                                       ("F12", "Change Dir", self.change_dir)):
+            text = f"{hotkey} {tr(label)}".rstrip()
             button = ttk.Button(actions, text=text, command=command)
             if command is None:
                 button.state(["disabled"])
             button.pack(side="left", fill="x", expand=True, padx=1)
+            self.action_buttons.append((button, hotkey, label))
         install_button_tooltips(self)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
@@ -1037,10 +1111,17 @@ class Commander(tk.Tk):
         self._schedule_auto_refresh()
 
     def _build_menu(self) -> None:
+        previous_header = getattr(self, "header", None)
+        if previous_header is not None and previous_header.winfo_exists():
+            previous_header.destroy()
         menu_font = tkfont.nametofont("TkMenuFont")
         header_bg, header_fg, active_bg = "#243b53", "#f4f8fb", "#365b78"
         header = tk.Frame(self, background=header_bg, padx=5, pady=4)
-        header.pack(fill="x")
+        if hasattr(self, "split"):
+            header.pack(fill="x", before=self.split)
+        else:
+            header.pack(fill="x")
+        self.header = header
         title = tk.Label(header, text=f"Python File Commander   v{__version__}   {tr('Build')} {BUILD_DATE}",
                          font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
@@ -1338,9 +1419,42 @@ class Commander(tk.Tk):
             self.save_config()
 
     def apply_ui_language(self) -> None:
+        # Run after the menu command returns so rebuilding the header does not
+        # destroy the menu while Tk is still dispatching its callback.
+        self.after_idle(self._apply_ui_language_now)
+
+    def _apply_ui_language_now(self) -> None:
+        language = self.ui_language_var.get()
+        old_language = get_language()
+        if language == old_language:
+            return
+        focused = self.focus_get()
+        set_language(language)
+        self._build_menu()
+        for button, hotkey, label in self.action_buttons:
+            button.configure(text=f"{hotkey} {tr(label)}".rstrip())
+        for pane in self.all_panes():
+            pane.apply_language()
+        for window in (self.preview_window, self.search_window,
+                       self.compare_window, self.multi_rename_window):
+            if window is not None and window.winfo_exists() and hasattr(window, "apply_language"):
+                window.apply_language(old_language)
+        if self.version_window is not None and self.version_window.winfo_exists():
+            self._render_version_window()
+        if self._clipboard_job is not None:
+            self.after_cancel(self._clipboard_job)
+            self._clipboard_job = None
+        self._clipboard_visual_key = None
+        self._update_clipboard_summary()
         self.save_config()
-        messagebox.showinfo(tr("Language saved"),
-                            tr("Restart PFC to apply the selected UI language."), parent=self)
+
+        def restore_focus():
+            try:
+                target = focused if focused is not None and focused.winfo_exists() else self.active.tree
+                target.focus_set()
+            except tk.TclError:
+                self.active.tree.focus_set()
+        self.after_idle(restore_focus)
 
     def visible_panes(self) -> list[FilePane]:
         return [tabs.current() for tabs in self.visible_panel_tabs()]
@@ -1658,15 +1772,61 @@ class Commander(tk.Tk):
     def version_series_notes(self, series: str) -> tuple[str, str]:
         items = [(version, date, notes) for version, date, notes in VERSION_HISTORY
                  if version.rsplit(".", 1)[0] + ".x" == series]
-        title = f"Python File Commander — {series} Changes"
-        body = "\n\n".join(f"{version} — Build {date}\n" +
-                           "\n".join(f"• {note}" for note in notes)
-                           for version, date, notes in items)
-        return title, body or "No release notes available."
+        title = f"Python File Commander — {tr('{series} Changes', series=series)}"
+        body = "\n\n".join(f"{version} — {tr('Build')} {date}\n" +
+                            "\n".join(f"• {tr(note)}" for note in notes)
+                            for version, date, notes in items)
+        return title, body or tr("No release notes available.")
 
     def show_version_series(self, series: str) -> None:
-        title, body = self.version_series_notes(series)
-        messagebox.showinfo(title, body, parent=self)
+        self.version_window_series = series
+        if self.version_window is None or not self.version_window.winfo_exists():
+            dialog = tk.Toplevel(self)
+            self.version_window = dialog
+            dialog.transient(self)
+            dialog.minsize(720, 500)
+            width = max(720, min(1050, dialog.winfo_screenwidth() - 100))
+            height = max(500, min(760, dialog.winfo_screenheight() - 140))
+            dialog.geometry(f"{width}x{height}")
+            dialog.protocol("WM_DELETE_WINDOW", dialog.destroy)
+            dialog.bind("<Escape>", lambda _event: dialog.destroy())
+            dialog.bind("<Control-w>", lambda _event: dialog.destroy())
+
+            frame = ttk.Frame(dialog, padding=16)
+            frame.pack(fill="both", expand=True)
+            self.version_heading = ttk.Label(frame, font=tkfont.nametofont("TkHeadingFont"))
+            self.version_heading.pack(anchor="w", pady=(0, 10))
+            content = ttk.Frame(frame)
+            content.pack(fill="both", expand=True)
+            self.version_text = tk.Text(content, wrap="word", relief="solid", borderwidth=1,
+                                        padx=14, pady=12, font=tkfont.nametofont("TkDefaultFont"),
+                                        cursor="arrow", takefocus=True)
+            scrollbar = ttk.Scrollbar(content, orient="vertical", command=self.version_text.yview)
+            self.version_text.configure(yscrollcommand=scrollbar.set)
+            self.version_text.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
+            self.version_close_button = ttk.Button(frame, command=dialog.destroy)
+            self.version_close_button.pack(anchor="e", pady=(12, 0))
+        self._render_version_window()
+        self.version_window.deiconify()
+        self.version_window.lift()
+        self.version_window.focus_force()
+        self.version_text.focus_set()
+
+    def _render_version_window(self) -> None:
+        if (self.version_window is None or not self.version_window.winfo_exists() or
+                self.version_window_series is None):
+            return
+        title, body = self.version_series_notes(self.version_window_series)
+        self.version_window.title(title)
+        self.version_heading.configure(text=tr("Version Change History"))
+        self.version_close_button.configure(text=tr("Close"))
+        position = self.version_text.yview()[0]
+        self.version_text.configure(state="normal")
+        self.version_text.delete("1.0", "end")
+        self.version_text.insert("1.0", body)
+        self.version_text.configure(state="disabled")
+        self.version_text.yview_moveto(position)
 
     def show_yoda_note(self) -> None:
         body = (

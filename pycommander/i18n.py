@@ -26,6 +26,33 @@ def tr(text: str, **values) -> str:
     return translated.format(**values) if values else translated
 
 
+def source_text(text: str, language: str) -> str | None:
+    if language == "en":
+        keys = {key for translations in _TRANSLATIONS.values() for key in translations}
+        return text if text in keys else None
+    for source, translated in _TRANSLATIONS.get(language, {}).items():
+        if translated == text:
+            return source
+    return None
+
+
+def retranslate_widgets(root, old_language: str) -> None:
+    pending = [root]
+    while pending:
+        widget = pending.pop()
+        pending.extend(widget.winfo_children())
+        try:
+            text = widget.cget("text")
+        except Exception:
+            continue
+        source = source_text(str(text), old_language)
+        if source is not None:
+            try:
+                widget.configure(text=tr(source))
+            except Exception:
+                pass
+
+
 _TRANSLATIONS = {
     "en": {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel    Ctrl+M  Multi-Rename selected items\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
@@ -91,6 +118,31 @@ _TRANSLATIONS = {
         "{verb} {count} selected item(s) to:\n{destination}?": "要將選取的 {count} 個項目{verb}到：\n{destination}？", "{verb} result": "{verb}結果", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}：完成 {completed} 個、略過 {skipped} 個、失敗 {failed} 個。",
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
+        "No release notes available.": "沒有可用的版本資訊。",
+        "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "新增：可設定 2 至 4 面板版面配置，並保存面板狀態及支援下一面板操作。",
+        "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "新增：視覺化剪貼簿摘要，顯示重疊的原生圖示與精簡的剩餘項目數量。",
+        "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "新增：英文、繁體中文、簡體中文及韓文使用者介面。",
+        "Adjusted: UI language changes apply immediately without restarting.": "調整：介面語言變更會立即套用，不需重新啟動。",
+        "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.": "調整：使用 Windows 原生字型與 DPI 感知改善字型顯示品質。",
+        "Adjusted: Replaced compact version pop-ups with a scalable release-notes window.": "調整：以可縮放的版本紀錄視窗取代狹小的版本彈窗。",
+        "Version Change History": "版本變更紀錄",
+        "Added: Mouse drag reordering for tabs with persistent panel order.": "新增：可用滑鼠拖曳重新排列分頁，並保存各面板的分頁順序。",
+        "Added: Native file drag-and-drop between PFC and Windows File Explorer.": "新增：PFC 與 Windows 檔案總管之間的原生檔案拖放功能。",
+        "Added: File and folder context menu with frequent operations and keyboard access.": "新增：提供常用操作及鍵盤存取的檔案與資料夾右鍵選單。",
+        "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.": "新增：資料夾比較，支援背景掃描、篩選、內容檢查及僅複製的安全同步預演。",
+        "Added: Per-tab Quick Filter for the active file list.": "新增：每個分頁各自保存的目前檔案清單快速篩選。",
+        "Added: Multi-Rename with live preview, validation, rollback, and in-session undo.": "新增：批次重新命名，支援即時預覽、驗證、回復及工作階段內復原。",
+        "Adjusted: Combined the v0.8.x change history into one window.": "調整：將 v0.8.x 變更記錄合併至單一視窗。",
+        "Added: Right Skirt, Rounded, and Squarish tab styles with saved preference.": "新增：右側裙襬、圓角及方形分頁樣式，並保存偏好設定。",
+        "Adjusted: Made Right Skirt the default and kept all tab styles at equal height.": "調整：將右側裙襬設為預設樣式，並統一所有分頁樣式的高度。",
+        "Added: Internal drag-and-drop with Copy and Shift+Move destination feedback.": "新增：PFC 內部拖放，支援複製、Shift+移動及目的地回饋。",
+        "Added: Outlook attachment paste with attachment-aware clipboard summary.": "新增：Outlook 附件貼上及可辨識附件的剪貼簿摘要。",
+        "Adjusted: Aligned menu actions and keyboard shortcuts into separate columns.": "調整：將選單動作與鍵盤快速鍵分欄對齊。",
+        "Added: Recycle Bin delete and explicit Shift+Del permanent delete.": "新增：資源回收筒刪除及明確的 Shift+Del 永久刪除。",
+        "Added: Copy, move, and paste conflict choices with partial-failure recovery.": "新增：複製、移動及貼上衝突選項，並支援部分失敗後復原。",
+        "Added: Keyboard-accessible Favorites and Recent Folders.": "新增：可完全使用鍵盤操作的我的最愛與最近使用的資料夾。",
+        "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "新增：雙檔案面板、分頁、導覽、排序及可攜式 INI 設定。",
+        "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "新增：預覽、搜尋、比較及端到端鍵盤操作。",
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板    Ctrl+M  批次重新命名\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
@@ -131,6 +183,31 @@ _TRANSLATIONS = {
         "{verb} {count} selected item(s) to:\n{destination}?": "要将选择的 {count} 个项目{verb}到：\n{destination}？", "{verb} result": "{verb}结果", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}：完成 {completed} 个、跳过 {skipped} 个、失败 {failed} 个。",
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
+        "No release notes available.": "没有可用的版本信息。",
+        "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "新增：可配置 2 至 4 面板布局，并保存面板状态及支持下一面板操作。",
+        "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "新增：可视化剪贴板摘要，显示重叠的原生图标与精简的剩余项目数量。",
+        "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "新增：英文、繁体中文、简体中文及韩文用户界面。",
+        "Adjusted: UI language changes apply immediately without restarting.": "调整：界面语言更改会立即应用，无需重新启动。",
+        "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.": "调整：使用 Windows 原生字体和 DPI 感知改善字体显示质量。",
+        "Adjusted: Replaced compact version pop-ups with a scalable release-notes window.": "调整：以可缩放的版本记录窗口取代狭小的版本弹窗。",
+        "Version Change History": "版本变更记录",
+        "Added: Mouse drag reordering for tabs with persistent panel order.": "新增：可用鼠标拖动重新排列选项卡，并保存各面板的选项卡顺序。",
+        "Added: Native file drag-and-drop between PFC and Windows File Explorer.": "新增：PFC 与 Windows 文件资源管理器之间的原生文件拖放功能。",
+        "Added: File and folder context menu with frequent operations and keyboard access.": "新增：提供常用操作及键盘访问的文件与文件夹右键菜单。",
+        "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.": "新增：文件夹比较，支持后台扫描、筛选、内容检查及仅复制的安全同步预演。",
+        "Added: Per-tab Quick Filter for the active file list.": "新增：每个选项卡独立保存的当前文件列表快速筛选。",
+        "Added: Multi-Rename with live preview, validation, rollback, and in-session undo.": "新增：批量重命名，支持实时预览、验证、回滚及会话内撤销。",
+        "Adjusted: Combined the v0.8.x change history into one window.": "调整：将 v0.8.x 更新记录合并到单一窗口。",
+        "Added: Right Skirt, Rounded, and Squarish tab styles with saved preference.": "新增：右侧裙边、圆角及方形选项卡样式，并保存偏好设置。",
+        "Adjusted: Made Right Skirt the default and kept all tab styles at equal height.": "调整：将右侧裙边设为默认样式，并统一所有选项卡样式的高度。",
+        "Added: Internal drag-and-drop with Copy and Shift+Move destination feedback.": "新增：PFC 内部拖放，支持复制、Shift+移动及目标位置反馈。",
+        "Added: Outlook attachment paste with attachment-aware clipboard summary.": "新增：Outlook 附件粘贴及可识别附件的剪贴板摘要。",
+        "Adjusted: Aligned menu actions and keyboard shortcuts into separate columns.": "调整：将菜单操作与键盘快捷键分列对齐。",
+        "Added: Recycle Bin delete and explicit Shift+Del permanent delete.": "新增：回收站删除及明确的 Shift+Del 永久删除。",
+        "Added: Copy, move, and paste conflict choices with partial-failure recovery.": "新增：复制、移动及粘贴冲突选项，并支持部分失败后恢复。",
+        "Added: Keyboard-accessible Favorites and Recent Folders.": "新增：可完全使用键盘操作的收藏夹与最近使用的文件夹。",
+        "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "新增：双文件面板、选项卡、导航、排序及便携式 INI 设置。",
+        "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "新增：预览、搜索、比较及端到端键盘操作。",
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板    Ctrl+M  批量重命名\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
@@ -168,6 +245,31 @@ _TRANSLATIONS = {
         "{verb} {count} selected item(s) to:\n{destination}?": "선택한 항목 {count}개를 다음 위치로 {verb}하시겠습니까?\n{destination}", "{verb} result": "{verb} 결과", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}: 완료 {completed}개, 건너뜀 {skipped}개, 실패 {failed}개.",
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
+        "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "추가: 패널 상태 저장 및 다음 패널 작업을 지원하는 2~4개 패널 레이아웃.",
+        "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "추가: 겹쳐진 기본 아이콘과 간결한 나머지 항목 수를 표시하는 시각적 클립보드 요약.",
+        "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "추가: 영어, 중국어 번체, 중국어 간체 및 한국어 사용자 인터페이스.",
+        "Adjusted: UI language changes apply immediately without restarting.": "조정: UI 언어 변경 사항이 재시작 없이 즉시 적용됩니다.",
+        "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.": "조정: Windows 기본 글꼴과 DPI 인식을 사용하여 글꼴 렌더링을 개선했습니다.",
+        "Adjusted: Replaced compact version pop-ups with a scalable release-notes window.": "조정: 작은 버전 팝업을 크기 조절 가능한 릴리스 정보 창으로 교체했습니다.",
+        "Version Change History": "버전 변경 기록",
+        "Added: Mouse drag reordering for tabs with persistent panel order.": "추가: 마우스로 탭 순서를 바꾸고 패널별 탭 순서를 저장하는 기능.",
+        "Added: Native file drag-and-drop between PFC and Windows File Explorer.": "추가: PFC와 Windows 파일 탐색기 사이의 기본 파일 끌어서 놓기 기능.",
+        "Added: File and folder context menu with frequent operations and keyboard access.": "추가: 자주 쓰는 작업과 키보드 접근을 제공하는 파일 및 폴더 바로 가기 메뉴.",
+        "Added: Folder Compare with background scanning, filters, content checks, and copy-only Safe Sync dry runs.": "추가: 백그라운드 검사, 필터, 내용 확인 및 복사 전용 안전 동기화 미리 실행을 지원하는 폴더 비교.",
+        "Added: Per-tab Quick Filter for the active file list.": "추가: 활성 파일 목록을 위한 탭별 빠른 필터.",
+        "Added: Multi-Rename with live preview, validation, rollback, and in-session undo.": "추가: 실시간 미리 보기, 유효성 검사, 롤백 및 세션 내 실행 취소를 지원하는 일괄 이름 바꾸기.",
+        "Adjusted: Combined the v0.8.x change history into one window.": "조정: v0.8.x 변경 내역을 하나의 창으로 통합.",
+        "Added: Right Skirt, Rounded, and Squarish tab styles with saved preference.": "추가: 설정을 저장하는 오른쪽 스커트, 둥근 모서리 및 사각형 탭 스타일.",
+        "Adjusted: Made Right Skirt the default and kept all tab styles at equal height.": "조정: 오른쪽 스커트를 기본값으로 지정하고 모든 탭 스타일의 높이를 동일하게 유지.",
+        "Added: Internal drag-and-drop with Copy and Shift+Move destination feedback.": "추가: 복사, Shift+이동 및 대상 위치 안내를 지원하는 PFC 내부 끌어서 놓기.",
+        "Added: Outlook attachment paste with attachment-aware clipboard summary.": "추가: Outlook 첨부 파일 붙여넣기 및 첨부 파일을 인식하는 클립보드 요약.",
+        "Adjusted: Aligned menu actions and keyboard shortcuts into separate columns.": "조정: 메뉴 작업과 키보드 바로 가기를 별도 열에 맞춤.",
+        "Added: Recycle Bin delete and explicit Shift+Del permanent delete.": "추가: 휴지통 삭제 및 명시적인 Shift+Del 완전 삭제.",
+        "Added: Copy, move, and paste conflict choices with partial-failure recovery.": "추가: 부분 실패 복구를 지원하는 복사, 이동 및 붙여넣기 충돌 선택 항목.",
+        "Added: Keyboard-accessible Favorites and Recent Folders.": "추가: 키보드로 사용할 수 있는 즐겨찾기 및 최근 폴더.",
+        "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "추가: 탭, 탐색, 정렬 및 포터블 INI 설정을 지원하는 이중 파일 패널.",
+        "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "추가: 미리 보기, 검색, 비교 및 전체 키보드 작업.",
         "Keyboard guide body": "탐색\n↑ / ↓  항목 선택\nRight / Left  폴더로 이동 / 상위 폴더로 이동\nTab  패널 전환\nCtrl+Tab / Ctrl+Shift+Tab  다음 / 이전 탭\nCtrl+Up  현재 폴더를 새 탭에 복제\nCtrl+W  현재 탭 닫기\nCtrl+L  경로에 포커스하고 선택\nEsc  파일 목록으로 포커스 복귀\n\n즐겨찾기 및 최근 폴더\nCtrl+D  현재 폴더를 즐겨찾기에 추가 / 제거\nCtrl+B  즐겨찾기 열기    Ctrl+Shift+R  최근 폴더 열기\n\nPFC 내부 끌어서 놓기\n패널 또는 폴더 행으로 끌어 복사    Shift를 누르면 이동\n\n선택 및 클립보드\nCtrl+C / Ctrl+X / Ctrl+V  파일 탐색기와 복사 / 잘라내기 / 붙여넣기\nCtrl+A  모두 선택    Shift+Del  경고 후 완전히 삭제\nCtrl+Shift+C  선택 항목 또는 현재 경로 복사\nCtrl+H  숨김 파일 전환\nCtrl+Y  현재 패널 빠른 필터    Ctrl+M  선택 항목 일괄 이름 바꾸기\nAlt+F / Alt+V / Alt+H  파일 / 보기 / 버전 메뉴 열기",
     },
 }
