@@ -18,6 +18,8 @@ class ConfigTests(unittest.TestCase):
             self.assertTrue(restored.getboolean("operations", "continue_after_error"))
             self.assertEqual(restored.get("navigation", "favorites"), "[]")
             self.assertEqual(restored.get("navigation", "recent_folders"), "[]")
+            self.assertEqual(restored.getint("view", "panel_count"), 2)
+            self.assertEqual(restored.get("view", "ui_language"), "en")
 
     def test_existing_preferences_are_not_overwritten(self):
         config = configparser.ConfigParser()

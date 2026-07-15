@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def build() -> Path:
+    i18n = (ROOT / "pycommander" / "i18n.py").read_text(encoding="utf-8")
     fileops = (ROOT / "pycommander" / "fileops.py").read_text(encoding="utf-8")
     clipboard = (ROOT / "pycommander" / "clipboard.py").read_text(encoding="utf-8")
     icons = (ROOT / "pycommander" / "icons.py").read_text(encoding="utf-8")
@@ -29,10 +30,12 @@ def build() -> Path:
     app = app.replace('BUILD_DATE = datetime.now().strftime("%Y/%m/%d")',
                       f'BUILD_DATE = "{build_date}"', 1)
 
+    i18n = i18n.replace("from __future__ import annotations\n\n", "", 1)
     fileops = fileops.replace("from __future__ import annotations\n\n", "", 1)
     clipboard = clipboard.replace("from __future__ import annotations\n\n", "", 1)
     icons = icons.replace("from __future__ import annotations\n\n", "", 1)
     tabs = tabs.replace("from __future__ import annotations\n\n", "", 1)
+    tabs = "\n".join(line for line in tabs.splitlines() if not line.startswith("from .")) + "\n"
     tooltip = tooltip.replace("from __future__ import annotations\n\n", "", 1)
     compare = compare.replace("from __future__ import annotations\n\n", "", 1)
     compare = "\n".join(line for line in compare.splitlines() if not line.startswith("from .")) + "\n"
@@ -41,6 +44,7 @@ def build() -> Path:
     search = search.replace("from __future__ import annotations\n\n", "", 1)
     search = "\n".join(line for line in search.splitlines() if not line.startswith("from .")) + "\n"
     multirename = multirename.replace("from __future__ import annotations\n\n", "", 1)
+    multirename = "\n".join(line for line in multirename.splitlines() if not line.startswith("from .")) + "\n"
     shelldnd = shelldnd.replace("from __future__ import annotations\n\n", "", 1)
     app = app.replace("from __future__ import annotations\n\n", "", 1)
     app = "\n".join(line for line in app.splitlines() if not line.startswith("from .")) + "\n"
@@ -54,7 +58,7 @@ from __future__ import annotations
 
 '''
     output = ROOT / "pfc.py"
-    output.write_text(banner + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + tabs + "\n\n" + tooltip + "\n\n" + compare + "\n\n" + preview + "\n\n" + search + "\n\n" + multirename + "\n\n" + shelldnd + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
+    output.write_text(banner + i18n + "\n\n" + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + tabs + "\n\n" + tooltip + "\n\n" + compare + "\n\n" + preview + "\n\n" + search + "\n\n" + multirename + "\n\n" + shelldnd + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
     return output
 
 

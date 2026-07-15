@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from .tooltip import install_button_tooltips
+from .i18n import tr
 
 
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
@@ -62,13 +63,16 @@ class SearchWindow(tk.Toplevel):
         self.mask_var = tk.StringVar(value=config.get("search", "mask", fallback="*"))
         self.content_var = tk.StringVar(value=config.get("search", "content", fallback=""))
         self.case_var = tk.BooleanVar(value=config.getboolean("search", "case_sensitive", fallback=False))
-        self.depth_var = tk.StringVar(value=config.get("search", "depth", fallback="All"))
+        saved_depth = config.get("search", "depth", fallback="All")
+        self.depth_values = {tr("Current"): "Current", "1": "1", "2": "2", "3": "3", "5": "5", tr("All"): "All"}
+        self.depth_var = tk.StringVar(value=next((label for label, value in self.depth_values.items()
+                                                  if value == saved_depth), tr("All")))
         self.files_var = tk.BooleanVar(value=config.getboolean("search", "files", fallback=True))
         self.folders_var = tk.BooleanVar(value=config.getboolean("search", "folders", fallback=True))
         self.min_size_var = tk.StringVar(value=config.get("search", "min_size_kb", fallback=""))
         self.max_size_var = tk.StringVar(value=config.get("search", "max_size_kb", fallback=""))
         self.days_var = tk.StringVar(value=config.get("search", "modified_days", fallback=""))
-        self.title("PFC Search"); self.geometry(config.get("search", "geometry", fallback="1100x720")); self.minsize(720, 480)
+        self.title(tr("PFC Search")); self.geometry(config.get("search", "geometry", fallback="1100x720")); self.minsize(720, 480)
         self.protocol("WM_DELETE_WINDOW", self.close); self.bind("<Escape>", lambda _e: self.escape())
         self.bind("<F3>", lambda _e: self.preview_selected())
 
@@ -76,39 +80,39 @@ class SearchWindow(tk.Toplevel):
         self.mask_entry = None
         for row, (label, variable) in enumerate((("Start in:", self.path_var), ("Name/mask:", self.mask_var),
                                                  ("Containing text:", self.content_var))):
-            ttk.Label(form, text=label).grid(row=row, column=0, sticky="w", padx=(0, 5), pady=2)
+            ttk.Label(form, text=tr(label)).grid(row=row, column=0, sticky="w", padx=(0, 5), pady=2)
             entry = ttk.Entry(form, textvariable=variable); entry.grid(row=row, column=1, columnspan=7, sticky="ew", pady=2)
             entry.bind("<Return>", lambda _event: self.start())
             if row == 1: self.mask_entry = entry
         options = ttk.Frame(form); options.grid(row=3, column=0, columnspan=8, sticky="ew", pady=(5, 2))
-        ttk.Label(options, text="Depth:").pack(side="left")
+        ttk.Label(options, text=tr("Depth:")).pack(side="left")
         ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=8,
-                     values=("Current", "1", "2", "3", "5", "All")).pack(side="left", padx=(3, 10))
-        ttk.Checkbutton(options, text="Files", variable=self.files_var).pack(side="left")
-        ttk.Checkbutton(options, text="Folders", variable=self.folders_var).pack(side="left", padx=(3, 10))
-        ttk.Checkbutton(options, text="Case sensitive", variable=self.case_var).pack(side="left")
+                     values=tuple(self.depth_values)).pack(side="left", padx=(3, 10))
+        ttk.Checkbutton(options, text=tr("Files"), variable=self.files_var).pack(side="left")
+        ttk.Checkbutton(options, text=tr("Folders"), variable=self.folders_var).pack(side="left", padx=(3, 10))
+        ttk.Checkbutton(options, text=tr("Case sensitive"), variable=self.case_var).pack(side="left")
         advanced = ttk.Frame(form); advanced.grid(row=4, column=0, columnspan=8, sticky="ew", pady=2)
-        ttk.Label(advanced, text="Size KB min:").pack(side="left")
+        ttk.Label(advanced, text=tr("Size KB min:")).pack(side="left")
         ttk.Entry(advanced, textvariable=self.min_size_var, width=9).pack(side="left", padx=(3, 8))
-        ttk.Label(advanced, text="max:").pack(side="left")
+        ttk.Label(advanced, text=tr("max:")).pack(side="left")
         ttk.Entry(advanced, textvariable=self.max_size_var, width=9).pack(side="left", padx=(3, 12))
-        ttk.Label(advanced, text="Modified within days:").pack(side="left")
+        ttk.Label(advanced, text=tr("Modified within days:")).pack(side="left")
         ttk.Entry(advanced, textvariable=self.days_var, width=7).pack(side="left", padx=3)
         actions = ttk.Frame(form); actions.grid(row=5, column=0, columnspan=8, sticky="ew", pady=(5, 0))
-        self.find_button = ttk.Button(actions, text="Find", command=self.start); self.find_button.pack(side="left")
-        self.cancel_button = ttk.Button(actions, text="Cancel", command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
-        ttk.Button(actions, text="Go to File", command=self.go_selected).pack(side="left", padx=(12, 3))
-        ttk.Button(actions, text="Preview", command=self.preview_selected).pack(side="left")
-        ttk.Button(actions, text="Copy Path", command=self.copy_paths).pack(side="left", padx=3)
+        self.find_button = ttk.Button(actions, text=tr("Find"), command=self.start); self.find_button.pack(side="left")
+        self.cancel_button = ttk.Button(actions, text=tr("Cancel"), command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
+        ttk.Button(actions, text=tr("Go to File"), command=self.go_selected).pack(side="left", padx=(12, 3))
+        ttk.Button(actions, text=tr("Preview"), command=self.preview_selected).pack(side="left")
+        ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
         self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
         form.columnconfigure(1, weight=1)
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
         columns = ("folder", "size", "modified", "ext")
         self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended")
-        self.tree.heading("#0", text="Name ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260)
+        self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260)
         for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60)):
-            self.tree.heading(col, text=col.title(), command=lambda c=col: self.change_sort(c))
+            self.tree.heading(col, text=tr(col.title()), command=lambda c=col: self.change_sort(c))
             self.tree.column(col, width=width, anchor="e" if col == "size" else "w")
         scroll = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview); self.tree.configure(yscrollcommand=scroll.set)
         self.tree.pack(side="left", fill="both", expand=True); scroll.pack(side="right", fill="y")
@@ -128,7 +132,8 @@ class SearchWindow(tk.Toplevel):
 
     def _apply_sort(self):
         column = self.sort_column
-        labels = {"name": "Name", "folder": "Folder", "size": "Size", "modified": "Modified", "ext": "Ext"}
+        labels = {"name": tr("Name"), "folder": tr("Folder"), "size": tr("Size"),
+                  "modified": tr("Modified"), "ext": tr("Ext")}
         for name, label in labels.items():
             marker = (" ▲" if not self.sort_reverse else " ▼") if name == column else ""
             self.tree.heading("#0" if name == "name" else name, text=label + marker)
@@ -141,7 +146,8 @@ class SearchWindow(tk.Toplevel):
         def number(value, factor=1):
             try: return float(value) * factor if value.strip() else None
             except ValueError: return None
-        depth = self.depth_var.get(); max_depth = None if depth == "All" else (0 if depth == "Current" else int(depth))
+        depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
+        max_depth = None if depth == "All" else (0 if depth == "Current" else int(depth))
         days = number(self.days_var.get())
         return dict(root=Path(self.path_var.get().strip().strip('"')), masks=self.mask_var.get(), content=self.content_var.get(),
                     case=self.case_var.get(), max_depth=max_depth, files=self.files_var.get(), folders=self.folders_var.get(),
@@ -151,9 +157,9 @@ class SearchWindow(tk.Toplevel):
     def start(self):
         if self.worker and self.worker.is_alive(): return
         criteria = self.criteria()
-        if not criteria["root"].is_dir(): messagebox.showerror("Search", "Start path is not a folder.", parent=self); return
+        if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
-        self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text="Searching…")
+        self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
     def _search(self, c):
@@ -193,14 +199,15 @@ class SearchWindow(tk.Toplevel):
                 self.item_data[iid] = {"name": path.name.casefold(), "folder": str(path.parent).casefold(),
                                        "size": stat.st_size, "modified": stat.st_mtime,
                                        "ext": ("" if path.is_dir() else path.suffix[1:]).casefold()}
-                self.status.configure(text=f"{len(self.results)} found")
+                self.status.configure(text=tr("{count} found", count=len(self.results)))
             elif message[0] == "done":
-                _, count, cancelled, limited = message; suffix = " — cancelled" if cancelled else (" — limit reached" if limited else "")
-                self.status.configure(text=f"{count} found{suffix}"); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
+                _, count, cancelled, limited = message
+                suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
+                self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self._apply_sort()
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
-                messagebox.showerror("Search failed", message[1], parent=self)
+                messagebox.showerror(tr("Search failed"), message[1], parent=self)
         if self.worker and self.worker.is_alive(): self.poll_job = self.after(80, self._poll)
 
     def selected_paths(self):
@@ -221,7 +228,7 @@ class SearchWindow(tk.Toplevel):
     def copy_paths(self):
         paths=self.selected_paths()
         if paths: self.clipboard_clear(); self.clipboard_append("\n".join(map(str, paths))); self.update_idletasks()
-    def cancel(self): self.cancel_event.set(); self.status.configure(text="Cancelling…")
+    def cancel(self): self.cancel_event.set(); self.status.configure(text=tr("Cancelling…"))
     def escape(self): self.cancel() if self.worker and self.worker.is_alive() else self.close()
     def close(self):
         self.cancel_event.set()
@@ -230,7 +237,8 @@ class SearchWindow(tk.Toplevel):
             except tk.TclError: pass
         if not self.config_data.has_section("search"): self.config_data.add_section("search")
         for key, value in (("geometry", self.geometry()), ("mask", self.mask_var.get()), ("content", self.content_var.get()),
-                           ("case_sensitive", str(self.case_var.get()).lower()), ("depth", self.depth_var.get()),
+                           ("case_sensitive", str(self.case_var.get()).lower()),
+                           ("depth", self.depth_values.get(self.depth_var.get(), self.depth_var.get())),
                            ("files", str(self.files_var.get()).lower()), ("folders", str(self.folders_var.get()).lower()),
                            ("min_size_kb", self.min_size_var.get()), ("max_size_kb", self.max_size_var.get()),
                            ("modified_days", self.days_var.get())):

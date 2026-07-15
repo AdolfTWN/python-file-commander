@@ -36,10 +36,16 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.10.0", "v0.10.x Changes",
+            assert version_labels == ["Current version: v0.11.0", "v0.11.x Changes", "v0.10.x Changes",
                                       "v0.9.x Changes", "v0.8.x Changes",
                                       "Yoda — Portable App Advocate"]
-            assert app.version_series == ("v0.10.x", "v0.9.x", "v0.8.x")
+            assert app.version_series == ("v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
+            v11_title, v11_body = app.version_series_notes("v0.11.x")
+            assert v11_title == "Python File Commander — v0.11.x Changes"
+            assert "v0.11.0 — Build 2026/07/16" in v11_body
+            assert "• Added: Configurable two-to-four-panel layout" in v11_body
+            assert "• Added: Visual clipboard summary" in v11_body
+            assert "• Added: English, Traditional Chinese" in v11_body
             v10_title, v10_body = app.version_series_notes("v0.10.x")
             assert v10_title == "Python File Commander — v0.10.x Changes"
             assert "v0.10.0 — Build 2026/07/16" in v10_body
@@ -70,7 +76,7 @@ def main() -> None:
             assert captured == [(notes_title, notes_body)], "Changes must open in one combined window"
             assert "Windows File Explorer" not in v09_body
             assert all(line.startswith("• Added:") or line.startswith("• Adjusted:")
-                       for line in v10_body.splitlines() + v09_body.splitlines() + notes_body.splitlines()
+                       for line in v11_body.splitlines() + v10_body.splitlines() + v09_body.splitlines() + notes_body.splitlines()
                        if line.startswith("•"))
             captured.clear()
             pfc.messagebox.showinfo = lambda title, body, **_kwargs: captured.append((title, body))
@@ -95,6 +101,39 @@ def main() -> None:
             assert saved.get("hotkeys", "quick_filter") == "<Control-y>"
             assert saved.get("hotkeys", "multi_rename") == "<Control-m>"
             assert saved.get("navigation", "favorites") != "[]"
+            assert app.panel_count_var.get() == 2 and len(app.split.panes()) == 2
+            panel_labels = [app.panel_counts_menu.entrycget(index, "label")
+                            for index in range(app.panel_counts_menu.index("end") + 1)]
+            assert panel_labels == ["2 Panels", "3 Panels", "4 Panels"]
+            language_labels = [app.language_menu.entrycget(index, "label")
+                               for index in range(app.language_menu.index("end") + 1)]
+            assert language_labels == ["English", "繁體中文", "简体中文", "한국어"]
+            assert app.ui_language_var.get() == "en"
+            app.panel_count_var.set(4); app.apply_panel_count(save=False); app.update()
+            assert len(app.split.panes()) == 4 and len(app.visible_panes()) == 4
+            assert all(tabs.current().shell_drop_target.active for tabs in app.panel_tabs)
+            app.set_active(app.panel_tabs[2].current())
+            assert app.panes()[1] is app.panel_tabs[3].current()
+            app.set_active(app.panel_tabs[3].current())
+            assert app.panes()[1] is app.panel_tabs[0].current(), "Rightmost target must wrap left"
+            app.save_config(); saved.read(ini_path, encoding="utf-8")
+            assert saved.getint("view", "panel_count") == 4
+            assert saved.get("view", "ui_language") == "en"
+            assert saved.has_section("panel3") and saved.has_section("panel4")
+            app.panel_count_var.set(2); app.apply_panel_count(save=False); app.set_active(app.left_tabs.current())
+            assert len(app.split.panes()) == 2
+            clipboard_file_a = Path(raw) / "first-report.txt"
+            clipboard_file_b = Path(raw) / "second-report.pdf"
+            clipboard_folder = Path(raw) / "clipboard-folder"
+            clipboard_file_a.write_text("a", encoding="utf-8")
+            clipboard_file_b.write_text("b", encoding="utf-8")
+            clipboard_folder.mkdir()
+            app._set_clipboard_visual("Clipboard: first-report.txt and 2 more items",
+                                      [clipboard_file_a, clipboard_file_b, clipboard_folder], "paths")
+            assert app.clipboard_summary.cget("text") == "Clipboard: first-report.txt and 2 more items"
+            assert len(app._clipboard_icon_images) == 3
+            assert sum(app.clipboard_icon_canvas.type(item) == "image"
+                       for item in app.clipboard_icon_canvas.find_all()) == 3
             assert app.left_tabs.current().shell_drop_target.active
             assert app.right_tabs.current().shell_drop_target.active
             assert app.tab_style_var.get() == "right_skirt"
@@ -193,8 +232,8 @@ def main() -> None:
                               if context_menu.type(index) == "command"]
             required_context = {"Open / Enter Folder", "Preview", "Compare",
                                 "Copy to Clipboard", "Cut to Clipboard",
-                                "Paste into Current Folder", "Copy to Other Panel",
-                                "Move to Other Panel", "Rename", "Multi-Rename",
+                                "Paste into Current Folder", "Copy to Next Panel",
+                                "Move to Next Panel", "Rename", "Multi-Rename",
                                 "Copy Path", "Delete", "Permanent Delete"}
             assert required_context.issubset(context_labels)
             rename_index = context_labels.index("Rename")
@@ -262,6 +301,30 @@ def main() -> None:
             if app is not None:
                 app.destroy()
             pfc.Commander._find_ini_path = original
+
+    localized = {
+        "en": ("Files", "View", "Name"),
+        "zh_TW": ("檔案", "檢視", "名稱"),
+        "zh_CN": ("文件", "查看", "名称"),
+        "ko": ("파일", "보기", "이름"),
+    }
+    original = pfc.Commander._find_ini_path
+    with tempfile.TemporaryDirectory() as raw:
+        for code, expected in localized.items():
+            ini_path = Path(raw) / f"pfc-{code}.ini"
+            ini_path.write_text(f"[view]\nui_language = {code}\n", encoding="utf-8")
+            pfc.Commander._find_ini_path = staticmethod(lambda path=ini_path: path)
+            app = pfc.Commander(); app.withdraw(); app.update_idletasks()
+            try:
+                assert app.files_menu_button.cget("text") == expected[0]
+                assert app.view_menu_button.cget("text") == expected[1]
+                assert app.left_tabs.current().tree.heading("#0", "text").startswith(expected[2])
+                assert app.language_menu.entrycget(0, "label") == "English"
+                assert app.language_menu.entrycget(1, "label") == "繁體中文"
+            finally:
+                app.destroy()
+    pfc.Commander._find_ini_path = original
+    print("Localized GUI smoke check passed", flush=True)
 
 
 if __name__ == "__main__":

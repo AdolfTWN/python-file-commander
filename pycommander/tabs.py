@@ -3,6 +3,7 @@ from __future__ import annotations
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
+from .i18n import tr
 
 
 TAB_COLORS = {
@@ -264,12 +265,12 @@ class ChamferNotebook(ttk.Frame):
         self.select(child)
         menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
         for key, (label, _color) in TAB_COLORS.items():
-            menu.add_command(label=label, command=lambda value=key: self.set_color(child, value))
+            menu.add_command(label=tr(label), command=lambda value=key: self.set_color(child, value))
         menu.add_separator()
         lock_mode = tk.StringVar(value=self._locks.get(child, "unlocked"))
         for label, value in (("Unlocked", "unlocked"),
                              ("Lock (open folder in new tab)", "locked"),
                              ("Lock (open folder is allowed)", "reset")):
-            menu.add_radiobutton(label=label, value=value, variable=lock_mode,
+            menu.add_radiobutton(label=tr(label), value=value, variable=lock_mode,
                                  command=lambda mode=value: self.set_lock(child, mode))
         menu.tk_popup(event.x_root, event.y_root)

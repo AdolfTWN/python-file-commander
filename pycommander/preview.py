@@ -5,6 +5,7 @@ import tkinter.font as tkfont
 from pathlib import Path
 from tkinter import ttk
 from .tooltip import install_button_tooltips
+from .i18n import tr
 
 
 TEXT_EXTENSIONS = {
@@ -51,7 +52,8 @@ class PreviewWindow(tk.Toplevel):
         self.config_data, self.save_config = config, save_config
         self.files = list(files)
         self.index = self.files.index(selected) if selected in self.files else 0
-        self.mode_var = tk.StringVar(value="Auto")
+        self.mode_values = {tr("Auto"): "Auto", tr("Text"): "Text", tr("Hex"): "Hex"}
+        self.mode_var = tk.StringVar(value=tr("Auto"))
         self.wrap_var = tk.BooleanVar(value=config.getboolean("preview", "wrap", fallback=False))
         self.case_var = tk.BooleanVar(value=False)
         self.search_var = tk.StringVar()
@@ -59,7 +61,7 @@ class PreviewWindow(tk.Toplevel):
         self.match_index = -1
         self._signature = None
         self._refresh_job = None
-        self.title("PFC Preview")
+        self.title(tr("PFC Preview"))
         self.geometry(config.get("preview", "geometry", fallback="1100x720"))
         self.minsize(640, 400)
         self.protocol("WM_DELETE_WINDOW", self.close)
@@ -70,24 +72,24 @@ class PreviewWindow(tk.Toplevel):
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
         file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
-        ttk.Button(file_row, text="File <<", command=self.previous_file).pack(side="left")
-        ttk.Button(file_row, text="File >>", command=self.next_file).pack(side="left", padx=(3, 10))
-        ttk.Label(file_row, text="View:").pack(side="left", padx=(4, 3))
+        ttk.Button(file_row, text=tr("File <<"), command=self.previous_file).pack(side="left")
+        ttk.Button(file_row, text=tr("File >>"), command=self.next_file).pack(side="left", padx=(3, 10))
+        ttk.Label(file_row, text=tr("View:")).pack(side="left", padx=(4, 3))
         mode = ttk.Combobox(file_row, width=7, state="readonly", textvariable=self.mode_var,
-                            values=("Auto", "Text", "Hex"))
+                            values=tuple(self.mode_values))
         mode.pack(side="left"); mode.bind("<<ComboboxSelected>>", lambda _event: self.load())
-        ttk.Checkbutton(file_row, text="Wrap", variable=self.wrap_var,
+        ttk.Checkbutton(file_row, text=tr("Wrap"), variable=self.wrap_var,
                         command=self.set_wrap).pack(side="left", padx=10)
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
-        ttk.Label(find_row, text="Find:").pack(side="left", padx=(0, 3))
+        ttk.Label(find_row, text=tr("Find:")).pack(side="left", padx=(0, 3))
         self.search = ttk.Entry(find_row, textvariable=self.search_var, width=24)
         self.search.pack(side="left", fill="x", expand=True)
         self.search.bind("<Return>", lambda _event: self.find_next())
         self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
         find_actions = ttk.Frame(toolbar); find_actions.pack(fill="x", pady=(3, 0))
-        ttk.Button(find_actions, text="Find Prev", command=self.find_previous).pack(side="left")
-        ttk.Button(find_actions, text="Find Next", command=self.find_next).pack(side="left", padx=(3, 0))
-        ttk.Checkbutton(find_actions, text="Case sensitive", variable=self.case_var,
+        ttk.Button(find_actions, text=tr("Find Prev"), command=self.find_previous).pack(side="left")
+        ttk.Button(find_actions, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
+        ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
                         command=self.find_all).pack(side="left", padx=(8, 0))
 
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
@@ -140,15 +142,16 @@ class PreviewWindow(tk.Toplevel):
 
     def load(self) -> None:
         path = self.path
-        self.title(f"PFC Preview — {path.name}")
+        self.title(f"{tr('PFC Preview')} — {path.name}")
         self.text.configure(state="normal"); self.text.delete("1.0", "end")
-        mode, encoding, truncated = self.mode_var.get(), "", False
+        mode = self.mode_values.get(self.mode_var.get(), self.mode_var.get())
+        encoding, truncated = "", False
         try:
             if path.is_dir():
                 entries = sorted(path.iterdir(), key=lambda item: (not item.is_dir(), item.name.casefold()))
-                content = f"Folder: {path}\n\n" + "\n".join(
+                content = f"{tr('Folder')}: {path}\n\n" + "\n".join(
                     ("[DIR]  " if item.is_dir() else "       ") + item.name for item in entries)
-                shown_mode = "Folder"
+                shown_mode = tr("Folder view")
             else:
                 size = path.stat().st_size
                 with path.open("rb") as stream:
@@ -158,9 +161,9 @@ class PreviewWindow(tk.Toplevel):
                     data = stream.read(limit + 1)
                 truncated = len(data) > limit; data = data[:limit]
                 if chosen == "Text":
-                    content, encoding = decode_text(data); shown_mode = "Text"
+                    content, encoding = decode_text(data); shown_mode = tr("Text")
                 else:
-                    content = render_hex(data); shown_mode = "Hex"
+                    content = render_hex(data); shown_mode = tr("Hex")
                 size = path.stat().st_size
             self.text.insert("1.0", content)
             size = path.stat().st_size if path.is_file() else 0
@@ -169,7 +172,7 @@ class PreviewWindow(tk.Toplevel):
             if truncated: detail += "   Preview truncated"
             self.status.configure(text=f"{detail}   {path}")
         except OSError as exc:
-            self.text.insert("1.0", f"Cannot preview file:\n{exc}")
+            self.text.insert("1.0", f"{tr('Cannot preview file')}:\n{exc}")
             self.status.configure(text=str(path))
         self.text.configure(state="disabled")
         self._signature = self._path_signature()
@@ -197,12 +200,12 @@ class PreviewWindow(tk.Toplevel):
         previous_index = self.match_index
         self.find_all()
         if not self.matches:
-            self.status.configure(text=f"No matches   {self.path}"); return "break"
+            self.status.configure(text=f"{tr('No matches')}   {self.path}"); return "break"
         self.match_index = (previous_index + direction) % len(self.matches)
         start, end = self.matches[self.match_index]
         self.text.tag_remove("current_match", "1.0", "end")
         self.text.tag_add("current_match", start, end); self.text.see(start)
-        self.status.configure(text=f"Match {self.match_index + 1} of {len(self.matches)}   {self.path}")
+        self.status.configure(text=f"{tr('Match {current} of {total}', current=self.match_index + 1, total=len(self.matches))}   {self.path}")
         return "break"
 
     def find_next(self) -> str: return self._find(1)
