@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.11.1 — Live Localization & Display Polish**
+Current version: **v0.12.0 — Cross-Panel Tabs & UI Reliability**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -27,7 +27,7 @@ The portable file is generated from the maintainable package source:
 python tools/build_single_file.py
 ```
 
-Current core: two resizable panels by default, optionally three or four through View > Panel Counts, color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons, multi-select, rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), new folder (F7), Folder Compare/Safe Sync (F9), safe Recycle Bin delete (Del), explicit permanent delete (Shift+Del), Quick Filter (Ctrl+Y), Multi-Rename (Ctrl+M), and refresh (Ctrl+R). Tab cycles through every visible panel. F5/F6 and F9 use the next visible panel to the right, wrapping from the rightmost panel to the leftmost. Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Drag a tab with the mouse to change its sequence; main-panel order is saved immediately. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Panel count and every panel's tab-specific order, colors, locks, and Quick Filters are saved in `pfc.ini`.
+Current core: two resizable panels by default, optionally three or four through View > Panel Counts, color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons, multi-select, rename or Multi-Rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), new folder (F7), Folder Compare/Safe Sync (F9), safe Recycle Bin delete (Del), explicit permanent delete (Shift+Del), Quick Filter (Ctrl+Y), and refresh (Ctrl+R). Tab cycles through every visible panel. F5/F6 and F9 use the next visible panel to the right, wrapping from the rightmost panel to the leftmost. Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Drag a tab with the mouse to reorder it or move its complete session to another visible panel; every panel retains at least one tab and the resulting order is saved immediately. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Panel count and every panel's tab-specific order, colors, locks, and Quick Filters are saved in `pfc.ini`.
 
 Right-click a file or folder for a compact menu of frequent operations: open, open folder in a new tab, preview, compare, clipboard actions, paste into the clicked folder, copy/move to the next visible panel, rename/multi-rename, copy path, and both delete modes. Right-click preserves an existing multi-selection; Shift+F10 or the Menu key opens the same menu from the keyboard. Disabled entries clearly indicate operations that need one item, two items, or a folder.
 
@@ -51,11 +51,11 @@ F4 opens a reusable, cancellable background Search window with semicolon-separat
 
 F3 opens a reusable popup viewer with Esc close, Auto/Text/Hex modes, text wrapping, two-second auto-refresh, File <</>> navigation, case-sensitive content search, Find Prev/Next navigation, encoding and truncation details, and a full-path status bar. Its responsive three-row toolbar remains usable at narrow widths. Preview geometry and wrapping preference are saved in `pfc.ini`.
 
-Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the first selected path or current folder, F11 copies every selected full path as newline-separated text, F12 focuses and selects the current path for direct paste-and-Enter navigation, and Ctrl+H toggles hidden files.
+Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the first selected path or current folder, F11 copies every selected full path as newline-separated text, and Ctrl+H toggles hidden files. F12 focuses and selects the current path for direct paste-and-Enter navigation; a pasted file path opens its parent folder and places the selection bar on that file.
 
 Ctrl+Y opens a per-tab Quick Filter focused for immediate typing. The active panel instantly hides non-matching names; Enter returns to the file list and Esc or the × button clears the filter. Filter text is stored with each tab in `pfc.ini`.
 
-Ctrl+M opens Multi-Rename for two or more selected items; F2 dispatches there automatically for a multi-selection. `[N]`, `[C]`, and `[E]` masks, find/replace, case matching, counter start/digits, and extension preservation update a live Old/New/Status preview. Invalid names, duplicates, and existing targets block execution. Batch renames use temporary names so swaps are safe, roll back on failure, and Ctrl+Z restores the last successful batch in the current session.
+F2 opens Multi-Rename when two or more items are selected. `[N]`, `[C]`, and `[E]` masks, find/replace, case matching, counter start/digits, and extension preservation update a live Old/New/Status preview. Invalid names, duplicates, and existing targets block execution. Batch renames use temporary names so swaps are safe, roll back on failure, and Ctrl+Z restores the last successful batch in the current session.
 
 Keyboard navigation is end-to-end: Tab switches panels, Ctrl+Tab and Ctrl+Shift+Tab cycle the active panel's tabs, Ctrl+L focuses the path, Esc returns to the file list, Alt+F/Alt+V open the header menus, and F1 (or clicking the Python File Commander header) opens the built-in keyboard guide.
 
@@ -92,7 +92,7 @@ The original project is a mature Pascal application with a large plugin ecosyste
 7. **In progress — Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes. Automated coverage now includes non-ASCII conflicts, same-folder safety, partial failures, atomic default INI creation, and portable privacy; environment-dependent Windows cases remain release smoke tests.
 8. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
 
-Items 1–6 are complete and the project is now **v0.11.1**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
+Items 1–6 are complete and the project is now **v0.12.0**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
 
 Low-ROI features deferred until the office workflow is complete:
 

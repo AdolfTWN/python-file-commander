@@ -27,6 +27,8 @@ class TranslationTests(unittest.TestCase):
         set_language("zh_TW")
         self.assertEqual(tr("{count} Panels", count=4), "4 個面板")
         self.assertIn("10", tr("and {count} more {kind}", count=10, kind=tr("files")))
+        self.assertIn("10", tr("& other {count} {kind}", count=10, kind=tr("files")))
+        self.assertIn("10", tr("and {count} {kind}...", count=10, kind=tr("files")))
 
     def test_translated_widget_text_can_be_mapped_back_to_its_source(self):
         for language in ("en", "zh_TW", "zh_CN", "ko"):

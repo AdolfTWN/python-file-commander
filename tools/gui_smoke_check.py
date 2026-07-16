@@ -20,6 +20,22 @@ def main() -> None:
         app = None
         try:
             app = pfc.Commander(); app.withdraw(); app.update_idletasks(); app.update()
+            assert app.header_left_widgets[0].cget("text") == "PFC"
+            assert app.header_left_widgets[1].cget("text") == f"v{pfc.__version__}"
+            assert all("Build" not in widget.cget("text") for widget in app.header_left_widgets)
+            for menu_button in (app.files_menu_button, app.view_menu_button, app.versions_menu_button):
+                assert menu_button.cget("relief") == "raised"
+                assert isinstance(menu_button, pfc.tk.Button)
+            hierarchy_indexes = [index for index in range(app.view_menu.index("end") + 1)
+                                 if app.view_menu.type(index) == "cascade"]
+            assert len(hierarchy_indexes) == 5
+            assert all(not app.view_menu.entrycget(index, "accelerator")
+                       for index in hierarchy_indexes)
+            pfc._refresh_scaled_indicators(app.font_size_menu)
+            selected_font_entries = [index for index in range(app.font_size_menu.index("end") + 1)
+                                     if app.font_size_menu.entrycget(index, "accelerator") == "✓"]
+            assert len(selected_font_entries) == 1
+            assert int(app.font_size_menu.entrycget(selected_font_entries[0], "indicatoron")) == 0
             labels = [app.files_menu.entrycget(index, "label")
                       for index in range(app.files_menu.index("end") + 1)
                       if app.files_menu.type(index) not in {"separator", "tearoff"}]
@@ -36,10 +52,10 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.11.1", "v0.11.x Changes", "v0.10.x Changes",
+            assert version_labels == ["Current version: v0.12.0", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
                                       "v0.9.x Changes", "v0.8.x Changes",
                                       "Yoda — Portable App Advocate"]
-            assert app.version_series == ("v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
+            assert app.version_series == ("v0.12.x", "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
             v11_title, v11_body = app.version_series_notes("v0.11.x")
             assert v11_title == "Python File Commander — v0.11.x Changes"
             assert "v0.11.1 — Build 2026/07/16" in v11_body
@@ -70,12 +86,12 @@ def main() -> None:
             changes_index = next(index for index in range(app.versions_menu.index("end") + 1)
                                  if app.versions_menu.type(index) == "command" and
                                  app.versions_menu.entrycget(index, "label") == "v0.8.x Changes")
-            app.versions_menu.invoke(changes_index); app.update_idletasks()
+            app.versions_menu.invoke(changes_index); app.update_idletasks(); app.update()
             assert app.version_window is not None and app.version_window.winfo_exists()
             assert app.version_window.title() == notes_title
             assert app.version_text.get("1.0", "end-1c") == notes_body
             assert app.version_text.cget("font") == str(pfc.tkfont.nametofont("TkDefaultFont"))
-            assert app.version_window.winfo_width() >= 720 and app.version_window.winfo_height() >= 500
+            assert tuple(app.version_window.minsize()) == (720, 500)
             app.version_window.destroy()
             assert "Windows File Explorer" not in v09_body
             assert all(line.startswith("• Added:") or line.startswith("• Adjusted:")
@@ -103,7 +119,7 @@ def main() -> None:
             assert saved.get("hotkeys", "permanent_delete") == "<Shift-Delete>"
             assert saved.get("hotkeys", "versions_menu") == "<Alt-h>"
             assert saved.get("hotkeys", "quick_filter") == "<Control-y>"
-            assert saved.get("hotkeys", "multi_rename") == "<Control-m>"
+            assert not saved.has_option("hotkeys", "multi_rename")
             assert saved.get("navigation", "favorites") != "[]"
             assert app.panel_count_var.get() == 2 and len(app.split.panes()) == 2
             panel_labels = [app.panel_counts_menu.entrycget(index, "label")
@@ -132,12 +148,13 @@ def main() -> None:
             clipboard_file_a.write_text("a", encoding="utf-8")
             clipboard_file_b.write_text("b", encoding="utf-8")
             clipboard_folder.mkdir()
-            app._set_clipboard_visual("Clipboard: first-report.txt and 2 more items",
-                                      [clipboard_file_a, clipboard_file_b, clipboard_folder], "paths")
-            assert app.clipboard_summary.cget("text") == "Clipboard: first-report.txt and 2 more items"
-            assert len(app._clipboard_icon_images) == 3
+            app._set_clipboard_visual("Clipboard: first-report.txt",
+                                      [clipboard_file_a, clipboard_file_b, clipboard_folder], "paths",
+                                      trailing=" and 2 items...")
+            assert app.clipboard_summary.cget("text") == "Clipboard: first-report.txt and 2 items..."
+            assert len(app._clipboard_icon_images) == 1
             assert sum(app.clipboard_icon_canvas.type(item) == "image"
-                       for item in app.clipboard_icon_canvas.find_all()) == 3
+                       for item in app.clipboard_icon_canvas.find_all()) == 1
             assert app.left_tabs.current().shell_drop_target.active
             assert app.right_tabs.current().shell_drop_target.active
             assert app.tab_style_var.get() == "right_skirt"
@@ -209,7 +226,8 @@ def main() -> None:
             source_pane.clear_quick_filter(); app.update()
             assert len(source_pane.tree.get_children()) == 2
             source_pane.tree.selection_set(source_pane.tree.get_children())
-            app.set_active(source_pane)
+            app.set_active(source_pane); app.update()
+            assert app.action_button_by_hotkey["F2"].cget("text") == "F2 Multi-Rename"
             app.multi_rename(); app.update()
             rename_window = app.multi_rename_window
             assert rename_window is not None and rename_window.winfo_exists()
@@ -217,6 +235,8 @@ def main() -> None:
             rename_window.mask_var.set("[N]_renamed"); app.update()
             assert "disabled" not in rename_window.apply_button.state()
             rename_window.destroy(); app.multi_rename_window = None
+            source_pane.tree.selection_set(source_pane.tree.get_children()[0]); app.update()
+            assert app.action_button_by_hotkey["F2"].cget("text") == "F2 Rename"
             selected_rows = source_pane.tree.get_children()
             source_pane.tree.selection_set(selected_rows)
             first_box = source_pane.tree.bbox(selected_rows[0])
@@ -299,12 +319,12 @@ def main() -> None:
             finally:
                 pfc.point_belongs_to_process = original_point_owner
             assert app._drag_state is None and app._drag_ghost is None
-            selected_before = app.active.tree.selection()
+            selected_before = app.active.selected_paths()
             path_before = app.active.path
             app.ui_language_var.set("zh_TW"); app.apply_ui_language(); app.update()
             assert app.files_menu_button.cget("text") == "檔案"
             assert app.active.tree.heading("#0", "text").startswith("名稱")
-            assert app.active.path == path_before and app.active.tree.selection() == selected_before
+            assert app.active.path == path_before and app.active.selected_paths() == selected_before
             app.ui_language_var.set("en"); app.apply_ui_language(); app.update()
             assert app.files_menu_button.cget("text") == "Files"
             app.withdraw()

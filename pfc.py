@@ -61,7 +61,7 @@ def retranslate_widgets(root, old_language: str) -> None:
 
 _TRANSLATIONS = {
     "en": {
-        "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel    Ctrl+M  Multi-Rename selected items\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
+        "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
         "Files": "檔案", "View": "檢視", "Versions": "版本", "UI Language": "介面語言", "Build": "建置",
@@ -81,7 +81,7 @@ _TRANSLATIONS = {
         "{series} Changes": "{series} 變更內容", "Yoda — Portable App Advocate": "Yoda — 可攜式應用程式推動者",
         "Clipboard: checking…": "剪貼簿：檢查中…", "Clipboard": "剪貼簿", "Clipboard (Cut)": "剪貼簿（剪下）",
         "Clipboard: Empty": "剪貼簿：空白", "Clipboard: OBJ": "剪貼簿：物件", "Clipboard: String {size} Bytes": "剪貼簿：文字 {size} 位元組",
-        "and {count} more {kind}": "以及另外 {count} 個{kind}", "file": "檔案", "files": "檔案", "folder": "資料夾", "folders": "資料夾", "item": "項目", "items": "項目", "attachments": "附件",
+        "and {count} more {kind}": "以及另外 {count} 個{kind}", "& other {count} {kind}": "及其他 {count} 個{kind}", "and {count} {kind}...": "以及 {count} 個{kind}…", "file": "檔案", "files": "檔案", "folder": "資料夾", "folders": "資料夾", "item": "項目", "items": "項目", "attachments": "附件",
         "Name": "名稱", "Ext": "副檔名", "Size": "大小", "Date Modified": "修改日期", "Attr": "屬性", "Folder": "資料夾", "Modified": "修改日期",
         "Quick Filter:": "快速篩選：", "{count} items   {size}": "{count} 個項目   {size}", " — filter: {filter}": " — 篩選：{filter}",
         "Cannot open folder": "無法開啟資料夾", "Cannot read folder": "無法讀取資料夾", "Cannot open file": "無法開啟檔案",
@@ -125,6 +125,10 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "新增：可在可見面板之間拖曳分頁，並保留分頁狀態及插入順序。",
+        "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "調整：新增可縮放的階層選單、一致的指示標記及點擊外部關閉功能。",
+        "Adjusted: Made the clipboard summary responsive with the full first name and remaining-item count.": "調整：剪貼簿摘要可響應可用空間，完整顯示第一個名稱及其餘項目數量。",
+        "Fixed: Improved pasted-file navigation, file-row spacing, multi-selection rename, and no-op drag handling.": "修正：改善貼上檔案路徑導覽、檔案列間距、多選重新命名及無效拖放處理。",
         "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "新增：可設定 2 至 4 面板版面配置，並保存面板狀態及支援下一面板操作。",
         "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "新增：視覺化剪貼簿摘要，顯示重疊的原生圖示與精簡的剩餘項目數量。",
         "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "新增：英文、繁體中文、簡體中文及韓文使用者介面。",
@@ -149,7 +153,7 @@ _TRANSLATIONS = {
         "Added: Keyboard-accessible Favorites and Recent Folders.": "新增：可完全使用鍵盤操作的我的最愛與最近使用的資料夾。",
         "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "新增：雙檔案面板、分頁、導覽、排序及可攜式 INI 設定。",
         "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "新增：預覽、搜尋、比較及端到端鍵盤操作。",
-        "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板    Ctrl+M  批次重新命名\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
+        "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
         "Files": "文件", "View": "查看", "Versions": "版本", "UI Language": "界面语言", "Build": "构建",
@@ -162,7 +166,7 @@ _TRANSLATIONS = {
         "Small (100%)": "小 (100%)", "Medium (150%)": "中 (150%)", "Large (200%)": "大 (200%)", "Huge (300%)": "特大 (300%)", "Right Skirt": "右侧裙边", "Rounded": "圆角", "Squarish": "方形",
         "{count} Panels": "{count} 个面板", "Current version: v{version}": "当前版本：v{version}", "{series} Changes": "{series} 更新内容", "Yoda — Portable App Advocate": "Yoda — 便携式应用推动者",
         "Clipboard: checking…": "剪贴板：检查中…", "Clipboard": "剪贴板", "Clipboard (Cut)": "剪贴板（剪切）", "Clipboard: Empty": "剪贴板：空", "Clipboard: OBJ": "剪贴板：对象", "Clipboard: String {size} Bytes": "剪贴板：文本 {size} 字节",
-        "and {count} more {kind}": "以及另外 {count} 个{kind}", "file": "文件", "files": "文件", "folder": "文件夹", "folders": "文件夹", "item": "项目", "items": "项目", "attachments": "附件",
+        "and {count} more {kind}": "以及另外 {count} 个{kind}", "& other {count} {kind}": "及其他 {count} 个{kind}", "and {count} {kind}...": "以及 {count} 个{kind}…", "file": "文件", "files": "文件", "folder": "文件夹", "folders": "文件夹", "item": "项目", "items": "项目", "attachments": "附件",
         "Name": "名称", "Ext": "扩展名", "Size": "大小", "Date Modified": "修改日期", "Attr": "属性", "Folder": "文件夹", "Modified": "修改日期", "Quick Filter:": "快速筛选：",
         "Cannot open folder": "无法打开文件夹", "Cannot read folder": "无法读取文件夹", "Cannot open file": "无法打开文件",
         "Open / Enter Folder": "打开／进入文件夹", "Open Folder in New Tab": "在新选项卡中打开文件夹", "Paste into This Folder": "粘贴到此文件夹", "Paste into Current Folder": "粘贴到当前文件夹",
@@ -190,6 +194,10 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "新增：可在可见面板之间拖动选项卡，并保留选项卡状态及插入顺序。",
+        "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "调整：新增可缩放的层级菜单、一致的指示标记及点击外部关闭功能。",
+        "Adjusted: Made the clipboard summary responsive with the full first name and remaining-item count.": "调整：剪贴板摘要可响应可用空间，完整显示第一个名称及其余项目数量。",
+        "Fixed: Improved pasted-file navigation, file-row spacing, multi-selection rename, and no-op drag handling.": "修复：改进粘贴文件路径导航、文件行间距、多选重命名及无效拖放处理。",
         "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "新增：可配置 2 至 4 面板布局，并保存面板状态及支持下一面板操作。",
         "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "新增：可视化剪贴板摘要，显示重叠的原生图标与精简的剩余项目数量。",
         "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "新增：英文、繁体中文、简体中文及韩文用户界面。",
@@ -214,7 +222,7 @@ _TRANSLATIONS = {
         "Added: Keyboard-accessible Favorites and Recent Folders.": "新增：可完全使用键盘操作的收藏夹与最近使用的文件夹。",
         "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "新增：双文件面板、选项卡、导航、排序及便携式 INI 设置。",
         "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "新增：预览、搜索、比较及端到端键盘操作。",
-        "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板    Ctrl+M  批量重命名\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
+        "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
         "Files": "파일", "View": "보기", "Versions": "버전", "UI Language": "UI 언어", "Build": "빌드",
@@ -227,7 +235,7 @@ _TRANSLATIONS = {
         "Small (100%)": "작게 (100%)", "Medium (150%)": "보통 (150%)", "Large (200%)": "크게 (200%)", "Huge (300%)": "매우 크게 (300%)", "Right Skirt": "오른쪽 스커트", "Rounded": "둥근 모서리", "Squarish": "사각형",
         "{count} Panels": "패널 {count}개", "Current version: v{version}": "현재 버전: v{version}", "{series} Changes": "{series} 변경 내용", "Yoda — Portable App Advocate": "Yoda — 포터블 앱 추진자",
         "Clipboard: checking…": "클립보드: 확인 중…", "Clipboard": "클립보드", "Clipboard (Cut)": "클립보드(잘라내기)", "Clipboard: Empty": "클립보드: 비어 있음", "Clipboard: OBJ": "클립보드: 개체", "Clipboard: String {size} Bytes": "클립보드: 텍스트 {size}바이트",
-        "and {count} more {kind}": "외 {count}개 {kind}", "file": "파일", "files": "파일", "folder": "폴더", "folders": "폴더", "item": "항목", "items": "항목", "attachments": "첨부 파일",
+        "and {count} more {kind}": "외 {count}개 {kind}", "& other {count} {kind}": "외 {count}개 {kind}", "and {count} {kind}...": "외 {count}개 {kind}…", "file": "파일", "files": "파일", "folder": "폴더", "folders": "폴더", "item": "항목", "items": "항목", "attachments": "첨부 파일",
         "Name": "이름", "Ext": "확장명", "Size": "크기", "Date Modified": "수정한 날짜", "Attr": "특성", "Folder": "폴더", "Modified": "수정한 날짜", "Quick Filter:": "빠른 필터:",
         "Cannot open folder": "폴더를 열 수 없음", "Cannot read folder": "폴더를 읽을 수 없음", "Cannot open file": "파일을 열 수 없음", "Open / Enter Folder": "열기 / 폴더로 이동", "Open Folder in New Tab": "새 탭에서 폴더 열기", "Paste into This Folder": "이 폴더에 붙여넣기", "Paste into Current Folder": "현재 폴더에 붙여넣기",
         "Add Current Folder": "현재 폴더 추가", "Remove Current Folder": "현재 폴더 제거", "Clear Recent Folders": "최근 폴더 지우기", "No recent folders": "최근 폴더 없음", "Keyboard Guide": "키보드 사용 안내", "Keyboard shortcuts not shown on the bottom action bar": "아래 작업 표시줄에 없는 키보드 바로 가기",
@@ -252,6 +260,10 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "추가: 표시된 패널 사이에서 탭 상태와 삽입 순서를 유지하며 탭을 끌어 이동할 수 있습니다.",
+        "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "조정: 크기 조절이 가능한 계층 메뉴, 일관된 표시 기호 및 외부 클릭 닫기 기능을 추가했습니다.",
+        "Adjusted: Made the clipboard summary responsive with the full first name and remaining-item count.": "조정: 클립보드 요약이 사용 가능한 공간에 맞춰 첫 이름 전체와 나머지 항목 수를 표시합니다.",
+        "Fixed: Improved pasted-file navigation, file-row spacing, multi-selection rename, and no-op drag handling.": "수정: 붙여넣은 파일 경로 탐색, 파일 행 간격, 다중 선택 이름 바꾸기 및 무효 끌기 처리를 개선했습니다.",
         "Added: Configurable two-to-four-panel layout with persistent panel state and next-panel operations.": "추가: 패널 상태 저장 및 다음 패널 작업을 지원하는 2~4개 패널 레이아웃.",
         "Added: Visual clipboard summary with overlapping native icons and concise remaining-item counts.": "추가: 겹쳐진 기본 아이콘과 간결한 나머지 항목 수를 표시하는 시각적 클립보드 요약.",
         "Added: English, Traditional Chinese, Simplified Chinese, and Korean user interfaces.": "추가: 영어, 중국어 번체, 중국어 간체 및 한국어 사용자 인터페이스.",
@@ -276,7 +288,7 @@ _TRANSLATIONS = {
         "Added: Keyboard-accessible Favorites and Recent Folders.": "추가: 키보드로 사용할 수 있는 즐겨찾기 및 최근 폴더.",
         "Added: Dual file panels with tabs, navigation, sorting, and portable INI settings.": "추가: 탭, 탐색, 정렬 및 포터블 INI 설정을 지원하는 이중 파일 패널.",
         "Added: Preview, Search, Compare, and end-to-end keyboard operation.": "추가: 미리 보기, 검색, 비교 및 전체 키보드 작업.",
-        "Keyboard guide body": "탐색\n↑ / ↓  항목 선택\nRight / Left  폴더로 이동 / 상위 폴더로 이동\nTab  패널 전환\nCtrl+Tab / Ctrl+Shift+Tab  다음 / 이전 탭\nCtrl+Up  현재 폴더를 새 탭에 복제\nCtrl+W  현재 탭 닫기\nCtrl+L  경로에 포커스하고 선택\nEsc  파일 목록으로 포커스 복귀\n\n즐겨찾기 및 최근 폴더\nCtrl+D  현재 폴더를 즐겨찾기에 추가 / 제거\nCtrl+B  즐겨찾기 열기    Ctrl+Shift+R  최근 폴더 열기\n\nPFC 내부 끌어서 놓기\n패널 또는 폴더 행으로 끌어 복사    Shift를 누르면 이동\n\n선택 및 클립보드\nCtrl+C / Ctrl+X / Ctrl+V  파일 탐색기와 복사 / 잘라내기 / 붙여넣기\nCtrl+A  모두 선택    Shift+Del  경고 후 완전히 삭제\nCtrl+Shift+C  선택 항목 또는 현재 경로 복사\nCtrl+H  숨김 파일 전환\nCtrl+Y  현재 패널 빠른 필터    Ctrl+M  선택 항목 일괄 이름 바꾸기\nAlt+F / Alt+V / Alt+H  파일 / 보기 / 버전 메뉴 열기",
+        "Keyboard guide body": "탐색\n↑ / ↓  항목 선택\nRight / Left  폴더로 이동 / 상위 폴더로 이동\nTab  패널 전환\nCtrl+Tab / Ctrl+Shift+Tab  다음 / 이전 탭\nCtrl+Up  현재 폴더를 새 탭에 복제\nCtrl+W  현재 탭 닫기\nCtrl+L  경로에 포커스하고 선택\nEsc  파일 목록으로 포커스 복귀\n\n즐겨찾기 및 최근 폴더\nCtrl+D  현재 폴더를 즐겨찾기에 추가 / 제거\nCtrl+B  즐겨찾기 열기    Ctrl+Shift+R  최근 폴더 열기\n\nPFC 내부 끌어서 놓기\n패널 또는 폴더 행으로 끌어 복사    Shift를 누르면 이동\n\n선택 및 클립보드\nCtrl+C / Ctrl+X / Ctrl+V  파일 탐색기와 복사 / 잘라내기 / 붙여넣기\nCtrl+A  모두 선택    Shift+Del  경고 후 완전히 삭제\nCtrl+Shift+C  선택 항목 또는 현재 경로 복사\nCtrl+H  숨김 파일 전환\nCtrl+Y  현재 패널 빠른 필터\nAlt+F / Alt+V / Alt+H  파일 / 보기 / 버전 메뉴 열기",
     },
 }
 
@@ -956,15 +968,341 @@ TAB_STYLES = {
 }
 
 
+def add_scaled_cascade(menu: tk.Menu, label: str, submenu: tk.Menu) -> None:
+    """Keep a native menu model; PFC draws header cascades itself."""
+    menu.add_cascade(label=label, menu=submenu)
+
+
+def align_scaled_cascade_arrows(menu: tk.Menu) -> None:
+    """Compatibility no-op for the native menu model."""
+
+
+def _refresh_scaled_indicators(menu: tk.Menu) -> None:
+    for index, variable, value in getattr(menu, "_pfc_scaled_indicators", ()):
+        selected = bool(variable.get()) if value is None else variable.get() == value
+        menu.entryconfigure(index, accelerator="✓" if selected else "")
+
+
+def _register_scaled_indicator(menu: tk.Menu, variable, value) -> None:
+    if not hasattr(menu, "_pfc_scaled_indicators"):
+        menu._pfc_scaled_indicators = []
+        menu.configure(postcommand=lambda target=menu: _refresh_scaled_indicators(target))
+    menu._pfc_scaled_indicators.append((menu.index("end"), variable, value))
+    _refresh_scaled_indicators(menu)
+
+
+def add_scaled_checkbutton(menu: tk.Menu, label: str, variable, command=None) -> None:
+    menu.add_checkbutton(label=label, variable=variable, command=command, indicatoron=False)
+    _register_scaled_indicator(menu, variable, None)
+
+
+def add_scaled_radiobutton(menu: tk.Menu, label: str, value, variable, command=None) -> None:
+    menu.add_radiobutton(label=label, value=value, variable=variable, command=command,
+                         indicatoron=False)
+    _register_scaled_indicator(menu, variable, value)
+
+
+class HeaderPopupController:
+    """Draw scalable, keyboard-accessible header menus without native glyphs."""
+
+    def __init__(self, owner, descriptions=None):
+        self.owner = owner
+        self.descriptions = descriptions or {}
+        self.popups = []
+        self.tooltip = None
+        self.tooltip_job = None
+
+    def show(self, button, menu) -> None:
+        self.close_all()
+        popup = _HeaderPopup(self, menu, None)
+        self.popups = [popup]
+        popup.show(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
+        popup.top.grab_set_global()
+        popup.canvas.focus_force()
+
+    def open_child(self, parent, index) -> None:
+        depth = self.popups.index(parent)
+        self._close_from(depth + 1)
+        submenu_name = parent.menu.entrycget(index, "menu")
+        if not submenu_name:
+            return
+        submenu = parent.menu.nametowidget(submenu_name)
+        child = _HeaderPopup(self, submenu, parent)
+        self.popups.append(child)
+        row_top = parent.row_bounds[index][0]
+        x = parent.top.winfo_rootx() + parent.width - 1
+        y = parent.top.winfo_rooty() + row_top
+        if x + child.width > child.top.winfo_screenwidth():
+            x = parent.top.winfo_rootx() - child.width + 1
+        child.show(x, y)
+        child.canvas.focus_force()
+
+    def close_child(self, popup) -> None:
+        depth = self.popups.index(popup)
+        parent = popup.parent
+        self._close_from(depth)
+        if parent is not None:
+            parent.canvas.focus_force()
+
+    def close_all(self) -> None:
+        self._hide_tooltip()
+        if self.popups:
+            try:
+                self.popups[0].top.grab_release()
+            except tk.TclError:
+                pass
+        self._close_from(0)
+
+    def _close_from(self, depth: int) -> None:
+        self._hide_tooltip()
+        for popup in reversed(self.popups[depth:]):
+            try:
+                popup.top.destroy()
+            except tk.TclError:
+                pass
+        del self.popups[depth:]
+
+    def pointer_inside(self, x: int, y: int) -> bool:
+        return any(p.top.winfo_exists() and p.top.winfo_rootx() <= x < p.top.winfo_rootx() + p.width
+                   and p.top.winfo_rooty() <= y < p.top.winfo_rooty() + p.height
+                   for p in self.popups)
+
+    def schedule_tooltip(self, popup, index) -> None:
+        self._hide_tooltip()
+        self.tooltip_job = self.owner.after(5000, lambda: self._show_tooltip(popup, index))
+
+    def _show_tooltip(self, popup, index) -> None:
+        self.tooltip_job = None
+        if popup not in self.popups:
+            return
+        label = popup.menu.entrycget(index, "label")
+        text = self.descriptions.get(label, label)
+        tip = tk.Toplevel(self.owner)
+        tip.overrideredirect(True)
+        tip.attributes("-topmost", True)
+        x, y = self.owner.winfo_pointerxy()
+        tip.geometry(f"+{x + 14}+{y + 18}")
+        tk.Label(tip, text=text, justify="left", background="#fffbd6", foreground="#18232c",
+                 relief="solid", borderwidth=1, padx=7, pady=4,
+                 font=tkfont.nametofont("TkDefaultFont")).pack()
+        self.tooltip = tip
+
+    def _hide_tooltip(self) -> None:
+        if self.tooltip_job is not None:
+            try:
+                self.owner.after_cancel(self.tooltip_job)
+            except tk.TclError:
+                pass
+            self.tooltip_job = None
+        if self.tooltip is not None:
+            try:
+                self.tooltip.destroy()
+            except tk.TclError:
+                pass
+            self.tooltip = None
+
+
+class _HeaderPopup:
+    BG, FG, DISABLED, ACTIVE_BG, ACTIVE_FG, BORDER = (
+        "#f0f0f0", "#101010", "#808080", "#087bdc", "#ffffff", "#8a8a8a")
+
+    def __init__(self, controller, menu, parent):
+        self.controller, self.menu, self.parent = controller, menu, parent
+        self.top = tk.Toplevel(parent.top if parent is not None else controller.owner)
+        self.top.withdraw()
+        self.top.overrideredirect(True)
+        self.top.attributes("-topmost", True)
+        self.font = tkfont.nametofont("TkMenuFont")
+        self.selected = None
+        self.items = []
+        self.row_bounds = {}
+        self._run_postcommand()
+        self._measure()
+        self.canvas = tk.Canvas(self.top, width=self.width, height=self.height, background=self.BG,
+                                highlightthickness=1, highlightbackground=self.BORDER, takefocus=True)
+        self.canvas.pack()
+        self.canvas.bind("<Motion>", self._motion)
+        self.canvas.bind("<Leave>", lambda _event: self.controller._hide_tooltip())
+        self.canvas.bind("<ButtonRelease-1>", self._click)
+        self.canvas.bind("<ButtonPress-1>", self._outside_click)
+        self.top.bind("<ButtonPress-1>", self._outside_click, add="+")
+        self.canvas.bind("<Down>", lambda _event: self._move(1))
+        self.canvas.bind("<Up>", lambda _event: self._move(-1))
+        self.canvas.bind("<Right>", lambda _event: self._open_selected())
+        self.canvas.bind("<Left>", lambda _event: self._left())
+        self.canvas.bind("<Return>", lambda _event: self._invoke_selected())
+        self.canvas.bind("<space>", lambda _event: self._invoke_selected())
+        self.canvas.bind("<Escape>", lambda _event: self._escape())
+        self._draw()
+
+    def _run_postcommand(self) -> None:
+        command = self.menu.cget("postcommand")
+        if command:
+            try:
+                self.menu.tk.eval(command)
+            except tk.TclError:
+                pass
+
+    def _measure(self) -> None:
+        end = self.menu.index("end")
+        label_width = accelerator_width = 0
+        line = self.font.metrics("linespace")
+        self.row_height = max(24, line + max(8, line // 3))
+        y = 3
+        for index in range(end + 1 if end is not None else 0):
+            kind = self.menu.type(index)
+            if kind == "tearoff":
+                continue
+            if kind == "separator":
+                height = max(7, line // 3)
+                self.items.append((index, kind, "", "", "normal"))
+            else:
+                label = self.menu.entrycget(index, "label")
+                accelerator = self.menu.entrycget(index, "accelerator")
+                state = self.menu.entrycget(index, "state")
+                label_width = max(label_width, self.font.measure(label))
+                if accelerator != "✓":
+                    accelerator_width = max(accelerator_width, self.font.measure(accelerator))
+                height = self.row_height
+                self.items.append((index, kind, label, accelerator, state))
+            self.row_bounds[index] = (y, y + height)
+            y += height
+        marker = max(line, self.font.measure("▶"), self.font.measure("✓"))
+        self.left_pad = max(10, line // 2)
+        self.label_x = self.left_pad
+        self.marker_width = marker + self.left_pad
+        gap = max(18, line)
+        self.width = self.left_pad + label_width + gap + accelerator_width + self.marker_width
+        self.height = y + 3
+        self.accelerator_x = self.width - self.marker_width - self.left_pad
+        self.marker_x = self.width - self.left_pad
+
+    def show(self, x: int, y: int) -> None:
+        screen_w, screen_h = self.top.winfo_screenwidth(), self.top.winfo_screenheight()
+        x = max(0, min(x, screen_w - self.width))
+        y = max(0, min(y, screen_h - self.height))
+        self.top.geometry(f"{self.width}x{self.height}+{x}+{y}")
+        self.top.deiconify()
+        self.top.lift()
+
+    def _draw(self) -> None:
+        self.canvas.delete("all")
+        for index, kind, label, accelerator, state in self.items:
+            top, bottom = self.row_bounds[index]
+            if kind == "separator":
+                y = (top + bottom) // 2
+                self.canvas.create_line(self.left_pad, y, self.width - self.left_pad, y,
+                                        fill="#b8b8b8")
+                continue
+            active = index == self.selected and state != "disabled"
+            bg = self.ACTIVE_BG if active else self.BG
+            fg = self.ACTIVE_FG if active else (self.DISABLED if state == "disabled" else self.FG)
+            self.canvas.create_rectangle(1, top, self.width - 1, bottom, fill=bg, outline="")
+            self.canvas.create_text(self.label_x, (top + bottom) // 2, text=label, anchor="w",
+                                    fill=fg, font=self.font)
+            if accelerator and accelerator != "✓":
+                self.canvas.create_text(self.accelerator_x, (top + bottom) // 2, text=accelerator,
+                                        anchor="e", fill=fg, font=self.font)
+            marker = "▶" if kind == "cascade" else ("✓" if accelerator == "✓" else "")
+            if marker:
+                self.canvas.create_text(self.marker_x, (top + bottom) // 2, text=marker,
+                                        anchor="e", fill=fg, font=self.font)
+
+    def _index_at(self, y):
+        for index, (top, bottom) in self.row_bounds.items():
+            if top <= y < bottom and self.menu.type(index) != "separator":
+                return index
+        return None
+
+    def _select(self, index) -> None:
+        if index == self.selected:
+            return
+        self.selected = index
+        self._draw()
+        if index is not None:
+            self.controller.schedule_tooltip(self, index)
+            if self.menu.type(index) == "cascade" and self.menu.entrycget(index, "state") != "disabled":
+                self.controller.open_child(self, index)
+            else:
+                self.controller._close_from(self.controller.popups.index(self) + 1)
+
+    def _motion(self, event) -> None:
+        self._select(self._index_at(event.y))
+
+    def _outside_click(self, event) -> str | None:
+        if not self.controller.pointer_inside(event.x_root, event.y_root):
+            self.controller.close_all()
+            return "break"
+        return None
+
+    def _click(self, event) -> str:
+        index = self._index_at(event.y)
+        if index is not None:
+            self._select(index)
+            self._invoke(index)
+        return "break"
+
+    def _enabled_indexes(self):
+        return [index for index, kind, _label, _accelerator, state in self.items
+                if kind != "separator" and state != "disabled"]
+
+    def _move(self, direction: int) -> str:
+        indexes = self._enabled_indexes()
+        if not indexes:
+            return "break"
+        if self.selected not in indexes:
+            target = indexes[0 if direction > 0 else -1]
+        else:
+            target = indexes[(indexes.index(self.selected) + direction) % len(indexes)]
+        self._select(target)
+        return "break"
+
+    def _open_selected(self) -> str:
+        if self.selected is not None and self.menu.type(self.selected) == "cascade":
+            self.controller.open_child(self, self.selected)
+            self.controller.popups[-1]._move(1)
+        return "break"
+
+    def _invoke_selected(self) -> str:
+        if self.selected is not None:
+            self._invoke(self.selected)
+        return "break"
+
+    def _invoke(self, index) -> None:
+        if self.menu.entrycget(index, "state") == "disabled":
+            return
+        if self.menu.type(index) == "cascade":
+            self.controller.open_child(self, index)
+            self.controller.popups[-1].canvas.focus_force()
+            return
+        menu, controller = self.menu, self.controller
+        controller.close_all()
+        menu.invoke(index)
+
+    def _left(self) -> str:
+        if self.parent is not None:
+            self.controller.close_child(self)
+        return "break"
+
+    def _escape(self) -> str:
+        if self.parent is not None:
+            self.controller.close_child(self)
+        else:
+            self.controller.close_all()
+        return "break"
+
+
 class ChamferNotebook(ttk.Frame):
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
     def __init__(self, master, on_color_changed=None, on_lock_changed=None,
-                 on_tabs_reordered=None, tab_style="right_skirt", **kwargs):
+                 on_tabs_reordered=None, on_tab_drag=None,
+                 tab_style="right_skirt", **kwargs):
         super().__init__(master, **kwargs)
         self.on_color_changed = on_color_changed or (lambda _child, _color: None)
         self.on_lock_changed = on_lock_changed or (lambda _child, _mode: None)
         self.on_tabs_reordered = on_tabs_reordered or (lambda: None)
+        self.on_tab_drag = on_tab_drag or (lambda _action, _tabs, _child, _event: False)
         self._tabs = []
         self._texts = {}
         self._colors = {}
@@ -978,6 +1316,8 @@ class ChamferNotebook(ttk.Frame):
         self._drag_start_x = 0
         self._drag_original_order = ()
         self._drag_moved = False
+        self._drag_external = False
+        self._drop_position = None
         self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
         self.bar.pack(fill="x", side="top")
         self.bar.bind("<ButtonPress-1>", self._tab_press)
@@ -1049,6 +1389,30 @@ class ChamferNotebook(ttk.Frame):
             self.event_generate("<<NotebookTabsReordered>>")
         return True
 
+    def insertion_index_at(self, x_root, y_root):
+        """Return a tab insertion index when a screen point is over this tab bar."""
+        if not self.bar.winfo_viewable():
+            return None
+        left, top = self.bar.winfo_rootx(), self.bar.winfo_rooty()
+        if not (left <= x_root < left + self.bar.winfo_width() and
+                top <= y_root < top + self.bar.winfo_height()):
+            return None
+        x = x_root - left
+        insertion = 0
+        for tab_left, tab_right, _child in self._hitboxes:
+            if x > (tab_left + tab_right) / 2:
+                insertion += 1
+        return insertion
+
+    def _event_root(self, event):
+        return (getattr(event, "x_root", self.bar.winfo_rootx() + event.x),
+                getattr(event, "y_root", self.bar.winfo_rooty() +
+                        getattr(event, "y", max(1, self.bar.winfo_height() // 2))))
+
+    def set_drop_position(self, position=None):
+        self._drop_position = position
+        self._draw()
+
     def set_color(self, tab, color, notify=True):
         child = self._resolve(tab)
         self._colors[child] = color if color in TAB_COLORS else "default"
@@ -1080,6 +1444,11 @@ class ChamferNotebook(ttk.Frame):
     def _draw(self):
         self.bar.delete("all"); self._hitboxes.clear()
         font = tkfont.nametofont("TkDefaultFont")
+        if not hasattr(self, "_active_tab_font"):
+            self._active_tab_font = tkfont.Font(root=self, font=font)
+        else:
+            self._active_tab_font.configure(**font.actual())
+        self._active_tab_font.configure(weight="bold")
         right_skirt = self._tab_style == "right_skirt"
         height = max(30, font.metrics("linespace") + 13)
         self.bar.configure(height=height)
@@ -1139,9 +1508,18 @@ class ChamferNotebook(ttk.Frame):
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
-            draw_font = (font.actual("family"), font.actual("size"), "bold") if selected else font
+            draw_font = self._active_tab_font if selected else font
             self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=draw_font,
                                  fill="#10202c")
+        if self._drop_position is not None:
+            if not self._hitboxes or self._drop_position <= 0:
+                marker_x = self._hitboxes[0][0] if self._hitboxes else 3
+            elif self._drop_position >= len(self._hitboxes):
+                marker_x = self._hitboxes[-1][1]
+            else:
+                marker_x = self._hitboxes[self._drop_position][0]
+            self.bar.create_line(marker_x, 2, marker_x, height - 2,
+                                 fill="#0067c0", width=max(3, round(height * 0.11)))
         self.bar.configure(scrollregion=(0, 0, max(x + overlap, self.bar.winfo_width()), height))
 
     def _at(self, x):
@@ -1162,6 +1540,7 @@ class ChamferNotebook(ttk.Frame):
             self._drag_start_x = event.x
             self._drag_original_order = tuple(self._tabs)
             self._drag_moved = False
+            self._drag_external = False
 
     def _tab_motion(self, event):
         child = self._drag_tab
@@ -1170,6 +1549,19 @@ class ChamferNotebook(ttk.Frame):
         if not self._drag_moved and abs(event.x - self._drag_start_x) < 5:
             return
         self._drag_moved = True
+        x_root, y_root = self._event_root(event)
+        synthetic_local = not hasattr(event, "x_root") or not hasattr(event, "y_root")
+        own_bar = synthetic_local or self.insertion_index_at(x_root, y_root) is not None
+        if not own_bar:
+            self._drag_external = True
+            accepted = self.on_tab_drag("motion", self, child, event)
+            self.bar.configure(cursor="hand2" if accepted else "fleur")
+            return
+        if self._drag_external:
+            self.on_tab_drag("cancel", self, child, event)
+            self._tabs[:] = [tab for tab in self._drag_original_order if tab in self._tabs]
+            self._draw()
+            self._drag_external = False
         self.bar.configure(cursor="fleur")
         insertion = 0
         for left, right, _candidate in self._hitboxes:
@@ -1180,15 +1572,25 @@ class ChamferNotebook(ttk.Frame):
             insertion -= 1
         self.reorder(child, insertion, notify=False)
 
-    def _tab_release(self, _event):
+    def _tab_release(self, event):
         if self._drag_tab is None:
             return
+        child = self._drag_tab
+        x_root, y_root = self._event_root(event)
+        synthetic_local = not hasattr(event, "x_root") or not hasattr(event, "y_root")
+        external = self._drag_external or (not synthetic_local and
+                                            self.insertion_index_at(x_root, y_root) is None)
+        if external:
+            self._tabs[:] = [tab for tab in self._drag_original_order if tab in self._tabs]
+            self._draw()
+            self.on_tab_drag("drop", self, child, event)
         changed = self._drag_moved and tuple(self._tabs) != self._drag_original_order
         self._drag_tab = None
         self._drag_original_order = ()
         self._drag_moved = False
+        self._drag_external = False
         self.bar.configure(cursor="")
-        if changed:
+        if changed and not external:
             self.on_tabs_reordered()
             self.event_generate("<<NotebookTabsReordered>>")
 
@@ -1205,8 +1607,8 @@ class ChamferNotebook(ttk.Frame):
         for label, value in (("Unlocked", "unlocked"),
                              ("Lock (open folder in new tab)", "locked"),
                              ("Lock (open folder is allowed)", "reset")):
-            menu.add_radiobutton(label=tr(label), value=value, variable=lock_mode,
-                                 command=lambda mode=value: self.set_lock(child, mode))
+            add_scaled_radiobutton(menu, tr(label), value, lock_mode,
+                                   command=lambda mode=value: self.set_lock(child, mode))
         menu.tk_popup(event.x_root, event.y_root)
 
 
@@ -2982,14 +3384,20 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.11.1"
+__version__ = "0.12.0"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/16"
+BUILD_DATE = "2026/07/17"
 VERSION_HISTORY = (
+    ("v0.12.0", "2026/07/17", (
+        "Added: Drag tabs between visible panels while preserving tab state and insertion order.",
+        "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.",
+        "Adjusted: Made the clipboard summary responsive with the full first name and remaining-item count.",
+        "Fixed: Improved pasted-file navigation, file-row spacing, multi-selection rename, and no-op drag handling.",
+    )),
     ("v0.11.1", "2026/07/16", (
         "Adjusted: UI language changes apply immediately without restarting.",
         "Adjusted: Improved font rendering with native Windows typefaces and DPI awareness.",
@@ -3124,6 +3532,71 @@ def configure_native_fonts(root) -> None:
         tkfont.nametofont("TkFixedFont", root=root).configure(family=fixed)
     except tk.TclError:
         pass
+
+
+def navigation_destination(path: Path) -> tuple[Path, Path | None]:
+    """Return the folder to open and an existing file to select, if supplied."""
+    target = path.expanduser().resolve()
+    return (target.parent, target) if target.is_file() else (target, None)
+
+
+def is_noop_drag_drop(items: list[Path], destination: Path) -> bool:
+    """Treat a drag back to its source folder (or onto itself) as cancellation."""
+    if not items:
+        return False
+    try:
+        resolved_destination = destination.resolve()
+        resolved_items = [item.resolve() for item in items]
+    except OSError:
+        return False
+    if all(item.parent == resolved_destination for item in resolved_items):
+        return True
+    return len(resolved_items) == 1 and resolved_items[0] == resolved_destination
+
+
+def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
+    """Keep text descenders and scaled shell icons clear of adjacent rows."""
+    icon_size = max(16, round(16 * scale))
+    vertical_space = max(8, round(8 * scale))
+    return max(24, font_linespace + vertical_space, icon_size + vertical_space)
+
+
+def ellipsize_middle(text: str, max_width: int, measure) -> str:
+    """Fit text in a pixel width while preserving both its start and useful suffix."""
+    if max_width <= 0:
+        return ""
+    if measure(text) <= max_width:
+        return text
+    ellipsis = "…"
+    if measure(ellipsis) > max_width:
+        return ""
+    low, high = 0, len(text)
+    while low < high:
+        keep = (low + high + 1) // 2
+        left = (keep + 1) * 3 // 5
+        candidate = text[:left].rstrip() + ellipsis + text[-(keep - left):].lstrip()
+        if measure(candidate) <= max_width:
+            low = keep
+        else:
+            high = keep - 1
+    left = (low + 1) * 3 // 5
+    right = low - left
+    return text[:left].rstrip() + ellipsis + (text[-right:].lstrip() if right else "")
+
+
+def clipboard_header_widths(window_width: int, left_width: int, icon_width: int) -> tuple[int, int]:
+    """Return bounded frame/text widths that can never extend past the header."""
+    frame_width = max(0, window_width - left_width - 24)
+    return frame_width, max(0, frame_width - icon_width - 4)
+
+
+def split_clipboard_summary(label: str) -> tuple[str, str]:
+    """Split a localized Clipboard prefix from its detail text."""
+    for separator in (": ", "："):
+        if separator in label:
+            prefix, detail = label.split(separator, 1)
+            return prefix + separator.rstrip(), detail
+    return label, ""
 
 
 def relaunch_with_pythonw() -> bool:
@@ -3336,7 +3809,11 @@ class FilePane(ttk.Frame):
         self.navigate(self.path.parent)
 
     def navigate_from_entry(self, _event=None) -> str:
-        if self.navigate(Path(self.path_var.get().strip().strip('"'))):
+        typed = Path(self.path_var.get().strip().strip('"'))
+        folder, selected_file = navigation_destination(typed)
+        if self.navigate(folder):
+            if selected_file is not None:
+                self.select_path(selected_file)
             self.focus_file_list()
         return "break"
 
@@ -3433,11 +3910,13 @@ class FilePane(ttk.Frame):
                 result.append(Path(tags[0]))
         return result
 
-    def select_path(self, path: Path) -> None:
+    def select_path(self, path: Path) -> bool:
         for iid in self.tree.get_children():
             tags = self.tree.item(iid, "tags")
             if tags and Path(tags[0]) == path:
-                self.tree.selection_set(iid); self.tree.focus(iid); self.tree.see(iid); break
+                self.tree.selection_set(iid); self.tree.focus(iid); self.tree.see(iid)
+                return True
+        return False
 
     def focus_file_list(self) -> None:
         children = self.tree.get_children()
@@ -3579,24 +4058,30 @@ class PaneTabs(ChamferNotebook):
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None,
                  on_drag=lambda _action, _pane, _event: None,
                  on_context=lambda _pane, _path, _x, _y: None,
+                 on_selection=lambda: None,
+                 on_tab_drag=lambda _action, _tabs, _pane, _event: False,
                  tab_style="right_skirt") -> None:
         self.color_for = color_for
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
         self.on_context = on_context
+        self.on_selection = on_selection
         super().__init__(master, on_color_changed=self._color_changed,
                          on_lock_changed=self._lock_changed,
-                         on_tabs_reordered=self._tabs_reordered, tab_style=tab_style)
+                         on_tabs_reordered=self._tabs_reordered,
+                         on_tab_drag=on_tab_drag, tab_style=tab_style)
         self.on_activate = on_activate
         self.on_change = on_change
         self.bind("<<NotebookTabChanged>>", lambda _e: self._tab_changed())
         for path in initial_paths or [Path.home()]:
             self.add_tab(path, notify=False)
 
-    def add_tab(self, path: Path, notify: bool = True) -> FilePane:
-        position = self.index(self.select()) + 1 if self.tabs() else 0
+    def add_tab(self, path: Path, notify: bool = True, position: int | None = None) -> FilePane:
+        if position is None:
+            position = self.index(self.select()) + 1 if self.tabs() else 0
         pane = FilePane(self, self.on_activate, on_drag=self.on_drag,
                         on_context=self.on_context)
+        pane.tree.bind("<<TreeviewSelect>>", lambda _event: self.on_selection(), add="+")
         pane.on_change = lambda source=pane: self._pane_changed(source)
         pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
         pane.navigate(path)
@@ -3727,10 +4212,13 @@ class Commander(tk.Tk):
         self._drag_state = None
         self._drag_ghost = None
         self._drag_highlight = None
+        self._tab_drag_target = None
         saved_panel_count = self.config_data.getint("view", "panel_count", fallback=2)
         self.panel_count_var = tk.IntVar(value=max(2, min(4, saved_panel_count)))
         self.ui_language_var = tk.StringVar(value=saved_language if saved_language in dict(LANGUAGES) else "en")
         self._clipboard_visual_key = None
+        self._clipboard_visual_state = None
+        self._clipboard_resize_job = None
         self._clipboard_icon_images = []
         self._clipboard_icon_size = 18
         self.clipboard_icons = ShellIconProvider(self._clipboard_icon_size)
@@ -3748,6 +4236,7 @@ class Commander(tk.Tk):
         self.favorites = self._load_navigation_paths("favorites")
         self.recent_folders = self._load_navigation_paths("recent_folders")
         self._font_scales = {"small": 1.0, "medium": 1.5, "large": 2.0, "huge": 3.0}
+        self._base_tk_scaling = float(self.tk.call("tk", "scaling"))
         self._base_font_sizes = {}
         for name in ("TkDefaultFont", "TkTextFont", "TkFixedFont", "TkMenuFont", "TkHeadingFont",
                      "TkCaptionFont", "TkSmallCaptionFont"):
@@ -3785,7 +4274,9 @@ class Commander(tk.Tk):
         for section in PANEL_SECTIONS:
             tabs = PaneTabs(split, self.set_active, self.save_config, self._saved_paths(section),
                             self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
-                            self._show_file_context_menu, self.tab_style_var.get())
+                            self._show_file_context_menu, self.update_rename_action,
+                            self._handle_tab_drag,
+                            self.tab_style_var.get())
             self.panel_tabs.append(tabs)
         self.left_tabs, self.right_tabs = self.panel_tabs[:2]
         self.left = self.left_tabs.current()
@@ -3805,6 +4296,7 @@ class Commander(tk.Tk):
         actions = ttk.Frame(self); self.actions_frame = actions
         actions.pack(fill="x", padx=5, pady=(0, 5))
         self.action_buttons = []
+        self.action_button_by_hotkey = {}
         for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
                                        ("F4", "Search", self.search), ("F5", "Copy", self.copy),
                                        ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
@@ -3817,6 +4309,8 @@ class Commander(tk.Tk):
                 button.state(["disabled"])
             button.pack(side="left", fill="x", expand=True, padx=1)
             self.action_buttons.append((button, hotkey, label))
+            self.action_button_by_hotkey[hotkey] = button
+        self.update_rename_action()
         install_button_tooltips(self)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
@@ -3835,7 +4329,7 @@ class Commander(tk.Tk):
             "compare": "<F9>",
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
-            "quick_filter": "<Control-y>", "multi_rename": "<Control-m>",
+            "quick_filter": "<Control-y>",
         }
         commands = {
             "rename": self.rename, "preview": self.preview, "search": self.search, "copy": self.copy,
@@ -3861,10 +4355,10 @@ class Commander(tk.Tk):
             "favorites_menu": lambda: self._show_folder_menu(self.favorites_menu, self._rebuild_favorites_menu),
             "recent_menu": lambda: self._show_folder_menu(self.recent_menu, self._rebuild_recent_menu),
             "quick_filter": lambda: self.panes()[0].toggle_quick_filter(),
-            "multi_rename": self.multi_rename,
         }
         if not self.config_data.has_section("hotkeys"):
             self.config_data.add_section("hotkeys")
+        self.config_data.remove_option("hotkeys", "multi_rename")
         configured_hotkeys = {}
         for name, default in defaults.items():
             key = self.config_data.get("hotkeys", name, fallback=default)
@@ -3879,6 +4373,7 @@ class Commander(tk.Tk):
         self._auto_refresh_job = None
         self._clipboard_job = None
         self.bind("<Configure>", self._schedule_save)
+        self.bind("<Configure>", self._schedule_clipboard_layout, add="+")
         self.set_active(self.active)
         self.save_config()
         self._schedule_auto_refresh(250)
@@ -4040,12 +4535,15 @@ class Commander(tk.Tk):
             pass
 
     def close_app(self) -> None:
+        self._clear_tab_drag_target()
         if self._drag_state is not None:
             self._handle_internal_drag("cancel", self._drag_state["source"], None)
         if self._auto_refresh_job is not None:
             self.after_cancel(self._auto_refresh_job)
         if self._clipboard_job is not None:
             self.after_cancel(self._clipboard_job)
+        if self._clipboard_resize_job is not None:
+            self.after_cancel(self._clipboard_resize_job)
         self.save_config()
         self.destroy()
 
@@ -4068,6 +4566,9 @@ class Commander(tk.Tk):
         self._schedule_auto_refresh()
 
     def _build_menu(self) -> None:
+        previous_popup = getattr(self, "header_popup", None)
+        if previous_popup is not None:
+            previous_popup.close_all()
         previous_header = getattr(self, "header", None)
         if previous_header is not None and previous_header.winfo_exists():
             previous_header.destroy()
@@ -4079,18 +4580,34 @@ class Commander(tk.Tk):
         else:
             header.pack(fill="x")
         self.header = header
-        title = tk.Label(header, text=f"Python File Commander   v{__version__}   {tr('Build')} {BUILD_DATE}",
+        # Pack the right-side summary first so Tk preserves it when horizontal
+        # space is tight (especially in three/four-panel layouts).
+        self.clipboard_summary_frame = tk.Frame(header, background=header_bg)
+        self.clipboard_summary_frame.pack(side="right", padx=(12, 4))
+        self.clipboard_summary_frame.pack_propagate(False)
+        self.clipboard_icon_canvas = tk.Canvas(self.clipboard_summary_frame, width=52, height=24,
+                                               highlightthickness=0, background=header_bg)
+        self.clipboard_icon_canvas.pack(fill="both", expand=True)
+        self.clipboard_summary = tk.Label(self.clipboard_summary_frame, text=tr("Clipboard: checking…"),
+                                          anchor="e", width=1,
+                                          font=menu_font,
+                                          background=header_bg, foreground="#c9e5f5")
+        title = tk.Label(header, text="PFC",
                          font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
-        title.pack(side="left", padx=(2, 10))
+        title.pack(side="left", padx=(2, 8))
         title.bind("<Button-1>", lambda _event: self.show_help())
-        button_style = dict(font=menu_font, relief="flat", borderwidth=0, padx=7,
-                            background=header_bg, foreground=header_fg,
+        version_label = tk.Label(header, text=f"v{__version__}", font=menu_font,
+                                 background=header_bg, foreground="#c9e5f5")
+        version_label.pack(side="left", padx=(0, 10))
+        button_style = dict(font=menu_font, relief="raised", borderwidth=1, padx=9, pady=2,
+                            cursor="hand2",
+                            background="#31536e", foreground=header_fg,
                             activebackground=active_bg, activeforeground="#ffffff")
-        files_button = tk.Menubutton(header, text=tr("Files"), **button_style)
+        files_button = tk.Button(header, text=tr("Files"),
+                                 command=lambda: self.show_header_menu("files"), **button_style)
         files_button.pack(side="left")
         files = tk.Menu(files_button, tearoff=False, font=menu_font)
-        files_button.configure(menu=files)
         files.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         files.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
         files.add_command(label=tr("Paste"), accelerator="Ctrl+V", command=self.clipboard_paste)
@@ -4098,22 +4615,22 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Copy to Next Panel"), accelerator="F5", command=self.copy)
         files.add_command(label=tr("Move to Next Panel"), accelerator="F6", command=self.move)
         files.add_command(label=tr("Rename"), accelerator="F2", command=self.rename)
-        files.add_command(label=tr("Multi-Rename"), accelerator="Ctrl+M", command=self.multi_rename)
+        files.add_command(label=tr("Multi-Rename"), command=self.multi_rename)
         files.add_command(label=tr("New Folder"), accelerator="F7", command=self.mkdir)
         files.add_separator()
         files.add_command(label=tr("Delete"), accelerator="Del", command=self.delete)
         files.add_command(label=tr("Permanent Delete"), accelerator="Shift+Del", command=lambda: self.delete(permanent=True))
-        files.add_checkbutton(label=tr("Send Delete to Recycle Bin"), variable=self.recycle_bin_var,
-                              command=self.save_config)
-        files.add_checkbutton(label=tr("Continue After File Errors"), variable=self.continue_errors_var,
-                              command=self.save_config)
+        add_scaled_checkbutton(files, tr("Send Delete to Recycle Bin"), self.recycle_bin_var,
+                               self.save_config)
+        add_scaled_checkbutton(files, tr("Continue After File Errors"), self.continue_errors_var,
+                               self.save_config)
         files.add_separator()
         self.favorites_menu = tk.Menu(files, tearoff=False, font=menu_font,
                                       postcommand=self._rebuild_favorites_menu)
         self.recent_menu = tk.Menu(files, tearoff=False, font=menu_font,
                                    postcommand=self._rebuild_recent_menu)
-        files.add_cascade(label=tr("Favorites"), menu=self.favorites_menu)
-        files.add_cascade(label=tr("Recent Folders"), menu=self.recent_menu)
+        add_scaled_cascade(files, tr("Favorites"), self.favorites_menu)
+        add_scaled_cascade(files, tr("Recent Folders"), self.recent_menu)
         files.add_separator()
         files.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
         files.add_command(label=tr("Search"), accelerator="F4", command=self.search)
@@ -4122,50 +4639,50 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Change Dir"), accelerator="F12", command=self.change_dir)
         files.add_separator()
         files.add_command(label=tr("Exit"), command=self.close_app)
-        view_button = tk.Menubutton(header, text=tr("View"), **button_style)
+        align_scaled_cascade_arrows(files)
+        view_button = tk.Button(header, text=tr("View"),
+                                command=lambda: self.show_header_menu("view"), **button_style)
         view_button.pack(side="left")
         view = tk.Menu(view_button, tearoff=False, font=menu_font)
-        view_button.configure(menu=view)
         visibility = tk.Menu(view, tearoff=False, font=menu_font)
         self.show_hidden_var = tk.BooleanVar(value=False)
         self.show_system_var = tk.BooleanVar(value=False)
         self.show_extensions_var = tk.BooleanVar(value=True)
-        visibility.add_checkbutton(label=tr("Show Hidden"), variable=self.show_hidden_var,
-                                   command=self.set_hidden_visibility)
-        visibility.add_checkbutton(label=tr("Show System"), variable=self.show_system_var,
-                                   command=self.set_system_visibility)
-        visibility.add_checkbutton(label=tr("Show File Extension"), variable=self.show_extensions_var,
-                                   command=self.set_extension_visibility)
-        view.add_cascade(label=tr("File Visibility"), menu=visibility)
+        add_scaled_checkbutton(visibility, tr("Show Hidden"), self.show_hidden_var,
+                               self.set_hidden_visibility)
+        add_scaled_checkbutton(visibility, tr("Show System"), self.show_system_var,
+                               self.set_system_visibility)
+        add_scaled_checkbutton(visibility, tr("Show File Extension"), self.show_extensions_var,
+                               self.set_extension_visibility)
+        add_scaled_cascade(view, tr("File Visibility"), visibility)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
                              ("Large (200%)", "large"), ("Huge (300%)", "huge")):
-            font_size.add_radiobutton(label=tr(label), value=value, variable=self.font_size_var,
-                                      command=self.apply_font_size)
-        view.add_cascade(label=tr("Font Size"), menu=font_size)
+            add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
+                                   self.apply_font_size)
+        add_scaled_cascade(view, tr("Font Size"), font_size)
         tab_style = tk.Menu(view, tearoff=False, font=menu_font)
         for value, label in TAB_STYLES.items():
-            tab_style.add_radiobutton(label=tr(label), value=value, variable=self.tab_style_var,
-                                      command=self.apply_tab_style)
-        view.add_cascade(label=tr("Tab Style"), menu=tab_style)
+            add_scaled_radiobutton(tab_style, tr(label), value, self.tab_style_var,
+                                   self.apply_tab_style)
+        add_scaled_cascade(view, tr("Tab Style"), tab_style)
         panel_counts = tk.Menu(view, tearoff=False, font=menu_font)
         for count in range(2, 5):
-            panel_counts.add_radiobutton(label=tr("{count} Panels", count=count), value=count,
-                                         variable=self.panel_count_var,
-                                         command=self.apply_panel_count)
-        view.add_cascade(label=tr("Panel Counts"), menu=panel_counts)
+            add_scaled_radiobutton(panel_counts, tr("{count} Panels", count=count), count,
+                                   self.panel_count_var, self.apply_panel_count)
+        add_scaled_cascade(view, tr("Panel Counts"), panel_counts)
         language_menu = tk.Menu(view, tearoff=False, font=menu_font)
         for code, native_label in LANGUAGES:
-            language_menu.add_radiobutton(label=native_label, value=code,
-                                          variable=self.ui_language_var,
-                                          command=self.apply_ui_language)
-        view.add_cascade(label=tr("UI Language"), menu=language_menu)
+            add_scaled_radiobutton(language_menu, native_label, code, self.ui_language_var,
+                                   self.apply_ui_language)
+        add_scaled_cascade(view, tr("UI Language"), language_menu)
         view.add_command(label=tr("Quick Filter"), accelerator="Ctrl+Y",
                          command=lambda: self.panes()[0].toggle_quick_filter())
-        versions_button = tk.Menubutton(header, text=tr("Versions"), **button_style)
+        align_scaled_cascade_arrows(view)
+        versions_button = tk.Button(header, text=tr("Versions"),
+                                    command=lambda: self.show_header_menu("versions"), **button_style)
         versions_button.pack(side="left")
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
-        versions_button.configure(menu=versions)
         versions.add_command(label=tr("Current version: v{version}", version=__version__), state="disabled")
         versions.add_separator()
         version_series = []
@@ -4178,21 +4695,15 @@ class Commander(tk.Tk):
         versions.add_separator()
         versions.add_command(label=tr("Yoda — Portable App Advocate"),
                              command=self.show_yoda_note)
-        self.clipboard_summary_frame = tk.Frame(header, background=header_bg)
-        self.clipboard_summary_frame.pack(side="right", padx=(12, 4))
-        self.clipboard_icon_canvas = tk.Canvas(self.clipboard_summary_frame, width=52, height=24,
-                                               highlightthickness=0, background=header_bg)
-        self.clipboard_icon_canvas.pack(side="left")
-        self.clipboard_summary = tk.Label(self.clipboard_summary_frame, text=tr("Clipboard: checking…"),
-                                          anchor="e", width=1,
-                                          font=tkfont.nametofont("TkDefaultFont"),
-                                          background=header_bg, foreground="#c9e5f5")
-        self.clipboard_summary.pack(side="right")
         self.files_menu_button = files_button
         self.view_menu_button = view_button
         self.versions_menu_button = versions_button
+        self.header_left_widgets = (title, version_label, files_button, view_button, versions_button)
         self.files_menu = files
         self.view_menu = view
+        self.visibility_menu = visibility
+        self.font_size_menu = font_size
+        self.tab_style_menu = tab_style
         self.panel_counts_menu = panel_counts
         self.language_menu = language_menu
         self.versions_menu = versions
@@ -4223,12 +4734,16 @@ class Commander(tk.Tk):
             "Quick Filter": "Filter the active file list as you type; Esc clears it.",
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
+        version_help = {
+            **{tr("{series} Changes", series=series): f"Show every {series} release in one window."
+               for series in version_series},
+            tr("Yoda — Portable App Advocate"):
+                "About the advocate who helped bring this portable app into being.",
+        }
+        self.header_popup = HeaderPopupController(self, {**menu_help, **version_help})
         self._files_menu_tooltip = MenuToolTip(files, menu_help)
         self._view_menu_tooltip = MenuToolTip(view, menu_help)
-        self._versions_menu_tooltip = MenuToolTip(
-            versions, {**{tr("{series} Changes", series=series): f"Show every {series} release in one window."
-                         for series in version_series},
-                       tr("Yoda — Portable App Advocate"): "About the advocate who helped bring this portable app into being."})
+        self._versions_menu_tooltip = MenuToolTip(versions, version_help)
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
         self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
@@ -4242,26 +4757,39 @@ class Commander(tk.Tk):
     def _schedule_clipboard_summary(self, delay=2000) -> None:
         self._clipboard_job = self.after(delay, self._update_clipboard_summary)
 
+    def _schedule_clipboard_layout(self, event=None) -> None:
+        if event is not None and event.widget is not self:
+            return
+        if self._clipboard_resize_job is not None:
+            self.after_cancel(self._clipboard_resize_job)
+        self._clipboard_resize_job = self.after(80, self._refresh_clipboard_layout)
+
+    def _refresh_clipboard_layout(self) -> None:
+        self._clipboard_resize_job = None
+        if self._clipboard_visual_state is not None:
+            self._clipboard_visual_key = None
+            self._set_clipboard_visual(*self._clipboard_visual_state)
+
     def _update_clipboard_summary(self) -> None:
         self._clipboard_job = None
         try:
             paths, cut = get_file_clipboard()
             if paths:
                 noun = self._clipboard_more_noun(paths[1:])
-                suffix = (" " + tr("and {count} more {kind}", count=len(paths) - 1, kind=tr(noun))
+                suffix = (" " + tr("and {count} {kind}...", count=len(paths) - 1, kind=tr(noun))
                           if len(paths) > 1 else "")
                 prefix = tr("Clipboard (Cut)") if cut else tr("Clipboard")
-                first_name = self._short_clipboard_name(paths[0].name)
-                self._set_clipboard_visual(f"{prefix}: {first_name}{suffix}", paths, "paths")
+                first_name = paths[0].name
+                self._set_clipboard_visual(f"{prefix}: {first_name}", paths, "paths", trailing=suffix)
             else:
                 virtual_files = get_virtual_file_descriptors()
                 if virtual_files:
-                    first = self._short_clipboard_name(getattr(virtual_files[0], "name", "Attachment"))
-                    suffix = (" " + tr("and {count} more {kind}", count=len(virtual_files) - 1,
+                    first = getattr(virtual_files[0], "name", "Attachment")
+                    suffix = (" " + tr("and {count} {kind}...", count=len(virtual_files) - 1,
                                        kind=tr("attachments"))
                               if len(virtual_files) > 1 else "")
-                    self._set_clipboard_visual(f"{tr('Clipboard')}: {first}{suffix}", (), "attachments",
-                                               len(virtual_files))
+                    self._set_clipboard_visual(f"{tr('Clipboard')}: {first}", (), "attachments",
+                                               len(virtual_files), suffix)
                 else:
                     try:
                         value = self.clipboard_get()
@@ -4291,43 +4819,67 @@ class Commander(tk.Tk):
     def _short_clipboard_name(name: str, limit: int = 34) -> str:
         return name if len(name) <= limit else name[:limit - 1] + "…"
 
-    def _set_clipboard_visual(self, label: str, paths=(), kind: str = "object", count: int = 1) -> None:
-        normalized_paths = tuple(str(path) for path in paths[:3])
-        key = (label, normalized_paths, kind, count, self._clipboard_icon_size)
+    def _set_clipboard_visual(self, label: str, paths=(), kind: str = "object", count: int = 1,
+                              trailing: str = "") -> None:
+        self._clipboard_visual_state = (label, paths, kind, count, trailing)
+        normalized_paths = tuple(str(path) for path in paths[:1])
+        window_width = max(1, self.winfo_width())
+        icon_width = self._clipboard_icon_size + 10
+        left_width = sum(widget.winfo_reqwidth() for widget in self.header_left_widgets) + 38
+        frame_width, text_width = clipboard_header_widths(window_width, left_width, icon_width)
+        key = (label, normalized_paths, kind, count, trailing, self._clipboard_icon_size,
+               frame_width, text_width)
         if key == self._clipboard_visual_key:
             return
         self._clipboard_visual_key = key
         canvas = self.clipboard_icon_canvas
         canvas.delete("all")
         self._clipboard_icon_images = []
-        height = max(24, self._clipboard_icon_size + 6)
-        width = max(42, self._clipboard_icon_size + 25)
-        canvas.configure(width=width, height=height)
+        font = tkfont.Font(font=self.clipboard_summary.cget("font"))
+        height = max(24, self._clipboard_icon_size + 6, font.metrics("linespace") + 8)
+        self.clipboard_summary_frame.configure(width=frame_width, height=height)
+        canvas.configure(width=frame_width, height=height)
         center_y = height // 2
+        prefix, detail = split_clipboard_summary(label)
+        prefix_x = 2
+        canvas.create_text(prefix_x, center_y, text=prefix, anchor="w",
+                           fill="#c9e5f5", font=font)
+        icon_x = prefix_x + font.measure(prefix) + 7
         if paths:
-            for index, path in enumerate(paths[:3]):
-                image = self.clipboard_icons.get(path, path.is_dir())
-                canvas.create_image(2 + index * 10, center_y, anchor="w", image=image)
-                self._clipboard_icon_images.append(image)
+            path = paths[0]
+            image = self.clipboard_icons.get(path, path.is_dir())
+            canvas.create_image(icon_x, center_y, anchor="w", image=image)
+            self._clipboard_icon_images.append(image)
+            rendered_icon_width = image.width()
         else:
-            visible = min(3, max(1, count)) if kind == "attachments" else 1
-            for index in range(visible - 1, -1, -1):
-                x = 3 + index * 7
-                if kind == "text":
-                    canvas.create_rectangle(x, center_y - 8, x + 14, center_y + 8,
-                                            fill="#ffffff", outline="#9fb3c8")
-                    canvas.create_text(x + 7, center_y, text="T", fill="#243b53",
-                                       font=tkfont.nametofont("TkSmallCaptionFont"))
-                elif kind == "empty":
-                    canvas.create_rectangle(x, center_y - 7, x + 14, center_y + 7,
-                                            outline="#9fb3c8")
-                else:
-                    canvas.create_rectangle(x, center_y - 8, x + 14, center_y + 8,
-                                            fill="#e9f2f8", outline="#9fb3c8")
-                    canvas.create_line(x + 4, center_y - 3, x + 11, center_y - 3,
-                                       x + 11, center_y + 3, x + 4, center_y + 3,
-                                       fill="#486581")
-        self.clipboard_summary.configure(text=label)
+            symbol = self._clipboard_icon_size
+            rendered_icon_width = symbol
+            top, right, bottom = center_y - symbol // 2, icon_x + symbol, center_y + symbol // 2
+            fill = "#ffffff" if kind == "text" else ("" if kind == "empty" else "#e9f2f8")
+            canvas.create_rectangle(icon_x, top, right, bottom, fill=fill, outline="#9fb3c8")
+            if kind == "text":
+                canvas.create_text(icon_x + symbol // 2, center_y, text="T", fill="#243b53",
+                                   font=tkfont.nametofont("TkSmallCaptionFont"))
+            elif kind != "empty":
+                inset = max(3, symbol // 4)
+                canvas.create_line(icon_x + inset, center_y - inset // 2,
+                                   right - inset, center_y - inset // 2,
+                                   right - inset, center_y + inset // 2,
+                                   icon_x + inset, center_y + inset // 2, fill="#486581")
+        detail_x = icon_x + rendered_icon_width + 6
+        display_text = f"{prefix} {detail}{trailing}".rstrip()
+        self.clipboard_summary.configure(text=display_text)
+        if detail:
+            canvas.create_text(detail_x, center_y, text=detail,
+                               anchor="w", fill="#c9e5f5", font=font)
+        if trailing:
+            canvas.create_text(detail_x + font.measure(detail), center_y, text=trailing,
+                               anchor="w", fill="#c9e5f5", font=font)
+        bounds = canvas.bbox("all")
+        if bounds is not None:
+            shift = frame_width - bounds[2] - 2
+            if shift > 0:
+                canvas.move("all", shift, 0)
 
     def set_active(self, pane: FilePane) -> None:
         self.active = pane
@@ -4337,7 +4889,18 @@ class Commander(tk.Tk):
         if hasattr(self, "panel_tabs"):
             for candidate in self.all_panes():
                 candidate.set_active_appearance(candidate is pane)
+        self.update_rename_action()
         self.save_config()
+
+    def update_rename_action(self) -> None:
+        """Show the operation F2 will perform for the current selection."""
+        buttons = getattr(self, "action_button_by_hotkey", {})
+        button = buttons.get("F2")
+        pane = getattr(self, "active", None)
+        if button is None or pane is None:
+            return
+        label = "Multi-Rename" if len(pane.selected_paths()) > 1 else "Rename"
+        button.configure(text=f"F2 {tr(label)}")
 
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
@@ -4390,6 +4953,7 @@ class Commander(tk.Tk):
         self._build_menu()
         for button, hotkey, label in self.action_buttons:
             button.configure(text=f"{hotkey} {tr(label)}".rstrip())
+        self.update_rename_action()
         for pane in self.all_panes():
             pane.apply_language()
         for window in (self.preview_window, self.search_window,
@@ -4433,6 +4997,101 @@ class Commander(tk.Tk):
             if pane in tabs.panes():
                 return tabs
         return self.left_tabs
+
+    def _tab_drop_target_at(self, source_tabs: PaneTabs, x_root: int, y_root: int):
+        for target_tabs in self.visible_panel_tabs():
+            if target_tabs is source_tabs:
+                continue
+            position = target_tabs.insertion_index_at(x_root, y_root)
+            if position is not None:
+                return target_tabs, position
+        return None
+
+    def _clear_tab_drag_target(self) -> None:
+        if self._tab_drag_target is None:
+            return
+        target_tabs, _position = self._tab_drag_target
+        try:
+            target_tabs.set_drop_position(None)
+            target_tabs.bar.configure(cursor="")
+        except tk.TclError:
+            pass
+        self._tab_drag_target = None
+
+    def _show_tab_drag_target(self, target) -> None:
+        if self._tab_drag_target == target:
+            return
+        self._clear_tab_drag_target()
+        if target is not None:
+            target_tabs, position = target
+            target_tabs.set_drop_position(position)
+            target_tabs.bar.configure(cursor="hand2")
+            self._tab_drag_target = target
+
+    @staticmethod
+    def _copy_tab_view(source: FilePane, target: FilePane) -> None:
+        selected = source.selected_paths()
+        target.history = list(source.history)
+        target.sort_column = source.sort_column
+        target.reverse = source.reverse
+        target.show_hidden = source.show_hidden
+        target.show_system = source.show_system
+        target.show_extensions = source.show_extensions
+        target.set_quick_filter(source.quick_filter_var.get())
+        if source.quick_filter_visible and not target.quick_filter_visible:
+            target.quick_filter_bar.pack(fill="x", pady=(2, 0), before=target.status)
+            target.quick_filter_visible = True
+        for column in target.all_sort_columns:
+            marker = (" ▼" if target.reverse else " ▲") if column == target.sort_column else ""
+            target.tree.heading("#0" if column == "name" else column,
+                                text=target.heading_labels[column] + marker)
+        target.refresh()
+        selected_keys = {str(path) for path in selected}
+        rows = [iid for iid in target.tree.get_children()
+                if target.tree.item(iid, "tags") and target.tree.item(iid, "tags")[0] in selected_keys]
+        if rows:
+            target.tree.selection_set(rows)
+            target.tree.focus(rows[0])
+            target.tree.see(rows[0])
+
+    def _move_tab_to_panel(self, source_tabs: PaneTabs, pane: FilePane,
+                           target_tabs: PaneTabs, position: int) -> bool:
+        if source_tabs is target_tabs or len(source_tabs.tabs()) <= 1:
+            return False
+        color = source_tabs._colors.get(pane, "default")
+        lock_mode, locked_path = pane.lock_mode, pane.locked_path
+        target = target_tabs.add_tab(pane.path, notify=False, position=position)
+        self._copy_tab_view(pane, target)
+        target.lock_mode = lock_mode
+        target.locked_path = locked_path
+        target_tabs.set_color(target, color, notify=False)
+        target_tabs.set_lock(target, lock_mode, notify=False)
+        source_tabs.forget(pane)
+        pane.destroy()
+        target_tabs.select(target)
+        self.set_active(target)
+        target.focus_file_list()
+        self.save_config()
+        return True
+
+    def _handle_tab_drag(self, action: str, source_tabs: PaneTabs,
+                         pane: FilePane, event) -> bool:
+        if action == "cancel":
+            self._clear_tab_drag_target()
+            return False
+        target = self._tab_drop_target_at(source_tabs, event.x_root, event.y_root)
+        if action == "motion":
+            if len(source_tabs.tabs()) <= 1:
+                target = None
+            self._show_tab_drag_target(target)
+            return target is not None and len(source_tabs.tabs()) > 1
+        if action != "drop":
+            return False
+        self._clear_tab_drag_target()
+        if target is None:
+            return False
+        target_tabs, position = target
+        return self._move_tab_to_panel(source_tabs, pane, target_tabs, position)
 
     def _drop_target_at(self, x_root: int, y_root: int):
         for pane in self.visible_panes():
@@ -4500,9 +5159,11 @@ class Commander(tk.Tk):
         count = len(self._drag_state["items"])
         item_text = (self._drag_state["items"][0].name if count == 1
                      else tr("{count} selected items", count=count))
-        action = tr("Move") if mode == "move" else tr("Copy")
+        noop = bool(target and is_noop_drag_drop(self._drag_state["items"], target[1]))
+        action = tr("Cancel") if noop else (tr("Move") if mode == "move" else tr("Copy"))
         destination = str(target[1]) if target else tr("Not a PFC drop target")
-        color = "#ffd27a" if mode == "move" else ("#a9dcff" if target else "#e6e6e6")
+        color = "#e6e6e6" if noop else ("#ffd27a" if mode == "move" else
+                                         ("#a9dcff" if target else "#e6e6e6"))
         self._drag_ghost_label.configure(text=f"{action}: {item_text}\n→ {destination}",
                                          background=color, foreground="#10202c")
         self._drag_ghost.geometry(f"+{event.x_root + 16}+{event.y_root + 18}")
@@ -4524,6 +5185,8 @@ class Commander(tk.Tk):
                 return
             target = self._drop_target_at(event["x_root"], event["y_root"])
             target_pane, destination = (target[0], target[1]) if target else (pane, pane.path)
+            if is_noop_drag_drop(paths, destination):
+                return
             move = bool(event["move"])
             self._execute_transfer("Explorer Drag Move" if move else "Explorer Drag Copy",
                                    move_items if move else copy_items,
@@ -4561,6 +5224,8 @@ class Commander(tk.Tk):
         if target is None:
             return
         target_pane, destination, _iid = target
+        if is_noop_drag_drop(state["items"], destination):
+            return
         move = state["mode"] == "move"
         self._execute_transfer("Drag Move" if move else "Drag Copy",
                                move_items if move else copy_items,
@@ -4605,7 +5270,7 @@ class Commander(tk.Tk):
         menu.add_separator()
         menu.add_command(label=tr("Rename"), accelerator="F2",
                          state=normal_if(single), command=self.rename)
-        menu.add_command(label=tr("Multi-Rename"), accelerator="Ctrl+M",
+        menu.add_command(label=tr("Multi-Rename"),
                          state=normal_if(len(items) > 1), command=self.multi_rename)
         menu.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
         menu.add_separator()
@@ -4723,7 +5388,7 @@ class Commander(tk.Tk):
         button, menu = {"files": (self.files_menu_button, self.files_menu),
                         "view": (self.view_menu_button, self.view_menu),
                         "versions": (self.versions_menu_button, self.versions_menu)}[which]
-        menu.tk_popup(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
+        self.header_popup.show(button, menu)
         return "break"
 
     def version_series_notes(self, series: str) -> tuple[str, str]:
@@ -5052,10 +5717,15 @@ class Commander(tk.Tk):
         scale = self._font_scales.get(self.font_size_var.get(), 1.0)
         if self.font_size_var.get() not in self._font_scales:
             self.font_size_var.set("small")
+        self.tk.call("tk", "scaling", self._base_tk_scaling * scale)
         for name, base in self._base_font_sizes.items():
-            size = max(1, round(abs(base) * scale))
+            # Positive Tk font sizes are points and therefore follow tk scaling.
+            # Keep their point size stable so text retains the existing visual
+            # size while native menu arrows and indicators scale with the UI.
+            size = max(1, round(abs(base) * scale)) if base < 0 else max(1, abs(base))
             tkfont.nametofont(name).configure(size=-size if base < 0 else size)
-        row_height = max(22, round(22 * scale))
+        default_font = tkfont.nametofont("TkDefaultFont")
+        row_height = scaled_tree_row_height(default_font.metrics("linespace"), scale)
         style = ttk.Style(self)
         style.configure("Active.Treeview", rowheight=row_height)
         style.configure("Inactive.Treeview", rowheight=row_height)
@@ -5063,7 +5733,8 @@ class Commander(tk.Tk):
         style.configure("TEntry", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
         style.configure("TCombobox", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
         style.configure("TButton", font=tkfont.nametofont("TkDefaultFont"), padding=control_padding)
-        clipboard_icon_size = max(16, round(18 * scale))
+        menu_linespace = tkfont.nametofont("TkMenuFont").metrics("linespace")
+        clipboard_icon_size = max(16, round(menu_linespace * 0.9))
         if clipboard_icon_size != self._clipboard_icon_size:
             self._clipboard_icon_size = clipboard_icon_size
             self.clipboard_icons = ShellIconProvider(clipboard_icon_size)
@@ -5076,6 +5747,9 @@ class Commander(tk.Tk):
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.notebook.redraw()
         self.update_idletasks()
+        if hasattr(self, "clipboard_summary_frame"):
+            self._clipboard_visual_key = None
+            self._refresh_clipboard_layout()
         if save:
             self.save_config()
 
