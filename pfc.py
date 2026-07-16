@@ -125,6 +125,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "調整：每個面板永久顯示快速篩選，Ctrl+Y 可聚焦輸入框，並移除檢視選單切換項目。",
         "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "新增：可在可見面板之間拖曳分頁，並保留分頁狀態及插入順序。",
         "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "調整：新增可縮放的階層選單、一致的指示標記及點擊外部關閉功能。",
         "Adjusted: Made the clipboard summary responsive with the full first name and remaining-item count.": "調整：剪貼簿摘要可響應可用空間，完整顯示第一個名稱及其餘項目數量。",
@@ -194,6 +195,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "调整：每个面板永久显示快速筛选，Ctrl+Y 可聚焦输入框，并移除查看菜单切换项目。",
         "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "新增：可在可见面板之间拖动选项卡，并保留选项卡状态及插入顺序。",
         "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "调整：新增可缩放的层级菜单、一致的指示标记及点击外部关闭功能。",
         "Adjusted: Made the clipboard summary responsive with the full first name and remaining-item count.": "调整：剪贴板摘要可响应可用空间，完整显示第一个名称及其余项目数量。",
@@ -260,6 +262,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "조정: 모든 패널에 빠른 필터를 항상 표시하고 Ctrl+Y로 입력란에 포커스하며 보기 메뉴 전환 항목을 제거했습니다.",
         "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "추가: 표시된 패널 사이에서 탭 상태와 삽입 순서를 유지하며 탭을 끌어 이동할 수 있습니다.",
         "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "조정: 크기 조절이 가능한 계층 메뉴, 일관된 표시 기호 및 외부 클릭 닫기 기능을 추가했습니다.",
         "Adjusted: Made the clipboard summary responsive with the full first name and remaining-item count.": "조정: 클립보드 요약이 사용 가능한 공간에 맞춰 첫 이름 전체와 나머지 항목 수를 표시합니다.",
@@ -3464,7 +3467,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.0"
+__version__ = "0.12.1"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -3472,6 +3475,9 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/17"
 VERSION_HISTORY = (
+    ("v0.12.1", "2026/07/17", (
+        "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.",
+    )),
     ("v0.12.0", "2026/07/17", (
         "Added: Drag tabs between visible panels while preserving tab state and insertion order.",
         "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.",
@@ -3723,7 +3729,6 @@ class FilePane(ttk.Frame):
         self.on_locked_navigation = lambda _path: None
         self._signature = None
         self.quick_filter_var = tk.StringVar()
-        self.quick_filter_visible = False
         self._drag_press_item = None
         self._drag_press_xy = None
         self._dragging = False
@@ -3778,6 +3783,7 @@ class FilePane(ttk.Frame):
         self.quick_filter_var.trace_add("write", self._quick_filter_changed)
         self.status = ttk.Label(self, anchor="w")
         self.status.pack(fill="x", pady=(3, 0))
+        self.quick_filter_bar.pack(fill="x", pady=(2, 0))
         install_button_tooltips(self)
         self.navigate(self.path)
         try:
@@ -4016,25 +4022,16 @@ class FilePane(ttk.Frame):
 
     def set_quick_filter(self, value: str) -> None:
         self.quick_filter_var.set(value)
-        if value and not self.quick_filter_visible:
-            self.quick_filter_bar.pack(fill="x", pady=(2, 0), before=self.status)
-            self.quick_filter_visible = True
 
     def toggle_quick_filter(self) -> str:
-        if not self.quick_filter_visible:
-            self.quick_filter_bar.pack(fill="x", pady=(2, 0), before=self.status)
-            self.quick_filter_visible = True
-            if self.mode != "files":
-                self.mode = "files"; self.path_var.set(str(self.path)); self.refresh()
-            self.quick_filter_entry.focus_set(); self.quick_filter_entry.selection_range(0, "end")
-        else:
-            self.clear_quick_filter()
+        if self.mode != "files":
+            self.mode = "files"; self.path_var.set(str(self.path)); self.refresh()
+        self.quick_filter_entry.focus_set()
+        self.quick_filter_entry.selection_range(0, "end")
         return "break"
 
     def clear_quick_filter(self) -> str:
         self.quick_filter_var.set("")
-        if self.quick_filter_visible:
-            self.quick_filter_bar.pack_forget(); self.quick_filter_visible = False
         self.focus_file_list()
         self.on_change()
         return "break"
@@ -4758,8 +4755,6 @@ class Commander(tk.Tk):
             add_scaled_radiobutton(language_menu, native_label, code, self.ui_language_var,
                                    self.apply_ui_language)
         add_scaled_cascade(view, tr("UI Language"), language_menu)
-        view.add_command(label=tr("Quick Filter"), accelerator="Ctrl+Y",
-                         command=lambda: self.panes()[0].toggle_quick_filter())
         align_scaled_cascade_arrows(view)
         versions_button = tk.Button(header, text=tr("Versions"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
@@ -4813,7 +4808,6 @@ class Commander(tk.Tk):
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the next panel.",
-            "Quick Filter": "Filter the active file list as you type; Esc clears it.",
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
         version_help = {
@@ -5120,9 +5114,6 @@ class Commander(tk.Tk):
         target.show_system = source.show_system
         target.show_extensions = source.show_extensions
         target.set_quick_filter(source.quick_filter_var.get())
-        if source.quick_filter_visible and not target.quick_filter_visible:
-            target.quick_filter_bar.pack(fill="x", pady=(2, 0), before=target.status)
-            target.quick_filter_visible = True
         for column in target.all_sort_columns:
             marker = (" ▼" if target.reverse else " ▲") if column == target.sort_column else ""
             target.tree.heading("#0" if column == "name" else column,

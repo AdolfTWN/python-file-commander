@@ -33,6 +33,9 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.1", "2026/07/17", (
+        "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.",
+    )),
     ("v0.12.0", "2026/07/17", (
         "Added: Drag tabs between visible panels while preserving tab state and insertion order.",
         "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.",
@@ -284,7 +287,6 @@ class FilePane(ttk.Frame):
         self.on_locked_navigation = lambda _path: None
         self._signature = None
         self.quick_filter_var = tk.StringVar()
-        self.quick_filter_visible = False
         self._drag_press_item = None
         self._drag_press_xy = None
         self._dragging = False
@@ -339,6 +341,7 @@ class FilePane(ttk.Frame):
         self.quick_filter_var.trace_add("write", self._quick_filter_changed)
         self.status = ttk.Label(self, anchor="w")
         self.status.pack(fill="x", pady=(3, 0))
+        self.quick_filter_bar.pack(fill="x", pady=(2, 0))
         install_button_tooltips(self)
         self.navigate(self.path)
         try:
@@ -577,25 +580,16 @@ class FilePane(ttk.Frame):
 
     def set_quick_filter(self, value: str) -> None:
         self.quick_filter_var.set(value)
-        if value and not self.quick_filter_visible:
-            self.quick_filter_bar.pack(fill="x", pady=(2, 0), before=self.status)
-            self.quick_filter_visible = True
 
     def toggle_quick_filter(self) -> str:
-        if not self.quick_filter_visible:
-            self.quick_filter_bar.pack(fill="x", pady=(2, 0), before=self.status)
-            self.quick_filter_visible = True
-            if self.mode != "files":
-                self.mode = "files"; self.path_var.set(str(self.path)); self.refresh()
-            self.quick_filter_entry.focus_set(); self.quick_filter_entry.selection_range(0, "end")
-        else:
-            self.clear_quick_filter()
+        if self.mode != "files":
+            self.mode = "files"; self.path_var.set(str(self.path)); self.refresh()
+        self.quick_filter_entry.focus_set()
+        self.quick_filter_entry.selection_range(0, "end")
         return "break"
 
     def clear_quick_filter(self) -> str:
         self.quick_filter_var.set("")
-        if self.quick_filter_visible:
-            self.quick_filter_bar.pack_forget(); self.quick_filter_visible = False
         self.focus_file_list()
         self.on_change()
         return "break"
@@ -1319,8 +1313,6 @@ class Commander(tk.Tk):
             add_scaled_radiobutton(language_menu, native_label, code, self.ui_language_var,
                                    self.apply_ui_language)
         add_scaled_cascade(view, tr("UI Language"), language_menu)
-        view.add_command(label=tr("Quick Filter"), accelerator="Ctrl+Y",
-                         command=lambda: self.panes()[0].toggle_quick_filter())
         align_scaled_cascade_arrows(view)
         versions_button = tk.Button(header, text=tr("Versions"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
@@ -1374,7 +1366,6 @@ class Commander(tk.Tk):
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the next panel.",
-            "Quick Filter": "Filter the active file list as you type; Esc clears it.",
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
         version_help = {
@@ -1681,9 +1672,6 @@ class Commander(tk.Tk):
         target.show_system = source.show_system
         target.show_extensions = source.show_extensions
         target.set_quick_filter(source.quick_filter_var.get())
-        if source.quick_filter_visible and not target.quick_filter_visible:
-            target.quick_filter_bar.pack(fill="x", pady=(2, 0), before=target.status)
-            target.quick_filter_visible = True
         for column in target.all_sort_columns:
             marker = (" ▼" if target.reverse else " ▲") if column == target.sort_column else ""
             target.tree.heading("#0" if column == "name" else column,

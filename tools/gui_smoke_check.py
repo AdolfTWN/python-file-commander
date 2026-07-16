@@ -22,6 +22,8 @@ def main() -> None:
             app = pfc.Commander(); app.withdraw(); app.update_idletasks(); app.update()
             assert [image.width() for image in app._app_icon_images] == [16, 32, 48, 64]
             assert [image.height() for image in app._app_icon_images] == [16, 32, 48, 64]
+            assert all(tabs.current().quick_filter_bar.winfo_manager() == "pack"
+                       for tabs in app.panel_tabs)
             assert app.header_left_widgets[0].cget("text") == "PFC"
             assert app.header_left_widgets[1].cget("text") == f"v{pfc.__version__}"
             assert all("Build" not in widget.cget("text") for widget in app.header_left_widgets)
@@ -31,6 +33,8 @@ def main() -> None:
             hierarchy_indexes = [index for index in range(app.view_menu.index("end") + 1)
                                  if app.view_menu.type(index) == "cascade"]
             assert len(hierarchy_indexes) == 5
+            assert all(app.view_menu.entrycget(index, "label") != "Quick Filter"
+                       for index in range(app.view_menu.index("end") + 1))
             assert all(not app.view_menu.entrycget(index, "accelerator")
                        for index in hierarchy_indexes)
             pfc._refresh_scaled_indicators(app.font_size_menu)
@@ -54,10 +58,14 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.12.0", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
+            assert version_labels == ["Current version: v0.12.1", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
                                       "v0.9.x Changes", "v0.8.x Changes",
                                       "Yoda — Portable App Advocate"]
             assert app.version_series == ("v0.12.x", "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
+            v12_title, v12_body = app.version_series_notes("v0.12.x")
+            assert v12_title == "Python File Commander — v0.12.x Changes"
+            assert "v0.12.1 — Build 2026/07/17" in v12_body
+            assert "• Adjusted: Made every panel's Quick Filter permanently visible" in v12_body
             v11_title, v11_body = app.version_series_notes("v0.11.x")
             assert v11_title == "Python File Commander — v0.11.x Changes"
             assert "v0.11.1 — Build 2026/07/16" in v11_body
@@ -227,6 +235,7 @@ def main() -> None:
             assert "alpha" in saved.get("left", "tab_filters")
             source_pane.clear_quick_filter(); app.update()
             assert len(source_pane.tree.get_children()) == 2
+            assert source_pane.quick_filter_bar.winfo_manager() == "pack"
             source_pane.tree.selection_set(source_pane.tree.get_children())
             app.set_active(source_pane); app.update()
             assert app.action_button_by_hotkey["F2"].cget("text") == "F2 Multi-Rename"

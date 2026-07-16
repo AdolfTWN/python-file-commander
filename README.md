@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.12.0 — Cross-Panel Tabs & UI Reliability**
+Current version: **v0.12.1 — Per-Panel Quick Filters**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -53,7 +53,7 @@ F3 opens a reusable popup viewer with Esc close, Auto/Text/Hex modes, text wrapp
 
 Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the first selected path or current folder, F11 copies every selected full path as newline-separated text, and Ctrl+H toggles hidden files. F12 focuses and selects the current path for direct paste-and-Enter navigation; a pasted file path opens its parent folder and places the selection bar on that file.
 
-Ctrl+Y opens a per-tab Quick Filter focused for immediate typing. The active panel instantly hides non-matching names; Enter returns to the file list and Esc or the × button clears the filter. Filter text is stored with each tab in `pfc.ini`.
+Every panel keeps an always-visible Quick Filter at its bottom. Ctrl+Y focuses the active panel's filter for immediate typing. The active panel instantly hides non-matching names; Enter returns to the file list and Esc or the × button clears the filter without hiding it. Filter text is stored with each tab in `pfc.ini`.
 
 F2 opens Multi-Rename when two or more items are selected. `[N]`, `[C]`, and `[E]` masks, find/replace, case matching, counter start/digits, and extension preservation update a live Old/New/Status preview. Invalid names, duplicates, and existing targets block execution. Batch renames use temporary names so swaps are safe, roll back on failure, and Ctrl+Z restores the last successful batch in the current session.
 
@@ -92,7 +92,7 @@ The original project is a mature Pascal application with a large plugin ecosyste
 7. **In progress — Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes. Automated coverage now includes non-ASCII conflicts, same-folder safety, partial failures, atomic default INI creation, and portable privacy; environment-dependent Windows cases remain release smoke tests.
 8. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
 
-Items 1–6 are complete and the project is now **v0.12.0**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
+Items 1–6 are complete and the project is now **v0.12.1**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
 
 Low-ROI features deferred until the office workflow is complete:
 
