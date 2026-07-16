@@ -20,6 +20,8 @@ def main() -> None:
         app = None
         try:
             app = pfc.Commander(); app.withdraw(); app.update_idletasks(); app.update()
+            assert [image.width() for image in app._app_icon_images] == [16, 32, 48, 64]
+            assert [image.height() for image in app._app_icon_images] == [16, 32, 48, 64]
             assert app.header_left_widgets[0].cget("text") == "PFC"
             assert app.header_left_widgets[1].cget("text") == f"v{pfc.__version__}"
             assert all("Build" not in widget.cget("text") for widget in app.header_left_widgets)

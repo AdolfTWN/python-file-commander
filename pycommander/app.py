@@ -17,7 +17,7 @@ from tkinter import messagebox, simpledialog, ttk
 from . import __version__
 from .fileops import OperationFailure, OperationResult, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
 from .clipboard import clear_file_clipboard, extract_virtual_files, get_file_clipboard, get_virtual_file_descriptors, set_file_clipboard
-from .icons import ShellIconProvider
+from .icons import ShellIconProvider, create_pfc_icon
 from .compare import CompareWindow
 from .preview import PreviewWindow
 from .search import SearchWindow
@@ -828,6 +828,8 @@ class Commander(tk.Tk):
         enable_windows_dpi_awareness()
         super().__init__()
         configure_native_fonts(self)
+        self._app_icon_images = [create_pfc_icon(size) for size in (16, 32, 48, 64)]
+        self.iconphoto(True, *self._app_icon_images)
         self._ready = False
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()

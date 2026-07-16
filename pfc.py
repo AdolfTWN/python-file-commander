@@ -870,6 +870,86 @@ def _png_from_bgra(raw: bytes, size: int) -> bytes:
     return b"\x89PNG\r\n\x1a\n" + _chunk(b"IHDR", header) + _chunk(b"IDAT", zlib.compress(bytes(rgba), 9)) + _chunk(b"IEND", b"")
 
 
+def _inside_polygon(x: float, y: float, points) -> bool:
+    inside = False
+    previous = points[-1]
+    for current in points:
+        x1, y1 = previous; x2, y2 = current
+        if (y1 > y) != (y2 > y):
+            crossing = (x2 - x1) * (y - y1) / (y2 - y1) + x1
+            if x < crossing:
+                inside = not inside
+        previous = current
+    return inside
+
+
+def _paint_polygon(pixels: bytearray, canvas_size: int, points, color) -> None:
+    left = max(0, int(min(x for x, _y in points)))
+    right = min(canvas_size - 1, int(max(x for x, _y in points)) + 1)
+    top = max(0, int(min(y for _x, y in points)))
+    bottom = min(canvas_size - 1, int(max(y for _x, y in points)) + 1)
+    for row in range(top, bottom + 1):
+        for column in range(left, right + 1):
+            if _inside_polygon(column + 0.5, row + 0.5, points):
+                index = (row * canvas_size + column) * 4
+                pixels[index:index + 4] = bytes(color)
+
+
+def pfc_icon_png(size: int = 32) -> bytes:
+    """Render the embedded four-panel transfer mark as an antialiased PNG."""
+    if size < 8:
+        raise ValueError("PFC icon size must be at least 8 pixels")
+    supersample = 4
+    canvas_size = size * supersample
+    factor = canvas_size / 64
+    pixels = bytearray(canvas_size * canvas_size * 4)
+    arrow = ((4.2, 9.8), (16.2, 21.8), (12.6, 25.4),
+             (29.0, 29.0), (25.4, 12.6), (21.8, 16.2), (9.8, 4.2))
+    inner_arrow = ((5.4, 8.6), (17.4, 20.6), (14.2, 23.8),
+                   (28.1, 28.1), (23.8, 14.2), (20.6, 17.4), (8.6, 5.4))
+    outline, fill = (32, 67, 92, 255), (247, 177, 52, 255)
+
+    def rotate(points):
+        return tuple((64 - y, x) for x, y in points)
+
+    current, current_inner = arrow, inner_arrow
+    for _index in range(4):
+        scaled = tuple((x * factor, y * factor) for x, y in current)
+        _paint_polygon(pixels, canvas_size, scaled, outline)
+        inset = tuple((x * factor, y * factor) for x, y in current_inner)
+        _paint_polygon(pixels, canvas_size, inset, fill)
+        current = rotate(current)
+        current_inner = rotate(current_inner)
+
+    rgba = bytearray()
+    for row in range(size):
+        rgba.append(0)
+        for column in range(size):
+            samples = []
+            for sub_y in range(supersample):
+                for sub_x in range(supersample):
+                    index = (((row * supersample + sub_y) * canvas_size +
+                              column * supersample + sub_x) * 4)
+                    samples.append(pixels[index:index + 4])
+            alpha_sum = sum(sample[3] for sample in samples)
+            alpha = round(alpha_sum / len(samples))
+            if alpha_sum:
+                red = round(sum(sample[0] * sample[3] for sample in samples) / alpha_sum)
+                green = round(sum(sample[1] * sample[3] for sample in samples) / alpha_sum)
+                blue = round(sum(sample[2] * sample[3] for sample in samples) / alpha_sum)
+            else:
+                red = green = blue = 0
+            rgba.extend((red, green, blue, alpha))
+    header = struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0)
+    return (b"\x89PNG\r\n\x1a\n" + _chunk(b"IHDR", header) +
+            _chunk(b"IDAT", zlib.compress(bytes(rgba), 9)) + _chunk(b"IEND", b""))
+
+
+def create_pfc_icon(size: int = 32) -> PhotoImage:
+    encoded = base64.b64encode(pfc_icon_png(size)).decode("ascii")
+    return PhotoImage(data=encoded, format="png")
+
+
 class ShellIconProvider:
     """Caches native Windows Shell icons as Tk images."""
 
@@ -4187,6 +4267,8 @@ class Commander(tk.Tk):
         enable_windows_dpi_awareness()
         super().__init__()
         configure_native_fonts(self)
+        self._app_icon_images = [create_pfc_icon(size) for size in (16, 32, 48, 64)]
+        self.iconphoto(True, *self._app_icon_images)
         self._ready = False
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()
