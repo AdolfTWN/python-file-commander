@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import ctypes
 import os
+import shutil
+import tempfile
 from pathlib import Path
+
+from .clipboard import CF_HDROP, TYMED_HGLOBAL, data_object_has_format, extract_virtual_files_from_data_object, virtual_file_format_id, _get_medium, _release_medium
 
 
 DROPEFFECT_NONE = 0
@@ -12,6 +16,9 @@ WM_DROPFILES = 0x0233
 GWL_WNDPROC = -4
 UINT_MAX = 0xFFFFFFFF
 VK_SHIFT = 0x10
+MK_SHIFT = 0x0004
+S_OK = 0
+E_NOINTERFACE = -2147467262
 
 
 class _GUID(ctypes.Structure):
@@ -25,6 +32,14 @@ class _POINT(ctypes.Structure):
 
 IID_IDATAOBJECT = _GUID(
     0x0000010E, 0x0000, 0x0000,
+    (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
+)
+IID_IUNKNOWN = _GUID(
+    0x00000000, 0x0000, 0x0000,
+    (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
+)
+IID_IDROPTARGET = _GUID(
+    0x00000122, 0x0000, 0x0000,
     (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
 )
 
@@ -170,15 +185,153 @@ else:
     _WNDPROC = None
 
 
-class ShellFileDropTarget:
-    """Legacy Explorer file-drop target attached to a Tk widget HWND."""
+def _guid_equal(first, second: _GUID) -> bool:
+    return bool(first) and ctypes.string_at(first, ctypes.sizeof(_GUID)) == bytes(second)
 
-    def __init__(self, widget, callback) -> None:
+
+def _drop_effect(kind: str | None, key_state: int, allowed: int) -> int:
+    if kind == "virtual":
+        return DROPEFFECT_COPY if allowed & DROPEFFECT_COPY else DROPEFFECT_NONE
+    if kind == "files":
+        preferred = DROPEFFECT_MOVE if key_state & MK_SHIFT else DROPEFFECT_COPY
+        if allowed & preferred:
+            return preferred
+        fallback = DROPEFFECT_COPY if preferred == DROPEFFECT_MOVE else DROPEFFECT_MOVE
+        return fallback if allowed & fallback else DROPEFFECT_NONE
+    return DROPEFFECT_NONE
+
+
+def _hdrop_paths_from_data_object(data_object: int) -> list[Path]:
+    medium = _get_medium(data_object, CF_HDROP, -1, TYMED_HGLOBAL)
+    try:
+        shell32 = ctypes.windll.shell32
+        shell32.DragQueryFileW.argtypes = [ctypes.c_void_p, ctypes.c_uint,
+                                           ctypes.c_wchar_p, ctypes.c_uint]
+        shell32.DragQueryFileW.restype = ctypes.c_uint
+        count = shell32.DragQueryFileW(medium.data, UINT_MAX, None, 0)
+        paths = []
+        for index in range(count):
+            length = shell32.DragQueryFileW(medium.data, index, None, 0)
+            buffer = ctypes.create_unicode_buffer(length + 1)
+            shell32.DragQueryFileW(medium.data, index, buffer, len(buffer))
+            paths.append(Path(buffer.value))
+        return paths
+    finally:
+        _release_medium(medium)
+
+
+if os.name == "nt":
+    _QUERY_INTERFACE = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p,
+                                          ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p))
+    _ADD_REF = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
+    _RELEASE = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
+    _DRAG_ENTER = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p,
+                                     ctypes.c_uint32, _POINT, ctypes.POINTER(ctypes.c_uint32))
+    _DRAG_OVER = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.c_uint32,
+                                    _POINT, ctypes.POINTER(ctypes.c_uint32))
+    _DRAG_LEAVE = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p)
+    _DROP = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p,
+                               ctypes.c_uint32, _POINT, ctypes.POINTER(ctypes.c_uint32))
+
+    class _IDropTargetVTable(ctypes.Structure):
+        _fields_ = [("QueryInterface", _QUERY_INTERFACE), ("AddRef", _ADD_REF),
+                    ("Release", _RELEASE), ("DragEnter", _DRAG_ENTER),
+                    ("DragOver", _DRAG_OVER), ("DragLeave", _DRAG_LEAVE), ("Drop", _DROP)]
+
+    class _IDropTargetInstance(ctypes.Structure):
+        _fields_ = [("lpVtbl", ctypes.POINTER(_IDropTargetVTable))]
+
+
+class _OleDropTarget:
+    """Small COM IDropTarget that accepts Shell paths and Office virtual files."""
+
+    def __init__(self, owner) -> None:
+        self.owner = owner
+        self.references = 1
+        self.kind = None
+        self.callbacks = (
+            _QUERY_INTERFACE(self._query_interface), _ADD_REF(self._add_ref),
+            _RELEASE(self._release), _DRAG_ENTER(self._drag_enter),
+            _DRAG_OVER(self._drag_over), _DRAG_LEAVE(self._drag_leave), _DROP(self._drop),
+        )
+        self.vtable = _IDropTargetVTable(*self.callbacks)
+        self.instance = _IDropTargetInstance(ctypes.pointer(self.vtable))
+        self.pointer = ctypes.addressof(self.instance)
+
+    def _query_interface(self, this, iid, result):
+        if _guid_equal(iid, IID_IUNKNOWN) or _guid_equal(iid, IID_IDROPTARGET):
+            result[0] = this
+            self._add_ref(this)
+            return S_OK
+        result[0] = None
+        return E_NOINTERFACE
+
+    def _add_ref(self, _this):
+        self.references += 1
+        return self.references
+
+    def _release(self, _this):
+        self.references = max(0, self.references - 1)
+        return self.references
+
+    def _detect_kind(self, data_object: int) -> str | None:
+        try:
+            # Explorer may advertise virtual formats too; prefer durable paths
+            # so its normal copy/Shift-move behavior remains intact.
+            if data_object_has_format(data_object, CF_HDROP, -1, TYMED_HGLOBAL):
+                return "files"
+            if self.owner.virtual_callback and data_object_has_format(
+                    data_object, virtual_file_format_id(), -1, TYMED_HGLOBAL):
+                return "virtual"
+        except (OSError, ValueError):
+            pass
+        return None
+
+    def _drag_enter(self, _this, data_object, key_state, _point, effect):
+        self.kind = self._detect_kind(data_object)
+        effect[0] = _drop_effect(self.kind, key_state, effect[0])
+        return S_OK
+
+    def _drag_over(self, _this, key_state, _point, effect):
+        effect[0] = _drop_effect(self.kind, key_state, effect[0])
+        return S_OK
+
+    def _drag_leave(self, _this):
+        self.kind = None
+        return S_OK
+
+    def _drop(self, _this, data_object, key_state, point, effect):
+        kind = self.kind or self._detect_kind(data_object)
+        accepted = _drop_effect(kind, key_state, effect[0])
+        try:
+            if kind == "files":
+                paths = _hdrop_paths_from_data_object(data_object)
+                self.owner._queue_file_drop(paths, point.x, point.y,
+                                            accepted == DROPEFFECT_MOVE)
+            elif kind == "virtual":
+                self.owner._queue_virtual_drop(data_object, point.x, point.y)
+            else:
+                accepted = DROPEFFECT_NONE
+        except (OSError, MemoryError):
+            accepted = DROPEFFECT_NONE
+        self.kind = None
+        effect[0] = accepted
+        return S_OK
+
+
+class ShellFileDropTarget:
+    """Explorer and Office virtual-file drop target attached to a Tk widget HWND."""
+
+    def __init__(self, widget, callback, virtual_callback=None) -> None:
         self.widget = widget
         self.callback = callback
+        self.virtual_callback = virtual_callback
         self.hwnd = 0
         self.old_proc = 0
         self._window_proc = None
+        self._ole_target = None
+        self._ole_initialized = False
+        self._ole_registered = False
         if os.name == "nt":
             self.install()
 
@@ -206,15 +359,52 @@ class ShellFileDropTarget:
         self.old_proc = int(previous)
         shell32.DragAcceptFiles.argtypes = [ctypes.c_void_p, ctypes.c_int]
         shell32.DragAcceptFiles(ctypes.c_void_p(self.hwnd), True)
+        self._install_ole_target()
         self.widget.bind("<Destroy>", lambda _event: self.close(), add="+")
+
+    def _install_ole_target(self) -> None:
+        ole32 = ctypes.windll.ole32
+        ole32.OleInitialize.argtypes = [ctypes.c_void_p]
+        ole32.OleInitialize.restype = ctypes.c_long
+        status = ole32.OleInitialize(None)
+        if _failed(status):
+            return
+        self._ole_initialized = True
+        self._ole_target = _OleDropTarget(self)
+        ole32.RegisterDragDrop.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        ole32.RegisterDragDrop.restype = ctypes.c_long
+        status = ole32.RegisterDragDrop(ctypes.c_void_p(self.hwnd),
+                                        ctypes.c_void_p(self._ole_target.pointer))
+        if _failed(status):
+            self._ole_target = None
+            ole32.OleUninitialize()
+            self._ole_initialized = False
+            return
+        self._ole_registered = True
+
+    def _queue_file_drop(self, paths, x_root: int, y_root: int, move: bool) -> None:
+        self.widget.after_idle(lambda: self.callback(list(paths), x_root, y_root, move))
+
+    def _queue_virtual_drop(self, data_object: int, x_root: int, y_root: int) -> None:
+        raw = tempfile.mkdtemp(prefix="pfc-office-drop-")
+        try:
+            items, failures = extract_virtual_files_from_data_object(data_object, Path(raw))
+        except Exception:
+            shutil.rmtree(raw, ignore_errors=True)
+            raise
+
+        def deliver():
+            try:
+                self.virtual_callback(items, failures, x_root, y_root)
+            finally:
+                shutil.rmtree(raw, ignore_errors=True)
+        self.widget.after_idle(deliver)
 
     def _dispatch(self, hwnd, message, wparam, lparam):
         if message == WM_DROPFILES:
             try:
                 paths, x_root, y_root, move = self._read_drop(wparam)
-                self.widget.after_idle(
-                    lambda values=paths, x=x_root, y=y_root, shift=move:
-                    self.callback(values, x, y, shift))
+                self._queue_file_drop(paths, x_root, y_root, move)
             except Exception:
                 pass
             return 0
@@ -254,6 +444,13 @@ class ShellFileDropTarget:
         if not self.active or os.name != "nt":
             return
         user32, shell32 = ctypes.windll.user32, ctypes.windll.shell32
+        if self._ole_registered:
+            ctypes.windll.ole32.RevokeDragDrop(ctypes.c_void_p(self.hwnd))
+            self._ole_registered = False
+        self._ole_target = None
+        if self._ole_initialized:
+            ctypes.windll.ole32.OleUninitialize()
+            self._ole_initialized = False
         shell32.DragAcceptFiles(ctypes.c_void_p(self.hwnd), False)
         user32.IsWindow.argtypes = [ctypes.c_void_p]
         if user32.IsWindow(ctypes.c_void_p(self.hwnd)):

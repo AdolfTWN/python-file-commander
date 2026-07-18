@@ -46,6 +46,7 @@ def build() -> Path:
     multirename = multirename.replace("from __future__ import annotations\n\n", "", 1)
     multirename = "\n".join(line for line in multirename.splitlines() if not line.startswith("from .")) + "\n"
     shelldnd = shelldnd.replace("from __future__ import annotations\n\n", "", 1)
+    shelldnd = "\n".join(line for line in shelldnd.splitlines() if not line.startswith("from .")) + "\n"
     app = app.replace("from __future__ import annotations\n\n", "", 1)
     app = "\n".join(line for line in app.splitlines() if not line.startswith("from .")) + "\n"
     banner = '''"""Portable Python File Commander.

@@ -33,6 +33,10 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.2", "2026/07/18", (
+        "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.",
+        "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.",
+    )),
     ("v0.12.1", "2026/07/17", (
         "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.",
     )),
@@ -345,7 +349,8 @@ class FilePane(ttk.Frame):
         install_button_tooltips(self)
         self.navigate(self.path)
         try:
-            self.shell_drop_target = ShellFileDropTarget(self.tree, self._shell_files_dropped)
+            self.shell_drop_target = ShellFileDropTarget(
+                self.tree, self._shell_files_dropped, self._shell_virtual_files_dropped)
         except OSError:
             self.shell_drop_target = None
 
@@ -365,6 +370,12 @@ class FilePane(ttk.Frame):
     def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
         self.on_drag("external_drop", self, {
             "paths": list(paths), "x_root": x_root, "y_root": y_root, "move": move,
+        })
+
+    def _shell_virtual_files_dropped(self, paths, failures, x_root: int, y_root: int) -> None:
+        self.on_drag("virtual_drop", self, {
+            "paths": list(paths), "failures": list(failures),
+            "x_root": x_root, "y_root": y_root,
         })
 
     def _drag_press(self, event):
@@ -1810,6 +1821,21 @@ class Commander(tk.Tk):
         self._drag_ghost = None
 
     def _handle_internal_drag(self, action: str, pane: FilePane, event) -> None:
+        if action == "virtual_drop":
+            paths = [Path(path) for path in event["paths"] if Path(path).exists()]
+            target = self._drop_target_at(event["x_root"], event["y_root"])
+            target_pane, destination = (target[0], target[1]) if target else (pane, pane.path)
+            if paths:
+                self._execute_transfer("Copy Office attachment", copy_items, paths,
+                                       destination, confirm=False, allow_retry=False)
+            failures = event.get("failures", [])
+            if failures:
+                result = OperationResult(failures=[
+                    OperationFailure(Path(name), destination, message)
+                    for name, message in failures])
+                self._show_operation_result("Office attachment drop", result)
+            self.set_active(target_pane); target_pane.focus_file_list()
+            return
         if action == "external_drop":
             paths = [Path(path) for path in event["paths"] if Path(path).exists()]
             if not paths:
@@ -2181,6 +2207,7 @@ class Commander(tk.Tk):
             self.search_window = SearchWindow(self, self.config_data, self.save_config, source.path,
                                               lambda path, pane=source: self.go_to_search_result(path, pane),
                                               self.preview_paths)
+            self.search_window.apply_scale(self._font_scales.get(self.font_size_var.get(), 1.0))
         else:
             self.search_window.path_var.set(str(source.path))
             self.search_window.on_go = lambda path, pane=source: self.go_to_search_result(path, pane)
@@ -2377,6 +2404,8 @@ class Commander(tk.Tk):
                 tabs.redraw()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.notebook.redraw()
+        if self.search_window is not None and self.search_window.winfo_exists():
+            self.search_window.apply_scale(scale)
         self.update_idletasks()
         if hasattr(self, "clipboard_summary_frame"):
             self._clipboard_visual_key = None

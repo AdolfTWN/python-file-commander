@@ -125,6 +125,8 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "新增：可將 Outlook 與 Teams 的 Office 365 虛擬附件拖入 PFC 面板。",
+        "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "修正：避免搜尋結果列在較大介面字級下重疊。",
         "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "調整：每個面板永久顯示快速篩選，Ctrl+Y 可聚焦輸入框，並移除檢視選單切換項目。",
         "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "新增：可在可見面板之間拖曳分頁，並保留分頁狀態及插入順序。",
         "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "調整：新增可縮放的階層選單、一致的指示標記及點擊外部關閉功能。",
@@ -195,6 +197,8 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "新增：可将 Outlook 和 Teams 的 Office 365 虚拟附件拖入 PFC 面板。",
+        "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "修复：避免搜索结果行在较大界面字体下重叠。",
         "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "调整：每个面板永久显示快速筛选，Ctrl+Y 可聚焦输入框，并移除查看菜单切换项目。",
         "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "新增：可在可见面板之间拖动选项卡，并保留选项卡状态及插入顺序。",
         "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "调整：新增可缩放的层级菜单、一致的指示标记及点击外部关闭功能。",
@@ -262,6 +266,8 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "추가: Outlook 및 Teams의 Office 365 가상 첨부 파일을 PFC 패널로 끌어 놓을 수 있습니다.",
+        "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "수정: 큰 UI 글꼴 크기에서 검색 결과 행이 겹치지 않도록 했습니다.",
         "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "조정: 모든 패널에 빠른 필터를 항상 표시하고 Ctrl+Y로 입력란에 포커스하며 보기 메뉴 전환 항목을 제거했습니다.",
         "Added: Drag tabs between visible panels while preserving tab state and insertion order.": "추가: 표시된 패널 사이에서 탭 상태와 삽입 순서를 유지하며 탭을 끌어 이동할 수 있습니다.",
         "Adjusted: Added scalable hierarchical menus with consistent indicators and outside-click dismissal.": "조정: 크기 조절이 가능한 계층 메뉴, 일관된 표시 기호 및 외부 클릭 닫기 기능을 추가했습니다.",
@@ -639,6 +645,18 @@ def _virtual_descriptors_from_object(data_object: int) -> list[VirtualFileDescri
         _release_medium(medium)
 
 
+def data_object_has_format(data_object: int, format_id: int, index: int = -1,
+                           tymed: int = TYMED_HGLOBAL) -> bool:
+    """Return whether an OLE IDataObject can render the requested format."""
+    request = _FORMATETC(format_id, None, DVASPECT_CONTENT, index, tymed)
+    query = _vtable_method(data_object, 5, ctypes.c_long, ctypes.POINTER(_FORMATETC))
+    return query(data_object, ctypes.byref(request)) >= 0
+
+
+def virtual_file_format_id() -> int:
+    return _register_clipboard_format("FileGroupDescriptorW")
+
+
 def get_virtual_file_descriptors() -> list[VirtualFileDescriptor]:
     if os.name != "nt":
         return []
@@ -685,33 +703,39 @@ def _write_virtual_medium(medium: _STGMEDIUM, target: Path, expected_size: int) 
         raise OSError(f"Unsupported Outlook attachment medium: {medium.tymed}")
 
 
+def extract_virtual_files_from_data_object(
+        data_object: int, destination: Path) -> tuple[list[Path], list[tuple[str, str]]]:
+    """Materialize Outlook/Teams virtual files while IDataObject is still valid."""
+    extracted, failures = [], []
+    destination.mkdir(parents=True, exist_ok=True)
+    descriptors = _virtual_descriptors_from_object(data_object)
+    content_format = _register_clipboard_format("FileContents")
+    for index, descriptor in enumerate(descriptors):
+        target = destination / descriptor.name
+        if target.exists():
+            target = target.with_name(f"{target.stem} ({index + 2}){target.suffix}")
+        medium = None
+        try:
+            medium = _get_medium(data_object, content_format, index,
+                                 TYMED_ISTREAM | TYMED_HGLOBAL | TYMED_FILE)
+            _write_virtual_medium(medium, target, descriptor.size)
+            extracted.append(target)
+        except OSError as exc:
+            failures.append((descriptor.name, str(exc)))
+            try: target.unlink(missing_ok=True)
+            except OSError: pass
+        finally:
+            if medium is not None: _release_medium(medium)
+    return extracted, failures
+
+
 def extract_virtual_files(destination: Path) -> tuple[list[Path], list[tuple[str, str]]]:
     if os.name != "nt":
         return [], []
     data_object = None; uninitialize = False
-    extracted, failures = [], []
-    destination.mkdir(parents=True, exist_ok=True)
     try:
         data_object, uninitialize = _get_ole_clipboard()
-        descriptors = _virtual_descriptors_from_object(data_object)
-        content_format = _register_clipboard_format("FileContents")
-        for index, descriptor in enumerate(descriptors):
-            target = destination / descriptor.name
-            if target.exists():
-                target = target.with_name(f"{target.stem} ({index + 2}){target.suffix}")
-            medium = None
-            try:
-                medium = _get_medium(data_object, content_format, index,
-                                     TYMED_ISTREAM | TYMED_HGLOBAL | TYMED_FILE)
-                _write_virtual_medium(medium, target, descriptor.size)
-                extracted.append(target)
-            except OSError as exc:
-                failures.append((descriptor.name, str(exc)))
-                try: target.unlink(missing_ok=True)
-                except OSError: pass
-            finally:
-                if medium is not None: _release_medium(medium)
-        return extracted, failures
+        return extract_virtual_files_from_data_object(data_object, destination)
     finally:
         if data_object: _release_interface(data_object)
         if uninitialize: ctypes.windll.ole32.OleUninitialize()
@@ -2731,6 +2755,7 @@ import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import messagebox, ttk
 
 
@@ -2738,6 +2763,11 @@ from tkinter import messagebox, ttk
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
 CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
+
+
+def search_row_height(linespace: int, scale: float) -> int:
+    """Leave enough vertical padding for scaled Search result text."""
+    return max(24, int(linespace) + max(8, round(6 * float(scale))))
 
 
 def name_matches(name: str, masks: str, case_sensitive: bool) -> bool:
@@ -2831,7 +2861,8 @@ class SearchWindow(tk.Toplevel):
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
         columns = ("folder", "size", "modified", "ext")
-        self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended")
+        self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended",
+                                 style="PFCSearch.Treeview")
         self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260)
         for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60)):
             self.tree.heading(col, text=tr(col.title()), command=lambda c=col: self.change_sort(c))
@@ -2841,6 +2872,13 @@ class SearchWindow(tk.Toplevel):
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def apply_scale(self, scale: float) -> None:
+        style = ttk.Style(self)
+        default_font = tkfont.nametofont("TkDefaultFont")
+        style.configure("PFCSearch.Treeview", font=default_font,
+                        rowheight=search_row_height(default_font.metrics("linespace"), scale))
+        style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
@@ -3191,7 +3229,10 @@ class MultiRenameWindow(tk.Toplevel):
 
 import ctypes
 import os
+import shutil
+import tempfile
 from pathlib import Path
+
 
 
 DROPEFFECT_NONE = 0
@@ -3201,6 +3242,9 @@ WM_DROPFILES = 0x0233
 GWL_WNDPROC = -4
 UINT_MAX = 0xFFFFFFFF
 VK_SHIFT = 0x10
+MK_SHIFT = 0x0004
+S_OK = 0
+E_NOINTERFACE = -2147467262
 
 
 class _GUID(ctypes.Structure):
@@ -3214,6 +3258,14 @@ class _POINT(ctypes.Structure):
 
 IID_IDATAOBJECT = _GUID(
     0x0000010E, 0x0000, 0x0000,
+    (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
+)
+IID_IUNKNOWN = _GUID(
+    0x00000000, 0x0000, 0x0000,
+    (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
+)
+IID_IDROPTARGET = _GUID(
+    0x00000122, 0x0000, 0x0000,
     (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
 )
 
@@ -3359,15 +3411,153 @@ else:
     _WNDPROC = None
 
 
-class ShellFileDropTarget:
-    """Legacy Explorer file-drop target attached to a Tk widget HWND."""
+def _guid_equal(first, second: _GUID) -> bool:
+    return bool(first) and ctypes.string_at(first, ctypes.sizeof(_GUID)) == bytes(second)
 
-    def __init__(self, widget, callback) -> None:
+
+def _drop_effect(kind: str | None, key_state: int, allowed: int) -> int:
+    if kind == "virtual":
+        return DROPEFFECT_COPY if allowed & DROPEFFECT_COPY else DROPEFFECT_NONE
+    if kind == "files":
+        preferred = DROPEFFECT_MOVE if key_state & MK_SHIFT else DROPEFFECT_COPY
+        if allowed & preferred:
+            return preferred
+        fallback = DROPEFFECT_COPY if preferred == DROPEFFECT_MOVE else DROPEFFECT_MOVE
+        return fallback if allowed & fallback else DROPEFFECT_NONE
+    return DROPEFFECT_NONE
+
+
+def _hdrop_paths_from_data_object(data_object: int) -> list[Path]:
+    medium = _get_medium(data_object, CF_HDROP, -1, TYMED_HGLOBAL)
+    try:
+        shell32 = ctypes.windll.shell32
+        shell32.DragQueryFileW.argtypes = [ctypes.c_void_p, ctypes.c_uint,
+                                           ctypes.c_wchar_p, ctypes.c_uint]
+        shell32.DragQueryFileW.restype = ctypes.c_uint
+        count = shell32.DragQueryFileW(medium.data, UINT_MAX, None, 0)
+        paths = []
+        for index in range(count):
+            length = shell32.DragQueryFileW(medium.data, index, None, 0)
+            buffer = ctypes.create_unicode_buffer(length + 1)
+            shell32.DragQueryFileW(medium.data, index, buffer, len(buffer))
+            paths.append(Path(buffer.value))
+        return paths
+    finally:
+        _release_medium(medium)
+
+
+if os.name == "nt":
+    _QUERY_INTERFACE = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p,
+                                          ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p))
+    _ADD_REF = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
+    _RELEASE = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
+    _DRAG_ENTER = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p,
+                                     ctypes.c_uint32, _POINT, ctypes.POINTER(ctypes.c_uint32))
+    _DRAG_OVER = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.c_uint32,
+                                    _POINT, ctypes.POINTER(ctypes.c_uint32))
+    _DRAG_LEAVE = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p)
+    _DROP = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p,
+                               ctypes.c_uint32, _POINT, ctypes.POINTER(ctypes.c_uint32))
+
+    class _IDropTargetVTable(ctypes.Structure):
+        _fields_ = [("QueryInterface", _QUERY_INTERFACE), ("AddRef", _ADD_REF),
+                    ("Release", _RELEASE), ("DragEnter", _DRAG_ENTER),
+                    ("DragOver", _DRAG_OVER), ("DragLeave", _DRAG_LEAVE), ("Drop", _DROP)]
+
+    class _IDropTargetInstance(ctypes.Structure):
+        _fields_ = [("lpVtbl", ctypes.POINTER(_IDropTargetVTable))]
+
+
+class _OleDropTarget:
+    """Small COM IDropTarget that accepts Shell paths and Office virtual files."""
+
+    def __init__(self, owner) -> None:
+        self.owner = owner
+        self.references = 1
+        self.kind = None
+        self.callbacks = (
+            _QUERY_INTERFACE(self._query_interface), _ADD_REF(self._add_ref),
+            _RELEASE(self._release), _DRAG_ENTER(self._drag_enter),
+            _DRAG_OVER(self._drag_over), _DRAG_LEAVE(self._drag_leave), _DROP(self._drop),
+        )
+        self.vtable = _IDropTargetVTable(*self.callbacks)
+        self.instance = _IDropTargetInstance(ctypes.pointer(self.vtable))
+        self.pointer = ctypes.addressof(self.instance)
+
+    def _query_interface(self, this, iid, result):
+        if _guid_equal(iid, IID_IUNKNOWN) or _guid_equal(iid, IID_IDROPTARGET):
+            result[0] = this
+            self._add_ref(this)
+            return S_OK
+        result[0] = None
+        return E_NOINTERFACE
+
+    def _add_ref(self, _this):
+        self.references += 1
+        return self.references
+
+    def _release(self, _this):
+        self.references = max(0, self.references - 1)
+        return self.references
+
+    def _detect_kind(self, data_object: int) -> str | None:
+        try:
+            # Explorer may advertise virtual formats too; prefer durable paths
+            # so its normal copy/Shift-move behavior remains intact.
+            if data_object_has_format(data_object, CF_HDROP, -1, TYMED_HGLOBAL):
+                return "files"
+            if self.owner.virtual_callback and data_object_has_format(
+                    data_object, virtual_file_format_id(), -1, TYMED_HGLOBAL):
+                return "virtual"
+        except (OSError, ValueError):
+            pass
+        return None
+
+    def _drag_enter(self, _this, data_object, key_state, _point, effect):
+        self.kind = self._detect_kind(data_object)
+        effect[0] = _drop_effect(self.kind, key_state, effect[0])
+        return S_OK
+
+    def _drag_over(self, _this, key_state, _point, effect):
+        effect[0] = _drop_effect(self.kind, key_state, effect[0])
+        return S_OK
+
+    def _drag_leave(self, _this):
+        self.kind = None
+        return S_OK
+
+    def _drop(self, _this, data_object, key_state, point, effect):
+        kind = self.kind or self._detect_kind(data_object)
+        accepted = _drop_effect(kind, key_state, effect[0])
+        try:
+            if kind == "files":
+                paths = _hdrop_paths_from_data_object(data_object)
+                self.owner._queue_file_drop(paths, point.x, point.y,
+                                            accepted == DROPEFFECT_MOVE)
+            elif kind == "virtual":
+                self.owner._queue_virtual_drop(data_object, point.x, point.y)
+            else:
+                accepted = DROPEFFECT_NONE
+        except (OSError, MemoryError):
+            accepted = DROPEFFECT_NONE
+        self.kind = None
+        effect[0] = accepted
+        return S_OK
+
+
+class ShellFileDropTarget:
+    """Explorer and Office virtual-file drop target attached to a Tk widget HWND."""
+
+    def __init__(self, widget, callback, virtual_callback=None) -> None:
         self.widget = widget
         self.callback = callback
+        self.virtual_callback = virtual_callback
         self.hwnd = 0
         self.old_proc = 0
         self._window_proc = None
+        self._ole_target = None
+        self._ole_initialized = False
+        self._ole_registered = False
         if os.name == "nt":
             self.install()
 
@@ -3395,15 +3585,52 @@ class ShellFileDropTarget:
         self.old_proc = int(previous)
         shell32.DragAcceptFiles.argtypes = [ctypes.c_void_p, ctypes.c_int]
         shell32.DragAcceptFiles(ctypes.c_void_p(self.hwnd), True)
+        self._install_ole_target()
         self.widget.bind("<Destroy>", lambda _event: self.close(), add="+")
+
+    def _install_ole_target(self) -> None:
+        ole32 = ctypes.windll.ole32
+        ole32.OleInitialize.argtypes = [ctypes.c_void_p]
+        ole32.OleInitialize.restype = ctypes.c_long
+        status = ole32.OleInitialize(None)
+        if _failed(status):
+            return
+        self._ole_initialized = True
+        self._ole_target = _OleDropTarget(self)
+        ole32.RegisterDragDrop.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        ole32.RegisterDragDrop.restype = ctypes.c_long
+        status = ole32.RegisterDragDrop(ctypes.c_void_p(self.hwnd),
+                                        ctypes.c_void_p(self._ole_target.pointer))
+        if _failed(status):
+            self._ole_target = None
+            ole32.OleUninitialize()
+            self._ole_initialized = False
+            return
+        self._ole_registered = True
+
+    def _queue_file_drop(self, paths, x_root: int, y_root: int, move: bool) -> None:
+        self.widget.after_idle(lambda: self.callback(list(paths), x_root, y_root, move))
+
+    def _queue_virtual_drop(self, data_object: int, x_root: int, y_root: int) -> None:
+        raw = tempfile.mkdtemp(prefix="pfc-office-drop-")
+        try:
+            items, failures = extract_virtual_files_from_data_object(data_object, Path(raw))
+        except Exception:
+            shutil.rmtree(raw, ignore_errors=True)
+            raise
+
+        def deliver():
+            try:
+                self.virtual_callback(items, failures, x_root, y_root)
+            finally:
+                shutil.rmtree(raw, ignore_errors=True)
+        self.widget.after_idle(deliver)
 
     def _dispatch(self, hwnd, message, wparam, lparam):
         if message == WM_DROPFILES:
             try:
                 paths, x_root, y_root, move = self._read_drop(wparam)
-                self.widget.after_idle(
-                    lambda values=paths, x=x_root, y=y_root, shift=move:
-                    self.callback(values, x, y, shift))
+                self._queue_file_drop(paths, x_root, y_root, move)
             except Exception:
                 pass
             return 0
@@ -3443,6 +3670,13 @@ class ShellFileDropTarget:
         if not self.active or os.name != "nt":
             return
         user32, shell32 = ctypes.windll.user32, ctypes.windll.shell32
+        if self._ole_registered:
+            ctypes.windll.ole32.RevokeDragDrop(ctypes.c_void_p(self.hwnd))
+            self._ole_registered = False
+        self._ole_target = None
+        if self._ole_initialized:
+            ctypes.windll.ole32.OleUninitialize()
+            self._ole_initialized = False
         shell32.DragAcceptFiles(ctypes.c_void_p(self.hwnd), False)
         user32.IsWindow.argtypes = [ctypes.c_void_p]
         if user32.IsWindow(ctypes.c_void_p(self.hwnd)):
@@ -3467,14 +3701,18 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.1"
+__version__ = "0.12.2"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/17"
+BUILD_DATE = "2026/07/18"
 VERSION_HISTORY = (
+    ("v0.12.2", "2026/07/18", (
+        "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.",
+        "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.",
+    )),
     ("v0.12.1", "2026/07/17", (
         "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.",
     )),
@@ -3787,7 +4025,8 @@ class FilePane(ttk.Frame):
         install_button_tooltips(self)
         self.navigate(self.path)
         try:
-            self.shell_drop_target = ShellFileDropTarget(self.tree, self._shell_files_dropped)
+            self.shell_drop_target = ShellFileDropTarget(
+                self.tree, self._shell_files_dropped, self._shell_virtual_files_dropped)
         except OSError:
             self.shell_drop_target = None
 
@@ -3807,6 +4046,12 @@ class FilePane(ttk.Frame):
     def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
         self.on_drag("external_drop", self, {
             "paths": list(paths), "x_root": x_root, "y_root": y_root, "move": move,
+        })
+
+    def _shell_virtual_files_dropped(self, paths, failures, x_root: int, y_root: int) -> None:
+        self.on_drag("virtual_drop", self, {
+            "paths": list(paths), "failures": list(failures),
+            "x_root": x_root, "y_root": y_root,
         })
 
     def _drag_press(self, event):
@@ -5252,6 +5497,21 @@ class Commander(tk.Tk):
         self._drag_ghost = None
 
     def _handle_internal_drag(self, action: str, pane: FilePane, event) -> None:
+        if action == "virtual_drop":
+            paths = [Path(path) for path in event["paths"] if Path(path).exists()]
+            target = self._drop_target_at(event["x_root"], event["y_root"])
+            target_pane, destination = (target[0], target[1]) if target else (pane, pane.path)
+            if paths:
+                self._execute_transfer("Copy Office attachment", copy_items, paths,
+                                       destination, confirm=False, allow_retry=False)
+            failures = event.get("failures", [])
+            if failures:
+                result = OperationResult(failures=[
+                    OperationFailure(Path(name), destination, message)
+                    for name, message in failures])
+                self._show_operation_result("Office attachment drop", result)
+            self.set_active(target_pane); target_pane.focus_file_list()
+            return
         if action == "external_drop":
             paths = [Path(path) for path in event["paths"] if Path(path).exists()]
             if not paths:
@@ -5623,6 +5883,7 @@ class Commander(tk.Tk):
             self.search_window = SearchWindow(self, self.config_data, self.save_config, source.path,
                                               lambda path, pane=source: self.go_to_search_result(path, pane),
                                               self.preview_paths)
+            self.search_window.apply_scale(self._font_scales.get(self.font_size_var.get(), 1.0))
         else:
             self.search_window.path_var.set(str(source.path))
             self.search_window.on_go = lambda path, pane=source: self.go_to_search_result(path, pane)
@@ -5819,6 +6080,8 @@ class Commander(tk.Tk):
                 tabs.redraw()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.notebook.redraw()
+        if self.search_window is not None and self.search_window.winfo_exists():
+            self.search_window.apply_scale(scale)
         self.update_idletasks()
         if hasattr(self, "clipboard_summary_frame"):
             self._clipboard_visual_key = None

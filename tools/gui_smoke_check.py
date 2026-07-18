@@ -24,6 +24,8 @@ def main() -> None:
             assert [image.height() for image in app._app_icon_images] == [16, 32, 48, 64]
             assert all(tabs.current().quick_filter_bar.winfo_manager() == "pack"
                        for tabs in app.panel_tabs)
+            assert all(pane.shell_drop_target is not None and
+                       pane.shell_drop_target._ole_registered for pane in app.all_panes())
             assert app.header_left_widgets[0].cget("text") == "PFC"
             assert app.header_left_widgets[1].cget("text") == f"v{pfc.__version__}"
             assert all("Build" not in widget.cget("text") for widget in app.header_left_widgets)
@@ -42,6 +44,16 @@ def main() -> None:
                                      if app.font_size_menu.entrycget(index, "accelerator") == "✓"]
             assert len(selected_font_entries) == 1
             assert int(app.font_size_menu.entrycget(selected_font_entries[0], "indicatoron")) == 0
+            app.font_size_var.set("huge"); app.apply_font_size(save=False)
+            app.search(); app.update_idletasks(); app.update()
+            search_style = app.search_window.tree.cget("style")
+            search_rowheight = int(app.search_window.tree.tk.call(
+                "ttk::style", "lookup", search_style, "-rowheight"))
+            search_linespace = pfc.tkfont.nametofont("TkDefaultFont").metrics("linespace")
+            assert search_rowheight >= search_linespace + 18, (
+                search_rowheight, search_linespace)
+            app.search_window.close(); app.search_window = None
+            app.font_size_var.set("small"); app.apply_font_size(save=False)
             labels = [app.files_menu.entrycget(index, "label")
                       for index in range(app.files_menu.index("end") + 1)
                       if app.files_menu.type(index) not in {"separator", "tearoff"}]
@@ -58,12 +70,15 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.12.1", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
+            assert version_labels == ["Current version: v0.12.2", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
                                       "v0.9.x Changes", "v0.8.x Changes",
                                       "Yoda — Portable App Advocate"]
             assert app.version_series == ("v0.12.x", "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
             v12_title, v12_body = app.version_series_notes("v0.12.x")
             assert v12_title == "Python File Commander — v0.12.x Changes"
+            assert "v0.12.2 — Build 2026/07/18" in v12_body
+            assert "• Added: Drag Office 365 virtual attachments" in v12_body
+            assert "• Fixed: Prevented Search result rows from overlapping" in v12_body
             assert "v0.12.1 — Build 2026/07/17" in v12_body
             assert "• Adjusted: Made every panel's Quick Filter permanently visible" in v12_body
             v11_title, v11_body = app.version_series_notes("v0.11.x")

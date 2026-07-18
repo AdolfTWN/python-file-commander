@@ -138,6 +138,18 @@ def _virtual_descriptors_from_object(data_object: int) -> list[VirtualFileDescri
         _release_medium(medium)
 
 
+def data_object_has_format(data_object: int, format_id: int, index: int = -1,
+                           tymed: int = TYMED_HGLOBAL) -> bool:
+    """Return whether an OLE IDataObject can render the requested format."""
+    request = _FORMATETC(format_id, None, DVASPECT_CONTENT, index, tymed)
+    query = _vtable_method(data_object, 5, ctypes.c_long, ctypes.POINTER(_FORMATETC))
+    return query(data_object, ctypes.byref(request)) >= 0
+
+
+def virtual_file_format_id() -> int:
+    return _register_clipboard_format("FileGroupDescriptorW")
+
+
 def get_virtual_file_descriptors() -> list[VirtualFileDescriptor]:
     if os.name != "nt":
         return []
@@ -184,33 +196,39 @@ def _write_virtual_medium(medium: _STGMEDIUM, target: Path, expected_size: int) 
         raise OSError(f"Unsupported Outlook attachment medium: {medium.tymed}")
 
 
+def extract_virtual_files_from_data_object(
+        data_object: int, destination: Path) -> tuple[list[Path], list[tuple[str, str]]]:
+    """Materialize Outlook/Teams virtual files while IDataObject is still valid."""
+    extracted, failures = [], []
+    destination.mkdir(parents=True, exist_ok=True)
+    descriptors = _virtual_descriptors_from_object(data_object)
+    content_format = _register_clipboard_format("FileContents")
+    for index, descriptor in enumerate(descriptors):
+        target = destination / descriptor.name
+        if target.exists():
+            target = target.with_name(f"{target.stem} ({index + 2}){target.suffix}")
+        medium = None
+        try:
+            medium = _get_medium(data_object, content_format, index,
+                                 TYMED_ISTREAM | TYMED_HGLOBAL | TYMED_FILE)
+            _write_virtual_medium(medium, target, descriptor.size)
+            extracted.append(target)
+        except OSError as exc:
+            failures.append((descriptor.name, str(exc)))
+            try: target.unlink(missing_ok=True)
+            except OSError: pass
+        finally:
+            if medium is not None: _release_medium(medium)
+    return extracted, failures
+
+
 def extract_virtual_files(destination: Path) -> tuple[list[Path], list[tuple[str, str]]]:
     if os.name != "nt":
         return [], []
     data_object = None; uninitialize = False
-    extracted, failures = [], []
-    destination.mkdir(parents=True, exist_ok=True)
     try:
         data_object, uninitialize = _get_ole_clipboard()
-        descriptors = _virtual_descriptors_from_object(data_object)
-        content_format = _register_clipboard_format("FileContents")
-        for index, descriptor in enumerate(descriptors):
-            target = destination / descriptor.name
-            if target.exists():
-                target = target.with_name(f"{target.stem} ({index + 2}){target.suffix}")
-            medium = None
-            try:
-                medium = _get_medium(data_object, content_format, index,
-                                     TYMED_ISTREAM | TYMED_HGLOBAL | TYMED_FILE)
-                _write_virtual_medium(medium, target, descriptor.size)
-                extracted.append(target)
-            except OSError as exc:
-                failures.append((descriptor.name, str(exc)))
-                try: target.unlink(missing_ok=True)
-                except OSError: pass
-            finally:
-                if medium is not None: _release_medium(medium)
-        return extracted, failures
+        return extract_virtual_files_from_data_object(data_object, destination)
     finally:
         if data_object: _release_interface(data_object)
         if uninitialize: ctypes.windll.ole32.OleUninitialize()

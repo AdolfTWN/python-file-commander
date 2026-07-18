@@ -1,8 +1,13 @@
 import ctypes
 import struct
+import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
-from pycommander.clipboard import _FILEDESCRIPTORW, parse_file_group_descriptor
+from pycommander.clipboard import (_FILEDESCRIPTORW, _STGMEDIUM, VirtualFileDescriptor,
+                                   extract_virtual_files_from_data_object,
+                                   parse_file_group_descriptor)
 
 
 class ClipboardVirtualFileTests(unittest.TestCase):
@@ -19,6 +24,24 @@ class ClipboardVirtualFileTests(unittest.TestCase):
     def test_invalid_virtual_descriptor_is_rejected(self):
         with self.assertRaises(OSError):
             parse_file_group_descriptor(struct.pack("<I", 1))
+
+    def test_data_object_virtual_files_are_materialized_before_drop_returns(self):
+        descriptors = [VirtualFileDescriptor("Agenda.docx", 6)]
+        medium = _STGMEDIUM()
+        with tempfile.TemporaryDirectory() as raw, \
+                patch("pycommander.clipboard._virtual_descriptors_from_object",
+                      return_value=descriptors), \
+                patch("pycommander.clipboard._register_clipboard_format", return_value=99), \
+                patch("pycommander.clipboard._get_medium", return_value=medium) as get_medium, \
+                patch("pycommander.clipboard._release_medium") as release_medium, \
+                patch("pycommander.clipboard._write_virtual_medium",
+                      side_effect=lambda _medium, target, _size: target.write_bytes(b"office")):
+            files, failures = extract_virtual_files_from_data_object(123, Path(raw))
+            self.assertEqual(failures, [])
+            self.assertEqual([path.name for path in files], ["Agenda.docx"])
+            self.assertEqual(files[0].read_bytes(), b"office")
+            get_medium.assert_called_once()
+            release_medium.assert_called_once_with(medium)
 
 
 if __name__ == "__main__":

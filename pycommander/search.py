@@ -8,6 +8,7 @@ import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import messagebox, ttk
 
 from .tooltip import install_button_tooltips
@@ -17,6 +18,11 @@ from .i18n import retranslate_widgets, tr
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
 CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
+
+
+def search_row_height(linespace: int, scale: float) -> int:
+    """Leave enough vertical padding for scaled Search result text."""
+    return max(24, int(linespace) + max(8, round(6 * float(scale))))
 
 
 def name_matches(name: str, masks: str, case_sensitive: bool) -> bool:
@@ -110,7 +116,8 @@ class SearchWindow(tk.Toplevel):
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
         columns = ("folder", "size", "modified", "ext")
-        self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended")
+        self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended",
+                                 style="PFCSearch.Treeview")
         self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260)
         for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60)):
             self.tree.heading(col, text=tr(col.title()), command=lambda c=col: self.change_sort(c))
@@ -120,6 +127,13 @@ class SearchWindow(tk.Toplevel):
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def apply_scale(self, scale: float) -> None:
+        style = ttk.Style(self)
+        default_font = tkfont.nametofont("TkDefaultFont")
+        style.configure("PFCSearch.Treeview", font=default_font,
+                        rowheight=search_row_height(default_font.metrics("linespace"), scale))
+        style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())

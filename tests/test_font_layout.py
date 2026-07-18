@@ -1,6 +1,7 @@
 import unittest
 
 from pycommander.app import scaled_tree_row_height
+from pycommander.search import search_row_height
 
 
 class FontLayoutTests(unittest.TestCase):
@@ -12,6 +13,11 @@ class FontLayoutTests(unittest.TestCase):
 
     def test_small_mode_has_a_readable_minimum_height(self):
         self.assertGreaterEqual(scaled_tree_row_height(12, 1.0), 24)
+
+    def test_search_results_have_scaled_text_padding(self):
+        for linespace, scale in ((16, 1.0), (24, 1.5), (32, 2.0), (48, 3.0)):
+            self.assertGreaterEqual(search_row_height(linespace, scale),
+                                    linespace + max(8, round(6 * scale)))
 
 
 if __name__ == "__main__":
