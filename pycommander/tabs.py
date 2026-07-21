@@ -75,6 +75,28 @@ def color_scheme(name: str) -> dict[str, str]:
     return COLOR_SCHEMES.get(name, COLOR_SCHEMES["light"])
 
 
+def lock_indicator_segment(mode: str, left: float, width: float, top: float,
+                           height: float, inset: float, tab_style: str):
+    """Return one solid, space-free edge marker for a tab lock mode."""
+    if mode == "locked":
+        return (left + inset + 2, top + 3,
+                left + width - inset - 2, top + 3)
+    if mode == "reset":
+        start_y = top + (inset + 1 if tab_style == "rounded" else 3)
+        return (left + 3, start_y, left + 3, height - 4)
+    return None
+
+
+def contrasting_edge_color(background: str) -> str:
+    """Choose a crisp lock marker for both theme and custom tab colours."""
+    value = background.lstrip("#")
+    if len(value) != 6:
+        return "#17232c"
+    red, green, blue = (int(value[index:index + 2], 16) for index in (0, 2, 4))
+    luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255
+    return "#17232c" if luminance >= 0.52 else "#f7fbff"
+
+
 def configure_ttk_theme(root, palette: dict[str, str]) -> None:
     """Apply one coherent palette to all ttk controls in this interpreter."""
     style = ttk.Style(root)
@@ -673,11 +695,11 @@ class ChamferNotebook(ttk.Frame):
             self.bar.create_polygon(points, fill=color,
                                     outline=self.palette["text"] if selected else self.palette["border"],
                                     width=3 if selected else 1, smooth=smooth, splinesteps=18)
-            if lock != "unlocked":
-                self.bar.create_line(left + tab_inset + 2, top + 2,
-                                     left + width - tab_inset - 2, top + 2,
-                                     fill=self.palette["text"], width=3,
-                                     dash=() if lock == "locked" else (5, 3))
+            lock_segment = lock_indicator_segment(lock, left, width, top, height,
+                                                  tab_inset, self._tab_style)
+            if lock_segment is not None:
+                self.bar.create_line(*lock_segment, fill=contrasting_edge_color(color),
+                                     width=max(3, round(height * 0.09)), capstyle="round")
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)

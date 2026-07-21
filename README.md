@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.12.4 — Safer Panel Targeting**
+Current version: **v0.12.5 — Clearer Tab Lock Indicators**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 

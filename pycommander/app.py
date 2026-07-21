@@ -33,6 +33,9 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.5", "2026/07/22", (
+        "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.",
+    )),
     ("v0.12.4", "2026/07/22", (
         "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.",
         "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.",

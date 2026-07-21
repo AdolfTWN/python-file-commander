@@ -127,6 +127,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.": "調整：以不占空間的實線邊緣取代分頁鎖定條紋，並依分頁底色自動維持清楚對比。",
         "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "修正：點擊非作用中面板的檔案時，會在執行命令前先啟用該面板。",
         "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "調整：加入持續顯示的作用中面板強調線，以及明確的 F5/F6 目標面板標示。",
         "Added: Search filter summaries, one-click filter clearing, and a non-blocking settings-save warning.": "新增：搜尋條件摘要、一鍵清除篩選條件，以及不阻斷操作的設定儲存警告。",
@@ -206,6 +207,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.": "调整：以不占空间的实线边缘取代标签页锁定条纹，并依标签页底色自动维持清晰对比。",
         "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "修复：单击非活动面板中的文件时，会在执行命令前先激活该面板。",
         "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "调整：添加持续显示的活动面板强调线，以及明确的 F5/F6 目标面板标签。",
         "Added: Search filter summaries, one-click filter clearing, and a non-blocking settings-save warning.": "新增：搜索条件摘要、一键清除筛选条件，以及不阻断操作的设置保存警告。",
@@ -282,6 +284,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.": "조정: 탭 잠금 줄무늬를 공간을 차지하지 않는 실선 가장자리로 교체하고 탭 배경색에 맞춰 선명한 대비를 자동으로 유지합니다.",
         "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "수정: 비활성 패널의 파일을 클릭하면 명령 실행 전에 해당 패널이 활성화됩니다.",
         "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "조정: 활성 패널 강조선을 항상 표시하고 F5/F6 대상 패널을 명확히 표시합니다.",
         "Added: Search filter summaries, one-click filter clearing, and a non-blocking settings-save warning.": "추가: 검색 필터 요약, 한 번에 필터 지우기 및 작업을 막지 않는 설정 저장 경고.",
@@ -1149,6 +1152,28 @@ def color_scheme(name: str) -> dict[str, str]:
     return COLOR_SCHEMES.get(name, COLOR_SCHEMES["light"])
 
 
+def lock_indicator_segment(mode: str, left: float, width: float, top: float,
+                           height: float, inset: float, tab_style: str):
+    """Return one solid, space-free edge marker for a tab lock mode."""
+    if mode == "locked":
+        return (left + inset + 2, top + 3,
+                left + width - inset - 2, top + 3)
+    if mode == "reset":
+        start_y = top + (inset + 1 if tab_style == "rounded" else 3)
+        return (left + 3, start_y, left + 3, height - 4)
+    return None
+
+
+def contrasting_edge_color(background: str) -> str:
+    """Choose a crisp lock marker for both theme and custom tab colours."""
+    value = background.lstrip("#")
+    if len(value) != 6:
+        return "#17232c"
+    red, green, blue = (int(value[index:index + 2], 16) for index in (0, 2, 4))
+    luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255
+    return "#17232c" if luminance >= 0.52 else "#f7fbff"
+
+
 def configure_ttk_theme(root, palette: dict[str, str]) -> None:
     """Apply one coherent palette to all ttk controls in this interpreter."""
     style = ttk.Style(root)
@@ -1747,11 +1772,11 @@ class ChamferNotebook(ttk.Frame):
             self.bar.create_polygon(points, fill=color,
                                     outline=self.palette["text"] if selected else self.palette["border"],
                                     width=3 if selected else 1, smooth=smooth, splinesteps=18)
-            if lock != "unlocked":
-                self.bar.create_line(left + tab_inset + 2, top + 2,
-                                     left + width - tab_inset - 2, top + 2,
-                                     fill=self.palette["text"], width=3,
-                                     dash=() if lock == "locked" else (5, 3))
+            lock_segment = lock_indicator_segment(lock, left, width, top, height,
+                                                  tab_inset, self._tab_style)
+            if lock_segment is not None:
+                self.bar.create_line(*lock_segment, fill=contrasting_edge_color(color),
+                                     width=max(3, round(height * 0.09)), capstyle="round")
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
@@ -4319,7 +4344,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.4"
+__version__ = "0.12.5"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -4327,6 +4352,9 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/22"
 VERSION_HISTORY = (
+    ("v0.12.5", "2026/07/22", (
+        "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.",
+    )),
     ("v0.12.4", "2026/07/22", (
         "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.",
         "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.",
