@@ -65,6 +65,7 @@ _TRANSLATIONS = {
     },
     "zh_TW": {
         "Files": "檔案", "View": "檢視", "Versions": "版本", "UI Language": "介面語言", "Build": "建置",
+        "Color Scheme": "配色方案", "Light": "明亮", "Light Grey": "淺灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "複製到剪貼簿", "Cut to Clipboard": "剪下到剪貼簿", "Paste": "貼上",
         "Copy to Next Panel": "複製到下一面板", "Move to Next Panel": "移動到下一面板",
@@ -89,7 +90,7 @@ _TRANSLATIONS = {
         "Paste into This Folder": "貼到此資料夾", "Paste into Current Folder": "貼到目前資料夾",
         "Add Current Folder": "加入目前資料夾", "Remove Current Folder": "移除目前資料夾", "Clear Recent Folders": "清除最近使用的資料夾", "No recent folders": "沒有最近使用的資料夾",
         "Keyboard Guide": "鍵盤操作指南", "Keyboard shortcuts not shown on the bottom action bar": "底部操作列未顯示的鍵盤快速鍵",
-        "OK": "確定", "Cancel": "取消", "Close": "關閉", "Apply": "套用", "Ready": "就緒", "Find": "尋找", "Find:": "尋找：", "Find Prev": "尋找上一個", "Find Next": "尋找下一個", "Case sensitive": "區分大小寫",
+        "OK": "確定", "Cancel": "取消", "Close": "關閉", "Apply": "套用", "Ready": "就緒", "Find": "尋找", "Find:": "尋找：", "Find Prev": "尋找上一個", "Find Next": "尋找下一個", "Case sensitive": "區分大小寫", "Clear Filters": "清除篩選條件", "Filters:": "篩選條件：", "Filters cleared": "已清除篩選條件", "Settings could not be saved: {error}": "無法儲存設定：{error}",
         "File <<": "檔案 <<", "File >>": "檔案 >>", "View:": "檢視：", "Wrap": "自動換行", "Auto": "自動", "Text": "文字", "Hex": "十六進位", "Folder view": "資料夾",
         "No matches": "找不到相符項目", "Match {current} of {total}": "第 {current} 個，共 {total} 個",
         "PFC Preview": "PFC 預覽", "PFC Search": "PFC 搜尋", "PFC Compare": "PFC 比較", "PFC Multi-Rename": "PFC 批次重新命名",
@@ -102,7 +103,8 @@ _TRANSLATIONS = {
         "Replace:": "取代為：", "Keep extension": "保留副檔名", "Start:": "起始值：", "Digits:": "位數：",
         "Old": "原名稱", "New": "新名稱", "Status": "狀態", "Ctrl+Z Undo": "Ctrl+Z 復原", "Ctrl+Enter Rename": "Ctrl+Enter 重新命名",
         "{changed} rename(s), {errors} error(s)": "{changed} 個重新命名，{errors} 個錯誤", "Rename {count} item(s)?": "要重新命名 {count} 個項目嗎？", "Renamed {count} item(s).": "已重新命名 {count} 個項目。", "Restored {count} item(s).": "已還原 {count} 個項目。",
-        "Diff <<": "差異 <<", "Diff >>": "差異 >>", "Recursive": "包含子資料夾", "By content": "依內容", "Differences only": "僅顯示差異",
+        "Diff <<": "差異 <<", "Diff >>": "差異 >>", "Difference marker:": "差異標記位置：", "Middle": "中央",
+        "Recursive": "包含子資料夾", "By content": "依內容", "Differences only": "僅顯示差異",
         "Mask:": "遮罩：", "Space Skip": "Space 略過", "Dry Run && Sync": "預演並同步", "Copy only — no automatic delete": "僅複製 — 不會自動刪除",
         "Scanning…  Esc cancels": "掃描中…  Esc 取消", "Scan cancelled": "掃描已取消", "Scan failed": "掃描失敗", "Folder Compare": "資料夾比較",
         "Safe Sync — Dry Run": "安全同步 — 預演", "Source": "來源", "Destination": "目的地", "Execute Copy Plan": "執行複製計畫",
@@ -125,6 +127,10 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "修正：點擊非作用中面板的檔案時，會在執行命令前先啟用該面板。",
+        "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "調整：加入持續顯示的作用中面板強調線，以及明確的 F5/F6 目標面板標示。",
+        "Added: Search filter summaries, one-click filter clearing, and a non-blocking settings-save warning.": "新增：搜尋條件摘要、一鍵清除篩選條件，以及不阻斷操作的設定儲存警告。",
+        "Adjusted: Refined Compare, folder-return selection, color schemes, and selection behavior for daily navigation.": "調整：改善比較、返回資料夾選取、配色方案及日常導覽的選取行為。",
         "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.": "修正：Ctrl+Up 複製的新分頁文字與現有分頁保持視覺一致。",
         "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "新增：可將 Outlook 與 Teams 的 Office 365 虛擬附件拖入 PFC 面板。",
         "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "修正：避免搜尋結果列在較大介面字級下重疊。",
@@ -161,6 +167,7 @@ _TRANSLATIONS = {
     },
     "zh_CN": {
         "Files": "文件", "View": "查看", "Versions": "版本", "UI Language": "界面语言", "Build": "构建",
+        "Color Scheme": "配色方案", "Light": "浅色", "Light Grey": "浅灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "复制到剪贴板", "Cut to Clipboard": "剪切到剪贴板", "Paste": "粘贴",
         "Copy to Next Panel": "复制到下一面板", "Move to Next Panel": "移动到下一面板", "Rename": "重命名", "Multi-Rename": "批量重命名", "New Folder": "新建文件夹",
@@ -176,14 +183,15 @@ _TRANSLATIONS = {
         "Open / Enter Folder": "打开／进入文件夹", "Open Folder in New Tab": "在新选项卡中打开文件夹", "Paste into This Folder": "粘贴到此文件夹", "Paste into Current Folder": "粘贴到当前文件夹",
         "Add Current Folder": "添加当前文件夹", "Remove Current Folder": "移除当前文件夹", "Clear Recent Folders": "清除最近使用的文件夹", "No recent folders": "没有最近使用的文件夹",
         "Keyboard Guide": "键盘操作指南", "Keyboard shortcuts not shown on the bottom action bar": "底部操作栏未显示的键盘快捷键",
-        "OK": "确定", "Cancel": "取消", "Close": "关闭", "Apply": "应用", "Ready": "就绪", "Find": "查找", "Find:": "查找：", "Find Prev": "查找上一个", "Find Next": "查找下一个", "Case sensitive": "区分大小写",
+        "OK": "确定", "Cancel": "取消", "Close": "关闭", "Apply": "应用", "Ready": "就绪", "Find": "查找", "Find:": "查找：", "Find Prev": "查找上一个", "Find Next": "查找下一个", "Case sensitive": "区分大小写", "Clear Filters": "清除筛选条件", "Filters:": "筛选条件：", "Filters cleared": "已清除筛选条件", "Settings could not be saved: {error}": "无法保存设置：{error}",
         "File <<": "文件 <<", "File >>": "文件 >>", "View:": "查看：", "Wrap": "自动换行", "Auto": "自动", "Text": "文本", "Hex": "十六进制", "Folder view": "文件夹", "No matches": "未找到匹配项", "Match {current} of {total}": "第 {current} 个，共 {total} 个",
         "PFC Preview": "PFC 预览", "PFC Search": "PFC 搜索", "PFC Compare": "PFC 比较", "PFC Multi-Rename": "PFC 批量重命名",
         "Start in:": "开始位置：", "Name/mask:": "名称／掩码：", "Containing text:": "包含文本：", "Depth:": "深度：", "Current": "当前文件夹", "All": "全部", "Files": "文件", "Folders": "文件夹",
         "Size KB min:": "最小大小 (KB)：", "max:": "最大：", "Modified within days:": "最近修改天数：", "Go to File": "转到文件", "Searching…": "正在搜索…", "Cancelling…": "正在取消…", "{count} found": "找到 {count} 个", " — cancelled": " — 已取消", " — limit reached": " — 已达上限", "Start path is not a folder.": "开始路径不是文件夹。", "Search failed": "搜索失败",
         "Name mask:": "名称掩码：", "[N] original   [C] counter   [E] extension": "[N] 原名称   [C] 计数器   [E] 扩展名", "Replace:": "替换为：", "Keep extension": "保留扩展名", "Start:": "起始值：", "Digits:": "位数：", "Old": "原名称", "New": "新名称", "Status": "状态", "Ctrl+Z Undo": "Ctrl+Z 撤销", "Ctrl+Enter Rename": "Ctrl+Enter 重命名",
         "{changed} rename(s), {errors} error(s)": "{changed} 个重命名，{errors} 个错误", "Rename {count} item(s)?": "要重命名 {count} 个项目吗？", "Renamed {count} item(s).": "已重命名 {count} 个项目。", "Restored {count} item(s).": "已还原 {count} 个项目。",
-        "Diff <<": "差异 <<", "Diff >>": "差异 >>", "Recursive": "包含子文件夹", "By content": "按内容", "Differences only": "仅显示差异", "Mask:": "掩码：", "Space Skip": "Space 跳过", "Dry Run && Sync": "预演并同步", "Copy only — no automatic delete": "仅复制 — 不会自动删除", "Scanning…  Esc cancels": "正在扫描…  Esc 取消", "Scan cancelled": "扫描已取消", "Scan failed": "扫描失败", "Folder Compare": "文件夹比较",
+        "Diff <<": "差异 <<", "Diff >>": "差异 >>", "Difference marker:": "差异标记位置：", "Middle": "中间",
+        "Recursive": "包含子文件夹", "By content": "按内容", "Differences only": "仅显示差异", "Mask:": "掩码：", "Space Skip": "Space 跳过", "Dry Run && Sync": "预演并同步", "Copy only — no automatic delete": "仅复制 — 不会自动删除", "Scanning…  Esc cancels": "正在扫描…  Esc 取消", "Scan cancelled": "扫描已取消", "Scan failed": "扫描失败", "Folder Compare": "文件夹比较",
         "Safe Sync — Dry Run": "安全同步 — 预演", "Source": "源", "Destination": "目标", "Execute Copy Plan": "执行复制计划", "Copy only — no files or folders will be deleted.": "仅执行复制 — 不会删除任何文件或文件夹。",
         "File conflict": "文件冲突", "An item with the same name already exists.": "已存在同名项目。", "Apply this choice to all remaining conflicts": "将此选择应用于所有剩余冲突", "Replace existing": "替换现有项目", "Skip": "跳过", "Keep both": "两者都保留",
         "Copy Details": "复制详细信息", "Retry Failed": "重试失败项目", "Create failed": "创建失败", "Rename failed": "重命名失败", "Preview failed": "预览失败", "Compare failed": "比较失败", "Clipboard failed": "剪贴板操作失败", "Paste failed": "粘贴失败", "Permanent delete warning": "永久删除警告", "Recycle Bin": "回收站", "Select exactly one item.": "请仅选择一个项目。", "Select two or more items first.": "请先选择两个或更多项目。",
@@ -198,6 +206,10 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "修复：单击非活动面板中的文件时，会在执行命令前先激活该面板。",
+        "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "调整：添加持续显示的活动面板强调线，以及明确的 F5/F6 目标面板标签。",
+        "Added: Search filter summaries, one-click filter clearing, and a non-blocking settings-save warning.": "新增：搜索条件摘要、一键清除筛选条件，以及不阻断操作的设置保存警告。",
+        "Adjusted: Refined Compare, folder-return selection, color schemes, and selection behavior for daily navigation.": "调整：改进比较、返回文件夹选中、配色方案及日常导航的选择行为。",
         "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.": "修复：Ctrl+Up 复制的新标签页文字与现有标签页保持视觉一致。",
         "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "新增：可将 Outlook 和 Teams 的 Office 365 虚拟附件拖入 PFC 面板。",
         "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "修复：避免搜索结果行在较大界面字体下重叠。",
@@ -234,6 +246,7 @@ _TRANSLATIONS = {
     },
     "ko": {
         "Files": "파일", "View": "보기", "Versions": "버전", "UI Language": "UI 언어", "Build": "빌드",
+        "Color Scheme": "색 구성표", "Light": "밝게", "Light Grey": "밝은 회색", "Dark": "어둡게",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "클립보드에 복사", "Cut to Clipboard": "클립보드로 잘라내기", "Paste": "붙여넣기",
         "Copy to Next Panel": "다음 패널로 복사", "Move to Next Panel": "다음 패널로 이동", "Rename": "이름 바꾸기", "Multi-Rename": "일괄 이름 바꾸기", "New Folder": "새 폴더",
@@ -247,13 +260,14 @@ _TRANSLATIONS = {
         "Name": "이름", "Ext": "확장명", "Size": "크기", "Date Modified": "수정한 날짜", "Attr": "특성", "Folder": "폴더", "Modified": "수정한 날짜", "Quick Filter:": "빠른 필터:",
         "Cannot open folder": "폴더를 열 수 없음", "Cannot read folder": "폴더를 읽을 수 없음", "Cannot open file": "파일을 열 수 없음", "Open / Enter Folder": "열기 / 폴더로 이동", "Open Folder in New Tab": "새 탭에서 폴더 열기", "Paste into This Folder": "이 폴더에 붙여넣기", "Paste into Current Folder": "현재 폴더에 붙여넣기",
         "Add Current Folder": "현재 폴더 추가", "Remove Current Folder": "현재 폴더 제거", "Clear Recent Folders": "최근 폴더 지우기", "No recent folders": "최근 폴더 없음", "Keyboard Guide": "키보드 사용 안내", "Keyboard shortcuts not shown on the bottom action bar": "아래 작업 표시줄에 없는 키보드 바로 가기",
-        "OK": "확인", "Cancel": "취소", "Close": "닫기", "Apply": "적용", "Ready": "준비", "Find": "찾기", "Find:": "찾기:", "Find Prev": "이전 찾기", "Find Next": "다음 찾기", "Case sensitive": "대/소문자 구분",
+        "OK": "확인", "Cancel": "취소", "Close": "닫기", "Apply": "적용", "Ready": "준비", "Find": "찾기", "Find:": "찾기:", "Find Prev": "이전 찾기", "Find Next": "다음 찾기", "Case sensitive": "대/소문자 구분", "Clear Filters": "필터 지우기", "Filters:": "필터:", "Filters cleared": "필터를 지웠습니다", "Settings could not be saved: {error}": "설정을 저장할 수 없습니다: {error}",
         "File <<": "파일 <<", "File >>": "파일 >>", "View:": "보기:", "Wrap": "자동 줄 바꿈", "Auto": "자동", "Text": "텍스트", "Hex": "16진수", "Folder view": "폴더", "No matches": "일치 항목 없음", "Match {current} of {total}": "{total}개 중 {current}번째",
         "PFC Preview": "PFC 미리 보기", "PFC Search": "PFC 검색", "PFC Compare": "PFC 비교", "PFC Multi-Rename": "PFC 일괄 이름 바꾸기",
         "Start in:": "검색 위치:", "Name/mask:": "이름/마스크:", "Containing text:": "포함할 텍스트:", "Depth:": "깊이:", "Current": "현재 폴더", "All": "모두", "Files": "파일", "Folders": "폴더", "Size KB min:": "최소 크기(KB):", "max:": "최대:", "Modified within days:": "최근 수정 일수:", "Go to File": "파일로 이동", "Searching…": "검색 중…", "Cancelling…": "취소 중…", "{count} found": "{count}개 찾음", " — cancelled": " — 취소됨", " — limit reached": " — 한도 도달", "Start path is not a folder.": "시작 경로가 폴더가 아닙니다.", "Search failed": "검색 실패",
         "Name mask:": "이름 마스크:", "[N] original   [C] counter   [E] extension": "[N] 원래 이름   [C] 번호   [E] 확장명", "Replace:": "바꿀 내용:", "Keep extension": "확장명 유지", "Start:": "시작:", "Digits:": "자릿수:", "Old": "이전 이름", "New": "새 이름", "Status": "상태", "Ctrl+Z Undo": "Ctrl+Z 실행 취소", "Ctrl+Enter Rename": "Ctrl+Enter 이름 바꾸기",
         "{changed} rename(s), {errors} error(s)": "이름 변경 {changed}개, 오류 {errors}개", "Rename {count} item(s)?": "항목 {count}개의 이름을 바꾸시겠습니까?", "Renamed {count} item(s).": "항목 {count}개의 이름을 바꿨습니다.", "Restored {count} item(s).": "항목 {count}개를 복원했습니다.",
-        "Diff <<": "차이 <<", "Diff >>": "차이 >>", "Recursive": "하위 폴더 포함", "By content": "내용 기준", "Differences only": "차이만", "Mask:": "마스크:", "Space Skip": "Space 건너뛰기", "Dry Run && Sync": "미리 실행 및 동기화", "Copy only — no automatic delete": "복사만 수행 — 자동 삭제 없음", "Scanning…  Esc cancels": "검사 중…  Esc 취소", "Scan cancelled": "검사 취소됨", "Scan failed": "검사 실패", "Folder Compare": "폴더 비교",
+        "Diff <<": "차이 <<", "Diff >>": "차이 >>", "Difference marker:": "차이 표시 위치:", "Middle": "가운데",
+        "Recursive": "하위 폴더 포함", "By content": "내용 기준", "Differences only": "차이만", "Mask:": "마스크:", "Space Skip": "Space 건너뛰기", "Dry Run && Sync": "미리 실행 및 동기화", "Copy only — no automatic delete": "복사만 수행 — 자동 삭제 없음", "Scanning…  Esc cancels": "검사 중…  Esc 취소", "Scan cancelled": "검사 취소됨", "Scan failed": "검사 실패", "Folder Compare": "폴더 비교",
         "Safe Sync — Dry Run": "안전 동기화 — 미리 실행", "Source": "원본", "Destination": "대상", "Execute Copy Plan": "복사 계획 실행", "Copy only — no files or folders will be deleted.": "복사만 수행하며 파일이나 폴더를 삭제하지 않습니다.",
         "File conflict": "파일 충돌", "An item with the same name already exists.": "같은 이름의 항목이 이미 있습니다.", "Apply this choice to all remaining conflicts": "남은 모든 충돌에 이 선택 적용", "Replace existing": "기존 항목 바꾸기", "Skip": "건너뛰기", "Keep both": "둘 다 유지",
         "Copy Details": "세부 정보 복사", "Retry Failed": "실패 항목 다시 시도", "Create failed": "만들기 실패", "Rename failed": "이름 바꾸기 실패", "Preview failed": "미리 보기 실패", "Compare failed": "비교 실패", "Clipboard failed": "클립보드 작업 실패", "Paste failed": "붙여넣기 실패", "Permanent delete warning": "완전 삭제 경고", "Recycle Bin": "휴지통", "Select exactly one item.": "항목을 하나만 선택하세요.", "Select two or more items first.": "항목을 두 개 이상 먼저 선택하세요.",
@@ -268,6 +282,10 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "수정: 비활성 패널의 파일을 클릭하면 명령 실행 전에 해당 패널이 활성화됩니다.",
+        "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "조정: 활성 패널 강조선을 항상 표시하고 F5/F6 대상 패널을 명확히 표시합니다.",
+        "Added: Search filter summaries, one-click filter clearing, and a non-blocking settings-save warning.": "추가: 검색 필터 요약, 한 번에 필터 지우기 및 작업을 막지 않는 설정 저장 경고.",
+        "Adjusted: Refined Compare, folder-return selection, color schemes, and selection behavior for daily navigation.": "조정: 일상 탐색을 위해 비교, 폴더 복귀 선택, 색 구성표 및 선택 동작을 개선했습니다.",
         "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.": "수정: Ctrl+Up으로 복제한 새 탭의 텍스트가 기존 탭과 시각적으로 일치하도록 했습니다.",
         "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "추가: Outlook 및 Teams의 Office 365 가상 첨부 파일을 PFC 패널로 끌어 놓을 수 있습니다.",
         "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "수정: 큰 UI 글꼴 크기에서 검색 결과 행이 겹치지 않도록 했습니다.",
@@ -1078,6 +1096,108 @@ TAB_STYLES = {
 }
 
 
+COLOR_SCHEMES = {
+    "light": {
+        "window": "#f0f2f4", "surface": "#ffffff", "surface_alt": "#e8edf1",
+        "text": "#17232c", "muted": "#526575", "border": "#8fa0ad",
+        "header": "#243b53", "header_text": "#f4f8fb", "header_muted": "#c9e5f5",
+        "header_button": "#31536e", "header_active": "#3d6888",
+        "button": "#e7ecef", "button_active": "#d4e2eb", "entry": "#ffffff",
+        "selection": "#1683e2", "inactive_selection": "#91a9bd",
+        "tab_bar": "#9eafbd", "tab_default": "#c7d3dd", "tab_text": "#10202c",
+        "menu": "#f0f0f0", "menu_text": "#101010", "menu_disabled": "#777777",
+        "menu_active": "#087bdc", "menu_active_text": "#ffffff", "separator": "#b8b8b8",
+        "gutter": "#e5ebef", "gutter_text": "#526575", "content": "#ffffff",
+        "diff": "#ffe1a8", "current_diff": "#ffb347", "match": "#fff0a6",
+        "left_header": "#2d668f", "right_header": "#9b5d2e", "map_header": "#263d4c",
+        "tooltip": "#fffbd6", "tooltip_text": "#18232c",
+    },
+    "light_grey": {
+        "window": "#d8dde1", "surface": "#eef1f3", "surface_alt": "#dfe5e9",
+        "text": "#1b2831", "muted": "#52616c", "border": "#83939f",
+        "header": "#30495e", "header_text": "#f6f8fa", "header_muted": "#d5e5ef",
+        "header_button": "#3b5c74", "header_active": "#4a708b",
+        "button": "#d4dbe0", "button_active": "#c4d2dc", "entry": "#f8f9fa",
+        "selection": "#187ecb", "inactive_selection": "#829bab",
+        "tab_bar": "#899ca9", "tab_default": "#b9c6cf", "tab_text": "#14232d",
+        "menu": "#e1e5e8", "menu_text": "#15212a", "menu_disabled": "#727b82",
+        "menu_active": "#147fc7", "menu_active_text": "#ffffff", "separator": "#a1abb2",
+        "gutter": "#d5dde2", "gutter_text": "#52616c", "content": "#f4f6f7",
+        "diff": "#f2d29a", "current_diff": "#eaa34d", "match": "#eee09a",
+        "left_header": "#326789", "right_header": "#90603b", "map_header": "#304552",
+        "tooltip": "#fff7c7", "tooltip_text": "#18232c",
+    },
+    "dark": {
+        "window": "#20262c", "surface": "#282f36", "surface_alt": "#323b43",
+        "text": "#edf2f6", "muted": "#a9b8c3", "border": "#5d6d79",
+        "header": "#142b3d", "header_text": "#f4f8fb", "header_muted": "#bcd9e9",
+        "header_button": "#294b64", "header_active": "#376985",
+        "button": "#354049", "button_active": "#465865", "entry": "#242b31",
+        "selection": "#1976bd", "inactive_selection": "#526b7b",
+        "tab_bar": "#354754", "tab_default": "#4c606e", "tab_text": "#f0f5f8",
+        "menu": "#2b3238", "menu_text": "#edf2f6", "menu_disabled": "#87939c",
+        "menu_active": "#176fa8", "menu_active_text": "#ffffff", "separator": "#53616b",
+        "gutter": "#242c32", "gutter_text": "#a8bac7", "content": "#1f252a",
+        "diff": "#604b27", "current_diff": "#9a5d1f", "match": "#665e28",
+        "left_header": "#205777", "right_header": "#754624", "map_header": "#172b37",
+        "tooltip": "#414733", "tooltip_text": "#f4f2d8",
+    },
+}
+
+
+def color_scheme(name: str) -> dict[str, str]:
+    return COLOR_SCHEMES.get(name, COLOR_SCHEMES["light"])
+
+
+def configure_ttk_theme(root, palette: dict[str, str]) -> None:
+    """Apply one coherent palette to all ttk controls in this interpreter."""
+    style = ttk.Style(root)
+    try:
+        style.theme_use("clam")
+    except tk.TclError:
+        pass
+    common = {"background": palette["window"], "foreground": palette["text"]}
+    style.configure(".", **common)
+    style.configure("TFrame", background=palette["window"])
+    style.configure("TLabel", background=palette["window"], foreground=palette["text"])
+    style.configure("TButton", background=palette["button"], foreground=palette["text"],
+                    bordercolor=palette["border"], lightcolor=palette["button"],
+                    darkcolor=palette["border"])
+    style.map("TButton", background=[("active", palette["button_active"]),
+                                     ("pressed", palette["selection"])],
+              foreground=[("pressed", "#ffffff")])
+    for name in ("TCheckbutton", "TRadiobutton"):
+        style.configure(name, background=palette["window"], foreground=palette["text"])
+        style.map(name, background=[("active", palette["window"])],
+                  foreground=[("disabled", palette["muted"])])
+    style.configure("TEntry", fieldbackground=palette["entry"], foreground=palette["text"],
+                    insertcolor=palette["text"], bordercolor=palette["border"])
+    style.configure("TCombobox", fieldbackground=palette["entry"], background=palette["button"],
+                    foreground=palette["text"], arrowcolor=palette["text"],
+                    bordercolor=palette["border"])
+    style.map("TCombobox", fieldbackground=[("readonly", palette["entry"])],
+              foreground=[("readonly", palette["text"])])
+    style.configure("Treeview", background=palette["surface"], fieldbackground=palette["surface"],
+                    foreground=palette["text"], bordercolor=palette["border"])
+    style.configure("Treeview.Heading", background=palette["surface_alt"], foreground=palette["text"],
+                    bordercolor=palette["border"])
+    style.map("Treeview.Heading", background=[("active", palette["button_active"])])
+    for name, selected in (("Active.Treeview", palette["selection"]),
+                           ("Inactive.Treeview", palette["inactive_selection"]),
+                           ("PFCSearch.Treeview", palette["selection"]),
+                           ("PFCCompare.Treeview", palette["selection"])):
+        style.configure(name, background=palette["surface"], fieldbackground=palette["surface"],
+                        foreground=palette["text"], bordercolor=palette["border"])
+        style.map(name, background=[("selected", selected)],
+                  foreground=[("selected", "#ffffff")])
+        style.configure(name + ".Heading", background=palette["surface_alt"],
+                        foreground=palette["text"], bordercolor=palette["border"])
+    style.configure("TNotebook", background=palette["tab_bar"], bordercolor=palette["border"])
+    style.configure("TNotebook.Tab", background=palette["tab_default"], foreground=palette["tab_text"])
+    style.configure("TScrollbar", background=palette["button"], troughcolor=palette["surface_alt"],
+                    arrowcolor=palette["text"], bordercolor=palette["border"])
+
+
 def add_scaled_cascade(menu: tk.Menu, label: str, submenu: tk.Menu) -> None:
     """Keep a native menu model; PFC draws header cascades itself."""
     menu.add_cascade(label=label, menu=submenu)
@@ -1192,7 +1312,9 @@ class HeaderPopupController:
         tip.attributes("-topmost", True)
         x, y = self.owner.winfo_pointerxy()
         tip.geometry(f"+{x + 14}+{y + 18}")
-        tk.Label(tip, text=text, justify="left", background="#fffbd6", foreground="#18232c",
+        palette = getattr(self.owner, "palette", COLOR_SCHEMES["light"])
+        tk.Label(tip, text=text, justify="left", background=palette["tooltip"],
+                 foreground=palette["tooltip_text"],
                  relief="solid", borderwidth=1, padx=7, pady=4,
                  font=tkfont.nametofont("TkDefaultFont")).pack()
         self.tooltip = tip
@@ -1218,6 +1340,11 @@ class _HeaderPopup:
 
     def __init__(self, controller, menu, parent):
         self.controller, self.menu, self.parent = controller, menu, parent
+        palette = getattr(controller.owner, "palette", COLOR_SCHEMES["light"])
+        self.BG, self.FG = palette["menu"], palette["menu_text"]
+        self.DISABLED, self.ACTIVE_BG = palette["menu_disabled"], palette["menu_active"]
+        self.ACTIVE_FG, self.BORDER = palette["menu_active_text"], palette["border"]
+        self.SEPARATOR = palette["separator"]
         self.top = tk.Toplevel(parent.top if parent is not None else controller.owner)
         self.top.withdraw()
         self.top.overrideredirect(True)
@@ -1302,7 +1429,7 @@ class _HeaderPopup:
             if kind == "separator":
                 y = (top + bottom) // 2
                 self.canvas.create_line(self.left_pad, y, self.width - self.left_pad, y,
-                                        fill="#b8b8b8")
+                                        fill=self.SEPARATOR)
                 continue
             active = index == self.selected and state != "disabled"
             bg = self.ACTIVE_BG if active else self.BG
@@ -1428,13 +1555,17 @@ class ChamferNotebook(ttk.Frame):
         self._drag_moved = False
         self._drag_external = False
         self._drop_position = None
-        self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
+        self.bar = tk.Canvas(self, height=34, takefocus=True, highlightthickness=2,
+                             highlightbackground="#71879a", highlightcolor="#0078d4",
+                             background="#9eafbd")
         self.bar.pack(fill="x", side="top")
         self.bar.bind("<ButtonPress-1>", self._tab_press)
+        self.bar.bind("<FocusIn>", lambda _event: self.bar.configure(highlightthickness=2))
         self.bar.bind("<B1-Motion>", self._tab_motion)
         self.bar.bind("<ButtonRelease-1>", self._tab_release)
         self.bar.bind("<Button-3>", self._popup)
         self.bar.bind("<Configure>", lambda _e: self._draw())
+        self.palette = COLOR_SCHEMES["light"]
 
     def add(self, child, text="", color="default", lock="unlocked", position=None, **_kwargs):
         if child not in self._tabs:
@@ -1546,6 +1677,13 @@ class ChamferNotebook(ttk.Frame):
         self._tab_style = style if style in TAB_STYLES else "right_skirt"
         self._draw()
 
+    def set_theme(self, palette):
+        self.palette = palette
+        self.bar.configure(background=palette["tab_bar"],
+                           highlightbackground=palette["border"],
+                           highlightcolor=palette["selection"])
+        self._draw()
+
     def _resolve(self, tab):
         if tab in self._tabs:
             return tab
@@ -1566,7 +1704,8 @@ class ChamferNotebook(ttk.Frame):
             selected = child is self._selected
             padding = 20 if right_skirt else 28
             width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
-            color = TAB_COLORS[self._colors.get(child, "default")][1]
+            key = self._colors.get(child, "default")
+            color = self.palette["tab_default"] if key == "default" else TAB_COLORS[key][1]
             top = 0 if selected else max(4, round(height * 0.22))
             bottom = height if selected else height - 3
             corner = max(6, round(height * 0.28))
@@ -1596,25 +1735,28 @@ class ChamferNotebook(ttk.Frame):
             else:
                 points = (x, bottom, x, top, x + width, top, x + width, bottom)
                 smooth, inset = False, 4
-            drawings.append((selected, points, color, text, x, width, top, child, lock, inset, smooth))
+            text_color = self.palette["tab_text"] if key == "default" else "#10202c"
+            drawings.append((selected, points, color, text, text_color, x, width, top,
+                             child, lock, inset, smooth))
             self._hitboxes.append((x, x + width, child))
             x += width - overlap
         # Paint the selected polygon last so its edges sit in front of
         # both neighbours instead of being covered by the tab to its right.
-        for selected, points, color, text, left, width, top, child, lock, tab_inset, smooth in sorted(
+        for selected, points, color, text, text_color, left, width, top, child, lock, tab_inset, smooth in sorted(
                 drawings, key=lambda item: item[0]):
-            self.bar.create_polygon(points, fill=color, outline="#3b5265" if selected else "#718596",
+            self.bar.create_polygon(points, fill=color,
+                                    outline=self.palette["text"] if selected else self.palette["border"],
                                     width=3 if selected else 1, smooth=smooth, splinesteps=18)
             if lock != "unlocked":
                 self.bar.create_line(left + tab_inset + 2, top + 2,
                                      left + width - tab_inset - 2, top + 2,
-                                     fill="#3b5265", width=3,
+                                     fill=self.palette["text"], width=3,
                                      dash=() if lock == "locked" else (5, 3))
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
             self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
-                                 fill="#10202c")
+                                 fill=text_color)
         if self._drop_position is not None:
             if not self._hitboxes or self._drop_position <= 0:
                 marker_x = self._hitboxes[0][0] if self._hitboxes else 3
@@ -1755,8 +1897,12 @@ class ToolTip:
         self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
         x, y = self.widget.winfo_pointerxy()
         self.popup.geometry(f"+{x + 14}+{y + 18}")
-        tk.Label(self.popup, text=self.text, justify="left", background="#fffbd6",
-                 foreground="#18232c", relief="solid", borderwidth=1, padx=7, pady=4).pack()
+        owner = self.widget.winfo_toplevel()
+        palette = getattr(owner, "palette", {})
+        tk.Label(self.popup, text=self.text, justify="left",
+                 background=palette.get("tooltip", "#fffbd6"),
+                 foreground=palette.get("tooltip_text", "#18232c"),
+                 relief="solid", borderwidth=1, padx=7, pady=4).pack()
 
     def hide(self, _event=None):
         if self.job is not None:
@@ -1792,8 +1938,12 @@ class MenuToolTip:
         self.popup = tk.Toplevel(self.menu.winfo_toplevel())
         self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
         x, y = self.menu.winfo_pointerxy(); self.popup.geometry(f"+{x + 14}+{y + 18}")
-        tk.Label(self.popup, text=text, justify="left", background="#fffbd6",
-                 foreground="#18232c", relief="solid", borderwidth=1, padx=7, pady=4).pack()
+        owner = self.menu.winfo_toplevel()
+        palette = getattr(owner, "palette", {})
+        tk.Label(self.popup, text=text, justify="left",
+                 background=palette.get("tooltip", "#fffbd6"),
+                 foreground=palette.get("tooltip_text", "#18232c"),
+                 relief="solid", borderwidth=1, padx=7, pady=4).pack()
 
     def hide(self, _event=None):
         if self.job is not None:
@@ -1824,7 +1974,7 @@ import threading
 from datetime import datetime
 from pathlib import Path
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import font as tkfont, messagebox, ttk
 
 
 
@@ -1876,13 +2026,97 @@ def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int
     return rows, differences
 
 
+def compare_row_height(linespace: int, scale: float) -> int:
+    """Keep compare rows readable at every PFC font scale."""
+    return max(24, int(linespace) + max(8, round(6 * scale)))
+
+
+class DifferenceMap(tk.Canvas):
+    """Compact overview of differences; clicking a marker jumps to that row."""
+    def __init__(self, master, command):
+        super().__init__(master, width=38, background="#dce6ed", highlightthickness=1,
+                         highlightbackground="#50697b", cursor="hand2", takefocus=True)
+        self.command = command
+        self.rows, self.total_rows, self.current_row = [], 1, None
+        self.viewport = (0.0, 1.0)
+        self.bind("<Configure>", lambda _event: self.redraw())
+        self.bind("<Button-1>", self._click)
+        self.palette = color_scheme("light")
+
+    def apply_color_scheme(self, palette):
+        self.palette = palette
+        self.configure(background=palette["gutter"], highlightbackground=palette["border"])
+        self.redraw()
+
+    def set_rows(self, rows, total_rows, current_row=None):
+        self.rows = list(rows)
+        self.total_rows = max(1, int(total_rows))
+        self.current_row = current_row
+        self.redraw()
+
+    def set_current(self, row):
+        self.current_row = row
+        self.redraw()
+
+    def apply_scale(self, scale):
+        self.configure(width=max(38, round(38 * scale)))
+
+    def set_viewport(self, first, last):
+        self.viewport = (max(0.0, float(first)), min(1.0, float(last)))
+        self.redraw()
+
+    def _y(self, row):
+        height = max(8, self.winfo_height())
+        return 3 + ((max(1, row) - 1) / max(1, self.total_rows - 1)) * (height - 6)
+
+    def redraw(self):
+        self.delete("all")
+        width, height = max(8, self.winfo_width()), max(8, self.winfo_height())
+        self.create_rectangle(3, 3, width - 4, height - 4,
+                              fill=self.palette["content"], outline=self.palette["border"])
+        marker_width = max(2, width - 9)
+        blocks = []
+        for row in sorted(self.rows):
+            if blocks and row <= blocks[-1][1] + 1:
+                blocks[-1] = (blocks[-1][0], row)
+            else:
+                blocks.append((row, row))
+        for start, end in blocks:
+            top, bottom = self._y(start), self._y(end)
+            self.create_rectangle(5, top - 1, 5 + marker_width, max(top + 2, bottom + 1),
+                                  fill="#e45a52", outline="")
+        view_top = 3 + self.viewport[0] * (height - 6)
+        view_bottom = 3 + self.viewport[1] * (height - 6)
+        self.create_rectangle(2, view_top, width - 3, max(view_top + 5, view_bottom),
+                              outline=self.palette["selection"], width=2)
+        if self.current_row is not None:
+            y = self._y(self.current_row)
+            self.create_rectangle(2, y - 3, width - 3, y + 3,
+                                  outline=self.palette["text"], width=2)
+
+    def _click(self, event):
+        if not self.rows:
+            return "break"
+        target = 1 + (event.y / max(1, self.winfo_height())) * max(1, self.total_rows - 1)
+        self.command(min(self.rows, key=lambda row: abs(row - target)))
+        return "break"
+
+
 class SideBySideText(ttk.Frame):
-    def __init__(self, master, left_lines, right_lines, differences, status_text="", status_factory=None):
+    def __init__(self, master, left_lines, right_lines, differences, status_text="", status_factory=None,
+                 left_title="", right_title="", marker_position="middle", marker_changed=None):
         super().__init__(master)
-        self.differences = differences
+        self.all_left_lines, self.all_right_lines = list(left_lines), list(right_lines)
+        self.all_differences = list(differences)
+        self.differences = list(differences)
         self.diff_index = -1
         self.matches, self.match_index = [], -1
         self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
+        self.view_mode_var = tk.StringVar(value="all")
+        self.marker_position_var = tk.StringVar(
+            value=marker_position if marker_position in {"left", "middle", "right"} else "middle")
+        self.marker_changed = marker_changed
+        self.left_title, self.right_title = str(left_title), str(right_title)
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
         diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
         self.status_factory = status_factory or (lambda: status_text)
@@ -1890,8 +2124,18 @@ class SideBySideText(ttk.Frame):
         self.previous_button.pack(side="left")
         self.next_button = ttk.Button(diff_row, text=f"F8 {tr('Diff >>')}", command=self.next)
         self.next_button.pack(side="left", padx=3)
+        ttk.Radiobutton(diff_row, text=tr("All"), value="all", variable=self.view_mode_var,
+                        command=self.populate).pack(side="left", padx=(8, 0))
+        ttk.Radiobutton(diff_row, text=tr("Differences only"), value="differences",
+                        variable=self.view_mode_var, command=self.populate).pack(side="left", padx=(3, 0))
         self.diff_status = ttk.Label(diff_row, text=self.status_factory())
         self.diff_status.pack(side="left", padx=10)
+        marker_row = ttk.Frame(toolbar); marker_row.pack(fill="x", pady=(2, 0))
+        ttk.Label(marker_row, text=tr("Difference marker:")).pack(side="left")
+        for value, label in (("left", "Left"), ("middle", "Middle"), ("right", "Right")):
+            ttk.Radiobutton(marker_row, text=tr(label), value=value,
+                            variable=self.marker_position_var,
+                            command=self._marker_position_changed).pack(side="left", padx=(5, 0))
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
         self.search = ttk.Entry(find_row, textvariable=self.search_var)
@@ -1905,26 +2149,145 @@ class SideBySideText(ttk.Frame):
         ttk.Button(find_actions, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
         ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
                         command=self.find_all).pack(side="left", padx=(8, 0))
-        body = ttk.Panedwindow(self, orient="horizontal"); body.pack(fill="both", expand=True)
-        self.left = tk.Text(body, wrap="none", undo=False)
-        self.right = tk.Text(body, wrap="none", undo=False)
-        body.add(self.left, weight=1); body.add(self.right, weight=1)
-        scroll = ttk.Scrollbar(self, orient="vertical", command=self._scroll)
-        scroll.pack(side="right", fill="y")
-        self.left.configure(yscrollcommand=scroll.set); self.right.configure(yscrollcommand=scroll.set)
-        for widget, lines in ((self.left, left_lines), (self.right, right_lines)):
+        body = ttk.Frame(self); self.body = body
+        body.pack(fill="both", expand=True, pady=(3, 0))
+        body.rowconfigure(1, weight=1)
+        self.left_frame = tk.Frame(body, background="#f5f8fa", highlightthickness=2,
+                                   highlightbackground="#2d668f")
+        self.right_frame = tk.Frame(body, background="#f5f8fa", highlightthickness=2,
+                                    highlightbackground="#9b5d2e")
+        self.left_frame.columnconfigure(1, weight=1); self.left_frame.rowconfigure(0, weight=1)
+        self.right_frame.columnconfigure(1, weight=1); self.right_frame.rowconfigure(0, weight=1)
+        self.left_path_label = tk.Label(body, anchor="w", background="#2d668f",
+                                        foreground="white", font="TkHeadingFont", padx=6, pady=3)
+        self.right_path_label = tk.Label(body, anchor="w", background="#9b5d2e",
+                                         foreground="white", font="TkHeadingFont", padx=6, pady=3)
+        self.left_path_label.configure(text=f"{tr('Left')}: {self.left_title}")
+        self.right_path_label.configure(text=f"{tr('Right')}: {self.right_title}")
+        self.map_header = tk.Label(body, text="↔", background="#263d4c", foreground="white",
+                                   font="TkHeadingFont", pady=3)
+        self.left = tk.Text(self.left_frame, wrap="none", undo=False, borderwidth=0)
+        self.right = tk.Text(self.right_frame, wrap="none", undo=False, borderwidth=0)
+        self.left_numbers = tk.Text(self.left_frame, width=6, wrap="none", undo=False, borderwidth=0,
+                                    padx=4, takefocus=False, background="#e5ebef", foreground="#526575")
+        self.right_numbers = tk.Text(self.right_frame, width=6, wrap="none", undo=False, borderwidth=0,
+                                     padx=4, takefocus=False, background="#e5ebef", foreground="#526575")
+        self.left_numbers.grid(row=0, column=0, sticky="ns")
+        self.right_numbers.grid(row=0, column=0, sticky="ns")
+        self.left.grid(row=0, column=1, sticky="nsew"); self.right.grid(row=0, column=1, sticky="nsew")
+        left_x = ttk.Scrollbar(self.left_frame, orient="horizontal", command=self.left.xview)
+        right_x = ttk.Scrollbar(self.right_frame, orient="horizontal", command=self.right.xview)
+        left_x.grid(row=1, column=1, sticky="ew"); right_x.grid(row=1, column=1, sticky="ew")
+        self.left.configure(xscrollcommand=left_x.set); self.right.configure(xscrollcommand=right_x.set)
+        self.difference_map = DifferenceMap(body, self._jump_to_row)
+        self.scroll = ttk.Scrollbar(body, orient="vertical", command=self._scroll)
+        self.left.configure(yscrollcommand=self._left_scrolled)
+        self.right.configure(yscrollcommand=self._right_scrolled)
+        for widget in (self.left, self.right):
             widget.tag_configure("diff", background="#ffe1a8")
             widget.tag_configure("current", background="#ffb347")
             widget.tag_configure("match", background="#fff0a6")
             widget.tag_configure("current_match", background="#ff9f43")
-            for display_row, item in enumerate(lines, 1):
-                source_number, line = item if isinstance(item, tuple) else (display_row, item)
+            widget.bind("<MouseWheel>", self._mousewheel)
+            widget.bind("<Button-4>", lambda _event: self._wheel_units(-3))
+            widget.bind("<Button-5>", lambda _event: self._wheel_units(3))
+        for widget in (self.left_numbers, self.right_numbers):
+            widget.tag_configure("diff", background="#f2c08d", foreground="#35434d")
+            widget.tag_configure("current", background="#e8843b", foreground="white")
+            widget.bind("<MouseWheel>", self._mousewheel)
+            widget.bind("<Button-4>", lambda _event: self._wheel_units(-3))
+            widget.bind("<Button-5>", lambda _event: self._wheel_units(3))
+        self._layout_marker()
+        self.apply_color_scheme(getattr(master.winfo_toplevel(), "palette", color_scheme("light")))
+        self.populate()
+
+    def apply_color_scheme(self, palette):
+        self.left_frame.configure(background=palette["content"],
+                                  highlightbackground=palette["left_header"])
+        self.right_frame.configure(background=palette["content"],
+                                   highlightbackground=palette["right_header"])
+        self.left_path_label.configure(background=palette["left_header"], foreground="#ffffff")
+        self.right_path_label.configure(background=palette["right_header"], foreground="#ffffff")
+        self.map_header.configure(background=palette["map_header"], foreground="#ffffff")
+        for widget in (self.left, self.right):
+            widget.configure(background=palette["content"], foreground=palette["text"],
+                             insertbackground=palette["text"],
+                             selectbackground=palette["selection"], selectforeground="#ffffff")
+            widget.tag_configure("diff", background=palette["diff"], foreground=palette["text"])
+            widget.tag_configure("current", background=palette["current_diff"], foreground="#ffffff")
+            widget.tag_configure("match", background=palette["match"], foreground=palette["text"])
+            widget.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
+        for widget in (self.left_numbers, self.right_numbers):
+            widget.configure(background=palette["gutter"], foreground=palette["gutter_text"],
+                             selectbackground=palette["selection"], selectforeground="#ffffff")
+            widget.tag_configure("diff", background=palette["diff"], foreground=palette["gutter_text"])
+            widget.tag_configure("current", background=palette["current_diff"], foreground="#ffffff")
+        self.difference_map.apply_color_scheme(palette)
+
+    def populate(self):
+        only_differences = self.view_mode_var.get() == "differences"
+        visible_rows = (self.all_differences if only_differences else
+                        list(range(1, len(self.all_left_lines) + 1)))
+        self.differences = (list(range(1, len(visible_rows) + 1)) if only_differences else
+                            list(self.all_differences))
+        self.diff_index = -1
+        for widget, number_widget, lines in (
+                (self.left, self.left_numbers, self.all_left_lines),
+                (self.right, self.right_numbers, self.all_right_lines)):
+            widget.configure(state="normal"); widget.delete("1.0", "end")
+            number_widget.configure(state="normal"); number_widget.delete("1.0", "end")
+            for output_row, source_row in enumerate(visible_rows, 1):
+                item = lines[source_row - 1]
+                source_number, line = item if isinstance(item, tuple) else (source_row, item)
                 number_text = "" if source_number is None else str(source_number)
-                widget.insert("end", f"{number_text:>6}  {line}\n", "diff" if display_row in differences else "")
-            widget.configure(state="disabled")
+                tag = "diff" if output_row in self.differences else ""
+                number_widget.insert("end", f"{number_text:>5}\n", tag)
+                widget.insert("end", f" {line}\n", tag)
+            widget.configure(state="disabled"); number_widget.configure(state="disabled")
+        self.difference_map.set_rows(self.differences, len(visible_rows))
+        self.find_all()
+
+    def apply_scale(self, scale: float) -> None:
+        self.difference_map.apply_scale(scale)
+        padding = max(3, round(3 * scale))
+        self.left_path_label.configure(padx=padding * 2, pady=padding)
+        self.right_path_label.configure(padx=padding * 2, pady=padding)
+
+    def set_marker_position(self, position: str, notify: bool = False) -> None:
+        if position not in {"left", "middle", "right"}:
+            position = "middle"
+        self.marker_position_var.set(position)
+        self._layout_marker()
+        if notify and self.marker_changed is not None:
+            self.marker_changed(position)
+
+    def _marker_position_changed(self) -> None:
+        self.set_marker_position(self.marker_position_var.get(), notify=True)
+
+    def _layout_marker(self) -> None:
+        for column in range(4):
+            self.body.columnconfigure(column, weight=0, uniform="")
+        position = self.marker_position_var.get()
+        if position == "left":
+            map_column, left_column, right_column = 0, 1, 2
+        elif position == "right":
+            left_column, right_column, map_column = 0, 1, 2
+        else:
+            left_column, map_column, right_column = 0, 1, 2
+        for column in (left_column, right_column):
+            self.body.columnconfigure(column, weight=1, uniform="compare")
+        self.left_path_label.grid(row=0, column=left_column, sticky="ew")
+        self.left_frame.grid(row=1, column=left_column, sticky="nsew")
+        self.right_path_label.grid(row=0, column=right_column, sticky="ew")
+        self.right_frame.grid(row=1, column=right_column, sticky="nsew")
+        self.map_header.grid(row=0, column=map_column, sticky="ew", padx=4)
+        self.difference_map.grid(row=1, column=map_column, sticky="ns", padx=4)
+        self.scroll.grid(row=1, column=3, sticky="ns")
 
     def apply_language(self, old_language: str) -> None:
         retranslate_widgets(self, old_language)
+        self.left_path_label.configure(text=f"{tr('Left')}: {self.left_title}")
+        self.right_path_label.configure(text=f"{tr('Right')}: {self.right_title}")
         self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
         self.next_button.configure(text=f"F8 {tr('Diff >>')}")
         self.diff_status.configure(text=self.status_factory())
@@ -1962,7 +2325,39 @@ class SideBySideText(ttk.Frame):
     def find_previous(self): return self._find(-1)
 
     def _scroll(self, *args):
-        self.left.yview(*args); self.right.yview(*args)
+        for widget in (self.left, self.left_numbers, self.right, self.right_numbers):
+            widget.yview(*args)
+
+    def _left_scrolled(self, first, last):
+        self.scroll.set(first, last)
+        self.difference_map.set_viewport(first, last)
+        self.left_numbers.yview_moveto(first)
+        if abs(self.right.yview()[0] - float(first)) > 0.0001:
+            self.right.yview_moveto(first)
+        self.right_numbers.yview_moveto(first)
+
+    def _right_scrolled(self, first, last):
+        self.scroll.set(first, last)
+        self.difference_map.set_viewport(first, last)
+        self.right_numbers.yview_moveto(first)
+        if abs(self.left.yview()[0] - float(first)) > 0.0001:
+            self.left.yview_moveto(first)
+        self.left_numbers.yview_moveto(first)
+
+    def _wheel_units(self, units):
+        for widget in (self.left, self.left_numbers, self.right, self.right_numbers):
+            widget.yview_scroll(units, "units")
+        return "break"
+
+    def _mousewheel(self, event):
+        units = -int(event.delta / 120) if event.delta else 0
+        return self._wheel_units(units)
+
+    def _jump_to_row(self, line):
+        if line not in self.differences:
+            return
+        self.diff_index = self.differences.index(line)
+        self._show()
 
     def next(self):
         if self.differences:
@@ -1974,31 +2369,38 @@ class SideBySideText(ttk.Frame):
 
     def _show(self):
         line = self.differences[self.diff_index]
-        for widget in (self.left, self.right):
+        for widget in (self.left, self.left_numbers, self.right, self.right_numbers):
             widget.see(f"{line}.0")
             widget.tag_remove("current", "1.0", "end")
             widget.tag_add("current", f"{line}.0", f"{line}.end")
+        self.difference_map.set_current(line)
+        self.diff_status.configure(text=f"{self.diff_index + 1}/{len(self.differences)}")
 
 
 class TextCompare(ttk.Frame):
-    def __init__(self, master, left: Path, right: Path):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
         super().__init__(master)
         a = left.read_text(encoding="utf-8", errors="replace")
         b = right.read_text(encoding="utf-8", errors="replace")
         rows, differences = aligned_text(a, b)
         self.view = SideBySideText(
             self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
-            status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count))
+            status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count),
+            left_title=left, right_title=right, marker_position=marker_position,
+            marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
     def apply_language(self, old_language: str) -> None:
         self.view.apply_language(old_language)
 
+    def apply_scale(self, scale: float) -> None:
+        self.view.apply_scale(scale)
+
 
 class BinaryCompare(ttk.Frame):
     LIMIT = 256 * 1024
 
-    def __init__(self, master, left: Path, right: Path):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
         super().__init__(master)
         a, b = left.read_bytes()[:self.LIMIT], right.read_bytes()[:self.LIMIT]
         length = max(len(a), len(b)); different_offsets = []
@@ -2021,11 +2423,15 @@ class BinaryCompare(ttk.Frame):
             result=tr("identical") if identical else tr("different"),
             offset=first_offset or tr("none"))
         self.view = SideBySideText(self, left_lines, right_lines, diff_lines,
-                                   status_factory=status_factory)
+                                   status_factory=status_factory, left_title=left, right_title=right,
+                                   marker_position=marker_position, marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
     def apply_language(self, old_language: str) -> None:
         self.view.apply_language(old_language)
+
+    def apply_scale(self, scale: float) -> None:
+        self.view.apply_scale(scale)
 
 
 def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=False,
@@ -2116,13 +2522,23 @@ class FolderCompare(ttk.Frame):
         self.open_detail, self.sync_executor = open_detail, sync_executor
         self.rows, self.actions, self.item_paths, self.item_keys = [], {}, {}, {}
         self.matches, self.match_index = [], -1
+        self.difference_items, self.difference_index = [], -1
         self._scan_queue, self._cancel_event, self._scanning = queue.Queue(), threading.Event(), False
-        self.sort_column, self.sort_reverse = "path", False
-        paths = ttk.Frame(self); paths.pack(fill="x", pady=(2, 1))
-        self.left_path_label = ttk.Label(paths, text=f"{tr('Left')}: {left}")
-        self.left_path_label.pack(side="left", fill="x", expand=True)
-        self.right_path_label = ttk.Label(paths, text=f"{tr('Right')}: {right}")
-        self.right_path_label.pack(side="right", fill="x", expand=True)
+        self.sort_column, self.sort_reverse = "left_path", False
+        paths = ttk.Frame(self); paths.pack(fill="x", pady=(2, 3))
+        paths.columnconfigure(0, weight=1, uniform="folder-side")
+        paths.columnconfigure(2, weight=1, uniform="folder-side")
+        self.left_path_label = tk.Label(paths, text=f"{tr('Left')}: {left}", anchor="w",
+                                        background="#2d668f", foreground="white",
+                                        font="TkHeadingFont", padx=6, pady=3)
+        self.left_path_label.grid(row=0, column=0, sticky="ew")
+        self.path_divider = tk.Label(paths, text="↔", background="#263d4c", foreground="white",
+                                     font="TkHeadingFont", padx=10, pady=3)
+        self.path_divider.grid(row=0, column=1, sticky="ns")
+        self.right_path_label = tk.Label(paths, text=f"{tr('Right')}: {right}", anchor="w",
+                                         background="#9b5d2e", foreground="white",
+                                         font="TkHeadingFont", padx=6, pady=3)
+        self.right_path_label.grid(row=0, column=2, sticky="ew")
         bar = ttk.Frame(self); bar.pack(fill="x")
         ttk.Label(bar, text=tr("Mask:")).pack(side="left")
         self.mask_var = tk.StringVar(value="*")
@@ -2132,11 +2548,19 @@ class FolderCompare(ttk.Frame):
         options = ttk.Frame(self); options.pack(fill="x", pady=(2, 1))
         self.recursive_var = tk.BooleanVar(value=True)
         self.content_var = tk.BooleanVar(value=False)
-        self.differences_var = tk.BooleanVar(value=True)
+        self.view_mode_var = tk.StringVar(value="all")
         ttk.Checkbutton(options, text=tr("Recursive"), variable=self.recursive_var).pack(side="left")
         ttk.Checkbutton(options, text=tr("By content"), variable=self.content_var).pack(side="left", padx=(5, 0))
-        ttk.Checkbutton(options, text=tr("Differences only"), variable=self.differences_var,
-                        command=self.populate).pack(side="left", padx=(5, 0))
+        ttk.Radiobutton(options, text=tr("All"), value="all", variable=self.view_mode_var,
+                        command=self.populate).pack(side="left", padx=(8, 0))
+        ttk.Radiobutton(options, text=tr("Differences only"), value="differences",
+                        variable=self.view_mode_var, command=self.populate).pack(side="left", padx=(3, 0))
+        navigation = ttk.Frame(self); navigation.pack(fill="x", pady=(1, 2))
+        self.previous_button = ttk.Button(navigation, text=f"F7 {tr('Diff <<')}", command=self.previous)
+        self.previous_button.pack(side="left")
+        self.next_button = ttk.Button(navigation, text=f"F8 {tr('Diff >>')}", command=self.next)
+        self.next_button.pack(side="left", padx=3)
+        self.diff_status = ttk.Label(navigation); self.diff_status.pack(side="left", padx=5)
         self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
         find_row = ttk.Frame(self); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
@@ -2159,32 +2583,81 @@ class FolderCompare(ttk.Frame):
         ttk.Label(sync_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(8, 0))
         self.scan_status = ttk.Label(sync_row, text=tr("Ready"), anchor="e")
         self.scan_status.pack(side="right", fill="x", expand=True, padx=8)
-        self.tree = ttk.Treeview(self, columns=("action", "status", "path", "left", "right"),
-                                 show="headings", selectmode="extended")
-        for col, width in (("action", 70), ("status", 105), ("path", 390), ("left", 125), ("right", 125)):
-            self.tree.heading(col, text=tr(col.title()), command=lambda value=col: self.change_sort(value))
-            self.tree.column(col, width=width, anchor="center" if col == "action" else "w")
-        self.tree.pack(fill="both", expand=True)
+        self.tree = ttk.Treeview(self, columns=("action", "left_path", "left_detail", "status",
+                                                "right_path", "right_detail"),
+                                 show="headings", selectmode="extended", style="PFCCompare.Treeview")
+        headings = {
+            "action": tr("Action"), "left_path": tr("Left"),
+            "left_detail": f"{tr('Size')} / {tr('Modified')}", "status": tr("Status"),
+            "right_path": tr("Right"), "right_detail": f"{tr('Size')} / {tr('Modified')}",
+        }
+        self._column_widths = {"action": 65, "left_path": 300, "left_detail": 190,
+                               "status": 130, "right_path": 300, "right_detail": 190}
+        for col, width in self._column_widths.items():
+            self.tree.heading(col, text=headings[col], command=lambda value=col: self.change_sort(value))
+            self.tree.column(col, width=width, minwidth=50,
+                             stretch=col in {"left_path", "right_path"},
+                             anchor="center" if col in {"action", "status"} else "w")
+        tree_area = ttk.Frame(self); tree_area.pack(fill="both", expand=True)
+        tree_area.columnconfigure(0, weight=1); tree_area.rowconfigure(0, weight=1)
+        self.tree.grid(in_=tree_area, row=0, column=0, sticky="nsew")
+        self.tree_y_scroll = ttk.Scrollbar(tree_area, orient="vertical", command=self.tree.yview)
+        self.tree_x_scroll = ttk.Scrollbar(tree_area, orient="horizontal", command=self.tree.xview)
+        self.tree_y_scroll.grid(row=0, column=1, sticky="ns")
+        self.tree_x_scroll.grid(row=1, column=0, sticky="ew")
+        self.tree.configure(yscrollcommand=self.tree_y_scroll.set, xscrollcommand=self.tree_x_scroll.set)
         self.tree.tag_configure("find_match", background="#fff0a6")
         self.tree.tag_configure("current_match", background="#ff9f43")
         self.tree.tag_configure("different", foreground="#a00000")
         self.tree.tag_configure("left", foreground="#006c3b")
         self.tree.tag_configure("right", foreground="#005ca8")
+        self.tree.tag_configure("identical", foreground="#555555")
         self.tree.bind("<Double-1>", self._open)
         self.tree.bind("<Return>", self._open)
         self.tree.bind("<Control-Right>", lambda _e: self.set_action("right"))
         self.tree.bind("<Control-Left>", lambda _e: self.set_action("left"))
         self.tree.bind("<space>", lambda _e: self.set_action("skip"))
+        self.apply_scale(1.0)
+        self.apply_color_scheme(getattr(master.winfo_toplevel(), "palette", color_scheme("light")))
         self.start_scan()
+
+    def apply_color_scheme(self, palette):
+        self.left_path_label.configure(background=palette["left_header"], foreground="#ffffff")
+        self.right_path_label.configure(background=palette["right_header"], foreground="#ffffff")
+        self.path_divider.configure(background=palette["map_header"], foreground="#ffffff")
+        self.tree.tag_configure("find_match", background=palette["match"], foreground=palette["text"])
+        self.tree.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
+        self.tree.tag_configure("different", foreground="#ff7770" if palette["window"] == "#20262c" else "#a00000")
+        self.tree.tag_configure("left", foreground="#73d6a1" if palette["window"] == "#20262c" else "#006c3b")
+        self.tree.tag_configure("right", foreground="#73bfff" if palette["window"] == "#20262c" else "#005ca8")
+        self.tree.tag_configure("identical", foreground=palette["muted"])
+
+    def apply_scale(self, scale: float) -> None:
+        style = ttk.Style(self)
+        linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
+        style.configure("PFCCompare.Treeview", font="TkDefaultFont",
+                        rowheight=compare_row_height(linespace, scale))
+        style.configure("PFCCompare.Treeview.Heading", font="TkHeadingFont")
+        for column, width in self._column_widths.items():
+            self.tree.column(column, width=max(50, round(width * scale)))
+        padding = max(3, round(3 * scale))
+        for label in (self.left_path_label, self.right_path_label):
+            label.configure(padx=padding * 2, pady=padding)
+        self.path_divider.configure(padx=max(8, round(8 * scale)), pady=padding)
 
     def apply_language(self, old_language: str) -> None:
         selected_keys = {self.item_keys.get(iid) for iid in self.tree.selection()}
         retranslate_widgets(self, old_language)
+        self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
+        self.next_button.configure(text=f"F8 {tr('Diff >>')}")
         self.left_path_label.configure(text=f"{tr('Left')}: {self.left_root}")
         self.right_path_label.configure(text=f"{tr('Right')}: {self.right_root}")
-        for column in ("action", "status", "path", "left", "right"):
+        labels = {"action": tr("Action"), "left_path": tr("Left"),
+                  "left_detail": f"{tr('Size')} / {tr('Modified')}", "status": tr("Status"),
+                  "right_path": tr("Right"), "right_detail": f"{tr('Size')} / {tr('Modified')}"}
+        for column in ("action", "left_path", "left_detail", "status", "right_path", "right_detail"):
             marker = (" ▲" if not self.sort_reverse else " ▼") if column == self.sort_column else ""
-            self.tree.heading(column, text=tr(column.title()) + marker)
+            self.tree.heading(column, text=labels[column] + marker)
         self.populate()
         for iid in self.tree.get_children():
             if self.item_keys.get(iid) in selected_keys:
@@ -2262,9 +2735,12 @@ class FolderCompare(ttk.Frame):
         selected_keys = {self.item_keys.get(iid) for iid in self.tree.selection()}
         self.sort_reverse = not self.sort_reverse if column == self.sort_column else False
         self.sort_column = column
-        for value in ("action", "status", "path", "left", "right"):
+        labels = {"action": tr("Action"), "left_path": tr("Left"),
+                  "left_detail": f"{tr('Size')} / {tr('Modified')}", "status": tr("Status"),
+                  "right_path": tr("Right"), "right_detail": f"{tr('Size')} / {tr('Modified')}"}
+        for value in ("action", "left_path", "left_detail", "status", "right_path", "right_detail"):
             marker = (" ▼" if self.sort_reverse else " ▲") if value == column else ""
-            self.tree.heading(value, text=tr(value.title()) + marker)
+            self.tree.heading(value, text=labels[value] + marker)
         self.populate()
         for iid in self.tree.get_children():
             if self.item_keys.get(iid) in selected_keys:
@@ -2274,13 +2750,14 @@ class FolderCompare(ttk.Frame):
     def populate(self):
         self.tree.delete(*self.tree.get_children())
         self.item_paths, self.item_keys = {}, {}
+        self.difference_items, self.difference_index = [], -1
         action_label = {"right": "→", "left": "←", "skip": tr("Skip")}
-        visible = [row for row in self.rows if not (self.differences_var.get() and row[0] == "Identical")]
-        index = {"status": 0, "path": 1, "left": 2, "right": 3}
+        visible = [row for row in self.rows
+                   if not (self.view_mode_var.get() == "differences" and row[0] == "Identical")]
         if self.sort_column == "action":
             visible.sort(key=lambda row: self.actions.get(row[1], ""), reverse=self.sort_reverse)
-        elif self.sort_column in {"left", "right"}:
-            path_index = index[self.sort_column]
+        elif self.sort_column in {"left_detail", "right_detail"}:
+            path_index = 2 if self.sort_column == "left_detail" else 3
             def metadata_key(row):
                 path = row[path_index]
                 if path is None: return (0, 0, 0)
@@ -2289,16 +2766,35 @@ class FolderCompare(ttk.Frame):
                 except OSError:
                     return (0, 0, 0)
             visible.sort(key=metadata_key, reverse=self.sort_reverse)
+        elif self.sort_column == "status":
+            visible.sort(key=lambda row: row[0].casefold(), reverse=self.sort_reverse)
         else:
-            visible.sort(key=lambda row: str(row[index[self.sort_column]]).casefold(), reverse=self.sort_reverse)
+            visible.sort(key=lambda row: row[1].casefold(), reverse=self.sort_reverse)
         for status, path, left, right in visible:
             tag = "left" if status in {"Left only", "Left newer"} else (
-                "right" if status in {"Right only", "Right newer"} else "different")
+                "right" if status in {"Right only", "Right newer"} else (
+                    "identical" if status == "Identical" else "different"))
             iid = self.tree.insert("", "end", values=(action_label.get(self.actions.get(path), ""),
-                tr(status), path, self._detail(left), self._detail(right)), tags=(tag,))
+                path if left is not None else "", self._detail(left), tr(status),
+                path if right is not None else "", self._detail(right)), tags=(tag,))
             self.item_paths[iid] = (left, right)
             self.item_keys[iid] = path
+            if status != "Identical":
+                self.difference_items.append(iid)
+        self.diff_status.configure(text=f"0/{len(self.difference_items)}")
         self.find_all()
+
+    def _difference(self, direction):
+        if not self.difference_items:
+            return "break"
+        self.difference_index = (self.difference_index + direction) % len(self.difference_items)
+        iid = self.difference_items[self.difference_index]
+        self.tree.selection_set(iid); self.tree.focus(iid); self.tree.see(iid); self.tree.focus_set()
+        self.diff_status.configure(text=f"{self.difference_index + 1}/{len(self.difference_items)}")
+        return "break"
+
+    def next(self): return self._difference(1)
+    def previous(self): return self._difference(-1)
 
     def set_action(self, action):
         selected = self.tree.selection()
@@ -2355,7 +2851,7 @@ class FolderCompare(ttk.Frame):
         self.matches, self.match_index = [], -1; needle = self.search_var.get()
         for iid in self.tree.get_children():
             base = next((tag for tag in self.tree.item(iid, "tags")
-                         if tag in {"left", "right", "different"}), "different")
+                         if tag in {"left", "right", "different", "identical"}), "different")
             haystack = " ".join(str(value) for value in self.tree.item(iid, "values"))
             matched = needle in haystack if self.case_var.get() else needle.casefold() in haystack.casefold()
             if needle and matched:
@@ -2383,7 +2879,7 @@ class FolderCompare(ttk.Frame):
 
 
 class TableCompare(TextCompare):
-    def __init__(self, master, left: Path, right: Path):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
         def rows(path):
             delimiter = "\t" if path.suffix.casefold() == ".tsv" else ","
             with path.open("r", encoding="utf-8-sig", errors="replace", newline="") as stream:
@@ -2393,7 +2889,9 @@ class TableCompare(TextCompare):
         aligned, differences = aligned_text(a, b)
         self.view = SideBySideText(
             self, [(r[0], r[1]) for r in aligned], [(r[2], r[3]) for r in aligned], differences,
-            status_factory=lambda count=len(differences): tr("{count} different row(s)", count=count))
+            status_factory=lambda count=len(differences): tr("{count} different row(s)", count=count),
+            left_title=left, right_title=right, marker_position=marker_position,
+            marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
 
@@ -2401,19 +2899,44 @@ class CompareWindow(tk.Toplevel):
     def __init__(self, master, config, save_config, sync_executor=None):
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
+        self.palette = getattr(master, "palette", color_scheme("light"))
         self.sync_executor = sync_executor
         self.comparisons = {}
+        self.scale = 1.0
+        self.marker_position = config.get("compare", "marker_position", fallback="middle")
+        if self.marker_position not in {"left", "middle", "right"}:
+            self.marker_position = "middle"
         self._refresh_job = None
         self.title(tr("PFC Compare"))
         self.geometry(config.get("compare", "geometry", fallback="1400x850"))
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
+        self.notebook.set_theme(self.palette)
+        self.configure(background=self.palette["window"])
         self.bind("<F7>", lambda _e: self._navigate("previous"))
         self.bind("<F8>", lambda _e: self._navigate("next"))
         self.bind("<Control-f>", lambda _e: self.focus_search())
         self.bind("<Escape>", lambda _e: self.close_active())
         install_button_tooltips(self)
         self._schedule_refresh()
+
+    def apply_scale(self, scale: float) -> None:
+        self.scale = scale
+        self.notebook.redraw()
+        for frame in self.comparisons:
+            handler = getattr(frame, "apply_scale", None)
+            if callable(handler):
+                handler(scale)
+
+    def apply_color_scheme(self, palette) -> None:
+        self.palette = palette
+        self.configure(background=palette["window"])
+        self.notebook.set_theme(palette)
+        for frame in self.comparisons:
+            target = getattr(frame, "view", frame)
+            handler = getattr(target, "apply_color_scheme", None)
+            if callable(handler):
+                handler(palette)
 
     def apply_language(self, old_language: str) -> None:
         retranslate_widgets(self, old_language)
@@ -2436,9 +2959,23 @@ class CompareWindow(tk.Toplevel):
     def _make_frame(self, left: Path, right: Path, kind: str):
         if kind == "Folder":
             return FolderCompare(self.notebook, left, right, self.add, self.sync_executor)
-        if kind == "Text": return TextCompare(self.notebook, left, right)
-        if kind == "Table": return TableCompare(self.notebook, left, right)
-        return BinaryCompare(self.notebook, left, right)
+        args = (self.notebook, left, right, self.marker_position, self.set_marker_position)
+        if kind == "Text": return TextCompare(*args)
+        if kind == "Table": return TableCompare(*args)
+        return BinaryCompare(*args)
+
+    def set_marker_position(self, position: str) -> None:
+        if position not in {"left", "middle", "right"}:
+            return
+        self.marker_position = position
+        for frame in self.comparisons:
+            view = getattr(frame, "view", None)
+            if view is not None and hasattr(view, "set_marker_position"):
+                view.set_marker_position(position)
+        if not self.config_data.has_section("compare"):
+            self.config_data.add_section("compare")
+        self.config_data.set("compare", "marker_position", position)
+        self.save_config()
 
     def add(self, left: Path, right: Path, requested="Auto"):
         kind = detect_compare_type(left, right) if requested == "Auto" else requested
@@ -2448,6 +2985,13 @@ class CompareWindow(tk.Toplevel):
         install_button_tooltips(frame)
         self.notebook.add(frame, text=f"{tr(kind)}: {left.name} ↔ {right.name}")
         self.comparisons[frame] = (left, right, kind, self._signature(left, right))
+        target = getattr(frame, "view", frame)
+        handler = getattr(target, "apply_color_scheme", None)
+        if callable(handler):
+            handler(self.palette)
+        handler = getattr(frame, "apply_scale", None)
+        if callable(handler):
+            handler(self.scale)
         self.notebook.select(frame); self.after_idle(self.activate)
 
     def activate(self):
@@ -2472,12 +3016,24 @@ class CompareWindow(tk.Toplevel):
                     install_button_tooltips(replacement)
                     self.notebook.add(replacement, text=title, position=index)
                     self.comparisons[replacement] = (left, right, kind, current)
+                    target = getattr(replacement, "view", replacement)
+                    theme_handler = getattr(target, "apply_color_scheme", None)
+                    if callable(theme_handler):
+                        theme_handler(self.palette)
+                    handler = getattr(replacement, "apply_scale", None)
+                    if callable(handler):
+                        handler(self.scale)
         if self.winfo_exists(): self._schedule_refresh()
 
     def _navigate(self, method):
         frame = self.nametowidget(self.notebook.select())
-        for child in frame.winfo_children():
-            if isinstance(child, SideBySideText): getattr(child, method)(); return
+        pending = [frame]
+        while pending:
+            widget = pending.pop(0)
+            handler = getattr(widget, method, None)
+            if callable(handler):
+                handler(); return
+            pending.extend(widget.winfo_children())
 
     def focus_search(self):
         frame = self.nametowidget(self.notebook.select())
@@ -2613,6 +3169,7 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("match", background="#fff0a6")
         self.text.tag_configure("current_match", background="#ffb347")
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
+        self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self)
         self.load()
         self._schedule_refresh()
@@ -2625,6 +3182,15 @@ class PreviewWindow(tk.Toplevel):
         self.mode_combo.configure(values=tuple(self.mode_values))
         self.mode_var.set(next(label for label, value in self.mode_values.items() if value == mode))
         self.load()
+
+    def apply_color_scheme(self, palette) -> None:
+        self.palette = palette
+        self.configure(background=palette["window"])
+        self.text.configure(background=palette["content"], foreground=palette["text"],
+                            insertbackground=palette["text"], selectbackground=palette["selection"],
+                            selectforeground="#ffffff")
+        self.text.tag_configure("match", background=palette["match"], foreground=palette["text"])
+        self.text.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
 
     @property
     def path(self) -> Path:
@@ -2847,9 +3413,12 @@ class SearchWindow(tk.Toplevel):
         ttk.Entry(advanced, textvariable=self.max_size_var, width=9).pack(side="left", padx=(3, 12))
         ttk.Label(advanced, text=tr("Modified within days:")).pack(side="left")
         ttk.Entry(advanced, textvariable=self.days_var, width=7).pack(side="left", padx=3)
-        actions = ttk.Frame(form); actions.grid(row=5, column=0, columnspan=8, sticky="ew", pady=(5, 0))
+        self.criteria_label = ttk.Label(form, anchor="w")
+        self.criteria_label.grid(row=5, column=0, columnspan=8, sticky="ew", pady=(4, 0))
+        actions = ttk.Frame(form); actions.grid(row=6, column=0, columnspan=8, sticky="ew", pady=(5, 0))
         self.find_button = ttk.Button(actions, text=tr("Find"), command=self.start); self.find_button.pack(side="left")
         self.cancel_button = ttk.Button(actions, text=tr("Cancel"), command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
+        ttk.Button(actions, text=tr("Clear Filters"), command=self.clear_filters).pack(side="left", padx=(3, 9))
         ttk.Button(actions, text=tr("Go to File"), command=self.go_selected).pack(side="left", padx=(12, 3))
         ttk.Button(actions, text=tr("Preview"), command=self.preview_selected).pack(side="left")
         ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
@@ -2868,7 +3437,17 @@ class SearchWindow(tk.Toplevel):
         self.tree.pack(side="left", fill="both", expand=True); scroll.pack(side="right", fill="y")
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
+        for variable in (self.mask_var, self.content_var, self.case_var, self.depth_var,
+                         self.files_var, self.folders_var, self.min_size_var,
+                         self.max_size_var, self.days_var):
+            variable.trace_add("write", self._update_criteria_summary)
+        self._update_criteria_summary()
+        self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def apply_color_scheme(self, palette) -> None:
+        self.palette = palette
+        self.configure(background=palette["window"])
 
     def apply_scale(self, scale: float) -> None:
         style = ttk.Style(self)
@@ -2886,6 +3465,7 @@ class SearchWindow(tk.Toplevel):
         self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
         self.title(tr("PFC Search"))
         self._apply_sort()
+        self._update_criteria_summary()
         if self.worker is not None and self.worker.is_alive():
             self.status.configure(text=tr("Searching…"))
         elif self.results:
@@ -2893,8 +3473,41 @@ class SearchWindow(tk.Toplevel):
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()
+        self._update_criteria_summary()
         if self.mask_entry is not None:
             self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end"); self.mask_entry.icursor("end")
+
+    def _update_criteria_summary(self, *_args) -> None:
+        if not hasattr(self, "criteria_label"):
+            return
+        mask = self.mask_var.get().strip() or "*"
+        scope = "/".join(label for label, enabled in (
+            (tr("Files"), self.files_var.get()), (tr("Folders"), self.folders_var.get())) if enabled) or "—"
+        parts = [f"{tr('Name/mask:')} {mask}", scope,
+                 f"{tr('Depth:')} {self.depth_var.get()}"]
+        if self.content_var.get().strip():
+            parts.append(f"{tr('Containing text:')} {self.content_var.get().strip()}")
+        if self.min_size_var.get().strip() or self.max_size_var.get().strip():
+            parts.append(f"{tr('Size')}: {self.min_size_var.get().strip() or '0'}–{self.max_size_var.get().strip() or '∞'} KB")
+        if self.days_var.get().strip():
+            parts.append(f"{tr('Modified within days:')} {self.days_var.get().strip()}")
+        if self.case_var.get():
+            parts.append(tr("Case sensitive"))
+        self.criteria_label.configure(text=f"{tr('Filters:')} " + " · ".join(parts))
+
+    def clear_filters(self) -> None:
+        self.mask_var.set("*")
+        self.content_var.set("")
+        self.case_var.set(False)
+        self.depth_var.set(tr("All"))
+        self.files_var.set(True)
+        self.folders_var.set(True)
+        self.min_size_var.set("")
+        self.max_size_var.set("")
+        self.days_var.set("")
+        self.status.configure(text=tr("Filters cleared"))
+        self.mask_entry.focus_set()
+        self.mask_entry.selection_range(0, "end")
 
     def change_sort(self, column):
         self.sort_reverse = not self.sort_reverse if self.sort_column == column else False
@@ -3152,7 +3765,15 @@ class MultiRenameWindow(tk.Toplevel):
         self.bind("<Escape>", lambda _event: self.destroy())
         self.bind("<Control-Return>", lambda _event: self.apply())
         self.bind("<Control-z>", lambda _event: self.undo())
+        self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         self.update_preview(); self.after_idle(self._activate)
+
+    def apply_color_scheme(self, palette) -> None:
+        self.palette = palette
+        self.configure(background=palette["window"])
+        dark = palette["window"] == "#20262c"
+        self.tree.tag_configure("error", foreground="#ff7770" if dark else "#a00000")
+        self.tree.tag_configure("ok", foreground="#73d6a1" if dark else "#006c3b")
 
     def _activate(self):
         self.deiconify(); self.lift(); self.focus_force(); self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end")
@@ -3698,14 +4319,20 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.3"
+__version__ = "0.12.4"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/21"
+BUILD_DATE = "2026/07/22"
 VERSION_HISTORY = (
+    ("v0.12.4", "2026/07/22", (
+        "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.",
+        "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.",
+        "Added: Search filter summaries, one-click filter clearing, and a non-blocking settings-save warning.",
+        "Adjusted: Refined Compare, folder-return selection, color schemes, and selection behavior for daily navigation.",
+    )),
     ("v0.12.3", "2026/07/21", (
         "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.",
     )),
@@ -3768,7 +4395,8 @@ VERSION_HISTORY = (
 
 def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
-        "view": {"font_size": "small", "tab_style": "right_skirt", "panel_count": "2", "ui_language": "en"},
+        "view": {"font_size": "small", "tab_style": "right_skirt", "panel_count": "2",
+                 "ui_language": "en", "color_scheme": "light"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -3864,6 +4492,14 @@ def navigation_destination(path: Path) -> tuple[Path, Path | None]:
     return (target.parent, target) if target.is_file() else (target, None)
 
 
+def folder_history_selection(previous: Path, target: Path,
+                             remembered: dict[Path, Path]) -> Path | None:
+    """Choose the row to restore after entering or leaving a folder."""
+    if previous != target and previous.parent == target:
+        return previous
+    return remembered.get(target)
+
+
 def is_noop_drag_drop(items: list[Path], destination: Path) -> bool:
     """Treat a drag back to its source folder (or onto itself) as cancellation."""
     if not items:
@@ -3955,6 +4591,7 @@ class FilePane(ttk.Frame):
         self.on_context = on_context
         self.path = Path.home()
         self.history: list[Path] = []
+        self.folder_selections: dict[Path, Path] = {}
         self.sort_column = "name"
         self.reverse = False
         self.show_hidden = False
@@ -3973,6 +4610,11 @@ class FilePane(ttk.Frame):
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified"), "attr": tr("Attr")}
         self.icons = ShellIconProvider()
+
+        # Keep the command target visible even when the panel has no selected row.
+        self.active_indicator = tk.Frame(self, height=3, background="#9aa7b3",
+                                         highlightthickness=0)
+        self.active_indicator.pack(fill="x", side="top")
 
         bar = ttk.Frame(self)
         bar.pack(fill="x", pady=(0, 3))
@@ -4055,9 +4697,21 @@ class FilePane(ttk.Frame):
         })
 
     def _drag_press(self, event):
-        if self.tree.identify_region(event.x, event.y) not in {"tree", "cell"}:
+        region = self.tree.identify_region(event.x, event.y)
+        iid = self.tree.identify_row(event.y)
+        if not iid and region not in {"heading", "separator"}:
+            selected = self.tree.selection()
+            if selected:
+                self.tree.selection_remove(*selected)
+            self.tree.focus(""); self.tree.focus_set(); self.on_activate(self)
+            self._drag_press_item = None; self._drag_press_xy = None
+            return "break"
+        if region not in {"tree", "cell"}:
             self._drag_press_item = None; self._drag_press_xy = None; return None
-        self._drag_press_item = self.tree.identify_row(event.y)
+        # FocusIn is not guaranteed to fire when Tk preserves focus during a
+        # multi-selection click.  Activate explicitly before any hotkey can run.
+        self.on_activate(self)
+        self._drag_press_item = iid
         self._drag_press_xy = (event.x_root, event.y_root)
         self._dragging = False
         if self._drag_press_item in self.tree.selection():
@@ -4120,6 +4774,17 @@ class FilePane(ttk.Frame):
             if not bypass_lock and self.lock_mode == "locked" and path != self.path:
                 self.on_locked_navigation(path)
                 return False
+            previous = self.path
+            focused = self.tree.focus()
+            if not focused and self.tree.selection():
+                focused = self.tree.selection()[0]
+            if focused:
+                tags = self.tree.item(focused, "tags")
+                if tags:
+                    selected = Path(tags[0])
+                    if selected.parent == previous:
+                        self.folder_selections[previous] = selected
+            restore_selection = folder_history_selection(previous, path, self.folder_selections)
             if path != self.path:
                 self.history.append(self.path)
             self.path = path
@@ -4129,6 +4794,8 @@ class FilePane(ttk.Frame):
             if os.name == "nt":
                 self.drive.set(path.anchor)
             self.refresh()
+            if restore_selection is not None:
+                self.select_path(restore_selection)
             self.on_change()
             return True
         except OSError as exc:
@@ -4362,10 +5029,15 @@ class FilePane(ttk.Frame):
         self.refresh()
         self.on_change()
 
-    def set_active_appearance(self, active: bool) -> None:
+    def set_active_appearance(self, active: bool, palette=None) -> None:
         self.tree.configure(style="Active.Treeview" if active else "Inactive.Treeview")
+        colors = palette or {}
+        self.active_indicator.configure(
+            background=colors.get("selection", "#0078d4") if active
+            else colors.get("border", "#9aa7b3"))
 
     def apply_scale(self, scale: float) -> None:
+        self.active_indicator.configure(height=max(2, round(3 * scale)))
         icon_size = max(16, round(16 * scale))
         if self.icons.size != icon_size:
             self.icons = ShellIconProvider(icon_size)
@@ -4512,6 +5184,7 @@ class Commander(tk.Tk):
         self._app_icon_images = [create_pfc_icon(size) for size in (16, 32, 48, 64)]
         self.iconphoto(True, *self._app_icon_images)
         self._ready = False
+        self._config_warning_shown = False
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
@@ -4547,6 +5220,11 @@ class Commander(tk.Tk):
         self._clipboard_icon_size = 18
         self.clipboard_icons = ShellIconProvider(self._clipboard_icon_size)
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
+        saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
+        if saved_scheme not in COLOR_SCHEMES:
+            saved_scheme = "light"
+        self.color_scheme_var = tk.StringVar(value=saved_scheme)
+        self.palette = color_scheme(saved_scheme)
         saved_tab_style = self.config_data.get("view", "tab_style", fallback="right_skirt")
         if saved_tab_style == "compact":
             saved_tab_style = "right_skirt"
@@ -4568,20 +5246,21 @@ class Commander(tk.Tk):
                 self._base_font_sizes[name] = tkfont.nametofont(name).cget("size")
             except tk.TclError:
                 pass
+        configure_ttk_theme(self, self.palette)
         style = ttk.Style(self)
         style.configure(".", font=tkfont.nametofont("TkDefaultFont"))
         style.configure("Treeview", font=tkfont.nametofont("TkDefaultFont"))
         style.configure("Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
-        style.configure("Active.Treeview", background="white", fieldbackground="white", indent=6)
-        style.map("Active.Treeview", background=[("selected", "#1683e2")], foreground=[("selected", "white")])
-        style.configure("Inactive.Treeview", background="white", fieldbackground="white", indent=6)
-        style.map("Inactive.Treeview", background=[("selected", "#91a9bd")], foreground=[("selected", "white")])
-        style.configure("PFC.TNotebook", background="#9eafbd", borderwidth=1)
-        style.configure("PFC.TNotebook.Tab", background="#c7d3dd", foreground="#243442",
+        style.configure("Active.Treeview", indent=6)
+        style.configure("Inactive.Treeview", indent=6)
+        style.configure("PFC.TNotebook", background=self.palette["tab_bar"], borderwidth=1)
+        style.configure("PFC.TNotebook.Tab", background=self.palette["tab_default"],
+                        foreground=self.palette["tab_text"],
                         padding=(10, 5), borderwidth=1)
         style.map("PFC.TNotebook.Tab",
-                  background=[("selected", "#1683e2"), ("active", "#dce7ef")],
-                  foreground=[("selected", "#005a9e"), ("active", "#10202c")],
+                  background=[("selected", self.palette["selection"]),
+                              ("active", self.palette["button_active"])],
+                  foreground=[("selected", "#ffffff"), ("active", self.palette["text"])],
                   expand=[("selected", (1, 1, 1, 0))])
         flat_item_layout = [("Treeitem.padding", {"sticky": "nswe", "children": [
             ("Treeitem.image", {"side": "left", "sticky": ""}),
@@ -4610,6 +5289,7 @@ class Commander(tk.Tk):
         for section, tabs in zip(PANEL_SECTIONS, self.panel_tabs):
             self._restore_tab(tabs, section)
             self._restore_panel_options(tabs, section)
+            tabs.set_theme(self.palette)
         active_section = self.config_data.get("state", "active_panel", fallback="left")
         active_index = PANEL_SECTIONS.index(active_section) if active_section in PANEL_SECTIONS else 0
         if active_index >= self.panel_count_var.get():
@@ -4635,6 +5315,7 @@ class Commander(tk.Tk):
             self.action_buttons.append((button, hotkey, label))
             self.action_button_by_hotkey[hotkey] = button
         self.update_rename_action()
+        self.update_transfer_actions()
         install_button_tooltips(self)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
@@ -4692,6 +5373,7 @@ class Commander(tk.Tk):
                 self.bind_all(key, lambda _e, fn=commands[name]: fn())
         self._install_priority_hotkeys(configured_hotkeys, commands)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
+        self.apply_color_scheme(save=False)
         self._ready = True
         self._save_job = None
         self._auto_refresh_job = None
@@ -4848,6 +5530,7 @@ class Commander(tk.Tk):
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
+        self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
@@ -4855,8 +5538,18 @@ class Commander(tk.Tk):
         self.config_data.set("navigation", "recent_folders", json.dumps([str(path) for path in self.recent_folders], ensure_ascii=False))
         try:
             write_config_atomic(self.config_data, self.ini_path)
-        except OSError:
-            pass
+        except OSError as exc:
+            self._show_config_save_warning(exc)
+
+    def _show_config_save_warning(self, error: OSError) -> None:
+        """Show one non-blocking warning when portable settings cannot be saved."""
+        if self._config_warning_shown or not self.winfo_exists():
+            return
+        self._config_warning_shown = True
+        warning = ttk.Label(self, text=tr("Settings could not be saved: {error}", error=error),
+                            anchor="w", padding=(8, 4), style="Warning.TLabel")
+        warning.pack(fill="x", before=self.split)
+        self.after(10000, lambda: warning.destroy() if warning.winfo_exists() else None)
 
     def close_app(self) -> None:
         self._clear_tab_drag_target()
@@ -4897,7 +5590,9 @@ class Commander(tk.Tk):
         if previous_header is not None and previous_header.winfo_exists():
             previous_header.destroy()
         menu_font = tkfont.nametofont("TkMenuFont")
-        header_bg, header_fg, active_bg = "#243b53", "#f4f8fb", "#365b78"
+        header_bg = self.palette["header"]
+        header_fg = self.palette["header_text"]
+        active_bg = self.palette["header_active"]
         header = tk.Frame(self, background=header_bg, padx=5, pady=4)
         if hasattr(self, "split"):
             header.pack(fill="x", before=self.split)
@@ -4915,18 +5610,18 @@ class Commander(tk.Tk):
         self.clipboard_summary = tk.Label(self.clipboard_summary_frame, text=tr("Clipboard: checking…"),
                                           anchor="e", width=1,
                                           font=menu_font,
-                                          background=header_bg, foreground="#c9e5f5")
+                                          background=header_bg, foreground=self.palette["header_muted"])
         title = tk.Label(header, text="PFC",
                          font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
         title.pack(side="left", padx=(2, 8))
         title.bind("<Button-1>", lambda _event: self.show_help())
         version_label = tk.Label(header, text=f"v{__version__}", font=menu_font,
-                                 background=header_bg, foreground="#c9e5f5")
+                                 background=header_bg, foreground=self.palette["header_muted"])
         version_label.pack(side="left", padx=(0, 10))
         button_style = dict(font=menu_font, relief="raised", borderwidth=1, padx=9, pady=2,
                             cursor="hand2",
-                            background="#31536e", foreground=header_fg,
+                            background=self.palette["header_button"], foreground=header_fg,
                             activebackground=active_bg, activeforeground="#ffffff")
         files_button = tk.Button(header, text=tr("Files"),
                                  command=lambda: self.show_header_menu("files"), **button_style)
@@ -4985,6 +5680,11 @@ class Commander(tk.Tk):
             add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
                                    self.apply_font_size)
         add_scaled_cascade(view, tr("Font Size"), font_size)
+        color_scheme_menu = tk.Menu(view, tearoff=False, font=menu_font)
+        for label, value in (("Light", "light"), ("Light Grey", "light_grey"), ("Dark", "dark")):
+            add_scaled_radiobutton(color_scheme_menu, tr(label), value, self.color_scheme_var,
+                                   self.apply_color_scheme)
+        add_scaled_cascade(view, tr("Color Scheme"), color_scheme_menu)
         tab_style = tk.Menu(view, tearoff=False, font=menu_font)
         for value, label in TAB_STYLES.items():
             add_scaled_radiobutton(tab_style, tr(label), value, self.tab_style_var,
@@ -5025,6 +5725,7 @@ class Commander(tk.Tk):
         self.view_menu = view
         self.visibility_menu = visibility
         self.font_size_menu = font_size
+        self.color_scheme_menu = color_scheme_menu
         self.tab_style_menu = tab_style
         self.panel_counts_menu = panel_counts
         self.language_menu = language_menu
@@ -5050,6 +5751,7 @@ class Commander(tk.Tk):
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
+            "Color Scheme": "Choose the overall application contrast and colors.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the next panel.",
@@ -5067,6 +5769,7 @@ class Commander(tk.Tk):
         self._versions_menu_tooltip = MenuToolTip(versions, version_help)
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
+        self._color_scheme_menu_tooltip = MenuToolTip(color_scheme_menu, menu_help)
         self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
             tr("Right Skirt"): "Full-height tab with a vertical left edge and steep bottom-right skirt.",
             tr("Rounded"): "Rounded top corners with straight sides and a square bottom.",
@@ -5209,8 +5912,9 @@ class Commander(tk.Tk):
         self.show_extensions_var.set(pane.show_extensions)
         if hasattr(self, "panel_tabs"):
             for candidate in self.all_panes():
-                candidate.set_active_appearance(candidate is pane)
+                candidate.set_active_appearance(candidate is pane, self.palette)
         self.update_rename_action()
+        self.update_transfer_actions()
         self.save_config()
 
     def update_rename_action(self) -> None:
@@ -5222,6 +5926,19 @@ class Commander(tk.Tk):
             return
         label = "Multi-Rename" if len(pane.selected_paths()) > 1 else "Rename"
         button.configure(text=f"F2 {tr(label)}")
+
+    def update_transfer_actions(self) -> None:
+        """Expose the exact F5/F6 destination in every panel layout."""
+        buttons = getattr(self, "action_button_by_hotkey", {})
+        visible = self.visible_panel_tabs() if hasattr(self, "panel_tabs") else []
+        if not buttons or not visible:
+            return
+        source_tabs = self._tabs_for(self.active) if self.active is not None else visible[0]
+        if source_tabs not in visible:
+            source_tabs = visible[0]
+        target_number = (visible.index(source_tabs) + 1) % len(visible) + 1
+        buttons["F5"].configure(text=f"F5 {tr('Copy')} → P{target_number}")
+        buttons["F6"].configure(text=f"F6 {tr('Move')} → P{target_number}")
 
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
@@ -5275,6 +5992,7 @@ class Commander(tk.Tk):
         for button, hotkey, label in self.action_buttons:
             button.configure(text=f"{hotkey} {tr(label)}".rstrip())
         self.update_rename_action()
+        self.update_transfer_actions()
         for pane in self.all_panes():
             pane.apply_language()
         for window in (self.preview_window, self.search_window,
@@ -5353,6 +6071,7 @@ class Commander(tk.Tk):
     def _copy_tab_view(source: FilePane, target: FilePane) -> None:
         selected = source.selected_paths()
         target.history = list(source.history)
+        target.folder_selections = dict(source.folder_selections)
         target.sort_column = source.sort_column
         target.reverse = source.reverse
         target.show_hidden = source.show_hidden
@@ -6028,6 +6747,7 @@ class Commander(tk.Tk):
                                                     self.execute_sync_plans)
                 self.compare_window.notebook.set_style(self.tab_style_var.get())
             self.compare_window.add(left, right)
+            self.compare_window.apply_scale(self._font_scales.get(self.font_size_var.get(), 1.0))
         except OSError as exc:
             messagebox.showerror(tr("Compare failed"), str(exc), parent=self)
 
@@ -6079,12 +6799,74 @@ class Commander(tk.Tk):
             for tabs in self.panel_tabs:
                 tabs.redraw()
         if self.compare_window is not None and self.compare_window.winfo_exists():
-            self.compare_window.notebook.redraw()
+            self.compare_window.apply_scale(scale)
         if self.search_window is not None and self.search_window.winfo_exists():
             self.search_window.apply_scale(scale)
         self.update_idletasks()
         if hasattr(self, "clipboard_summary_frame"):
             self._clipboard_visual_key = None
+            self._refresh_clipboard_layout()
+        if save:
+            self.save_config()
+
+    def apply_color_scheme(self, save: bool = True) -> None:
+        scheme = self.color_scheme_var.get()
+        if scheme not in COLOR_SCHEMES:
+            scheme = "light"
+            self.color_scheme_var.set(scheme)
+        self.palette = color_scheme(scheme)
+        palette = self.palette
+        self.configure(background=palette["window"])
+        configure_ttk_theme(self, palette)
+        style = ttk.Style(self)
+        style.configure("PFC.TNotebook", background=palette["tab_bar"])
+        style.configure("PFC.TNotebook.Tab", background=palette["tab_default"],
+                        foreground=palette["tab_text"])
+        style.map("PFC.TNotebook.Tab",
+                  background=[("selected", palette["selection"]),
+                              ("active", palette["button_active"])],
+                  foreground=[("selected", "#ffffff"), ("active", palette["text"])])
+        if hasattr(self, "header_popup"):
+            self.header_popup.close_all()
+        if hasattr(self, "header"):
+            self.header.configure(background=palette["header"])
+            self.clipboard_summary_frame.configure(background=palette["header"])
+            self.clipboard_icon_canvas.configure(background=palette["header"])
+            self.clipboard_summary.configure(background=palette["header"],
+                                             foreground=palette["header_muted"])
+            title, version, *buttons = self.header_left_widgets
+            title.configure(background=palette["header"], foreground=palette["header_text"])
+            version.configure(background=palette["header"], foreground=palette["header_muted"])
+            for button in buttons:
+                button.configure(background=palette["header_button"],
+                                 foreground=palette["header_text"],
+                                 activebackground=palette["header_active"],
+                                 activeforeground="#ffffff")
+            for menu in (self.files_menu, self.view_menu, self.visibility_menu,
+                         self.font_size_menu, self.color_scheme_menu, self.tab_style_menu,
+                         self.panel_counts_menu, self.language_menu, self.favorites_menu,
+                         self.recent_menu, self.versions_menu):
+                menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                               activebackground=palette["menu_active"],
+                               activeforeground=palette["menu_active_text"])
+        if hasattr(self, "panel_tabs"):
+            for tabs in self.panel_tabs:
+                tabs.set_theme(palette)
+            for pane in self.all_panes():
+                pane.set_active_appearance(pane is self.active, palette)
+        for window_name in ("preview_window", "search_window", "compare_window", "multi_rename_window"):
+            window = getattr(self, window_name, None)
+            if window is not None and window.winfo_exists():
+                handler = getattr(window, "apply_color_scheme", None)
+                if callable(handler):
+                    handler(palette)
+        if self.version_window is not None and self.version_window.winfo_exists():
+            self.version_window.configure(background=palette["window"])
+            self.version_text.configure(background=palette["content"], foreground=palette["text"],
+                                        insertbackground=palette["text"],
+                                        highlightbackground=palette["border"])
+        self._clipboard_visual_key = None
+        if hasattr(self, "clipboard_summary_frame"):
             self._refresh_clipboard_layout()
         if save:
             self.save_config()
@@ -6171,7 +6953,9 @@ class Commander(tk.Tk):
         self._execute_transfer(verb, operation, source.selected_paths(), target.path)
 
     def copy(self) -> None:
-        self._run("Copy", copy_items)
+        source, target = self.panes()
+        self._execute_transfer("Copy", copy_items, source.selected_paths(), target.path,
+                               confirm=False)
 
     def move(self) -> None:
         self._run("Move", move_items)
@@ -6212,7 +6996,12 @@ class Commander(tk.Tk):
         name = simpledialog.askstring(tr("New Folder"), tr("Folder name:"), parent=self)
         if name:
             try:
-                (source.path / name).mkdir(); source.refresh()
+                created = source.path / name
+                created.mkdir()
+                if (source.quick_filter_var.get().strip() and
+                        source.quick_filter_var.get().strip().casefold() not in name.casefold()):
+                    source.quick_filter_var.set("")
+                source.refresh(); source.select_path(created); source.focus_file_list()
             except OSError as exc:
                 messagebox.showerror(tr("Create failed"), str(exc))
 

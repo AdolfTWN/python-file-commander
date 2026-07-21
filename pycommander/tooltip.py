@@ -39,8 +39,12 @@ class ToolTip:
         self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
         x, y = self.widget.winfo_pointerxy()
         self.popup.geometry(f"+{x + 14}+{y + 18}")
-        tk.Label(self.popup, text=self.text, justify="left", background="#fffbd6",
-                 foreground="#18232c", relief="solid", borderwidth=1, padx=7, pady=4).pack()
+        owner = self.widget.winfo_toplevel()
+        palette = getattr(owner, "palette", {})
+        tk.Label(self.popup, text=self.text, justify="left",
+                 background=palette.get("tooltip", "#fffbd6"),
+                 foreground=palette.get("tooltip_text", "#18232c"),
+                 relief="solid", borderwidth=1, padx=7, pady=4).pack()
 
     def hide(self, _event=None):
         if self.job is not None:
@@ -76,8 +80,12 @@ class MenuToolTip:
         self.popup = tk.Toplevel(self.menu.winfo_toplevel())
         self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
         x, y = self.menu.winfo_pointerxy(); self.popup.geometry(f"+{x + 14}+{y + 18}")
-        tk.Label(self.popup, text=text, justify="left", background="#fffbd6",
-                 foreground="#18232c", relief="solid", borderwidth=1, padx=7, pady=4).pack()
+        owner = self.menu.winfo_toplevel()
+        palette = getattr(owner, "palette", {})
+        tk.Label(self.popup, text=text, justify="left",
+                 background=palette.get("tooltip", "#fffbd6"),
+                 foreground=palette.get("tooltip_text", "#18232c"),
+                 relief="solid", borderwidth=1, padx=7, pady=4).pack()
 
     def hide(self, _event=None):
         if self.job is not None:

@@ -6,6 +6,7 @@ from pathlib import Path
 from tkinter import ttk
 from .tooltip import install_button_tooltips
 from .i18n import retranslate_widgets, tr
+from .tabs import color_scheme
 
 
 TEXT_EXTENSIONS = {
@@ -104,6 +105,7 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("match", background="#fff0a6")
         self.text.tag_configure("current_match", background="#ffb347")
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
+        self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self)
         self.load()
         self._schedule_refresh()
@@ -116,6 +118,15 @@ class PreviewWindow(tk.Toplevel):
         self.mode_combo.configure(values=tuple(self.mode_values))
         self.mode_var.set(next(label for label, value in self.mode_values.items() if value == mode))
         self.load()
+
+    def apply_color_scheme(self, palette) -> None:
+        self.palette = palette
+        self.configure(background=palette["window"])
+        self.text.configure(background=palette["content"], foreground=palette["text"],
+                            insertbackground=palette["text"], selectbackground=palette["selection"],
+                            selectforeground="#ffffff")
+        self.text.tag_configure("match", background=palette["match"], foreground=palette["text"])
+        self.text.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
 
     @property
     def path(self) -> Path:

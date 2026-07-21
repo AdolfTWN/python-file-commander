@@ -13,6 +13,7 @@ from tkinter import messagebox, ttk
 
 from .tooltip import install_button_tooltips
 from .i18n import retranslate_widgets, tr
+from .tabs import color_scheme
 
 
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
@@ -105,9 +106,12 @@ class SearchWindow(tk.Toplevel):
         ttk.Entry(advanced, textvariable=self.max_size_var, width=9).pack(side="left", padx=(3, 12))
         ttk.Label(advanced, text=tr("Modified within days:")).pack(side="left")
         ttk.Entry(advanced, textvariable=self.days_var, width=7).pack(side="left", padx=3)
-        actions = ttk.Frame(form); actions.grid(row=5, column=0, columnspan=8, sticky="ew", pady=(5, 0))
+        self.criteria_label = ttk.Label(form, anchor="w")
+        self.criteria_label.grid(row=5, column=0, columnspan=8, sticky="ew", pady=(4, 0))
+        actions = ttk.Frame(form); actions.grid(row=6, column=0, columnspan=8, sticky="ew", pady=(5, 0))
         self.find_button = ttk.Button(actions, text=tr("Find"), command=self.start); self.find_button.pack(side="left")
         self.cancel_button = ttk.Button(actions, text=tr("Cancel"), command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
+        ttk.Button(actions, text=tr("Clear Filters"), command=self.clear_filters).pack(side="left", padx=(3, 9))
         ttk.Button(actions, text=tr("Go to File"), command=self.go_selected).pack(side="left", padx=(12, 3))
         ttk.Button(actions, text=tr("Preview"), command=self.preview_selected).pack(side="left")
         ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
@@ -126,7 +130,17 @@ class SearchWindow(tk.Toplevel):
         self.tree.pack(side="left", fill="both", expand=True); scroll.pack(side="right", fill="y")
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
+        for variable in (self.mask_var, self.content_var, self.case_var, self.depth_var,
+                         self.files_var, self.folders_var, self.min_size_var,
+                         self.max_size_var, self.days_var):
+            variable.trace_add("write", self._update_criteria_summary)
+        self._update_criteria_summary()
+        self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def apply_color_scheme(self, palette) -> None:
+        self.palette = palette
+        self.configure(background=palette["window"])
 
     def apply_scale(self, scale: float) -> None:
         style = ttk.Style(self)
@@ -144,6 +158,7 @@ class SearchWindow(tk.Toplevel):
         self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
         self.title(tr("PFC Search"))
         self._apply_sort()
+        self._update_criteria_summary()
         if self.worker is not None and self.worker.is_alive():
             self.status.configure(text=tr("Searching…"))
         elif self.results:
@@ -151,8 +166,41 @@ class SearchWindow(tk.Toplevel):
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()
+        self._update_criteria_summary()
         if self.mask_entry is not None:
             self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end"); self.mask_entry.icursor("end")
+
+    def _update_criteria_summary(self, *_args) -> None:
+        if not hasattr(self, "criteria_label"):
+            return
+        mask = self.mask_var.get().strip() or "*"
+        scope = "/".join(label for label, enabled in (
+            (tr("Files"), self.files_var.get()), (tr("Folders"), self.folders_var.get())) if enabled) or "—"
+        parts = [f"{tr('Name/mask:')} {mask}", scope,
+                 f"{tr('Depth:')} {self.depth_var.get()}"]
+        if self.content_var.get().strip():
+            parts.append(f"{tr('Containing text:')} {self.content_var.get().strip()}")
+        if self.min_size_var.get().strip() or self.max_size_var.get().strip():
+            parts.append(f"{tr('Size')}: {self.min_size_var.get().strip() or '0'}–{self.max_size_var.get().strip() or '∞'} KB")
+        if self.days_var.get().strip():
+            parts.append(f"{tr('Modified within days:')} {self.days_var.get().strip()}")
+        if self.case_var.get():
+            parts.append(tr("Case sensitive"))
+        self.criteria_label.configure(text=f"{tr('Filters:')} " + " · ".join(parts))
+
+    def clear_filters(self) -> None:
+        self.mask_var.set("*")
+        self.content_var.set("")
+        self.case_var.set(False)
+        self.depth_var.set(tr("All"))
+        self.files_var.set(True)
+        self.folders_var.set(True)
+        self.min_size_var.set("")
+        self.max_size_var.set("")
+        self.days_var.set("")
+        self.status.configure(text=tr("Filters cleared"))
+        self.mask_entry.focus_set()
+        self.mask_entry.selection_range(0, "end")
 
     def change_sort(self, column):
         self.sort_reverse = not self.sort_reverse if self.sort_column == column else False

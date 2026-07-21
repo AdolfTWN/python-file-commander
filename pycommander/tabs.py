@@ -22,6 +22,108 @@ TAB_STYLES = {
 }
 
 
+COLOR_SCHEMES = {
+    "light": {
+        "window": "#f0f2f4", "surface": "#ffffff", "surface_alt": "#e8edf1",
+        "text": "#17232c", "muted": "#526575", "border": "#8fa0ad",
+        "header": "#243b53", "header_text": "#f4f8fb", "header_muted": "#c9e5f5",
+        "header_button": "#31536e", "header_active": "#3d6888",
+        "button": "#e7ecef", "button_active": "#d4e2eb", "entry": "#ffffff",
+        "selection": "#1683e2", "inactive_selection": "#91a9bd",
+        "tab_bar": "#9eafbd", "tab_default": "#c7d3dd", "tab_text": "#10202c",
+        "menu": "#f0f0f0", "menu_text": "#101010", "menu_disabled": "#777777",
+        "menu_active": "#087bdc", "menu_active_text": "#ffffff", "separator": "#b8b8b8",
+        "gutter": "#e5ebef", "gutter_text": "#526575", "content": "#ffffff",
+        "diff": "#ffe1a8", "current_diff": "#ffb347", "match": "#fff0a6",
+        "left_header": "#2d668f", "right_header": "#9b5d2e", "map_header": "#263d4c",
+        "tooltip": "#fffbd6", "tooltip_text": "#18232c",
+    },
+    "light_grey": {
+        "window": "#d8dde1", "surface": "#eef1f3", "surface_alt": "#dfe5e9",
+        "text": "#1b2831", "muted": "#52616c", "border": "#83939f",
+        "header": "#30495e", "header_text": "#f6f8fa", "header_muted": "#d5e5ef",
+        "header_button": "#3b5c74", "header_active": "#4a708b",
+        "button": "#d4dbe0", "button_active": "#c4d2dc", "entry": "#f8f9fa",
+        "selection": "#187ecb", "inactive_selection": "#829bab",
+        "tab_bar": "#899ca9", "tab_default": "#b9c6cf", "tab_text": "#14232d",
+        "menu": "#e1e5e8", "menu_text": "#15212a", "menu_disabled": "#727b82",
+        "menu_active": "#147fc7", "menu_active_text": "#ffffff", "separator": "#a1abb2",
+        "gutter": "#d5dde2", "gutter_text": "#52616c", "content": "#f4f6f7",
+        "diff": "#f2d29a", "current_diff": "#eaa34d", "match": "#eee09a",
+        "left_header": "#326789", "right_header": "#90603b", "map_header": "#304552",
+        "tooltip": "#fff7c7", "tooltip_text": "#18232c",
+    },
+    "dark": {
+        "window": "#20262c", "surface": "#282f36", "surface_alt": "#323b43",
+        "text": "#edf2f6", "muted": "#a9b8c3", "border": "#5d6d79",
+        "header": "#142b3d", "header_text": "#f4f8fb", "header_muted": "#bcd9e9",
+        "header_button": "#294b64", "header_active": "#376985",
+        "button": "#354049", "button_active": "#465865", "entry": "#242b31",
+        "selection": "#1976bd", "inactive_selection": "#526b7b",
+        "tab_bar": "#354754", "tab_default": "#4c606e", "tab_text": "#f0f5f8",
+        "menu": "#2b3238", "menu_text": "#edf2f6", "menu_disabled": "#87939c",
+        "menu_active": "#176fa8", "menu_active_text": "#ffffff", "separator": "#53616b",
+        "gutter": "#242c32", "gutter_text": "#a8bac7", "content": "#1f252a",
+        "diff": "#604b27", "current_diff": "#9a5d1f", "match": "#665e28",
+        "left_header": "#205777", "right_header": "#754624", "map_header": "#172b37",
+        "tooltip": "#414733", "tooltip_text": "#f4f2d8",
+    },
+}
+
+
+def color_scheme(name: str) -> dict[str, str]:
+    return COLOR_SCHEMES.get(name, COLOR_SCHEMES["light"])
+
+
+def configure_ttk_theme(root, palette: dict[str, str]) -> None:
+    """Apply one coherent palette to all ttk controls in this interpreter."""
+    style = ttk.Style(root)
+    try:
+        style.theme_use("clam")
+    except tk.TclError:
+        pass
+    common = {"background": palette["window"], "foreground": palette["text"]}
+    style.configure(".", **common)
+    style.configure("TFrame", background=palette["window"])
+    style.configure("TLabel", background=palette["window"], foreground=palette["text"])
+    style.configure("TButton", background=palette["button"], foreground=palette["text"],
+                    bordercolor=palette["border"], lightcolor=palette["button"],
+                    darkcolor=palette["border"])
+    style.map("TButton", background=[("active", palette["button_active"]),
+                                     ("pressed", palette["selection"])],
+              foreground=[("pressed", "#ffffff")])
+    for name in ("TCheckbutton", "TRadiobutton"):
+        style.configure(name, background=palette["window"], foreground=palette["text"])
+        style.map(name, background=[("active", palette["window"])],
+                  foreground=[("disabled", palette["muted"])])
+    style.configure("TEntry", fieldbackground=palette["entry"], foreground=palette["text"],
+                    insertcolor=palette["text"], bordercolor=palette["border"])
+    style.configure("TCombobox", fieldbackground=palette["entry"], background=palette["button"],
+                    foreground=palette["text"], arrowcolor=palette["text"],
+                    bordercolor=palette["border"])
+    style.map("TCombobox", fieldbackground=[("readonly", palette["entry"])],
+              foreground=[("readonly", palette["text"])])
+    style.configure("Treeview", background=palette["surface"], fieldbackground=palette["surface"],
+                    foreground=palette["text"], bordercolor=palette["border"])
+    style.configure("Treeview.Heading", background=palette["surface_alt"], foreground=palette["text"],
+                    bordercolor=palette["border"])
+    style.map("Treeview.Heading", background=[("active", palette["button_active"])])
+    for name, selected in (("Active.Treeview", palette["selection"]),
+                           ("Inactive.Treeview", palette["inactive_selection"]),
+                           ("PFCSearch.Treeview", palette["selection"]),
+                           ("PFCCompare.Treeview", palette["selection"])):
+        style.configure(name, background=palette["surface"], fieldbackground=palette["surface"],
+                        foreground=palette["text"], bordercolor=palette["border"])
+        style.map(name, background=[("selected", selected)],
+                  foreground=[("selected", "#ffffff")])
+        style.configure(name + ".Heading", background=palette["surface_alt"],
+                        foreground=palette["text"], bordercolor=palette["border"])
+    style.configure("TNotebook", background=palette["tab_bar"], bordercolor=palette["border"])
+    style.configure("TNotebook.Tab", background=palette["tab_default"], foreground=palette["tab_text"])
+    style.configure("TScrollbar", background=palette["button"], troughcolor=palette["surface_alt"],
+                    arrowcolor=palette["text"], bordercolor=palette["border"])
+
+
 def add_scaled_cascade(menu: tk.Menu, label: str, submenu: tk.Menu) -> None:
     """Keep a native menu model; PFC draws header cascades itself."""
     menu.add_cascade(label=label, menu=submenu)
@@ -136,7 +238,9 @@ class HeaderPopupController:
         tip.attributes("-topmost", True)
         x, y = self.owner.winfo_pointerxy()
         tip.geometry(f"+{x + 14}+{y + 18}")
-        tk.Label(tip, text=text, justify="left", background="#fffbd6", foreground="#18232c",
+        palette = getattr(self.owner, "palette", COLOR_SCHEMES["light"])
+        tk.Label(tip, text=text, justify="left", background=palette["tooltip"],
+                 foreground=palette["tooltip_text"],
                  relief="solid", borderwidth=1, padx=7, pady=4,
                  font=tkfont.nametofont("TkDefaultFont")).pack()
         self.tooltip = tip
@@ -162,6 +266,11 @@ class _HeaderPopup:
 
     def __init__(self, controller, menu, parent):
         self.controller, self.menu, self.parent = controller, menu, parent
+        palette = getattr(controller.owner, "palette", COLOR_SCHEMES["light"])
+        self.BG, self.FG = palette["menu"], palette["menu_text"]
+        self.DISABLED, self.ACTIVE_BG = palette["menu_disabled"], palette["menu_active"]
+        self.ACTIVE_FG, self.BORDER = palette["menu_active_text"], palette["border"]
+        self.SEPARATOR = palette["separator"]
         self.top = tk.Toplevel(parent.top if parent is not None else controller.owner)
         self.top.withdraw()
         self.top.overrideredirect(True)
@@ -246,7 +355,7 @@ class _HeaderPopup:
             if kind == "separator":
                 y = (top + bottom) // 2
                 self.canvas.create_line(self.left_pad, y, self.width - self.left_pad, y,
-                                        fill="#b8b8b8")
+                                        fill=self.SEPARATOR)
                 continue
             active = index == self.selected and state != "disabled"
             bg = self.ACTIVE_BG if active else self.BG
@@ -372,13 +481,17 @@ class ChamferNotebook(ttk.Frame):
         self._drag_moved = False
         self._drag_external = False
         self._drop_position = None
-        self.bar = tk.Canvas(self, height=34, highlightthickness=0, background="#9eafbd")
+        self.bar = tk.Canvas(self, height=34, takefocus=True, highlightthickness=2,
+                             highlightbackground="#71879a", highlightcolor="#0078d4",
+                             background="#9eafbd")
         self.bar.pack(fill="x", side="top")
         self.bar.bind("<ButtonPress-1>", self._tab_press)
+        self.bar.bind("<FocusIn>", lambda _event: self.bar.configure(highlightthickness=2))
         self.bar.bind("<B1-Motion>", self._tab_motion)
         self.bar.bind("<ButtonRelease-1>", self._tab_release)
         self.bar.bind("<Button-3>", self._popup)
         self.bar.bind("<Configure>", lambda _e: self._draw())
+        self.palette = COLOR_SCHEMES["light"]
 
     def add(self, child, text="", color="default", lock="unlocked", position=None, **_kwargs):
         if child not in self._tabs:
@@ -490,6 +603,13 @@ class ChamferNotebook(ttk.Frame):
         self._tab_style = style if style in TAB_STYLES else "right_skirt"
         self._draw()
 
+    def set_theme(self, palette):
+        self.palette = palette
+        self.bar.configure(background=palette["tab_bar"],
+                           highlightbackground=palette["border"],
+                           highlightcolor=palette["selection"])
+        self._draw()
+
     def _resolve(self, tab):
         if tab in self._tabs:
             return tab
@@ -510,7 +630,8 @@ class ChamferNotebook(ttk.Frame):
             selected = child is self._selected
             padding = 20 if right_skirt else 28
             width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
-            color = TAB_COLORS[self._colors.get(child, "default")][1]
+            key = self._colors.get(child, "default")
+            color = self.palette["tab_default"] if key == "default" else TAB_COLORS[key][1]
             top = 0 if selected else max(4, round(height * 0.22))
             bottom = height if selected else height - 3
             corner = max(6, round(height * 0.28))
@@ -540,25 +661,28 @@ class ChamferNotebook(ttk.Frame):
             else:
                 points = (x, bottom, x, top, x + width, top, x + width, bottom)
                 smooth, inset = False, 4
-            drawings.append((selected, points, color, text, x, width, top, child, lock, inset, smooth))
+            text_color = self.palette["tab_text"] if key == "default" else "#10202c"
+            drawings.append((selected, points, color, text, text_color, x, width, top,
+                             child, lock, inset, smooth))
             self._hitboxes.append((x, x + width, child))
             x += width - overlap
         # Paint the selected polygon last so its edges sit in front of
         # both neighbours instead of being covered by the tab to its right.
-        for selected, points, color, text, left, width, top, child, lock, tab_inset, smooth in sorted(
+        for selected, points, color, text, text_color, left, width, top, child, lock, tab_inset, smooth in sorted(
                 drawings, key=lambda item: item[0]):
-            self.bar.create_polygon(points, fill=color, outline="#3b5265" if selected else "#718596",
+            self.bar.create_polygon(points, fill=color,
+                                    outline=self.palette["text"] if selected else self.palette["border"],
                                     width=3 if selected else 1, smooth=smooth, splinesteps=18)
             if lock != "unlocked":
                 self.bar.create_line(left + tab_inset + 2, top + 2,
                                      left + width - tab_inset - 2, top + 2,
-                                     fill="#3b5265", width=3,
+                                     fill=self.palette["text"], width=3,
                                      dash=() if lock == "locked" else (5, 3))
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
             self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
-                                 fill="#10202c")
+                                 fill=text_color)
         if self._drop_position is not None:
             if not self._hitboxes or self._drop_position <= 0:
                 marker_x = self._hitboxes[0][0] if self._hitboxes else 3

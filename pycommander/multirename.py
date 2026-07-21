@@ -7,6 +7,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import messagebox, ttk
 from .i18n import retranslate_widgets, tr
+from .tabs import color_scheme
 
 
 INVALID_NAME_CHARS = set('<>:"/\\|?*')
@@ -136,7 +137,15 @@ class MultiRenameWindow(tk.Toplevel):
         self.bind("<Escape>", lambda _event: self.destroy())
         self.bind("<Control-Return>", lambda _event: self.apply())
         self.bind("<Control-z>", lambda _event: self.undo())
+        self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         self.update_preview(); self.after_idle(self._activate)
+
+    def apply_color_scheme(self, palette) -> None:
+        self.palette = palette
+        self.configure(background=palette["window"])
+        dark = palette["window"] == "#20262c"
+        self.tree.tag_configure("error", foreground="#ff7770" if dark else "#a00000")
+        self.tree.tag_configure("ok", foreground="#73d6a1" if dark else "#006c3b")
 
     def _activate(self):
         self.deiconify(); self.lift(); self.focus_force(); self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end")

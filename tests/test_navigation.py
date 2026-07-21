@@ -2,10 +2,22 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pycommander.app import navigation_destination
+from pycommander.app import folder_history_selection, navigation_destination
 
 
 class NavigationDestinationTests(unittest.TestCase):
+    def test_parent_navigation_selects_folder_just_left(self):
+        root = Path("C:/work")
+        self.assertEqual(folder_history_selection(root / "1" / "a", root / "1", {}),
+                         root / "1" / "a")
+        self.assertEqual(folder_history_selection(root / "1", root, {}), root / "1")
+
+    def test_unrelated_navigation_restores_remembered_row(self):
+        root = Path("C:/work")
+        remembered = {root / "2": root / "2" / "f"}
+        self.assertEqual(folder_history_selection(root / "1", root / "2", remembered),
+                         root / "2" / "f")
+
     def test_folder_path_opens_the_folder_without_a_selection(self):
         with tempfile.TemporaryDirectory() as raw:
             folder = Path(raw).resolve()

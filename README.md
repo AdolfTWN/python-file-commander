@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.12.3 — Consistent Cloned-Tab Text**
+Current version: **v0.12.4 — Safer Panel Targeting**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -35,7 +35,7 @@ Copy, move, and clipboard paste detect name conflicts and offer Replace, Skip, K
 
 Favorites and the 20 most recent folders are stored in `pfc.ini`. Ctrl+D adds/removes the current folder, Ctrl+B opens Favorites, and Ctrl+Shift+R opens Recent Folders. All entries are also available from the Files menu.
 
-Internal drag-and-drop copies selected items by default; holding Shift changes the action to Move. Drop onto the other visible panel to use its current folder, or onto any visible folder row to use that folder. A floating action/count/destination card follows the pointer and folder targets are highlighted. Drops reuse PFC's conflict, partial-failure, and recovery handling. Native Windows Shell integration also accepts files and folders dragged in from File Explorer (Copy by default, Shift+drop to Move) and exports selected PFC items to File Explorer with standard Windows Copy/Move modifier behavior. Outlook virtual attachments remain supported through Copy/Paste rather than direct drag.
+Internal drag-and-drop copies selected items by default; holding Shift changes the action to Move. Drop onto the other visible panel to use its current folder, or onto any visible folder row to use that folder. A floating action/count/destination card follows the pointer and folder targets are highlighted. Drops reuse PFC's conflict, partial-failure, and recovery handling. Native Windows Shell integration also accepts files and folders dragged in from File Explorer (Copy by default, Shift+drop to Move) and exports selected PFC items to File Explorer with standard Windows Copy/Move modifier behavior. Outlook and Teams virtual attachments can be dragged directly into a PFC panel or pasted with Ctrl+V.
 
 The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) opens one concise, bulleted changes window per version series. Its separate `Yoda — Portable App Advocate` item identifies Yoda as the advocate who helped bring this portable app into being, asks users to report problems, and reminds them to use file operations carefully. Version bumps are reserved for meaningful feature milestones instead of individual visual refinements.
 
@@ -47,7 +47,7 @@ On Windows, PFC uses Segoe UI for the interface, Cascadia Mono or Consolas for f
 
 Versions > v0.x.x Changes opens a large, resizable release-notes window. Its heading, description text, and controls follow the selected UI font size and update with live language changes.
 
-F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. Results stream into sortable-style detail columns and support Enter/double-click Go to File, F3 Preview and multi-selection Copy Path. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
+F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. A live criteria summary and Clear Filters action make retained searches explicit. Results stream into sortable detail columns and support Enter/double-click Go to File, F3 Preview and multi-selection Copy Path. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 
 F3 opens a reusable popup viewer with Esc close, Auto/Text/Hex modes, text wrapping, two-second auto-refresh, File <</>> navigation, case-sensitive content search, Find Prev/Next navigation, encoding and truncation details, and a full-path status bar. Its responsive three-row toolbar remains usable at narrow widths. Preview geometry and wrapping preference are saved in `pfc.ini`.
 
@@ -85,14 +85,13 @@ The original project is a mature Pascal application with a large plugin ecosyste
 
 1. **Completed in v0.8.1 — Safe delete to Windows Recycle Bin**, with permanent delete kept as an explicit secondary action.
 2. **Completed in v0.8.1 — Copy/move/paste conflict handling**: Replace, Skip, Keep Both, Cancel, and Apply to All.
-3. **Background operation queue** with progress, cancel, retry, and a final success/failure summary so large file operations never freeze navigation.
-4. **Completed in v0.9.0 — Quick in-panel filter** that narrows the current file list while typing, separate from the deeper F4 search.
-5. **Completed in v0.8.1 — Favorites and recent folders**, fully keyboard accessible.
-6. **Completed in v0.8.1 — Partial-failure reporting and recovery** with continued processing, exact failed paths, copyable diagnostics, and retry.
-7. **In progress — Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes. Automated coverage now includes non-ASCII conflicts, same-folder safety, partial failures, atomic default INI creation, and portable privacy; environment-dependent Windows cases remain release smoke tests.
-8. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
+3. **Completed in v0.9.0 — Quick in-panel filter** that narrows the current file list while typing, separate from the deeper F4 search.
+4. **Completed in v0.8.1 — Favorites and recent folders**, fully keyboard accessible.
+5. **Completed in v0.8.1 — Partial-failure reporting and recovery** with continued processing, exact failed paths, copyable diagnostics, and retry.
+6. **In progress — Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes. Automated coverage now includes non-ASCII conflicts, same-folder safety, partial failures, atomic default INI creation, and portable privacy; environment-dependent Windows cases remain release smoke tests.
+7. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
 
-Items 1–6 are complete and the project is now **v0.12.3**. Promote to **v1.0.0** only after item 7 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
+Items 1–5 are complete. Promote to **v1.0.0** only after item 6 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
 
 Low-ROI features deferred until the office workflow is complete:
 

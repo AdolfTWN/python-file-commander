@@ -24,7 +24,7 @@ from .search import SearchWindow
 from .multirename import MultiRenameWindow
 from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
 from .tooltip import MenuToolTip, install_button_tooltips
-from .tabs import ChamferNotebook, HeaderPopupController, TAB_STYLES, add_scaled_cascade, add_scaled_checkbutton, add_scaled_radiobutton, align_scaled_cascade_arrows
+from .tabs import COLOR_SCHEMES, ChamferNotebook, HeaderPopupController, TAB_STYLES, add_scaled_cascade, add_scaled_checkbutton, add_scaled_radiobutton, align_scaled_cascade_arrows, color_scheme, configure_ttk_theme
 from .i18n import LANGUAGES, get_language, set_language, tr
 
 
@@ -33,6 +33,12 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.4", "2026/07/22", (
+        "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.",
+        "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.",
+        "Added: Search filter summaries, one-click filter clearing, and a non-blocking settings-save warning.",
+        "Adjusted: Refined Compare, folder-return selection, color schemes, and selection behavior for daily navigation.",
+    )),
     ("v0.12.3", "2026/07/21", (
         "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.",
     )),
@@ -95,7 +101,8 @@ VERSION_HISTORY = (
 
 def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
-        "view": {"font_size": "small", "tab_style": "right_skirt", "panel_count": "2", "ui_language": "en"},
+        "view": {"font_size": "small", "tab_style": "right_skirt", "panel_count": "2",
+                 "ui_language": "en", "color_scheme": "light"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -191,6 +198,14 @@ def navigation_destination(path: Path) -> tuple[Path, Path | None]:
     return (target.parent, target) if target.is_file() else (target, None)
 
 
+def folder_history_selection(previous: Path, target: Path,
+                             remembered: dict[Path, Path]) -> Path | None:
+    """Choose the row to restore after entering or leaving a folder."""
+    if previous != target and previous.parent == target:
+        return previous
+    return remembered.get(target)
+
+
 def is_noop_drag_drop(items: list[Path], destination: Path) -> bool:
     """Treat a drag back to its source folder (or onto itself) as cancellation."""
     if not items:
@@ -282,6 +297,7 @@ class FilePane(ttk.Frame):
         self.on_context = on_context
         self.path = Path.home()
         self.history: list[Path] = []
+        self.folder_selections: dict[Path, Path] = {}
         self.sort_column = "name"
         self.reverse = False
         self.show_hidden = False
@@ -300,6 +316,11 @@ class FilePane(ttk.Frame):
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified"), "attr": tr("Attr")}
         self.icons = ShellIconProvider()
+
+        # Keep the command target visible even when the panel has no selected row.
+        self.active_indicator = tk.Frame(self, height=3, background="#9aa7b3",
+                                         highlightthickness=0)
+        self.active_indicator.pack(fill="x", side="top")
 
         bar = ttk.Frame(self)
         bar.pack(fill="x", pady=(0, 3))
@@ -382,9 +403,21 @@ class FilePane(ttk.Frame):
         })
 
     def _drag_press(self, event):
-        if self.tree.identify_region(event.x, event.y) not in {"tree", "cell"}:
+        region = self.tree.identify_region(event.x, event.y)
+        iid = self.tree.identify_row(event.y)
+        if not iid and region not in {"heading", "separator"}:
+            selected = self.tree.selection()
+            if selected:
+                self.tree.selection_remove(*selected)
+            self.tree.focus(""); self.tree.focus_set(); self.on_activate(self)
+            self._drag_press_item = None; self._drag_press_xy = None
+            return "break"
+        if region not in {"tree", "cell"}:
             self._drag_press_item = None; self._drag_press_xy = None; return None
-        self._drag_press_item = self.tree.identify_row(event.y)
+        # FocusIn is not guaranteed to fire when Tk preserves focus during a
+        # multi-selection click.  Activate explicitly before any hotkey can run.
+        self.on_activate(self)
+        self._drag_press_item = iid
         self._drag_press_xy = (event.x_root, event.y_root)
         self._dragging = False
         if self._drag_press_item in self.tree.selection():
@@ -447,6 +480,17 @@ class FilePane(ttk.Frame):
             if not bypass_lock and self.lock_mode == "locked" and path != self.path:
                 self.on_locked_navigation(path)
                 return False
+            previous = self.path
+            focused = self.tree.focus()
+            if not focused and self.tree.selection():
+                focused = self.tree.selection()[0]
+            if focused:
+                tags = self.tree.item(focused, "tags")
+                if tags:
+                    selected = Path(tags[0])
+                    if selected.parent == previous:
+                        self.folder_selections[previous] = selected
+            restore_selection = folder_history_selection(previous, path, self.folder_selections)
             if path != self.path:
                 self.history.append(self.path)
             self.path = path
@@ -456,6 +500,8 @@ class FilePane(ttk.Frame):
             if os.name == "nt":
                 self.drive.set(path.anchor)
             self.refresh()
+            if restore_selection is not None:
+                self.select_path(restore_selection)
             self.on_change()
             return True
         except OSError as exc:
@@ -689,10 +735,15 @@ class FilePane(ttk.Frame):
         self.refresh()
         self.on_change()
 
-    def set_active_appearance(self, active: bool) -> None:
+    def set_active_appearance(self, active: bool, palette=None) -> None:
         self.tree.configure(style="Active.Treeview" if active else "Inactive.Treeview")
+        colors = palette or {}
+        self.active_indicator.configure(
+            background=colors.get("selection", "#0078d4") if active
+            else colors.get("border", "#9aa7b3"))
 
     def apply_scale(self, scale: float) -> None:
+        self.active_indicator.configure(height=max(2, round(3 * scale)))
         icon_size = max(16, round(16 * scale))
         if self.icons.size != icon_size:
             self.icons = ShellIconProvider(icon_size)
@@ -839,6 +890,7 @@ class Commander(tk.Tk):
         self._app_icon_images = [create_pfc_icon(size) for size in (16, 32, 48, 64)]
         self.iconphoto(True, *self._app_icon_images)
         self._ready = False
+        self._config_warning_shown = False
         self.ini_path = self._find_ini_path()
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
@@ -874,6 +926,11 @@ class Commander(tk.Tk):
         self._clipboard_icon_size = 18
         self.clipboard_icons = ShellIconProvider(self._clipboard_icon_size)
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
+        saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
+        if saved_scheme not in COLOR_SCHEMES:
+            saved_scheme = "light"
+        self.color_scheme_var = tk.StringVar(value=saved_scheme)
+        self.palette = color_scheme(saved_scheme)
         saved_tab_style = self.config_data.get("view", "tab_style", fallback="right_skirt")
         if saved_tab_style == "compact":
             saved_tab_style = "right_skirt"
@@ -895,20 +952,21 @@ class Commander(tk.Tk):
                 self._base_font_sizes[name] = tkfont.nametofont(name).cget("size")
             except tk.TclError:
                 pass
+        configure_ttk_theme(self, self.palette)
         style = ttk.Style(self)
         style.configure(".", font=tkfont.nametofont("TkDefaultFont"))
         style.configure("Treeview", font=tkfont.nametofont("TkDefaultFont"))
         style.configure("Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
-        style.configure("Active.Treeview", background="white", fieldbackground="white", indent=6)
-        style.map("Active.Treeview", background=[("selected", "#1683e2")], foreground=[("selected", "white")])
-        style.configure("Inactive.Treeview", background="white", fieldbackground="white", indent=6)
-        style.map("Inactive.Treeview", background=[("selected", "#91a9bd")], foreground=[("selected", "white")])
-        style.configure("PFC.TNotebook", background="#9eafbd", borderwidth=1)
-        style.configure("PFC.TNotebook.Tab", background="#c7d3dd", foreground="#243442",
+        style.configure("Active.Treeview", indent=6)
+        style.configure("Inactive.Treeview", indent=6)
+        style.configure("PFC.TNotebook", background=self.palette["tab_bar"], borderwidth=1)
+        style.configure("PFC.TNotebook.Tab", background=self.palette["tab_default"],
+                        foreground=self.palette["tab_text"],
                         padding=(10, 5), borderwidth=1)
         style.map("PFC.TNotebook.Tab",
-                  background=[("selected", "#1683e2"), ("active", "#dce7ef")],
-                  foreground=[("selected", "#005a9e"), ("active", "#10202c")],
+                  background=[("selected", self.palette["selection"]),
+                              ("active", self.palette["button_active"])],
+                  foreground=[("selected", "#ffffff"), ("active", self.palette["text"])],
                   expand=[("selected", (1, 1, 1, 0))])
         flat_item_layout = [("Treeitem.padding", {"sticky": "nswe", "children": [
             ("Treeitem.image", {"side": "left", "sticky": ""}),
@@ -937,6 +995,7 @@ class Commander(tk.Tk):
         for section, tabs in zip(PANEL_SECTIONS, self.panel_tabs):
             self._restore_tab(tabs, section)
             self._restore_panel_options(tabs, section)
+            tabs.set_theme(self.palette)
         active_section = self.config_data.get("state", "active_panel", fallback="left")
         active_index = PANEL_SECTIONS.index(active_section) if active_section in PANEL_SECTIONS else 0
         if active_index >= self.panel_count_var.get():
@@ -962,6 +1021,7 @@ class Commander(tk.Tk):
             self.action_buttons.append((button, hotkey, label))
             self.action_button_by_hotkey[hotkey] = button
         self.update_rename_action()
+        self.update_transfer_actions()
         install_button_tooltips(self)
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
@@ -1019,6 +1079,7 @@ class Commander(tk.Tk):
                 self.bind_all(key, lambda _e, fn=commands[name]: fn())
         self._install_priority_hotkeys(configured_hotkeys, commands)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
+        self.apply_color_scheme(save=False)
         self._ready = True
         self._save_job = None
         self._auto_refresh_job = None
@@ -1175,6 +1236,7 @@ class Commander(tk.Tk):
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
+        self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
@@ -1182,8 +1244,18 @@ class Commander(tk.Tk):
         self.config_data.set("navigation", "recent_folders", json.dumps([str(path) for path in self.recent_folders], ensure_ascii=False))
         try:
             write_config_atomic(self.config_data, self.ini_path)
-        except OSError:
-            pass
+        except OSError as exc:
+            self._show_config_save_warning(exc)
+
+    def _show_config_save_warning(self, error: OSError) -> None:
+        """Show one non-blocking warning when portable settings cannot be saved."""
+        if self._config_warning_shown or not self.winfo_exists():
+            return
+        self._config_warning_shown = True
+        warning = ttk.Label(self, text=tr("Settings could not be saved: {error}", error=error),
+                            anchor="w", padding=(8, 4), style="Warning.TLabel")
+        warning.pack(fill="x", before=self.split)
+        self.after(10000, lambda: warning.destroy() if warning.winfo_exists() else None)
 
     def close_app(self) -> None:
         self._clear_tab_drag_target()
@@ -1224,7 +1296,9 @@ class Commander(tk.Tk):
         if previous_header is not None and previous_header.winfo_exists():
             previous_header.destroy()
         menu_font = tkfont.nametofont("TkMenuFont")
-        header_bg, header_fg, active_bg = "#243b53", "#f4f8fb", "#365b78"
+        header_bg = self.palette["header"]
+        header_fg = self.palette["header_text"]
+        active_bg = self.palette["header_active"]
         header = tk.Frame(self, background=header_bg, padx=5, pady=4)
         if hasattr(self, "split"):
             header.pack(fill="x", before=self.split)
@@ -1242,18 +1316,18 @@ class Commander(tk.Tk):
         self.clipboard_summary = tk.Label(self.clipboard_summary_frame, text=tr("Clipboard: checking…"),
                                           anchor="e", width=1,
                                           font=menu_font,
-                                          background=header_bg, foreground="#c9e5f5")
+                                          background=header_bg, foreground=self.palette["header_muted"])
         title = tk.Label(header, text="PFC",
                          font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
         title.pack(side="left", padx=(2, 8))
         title.bind("<Button-1>", lambda _event: self.show_help())
         version_label = tk.Label(header, text=f"v{__version__}", font=menu_font,
-                                 background=header_bg, foreground="#c9e5f5")
+                                 background=header_bg, foreground=self.palette["header_muted"])
         version_label.pack(side="left", padx=(0, 10))
         button_style = dict(font=menu_font, relief="raised", borderwidth=1, padx=9, pady=2,
                             cursor="hand2",
-                            background="#31536e", foreground=header_fg,
+                            background=self.palette["header_button"], foreground=header_fg,
                             activebackground=active_bg, activeforeground="#ffffff")
         files_button = tk.Button(header, text=tr("Files"),
                                  command=lambda: self.show_header_menu("files"), **button_style)
@@ -1312,6 +1386,11 @@ class Commander(tk.Tk):
             add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
                                    self.apply_font_size)
         add_scaled_cascade(view, tr("Font Size"), font_size)
+        color_scheme_menu = tk.Menu(view, tearoff=False, font=menu_font)
+        for label, value in (("Light", "light"), ("Light Grey", "light_grey"), ("Dark", "dark")):
+            add_scaled_radiobutton(color_scheme_menu, tr(label), value, self.color_scheme_var,
+                                   self.apply_color_scheme)
+        add_scaled_cascade(view, tr("Color Scheme"), color_scheme_menu)
         tab_style = tk.Menu(view, tearoff=False, font=menu_font)
         for value, label in TAB_STYLES.items():
             add_scaled_radiobutton(tab_style, tr(label), value, self.tab_style_var,
@@ -1352,6 +1431,7 @@ class Commander(tk.Tk):
         self.view_menu = view
         self.visibility_menu = visibility
         self.font_size_menu = font_size
+        self.color_scheme_menu = color_scheme_menu
         self.tab_style_menu = tab_style
         self.panel_counts_menu = panel_counts
         self.language_menu = language_menu
@@ -1377,6 +1457,7 @@ class Commander(tk.Tk):
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
+            "Color Scheme": "Choose the overall application contrast and colors.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the next panel.",
@@ -1394,6 +1475,7 @@ class Commander(tk.Tk):
         self._versions_menu_tooltip = MenuToolTip(versions, version_help)
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
+        self._color_scheme_menu_tooltip = MenuToolTip(color_scheme_menu, menu_help)
         self._tab_style_menu_tooltip = MenuToolTip(tab_style, {
             tr("Right Skirt"): "Full-height tab with a vertical left edge and steep bottom-right skirt.",
             tr("Rounded"): "Rounded top corners with straight sides and a square bottom.",
@@ -1536,8 +1618,9 @@ class Commander(tk.Tk):
         self.show_extensions_var.set(pane.show_extensions)
         if hasattr(self, "panel_tabs"):
             for candidate in self.all_panes():
-                candidate.set_active_appearance(candidate is pane)
+                candidate.set_active_appearance(candidate is pane, self.palette)
         self.update_rename_action()
+        self.update_transfer_actions()
         self.save_config()
 
     def update_rename_action(self) -> None:
@@ -1549,6 +1632,19 @@ class Commander(tk.Tk):
             return
         label = "Multi-Rename" if len(pane.selected_paths()) > 1 else "Rename"
         button.configure(text=f"F2 {tr(label)}")
+
+    def update_transfer_actions(self) -> None:
+        """Expose the exact F5/F6 destination in every panel layout."""
+        buttons = getattr(self, "action_button_by_hotkey", {})
+        visible = self.visible_panel_tabs() if hasattr(self, "panel_tabs") else []
+        if not buttons or not visible:
+            return
+        source_tabs = self._tabs_for(self.active) if self.active is not None else visible[0]
+        if source_tabs not in visible:
+            source_tabs = visible[0]
+        target_number = (visible.index(source_tabs) + 1) % len(visible) + 1
+        buttons["F5"].configure(text=f"F5 {tr('Copy')} → P{target_number}")
+        buttons["F6"].configure(text=f"F6 {tr('Move')} → P{target_number}")
 
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
@@ -1602,6 +1698,7 @@ class Commander(tk.Tk):
         for button, hotkey, label in self.action_buttons:
             button.configure(text=f"{hotkey} {tr(label)}".rstrip())
         self.update_rename_action()
+        self.update_transfer_actions()
         for pane in self.all_panes():
             pane.apply_language()
         for window in (self.preview_window, self.search_window,
@@ -1680,6 +1777,7 @@ class Commander(tk.Tk):
     def _copy_tab_view(source: FilePane, target: FilePane) -> None:
         selected = source.selected_paths()
         target.history = list(source.history)
+        target.folder_selections = dict(source.folder_selections)
         target.sort_column = source.sort_column
         target.reverse = source.reverse
         target.show_hidden = source.show_hidden
@@ -2355,6 +2453,7 @@ class Commander(tk.Tk):
                                                     self.execute_sync_plans)
                 self.compare_window.notebook.set_style(self.tab_style_var.get())
             self.compare_window.add(left, right)
+            self.compare_window.apply_scale(self._font_scales.get(self.font_size_var.get(), 1.0))
         except OSError as exc:
             messagebox.showerror(tr("Compare failed"), str(exc), parent=self)
 
@@ -2406,12 +2505,74 @@ class Commander(tk.Tk):
             for tabs in self.panel_tabs:
                 tabs.redraw()
         if self.compare_window is not None and self.compare_window.winfo_exists():
-            self.compare_window.notebook.redraw()
+            self.compare_window.apply_scale(scale)
         if self.search_window is not None and self.search_window.winfo_exists():
             self.search_window.apply_scale(scale)
         self.update_idletasks()
         if hasattr(self, "clipboard_summary_frame"):
             self._clipboard_visual_key = None
+            self._refresh_clipboard_layout()
+        if save:
+            self.save_config()
+
+    def apply_color_scheme(self, save: bool = True) -> None:
+        scheme = self.color_scheme_var.get()
+        if scheme not in COLOR_SCHEMES:
+            scheme = "light"
+            self.color_scheme_var.set(scheme)
+        self.palette = color_scheme(scheme)
+        palette = self.palette
+        self.configure(background=palette["window"])
+        configure_ttk_theme(self, palette)
+        style = ttk.Style(self)
+        style.configure("PFC.TNotebook", background=palette["tab_bar"])
+        style.configure("PFC.TNotebook.Tab", background=palette["tab_default"],
+                        foreground=palette["tab_text"])
+        style.map("PFC.TNotebook.Tab",
+                  background=[("selected", palette["selection"]),
+                              ("active", palette["button_active"])],
+                  foreground=[("selected", "#ffffff"), ("active", palette["text"])])
+        if hasattr(self, "header_popup"):
+            self.header_popup.close_all()
+        if hasattr(self, "header"):
+            self.header.configure(background=palette["header"])
+            self.clipboard_summary_frame.configure(background=palette["header"])
+            self.clipboard_icon_canvas.configure(background=palette["header"])
+            self.clipboard_summary.configure(background=palette["header"],
+                                             foreground=palette["header_muted"])
+            title, version, *buttons = self.header_left_widgets
+            title.configure(background=palette["header"], foreground=palette["header_text"])
+            version.configure(background=palette["header"], foreground=palette["header_muted"])
+            for button in buttons:
+                button.configure(background=palette["header_button"],
+                                 foreground=palette["header_text"],
+                                 activebackground=palette["header_active"],
+                                 activeforeground="#ffffff")
+            for menu in (self.files_menu, self.view_menu, self.visibility_menu,
+                         self.font_size_menu, self.color_scheme_menu, self.tab_style_menu,
+                         self.panel_counts_menu, self.language_menu, self.favorites_menu,
+                         self.recent_menu, self.versions_menu):
+                menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                               activebackground=palette["menu_active"],
+                               activeforeground=palette["menu_active_text"])
+        if hasattr(self, "panel_tabs"):
+            for tabs in self.panel_tabs:
+                tabs.set_theme(palette)
+            for pane in self.all_panes():
+                pane.set_active_appearance(pane is self.active, palette)
+        for window_name in ("preview_window", "search_window", "compare_window", "multi_rename_window"):
+            window = getattr(self, window_name, None)
+            if window is not None and window.winfo_exists():
+                handler = getattr(window, "apply_color_scheme", None)
+                if callable(handler):
+                    handler(palette)
+        if self.version_window is not None and self.version_window.winfo_exists():
+            self.version_window.configure(background=palette["window"])
+            self.version_text.configure(background=palette["content"], foreground=palette["text"],
+                                        insertbackground=palette["text"],
+                                        highlightbackground=palette["border"])
+        self._clipboard_visual_key = None
+        if hasattr(self, "clipboard_summary_frame"):
             self._refresh_clipboard_layout()
         if save:
             self.save_config()
@@ -2498,7 +2659,9 @@ class Commander(tk.Tk):
         self._execute_transfer(verb, operation, source.selected_paths(), target.path)
 
     def copy(self) -> None:
-        self._run("Copy", copy_items)
+        source, target = self.panes()
+        self._execute_transfer("Copy", copy_items, source.selected_paths(), target.path,
+                               confirm=False)
 
     def move(self) -> None:
         self._run("Move", move_items)
@@ -2539,7 +2702,12 @@ class Commander(tk.Tk):
         name = simpledialog.askstring(tr("New Folder"), tr("Folder name:"), parent=self)
         if name:
             try:
-                (source.path / name).mkdir(); source.refresh()
+                created = source.path / name
+                created.mkdir()
+                if (source.quick_filter_var.get().strip() and
+                        source.quick_filter_var.get().strip().casefold() not in name.casefold()):
+                    source.quick_filter_var.set("")
+                source.refresh(); source.select_path(created); source.focus_file_list()
             except OSError as exc:
                 messagebox.showerror(tr("Create failed"), str(exc))
 

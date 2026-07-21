@@ -26,6 +26,8 @@ def main() -> None:
                        for tabs in app.panel_tabs)
             assert all(pane.shell_drop_target is not None and
                        pane.shell_drop_target._ole_registered for pane in app.all_panes())
+            assert str(app.left_tabs.bar.cget("takefocus")) in {"1", "true"}
+            assert int(app.left_tabs.bar.cget("highlightthickness")) >= 2
             assert app.header_left_widgets[0].cget("text") == "PFC"
             assert app.header_left_widgets[1].cget("text") == f"v{pfc.__version__}"
             assert all("Build" not in widget.cget("text") for widget in app.header_left_widgets)
@@ -34,7 +36,33 @@ def main() -> None:
                 assert isinstance(menu_button, pfc.tk.Button)
             hierarchy_indexes = [index for index in range(app.view_menu.index("end") + 1)
                                  if app.view_menu.type(index) == "cascade"]
-            assert len(hierarchy_indexes) == 5
+            assert len(hierarchy_indexes) == 6
+            assert app.color_scheme_var.get() == "light"
+            assert app.color_scheme_menu.index("end") == 2
+            app.color_scheme_var.set("dark"); app.apply_color_scheme(save=False)
+            app.update_idletasks()
+            assert app.left_tabs.bar.cget("background") == pfc.COLOR_SCHEMES["dark"]["tab_bar"]
+            assert app.header.cget("background") == pfc.COLOR_SCHEMES["dark"]["header"]
+            assert pfc.ttk.Style(app).lookup("Active.Treeview", "fieldbackground") == pfc.COLOR_SCHEMES["dark"]["surface"]
+            app.color_scheme_var.set("light_grey"); app.apply_color_scheme(save=False)
+            assert app.left_tabs.bar.cget("background") == pfc.COLOR_SCHEMES["light_grey"]["tab_bar"]
+            app.color_scheme_var.set("light"); app.apply_color_scheme(save=False)
+            click_root = Path(raw) / "inactive-panel-click"; click_root.mkdir()
+            (click_root / "activate-me.txt").write_text("target", encoding="utf-8")
+            click_pane = app.left_tabs.current(); original_click_path = click_pane.path
+            click_pane.navigate(click_root); app.update()
+            app.set_active(app.right_tabs.current())
+            row = click_pane.tree.get_children()[0]
+            box = click_pane.tree.bbox(row)
+            click_pane._drag_press(SimpleNamespace(
+                x=box[0] + 4, y=box[1] + 4,
+                x_root=click_pane.tree.winfo_rootx() + box[0] + 4,
+                y_root=click_pane.tree.winfo_rooty() + box[1] + 4))
+            assert app.active is click_pane, "A clicked inactive-panel row must activate its panel"
+            assert click_pane.active_indicator.cget("background") == app.palette["selection"]
+            assert app.right_tabs.current().active_indicator.cget("background") == app.palette["border"]
+            assert app.action_button_by_hotkey["F5"].cget("text").endswith("→ P2")
+            click_pane.navigate(original_click_path)
             assert all(app.view_menu.entrycget(index, "label") != "Quick Filter"
                        for index in range(app.view_menu.index("end") + 1))
             assert all(not app.view_menu.entrycget(index, "accelerator")
@@ -46,6 +74,15 @@ def main() -> None:
             assert int(app.font_size_menu.entrycget(selected_font_entries[0], "indicatoron")) == 0
             app.font_size_var.set("huge"); app.apply_font_size(save=False)
             app.search(); app.update_idletasks(); app.update()
+            app.search_window.mask_var.set("*.log")
+            app.search_window.content_var.set("error")
+            app.update_idletasks()
+            assert "*.log" in app.search_window.criteria_label.cget("text")
+            assert "error" in app.search_window.criteria_label.cget("text")
+            app.search_window.clear_filters()
+            assert app.search_window.mask_var.get() == "*"
+            assert app.search_window.content_var.get() == ""
+            assert app.search_window.files_var.get() and app.search_window.folders_var.get()
             search_style = app.search_window.tree.cget("style")
             search_rowheight = int(app.search_window.tree.tk.call(
                 "ttk::style", "lookup", search_style, "-rowheight"))
@@ -56,6 +93,24 @@ def main() -> None:
             app.font_size_var.set("small"); app.apply_font_size(save=False)
             tab_font = pfc.tkfont.nametofont("TkDefaultFont").actual()
             source_tabs = app.left_tabs
+            history_root = Path(raw) / "folder-history"
+            for relative in (Path("0"), Path("1/a"), Path("1/b"), Path("1/c"),
+                             Path("2/e"), Path("2/f"), Path("2/g")):
+                (history_root / relative).mkdir(parents=True, exist_ok=True)
+            history_pane = source_tabs.current()
+            original_history_path = history_pane.path
+            assert history_pane.navigate(history_root)
+            assert history_pane.select_path(history_root / "1")
+            history_pane.open_selected()
+            assert history_pane.select_path(history_root / "1" / "a")
+            history_pane.open_selected()
+            history_pane.up()
+            assert history_pane.path == history_root / "1"
+            assert history_pane.selected_paths() == [history_root / "1" / "a"]
+            history_pane.up()
+            assert history_pane.path == history_root
+            assert history_pane.selected_paths() == [history_root / "1"]
+            history_pane.navigate(original_history_path)
             source_tabs.add_tab(source_tabs.current().path)
             app.update_idletasks(); source_tabs.redraw()
             drawn_tab_fonts = []
@@ -82,12 +137,14 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.12.3", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
+            assert version_labels == ["Current version: v0.12.4", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
                                       "v0.9.x Changes", "v0.8.x Changes",
                                       "Yoda — Portable App Advocate"]
             assert app.version_series == ("v0.12.x", "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
             v12_title, v12_body = app.version_series_notes("v0.12.x")
             assert v12_title == "Python File Commander — v0.12.x Changes"
+            assert "v0.12.4 — Build 2026/07/22" in v12_body
+            assert "• Fixed: Clicking a file in an inactive panel" in v12_body
             assert "v0.12.3 — Build 2026/07/21" in v12_body
             assert "• Fixed: Kept Ctrl+Up cloned-tab text visually consistent" in v12_body
             assert "v0.12.2 — Build 2026/07/18" in v12_body
@@ -160,6 +217,12 @@ def main() -> None:
             assert saved.get("hotkeys", "quick_filter") == "<Control-y>"
             assert not saved.has_option("hotkeys", "multi_rename")
             assert saved.get("navigation", "favorites") != "[]"
+            app._show_config_save_warning(OSError("read-only media"))
+            app.update_idletasks()
+            warning_labels = [widget for widget in app.winfo_children()
+                              if isinstance(widget, pfc.ttk.Label) and
+                              "read-only media" in widget.cget("text")]
+            assert len(warning_labels) == 1 and app._config_warning_shown
             assert app.panel_count_var.get() == 2 and len(app.split.panes()) == 2
             panel_labels = [app.panel_counts_menu.entrycget(index, "label")
                             for index in range(app.panel_counts_menu.index("end") + 1)]
@@ -173,8 +236,10 @@ def main() -> None:
             assert all(tabs.current().shell_drop_target.active for tabs in app.panel_tabs)
             app.set_active(app.panel_tabs[2].current())
             assert app.panes()[1] is app.panel_tabs[3].current()
+            assert app.action_button_by_hotkey["F5"].cget("text").endswith("→ P4")
             app.set_active(app.panel_tabs[3].current())
             assert app.panes()[1] is app.panel_tabs[0].current(), "Rightmost target must wrap left"
+            assert app.action_button_by_hotkey["F6"].cget("text").endswith("→ P1")
             app.save_config(); saved.read(ini_path, encoding="utf-8")
             assert saved.getint("view", "panel_count") == 4
             assert saved.get("view", "ui_language") == "en"
@@ -318,9 +383,41 @@ def main() -> None:
             assert "Open Folder in New Tab" in folder_labels
             assert "Paste into This Folder" in folder_labels
 
+            app.set_active(source_pane)
+            source_pane.set_quick_filter("does-not-match-new-folder")
+            original_askstring = pfc.simpledialog.askstring
+            pfc.simpledialog.askstring = lambda *_args, **_kwargs: "created-folder"
+            try:
+                app.mkdir(); app.update()
+            finally:
+                pfc.simpledialog.askstring = original_askstring
+            created_folder = quick_root / "created-folder"
+            assert created_folder.is_dir()
+            assert source_pane.quick_filter_var.get() == ""
+            assert source_pane.selected_paths() == [created_folder]
+            original_askyesno = pfc.messagebox.askyesno
+            pfc.messagebox.askyesno = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                AssertionError("Copy must not request confirmation"))
+            try:
+                app.copy(); app.update()
+            finally:
+                pfc.messagebox.askyesno = original_askyesno
+            assert (explorer_target / "created-folder").is_dir()
+            source_pane.tree.selection_set(source_pane.tree.get_children())
+            app.update_idletasks()
+            blank_y = source_pane.tree.winfo_height() - 2
+            assert not source_pane.tree.identify_row(blank_y)
+            source_pane._drag_press(SimpleNamespace(
+                x=80, y=blank_y, x_root=source_pane.tree.winfo_rootx() + 80,
+                y_root=source_pane.tree.winfo_rooty() + blank_y))
+            assert not source_pane.tree.selection()
+            source_pane.select_path(quick_root / "alpha-report.txt")
+
             compare_left, compare_right = Path(raw) / "compare-left", Path(raw) / "compare-right"
             compare_left.mkdir(); compare_right.mkdir()
             (compare_left / "copy-me.txt").write_text("sync", encoding="utf-8")
+            (compare_left / "same.txt").write_text("same", encoding="utf-8")
+            pfc.shutil.copy2(compare_left / "same.txt", compare_right / "same.txt")
             planned = []
             compare_window = pfc.CompareWindow(app, app.config_data, app.save_config,
                                                 lambda plans: planned.extend(plans))
@@ -331,6 +428,19 @@ def main() -> None:
                 app.update(); time.sleep(0.01)
             assert not folder_frame._scanning
             assert compare_window.focus_get() is folder_frame.tree
+            assert folder_frame.tree.cget("columns") == (
+                "action", "left_path", "left_detail", "status", "right_path", "right_detail")
+            assert folder_frame.tree.cget("style") == "PFCCompare.Treeview"
+            compare_window.apply_scale(2.0); app.update_idletasks()
+            compare_style = pfc.ttk.Style(folder_frame)
+            assert int(compare_style.lookup("PFCCompare.Treeview", "rowheight")) > 30
+            assert len(folder_frame.tree.get_children()) == 2
+            folder_frame.view_mode_var.set("differences"); folder_frame.populate()
+            assert len(folder_frame.tree.get_children()) == 1
+            compare_window._navigate("next")
+            assert folder_frame.item_keys[folder_frame.tree.selection()[0]] == "copy-me.txt"
+            assert folder_frame.diff_status.cget("text") == "1/1"
+            folder_frame.view_mode_var.set("all"); folder_frame.populate()
             row = next(iid for iid in folder_frame.tree.get_children()
                        if folder_frame.item_keys[iid] == "copy-me.txt")
             folder_frame.tree.selection_set(row); folder_frame.set_action("right")
@@ -341,6 +451,34 @@ def main() -> None:
             finally:
                 pfc.SyncPlanDialog.ask = original_plan_ask
             assert planned == [(compare_left / "copy-me.txt", compare_right / "copy-me.txt")]
+            text_left, text_right = Path(raw) / "compare-a.txt", Path(raw) / "compare-b.txt"
+            text_left.write_text("same\nold\n" + "\n".join(f"left {i}" for i in range(80)), encoding="utf-8")
+            text_right.write_text("same\nnew\n" + "\n".join(f"right {i}" for i in range(80)), encoding="utf-8")
+            compare_window.add(text_left, text_right)
+            text_frame = compare_window.nametowidget(compare_window.notebook.select())
+            assert text_frame.view.left_title == str(text_left)
+            assert text_frame.view.left.get("1.0", "end-1c").count("\n") == 82
+            assert text_frame.view.left_numbers.get("1.0", "3.0").splitlines() == ["    1", "    2"]
+            assert not text_frame.view.left.get("1.0", "1.end").lstrip().startswith("1  ")
+            app.update_idletasks()
+            assert text_frame.view.difference_map.winfo_manager() == "grid"
+            assert text_frame.view.difference_map.find_all()
+            text_frame.view.set_marker_position("left", notify=True); app.update_idletasks()
+            assert int(text_frame.view.difference_map.grid_info()["column"]) == 0
+            assert int(text_frame.view.left_frame.grid_info()["column"]) == 1
+            assert app.config_data.get("compare", "marker_position") == "left"
+            text_frame.view.set_marker_position("right", notify=True); app.update_idletasks()
+            assert int(text_frame.view.difference_map.grid_info()["column"]) == 2
+            assert int(text_frame.view.right_frame.grid_info()["column"]) == 1
+            text_frame.view.set_marker_position("middle", notify=True); app.update_idletasks()
+            assert int(text_frame.view.difference_map.grid_info()["column"]) == 1
+            text_frame.view._scroll("moveto", 0.75); app.update_idletasks()
+            assert abs(text_frame.view.left.yview()[0] - text_frame.view.right.yview()[0]) < 0.001
+            assert abs(text_frame.view.left.yview()[0] - text_frame.view.left_numbers.yview()[0]) < 0.001
+            text_frame.view.view_mode_var.set("differences"); text_frame.view.populate()
+            assert "same" not in text_frame.view.left.get("1.0", "end-1c")
+            compare_window._navigate("next")
+            assert text_frame.view.diff_index == 0
             compare_window.close()
             app.deiconify(); app.update_idletasks(); app.update()
             source, target = app.left_tabs.current(), app.right_tabs.current()

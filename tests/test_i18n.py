@@ -36,6 +36,18 @@ class TranslationTests(unittest.TestCase):
             self.assertEqual(source_text(tr("Preview"), language), "Preview")
             self.assertEqual(source_text(tr("Case sensitive"), language), "Case sensitive")
 
+    def test_difference_marker_terms_are_localized(self):
+        for language in ("zh_TW", "zh_CN", "ko"):
+            set_language(language)
+            self.assertNotEqual(tr("Difference marker:"), "Difference marker:")
+            self.assertNotEqual(tr("Middle"), "Middle")
+
+    def test_color_scheme_terms_are_localized(self):
+        for language in ("zh_TW", "zh_CN", "ko"):
+            set_language(language)
+            for term in ("Color Scheme", "Light", "Light Grey", "Dark"):
+                self.assertNotEqual(tr(term), term)
+
     def test_every_release_note_is_translated(self):
         for language in ("zh_TW", "zh_CN", "ko"):
             set_language(language)

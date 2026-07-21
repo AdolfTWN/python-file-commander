@@ -2,10 +2,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pycommander.compare import aligned_text, detect_compare_type, file_hash, folder_rows
+from pycommander.compare import (aligned_text, compare_row_height, detect_compare_type,
+                                 file_hash, folder_rows)
 
 
 class CompareTests(unittest.TestCase):
+    def test_compare_row_height_scales_without_clipping(self):
+        self.assertEqual(compare_row_height(16, 1.0), 24)
+        self.assertGreater(compare_row_height(32, 2.0), 32)
+        self.assertGreater(compare_row_height(48, 3.0), compare_row_height(32, 2.0))
+
     def test_text_alignment_marks_changed_line(self):
         rows, differences = aligned_text("same\nold\n", "same\nnew\n")
         self.assertEqual(rows, [(1, "same", 1, "same"), (2, "old", 2, "new")])
