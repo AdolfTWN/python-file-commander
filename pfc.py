@@ -125,6 +125,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.": "修正：Ctrl+Up 複製的新分頁文字與現有分頁保持視覺一致。",
         "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "新增：可將 Outlook 與 Teams 的 Office 365 虛擬附件拖入 PFC 面板。",
         "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "修正：避免搜尋結果列在較大介面字級下重疊。",
         "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "調整：每個面板永久顯示快速篩選，Ctrl+Y 可聚焦輸入框，並移除檢視選單切換項目。",
@@ -197,6 +198,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.": "修复：Ctrl+Up 复制的新标签页文字与现有标签页保持视觉一致。",
         "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "新增：可将 Outlook 和 Teams 的 Office 365 虚拟附件拖入 PFC 面板。",
         "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "修复：避免搜索结果行在较大界面字体下重叠。",
         "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "调整：每个面板永久显示快速筛选，Ctrl+Y 可聚焦输入框，并移除查看菜单切换项目。",
@@ -266,6 +268,7 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.": "수정: Ctrl+Up으로 복제한 새 탭의 텍스트가 기존 탭과 시각적으로 일치하도록 했습니다.",
         "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.": "추가: Outlook 및 Teams의 Office 365 가상 첨부 파일을 PFC 패널로 끌어 놓을 수 있습니다.",
         "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.": "수정: 큰 UI 글꼴 크기에서 검색 결과 행이 겹치지 않도록 했습니다.",
         "Adjusted: Made every panel's Quick Filter permanently visible, with Ctrl+Y focus and no View-menu toggle.": "조정: 모든 패널에 빠른 필터를 항상 표시하고 Ctrl+Y로 입력란에 포커스하며 보기 메뉴 전환 항목을 제거했습니다.",
@@ -1551,11 +1554,6 @@ class ChamferNotebook(ttk.Frame):
     def _draw(self):
         self.bar.delete("all"); self._hitboxes.clear()
         font = tkfont.nametofont("TkDefaultFont")
-        if not hasattr(self, "_active_tab_font"):
-            self._active_tab_font = tkfont.Font(root=self, font=font)
-        else:
-            self._active_tab_font.configure(**font.actual())
-        self._active_tab_font.configure(weight="bold")
         right_skirt = self._tab_style == "right_skirt"
         height = max(30, font.metrics("linespace") + 13)
         self.bar.configure(height=height)
@@ -1615,8 +1613,7 @@ class ChamferNotebook(ttk.Frame):
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
-            draw_font = self._active_tab_font if selected else font
-            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=draw_font,
+            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
                                  fill="#10202c")
         if self._drop_position is not None:
             if not self._hitboxes or self._drop_position <= 0:
@@ -3701,14 +3698,17 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.2"
+__version__ = "0.12.3"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/18"
+BUILD_DATE = "2026/07/21"
 VERSION_HISTORY = (
+    ("v0.12.3", "2026/07/21", (
+        "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.",
+    )),
     ("v0.12.2", "2026/07/18", (
         "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.",
         "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.",

@@ -54,6 +54,18 @@ def main() -> None:
                 search_rowheight, search_linespace)
             app.search_window.close(); app.search_window = None
             app.font_size_var.set("small"); app.apply_font_size(save=False)
+            tab_font = pfc.tkfont.nametofont("TkDefaultFont").actual()
+            source_tabs = app.left_tabs
+            source_tabs.add_tab(source_tabs.current().path)
+            app.update_idletasks(); source_tabs.redraw()
+            drawn_tab_fonts = []
+            for item in source_tabs.bar.find_all():
+                if source_tabs.bar.type(item) != "text":
+                    continue
+                font_name = source_tabs.bar.itemcget(item, "font")
+                drawn_tab_fonts.append(pfc.tkfont.Font(root=app, font=font_name).actual())
+            assert len(drawn_tab_fonts) >= 2
+            assert all(actual == tab_font for actual in drawn_tab_fonts), drawn_tab_fonts
             labels = [app.files_menu.entrycget(index, "label")
                       for index in range(app.files_menu.index("end") + 1)
                       if app.files_menu.type(index) not in {"separator", "tearoff"}]
@@ -70,12 +82,14 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.12.2", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
+            assert version_labels == ["Current version: v0.12.3", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
                                       "v0.9.x Changes", "v0.8.x Changes",
                                       "Yoda — Portable App Advocate"]
             assert app.version_series == ("v0.12.x", "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
             v12_title, v12_body = app.version_series_notes("v0.12.x")
             assert v12_title == "Python File Commander — v0.12.x Changes"
+            assert "v0.12.3 — Build 2026/07/21" in v12_body
+            assert "• Fixed: Kept Ctrl+Up cloned-tab text visually consistent" in v12_body
             assert "v0.12.2 — Build 2026/07/18" in v12_body
             assert "• Added: Drag Office 365 virtual attachments" in v12_body
             assert "• Fixed: Prevented Search result rows from overlapping" in v12_body

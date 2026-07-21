@@ -33,6 +33,9 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.3", "2026/07/21", (
+        "Fixed: Kept Ctrl+Up cloned-tab text visually consistent with existing tabs.",
+    )),
     ("v0.12.2", "2026/07/18", (
         "Added: Drag Office 365 virtual attachments from Outlook and Teams into PFC panels.",
         "Fixed: Prevented Search result rows from overlapping at larger UI font sizes.",

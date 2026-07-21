@@ -498,11 +498,6 @@ class ChamferNotebook(ttk.Frame):
     def _draw(self):
         self.bar.delete("all"); self._hitboxes.clear()
         font = tkfont.nametofont("TkDefaultFont")
-        if not hasattr(self, "_active_tab_font"):
-            self._active_tab_font = tkfont.Font(root=self, font=font)
-        else:
-            self._active_tab_font.configure(**font.actual())
-        self._active_tab_font.configure(weight="bold")
         right_skirt = self._tab_style == "right_skirt"
         height = max(30, font.metrics("linespace") + 13)
         self.bar.configure(height=height)
@@ -562,8 +557,7 @@ class ChamferNotebook(ttk.Frame):
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
-            draw_font = self._active_tab_font if selected else font
-            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=draw_font,
+            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
                                  fill="#10202c")
         if self._drop_position is not None:
             if not self._hitboxes or self._drop_position <= 0:
