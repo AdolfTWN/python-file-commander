@@ -33,6 +33,11 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.7", "2026/07/23", (
+        "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.",
+        "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.",
+        "Adjusted: Replaced tab colours with familiar names and made both tab-lock edge markers more visible.",
+    )),
     ("v0.12.6", "2026/07/23", (
         "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.",
         "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.",
@@ -214,6 +219,14 @@ def folder_history_selection(previous: Path, target: Path,
     return remembered.get(target)
 
 
+def transfer_target_index(source_index: int, panel_count: int) -> int:
+    """Return the intuitive adjacent destination for F5/F6 operations."""
+    if panel_count < 2:
+        return 0
+    source_index = max(0, min(source_index, panel_count - 1))
+    return 1 if source_index == 0 else source_index - 1
+
+
 def is_noop_drag_drop(items: list[Path], destination: Path) -> bool:
     """Treat a drag back to its source folder (or onto itself) as cancellation."""
     if not items:
@@ -321,6 +334,7 @@ class FilePane(ttk.Frame):
         self._drag_press_item = None
         self._drag_press_xy = None
         self._dragging = False
+        self._column_resize_job = None
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified"), "attr": tr("Attr")}
         self.icons = ShellIconProvider()
@@ -354,6 +368,7 @@ class FilePane(ttk.Frame):
         scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
         horizontal = ttk.Scrollbar(frame, orient="horizontal", command=self.tree.xview)
         self.tree.configure(yscrollcommand=scroll.set, xscrollcommand=horizontal.set)
+        self.tree.bind("<Configure>", lambda _event: self._schedule_column_autosize())
         horizontal.pack(side="bottom", fill="x")
         self.tree.pack(side="left", fill="both", expand=True)
         scroll.pack(side="right", fill="y")
@@ -586,8 +601,48 @@ class FilePane(ttk.Frame):
                 self.tree.see(children[0])
             elif children:
                 self.tree.yview_moveto(scroll_position)
+            self._schedule_column_autosize()
         except OSError as exc:
             messagebox.showerror(tr("Cannot read folder"), str(exc))
+
+    def _schedule_column_autosize(self) -> None:
+        if self._column_resize_job is not None:
+            try:
+                self.after_cancel(self._column_resize_job)
+            except tk.TclError:
+                pass
+        self._column_resize_job = self.after_idle(self._autosize_columns)
+
+    def _autosize_columns(self) -> None:
+        """Fit detail fields to visible data and give all remaining width to Name."""
+        self._column_resize_job = None
+        if not self.tree.winfo_exists():
+            return
+        font = tkfont.nametofont("TkDefaultFont")
+        padding = max(18, font.measure("MM"))
+        limits = {
+            "ext": (40, font.measure("W" * 14) + padding),
+            "size": (55, font.measure("0000.0 MB") + padding),
+            "modified": (110, font.measure("0000-00-00 00:00") + padding),
+            "attr": (40, font.measure("Attr") + padding),
+        }
+        children = self.tree.get_children()
+        fixed_total = 0
+        for value_index, column in enumerate(self.columns):
+            heading_width = font.measure(str(self.tree.heading(column, "text"))) + padding
+            measured = heading_width
+            for iid in children:
+                values = self.tree.item(iid, "values")
+                if value_index < len(values):
+                    measured = max(measured, font.measure(str(values[value_index])) + padding)
+            minimum, maximum = limits[column]
+            maximum = max(maximum, heading_width)
+            width = max(minimum, min(measured, maximum))
+            self.tree.column(column, width=width, minwidth=minimum, stretch=False)
+            fixed_total += width
+        available = max(1, self.tree.winfo_width() - 4)
+        self.tree.column("#0", width=max(120, available - fixed_total), minwidth=120,
+                         stretch=True)
 
     @staticmethod
     def signature_for(entries) -> tuple:
@@ -755,10 +810,8 @@ class FilePane(ttk.Frame):
         icon_size = max(16, round(16 * scale))
         if self.icons.size != icon_size:
             self.icons = ShellIconProvider(icon_size)
-        self.tree.column("#0", width=round(self.base_widths["name"] * scale), minwidth=120, stretch=True)
-        for column in self.columns:
-            self.tree.column(column, width=round(self.base_widths[column] * scale))
         self.refresh()
+        self._schedule_column_autosize()
 
 
 class PaneTabs(ChamferNotebook):
@@ -1345,8 +1398,8 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
         files.add_command(label=tr("Paste"), accelerator="Ctrl+V", command=self.clipboard_paste)
         files.add_separator()
-        files.add_command(label=tr("Copy to Next Panel"), accelerator="F5", command=self.copy)
-        files.add_command(label=tr("Move to Next Panel"), accelerator="F6", command=self.move)
+        files.add_command(label=tr("Copy to Target Panel"), accelerator="F5", command=self.copy)
+        files.add_command(label=tr("Move to Target Panel"), accelerator="F6", command=self.move)
         files.add_command(label=tr("Rename"), accelerator="F2", command=self.rename)
         files.add_command(label=tr("Multi-Rename"), command=self.multi_rename)
         files.add_command(label=tr("New Folder"), accelerator="F7", command=self.mkdir)
@@ -1449,8 +1502,8 @@ class Commander(tk.Tk):
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
             "Paste": "Paste clipboard items into the active folder.",
-            "Copy to Next Panel": "Copy selected items to the next visible panel.",
-            "Move to Next Panel": "Move selected items to the next visible panel.",
+            "Copy to Target Panel": "Copy selected items to the destination shown on F5.",
+            "Move to Target Panel": "Move selected items to the destination shown on F6.",
             "Rename": "Rename the selected item.", "Preview": "Open PFC Preview.",
             "Multi-Rename": "Preview and rename multiple selected items; Ctrl+Z undoes the last batch.",
             "New Folder": "Create a folder in the active panel.",
@@ -1468,7 +1521,7 @@ class Commander(tk.Tk):
             "Color Scheme": "Choose the overall application contrast and colors.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
-            "Panel Counts": "Show two, three, or four file panels; F5/F6 target the next panel.",
+            "Panel Counts": "Show two, three, or four file panels; F5/F6 target the adjacent panel.",
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
         version_help = {
@@ -1650,9 +1703,10 @@ class Commander(tk.Tk):
         source_tabs = self._tabs_for(self.active) if self.active is not None else visible[0]
         if source_tabs not in visible:
             source_tabs = visible[0]
-        target_number = (visible.index(source_tabs) + 1) % len(visible) + 1
-        buttons["F5"].configure(text=f"F5 {tr('Copy')} → P{target_number}")
-        buttons["F6"].configure(text=f"F6 {tr('Move')} → P{target_number}")
+        source_index = visible.index(source_tabs)
+        target_number = transfer_target_index(source_index, len(visible)) + 1
+        buttons["F5"].configure(text=f"F5 P{target_number} ← {tr('Copy')}")
+        buttons["F6"].configure(text=f"F6 P{target_number} ← {tr('Move')}")
 
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
@@ -1743,7 +1797,8 @@ class Commander(tk.Tk):
         if source_tabs not in tabs_list:
             source_tabs = tabs_list[0]; source = source_tabs.current()
         index = tabs_list.index(source_tabs)
-        return source, tabs_list[(index + 1) % len(tabs_list)].current()
+        target_index = transfer_target_index(index, len(tabs_list))
+        return source, tabs_list[target_index].current()
 
     def _tabs_for(self, pane: FilePane) -> PaneTabs:
         for tabs in self.panel_tabs:
@@ -2031,8 +2086,8 @@ class Commander(tk.Tk):
         menu.add_command(label=paste_label, accelerator="Ctrl+V",
                          command=lambda target=paste_destination: self._clipboard_paste_to(target))
         menu.add_separator()
-        menu.add_command(label=tr("Copy to Next Panel"), accelerator="F5", command=self.copy)
-        menu.add_command(label=tr("Move to Next Panel"), accelerator="F6", command=self.move)
+        menu.add_command(label=tr("Copy to Target Panel"), accelerator="F5", command=self.copy)
+        menu.add_command(label=tr("Move to Target Panel"), accelerator="F6", command=self.move)
         menu.add_separator()
         menu.add_command(label=tr("Rename"), accelerator="F2",
                          state=normal_if(single), command=self.rename)
@@ -2052,8 +2107,8 @@ class Commander(tk.Tk):
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
             "Paste into This Folder": "Paste clipboard items directly into the clicked folder.",
             "Paste into Current Folder": "Paste clipboard items into the current panel folder.",
-            "Copy to Next Panel": "Copy selected items to the next visible panel.",
-            "Move to Next Panel": "Move selected items to the next visible panel.",
+            "Copy to Target Panel": "Copy selected items to the destination shown on F5.",
+            "Move to Target Panel": "Move selected items to the destination shown on F6.",
             "Rename": "Rename the selected item.",
             "Multi-Rename": "Preview and rename all selected items.",
             "Copy Path": "Copy all selected full paths as text.",

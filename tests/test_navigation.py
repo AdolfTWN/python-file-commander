@@ -2,10 +2,17 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pycommander.app import folder_history_selection, navigation_destination
+from pycommander.app import (folder_history_selection, navigation_destination,
+                             transfer_target_index)
 
 
 class NavigationDestinationTests(unittest.TestCase):
+    def test_transfer_target_uses_right_for_p1_and_left_neighbor_afterward(self):
+        self.assertEqual([transfer_target_index(index, 4) for index in range(4)],
+                         [1, 0, 1, 2])
+        self.assertEqual([transfer_target_index(index, 2) for index in range(2)],
+                         [1, 0])
+
     def test_parent_navigation_selects_folder_just_left(self):
         root = Path("C:/work")
         self.assertEqual(folder_history_selection(root / "1" / "a", root / "1", {}),

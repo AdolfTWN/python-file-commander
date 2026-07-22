@@ -8,12 +8,24 @@ from .i18n import tr
 
 TAB_COLORS = {
     "default": ("Default", "#c7d3dd"),
-    "amber": ("Amber", "#f2c14e"),
-    "coral": ("Coral", "#f58b68"),
-    "pink": ("Pink", "#e96ba8"),
-    "violet": ("Violet", "#8d7be5"),
-    "teal": ("Teal", "#55b9ae"),
+    "red": ("Red", "#ef6b6b"),
+    "light_blue": ("Light Blue", "#73bfe2"),
+    "orange": ("Orange", "#f2a654"),
+    "green": ("Green", "#70c58a"),
+    "purple": ("Purple", "#a483df"),
 }
+
+# Preserve tabs saved by releases before v0.12.7 while presenting only the
+# clearer, commonly named palette in the context menu.
+TAB_COLOR_ALIASES = {
+    "amber": "orange", "coral": "red", "pink": "red",
+    "violet": "purple", "teal": "light_blue",
+}
+
+
+def normalize_tab_color(color: str) -> str:
+    normalized = TAB_COLOR_ALIASES.get(color, color)
+    return normalized if normalized in TAB_COLORS else "default"
 
 TAB_STYLES = {
     "right_skirt": "Right Skirt",
@@ -79,11 +91,11 @@ def lock_indicator_segment(mode: str, left: float, width: float, top: float,
                            height: float, inset: float, tab_style: str):
     """Return one solid, space-free edge marker for a tab lock mode."""
     if mode == "locked":
-        return (left + inset + 2, top + 3,
-                left + width - inset - 2, top + 3)
+        return (left + max(2, inset / 2), top + 4,
+                left + width - max(2, inset / 2), top + 4)
     if mode == "reset":
-        start_y = top + (inset + 1 if tab_style == "rounded" else 3)
-        return (left + 3, start_y, left + 3, height - 4)
+        start_y = top + (max(4, inset / 2) if tab_style == "rounded" else 3)
+        return (left + 4, start_y, left + 4, height - 2)
     return None
 
 
@@ -522,7 +534,7 @@ class ChamferNotebook(ttk.Frame):
             else:
                 self._tabs.insert(max(0, min(position, len(self._tabs))), child)
         self._texts[child] = text
-        self._colors[child] = color if color in TAB_COLORS else "default"
+        self._colors[child] = normalize_tab_color(color)
         self._locks[child] = lock if lock in {"unlocked", "locked", "reset"} else "unlocked"
         self.select(child)
 
@@ -604,7 +616,7 @@ class ChamferNotebook(ttk.Frame):
 
     def set_color(self, tab, color, notify=True):
         child = self._resolve(tab)
-        self._colors[child] = color if color in TAB_COLORS else "default"
+        self._colors[child] = normalize_tab_color(color)
         self._draw()
         if notify:
             self.on_color_changed(child, self._colors[child])
@@ -652,7 +664,7 @@ class ChamferNotebook(ttk.Frame):
             selected = child is self._selected
             padding = 20 if right_skirt else 28
             width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
-            key = self._colors.get(child, "default")
+            key = normalize_tab_color(self._colors.get(child, "default"))
             color = self.palette["tab_default"] if key == "default" else TAB_COLORS[key][1]
             top = 0 if selected else max(4, round(height * 0.22))
             bottom = height if selected else height - 3
@@ -699,7 +711,7 @@ class ChamferNotebook(ttk.Frame):
                                                   tab_inset, self._tab_style)
             if lock_segment is not None:
                 self.bar.create_line(*lock_segment, fill=contrasting_edge_color(color),
-                                     width=max(3, round(height * 0.09)), capstyle="round")
+                                     width=max(5, round(height * 0.15)), capstyle="round")
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)

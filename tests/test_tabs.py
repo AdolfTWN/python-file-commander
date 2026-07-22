@@ -1,12 +1,20 @@
 import unittest
 
 from pycommander.tabs import (COLOR_SCHEMES, TAB_COLORS, TAB_STYLES, color_scheme,
-                              contrasting_edge_color, lock_indicator_segment)
+                              contrasting_edge_color, lock_indicator_segment,
+                              normalize_tab_color)
 
 
 class TabPaletteTests(unittest.TestCase):
     def test_palette_has_default_plus_five_presets(self):
-        self.assertEqual(set(TAB_COLORS), {"default", "amber", "coral", "pink", "violet", "teal"})
+        self.assertEqual(set(TAB_COLORS),
+                         {"default", "red", "light_blue", "orange", "green", "purple"})
+
+    def test_legacy_tab_colours_map_to_current_palette(self):
+        self.assertEqual(normalize_tab_color("amber"), "orange")
+        self.assertEqual(normalize_tab_color("teal"), "light_blue")
+        self.assertEqual(normalize_tab_color("violet"), "purple")
+        self.assertEqual(normalize_tab_color("unknown"), "default")
 
     def test_tab_shape_presets_are_stable(self):
         self.assertEqual(TAB_STYLES, {"right_skirt": "Right Skirt", "rounded": "Rounded",

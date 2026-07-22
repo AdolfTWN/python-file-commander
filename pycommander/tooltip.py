@@ -8,7 +8,7 @@ BUTTON_HELP = {
     "↑": "Go to the parent folder.", "⌂": "Go to your home folder.",
     "F2 Rename": "Rename the selected item.", "F3 Preview": "Open the selected item in PFC Preview.",
     "F4 Search": "Search for files and folders below the current path.",
-    "F5 Copy": "Copy selected items to the opposite panel.",
+    "F5 Copy": "Copy selected items to the destination panel shown on F5.",
     "F6 Move": "Move selected items to the opposite panel.", "F7 New folder": "Create a folder here.",
     "F8": "Reserved for a future action.", "F9 Compare": "Compare selected files or folders.",
     "F11 Copy Path": "Copy all selected full paths as text.",

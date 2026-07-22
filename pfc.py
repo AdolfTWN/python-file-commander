@@ -69,6 +69,7 @@ _TRANSLATIONS = {
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "複製到剪貼簿", "Cut to Clipboard": "剪下到剪貼簿", "Paste": "貼上",
         "Copy to Next Panel": "複製到下一面板", "Move to Next Panel": "移動到下一面板",
+        "Copy to Target Panel": "複製到目標面板", "Move to Target Panel": "移動到目標面板",
         "Rename": "重新命名", "Multi-Rename": "批次重新命名", "New Folder": "新增資料夾",
         "Delete": "刪除", "Permanent Delete": "永久刪除", "Send Delete to Recycle Bin": "刪除時移至資源回收筒",
         "Continue After File Errors": "發生檔案錯誤後繼續", "Favorites": "我的最愛", "Recent Folders": "最近使用的資料夾",
@@ -116,7 +117,7 @@ _TRANSLATIONS = {
         "Copy Details": "複製詳細資料", "Retry Failed": "重試失敗項目", "Create failed": "建立失敗", "Rename failed": "重新命名失敗", "Preview failed": "預覽失敗", "Compare failed": "比較失敗", "Clipboard failed": "剪貼簿操作失敗", "Paste failed": "貼上失敗",
         "Permanent delete warning": "永久刪除警告", "Recycle Bin": "資源回收筒", "Select exactly one item.": "請只選取一個項目。", "Select two or more items first.": "請先選取兩個以上的項目。",
         "Copy": "複製", "Move": "移動", "Recycle": "回收", "Permanent delete": "永久刪除", "Safe Sync": "安全同步", "{count} selected items": "已選取 {count} 個項目", "Not a PFC drop target": "不是 PFC 放置目標",
-        "Default": "預設", "Amber": "琥珀", "Coral": "珊瑚", "Pink": "粉紅", "Violet": "紫羅蘭", "Teal": "藍綠",
+        "Default": "預設", "Red": "紅色", "Light Blue": "淺藍色", "Orange": "橙色", "Green": "綠色", "Purple": "紫色",
         "Unlocked": "未鎖定", "Lock (open folder in new tab)": "鎖定（以新分頁開啟資料夾）", "Lock (open folder is allowed)": "鎖定（允許開啟資料夾）",
         "Action": "動作", "Path": "路徑", "Left": "左側", "Right": "右側", "Different": "不同", "Identical": "相同", "Left only": "僅左側", "Right only": "僅右側", "Left newer": "左側較新", "Right newer": "右側較新",
         "Folder": "資料夾", "Table": "表格", "Binary": "二進位", "{count} match(es)": "{count} 個相符項目", "{current} of {count} matches": "第 {current} 個，共 {count} 個相符項目", "{current} of {count} differences": "第 {current} 個，共 {count} 個差異", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 複製到右側 • Ctrl+← 複製到左側 • Space 略過", "{count} different line(s)": "{count} 個不同的行", "{count} different row(s)": "{count} 個不同的資料列",
@@ -129,6 +130,9 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "調整：詳細資料欄會自動調整寬度，讓名稱欄固定使用面板剩餘空間。",
+        "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.": "調整：P2 至 P4 的 F5／F6 會以左側相鄰面板為目標，按鈕並以目的面板優先明確顯示。",
+        "Adjusted: Replaced tab colours with familiar names and made both tab-lock edge markers more visible.": "調整：分頁顏色改用熟悉的名稱，並提高兩種分頁鎖定邊條的辨識度。",
         "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.": "新增：支援資料夾、ZIP 與 7z 比較，包含設定基準資料夾、差異篩選組合、全部展開／收合及交換左右。",
         "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.": "調整：以同步左右面板統一檔案與資料夾比較，並整合中央交換控制、差異導覽、搜尋及底部狀態列。",
         "Adjusted: Added semantic red difference/newer and purple orphan indicators, scalable controls, and delayed keyboard hints.": "調整：加入紅色差異／較新與紫色孤立項目的語意指示、可縮放控制項及延遲顯示的鍵盤提示。",
@@ -176,7 +180,7 @@ _TRANSLATIONS = {
         "Color Scheme": "配色方案", "Light": "浅色", "Light Grey": "浅灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "复制到剪贴板", "Cut to Clipboard": "剪切到剪贴板", "Paste": "粘贴",
-        "Copy to Next Panel": "复制到下一面板", "Move to Next Panel": "移动到下一面板", "Rename": "重命名", "Multi-Rename": "批量重命名", "New Folder": "新建文件夹",
+        "Copy to Next Panel": "复制到下一面板", "Move to Next Panel": "移动到下一面板", "Copy to Target Panel": "复制到目标面板", "Move to Target Panel": "移动到目标面板", "Rename": "重命名", "Multi-Rename": "批量重命名", "New Folder": "新建文件夹",
         "Delete": "删除", "Permanent Delete": "永久删除", "Send Delete to Recycle Bin": "删除时移至回收站", "Continue After File Errors": "发生文件错误后继续",
         "Favorites": "收藏夹", "Recent Folders": "最近使用的文件夹", "Preview": "预览", "Search": "搜索", "Compare": "比较", "Copy Path": "复制路径", "Change Dir": "更改目录", "Exit": "退出",
         "File Visibility": "文件可见性", "Show Hidden": "显示隐藏项目", "Show System": "显示系统项目", "Show File Extension": "显示文件扩展名", "Font Size": "字体大小", "Tab Style": "选项卡样式", "Panel Counts": "面板数量", "Quick Filter": "快速筛选",
@@ -202,7 +206,7 @@ _TRANSLATIONS = {
         "File conflict": "文件冲突", "An item with the same name already exists.": "已存在同名项目。", "Apply this choice to all remaining conflicts": "将此选择应用于所有剩余冲突", "Replace existing": "替换现有项目", "Skip": "跳过", "Keep both": "两者都保留",
         "Copy Details": "复制详细信息", "Retry Failed": "重试失败项目", "Create failed": "创建失败", "Rename failed": "重命名失败", "Preview failed": "预览失败", "Compare failed": "比较失败", "Clipboard failed": "剪贴板操作失败", "Paste failed": "粘贴失败", "Permanent delete warning": "永久删除警告", "Recycle Bin": "回收站", "Select exactly one item.": "请仅选择一个项目。", "Select two or more items first.": "请先选择两个或更多项目。",
         "Copy": "复制", "Move": "移动", "Recycle": "回收", "Permanent delete": "永久删除", "Safe Sync": "安全同步", "{count} selected items": "已选择 {count} 个项目", "Not a PFC drop target": "不是 PFC 放置目标",
-        "Default": "默认", "Amber": "琥珀", "Coral": "珊瑚", "Pink": "粉红", "Violet": "紫罗兰", "Teal": "蓝绿色",
+        "Default": "默认", "Red": "红色", "Light Blue": "浅蓝色", "Orange": "橙色", "Green": "绿色", "Purple": "紫色",
         "Unlocked": "未锁定", "Lock (open folder in new tab)": "锁定（在新选项卡中打开文件夹）", "Lock (open folder is allowed)": "锁定（允许打开文件夹）",
         "Action": "操作", "Path": "路径", "Left": "左侧", "Right": "右侧", "Different": "不同", "Identical": "相同", "Left only": "仅左侧", "Right only": "仅右侧", "Left newer": "左侧较新", "Right newer": "右侧较新", "Table": "表格", "Binary": "二进制",
         "{count} match(es)": "{count} 个匹配项", "{current} of {count} matches": "第 {current} 个，共 {count} 个匹配项", "{current} of {count} differences": "第 {current} 个，共 {count} 个差异", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 复制到右侧 • Ctrl+← 复制到左侧 • Space 跳过", "{count} different line(s)": "{count} 个不同的行", "{count} different row(s)": "{count} 个不同的数据行", "{count} item(s), {different} different": "{count} 个项目，{different} 个不同", "Review all {count} copy operation(s)": "检查全部 {count} 项复制操作",
@@ -212,6 +216,9 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "调整：详细信息列会自动调整宽度，让名称列始终使用面板剩余空间。",
+        "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.": "调整：P2 至 P4 的 F5／F6 以左侧相邻面板为目标，按钮并优先明确显示目标面板。",
+        "Adjusted: Replaced tab colours with familiar names and made both tab-lock edge markers more visible.": "调整：标签页颜色改用熟悉的名称，并提高两种标签页锁定边条的辨识度。",
         "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.": "新增：支持文件夹、ZIP 与 7z 比较，包括设置基准文件夹、差异筛选组合、全部展开／折叠及交换左右。",
         "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.": "调整：以同步左右面板统一文件与文件夹比较，并整合中央交换控制、差异导航、搜索及底部状态栏。",
         "Adjusted: Added semantic red difference/newer and purple orphan indicators, scalable controls, and delayed keyboard hints.": "调整：加入红色差异／较新与紫色孤立项目的语义指示、可缩放控件及延迟显示的键盘提示。",
@@ -259,7 +266,7 @@ _TRANSLATIONS = {
         "Color Scheme": "색 구성표", "Light": "밝게", "Light Grey": "밝은 회색", "Dark": "어둡게",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "클립보드에 복사", "Cut to Clipboard": "클립보드로 잘라내기", "Paste": "붙여넣기",
-        "Copy to Next Panel": "다음 패널로 복사", "Move to Next Panel": "다음 패널로 이동", "Rename": "이름 바꾸기", "Multi-Rename": "일괄 이름 바꾸기", "New Folder": "새 폴더",
+        "Copy to Next Panel": "다음 패널로 복사", "Move to Next Panel": "다음 패널로 이동", "Copy to Target Panel": "대상 패널로 복사", "Move to Target Panel": "대상 패널로 이동", "Rename": "이름 바꾸기", "Multi-Rename": "일괄 이름 바꾸기", "New Folder": "새 폴더",
         "Delete": "삭제", "Permanent Delete": "완전히 삭제", "Send Delete to Recycle Bin": "삭제 시 휴지통으로 이동", "Continue After File Errors": "파일 오류 후 계속",
         "Favorites": "즐겨찾기", "Recent Folders": "최근 폴더", "Preview": "미리 보기", "Search": "검색", "Compare": "비교", "Copy Path": "경로 복사", "Change Dir": "디렉터리 변경", "Exit": "끝내기",
         "File Visibility": "파일 표시", "Show Hidden": "숨김 항목 표시", "Show System": "시스템 항목 표시", "Show File Extension": "파일 확장명 표시", "Font Size": "글꼴 크기", "Tab Style": "탭 스타일", "Panel Counts": "패널 수", "Quick Filter": "빠른 필터",
@@ -282,7 +289,7 @@ _TRANSLATIONS = {
         "File conflict": "파일 충돌", "An item with the same name already exists.": "같은 이름의 항목이 이미 있습니다.", "Apply this choice to all remaining conflicts": "남은 모든 충돌에 이 선택 적용", "Replace existing": "기존 항목 바꾸기", "Skip": "건너뛰기", "Keep both": "둘 다 유지",
         "Copy Details": "세부 정보 복사", "Retry Failed": "실패 항목 다시 시도", "Create failed": "만들기 실패", "Rename failed": "이름 바꾸기 실패", "Preview failed": "미리 보기 실패", "Compare failed": "비교 실패", "Clipboard failed": "클립보드 작업 실패", "Paste failed": "붙여넣기 실패", "Permanent delete warning": "완전 삭제 경고", "Recycle Bin": "휴지통", "Select exactly one item.": "항목을 하나만 선택하세요.", "Select two or more items first.": "항목을 두 개 이상 먼저 선택하세요.",
         "Copy": "복사", "Move": "이동", "Recycle": "휴지통", "Permanent delete": "완전히 삭제", "Safe Sync": "안전 동기화", "{count} selected items": "선택한 항목 {count}개", "Not a PFC drop target": "PFC 놓기 대상이 아님",
-        "Default": "기본값", "Amber": "호박색", "Coral": "산호색", "Pink": "분홍색", "Violet": "보라색", "Teal": "청록색",
+        "Default": "기본값", "Red": "빨간색", "Light Blue": "하늘색", "Orange": "주황색", "Green": "초록색", "Purple": "보라색",
         "Unlocked": "잠금 해제", "Lock (open folder in new tab)": "잠금(새 탭에서 폴더 열기)", "Lock (open folder is allowed)": "잠금(폴더 열기 허용)",
         "Action": "작업", "Path": "경로", "Left": "왼쪽", "Right": "오른쪽", "Different": "다름", "Identical": "동일", "Left only": "왼쪽에만 있음", "Right only": "오른쪽에만 있음", "Left newer": "왼쪽이 최신", "Right newer": "오른쪽이 최신", "Table": "표", "Binary": "바이너리",
         "{count} match(es)": "일치 항목 {count}개", "{current} of {count} matches": "일치 항목 {count}개 중 {current}번째", "{current} of {count} differences": "차이 {count}개 중 {current}번째", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 오른쪽으로 복사 • Ctrl+← 왼쪽으로 복사 • Space 건너뛰기", "{count} different line(s)": "다른 줄 {count}개", "{count} different row(s)": "다른 행 {count}개", "{count} item(s), {different} different": "항목 {count}개, 차이 {different}개", "Review all {count} copy operation(s)": "복사 작업 {count}개 모두 검토",
@@ -292,6 +299,9 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "조정: 세부 정보 열 너비를 자동으로 맞추고 이름 열이 패널의 남은 너비를 사용하도록 했습니다.",
+        "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.": "조정: P2~P4에서 F5/F6 대상이 왼쪽 인접 패널이 되며 버튼에 대상 패널을 먼저 명확히 표시합니다.",
+        "Adjusted: Replaced tab colours with familiar names and made both tab-lock edge markers more visible.": "조정: 탭 색상을 익숙한 이름으로 바꾸고 두 탭 잠금 가장자리 표시를 더 잘 보이게 했습니다.",
         "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.": "추가: 폴더, ZIP 및 7z 비교와 기준 폴더 설정, 차이 필터 프리셋, 전체 펼치기／접기 및 좌우 바꾸기를 지원합니다.",
         "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.": "조정: 동기화된 좌우 패널을 중심으로 파일 및 폴더 비교를 통합하고 중앙 좌우 바꾸기, 차이 탐색, 검색 및 하단 상태 표시를 배치했습니다.",
         "Adjusted: Added semantic red difference/newer and purple orphan indicators, scalable controls, and delayed keyboard hints.": "조정: 빨간색 차이／최신 항목과 보라색 고립 항목 표시, 크기 조절형 컨트롤 및 지연 키보드 안내를 추가했습니다.",
@@ -1096,12 +1106,24 @@ from tkinter import ttk
 
 TAB_COLORS = {
     "default": ("Default", "#c7d3dd"),
-    "amber": ("Amber", "#f2c14e"),
-    "coral": ("Coral", "#f58b68"),
-    "pink": ("Pink", "#e96ba8"),
-    "violet": ("Violet", "#8d7be5"),
-    "teal": ("Teal", "#55b9ae"),
+    "red": ("Red", "#ef6b6b"),
+    "light_blue": ("Light Blue", "#73bfe2"),
+    "orange": ("Orange", "#f2a654"),
+    "green": ("Green", "#70c58a"),
+    "purple": ("Purple", "#a483df"),
 }
+
+# Preserve tabs saved by releases before v0.12.7 while presenting only the
+# clearer, commonly named palette in the context menu.
+TAB_COLOR_ALIASES = {
+    "amber": "orange", "coral": "red", "pink": "red",
+    "violet": "purple", "teal": "light_blue",
+}
+
+
+def normalize_tab_color(color: str) -> str:
+    normalized = TAB_COLOR_ALIASES.get(color, color)
+    return normalized if normalized in TAB_COLORS else "default"
 
 TAB_STYLES = {
     "right_skirt": "Right Skirt",
@@ -1167,11 +1189,11 @@ def lock_indicator_segment(mode: str, left: float, width: float, top: float,
                            height: float, inset: float, tab_style: str):
     """Return one solid, space-free edge marker for a tab lock mode."""
     if mode == "locked":
-        return (left + inset + 2, top + 3,
-                left + width - inset - 2, top + 3)
+        return (left + max(2, inset / 2), top + 4,
+                left + width - max(2, inset / 2), top + 4)
     if mode == "reset":
-        start_y = top + (inset + 1 if tab_style == "rounded" else 3)
-        return (left + 3, start_y, left + 3, height - 4)
+        start_y = top + (max(4, inset / 2) if tab_style == "rounded" else 3)
+        return (left + 4, start_y, left + 4, height - 2)
     return None
 
 
@@ -1610,7 +1632,7 @@ class ChamferNotebook(ttk.Frame):
             else:
                 self._tabs.insert(max(0, min(position, len(self._tabs))), child)
         self._texts[child] = text
-        self._colors[child] = color if color in TAB_COLORS else "default"
+        self._colors[child] = normalize_tab_color(color)
         self._locks[child] = lock if lock in {"unlocked", "locked", "reset"} else "unlocked"
         self.select(child)
 
@@ -1692,7 +1714,7 @@ class ChamferNotebook(ttk.Frame):
 
     def set_color(self, tab, color, notify=True):
         child = self._resolve(tab)
-        self._colors[child] = color if color in TAB_COLORS else "default"
+        self._colors[child] = normalize_tab_color(color)
         self._draw()
         if notify:
             self.on_color_changed(child, self._colors[child])
@@ -1740,7 +1762,7 @@ class ChamferNotebook(ttk.Frame):
             selected = child is self._selected
             padding = 20 if right_skirt else 28
             width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
-            key = self._colors.get(child, "default")
+            key = normalize_tab_color(self._colors.get(child, "default"))
             color = self.palette["tab_default"] if key == "default" else TAB_COLORS[key][1]
             top = 0 if selected else max(4, round(height * 0.22))
             bottom = height if selected else height - 3
@@ -1787,7 +1809,7 @@ class ChamferNotebook(ttk.Frame):
                                                   tab_inset, self._tab_style)
             if lock_segment is not None:
                 self.bar.create_line(*lock_segment, fill=contrasting_edge_color(color),
-                                     width=max(3, round(height * 0.09)), capstyle="round")
+                                     width=max(5, round(height * 0.15)), capstyle="round")
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
@@ -1902,7 +1924,7 @@ BUTTON_HELP = {
     "↑": "Go to the parent folder.", "⌂": "Go to your home folder.",
     "F2 Rename": "Rename the selected item.", "F3 Preview": "Open the selected item in PFC Preview.",
     "F4 Search": "Search for files and folders below the current path.",
-    "F5 Copy": "Copy selected items to the opposite panel.",
+    "F5 Copy": "Copy selected items to the destination panel shown on F5.",
     "F6 Move": "Move selected items to the opposite panel.", "F7 New folder": "Create a folder here.",
     "F8": "Reserved for a future action.", "F9 Compare": "Compare selected files or folders.",
     "F11 Copy Path": "Copy all selected full paths as text.",
@@ -5195,7 +5217,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.6"
+__version__ = "0.12.7"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -5203,6 +5225,11 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/23"
 VERSION_HISTORY = (
+    ("v0.12.7", "2026/07/23", (
+        "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.",
+        "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.",
+        "Adjusted: Replaced tab colours with familiar names and made both tab-lock edge markers more visible.",
+    )),
     ("v0.12.6", "2026/07/23", (
         "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.",
         "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.",
@@ -5384,6 +5411,14 @@ def folder_history_selection(previous: Path, target: Path,
     return remembered.get(target)
 
 
+def transfer_target_index(source_index: int, panel_count: int) -> int:
+    """Return the intuitive adjacent destination for F5/F6 operations."""
+    if panel_count < 2:
+        return 0
+    source_index = max(0, min(source_index, panel_count - 1))
+    return 1 if source_index == 0 else source_index - 1
+
+
 def is_noop_drag_drop(items: list[Path], destination: Path) -> bool:
     """Treat a drag back to its source folder (or onto itself) as cancellation."""
     if not items:
@@ -5491,6 +5526,7 @@ class FilePane(ttk.Frame):
         self._drag_press_item = None
         self._drag_press_xy = None
         self._dragging = False
+        self._column_resize_job = None
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified"), "attr": tr("Attr")}
         self.icons = ShellIconProvider()
@@ -5524,6 +5560,7 @@ class FilePane(ttk.Frame):
         scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
         horizontal = ttk.Scrollbar(frame, orient="horizontal", command=self.tree.xview)
         self.tree.configure(yscrollcommand=scroll.set, xscrollcommand=horizontal.set)
+        self.tree.bind("<Configure>", lambda _event: self._schedule_column_autosize())
         horizontal.pack(side="bottom", fill="x")
         self.tree.pack(side="left", fill="both", expand=True)
         scroll.pack(side="right", fill="y")
@@ -5756,8 +5793,48 @@ class FilePane(ttk.Frame):
                 self.tree.see(children[0])
             elif children:
                 self.tree.yview_moveto(scroll_position)
+            self._schedule_column_autosize()
         except OSError as exc:
             messagebox.showerror(tr("Cannot read folder"), str(exc))
+
+    def _schedule_column_autosize(self) -> None:
+        if self._column_resize_job is not None:
+            try:
+                self.after_cancel(self._column_resize_job)
+            except tk.TclError:
+                pass
+        self._column_resize_job = self.after_idle(self._autosize_columns)
+
+    def _autosize_columns(self) -> None:
+        """Fit detail fields to visible data and give all remaining width to Name."""
+        self._column_resize_job = None
+        if not self.tree.winfo_exists():
+            return
+        font = tkfont.nametofont("TkDefaultFont")
+        padding = max(18, font.measure("MM"))
+        limits = {
+            "ext": (40, font.measure("W" * 14) + padding),
+            "size": (55, font.measure("0000.0 MB") + padding),
+            "modified": (110, font.measure("0000-00-00 00:00") + padding),
+            "attr": (40, font.measure("Attr") + padding),
+        }
+        children = self.tree.get_children()
+        fixed_total = 0
+        for value_index, column in enumerate(self.columns):
+            heading_width = font.measure(str(self.tree.heading(column, "text"))) + padding
+            measured = heading_width
+            for iid in children:
+                values = self.tree.item(iid, "values")
+                if value_index < len(values):
+                    measured = max(measured, font.measure(str(values[value_index])) + padding)
+            minimum, maximum = limits[column]
+            maximum = max(maximum, heading_width)
+            width = max(minimum, min(measured, maximum))
+            self.tree.column(column, width=width, minwidth=minimum, stretch=False)
+            fixed_total += width
+        available = max(1, self.tree.winfo_width() - 4)
+        self.tree.column("#0", width=max(120, available - fixed_total), minwidth=120,
+                         stretch=True)
 
     @staticmethod
     def signature_for(entries) -> tuple:
@@ -5925,10 +6002,8 @@ class FilePane(ttk.Frame):
         icon_size = max(16, round(16 * scale))
         if self.icons.size != icon_size:
             self.icons = ShellIconProvider(icon_size)
-        self.tree.column("#0", width=round(self.base_widths["name"] * scale), minwidth=120, stretch=True)
-        for column in self.columns:
-            self.tree.column(column, width=round(self.base_widths[column] * scale))
         self.refresh()
+        self._schedule_column_autosize()
 
 
 class PaneTabs(ChamferNotebook):
@@ -6515,8 +6590,8 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
         files.add_command(label=tr("Paste"), accelerator="Ctrl+V", command=self.clipboard_paste)
         files.add_separator()
-        files.add_command(label=tr("Copy to Next Panel"), accelerator="F5", command=self.copy)
-        files.add_command(label=tr("Move to Next Panel"), accelerator="F6", command=self.move)
+        files.add_command(label=tr("Copy to Target Panel"), accelerator="F5", command=self.copy)
+        files.add_command(label=tr("Move to Target Panel"), accelerator="F6", command=self.move)
         files.add_command(label=tr("Rename"), accelerator="F2", command=self.rename)
         files.add_command(label=tr("Multi-Rename"), command=self.multi_rename)
         files.add_command(label=tr("New Folder"), accelerator="F7", command=self.mkdir)
@@ -6619,8 +6694,8 @@ class Commander(tk.Tk):
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
             "Paste": "Paste clipboard items into the active folder.",
-            "Copy to Next Panel": "Copy selected items to the next visible panel.",
-            "Move to Next Panel": "Move selected items to the next visible panel.",
+            "Copy to Target Panel": "Copy selected items to the destination shown on F5.",
+            "Move to Target Panel": "Move selected items to the destination shown on F6.",
             "Rename": "Rename the selected item.", "Preview": "Open PFC Preview.",
             "Multi-Rename": "Preview and rename multiple selected items; Ctrl+Z undoes the last batch.",
             "New Folder": "Create a folder in the active panel.",
@@ -6638,7 +6713,7 @@ class Commander(tk.Tk):
             "Color Scheme": "Choose the overall application contrast and colors.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
-            "Panel Counts": "Show two, three, or four file panels; F5/F6 target the next panel.",
+            "Panel Counts": "Show two, three, or four file panels; F5/F6 target the adjacent panel.",
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
         version_help = {
@@ -6820,9 +6895,10 @@ class Commander(tk.Tk):
         source_tabs = self._tabs_for(self.active) if self.active is not None else visible[0]
         if source_tabs not in visible:
             source_tabs = visible[0]
-        target_number = (visible.index(source_tabs) + 1) % len(visible) + 1
-        buttons["F5"].configure(text=f"F5 {tr('Copy')} → P{target_number}")
-        buttons["F6"].configure(text=f"F6 {tr('Move')} → P{target_number}")
+        source_index = visible.index(source_tabs)
+        target_number = transfer_target_index(source_index, len(visible)) + 1
+        buttons["F5"].configure(text=f"F5 P{target_number} ← {tr('Copy')}")
+        buttons["F6"].configure(text=f"F6 P{target_number} ← {tr('Move')}")
 
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
@@ -6913,7 +6989,8 @@ class Commander(tk.Tk):
         if source_tabs not in tabs_list:
             source_tabs = tabs_list[0]; source = source_tabs.current()
         index = tabs_list.index(source_tabs)
-        return source, tabs_list[(index + 1) % len(tabs_list)].current()
+        target_index = transfer_target_index(index, len(tabs_list))
+        return source, tabs_list[target_index].current()
 
     def _tabs_for(self, pane: FilePane) -> PaneTabs:
         for tabs in self.panel_tabs:
@@ -7201,8 +7278,8 @@ class Commander(tk.Tk):
         menu.add_command(label=paste_label, accelerator="Ctrl+V",
                          command=lambda target=paste_destination: self._clipboard_paste_to(target))
         menu.add_separator()
-        menu.add_command(label=tr("Copy to Next Panel"), accelerator="F5", command=self.copy)
-        menu.add_command(label=tr("Move to Next Panel"), accelerator="F6", command=self.move)
+        menu.add_command(label=tr("Copy to Target Panel"), accelerator="F5", command=self.copy)
+        menu.add_command(label=tr("Move to Target Panel"), accelerator="F6", command=self.move)
         menu.add_separator()
         menu.add_command(label=tr("Rename"), accelerator="F2",
                          state=normal_if(single), command=self.rename)
@@ -7222,8 +7299,8 @@ class Commander(tk.Tk):
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
             "Paste into This Folder": "Paste clipboard items directly into the clicked folder.",
             "Paste into Current Folder": "Paste clipboard items into the current panel folder.",
-            "Copy to Next Panel": "Copy selected items to the next visible panel.",
-            "Move to Next Panel": "Move selected items to the next visible panel.",
+            "Copy to Target Panel": "Copy selected items to the destination shown on F5.",
+            "Move to Target Panel": "Move selected items to the destination shown on F6.",
             "Rename": "Rename the selected item.",
             "Multi-Rename": "Preview and rename all selected items.",
             "Copy Path": "Copy all selected full paths as text.",
