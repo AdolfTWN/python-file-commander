@@ -120,7 +120,7 @@ _TRANSLATIONS = {
         "Default": "預設", "Red": "紅色", "Light Blue": "淺藍色", "Orange": "橙色", "Green": "綠色", "Purple": "紫色",
         "Unlocked": "未鎖定", "Lock (open folder in new tab)": "鎖定（以新分頁開啟資料夾）", "Lock (open folder is allowed)": "鎖定（允許開啟資料夾）",
         "Action": "動作", "Path": "路徑", "Left": "左側", "Right": "右側", "Different": "不同", "Identical": "相同", "Left only": "僅左側", "Right only": "僅右側", "Left newer": "左側較新", "Right newer": "右側較新",
-        "Folder": "資料夾", "Table": "表格", "Binary": "二進位", "{count} match(es)": "{count} 個相符項目", "{current} of {count} matches": "第 {current} 個，共 {count} 個相符項目", "{current} of {count} differences": "第 {current} 個，共 {count} 個差異", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 複製到右側 • Ctrl+← 複製到左側 • Space 略過", "{count} different line(s)": "{count} 個不同的行", "{count} different row(s)": "{count} 個不同的資料列",
+        "Folder": "資料夾", "Table": "表格", "Binary": "二進位", "Folder Overview": "資料夾總覽", "← Folder Overview": "← 資料夾總覽", "Nested file compare": "巢狀檔案比較", "{count} match(es)": "{count} 個相符項目", "{current} of {count} matches": "第 {current} 個，共 {count} 個相符項目", "{current} of {count} differences": "第 {current} 個，共 {count} 個差異", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 複製到右側 • Ctrl+← 複製到左側 • Space 略過", "Enter opens nested file compare • Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Enter 開啟巢狀檔案比較 • Ctrl+→ 複製到右側 • Ctrl+← 複製到左側 • Space 略過", "{count} different line(s)": "{count} 個不同的行", "{count} different row(s)": "{count} 個不同的資料列",
         "{count} item(s), {different} different": "{count} 個項目，{different} 個不同", "Review all {count} copy operation(s)": "檢閱全部 {count} 項複製操作",
         "Select rows and assign Copy → or ← Copy first.": "請先選取資料列並指定「複製 →」或「← 複製」。", "Select two files or two folders.": "請選取兩個檔案或兩個資料夾。",
         "Select one or more files or folders.": "請選取一個以上的檔案或資料夾。", "{count} {kind} copied to clipboard.": "已將 {count} 個{kind}複製到剪貼簿。",
@@ -130,6 +130,9 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.": "新增：將資料夾或壓縮檔中的成對檔案開啟為可重複使用的巢狀比較分頁，並顯示邏輯來源路徑。",
+        "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.": "調整：獨立與巢狀檔案比較統一使用相同的左右窗格、差異圖、導覽、搜尋與狀態版面。",
+        "Adjusted: Routed F7, F8, Ctrl+F, and Esc to the active nested comparison for uninterrupted keyboard use.": "調整：F7、F8、Ctrl+F 與 Esc 會作用於目前巢狀比較，維持不中斷的鍵盤操作。",
         "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "調整：詳細資料欄會自動調整寬度，讓名稱欄固定使用面板剩餘空間。",
         "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.": "調整：P2 至 P4 的 F5／F6 會以左側相鄰面板為目標，按鈕並以目的面板優先明確顯示。",
         "Adjusted: Replaced tab colours with familiar names and made both tab-lock edge markers more visible.": "調整：分頁顏色改用熟悉的名稱，並提高兩種分頁鎖定邊條的辨識度。",
@@ -209,13 +212,16 @@ _TRANSLATIONS = {
         "Default": "默认", "Red": "红色", "Light Blue": "浅蓝色", "Orange": "橙色", "Green": "绿色", "Purple": "紫色",
         "Unlocked": "未锁定", "Lock (open folder in new tab)": "锁定（在新选项卡中打开文件夹）", "Lock (open folder is allowed)": "锁定（允许打开文件夹）",
         "Action": "操作", "Path": "路径", "Left": "左侧", "Right": "右侧", "Different": "不同", "Identical": "相同", "Left only": "仅左侧", "Right only": "仅右侧", "Left newer": "左侧较新", "Right newer": "右侧较新", "Table": "表格", "Binary": "二进制",
-        "{count} match(es)": "{count} 个匹配项", "{current} of {count} matches": "第 {current} 个，共 {count} 个匹配项", "{current} of {count} differences": "第 {current} 个，共 {count} 个差异", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 复制到右侧 • Ctrl+← 复制到左侧 • Space 跳过", "{count} different line(s)": "{count} 个不同的行", "{count} different row(s)": "{count} 个不同的数据行", "{count} item(s), {different} different": "{count} 个项目，{different} 个不同", "Review all {count} copy operation(s)": "检查全部 {count} 项复制操作",
+        "Folder Overview": "文件夹总览", "← Folder Overview": "← 文件夹总览", "Nested file compare": "嵌套文件比较", "{count} match(es)": "{count} 个匹配项", "{current} of {count} matches": "第 {current} 个，共 {count} 个匹配项", "{current} of {count} differences": "第 {current} 个，共 {count} 个差异", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 复制到右侧 • Ctrl+← 复制到左侧 • Space 跳过", "Enter opens nested file compare • Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Enter 打开嵌套文件比较 • Ctrl+→ 复制到右侧 • Ctrl+← 复制到左侧 • Space 跳过", "{count} different line(s)": "{count} 个不同的行", "{count} different row(s)": "{count} 个不同的数据行", "{count} item(s), {different} different": "{count} 个项目，{different} 个不同", "Review all {count} copy operation(s)": "检查全部 {count} 项复制操作",
         "Select rows and assign Copy → or ← Copy first.": "请先选择数据行并指定“复制 →”或“← 复制”。", "Select two files or two folders.": "请选择两个文件或两个文件夹。", "Select one or more files or folders.": "请选择一个或多个文件或文件夹。", "{count} {kind} copied to clipboard.": "已将 {count} 个{kind}复制到剪贴板。",
         "Folder name:": "文件夹名称：", "New name:": "新名称：", "Move {count} selected item(s) to the Recycle Bin?": "要将选择的 {count} 个项目移至回收站吗？", "This cannot be undone.\n\nPermanently delete {count} selected item(s)?": "此操作无法撤销。\n\n要永久删除选择的 {count} 个项目吗？",
         "{verb} {count} selected item(s) to:\n{destination}?": "要将选择的 {count} 个项目{verb}到：\n{destination}？", "{verb} result": "{verb}结果", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}：完成 {completed} 个、跳过 {skipped} 个、失败 {failed} 个。",
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.": "新增：将文件夹或压缩文件中的成对文件打开为可重复使用的嵌套比较标签页，并显示逻辑来源路径。",
+        "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.": "调整：独立与嵌套文件比较统一使用相同的左右窗格、差异图、导航、搜索和状态布局。",
+        "Adjusted: Routed F7, F8, Ctrl+F, and Esc to the active nested comparison for uninterrupted keyboard use.": "调整：F7、F8、Ctrl+F 和 Esc 会作用于当前嵌套比较，保持不中断的键盘操作。",
         "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "调整：详细信息列会自动调整宽度，让名称列始终使用面板剩余空间。",
         "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.": "调整：P2 至 P4 的 F5／F6 以左侧相邻面板为目标，按钮并优先明确显示目标面板。",
         "Adjusted: Replaced tab colours with familiar names and made both tab-lock edge markers more visible.": "调整：标签页颜色改用熟悉的名称，并提高两种标签页锁定边条的辨识度。",
@@ -292,13 +298,16 @@ _TRANSLATIONS = {
         "Default": "기본값", "Red": "빨간색", "Light Blue": "하늘색", "Orange": "주황색", "Green": "초록색", "Purple": "보라색",
         "Unlocked": "잠금 해제", "Lock (open folder in new tab)": "잠금(새 탭에서 폴더 열기)", "Lock (open folder is allowed)": "잠금(폴더 열기 허용)",
         "Action": "작업", "Path": "경로", "Left": "왼쪽", "Right": "오른쪽", "Different": "다름", "Identical": "동일", "Left only": "왼쪽에만 있음", "Right only": "오른쪽에만 있음", "Left newer": "왼쪽이 최신", "Right newer": "오른쪽이 최신", "Table": "표", "Binary": "바이너리",
-        "{count} match(es)": "일치 항목 {count}개", "{current} of {count} matches": "일치 항목 {count}개 중 {current}번째", "{current} of {count} differences": "차이 {count}개 중 {current}번째", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 오른쪽으로 복사 • Ctrl+← 왼쪽으로 복사 • Space 건너뛰기", "{count} different line(s)": "다른 줄 {count}개", "{count} different row(s)": "다른 행 {count}개", "{count} item(s), {different} different": "항목 {count}개, 차이 {different}개", "Review all {count} copy operation(s)": "복사 작업 {count}개 모두 검토",
+        "Folder Overview": "폴더 개요", "← Folder Overview": "← 폴더 개요", "Nested file compare": "중첩 파일 비교", "{count} match(es)": "일치 항목 {count}개", "{current} of {count} matches": "일치 항목 {count}개 중 {current}번째", "{current} of {count} differences": "차이 {count}개 중 {current}번째", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 오른쪽으로 복사 • Ctrl+← 왼쪽으로 복사 • Space 건너뛰기", "Enter opens nested file compare • Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Enter 중첩 파일 비교 열기 • Ctrl+→ 오른쪽으로 복사 • Ctrl+← 왼쪽으로 복사 • Space 건너뛰기", "{count} different line(s)": "다른 줄 {count}개", "{count} different row(s)": "다른 행 {count}개", "{count} item(s), {different} different": "항목 {count}개, 차이 {different}개", "Review all {count} copy operation(s)": "복사 작업 {count}개 모두 검토",
         "Select rows and assign Copy → or ← Copy first.": "먼저 행을 선택하고 복사 → 또는 ← 복사를 지정하세요.", "Select two files or two folders.": "파일 두 개 또는 폴더 두 개를 선택하세요.", "Select one or more files or folders.": "파일이나 폴더를 하나 이상 선택하세요.", "{count} {kind} copied to clipboard.": "{kind} {count}개를 클립보드에 복사했습니다.",
         "Folder name:": "폴더 이름:", "New name:": "새 이름:", "Move {count} selected item(s) to the Recycle Bin?": "선택한 항목 {count}개를 휴지통으로 이동하시겠습니까?", "This cannot be undone.\n\nPermanently delete {count} selected item(s)?": "이 작업은 취소할 수 없습니다.\n\n선택한 항목 {count}개를 완전히 삭제하시겠습니까?",
         "{verb} {count} selected item(s) to:\n{destination}?": "선택한 항목 {count}개를 다음 위치로 {verb}하시겠습니까?\n{destination}", "{verb} result": "{verb} 결과", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}: 완료 {completed}개, 건너뜀 {skipped}개, 실패 {failed}개.",
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.": "추가: 폴더 또는 압축 파일의 쌍을 이룬 파일을 논리적 원본 경로와 함께 재사용 가능한 중첩 비교 탭으로 엽니다.",
+        "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.": "조정: 독립 및 중첩 파일 비교가 동일한 좌우 창, 차이 지도, 탐색, 검색 및 상태 레이아웃을 사용하도록 통합했습니다.",
+        "Adjusted: Routed F7, F8, Ctrl+F, and Esc to the active nested comparison for uninterrupted keyboard use.": "조정: F7, F8, Ctrl+F 및 Esc가 활성 중첩 비교에 작동하도록 하여 키보드 사용이 끊기지 않게 했습니다.",
         "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "조정: 세부 정보 열 너비를 자동으로 맞추고 이름 열이 패널의 남은 너비를 사용하도록 했습니다.",
         "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.": "조정: P2~P4에서 F5/F6 대상이 왼쪽 인접 패널이 되며 버튼에 대상 패널을 먼저 명확히 표시합니다.",
         "Adjusted: Replaced tab colours with familiar names and made both tab-lock edge markers more visible.": "조정: 탭 색상을 익숙한 이름으로 바꾸고 두 탭 잠금 가장자리 표시를 더 잘 보이게 했습니다.",
@@ -2055,6 +2064,15 @@ def is_compare_container(path: Path) -> bool:
     return path.is_dir() or is_compare_archive(path)
 
 
+def nested_source_label(source: Path, relative: str) -> str:
+    """Present extracted archive members using their logical source path."""
+    relative = str(relative).strip("/\\")
+    if not relative:
+        return str(source)
+    separator = " :: " if source.suffix.casefold() in ARCHIVE_SUFFIXES else os.sep
+    return f"{source}{separator}{relative}"
+
+
 def _safe_archive_member(name: str) -> bool:
     normalized = name.replace("\\", "/")
     member = PurePosixPath(normalized)
@@ -2547,7 +2565,8 @@ class SideBySideText(ttk.Frame):
 
 
 class TextCompare(ttk.Frame):
-    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
+                 left_title=None, right_title=None):
         super().__init__(master)
         a = left.read_text(encoding="utf-8", errors="replace")
         b = right.read_text(encoding="utf-8", errors="replace")
@@ -2555,7 +2574,8 @@ class TextCompare(ttk.Frame):
         self.view = SideBySideText(
             self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
             status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count),
-            left_title=left, right_title=right, marker_position=marker_position,
+            left_title=left_title or left, right_title=right_title or right,
+            marker_position=marker_position,
             marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
@@ -2569,7 +2589,8 @@ class TextCompare(ttk.Frame):
 class BinaryCompare(ttk.Frame):
     LIMIT = 256 * 1024
 
-    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
+                 left_title=None, right_title=None):
         super().__init__(master)
         a, b = left.read_bytes()[:self.LIMIT], right.read_bytes()[:self.LIMIT]
         length = max(len(a), len(b)); different_offsets = []
@@ -2592,7 +2613,8 @@ class BinaryCompare(ttk.Frame):
             result=tr("identical") if identical else tr("different"),
             offset=first_offset or tr("none"))
         self.view = SideBySideText(self, left_lines, right_lines, diff_lines,
-                                   status_factory=status_factory, left_title=left, right_title=right,
+                                   status_factory=status_factory,
+                                   left_title=left_title or left, right_title=right_title or right,
                                    marker_position=marker_position, marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
@@ -3222,12 +3244,19 @@ class FolderCompare(_FolderCompareLogic):
         self.scale = 1.0
         self.palette = getattr(master.winfo_toplevel(), "palette", color_scheme("light"))
         self._diff_icons = {}
+        self.nested_details = {}
+
+        self.session_tabs = ChamferNotebook(self)
+        self.session_tabs.pack(fill="both", expand=True)
+        self.session_tabs.set_theme(self.palette)
+        self.summary = ttk.Frame(self.session_tabs)
+        self.session_tabs.add(self.summary, text=tr("Folder Overview"))
 
         self.recursive_var = tk.BooleanVar(value=True)
         self.content_var = tk.BooleanVar(value=self.left_read_only or self.right_read_only)
         self.view_mode_var = tk.StringVar(value="all")
 
-        bar = ttk.Frame(self, padding=(3, 3, 3, 1)); bar.pack(fill="x")
+        bar = ttk.Frame(self.summary, padding=(3, 3, 3, 1)); bar.pack(fill="x")
         ttk.Label(bar, text=tr("Mask:")).pack(side="left", padx=(0, 3))
         self.mask_var = tk.StringVar(value="*")
         ttk.Entry(bar, textvariable=self.mask_var, width=32).pack(side="left", padx=(0, 6))
@@ -3239,7 +3268,7 @@ class FolderCompare(_FolderCompareLogic):
         self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
         self.content_button.pack(side="left")
 
-        options = ttk.Frame(self, padding=(3, 1)); options.pack(fill="x")
+        options = ttk.Frame(self.summary, padding=(3, 1)); options.pack(fill="x")
         self.diff_button = ttk.Menubutton(options, text=tr("All"))
         self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
         self.diff_button.configure(menu=self.diff_menu, compound="left")
@@ -3254,7 +3283,7 @@ class FolderCompare(_FolderCompareLogic):
         self.marker_button.configure(menu=self.marker_menu); self.marker_button.pack(side="left")
         self._build_marker_menu(); self._update_marker_button()
 
-        navigation = ttk.Frame(self, padding=(3, 1)); navigation.pack(fill="x")
+        navigation = ttk.Frame(self.summary, padding=(3, 1)); navigation.pack(fill="x")
         self.previous_button = ttk.Button(navigation, text=f"F7 {tr('Diff <<')}", command=self.previous)
         self.previous_button.pack(side="left", padx=(0, 3))
         self.next_button = ttk.Button(navigation, text=f"F8 {tr('Diff >>')}", command=self.next)
@@ -3275,13 +3304,13 @@ class FolderCompare(_FolderCompareLogic):
         self.case_button.pack(side="left")
         self._update_toggle_buttons()
 
-        status_row = ttk.Frame(self, padding=(5, 3)); status_row.pack(side="bottom", fill="x")
+        status_row = ttk.Frame(self.summary, padding=(5, 3)); status_row.pack(side="bottom", fill="x")
         self.scan_status = ttk.Label(status_row, text=tr("Ready"), anchor="w")
         self.scan_status.pack(side="left")
         ttk.Label(status_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(12, 0))
         ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run).pack(side="right")
 
-        self.body = ttk.Frame(self); self.body.pack(fill="both", expand=True, pady=(3, 0))
+        self.body = ttk.Frame(self.summary); self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
         self.left_path_label = tk.Label(self.body, anchor="w", background="#2d668f",
                                         foreground="white", font="TkHeadingFont", padx=6, pady=3)
@@ -3326,7 +3355,8 @@ class FolderCompare(_FolderCompareLogic):
             tree.bind("<space>", lambda _e: self.set_action("skip"))
             tree.bind("<MouseWheel>", self._mousewheel)
             tree._pfc_sync_tooltip = ToolTip(
-                tree, tr("Ctrl+→ copy to right • Ctrl+← copy to left • Space skip"), delay=5000)
+                tree, tr("Enter opens nested file compare • Ctrl+→ copy to right • "
+                         "Ctrl+← copy to left • Space skip"), delay=5000)
         left_x = ttk.Scrollbar(self.left_frame, orient="horizontal", command=self.left_tree.xview)
         right_x = ttk.Scrollbar(self.right_frame, orient="horizontal", command=self.right_tree.xview)
         left_x.grid(row=1, column=0, sticky="ew"); right_x.grid(row=1, column=0, sticky="ew")
@@ -3493,6 +3523,10 @@ class FolderCompare(_FolderCompareLogic):
         if position not in {"left", "middle", "right"}: position = "middle"
         self.marker_position_var.set(position); self._layout_marker()
         self._build_marker_menu(); self._update_marker_button()
+        for details in self.nested_details.values():
+            view = getattr(details["detail"], "view", details["detail"])
+            if hasattr(view, "set_marker_position"):
+                view.set_marker_position(position)
         if notify and self.marker_changed is not None: self.marker_changed(position)
 
     def _marker_position_changed(self):
@@ -3538,6 +3572,7 @@ class FolderCompare(_FolderCompareLogic):
 
     def apply_color_scheme(self, palette):
         self.palette = palette
+        self.session_tabs.set_theme(palette)
         self.left_path_label.configure(background=palette["left_header"], foreground="#ffffff")
         self.right_path_label.configure(background=palette["right_header"], foreground="#ffffff")
         self.map_header.configure(background=palette["map_header"], foreground="#ffffff",
@@ -3561,9 +3596,15 @@ class FolderCompare(_FolderCompareLogic):
         self.marker_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                                    activebackground=palette["menu_active"],
                                    activeforeground=palette["menu_active_text"])
+        for details in self.nested_details.values():
+            view = getattr(details["detail"], "view", details["detail"])
+            handler = getattr(view, "apply_color_scheme", None)
+            if callable(handler):
+                handler(palette)
 
     def apply_scale(self, scale: float):
         self.scale = scale
+        self.session_tabs.redraw()
         style = ttk.Style(self)
         linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
         style.configure("PFCCompare.Treeview", font="TkDefaultFont",
@@ -3577,6 +3618,10 @@ class FolderCompare(_FolderCompareLogic):
         for label in (self.left_path_label, self.right_path_label): label.configure(padx=padding * 2, pady=padding)
         self.map_header.configure(pady=padding); self.difference_map.apply_scale(scale)
         self._build_diff_menu()
+        for details in self.nested_details.values():
+            handler = getattr(details["detail"], "apply_scale", None)
+            if callable(handler):
+                handler(scale)
 
     def apply_language(self, old_language: str):
         selected_keys = {self.item_keys.get(iid) for iid in self._selected_items()}
@@ -3587,6 +3632,16 @@ class FolderCompare(_FolderCompareLogic):
         self._update_marker_button(); self._update_toggle_buttons(); self._update_headings(); self.populate()
         selected = [iid for iid in self._all_tree_items() if self.item_keys.get(iid) in selected_keys]
         self._select_items(selected)
+        self.session_tabs.tab(self.summary, text=tr("Folder Overview"))
+        for page, details in self.nested_details.items():
+            details["back"].configure(text=tr("← Folder Overview"))
+            details["caption"].configure(text=tr("Nested file compare"))
+            handler = getattr(details["detail"], "apply_language", None)
+            if callable(handler):
+                handler(old_language)
+            self.session_tabs.tab(
+                page, text=f"{tr(details['kind'])}: {details['left'].name} ↔ {details['right'].name}")
+        self.session_tabs.redraw()
 
     def _update_headings(self):
         direction = " ▼" if self.sort_reverse else " ▲"
@@ -3749,15 +3804,107 @@ class FolderCompare(_FolderCompareLogic):
         self.left_path_label.configure(text=f"{tr('Left')}: {self._base_label('left')}")
         self.right_path_label.configure(text=f"{tr('Right')}: {self._base_label('right')}")
 
+    def _active_detail_view(self):
+        selected = self.session_tabs.select()
+        if not selected:
+            return None
+        page = self.nametowidget(selected)
+        details = self.nested_details.get(page)
+        if details is None:
+            return None
+        return getattr(details["detail"], "view", details["detail"])
+
+    def _show_summary(self):
+        self.session_tabs.select(self.summary)
+        self.after_idle(self.left_tree.focus_set)
+
+    def open_nested_detail(self, left: Path, right: Path, relative: str):
+        key = (str(left), str(right))
+        for page, details in self.nested_details.items():
+            if details["key"] == key:
+                self.session_tabs.select(page)
+                view = getattr(details["detail"], "view", details["detail"])
+                self.after_idle(lambda target=getattr(view, "left", view): target.focus_set())
+                return "break"
+
+        page = ttk.Frame(self.session_tabs)
+        breadcrumb = ttk.Frame(page, padding=(4, 3))
+        breadcrumb.pack(fill="x")
+        back = ttk.Button(breadcrumb, text=tr("← Folder Overview"), command=self._show_summary)
+        back.pack(side="left", padx=(0, 8))
+        caption = ttk.Label(breadcrumb, text=tr("Nested file compare"), style="Heading.TLabel")
+        caption.pack(side="left")
+        host = ttk.Frame(page)
+        host.pack(fill="both", expand=True)
+        left_title = nested_source_label(self.left_label, relative)
+        right_title = nested_source_label(self.right_label, relative)
+        kind, detail = self.open_detail(
+            host, left, right, left_title=left_title, right_title=right_title)
+        detail.pack(fill="both", expand=True)
+        install_button_tooltips(page)
+        details = {
+            "key": key, "detail": detail, "kind": kind, "left": left, "right": right,
+            "back": back, "caption": caption,
+        }
+        self.nested_details[page] = details
+        self.session_tabs.add(page, text=f"{tr(kind)}: {left.name} ↔ {right.name}")
+        view = getattr(detail, "view", detail)
+        color_handler = getattr(view, "apply_color_scheme", None)
+        if callable(color_handler):
+            color_handler(self.palette)
+        scale_handler = getattr(detail, "apply_scale", None)
+        if callable(scale_handler):
+            scale_handler(self.scale)
+        self.after_idle(lambda: getattr(view, "left", view).focus_set())
+        return "break"
+
+    def close_nested_detail(self):
+        selected = self.session_tabs.select()
+        if not selected:
+            return False
+        page = self.nametowidget(selected)
+        if page is self.summary:
+            return False
+        if page not in self.nested_details:
+            return False
+        self.session_tabs.forget(page)
+        self.nested_details.pop(page, None)
+        page.destroy()
+        self._show_summary()
+        return True
+
+    def next(self):
+        view = self._active_detail_view()
+        if view is not None and hasattr(view, "next"):
+            return view.next()
+        return self._difference(1)
+
+    def previous(self):
+        view = self._active_detail_view()
+        if view is not None and hasattr(view, "previous"):
+            return view.previous()
+        return self._difference(-1)
+
+    def focus_search(self):
+        view = self._active_detail_view()
+        if view is not None and hasattr(view, "focus_search"):
+            return view.focus_search()
+        self.search.focus_set(); self.search.selection_range(0, "end")
+        return "break"
+
     def _open(self, _event=None):
         selected = self._selected_items()
         if selected:
             left, right = self.item_paths.get(selected[0], (None, None))
-            if left and right and left.is_file() and right.is_file(): self.open_detail(left, right)
+            relative = self.item_keys.get(selected[0], "")
+            if left and right and left.is_file() and right.is_file():
+                return self.open_nested_detail(left, right, relative)
+        return "break"
 
 
 class TableCompare(TextCompare):
-    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
+                 left_title=None, right_title=None):
         def rows(path):
             delimiter = "\t" if path.suffix.casefold() == ".tsv" else ","
             with path.open("r", encoding="utf-8-sig", errors="replace", newline="") as stream:
@@ -3768,7 +3915,8 @@ class TableCompare(TextCompare):
         self.view = SideBySideText(
             self, [(r[0], r[1]) for r in aligned], [(r[2], r[3]) for r in aligned], differences,
             status_factory=lambda count=len(differences): tr("{count} different row(s)", count=count),
-            left_title=left, right_title=right, marker_position=marker_position,
+            left_title=left_title or left, right_title=right_title or right,
+            marker_position=marker_position,
             marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
@@ -3839,15 +3987,28 @@ class CompareWindow(tk.Toplevel):
         if kind == "Folder":
             left_root, left_read_only = self._prepare_folder_source(left)
             right_root, right_read_only = self._prepare_folder_source(right)
-            return FolderCompare(self.notebook, left_root, right_root, self.add, self.sync_executor,
+            return FolderCompare(self.notebook, left_root, right_root, self._make_file_frame,
+                                 self.sync_executor,
                                  left_label=left, right_label=right,
                                  left_read_only=left_read_only, right_read_only=right_read_only,
                                  marker_position=self.marker_position,
                                  marker_changed=self.set_marker_position)
-        args = (self.notebook, left, right, self.marker_position, self.set_marker_position)
-        if kind == "Text": return TextCompare(*args)
-        if kind == "Table": return TableCompare(*args)
-        return BinaryCompare(*args)
+        return self._make_file_frame(self.notebook, left, right, kind)[1]
+
+    def _make_file_frame(self, master, left: Path, right: Path, kind=None,
+                         left_title=None, right_title=None):
+        kind = kind or detect_compare_type(left, right)
+        options = {
+            "marker_position": self.marker_position,
+            "marker_changed": self.set_marker_position,
+            "left_title": left_title,
+            "right_title": right_title,
+        }
+        if kind == "Text":
+            return kind, TextCompare(master, left, right, **options)
+        if kind == "Table":
+            return kind, TableCompare(master, left, right, **options)
+        return "Binary", BinaryCompare(master, left, right, **options)
 
     def _prepare_folder_source(self, path: Path):
         if not is_compare_archive(path):
@@ -3955,6 +4116,8 @@ class CompareWindow(tk.Toplevel):
         tabs = self.notebook.tabs()
         current = self.notebook.select()
         widget = self.nametowidget(current)
+        if hasattr(widget, "close_nested_detail") and widget.close_nested_detail():
+            return
         if hasattr(widget, "cancel_scan") and widget.cancel_scan():
             return
         if len(tabs) <= 1:
@@ -5217,7 +5380,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.7"
+__version__ = "0.12.8"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -5225,6 +5388,11 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/23"
 VERSION_HISTORY = (
+    ("v0.12.8", "2026/07/23", (
+        "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.",
+        "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.",
+        "Adjusted: Routed F7, F8, Ctrl+F, and Esc to the active nested comparison for uninterrupted keyboard use.",
+    )),
     ("v0.12.7", "2026/07/23", (
         "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.",
         "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.",

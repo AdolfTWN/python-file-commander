@@ -33,6 +33,11 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.8", "2026/07/23", (
+        "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.",
+        "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.",
+        "Adjusted: Routed F7, F8, Ctrl+F, and Esc to the active nested comparison for uninterrupted keyboard use.",
+    )),
     ("v0.12.7", "2026/07/23", (
         "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.",
         "Adjusted: Made F5/F6 target the adjacent left panel from P2-P4, with explicit destination-first button labels.",

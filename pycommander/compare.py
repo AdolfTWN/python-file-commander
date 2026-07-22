@@ -36,6 +36,15 @@ def is_compare_container(path: Path) -> bool:
     return path.is_dir() or is_compare_archive(path)
 
 
+def nested_source_label(source: Path, relative: str) -> str:
+    """Present extracted archive members using their logical source path."""
+    relative = str(relative).strip("/\\")
+    if not relative:
+        return str(source)
+    separator = " :: " if source.suffix.casefold() in ARCHIVE_SUFFIXES else os.sep
+    return f"{source}{separator}{relative}"
+
+
 def _safe_archive_member(name: str) -> bool:
     normalized = name.replace("\\", "/")
     member = PurePosixPath(normalized)
@@ -528,7 +537,8 @@ class SideBySideText(ttk.Frame):
 
 
 class TextCompare(ttk.Frame):
-    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
+                 left_title=None, right_title=None):
         super().__init__(master)
         a = left.read_text(encoding="utf-8", errors="replace")
         b = right.read_text(encoding="utf-8", errors="replace")
@@ -536,7 +546,8 @@ class TextCompare(ttk.Frame):
         self.view = SideBySideText(
             self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
             status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count),
-            left_title=left, right_title=right, marker_position=marker_position,
+            left_title=left_title or left, right_title=right_title or right,
+            marker_position=marker_position,
             marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
@@ -550,7 +561,8 @@ class TextCompare(ttk.Frame):
 class BinaryCompare(ttk.Frame):
     LIMIT = 256 * 1024
 
-    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
+                 left_title=None, right_title=None):
         super().__init__(master)
         a, b = left.read_bytes()[:self.LIMIT], right.read_bytes()[:self.LIMIT]
         length = max(len(a), len(b)); different_offsets = []
@@ -573,7 +585,8 @@ class BinaryCompare(ttk.Frame):
             result=tr("identical") if identical else tr("different"),
             offset=first_offset or tr("none"))
         self.view = SideBySideText(self, left_lines, right_lines, diff_lines,
-                                   status_factory=status_factory, left_title=left, right_title=right,
+                                   status_factory=status_factory,
+                                   left_title=left_title or left, right_title=right_title or right,
                                    marker_position=marker_position, marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
@@ -1203,12 +1216,19 @@ class FolderCompare(_FolderCompareLogic):
         self.scale = 1.0
         self.palette = getattr(master.winfo_toplevel(), "palette", color_scheme("light"))
         self._diff_icons = {}
+        self.nested_details = {}
+
+        self.session_tabs = ChamferNotebook(self)
+        self.session_tabs.pack(fill="both", expand=True)
+        self.session_tabs.set_theme(self.palette)
+        self.summary = ttk.Frame(self.session_tabs)
+        self.session_tabs.add(self.summary, text=tr("Folder Overview"))
 
         self.recursive_var = tk.BooleanVar(value=True)
         self.content_var = tk.BooleanVar(value=self.left_read_only or self.right_read_only)
         self.view_mode_var = tk.StringVar(value="all")
 
-        bar = ttk.Frame(self, padding=(3, 3, 3, 1)); bar.pack(fill="x")
+        bar = ttk.Frame(self.summary, padding=(3, 3, 3, 1)); bar.pack(fill="x")
         ttk.Label(bar, text=tr("Mask:")).pack(side="left", padx=(0, 3))
         self.mask_var = tk.StringVar(value="*")
         ttk.Entry(bar, textvariable=self.mask_var, width=32).pack(side="left", padx=(0, 6))
@@ -1220,7 +1240,7 @@ class FolderCompare(_FolderCompareLogic):
         self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
         self.content_button.pack(side="left")
 
-        options = ttk.Frame(self, padding=(3, 1)); options.pack(fill="x")
+        options = ttk.Frame(self.summary, padding=(3, 1)); options.pack(fill="x")
         self.diff_button = ttk.Menubutton(options, text=tr("All"))
         self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
         self.diff_button.configure(menu=self.diff_menu, compound="left")
@@ -1235,7 +1255,7 @@ class FolderCompare(_FolderCompareLogic):
         self.marker_button.configure(menu=self.marker_menu); self.marker_button.pack(side="left")
         self._build_marker_menu(); self._update_marker_button()
 
-        navigation = ttk.Frame(self, padding=(3, 1)); navigation.pack(fill="x")
+        navigation = ttk.Frame(self.summary, padding=(3, 1)); navigation.pack(fill="x")
         self.previous_button = ttk.Button(navigation, text=f"F7 {tr('Diff <<')}", command=self.previous)
         self.previous_button.pack(side="left", padx=(0, 3))
         self.next_button = ttk.Button(navigation, text=f"F8 {tr('Diff >>')}", command=self.next)
@@ -1256,13 +1276,13 @@ class FolderCompare(_FolderCompareLogic):
         self.case_button.pack(side="left")
         self._update_toggle_buttons()
 
-        status_row = ttk.Frame(self, padding=(5, 3)); status_row.pack(side="bottom", fill="x")
+        status_row = ttk.Frame(self.summary, padding=(5, 3)); status_row.pack(side="bottom", fill="x")
         self.scan_status = ttk.Label(status_row, text=tr("Ready"), anchor="w")
         self.scan_status.pack(side="left")
         ttk.Label(status_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(12, 0))
         ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run).pack(side="right")
 
-        self.body = ttk.Frame(self); self.body.pack(fill="both", expand=True, pady=(3, 0))
+        self.body = ttk.Frame(self.summary); self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
         self.left_path_label = tk.Label(self.body, anchor="w", background="#2d668f",
                                         foreground="white", font="TkHeadingFont", padx=6, pady=3)
@@ -1307,7 +1327,8 @@ class FolderCompare(_FolderCompareLogic):
             tree.bind("<space>", lambda _e: self.set_action("skip"))
             tree.bind("<MouseWheel>", self._mousewheel)
             tree._pfc_sync_tooltip = ToolTip(
-                tree, tr("Ctrl+→ copy to right • Ctrl+← copy to left • Space skip"), delay=5000)
+                tree, tr("Enter opens nested file compare • Ctrl+→ copy to right • "
+                         "Ctrl+← copy to left • Space skip"), delay=5000)
         left_x = ttk.Scrollbar(self.left_frame, orient="horizontal", command=self.left_tree.xview)
         right_x = ttk.Scrollbar(self.right_frame, orient="horizontal", command=self.right_tree.xview)
         left_x.grid(row=1, column=0, sticky="ew"); right_x.grid(row=1, column=0, sticky="ew")
@@ -1474,6 +1495,10 @@ class FolderCompare(_FolderCompareLogic):
         if position not in {"left", "middle", "right"}: position = "middle"
         self.marker_position_var.set(position); self._layout_marker()
         self._build_marker_menu(); self._update_marker_button()
+        for details in self.nested_details.values():
+            view = getattr(details["detail"], "view", details["detail"])
+            if hasattr(view, "set_marker_position"):
+                view.set_marker_position(position)
         if notify and self.marker_changed is not None: self.marker_changed(position)
 
     def _marker_position_changed(self):
@@ -1519,6 +1544,7 @@ class FolderCompare(_FolderCompareLogic):
 
     def apply_color_scheme(self, palette):
         self.palette = palette
+        self.session_tabs.set_theme(palette)
         self.left_path_label.configure(background=palette["left_header"], foreground="#ffffff")
         self.right_path_label.configure(background=palette["right_header"], foreground="#ffffff")
         self.map_header.configure(background=palette["map_header"], foreground="#ffffff",
@@ -1542,9 +1568,15 @@ class FolderCompare(_FolderCompareLogic):
         self.marker_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                                    activebackground=palette["menu_active"],
                                    activeforeground=palette["menu_active_text"])
+        for details in self.nested_details.values():
+            view = getattr(details["detail"], "view", details["detail"])
+            handler = getattr(view, "apply_color_scheme", None)
+            if callable(handler):
+                handler(palette)
 
     def apply_scale(self, scale: float):
         self.scale = scale
+        self.session_tabs.redraw()
         style = ttk.Style(self)
         linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
         style.configure("PFCCompare.Treeview", font="TkDefaultFont",
@@ -1558,6 +1590,10 @@ class FolderCompare(_FolderCompareLogic):
         for label in (self.left_path_label, self.right_path_label): label.configure(padx=padding * 2, pady=padding)
         self.map_header.configure(pady=padding); self.difference_map.apply_scale(scale)
         self._build_diff_menu()
+        for details in self.nested_details.values():
+            handler = getattr(details["detail"], "apply_scale", None)
+            if callable(handler):
+                handler(scale)
 
     def apply_language(self, old_language: str):
         selected_keys = {self.item_keys.get(iid) for iid in self._selected_items()}
@@ -1568,6 +1604,16 @@ class FolderCompare(_FolderCompareLogic):
         self._update_marker_button(); self._update_toggle_buttons(); self._update_headings(); self.populate()
         selected = [iid for iid in self._all_tree_items() if self.item_keys.get(iid) in selected_keys]
         self._select_items(selected)
+        self.session_tabs.tab(self.summary, text=tr("Folder Overview"))
+        for page, details in self.nested_details.items():
+            details["back"].configure(text=tr("← Folder Overview"))
+            details["caption"].configure(text=tr("Nested file compare"))
+            handler = getattr(details["detail"], "apply_language", None)
+            if callable(handler):
+                handler(old_language)
+            self.session_tabs.tab(
+                page, text=f"{tr(details['kind'])}: {details['left'].name} ↔ {details['right'].name}")
+        self.session_tabs.redraw()
 
     def _update_headings(self):
         direction = " ▼" if self.sort_reverse else " ▲"
@@ -1730,15 +1776,107 @@ class FolderCompare(_FolderCompareLogic):
         self.left_path_label.configure(text=f"{tr('Left')}: {self._base_label('left')}")
         self.right_path_label.configure(text=f"{tr('Right')}: {self._base_label('right')}")
 
+    def _active_detail_view(self):
+        selected = self.session_tabs.select()
+        if not selected:
+            return None
+        page = self.nametowidget(selected)
+        details = self.nested_details.get(page)
+        if details is None:
+            return None
+        return getattr(details["detail"], "view", details["detail"])
+
+    def _show_summary(self):
+        self.session_tabs.select(self.summary)
+        self.after_idle(self.left_tree.focus_set)
+
+    def open_nested_detail(self, left: Path, right: Path, relative: str):
+        key = (str(left), str(right))
+        for page, details in self.nested_details.items():
+            if details["key"] == key:
+                self.session_tabs.select(page)
+                view = getattr(details["detail"], "view", details["detail"])
+                self.after_idle(lambda target=getattr(view, "left", view): target.focus_set())
+                return "break"
+
+        page = ttk.Frame(self.session_tabs)
+        breadcrumb = ttk.Frame(page, padding=(4, 3))
+        breadcrumb.pack(fill="x")
+        back = ttk.Button(breadcrumb, text=tr("← Folder Overview"), command=self._show_summary)
+        back.pack(side="left", padx=(0, 8))
+        caption = ttk.Label(breadcrumb, text=tr("Nested file compare"), style="Heading.TLabel")
+        caption.pack(side="left")
+        host = ttk.Frame(page)
+        host.pack(fill="both", expand=True)
+        left_title = nested_source_label(self.left_label, relative)
+        right_title = nested_source_label(self.right_label, relative)
+        kind, detail = self.open_detail(
+            host, left, right, left_title=left_title, right_title=right_title)
+        detail.pack(fill="both", expand=True)
+        install_button_tooltips(page)
+        details = {
+            "key": key, "detail": detail, "kind": kind, "left": left, "right": right,
+            "back": back, "caption": caption,
+        }
+        self.nested_details[page] = details
+        self.session_tabs.add(page, text=f"{tr(kind)}: {left.name} ↔ {right.name}")
+        view = getattr(detail, "view", detail)
+        color_handler = getattr(view, "apply_color_scheme", None)
+        if callable(color_handler):
+            color_handler(self.palette)
+        scale_handler = getattr(detail, "apply_scale", None)
+        if callable(scale_handler):
+            scale_handler(self.scale)
+        self.after_idle(lambda: getattr(view, "left", view).focus_set())
+        return "break"
+
+    def close_nested_detail(self):
+        selected = self.session_tabs.select()
+        if not selected:
+            return False
+        page = self.nametowidget(selected)
+        if page is self.summary:
+            return False
+        if page not in self.nested_details:
+            return False
+        self.session_tabs.forget(page)
+        self.nested_details.pop(page, None)
+        page.destroy()
+        self._show_summary()
+        return True
+
+    def next(self):
+        view = self._active_detail_view()
+        if view is not None and hasattr(view, "next"):
+            return view.next()
+        return self._difference(1)
+
+    def previous(self):
+        view = self._active_detail_view()
+        if view is not None and hasattr(view, "previous"):
+            return view.previous()
+        return self._difference(-1)
+
+    def focus_search(self):
+        view = self._active_detail_view()
+        if view is not None and hasattr(view, "focus_search"):
+            return view.focus_search()
+        self.search.focus_set(); self.search.selection_range(0, "end")
+        return "break"
+
     def _open(self, _event=None):
         selected = self._selected_items()
         if selected:
             left, right = self.item_paths.get(selected[0], (None, None))
-            if left and right and left.is_file() and right.is_file(): self.open_detail(left, right)
+            relative = self.item_keys.get(selected[0], "")
+            if left and right and left.is_file() and right.is_file():
+                return self.open_nested_detail(left, right, relative)
+        return "break"
 
 
 class TableCompare(TextCompare):
-    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None):
+    def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
+                 left_title=None, right_title=None):
         def rows(path):
             delimiter = "\t" if path.suffix.casefold() == ".tsv" else ","
             with path.open("r", encoding="utf-8-sig", errors="replace", newline="") as stream:
@@ -1749,7 +1887,8 @@ class TableCompare(TextCompare):
         self.view = SideBySideText(
             self, [(r[0], r[1]) for r in aligned], [(r[2], r[3]) for r in aligned], differences,
             status_factory=lambda count=len(differences): tr("{count} different row(s)", count=count),
-            left_title=left, right_title=right, marker_position=marker_position,
+            left_title=left_title or left, right_title=right_title or right,
+            marker_position=marker_position,
             marker_changed=marker_changed)
         self.view.pack(fill="both", expand=True)
 
@@ -1820,15 +1959,28 @@ class CompareWindow(tk.Toplevel):
         if kind == "Folder":
             left_root, left_read_only = self._prepare_folder_source(left)
             right_root, right_read_only = self._prepare_folder_source(right)
-            return FolderCompare(self.notebook, left_root, right_root, self.add, self.sync_executor,
+            return FolderCompare(self.notebook, left_root, right_root, self._make_file_frame,
+                                 self.sync_executor,
                                  left_label=left, right_label=right,
                                  left_read_only=left_read_only, right_read_only=right_read_only,
                                  marker_position=self.marker_position,
                                  marker_changed=self.set_marker_position)
-        args = (self.notebook, left, right, self.marker_position, self.set_marker_position)
-        if kind == "Text": return TextCompare(*args)
-        if kind == "Table": return TableCompare(*args)
-        return BinaryCompare(*args)
+        return self._make_file_frame(self.notebook, left, right, kind)[1]
+
+    def _make_file_frame(self, master, left: Path, right: Path, kind=None,
+                         left_title=None, right_title=None):
+        kind = kind or detect_compare_type(left, right)
+        options = {
+            "marker_position": self.marker_position,
+            "marker_changed": self.set_marker_position,
+            "left_title": left_title,
+            "right_title": right_title,
+        }
+        if kind == "Text":
+            return kind, TextCompare(master, left, right, **options)
+        if kind == "Table":
+            return kind, TableCompare(master, left, right, **options)
+        return "Binary", BinaryCompare(master, left, right, **options)
 
     def _prepare_folder_source(self, path: Path):
         if not is_compare_archive(path):
@@ -1936,6 +2088,8 @@ class CompareWindow(tk.Toplevel):
         tabs = self.notebook.tabs()
         current = self.notebook.select()
         widget = self.nametowidget(current)
+        if hasattr(widget, "close_nested_detail") and widget.close_nested_detail():
+            return
         if hasattr(widget, "cancel_scan") and widget.cancel_scan():
             return
         if len(tabs) <= 1:

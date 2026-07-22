@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pycommander.compare import (FolderCompare, aligned_text, compare_row_height,
                                  detect_compare_type, extract_compare_archive, file_hash,
-                                 folder_rows, is_compare_archive)
+                                 folder_rows, is_compare_archive, nested_source_label)
 
 
 class CompareTests(unittest.TestCase):
@@ -58,6 +58,13 @@ class CompareTests(unittest.TestCase):
                 self.assertIn(("Identical", "same.txt"), {(status, path) for status, path, *_ in rows})
             finally:
                 workspace.cleanup()
+
+    def test_nested_compare_uses_logical_folder_and_archive_paths(self):
+        relative = str(Path("logs") / "today.txt")
+        self.assertEqual(nested_source_label(Path(r"C:\work\left"), relative),
+                         str(Path(r"C:\work\left") / relative))
+        self.assertEqual(nested_source_label(Path(r"C:\work\right.zip"), relative),
+                         rf"C:\work\right.zip :: {relative}")
 
     def test_archive_path_traversal_is_rejected(self):
         with tempfile.TemporaryDirectory() as raw:
