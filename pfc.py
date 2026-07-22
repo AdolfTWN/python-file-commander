@@ -103,8 +103,10 @@ _TRANSLATIONS = {
         "Replace:": "取代為：", "Keep extension": "保留副檔名", "Start:": "起始值：", "Digits:": "位數：",
         "Old": "原名稱", "New": "新名稱", "Status": "狀態", "Ctrl+Z Undo": "Ctrl+Z 復原", "Ctrl+Enter Rename": "Ctrl+Enter 重新命名",
         "{changed} rename(s), {errors} error(s)": "{changed} 個重新命名，{errors} 個錯誤", "Rename {count} item(s)?": "要重新命名 {count} 個項目嗎？", "Renamed {count} item(s).": "已重新命名 {count} 個項目。", "Restored {count} item(s).": "已還原 {count} 個項目。",
-        "Diff <<": "差異 <<", "Diff >>": "差異 >>", "Difference marker:": "差異標記位置：", "Middle": "中央",
+        "Diff <<": "差異 <<", "Diff >>": "差異 >>", "Difference marker:": "差異標記位置：", "Map:": "差異圖：", "Middle": "中央",
         "Recursive": "包含子資料夾", "By content": "依內容", "Differences only": "僅顯示差異",
+        "Diffs": "差異", "Show All": "顯示全部", "Show Differences": "顯示差異", "Show No Orphans": "隱藏孤立項目", "Show Differences but No Orphans": "顯示差異但不含孤立項目", "Show Orphans": "顯示孤立項目", "Show Left Newer": "顯示左側較新", "Show Right Newer": "顯示右側較新", "Show Left Newer and Left Orphans": "顯示左側較新及左側孤立項目", "Show Right Newer and Right Orphans": "顯示右側較新及右側孤立項目", "Show Left Orphans": "顯示左側孤立項目", "Show Right Orphans": "顯示右側孤立項目",
+        "Expand All": "全部展開", "Collapse All": "全部收合", "Set Base Folder": "設為基準資料夾", "Swap Sides": "交換左右", "Select a folder row first.": "請先選取資料夾資料列。", "The selected row is not a folder.": "選取的資料列不是資料夾。",
         "Mask:": "遮罩：", "Space Skip": "Space 略過", "Dry Run && Sync": "預演並同步", "Copy only — no automatic delete": "僅複製 — 不會自動刪除",
         "Scanning…  Esc cancels": "掃描中…  Esc 取消", "Scan cancelled": "掃描已取消", "Scan failed": "掃描失敗", "Folder Compare": "資料夾比較",
         "Safe Sync — Dry Run": "安全同步 — 預演", "Source": "來源", "Destination": "目的地", "Execute Copy Plan": "執行複製計畫",
@@ -117,7 +119,7 @@ _TRANSLATIONS = {
         "Default": "預設", "Amber": "琥珀", "Coral": "珊瑚", "Pink": "粉紅", "Violet": "紫羅蘭", "Teal": "藍綠",
         "Unlocked": "未鎖定", "Lock (open folder in new tab)": "鎖定（以新分頁開啟資料夾）", "Lock (open folder is allowed)": "鎖定（允許開啟資料夾）",
         "Action": "動作", "Path": "路徑", "Left": "左側", "Right": "右側", "Different": "不同", "Identical": "相同", "Left only": "僅左側", "Right only": "僅右側", "Left newer": "左側較新", "Right newer": "右側較新",
-        "Folder": "資料夾", "Table": "表格", "Binary": "二進位", "{count} match(es)": "{count} 個相符項目", "{count} different line(s)": "{count} 個不同的行", "{count} different row(s)": "{count} 個不同的資料列",
+        "Folder": "資料夾", "Table": "表格", "Binary": "二進位", "{count} match(es)": "{count} 個相符項目", "{current} of {count} matches": "第 {current} 個，共 {count} 個相符項目", "{current} of {count} differences": "第 {current} 個，共 {count} 個差異", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 複製到右側 • Ctrl+← 複製到左側 • Space 略過", "{count} different line(s)": "{count} 個不同的行", "{count} different row(s)": "{count} 個不同的資料列",
         "{count} item(s), {different} different": "{count} 個項目，{different} 個不同", "Review all {count} copy operation(s)": "檢閱全部 {count} 項複製操作",
         "Select rows and assign Copy → or ← Copy first.": "請先選取資料列並指定「複製 →」或「← 複製」。", "Select two files or two folders.": "請選取兩個檔案或兩個資料夾。",
         "Select one or more files or folders.": "請選取一個以上的檔案或資料夾。", "{count} {kind} copied to clipboard.": "已將 {count} 個{kind}複製到剪貼簿。",
@@ -127,6 +129,9 @@ _TRANSLATIONS = {
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一個位移：{offset}", "identical": "相同", "different": "不同", "none": "無",
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
+        "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.": "新增：支援資料夾、ZIP 與 7z 比較，包含設定基準資料夾、差異篩選組合、全部展開／收合及交換左右。",
+        "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.": "調整：以同步左右面板統一檔案與資料夾比較，並整合中央交換控制、差異導覽、搜尋及底部狀態列。",
+        "Adjusted: Added semantic red difference/newer and purple orphan indicators, scalable controls, and delayed keyboard hints.": "調整：加入紅色差異／較新與紫色孤立項目的語意指示、可縮放控制項及延遲顯示的鍵盤提示。",
         "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.": "調整：以不占空間的實線邊緣取代分頁鎖定條紋，並依分頁底色自動維持清楚對比。",
         "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "修正：點擊非作用中面板的檔案時，會在執行命令前先啟用該面板。",
         "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "調整：加入持續顯示的作用中面板強調線，以及明確的 F5/F6 目標面板標示。",
@@ -191,8 +196,8 @@ _TRANSLATIONS = {
         "Size KB min:": "最小大小 (KB)：", "max:": "最大：", "Modified within days:": "最近修改天数：", "Go to File": "转到文件", "Searching…": "正在搜索…", "Cancelling…": "正在取消…", "{count} found": "找到 {count} 个", " — cancelled": " — 已取消", " — limit reached": " — 已达上限", "Start path is not a folder.": "开始路径不是文件夹。", "Search failed": "搜索失败",
         "Name mask:": "名称掩码：", "[N] original   [C] counter   [E] extension": "[N] 原名称   [C] 计数器   [E] 扩展名", "Replace:": "替换为：", "Keep extension": "保留扩展名", "Start:": "起始值：", "Digits:": "位数：", "Old": "原名称", "New": "新名称", "Status": "状态", "Ctrl+Z Undo": "Ctrl+Z 撤销", "Ctrl+Enter Rename": "Ctrl+Enter 重命名",
         "{changed} rename(s), {errors} error(s)": "{changed} 个重命名，{errors} 个错误", "Rename {count} item(s)?": "要重命名 {count} 个项目吗？", "Renamed {count} item(s).": "已重命名 {count} 个项目。", "Restored {count} item(s).": "已还原 {count} 个项目。",
-        "Diff <<": "差异 <<", "Diff >>": "差异 >>", "Difference marker:": "差异标记位置：", "Middle": "中间",
-        "Recursive": "包含子文件夹", "By content": "按内容", "Differences only": "仅显示差异", "Mask:": "掩码：", "Space Skip": "Space 跳过", "Dry Run && Sync": "预演并同步", "Copy only — no automatic delete": "仅复制 — 不会自动删除", "Scanning…  Esc cancels": "正在扫描…  Esc 取消", "Scan cancelled": "扫描已取消", "Scan failed": "扫描失败", "Folder Compare": "文件夹比较",
+        "Diff <<": "差异 <<", "Diff >>": "差异 >>", "Difference marker:": "差异标记位置：", "Map:": "差异图：", "Middle": "中间",
+        "Recursive": "包含子文件夹", "By content": "按内容", "Differences only": "仅显示差异", "Diffs": "差异", "Show All": "显示全部", "Show Differences": "显示差异", "Show No Orphans": "隐藏孤立项目", "Show Differences but No Orphans": "显示差异但不含孤立项目", "Show Orphans": "显示孤立项目", "Show Left Newer": "显示左侧较新", "Show Right Newer": "显示右侧较新", "Show Left Newer and Left Orphans": "显示左侧较新及左侧孤立项目", "Show Right Newer and Right Orphans": "显示右侧较新及右侧孤立项目", "Show Left Orphans": "显示左侧孤立项目", "Show Right Orphans": "显示右侧孤立项目", "Expand All": "全部展开", "Collapse All": "全部折叠", "Set Base Folder": "设为基准文件夹", "Swap Sides": "交换左右", "Select a folder row first.": "请先选择文件夹数据行。", "The selected row is not a folder.": "所选数据行不是文件夹。", "Mask:": "掩码：", "Space Skip": "Space 跳过", "Dry Run && Sync": "预演并同步", "Copy only — no automatic delete": "仅复制 — 不会自动删除", "Scanning…  Esc cancels": "正在扫描…  Esc 取消", "Scan cancelled": "扫描已取消", "Scan failed": "扫描失败", "Folder Compare": "文件夹比较",
         "Safe Sync — Dry Run": "安全同步 — 预演", "Source": "源", "Destination": "目标", "Execute Copy Plan": "执行复制计划", "Copy only — no files or folders will be deleted.": "仅执行复制 — 不会删除任何文件或文件夹。",
         "File conflict": "文件冲突", "An item with the same name already exists.": "已存在同名项目。", "Apply this choice to all remaining conflicts": "将此选择应用于所有剩余冲突", "Replace existing": "替换现有项目", "Skip": "跳过", "Keep both": "两者都保留",
         "Copy Details": "复制详细信息", "Retry Failed": "重试失败项目", "Create failed": "创建失败", "Rename failed": "重命名失败", "Preview failed": "预览失败", "Compare failed": "比较失败", "Clipboard failed": "剪贴板操作失败", "Paste failed": "粘贴失败", "Permanent delete warning": "永久删除警告", "Recycle Bin": "回收站", "Select exactly one item.": "请仅选择一个项目。", "Select two or more items first.": "请先选择两个或更多项目。",
@@ -200,13 +205,16 @@ _TRANSLATIONS = {
         "Default": "默认", "Amber": "琥珀", "Coral": "珊瑚", "Pink": "粉红", "Violet": "紫罗兰", "Teal": "蓝绿色",
         "Unlocked": "未锁定", "Lock (open folder in new tab)": "锁定（在新选项卡中打开文件夹）", "Lock (open folder is allowed)": "锁定（允许打开文件夹）",
         "Action": "操作", "Path": "路径", "Left": "左侧", "Right": "右侧", "Different": "不同", "Identical": "相同", "Left only": "仅左侧", "Right only": "仅右侧", "Left newer": "左侧较新", "Right newer": "右侧较新", "Table": "表格", "Binary": "二进制",
-        "{count} match(es)": "{count} 个匹配项", "{count} different line(s)": "{count} 个不同的行", "{count} different row(s)": "{count} 个不同的数据行", "{count} item(s), {different} different": "{count} 个项目，{different} 个不同", "Review all {count} copy operation(s)": "检查全部 {count} 项复制操作",
+        "{count} match(es)": "{count} 个匹配项", "{current} of {count} matches": "第 {current} 个，共 {count} 个匹配项", "{current} of {count} differences": "第 {current} 个，共 {count} 个差异", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 复制到右侧 • Ctrl+← 复制到左侧 • Space 跳过", "{count} different line(s)": "{count} 个不同的行", "{count} different row(s)": "{count} 个不同的数据行", "{count} item(s), {different} different": "{count} 个项目，{different} 个不同", "Review all {count} copy operation(s)": "检查全部 {count} 项复制操作",
         "Select rows and assign Copy → or ← Copy first.": "请先选择数据行并指定“复制 →”或“← 复制”。", "Select two files or two folders.": "请选择两个文件或两个文件夹。", "Select one or more files or folders.": "请选择一个或多个文件或文件夹。", "{count} {kind} copied to clipboard.": "已将 {count} 个{kind}复制到剪贴板。",
         "Folder name:": "文件夹名称：", "New name:": "新名称：", "Move {count} selected item(s) to the Recycle Bin?": "要将选择的 {count} 个项目移至回收站吗？", "This cannot be undone.\n\nPermanently delete {count} selected item(s)?": "此操作无法撤销。\n\n要永久删除选择的 {count} 个项目吗？",
         "{verb} {count} selected item(s) to:\n{destination}?": "要将选择的 {count} 个项目{verb}到：\n{destination}？", "{verb} result": "{verb}结果", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}：完成 {completed} 个、跳过 {skipped} 个、失败 {failed} 个。",
         "SHA-256: {result}; first offset: {offset}": "SHA-256：{result}；第一个偏移：{offset}", "identical": "相同", "different": "不同", "none": "无",
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
+        "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.": "新增：支持文件夹、ZIP 与 7z 比较，包括设置基准文件夹、差异筛选组合、全部展开／折叠及交换左右。",
+        "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.": "调整：以同步左右面板统一文件与文件夹比较，并整合中央交换控制、差异导航、搜索及底部状态栏。",
+        "Adjusted: Added semantic red difference/newer and purple orphan indicators, scalable controls, and delayed keyboard hints.": "调整：加入红色差异／较新与紫色孤立项目的语义指示、可缩放控件及延迟显示的键盘提示。",
         "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.": "调整：以不占空间的实线边缘取代标签页锁定条纹，并依标签页底色自动维持清晰对比。",
         "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "修复：单击非活动面板中的文件时，会在执行命令前先激活该面板。",
         "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "调整：添加持续显示的活动面板强调线，以及明确的 F5/F6 目标面板标签。",
@@ -268,8 +276,8 @@ _TRANSLATIONS = {
         "Start in:": "검색 위치:", "Name/mask:": "이름/마스크:", "Containing text:": "포함할 텍스트:", "Depth:": "깊이:", "Current": "현재 폴더", "All": "모두", "Files": "파일", "Folders": "폴더", "Size KB min:": "최소 크기(KB):", "max:": "최대:", "Modified within days:": "최근 수정 일수:", "Go to File": "파일로 이동", "Searching…": "검색 중…", "Cancelling…": "취소 중…", "{count} found": "{count}개 찾음", " — cancelled": " — 취소됨", " — limit reached": " — 한도 도달", "Start path is not a folder.": "시작 경로가 폴더가 아닙니다.", "Search failed": "검색 실패",
         "Name mask:": "이름 마스크:", "[N] original   [C] counter   [E] extension": "[N] 원래 이름   [C] 번호   [E] 확장명", "Replace:": "바꿀 내용:", "Keep extension": "확장명 유지", "Start:": "시작:", "Digits:": "자릿수:", "Old": "이전 이름", "New": "새 이름", "Status": "상태", "Ctrl+Z Undo": "Ctrl+Z 실행 취소", "Ctrl+Enter Rename": "Ctrl+Enter 이름 바꾸기",
         "{changed} rename(s), {errors} error(s)": "이름 변경 {changed}개, 오류 {errors}개", "Rename {count} item(s)?": "항목 {count}개의 이름을 바꾸시겠습니까?", "Renamed {count} item(s).": "항목 {count}개의 이름을 바꿨습니다.", "Restored {count} item(s).": "항목 {count}개를 복원했습니다.",
-        "Diff <<": "차이 <<", "Diff >>": "차이 >>", "Difference marker:": "차이 표시 위치:", "Middle": "가운데",
-        "Recursive": "하위 폴더 포함", "By content": "내용 기준", "Differences only": "차이만", "Mask:": "마스크:", "Space Skip": "Space 건너뛰기", "Dry Run && Sync": "미리 실행 및 동기화", "Copy only — no automatic delete": "복사만 수행 — 자동 삭제 없음", "Scanning…  Esc cancels": "검사 중…  Esc 취소", "Scan cancelled": "검사 취소됨", "Scan failed": "검사 실패", "Folder Compare": "폴더 비교",
+        "Diff <<": "차이 <<", "Diff >>": "차이 >>", "Difference marker:": "차이 표시 위치:", "Map:": "차이 맵:", "Middle": "가운데",
+        "Recursive": "하위 폴더 포함", "By content": "내용 기준", "Differences only": "차이만", "Diffs": "차이", "Show All": "모두 표시", "Show Differences": "차이 표시", "Show No Orphans": "고립 항목 숨기기", "Show Differences but No Orphans": "고립 항목 없이 차이 표시", "Show Orphans": "고립 항목 표시", "Show Left Newer": "왼쪽 최신 항목 표시", "Show Right Newer": "오른쪽 최신 항목 표시", "Show Left Newer and Left Orphans": "왼쪽 최신 및 고립 항목 표시", "Show Right Newer and Right Orphans": "오른쪽 최신 및 고립 항목 표시", "Show Left Orphans": "왼쪽 고립 항목 표시", "Show Right Orphans": "오른쪽 고립 항목 표시", "Expand All": "모두 펼치기", "Collapse All": "모두 접기", "Set Base Folder": "기준 폴더로 설정", "Swap Sides": "좌우 바꾸기", "Select a folder row first.": "먼저 폴더 행을 선택하세요.", "The selected row is not a folder.": "선택한 행은 폴더가 아닙니다.", "Mask:": "마스크:", "Space Skip": "Space 건너뛰기", "Dry Run && Sync": "미리 실행 및 동기화", "Copy only — no automatic delete": "복사만 수행 — 자동 삭제 없음", "Scanning…  Esc cancels": "검사 중…  Esc 취소", "Scan cancelled": "검사 취소됨", "Scan failed": "검사 실패", "Folder Compare": "폴더 비교",
         "Safe Sync — Dry Run": "안전 동기화 — 미리 실행", "Source": "원본", "Destination": "대상", "Execute Copy Plan": "복사 계획 실행", "Copy only — no files or folders will be deleted.": "복사만 수행하며 파일이나 폴더를 삭제하지 않습니다.",
         "File conflict": "파일 충돌", "An item with the same name already exists.": "같은 이름의 항목이 이미 있습니다.", "Apply this choice to all remaining conflicts": "남은 모든 충돌에 이 선택 적용", "Replace existing": "기존 항목 바꾸기", "Skip": "건너뛰기", "Keep both": "둘 다 유지",
         "Copy Details": "세부 정보 복사", "Retry Failed": "실패 항목 다시 시도", "Create failed": "만들기 실패", "Rename failed": "이름 바꾸기 실패", "Preview failed": "미리 보기 실패", "Compare failed": "비교 실패", "Clipboard failed": "클립보드 작업 실패", "Paste failed": "붙여넣기 실패", "Permanent delete warning": "완전 삭제 경고", "Recycle Bin": "휴지통", "Select exactly one item.": "항목을 하나만 선택하세요.", "Select two or more items first.": "항목을 두 개 이상 먼저 선택하세요.",
@@ -277,13 +285,16 @@ _TRANSLATIONS = {
         "Default": "기본값", "Amber": "호박색", "Coral": "산호색", "Pink": "분홍색", "Violet": "보라색", "Teal": "청록색",
         "Unlocked": "잠금 해제", "Lock (open folder in new tab)": "잠금(새 탭에서 폴더 열기)", "Lock (open folder is allowed)": "잠금(폴더 열기 허용)",
         "Action": "작업", "Path": "경로", "Left": "왼쪽", "Right": "오른쪽", "Different": "다름", "Identical": "동일", "Left only": "왼쪽에만 있음", "Right only": "오른쪽에만 있음", "Left newer": "왼쪽이 최신", "Right newer": "오른쪽이 최신", "Table": "표", "Binary": "바이너리",
-        "{count} match(es)": "일치 항목 {count}개", "{count} different line(s)": "다른 줄 {count}개", "{count} different row(s)": "다른 행 {count}개", "{count} item(s), {different} different": "항목 {count}개, 차이 {different}개", "Review all {count} copy operation(s)": "복사 작업 {count}개 모두 검토",
+        "{count} match(es)": "일치 항목 {count}개", "{current} of {count} matches": "일치 항목 {count}개 중 {current}번째", "{current} of {count} differences": "차이 {count}개 중 {current}번째", "Ctrl+→ copy to right • Ctrl+← copy to left • Space skip": "Ctrl+→ 오른쪽으로 복사 • Ctrl+← 왼쪽으로 복사 • Space 건너뛰기", "{count} different line(s)": "다른 줄 {count}개", "{count} different row(s)": "다른 행 {count}개", "{count} item(s), {different} different": "항목 {count}개, 차이 {different}개", "Review all {count} copy operation(s)": "복사 작업 {count}개 모두 검토",
         "Select rows and assign Copy → or ← Copy first.": "먼저 행을 선택하고 복사 → 또는 ← 복사를 지정하세요.", "Select two files or two folders.": "파일 두 개 또는 폴더 두 개를 선택하세요.", "Select one or more files or folders.": "파일이나 폴더를 하나 이상 선택하세요.", "{count} {kind} copied to clipboard.": "{kind} {count}개를 클립보드에 복사했습니다.",
         "Folder name:": "폴더 이름:", "New name:": "새 이름:", "Move {count} selected item(s) to the Recycle Bin?": "선택한 항목 {count}개를 휴지통으로 이동하시겠습니까?", "This cannot be undone.\n\nPermanently delete {count} selected item(s)?": "이 작업은 취소할 수 없습니다.\n\n선택한 항목 {count}개를 완전히 삭제하시겠습니까?",
         "{verb} {count} selected item(s) to:\n{destination}?": "선택한 항목 {count}개를 다음 위치로 {verb}하시겠습니까?\n{destination}", "{verb} result": "{verb} 결과", "{verb}: {completed} completed, {skipped} skipped, {failed} failed.": "{verb}: 완료 {completed}개, 건너뜀 {skipped}개, 실패 {failed}개.",
         "SHA-256: {result}; first offset: {offset}": "SHA-256: {result}; 첫 오프셋: {offset}", "identical": "동일", "different": "다름", "none": "없음",
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
+        "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.": "추가: 폴더, ZIP 및 7z 비교와 기준 폴더 설정, 차이 필터 프리셋, 전체 펼치기／접기 및 좌우 바꾸기를 지원합니다.",
+        "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.": "조정: 동기화된 좌우 패널을 중심으로 파일 및 폴더 비교를 통합하고 중앙 좌우 바꾸기, 차이 탐색, 검색 및 하단 상태 표시를 배치했습니다.",
+        "Adjusted: Added semantic red difference/newer and purple orphan indicators, scalable controls, and delayed keyboard hints.": "조정: 빨간색 차이／최신 항목과 보라색 고립 항목 표시, 크기 조절형 컨트롤 및 지연 키보드 안내를 추가했습니다.",
         "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.": "조정: 탭 잠금 줄무늬를 공간을 차지하지 않는 실선 가장자리로 교체하고 탭 배경색에 맞춰 선명한 대비를 자동으로 유지합니다.",
         "Fixed: Clicking a file in an inactive panel now activates that panel before commands run.": "수정: 비활성 패널의 파일을 클릭하면 명령 실행 전에 해당 패널이 활성화됩니다.",
         "Adjusted: Added persistent active-panel accents and explicit F5/F6 destination panel labels.": "조정: 활성 패널 강조선을 항상 표시하고 F5/F6 대상 패널을 명확히 표시합니다.",
@@ -1995,9 +2006,13 @@ import fnmatch
 import hashlib
 import os
 import queue
+import shutil
+import subprocess
+import tempfile
 import threading
+import zipfile
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import tkinter as tk
 from tkinter import font as tkfont, messagebox, ttk
 
@@ -2007,10 +2022,73 @@ TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css",
                  ".ini", ".cfg", ".log", ".yaml", ".yml", ".sql", ".bat", ".ps1", ".c", ".h",
                  ".cpp", ".hpp", ".java", ".csv", ".tsv"}
 TABLE_SUFFIXES = {".csv", ".tsv"}
+ARCHIVE_SUFFIXES = {".zip", ".7z"}
+
+
+def is_compare_archive(path: Path) -> bool:
+    return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
+
+
+def is_compare_container(path: Path) -> bool:
+    return path.is_dir() or is_compare_archive(path)
+
+
+def _safe_archive_member(name: str) -> bool:
+    normalized = name.replace("\\", "/")
+    member = PurePosixPath(normalized)
+    return bool(normalized) and not member.is_absolute() and ".." not in member.parts and not (
+        member.parts and ":" in member.parts[0])
+
+
+def extract_compare_archive(path: Path):
+    """Extract ZIP/7z into an isolated temporary folder for read-only comparison."""
+    workspace = tempfile.TemporaryDirectory(prefix="pfc-compare-")
+    destination = Path(workspace.name)
+    try:
+        if path.suffix.casefold() == ".zip":
+            with zipfile.ZipFile(path) as archive:
+                for info in archive.infolist():
+                    if not _safe_archive_member(info.filename):
+                        raise OSError(f"Unsafe archive path: {info.filename}")
+                    member = PurePosixPath(info.filename.replace("\\", "/"))
+                    target = destination.joinpath(*member.parts)
+                    if info.is_dir():
+                        target.mkdir(parents=True, exist_ok=True)
+                    else:
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        with archive.open(info) as source, target.open("wb") as output:
+                            shutil.copyfileobj(source, output)
+                        try:
+                            timestamp = datetime(*info.date_time).timestamp()
+                            os.utime(target, (timestamp, timestamp))
+                        except (OSError, ValueError):
+                            pass
+        else:
+            tar = shutil.which("tar.exe") or shutil.which("tar")
+            if not tar:
+                raise OSError("7z comparison requires the Windows tar component.")
+            run_options = {"capture_output": True, "text": True, "errors": "replace"}
+            if os.name == "nt":
+                run_options["creationflags"] = subprocess.CREATE_NO_WINDOW
+            listing = subprocess.run([tar, "-tf", str(path)], **run_options)
+            if listing.returncode:
+                raise OSError(listing.stderr.strip() or "Unable to read 7z archive.")
+            members = [line.strip() for line in listing.stdout.splitlines() if line.strip()]
+            unsafe = next((name for name in members if not _safe_archive_member(name)), None)
+            if unsafe:
+                raise OSError(f"Unsafe archive path: {unsafe}")
+            extraction = subprocess.run([tar, "-xf", str(path), "-C", str(destination)],
+                                        **run_options)
+            if extraction.returncode:
+                raise OSError(extraction.stderr.strip() or "Unable to extract 7z archive.")
+        return workspace, destination
+    except Exception:
+        workspace.cleanup()
+        raise
 
 
 def detect_compare_type(left: Path, right: Path) -> str:
-    if left.is_dir() and right.is_dir():
+    if is_compare_container(left) and is_compare_container(right):
         return "Folder"
     if left.suffix.casefold() in TABLE_SUFFIXES and right.suffix.casefold() in TABLE_SUFFIXES:
         return "Table"
@@ -2149,31 +2227,31 @@ class SideBySideText(ttk.Frame):
         self.previous_button.pack(side="left")
         self.next_button = ttk.Button(diff_row, text=f"F8 {tr('Diff >>')}", command=self.next)
         self.next_button.pack(side="left", padx=3)
-        ttk.Radiobutton(diff_row, text=tr("All"), value="all", variable=self.view_mode_var,
-                        command=self.populate).pack(side="left", padx=(8, 0))
-        ttk.Radiobutton(diff_row, text=tr("Differences only"), value="differences",
-                        variable=self.view_mode_var, command=self.populate).pack(side="left", padx=(3, 0))
+        self.view_button = ttk.Menubutton(diff_row)
+        self.view_menu = tk.Menu(self.view_button, tearoff=False)
+        self.view_button.configure(menu=self.view_menu)
+        self.view_button.pack(side="left", padx=(8, 0))
+        self._build_view_menu()
         self.diff_status = ttk.Label(diff_row, text=self.status_factory())
         self.diff_status.pack(side="left", padx=10)
-        marker_row = ttk.Frame(toolbar); marker_row.pack(fill="x", pady=(2, 0))
-        ttk.Label(marker_row, text=tr("Difference marker:")).pack(side="left")
-        for value, label in (("left", "Left"), ("middle", "Middle"), ("right", "Right")):
-            ttk.Radiobutton(marker_row, text=tr(label), value=value,
-                            variable=self.marker_position_var,
-                            command=self._marker_position_changed).pack(side="left", padx=(5, 0))
+        self.marker_button = ttk.Menubutton(diff_row)
+        self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
+        self.marker_button.configure(menu=self.marker_menu)
+        self.marker_button.pack(side="right")
+        self._build_marker_menu(); self._update_marker_button()
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
         self.search = ttk.Entry(find_row, textvariable=self.search_var)
         self.search.pack(side="left", fill="x", expand=True, padx=(3, 4))
         self.search.bind("<Return>", lambda _event: self.find_next())
         self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
+        ttk.Button(find_row, text=tr("Find Prev"), command=self.find_previous).pack(side="left")
+        ttk.Button(find_row, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
+        self.case_button = ttk.Button(find_row, command=self._toggle_case)
+        self.case_button.pack(side="left", padx=(8, 0))
         self.find_status = ttk.Label(find_row, width=12, anchor="e")
         self.find_status.pack(side="right", padx=(8, 3))
-        find_actions = ttk.Frame(toolbar); find_actions.pack(fill="x", pady=(0, 2))
-        ttk.Button(find_actions, text=tr("Find Prev"), command=self.find_previous).pack(side="left")
-        ttk.Button(find_actions, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
-        ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
-                        command=self.find_all).pack(side="left", padx=(8, 0))
+        self._update_case_button()
         body = ttk.Frame(self); self.body = body
         body.pack(fill="both", expand=True, pady=(3, 0))
         body.rowconfigure(1, weight=1)
@@ -2227,6 +2305,11 @@ class SideBySideText(ttk.Frame):
         self.populate()
 
     def apply_color_scheme(self, palette):
+        menu_options = {
+            "background": palette["content"], "foreground": palette["text"],
+            "activebackground": palette["selection"], "activeforeground": "#ffffff",
+        }
+        self.view_menu.configure(**menu_options); self.marker_menu.configure(**menu_options)
         self.left_frame.configure(background=palette["content"],
                                   highlightbackground=palette["left_header"])
         self.right_frame.configure(background=palette["content"],
@@ -2270,7 +2353,43 @@ class SideBySideText(ttk.Frame):
                 widget.insert("end", f" {line}\n", tag)
             widget.configure(state="disabled"); number_widget.configure(state="disabled")
         self.difference_map.set_rows(self.differences, len(visible_rows))
+        self._build_view_menu()
         self.find_all()
+
+    def _select_view_mode(self, value):
+        self.view_mode_var.set(value); self.populate()
+
+    def _build_view_menu(self):
+        self.view_menu.delete(0, "end")
+        selected = self.view_mode_var.get()
+        for value, label in (("all", "All"), ("differences", "Differences only")):
+            prefix = "● " if value == selected else "   "
+            self.view_menu.add_command(label=prefix + tr(label),
+                                       command=lambda mode=value: self._select_view_mode(mode))
+        label = "All" if selected == "all" else "Differences only"
+        self.view_button.configure(text=tr(label))
+
+    def _build_marker_menu(self):
+        self.marker_menu.delete(0, "end")
+        selected = self.marker_position_var.get()
+        for value, label in (("left", "Left"), ("middle", "Middle"), ("right", "Right")):
+            prefix = "● " if value == selected else "   "
+            self.marker_menu.add_command(label=prefix + tr(label),
+                                         command=lambda position=value:
+                                         self.set_marker_position(position, notify=True))
+
+    def _update_marker_button(self):
+        labels = {"left": "Left", "middle": "Middle", "right": "Right"}
+        self.marker_button.configure(
+            text=f"{tr('Map:')} {tr(labels.get(self.marker_position_var.get(), 'Middle'))}")
+
+    def _toggle_case(self):
+        self.case_var.set(not self.case_var.get()); self._update_case_button(); self.find_all()
+        return "break"
+
+    def _update_case_button(self):
+        self.case_button.configure(
+            text=f"{'✓' if self.case_var.get() else '–'} {tr('Case sensitive')}")
 
     def apply_scale(self, scale: float) -> None:
         self.difference_map.apply_scale(scale)
@@ -2283,6 +2402,7 @@ class SideBySideText(ttk.Frame):
             position = "middle"
         self.marker_position_var.set(position)
         self._layout_marker()
+        self._build_marker_menu(); self._update_marker_button()
         if notify and self.marker_changed is not None:
             self.marker_changed(position)
 
@@ -2316,6 +2436,8 @@ class SideBySideText(ttk.Frame):
         self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
         self.next_button.configure(text=f"F8 {tr('Diff >>')}")
         self.diff_status.configure(text=self.status_factory())
+        self._build_view_menu(); self._build_marker_menu(); self._update_marker_button()
+        self._update_case_button()
         self.find_all()
 
     def focus_search(self):
@@ -2540,12 +2662,43 @@ class SyncPlanDialog(tk.Toplevel):
         dialog = cls(parent, plans); parent.wait_window(dialog); return dialog.result
 
 
-class FolderCompare(ttk.Frame):
-    def __init__(self, master, left: Path, right: Path, open_detail, sync_executor=None):
+class _FolderCompareLogic(ttk.Frame):
+    DIFF_FILTERS = {
+        "all": None,
+        "differences": {"Different", "Type mismatch", "Unknown", "Left newer", "Right newer",
+                        "Left only", "Right only"},
+        "no_orphans": {"Identical", "Different", "Type mismatch", "Unknown", "Left newer", "Right newer"},
+        "differences_no_orphans": {"Different", "Type mismatch", "Unknown", "Left newer", "Right newer"},
+        "orphans": {"Left only", "Right only"},
+        "left_newer": {"Left newer"},
+        "right_newer": {"Right newer"},
+        "left_newer_orphans": {"Left newer", "Left only"},
+        "right_newer_orphans": {"Right newer", "Right only"},
+        "left_orphans": {"Left only"},
+        "right_orphans": {"Right only"},
+    }
+    DIFF_LABELS = {
+        "all": "Show All", "differences": "Show Differences",
+        "no_orphans": "Show No Orphans",
+        "differences_no_orphans": "Show Differences but No Orphans",
+        "orphans": "Show Orphans", "left_newer": "Show Left Newer",
+        "right_newer": "Show Right Newer",
+        "left_newer_orphans": "Show Left Newer and Left Orphans",
+        "right_newer_orphans": "Show Right Newer and Right Orphans",
+        "left_orphans": "Show Left Orphans", "right_orphans": "Show Right Orphans",
+    }
+
+    def __init__(self, master, left: Path, right: Path, open_detail, sync_executor=None,
+                 left_label=None, right_label=None, left_read_only=False, right_read_only=False):
         super().__init__(master)
         self.left_root, self.right_root = left, right
+        self.left_base_root, self.right_base_root = left, right
+        self.left_label = Path(left_label) if left_label is not None else left
+        self.right_label = Path(right_label) if right_label is not None else right
+        self.left_read_only, self.right_read_only = left_read_only, right_read_only
         self.open_detail, self.sync_executor = open_detail, sync_executor
         self.rows, self.actions, self.item_paths, self.item_keys = [], {}, {}, {}
+        self._expand_state = True
         self.matches, self.match_index = [], -1
         self.difference_items, self.difference_index = [], -1
         self._scan_queue, self._cancel_event, self._scanning = queue.Queue(), threading.Event(), False
@@ -2553,14 +2706,14 @@ class FolderCompare(ttk.Frame):
         paths = ttk.Frame(self); paths.pack(fill="x", pady=(2, 3))
         paths.columnconfigure(0, weight=1, uniform="folder-side")
         paths.columnconfigure(2, weight=1, uniform="folder-side")
-        self.left_path_label = tk.Label(paths, text=f"{tr('Left')}: {left}", anchor="w",
+        self.left_path_label = tk.Label(paths, text=f"{tr('Left')}: {self._base_label('left')}", anchor="w",
                                         background="#2d668f", foreground="white",
                                         font="TkHeadingFont", padx=6, pady=3)
         self.left_path_label.grid(row=0, column=0, sticky="ew")
         self.path_divider = tk.Label(paths, text="↔", background="#263d4c", foreground="white",
                                      font="TkHeadingFont", padx=10, pady=3)
         self.path_divider.grid(row=0, column=1, sticky="ns")
-        self.right_path_label = tk.Label(paths, text=f"{tr('Right')}: {right}", anchor="w",
+        self.right_path_label = tk.Label(paths, text=f"{tr('Right')}: {self._base_label('right')}", anchor="w",
                                          background="#9b5d2e", foreground="white",
                                          font="TkHeadingFont", padx=6, pady=3)
         self.right_path_label.grid(row=0, column=2, sticky="ew")
@@ -2572,14 +2725,23 @@ class FolderCompare(ttk.Frame):
         ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan).pack(side="left")
         options = ttk.Frame(self); options.pack(fill="x", pady=(2, 1))
         self.recursive_var = tk.BooleanVar(value=True)
-        self.content_var = tk.BooleanVar(value=False)
+        # Archive timestamps are often rounded or regenerated.  Compare archive
+        # contents by bytes by default so a repacked folder is not reported as
+        # different solely because of container metadata.
+        self.content_var = tk.BooleanVar(value=self.left_read_only or self.right_read_only)
         self.view_mode_var = tk.StringVar(value="all")
         ttk.Checkbutton(options, text=tr("Recursive"), variable=self.recursive_var).pack(side="left")
         ttk.Checkbutton(options, text=tr("By content"), variable=self.content_var).pack(side="left", padx=(5, 0))
-        ttk.Radiobutton(options, text=tr("All"), value="all", variable=self.view_mode_var,
-                        command=self.populate).pack(side="left", padx=(8, 0))
-        ttk.Radiobutton(options, text=tr("Differences only"), value="differences",
-                        variable=self.view_mode_var, command=self.populate).pack(side="left", padx=(3, 0))
+        self.diff_button = ttk.Menubutton(options, text=tr("All"))
+        self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
+        self.diff_button.configure(menu=self.diff_menu)
+        self.diff_button.pack(side="left", padx=(8, 0))
+        self._build_diff_menu()
+        folder_tools = ttk.Frame(self); folder_tools.pack(fill="x", pady=(1, 1))
+        ttk.Button(folder_tools, text=tr("Expand All"), command=self.expand_all).pack(side="left")
+        ttk.Button(folder_tools, text=tr("Collapse All"), command=self.collapse_all).pack(side="left", padx=(3, 0))
+        ttk.Button(folder_tools, text=tr("Set Base Folder"), command=self.set_base_folder).pack(side="left", padx=(8, 0))
+        ttk.Button(folder_tools, text=tr("Swap Sides"), command=self.swap_sides).pack(side="left", padx=(3, 0))
         navigation = ttk.Frame(self); navigation.pack(fill="x", pady=(1, 2))
         self.previous_button = ttk.Button(navigation, text=f"F7 {tr('Diff <<')}", command=self.previous)
         self.previous_button.pack(side="left")
@@ -2608,9 +2770,12 @@ class FolderCompare(ttk.Frame):
         ttk.Label(sync_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(8, 0))
         self.scan_status = ttk.Label(sync_row, text=tr("Ready"), anchor="e")
         self.scan_status.pack(side="right", fill="x", expand=True, padx=8)
-        self.tree = ttk.Treeview(self, columns=("action", "left_path", "left_detail", "status",
-                                                "right_path", "right_detail"),
-                                 show="headings", selectmode="extended", style="PFCCompare.Treeview")
+        tree_area = ttk.Frame(self); tree_area.pack(fill="both", expand=True)
+        tree_area.columnconfigure(0, weight=1); tree_area.rowconfigure(0, weight=1)
+        self.tree = ttk.Treeview(tree_area, columns=("action", "left_path", "left_detail", "status",
+                                                     "right_path", "right_detail"),
+                                 show=("tree", "headings"), selectmode="extended",
+                                 style="PFCCompare.Treeview")
         headings = {
             "action": tr("Action"), "left_path": tr("Left"),
             "left_detail": f"{tr('Size')} / {tr('Modified')}", "status": tr("Status"),
@@ -2623,9 +2788,9 @@ class FolderCompare(ttk.Frame):
             self.tree.column(col, width=width, minwidth=50,
                              stretch=col in {"left_path", "right_path"},
                              anchor="center" if col in {"action", "status"} else "w")
-        tree_area = ttk.Frame(self); tree_area.pack(fill="both", expand=True)
-        tree_area.columnconfigure(0, weight=1); tree_area.rowconfigure(0, weight=1)
-        self.tree.grid(in_=tree_area, row=0, column=0, sticky="nsew")
+        self.tree.heading("#0", text="")
+        self.tree.column("#0", width=32, minwidth=24, stretch=False)
+        self.tree.grid(row=0, column=0, sticky="nsew")
         self.tree_y_scroll = ttk.Scrollbar(tree_area, orient="vertical", command=self.tree.yview)
         self.tree_x_scroll = ttk.Scrollbar(tree_area, orient="horizontal", command=self.tree.xview)
         self.tree_y_scroll.grid(row=0, column=1, sticky="ns")
@@ -2646,6 +2811,91 @@ class FolderCompare(ttk.Frame):
         self.apply_color_scheme(getattr(master.winfo_toplevel(), "palette", color_scheme("light")))
         self.start_scan()
 
+    def _base_label(self, side):
+        root = self.left_root if side == "left" else self.right_root
+        initial = self.left_base_root if side == "left" else self.right_base_root
+        label = self.left_label if side == "left" else self.right_label
+        try:
+            relative = root.relative_to(initial)
+        except ValueError:
+            relative = Path()
+        if relative == Path("."):
+            return str(label)
+        separator = " :: " if is_compare_archive(label) else os.sep
+        return f"{label}{separator}{relative}"
+
+    def _build_diff_menu(self):
+        self.diff_menu.delete(0, "end")
+        for key in self.DIFF_FILTERS:
+            self.diff_menu.add_radiobutton(label=tr(self.DIFF_LABELS[key]), value=key,
+                                           variable=self.view_mode_var,
+                                           command=self._set_diff_filter)
+        self._update_diff_button()
+
+    def _update_diff_button(self):
+        key = self.view_mode_var.get()
+        self.diff_button.configure(text=f"{tr('Diffs')}: {tr(self.DIFF_LABELS.get(key, 'Show All'))}")
+
+    def _set_diff_filter(self):
+        self._update_diff_button()
+        self.populate()
+
+    def expand_all(self):
+        self._expand_state = True
+        for iid in self.tree.get_children(""):
+            self._set_open_recursive(iid, True)
+        return "break"
+
+    def collapse_all(self):
+        self._expand_state = False
+        for iid in self.tree.get_children(""):
+            self._set_open_recursive(iid, False)
+        return "break"
+
+    def _set_open_recursive(self, iid, opened):
+        self.tree.item(iid, open=opened)
+        for child in self.tree.get_children(iid):
+            self._set_open_recursive(child, opened)
+
+    def _all_tree_items(self, parent=""):
+        for iid in self.tree.get_children(parent):
+            yield iid
+            yield from self._all_tree_items(iid)
+
+    def set_base_folder(self):
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showinfo(tr("Set Base Folder"), tr("Select a folder row first."), parent=self)
+            return "break"
+        left, right = self.item_paths.get(selected[0], (None, None))
+        changed = False
+        if left is not None and left.is_dir():
+            self.left_root = left; changed = True
+        if right is not None and right.is_dir():
+            self.right_root = right; changed = True
+        if not changed:
+            messagebox.showinfo(tr("Set Base Folder"), tr("The selected row is not a folder."), parent=self)
+            return "break"
+        self._update_path_labels()
+        self.start_scan()
+        return "break"
+
+    def swap_sides(self):
+        if self._scanning:
+            self.cancel_scan()
+        self.left_root, self.right_root = self.right_root, self.left_root
+        self.left_base_root, self.right_base_root = self.right_base_root, self.left_base_root
+        self.left_label, self.right_label = self.right_label, self.left_label
+        self.left_read_only, self.right_read_only = self.right_read_only, self.left_read_only
+        self.actions = {}
+        self._update_path_labels()
+        self.start_scan()
+        return "break"
+
+    def _update_path_labels(self):
+        self.left_path_label.configure(text=f"{tr('Left')}: {self._base_label('left')}")
+        self.right_path_label.configure(text=f"{tr('Right')}: {self._base_label('right')}")
+
     def apply_color_scheme(self, palette):
         self.left_path_label.configure(background=palette["left_header"], foreground="#ffffff")
         self.right_path_label.configure(background=palette["right_header"], foreground="#ffffff")
@@ -2656,7 +2906,9 @@ class FolderCompare(ttk.Frame):
         self.tree.tag_configure("left", foreground="#73d6a1" if palette["window"] == "#20262c" else "#006c3b")
         self.tree.tag_configure("right", foreground="#73bfff" if palette["window"] == "#20262c" else "#005ca8")
         self.tree.tag_configure("identical", foreground=palette["muted"])
-
+        self.diff_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                                 activebackground=palette["menu_active"],
+                                 activeforeground=palette["menu_active_text"])
     def apply_scale(self, scale: float) -> None:
         style = ttk.Style(self)
         linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
@@ -2675,8 +2927,8 @@ class FolderCompare(ttk.Frame):
         retranslate_widgets(self, old_language)
         self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
         self.next_button.configure(text=f"F8 {tr('Diff >>')}")
-        self.left_path_label.configure(text=f"{tr('Left')}: {self.left_root}")
-        self.right_path_label.configure(text=f"{tr('Right')}: {self.right_root}")
+        self._update_path_labels()
+        self._build_diff_menu()
         labels = {"action": tr("Action"), "left_path": tr("Left"),
                   "left_detail": f"{tr('Size')} / {tr('Modified')}", "status": tr("Status"),
                   "right_path": tr("Right"), "right_detail": f"{tr('Size')} / {tr('Modified')}"}
@@ -2684,7 +2936,7 @@ class FolderCompare(ttk.Frame):
             marker = (" ▲" if not self.sort_reverse else " ▼") if column == self.sort_column else ""
             self.tree.heading(column, text=labels[column] + marker)
         self.populate()
-        for iid in self.tree.get_children():
+        for iid in self._all_tree_items():
             if self.item_keys.get(iid) in selected_keys:
                 self.tree.selection_add(iid)
         if self._scanning:
@@ -2744,7 +2996,7 @@ class FolderCompare(ttk.Frame):
         self.scan_status.configure(text=tr("{count} item(s), {different} different",
                                            count=len(rows), different=different))
         self.populate()
-        children = self.tree.get_children()
+        children = tuple(self._all_tree_items())
         if children:
             self.tree.selection_set(children[0]); self.tree.focus(children[0]); self.tree.see(children[0])
         self.tree.focus_set()
@@ -2767,7 +3019,7 @@ class FolderCompare(ttk.Frame):
             marker = (" ▼" if self.sort_reverse else " ▲") if value == column else ""
             self.tree.heading(value, text=labels[value] + marker)
         self.populate()
-        for iid in self.tree.get_children():
+        for iid in self._all_tree_items():
             if self.item_keys.get(iid) in selected_keys:
                 self.tree.selection_add(iid); self.tree.focus(iid); self.tree.see(iid)
         self.tree.focus_set()
@@ -2777,8 +3029,18 @@ class FolderCompare(ttk.Frame):
         self.item_paths, self.item_keys = {}, {}
         self.difference_items, self.difference_index = [], -1
         action_label = {"right": "→", "left": "←", "skip": tr("Skip")}
-        visible = [row for row in self.rows
-                   if not (self.view_mode_var.get() == "differences" and row[0] == "Identical")]
+        allowed = self.DIFF_FILTERS.get(self.view_mode_var.get())
+        initially_visible = list(self.rows) if allowed is None else [row for row in self.rows if row[0] in allowed]
+        rows_by_key = {row[1].casefold(): row for row in self.rows}
+        needed = {row[1].casefold() for row in initially_visible}
+        for _status, relative, _left, _right in initially_visible:
+            parent = Path(relative).parent
+            while parent != Path("."):
+                key = str(parent).casefold()
+                if key in rows_by_key:
+                    needed.add(key)
+                parent = parent.parent
+        visible = [row for row in self.rows if row[1].casefold() in needed]
         if self.sort_column == "action":
             visible.sort(key=lambda row: self.actions.get(row[1], ""), reverse=self.sort_reverse)
         elif self.sort_column in {"left_detail", "right_detail"}:
@@ -2795,13 +3057,19 @@ class FolderCompare(ttk.Frame):
             visible.sort(key=lambda row: row[0].casefold(), reverse=self.sort_reverse)
         else:
             visible.sort(key=lambda row: row[1].casefold(), reverse=self.sort_reverse)
+        visible.sort(key=lambda row: len(Path(row[1]).parts))
+        item_ids = {}
         for status, path, left, right in visible:
             tag = "left" if status in {"Left only", "Left newer"} else (
                 "right" if status in {"Right only", "Right newer"} else (
                     "identical" if status == "Identical" else "different"))
-            iid = self.tree.insert("", "end", values=(action_label.get(self.actions.get(path), ""),
+            parent_key = str(Path(path).parent).casefold()
+            parent_iid = item_ids.get(parent_key, "")
+            iid = self.tree.insert(parent_iid, "end", text="", open=self._expand_state,
+                values=(action_label.get(self.actions.get(path), ""),
                 path if left is not None else "", self._detail(left), tr(status),
                 path if right is not None else "", self._detail(right)), tags=(tag,))
+            item_ids[path.casefold()] = iid
             self.item_paths[iid] = (left, right)
             self.item_keys[iid] = path
             if status != "Identical":
@@ -2827,14 +3095,14 @@ class FolderCompare(ttk.Frame):
         for iid in selected:
             left, right = self.item_paths.get(iid, (None, None)); key = self.item_keys.get(iid)
             if key is None: continue
-            if action == "right" and left is not None:
+            if action == "right" and left is not None and not self.right_read_only:
                 self.actions[key] = action
-            elif action == "left" and right is not None:
+            elif action == "left" and right is not None and not self.left_read_only:
                 self.actions[key] = action
             elif action == "skip":
                 self.actions[key] = action
         self.populate()
-        for iid in self.tree.get_children():
+        for iid in self._all_tree_items():
             if self.item_keys.get(iid) in selected_keys:
                 self.tree.selection_add(iid)
         return "break"
@@ -2874,7 +3142,7 @@ class FolderCompare(ttk.Frame):
 
     def find_all(self):
         self.matches, self.match_index = [], -1; needle = self.search_var.get()
-        for iid in self.tree.get_children():
+        for iid in self._all_tree_items():
             base = next((tag for tag in self.tree.item(iid, "tags")
                          if tag in {"left", "right", "different", "identical"}), "different")
             haystack = " ".join(str(value) for value in self.tree.item(iid, "values"))
@@ -2898,6 +3166,569 @@ class FolderCompare(ttk.Frame):
 
     def _open(self, _event=None):
         selected = self.tree.selection()
+        if selected:
+            left, right = self.item_paths.get(selected[0], (None, None))
+            if left and right and left.is_file() and right.is_file(): self.open_detail(left, right)
+
+
+class FolderCompare(_FolderCompareLogic):
+    """Folder/archive comparison using the same two-pane + mapper layout as file compare."""
+
+    def __init__(self, master, left: Path, right: Path, open_detail, sync_executor=None,
+                 left_label=None, right_label=None, left_read_only=False, right_read_only=False,
+                 marker_position="middle", marker_changed=None):
+        ttk.Frame.__init__(self, master)
+        self.view = self
+        self.left_root, self.right_root = left, right
+        self.left_base_root, self.right_base_root = left, right
+        self.left_label = Path(left_label) if left_label is not None else left
+        self.right_label = Path(right_label) if right_label is not None else right
+        self.left_read_only, self.right_read_only = left_read_only, right_read_only
+        self.open_detail, self.sync_executor = open_detail, sync_executor
+        self.marker_position_var = tk.StringVar(
+            value=marker_position if marker_position in {"left", "middle", "right"} else "middle")
+        self.marker_changed = marker_changed
+        self.rows, self.actions, self.item_paths, self.item_keys = [], {}, {}, {}
+        self._expand_state = True
+        self._syncing_selection = False
+        self._syncing_scroll = False
+        self._syncing_open = False
+        self.matches, self.match_index = [], -1
+        self.difference_items, self.difference_index = [], -1
+        self._scan_queue, self._cancel_event, self._scanning = queue.Queue(), threading.Event(), False
+        self.sort_column, self.sort_reverse = "path", False
+        self.scale = 1.0
+        self.palette = getattr(master.winfo_toplevel(), "palette", color_scheme("light"))
+        self._diff_icons = {}
+
+        self.recursive_var = tk.BooleanVar(value=True)
+        self.content_var = tk.BooleanVar(value=self.left_read_only or self.right_read_only)
+        self.view_mode_var = tk.StringVar(value="all")
+
+        bar = ttk.Frame(self, padding=(3, 3, 3, 1)); bar.pack(fill="x")
+        ttk.Label(bar, text=tr("Mask:")).pack(side="left", padx=(0, 3))
+        self.mask_var = tk.StringVar(value="*")
+        ttk.Entry(bar, textvariable=self.mask_var, width=32).pack(side="left", padx=(0, 6))
+        ttk.Button(bar, text=tr("Compare"), command=self.start_scan).pack(side="left", padx=(0, 3))
+        ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan).pack(side="left", padx=(0, 8))
+        ttk.Separator(bar, orient="vertical").pack(side="left", fill="y", padx=(0, 7))
+        self.recursive_button = ttk.Button(bar, command=lambda: self._toggle_option("recursive"))
+        self.recursive_button.pack(side="left", padx=(0, 3))
+        self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
+        self.content_button.pack(side="left")
+
+        options = ttk.Frame(self, padding=(3, 1)); options.pack(fill="x")
+        self.diff_button = ttk.Menubutton(options, text=tr("All"))
+        self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
+        self.diff_button.configure(menu=self.diff_menu, compound="left")
+        self.diff_button.pack(side="left", padx=(0, 3))
+        self._build_diff_menu()
+        ttk.Button(options, text=tr("Expand All"), command=self.expand_all).pack(side="left", padx=(0, 3))
+        ttk.Button(options, text=tr("Collapse All"), command=self.collapse_all).pack(side="left", padx=(0, 3))
+        ttk.Button(options, text=tr("Set Base Folder"), command=self.set_base_folder).pack(side="left", padx=(0, 3))
+        ttk.Separator(options, orient="vertical").pack(side="left", fill="y", padx=7)
+        self.marker_button = ttk.Menubutton(options)
+        self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
+        self.marker_button.configure(menu=self.marker_menu); self.marker_button.pack(side="left")
+        self._build_marker_menu(); self._update_marker_button()
+
+        navigation = ttk.Frame(self, padding=(3, 1)); navigation.pack(fill="x")
+        self.previous_button = ttk.Button(navigation, text=f"F7 {tr('Diff <<')}", command=self.previous)
+        self.previous_button.pack(side="left", padx=(0, 3))
+        self.next_button = ttk.Button(navigation, text=f"F8 {tr('Diff >>')}", command=self.next)
+        self.next_button.pack(side="left", padx=(0, 3))
+        self.diff_status = ttk.Label(navigation, width=18, anchor="w")
+        self.diff_status.pack(side="left", padx=(0, 8))
+        self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
+        ttk.Label(navigation, text=tr("Find:")).pack(side="left", padx=(0, 3))
+        self.search = ttk.Entry(navigation, textvariable=self.search_var, width=32)
+        self.search.pack(side="left", padx=(0, 4))
+        self.search.bind("<Return>", lambda _event: self.find_next())
+        self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
+        ttk.Button(navigation, text=tr("Find Prev"), command=self.find_previous).pack(side="left", padx=(0, 3))
+        ttk.Button(navigation, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(0, 3))
+        self.find_status = ttk.Label(navigation, anchor="w")
+        self.find_status.pack(side="left", padx=(2, 6))
+        self.case_button = ttk.Button(navigation, command=lambda: self._toggle_option("case"))
+        self.case_button.pack(side="left")
+        self._update_toggle_buttons()
+
+        status_row = ttk.Frame(self, padding=(5, 3)); status_row.pack(side="bottom", fill="x")
+        self.scan_status = ttk.Label(status_row, text=tr("Ready"), anchor="w")
+        self.scan_status.pack(side="left")
+        ttk.Label(status_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(12, 0))
+        ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run).pack(side="right")
+
+        self.body = ttk.Frame(self); self.body.pack(fill="both", expand=True, pady=(3, 0))
+        self.body.rowconfigure(1, weight=1)
+        self.left_path_label = tk.Label(self.body, anchor="w", background="#2d668f",
+                                        foreground="white", font="TkHeadingFont", padx=6, pady=3)
+        self.right_path_label = tk.Label(self.body, anchor="w", background="#9b5d2e",
+                                         foreground="white", font="TkHeadingFont", padx=6, pady=3)
+        self.map_header = tk.Button(self.body, text="⇄", command=self.swap_sides,
+                                    background="#263d4c", foreground="white",
+                                    activebackground="#36566b", activeforeground="white",
+                                    font="TkHeadingFont", relief="flat", borderwidth=0,
+                                    cursor="hand2", pady=3)
+        self.map_header._pfc_tooltip = ToolTip(self.map_header, tr("Swap Sides"))
+        self._update_path_labels()
+        self.left_frame = ttk.Frame(self.body); self.right_frame = ttk.Frame(self.body)
+        for frame in (self.left_frame, self.right_frame):
+            frame.rowconfigure(0, weight=1); frame.columnconfigure(0, weight=1)
+        self.left_tree = ttk.Treeview(self.left_frame, columns=("action", "detail"),
+                                      show=("tree", "headings"), selectmode="extended",
+                                      style="PFCCompare.Treeview")
+        self.right_tree = ttk.Treeview(self.right_frame, columns=("detail", "action"),
+                                       show=("tree", "headings"), selectmode="extended",
+                                       style="PFCCompare.Treeview")
+        self.tree = self.left_tree
+        self.left_tree.heading("#0", text=tr("Name"), command=lambda: self.change_sort("path"))
+        self.left_tree.heading("action", text=tr("Action"), command=lambda: self.change_sort("action"))
+        self.left_tree.heading("detail", text=f"{tr('Size')} / {tr('Modified')}",
+                               command=lambda: self.change_sort("left_detail"))
+        self.right_tree.heading("#0", text=tr("Name"), command=lambda: self.change_sort("path"))
+        self.right_tree.heading("detail", text=f"{tr('Size')} / {tr('Modified')}",
+                                command=lambda: self.change_sort("right_detail"))
+        self.right_tree.heading("action", text=tr("Action"), command=lambda: self.change_sort("action"))
+        for tree in (self.left_tree, self.right_tree):
+            tree.column("#0", width=340, minwidth=100, stretch=True)
+            tree.column("action", width=70, minwidth=45, stretch=False, anchor="center")
+            tree.column("detail", width=205, minwidth=95, stretch=False)
+            tree.grid(row=0, column=0, sticky="nsew")
+            tree.bind("<<TreeviewSelect>>", lambda event, source=tree: self._sync_selection(source))
+            tree.bind("<<TreeviewOpen>>", lambda event, source=tree: self._sync_open(source, True))
+            tree.bind("<<TreeviewClose>>", lambda event, source=tree: self._sync_open(source, False))
+            tree.bind("<Double-1>", self._open); tree.bind("<Return>", self._open)
+            tree.bind("<Control-Right>", lambda _e: self.set_action("right"))
+            tree.bind("<Control-Left>", lambda _e: self.set_action("left"))
+            tree.bind("<space>", lambda _e: self.set_action("skip"))
+            tree.bind("<MouseWheel>", self._mousewheel)
+            tree._pfc_sync_tooltip = ToolTip(
+                tree, tr("Ctrl+→ copy to right • Ctrl+← copy to left • Space skip"), delay=5000)
+        left_x = ttk.Scrollbar(self.left_frame, orient="horizontal", command=self.left_tree.xview)
+        right_x = ttk.Scrollbar(self.right_frame, orient="horizontal", command=self.right_tree.xview)
+        left_x.grid(row=1, column=0, sticky="ew"); right_x.grid(row=1, column=0, sticky="ew")
+        self.left_tree.configure(xscrollcommand=left_x.set, yscrollcommand=self._left_scrolled)
+        self.right_tree.configure(xscrollcommand=right_x.set, yscrollcommand=self._right_scrolled)
+        self.difference_map = DifferenceMap(self.body, self._jump_to_row)
+        self.center_divider = ttk.Separator(self.body, orient="vertical")
+        self.scroll = ttk.Scrollbar(self.body, orient="vertical", command=self._scroll)
+        self._layout_marker()
+        self.apply_scale(1.0)
+        self.apply_color_scheme(getattr(master.winfo_toplevel(), "palette", color_scheme("light")))
+        self.start_scan()
+
+    def _trees(self):
+        return (self.left_tree, self.right_tree)
+
+    def _toggle_option(self, option):
+        if option == "recursive":
+            self.recursive_var.set(not self.recursive_var.get())
+        elif option == "content":
+            self.content_var.set(not self.content_var.get())
+        elif option == "case":
+            self.case_var.set(not self.case_var.get()); self.find_all()
+        self._update_toggle_buttons()
+        return "break"
+
+    def _update_toggle_buttons(self):
+        self.recursive_button.configure(
+            text=f"{'✓' if self.recursive_var.get() else '–'} {tr('Recursive')}")
+        self.content_button.configure(
+            text=f"{'✓' if self.content_var.get() else '–'} {tr('By content')}")
+        self.case_button.configure(
+            text=f"{'✓' if self.case_var.get() else '–'} {tr('Case sensitive')}")
+
+    def _build_diff_menu(self):
+        self.diff_menu.delete(0, "end")
+        selected = self.view_mode_var.get()
+        self._diff_icons = {value: self._make_diff_icon(value) for value in self.DIFF_FILTERS}
+        separators_after = {"orphans", "right_newer"}
+        for value in self.DIFF_FILTERS:
+            prefix = "● " if value == selected else "   "
+            self.diff_menu.add_command(
+                label=prefix + tr(self.DIFF_LABELS[value]), image=self._diff_icons[value],
+                compound="left", command=lambda mode=value: self._select_diff_filter(mode))
+            if value in separators_after:
+                self.diff_menu.add_separator()
+        self._update_diff_button()
+
+    def _make_diff_icon(self, value):
+        """Two columns encode left/right; red means changed/newer, purple means orphan."""
+        scale = max(1.0, self.scale)
+        block, gap = max(5, round(6 * scale)), max(2, round(2 * scale))
+        width, height = block * 2 + gap * 3, block * 2 + gap * 3
+        icon = tk.PhotoImage(master=self, width=width, height=height)
+        dark = self.palette.get("window") == "#20262c"
+        colors = {
+            "neutral": "#a9b3ba" if dark else "#7b858c",
+            "difference": "#ff625d" if dark else "#d92f2f",
+            "orphan": "#b985ff" if dark else "#7d42bd",
+        }
+        layouts = {
+            "all": (("neutral", "neutral"), ("neutral", "neutral")),
+            "differences": (("difference", "difference"), ("difference", "difference")),
+            "no_orphans": (("difference", "difference"), ("neutral", "neutral")),
+            "differences_no_orphans": (("difference", "difference"), (None, None)),
+            "orphans": (("orphan", "orphan"), ("orphan", "orphan")),
+            "left_newer": (("difference", None), ("difference", None)),
+            "right_newer": ((None, "difference"), (None, "difference")),
+            "left_newer_orphans": (("difference", None), ("orphan", None)),
+            "right_newer_orphans": ((None, "difference"), (None, "orphan")),
+            "left_orphans": (("orphan", None), ("orphan", None)),
+            "right_orphans": ((None, "orphan"), (None, "orphan")),
+        }
+        for row, pair in enumerate(layouts[value]):
+            for column, token in enumerate(pair):
+                if token is None:
+                    continue
+                x = gap + column * (block + gap); y = gap + row * (block + gap)
+                icon.put(colors[token], to=(x, y, x + block, y + block))
+        return icon
+
+    def _update_diff_button(self):
+        key = self.view_mode_var.get()
+        image = self._diff_icons.get(key)
+        self.diff_button.configure(text=f"{tr('Diffs')}: {tr(self.DIFF_LABELS.get(key, 'Show All'))}",
+                                   image=image or "", compound="left")
+
+    def _select_diff_filter(self, value):
+        self.view_mode_var.set(value); self._set_diff_filter()
+
+    def _build_marker_menu(self):
+        self.marker_menu.delete(0, "end")
+        selected = self.marker_position_var.get()
+        for value, label in (("left", "Left"), ("middle", "Middle"), ("right", "Right")):
+            prefix = "● " if value == selected else "   "
+            self.marker_menu.add_command(label=prefix + tr(label),
+                                         command=lambda position=value:
+                                         self.set_marker_position(position, notify=True))
+
+    def _update_marker_button(self):
+        labels = {"left": "Left", "middle": "Middle", "right": "Right"}
+        self.marker_button.configure(
+            text=f"{tr('Map:')} {tr(labels.get(self.marker_position_var.get(), 'Middle'))}")
+
+    def _selected_items(self):
+        return self.left_tree.selection() or self.right_tree.selection()
+
+    def _sync_selection(self, source):
+        if self._syncing_selection:
+            return
+        self._syncing_selection = True
+        try:
+            target = self.right_tree if source is self.left_tree else self.left_tree
+            selected = source.selection()
+            if tuple(target.selection()) != tuple(selected):
+                target.selection_set(selected)
+            focus = source.focus()
+            if focus and target.focus() != focus:
+                target.focus(focus); target.see(focus)
+        finally:
+            self._syncing_selection = False
+
+    def _sync_open(self, source, opened):
+        if self._syncing_open:
+            return
+        iid = source.focus()
+        target = self.right_tree if source is self.left_tree else self.left_tree
+        if iid and target.exists(iid) and bool(target.item(iid, "open")) != opened:
+            self._syncing_open = True
+            try:
+                target.item(iid, open=opened)
+            finally:
+                self._syncing_open = False
+
+    def _scroll(self, *args):
+        for tree in self._trees(): tree.yview(*args)
+
+    def _left_scrolled(self, first, last):
+        self.scroll.set(first, last); self.difference_map.set_viewport(first, last)
+        if self._syncing_scroll:
+            return
+        self._syncing_scroll = True
+        try:
+            self.right_tree.yview_moveto(first)
+        finally:
+            self._syncing_scroll = False
+
+    def _right_scrolled(self, first, last):
+        self.scroll.set(first, last); self.difference_map.set_viewport(first, last)
+        if self._syncing_scroll:
+            return
+        self._syncing_scroll = True
+        try:
+            self.left_tree.yview_moveto(first)
+        finally:
+            self._syncing_scroll = False
+
+    def _mousewheel(self, event):
+        units = -int(event.delta / 120) if event.delta else 0
+        for tree in self._trees(): tree.yview_scroll(units, "units")
+        return "break"
+
+    def set_marker_position(self, position: str, notify: bool = False):
+        if position not in {"left", "middle", "right"}: position = "middle"
+        self.marker_position_var.set(position); self._layout_marker()
+        self._build_marker_menu(); self._update_marker_button()
+        if notify and self.marker_changed is not None: self.marker_changed(position)
+
+    def _marker_position_changed(self):
+        self.set_marker_position(self.marker_position_var.get(), notify=True)
+
+    def _layout_marker(self):
+        for column in range(6): self.body.columnconfigure(column, weight=0, uniform="")
+        position = self.marker_position_var.get()
+        map_column = 0 if position == "left" else (4 if position == "right" else 2)
+        left_column, center_column, right_column = 1, 2, 3
+        for column in (left_column, right_column):
+            self.body.columnconfigure(column, weight=1, uniform="compare")
+        self.left_path_label.grid(row=0, column=left_column, sticky="ew")
+        self.left_frame.grid(row=1, column=left_column, sticky="nsew")
+        self.right_path_label.grid(row=0, column=right_column, sticky="ew")
+        self.right_frame.grid(row=1, column=right_column, sticky="nsew")
+        self.map_header.grid(row=0, column=center_column, sticky="ew", padx=4)
+        self.difference_map.grid(row=1, column=map_column, sticky="ns", padx=4)
+        if position == "middle":
+            self.center_divider.grid_forget()
+        else:
+            self.center_divider.grid(row=1, column=center_column, sticky="ns")
+        self.scroll.grid(row=1, column=5, sticky="ns")
+
+    def expand_all(self):
+        self._expand_state = True
+        for iid in self.left_tree.get_children(""): self._set_open_recursive(iid, True)
+        return "break"
+
+    def collapse_all(self):
+        self._expand_state = False
+        for iid in self.left_tree.get_children(""): self._set_open_recursive(iid, False)
+        return "break"
+
+    def _set_open_recursive(self, iid, opened):
+        for tree in self._trees(): tree.item(iid, open=opened)
+        for child in self.left_tree.get_children(iid): self._set_open_recursive(child, opened)
+
+    def _all_tree_items(self, parent=""):
+        for iid in self.left_tree.get_children(parent):
+            yield iid
+            yield from self._all_tree_items(iid)
+
+    def apply_color_scheme(self, palette):
+        self.palette = palette
+        self.left_path_label.configure(background=palette["left_header"], foreground="#ffffff")
+        self.right_path_label.configure(background=palette["right_header"], foreground="#ffffff")
+        self.map_header.configure(background=palette["map_header"], foreground="#ffffff",
+                                  activebackground=palette["menu_active"],
+                                  activeforeground=palette["menu_active_text"])
+        self.difference_map.apply_color_scheme(palette)
+        dark = palette["window"] == "#20262c"
+        for tree in self._trees():
+            tree.tag_configure("find_match", background=palette["match"], foreground=palette["text"])
+            tree.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
+            tree.tag_configure("different", foreground="#ff7770" if dark else "#a00000")
+            tree.tag_configure("newer_left", foreground="#ff7770" if dark else "#a00000")
+            tree.tag_configure("newer_right", foreground="#ff7770" if dark else "#a00000")
+            tree.tag_configure("orphan_left", foreground="#c391ff" if dark else "#7137a8")
+            tree.tag_configure("orphan_right", foreground="#c391ff" if dark else "#7137a8")
+            tree.tag_configure("identical", foreground=palette["muted"])
+        self._build_diff_menu()
+        self.diff_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                                 activebackground=palette["menu_active"],
+                                 activeforeground=palette["menu_active_text"])
+        self.marker_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                                   activebackground=palette["menu_active"],
+                                   activeforeground=palette["menu_active_text"])
+
+    def apply_scale(self, scale: float):
+        self.scale = scale
+        style = ttk.Style(self)
+        linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
+        style.configure("PFCCompare.Treeview", font="TkDefaultFont",
+                        rowheight=compare_row_height(linespace, scale))
+        style.configure("PFCCompare.Treeview.Heading", font="TkHeadingFont")
+        for tree in self._trees():
+            tree.column("#0", width=max(130, round(340 * scale)))
+            tree.column("action", width=max(50, round(70 * scale)))
+            tree.column("detail", width=max(110, round(205 * scale)))
+        padding = max(3, round(3 * scale))
+        for label in (self.left_path_label, self.right_path_label): label.configure(padx=padding * 2, pady=padding)
+        self.map_header.configure(pady=padding); self.difference_map.apply_scale(scale)
+        self._build_diff_menu()
+
+    def apply_language(self, old_language: str):
+        selected_keys = {self.item_keys.get(iid) for iid in self._selected_items()}
+        retranslate_widgets(self, old_language)
+        self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
+        self.next_button.configure(text=f"F8 {tr('Diff >>')}")
+        self._update_path_labels(); self._build_diff_menu(); self._build_marker_menu()
+        self._update_marker_button(); self._update_toggle_buttons(); self._update_headings(); self.populate()
+        selected = [iid for iid in self._all_tree_items() if self.item_keys.get(iid) in selected_keys]
+        self._select_items(selected)
+
+    def _update_headings(self):
+        direction = " ▼" if self.sort_reverse else " ▲"
+        path_mark = direction if self.sort_column == "path" else ""
+        action_mark = direction if self.sort_column == "action" else ""
+        self.left_tree.heading("#0", text=tr("Name") + path_mark)
+        self.right_tree.heading("#0", text=tr("Name") + path_mark)
+        self.left_tree.heading("action", text=tr("Action") + action_mark)
+        self.right_tree.heading("action", text=tr("Action") + action_mark)
+        self.left_tree.heading("detail", text=f"{tr('Size')} / {tr('Modified')}" +
+                               (direction if self.sort_column == "left_detail" else ""))
+        self.right_tree.heading("detail", text=f"{tr('Size')} / {tr('Modified')}" +
+                                (direction if self.sort_column == "right_detail" else ""))
+
+    def change_sort(self, column):
+        selected_keys = {self.item_keys.get(iid) for iid in self._selected_items()}
+        self.sort_reverse = not self.sort_reverse if column == self.sort_column else False
+        self.sort_column = column; self._update_headings(); self.populate()
+        self._select_items([iid for iid in self._all_tree_items()
+                            if self.item_keys.get(iid) in selected_keys])
+
+    def populate(self):
+        for tree in self._trees(): tree.delete(*tree.get_children())
+        self.item_paths, self.item_keys = {}, {}
+        self.difference_items, self.difference_index = [], -1
+        action_label = {"right": "→", "left": "←", "skip": tr("Skip")}
+        allowed = self.DIFF_FILTERS.get(self.view_mode_var.get())
+        initially_visible = list(self.rows) if allowed is None else [row for row in self.rows if row[0] in allowed]
+        rows_by_key = {row[1].casefold(): row for row in self.rows}
+        needed = {row[1].casefold() for row in initially_visible}
+        for _status, relative, _left, _right in initially_visible:
+            parent = Path(relative).parent
+            while parent != Path("."):
+                key = str(parent).casefold()
+                if key in rows_by_key: needed.add(key)
+                parent = parent.parent
+        visible = [row for row in self.rows if row[1].casefold() in needed]
+        if self.sort_column == "action":
+            visible.sort(key=lambda row: self.actions.get(row[1], ""), reverse=self.sort_reverse)
+        elif self.sort_column in {"left_detail", "right_detail"}:
+            path_index = 2 if self.sort_column == "left_detail" else 3
+            def metadata_key(row):
+                path = row[path_index]
+                if path is None: return (0, 0, 0)
+                try:
+                    stat = path.stat(); return (2 if path.is_dir() else 1, stat.st_size, stat.st_mtime_ns)
+                except OSError: return (0, 0, 0)
+            visible.sort(key=metadata_key, reverse=self.sort_reverse)
+        else:
+            visible.sort(key=lambda row: row[1].casefold(), reverse=self.sort_reverse)
+        visible.sort(key=lambda row: len(Path(row[1]).parts))
+        item_ids = {}
+        for index, (status, path, left, right) in enumerate(visible):
+            iid = f"folder-row-{index}"
+            tag = ("orphan_left" if status == "Left only" else
+                   "orphan_right" if status == "Right only" else
+                   "newer_left" if status == "Left newer" else
+                   "newer_right" if status == "Right newer" else
+                   "identical" if status == "Identical" else "different")
+            parent_iid = item_ids.get(str(Path(path).parent).casefold(), "")
+            action = action_label.get(self.actions.get(path), "")
+            self.left_tree.insert(parent_iid, "end", iid=iid, text=path if left is not None else "",
+                                  open=self._expand_state,
+                                  values=(action if self.actions.get(path) in {"right", "skip"} else "",
+                                          self._detail(left)), tags=(tag,))
+            self.right_tree.insert(parent_iid, "end", iid=iid, text=path if right is not None else "",
+                                   open=self._expand_state,
+                                   values=(self._detail(right),
+                                           action if self.actions.get(path) in {"left", "skip"} else ""),
+                                   tags=(tag,))
+            item_ids[path.casefold()] = iid; self.item_paths[iid] = (left, right); self.item_keys[iid] = path
+            if status != "Identical": self.difference_items.append(iid)
+        ordered = list(self._all_tree_items())
+        difference_rows = [ordered.index(iid) + 1 for iid in self.difference_items if iid in ordered]
+        self.difference_map.set_rows(difference_rows, len(ordered))
+        self._update_difference_status(0); self.find_all()
+
+    def _select_items(self, items):
+        items = tuple(items)
+        self._syncing_selection = True
+        try:
+            for tree in self._trees():
+                tree.selection_set(items)
+                if items: tree.focus(items[0]); tree.see(items[0])
+        finally:
+            self._syncing_selection = False
+        if items: self.left_tree.focus_set()
+
+    def _difference(self, direction):
+        if not self.difference_items: return "break"
+        self.difference_index = (self.difference_index + direction) % len(self.difference_items)
+        iid = self.difference_items[self.difference_index]; self._select_items((iid,))
+        ordered = list(self._all_tree_items())
+        if iid in ordered: self.difference_map.set_current(ordered.index(iid) + 1)
+        self._update_difference_status(self.difference_index + 1)
+        return "break"
+
+    def _update_difference_status(self, current):
+        self.diff_status.configure(text=tr("{current} of {count} differences",
+                                           current=current, count=len(self.difference_items)))
+
+    def _jump_to_row(self, row):
+        ordered = list(self._all_tree_items())
+        if 1 <= row <= len(ordered) and ordered[row - 1] in self.difference_items:
+            self.difference_index = self.difference_items.index(ordered[row - 1])
+            self._difference(0)
+
+    def find_all(self):
+        self.matches, self.match_index = [], -1; needle = self.search_var.get()
+        for iid in self._all_tree_items():
+            tags = self.left_tree.item(iid, "tags")
+            semantic_tags = {"orphan_left", "orphan_right", "newer_left", "newer_right",
+                             "different", "identical"}
+            base = next((tag for tag in tags if tag in semantic_tags), "different")
+            haystack = " ".join((self.left_tree.item(iid, "text"), self.right_tree.item(iid, "text"),
+                                 *(str(v) for v in self.left_tree.item(iid, "values")),
+                                 *(str(v) for v in self.right_tree.item(iid, "values"))))
+            matched = needle in haystack if self.case_var.get() else needle.casefold() in haystack.casefold()
+            row_tags = (base, "find_match") if needle and matched else (base,)
+            for tree in self._trees(): tree.item(iid, tags=row_tags)
+            if needle and matched: self.matches.append(iid)
+        self.find_status.configure(text=tr("{count} match(es)", count=len(self.matches)) if needle else "")
+
+    def _find(self, direction):
+        previous = self.match_index; self.find_all()
+        if not self.matches: return "break"
+        self.match_index = (previous + direction) % len(self.matches); iid = self.matches[self.match_index]
+        for tree in self._trees(): tree.item(iid, tags=(*tree.item(iid, "tags"), "current_match"))
+        self._select_items((iid,))
+        self.find_status.configure(text=tr("{current} of {count} matches",
+                                           current=self.match_index + 1, count=len(self.matches)))
+        return "break"
+
+    def set_action(self, action):
+        selected = self._selected_items(); selected_keys = {self.item_keys.get(iid) for iid in selected}
+        for iid in selected:
+            left, right = self.item_paths.get(iid, (None, None)); key = self.item_keys.get(iid)
+            if key is None: continue
+            if action == "right" and left is not None and not self.right_read_only: self.actions[key] = action
+            elif action == "left" and right is not None and not self.left_read_only: self.actions[key] = action
+            elif action == "skip": self.actions[key] = action
+        self.populate(); self._select_items([iid for iid in self._all_tree_items()
+                                             if self.item_keys.get(iid) in selected_keys])
+        return "break"
+
+    def set_base_folder(self):
+        selected = self._selected_items()
+        if not selected:
+            messagebox.showinfo(tr("Set Base Folder"), tr("Select a folder row first."), parent=self)
+            return "break"
+        left, right = self.item_paths.get(selected[0], (None, None)); changed = False
+        if left is not None and left.is_dir(): self.left_root = left; changed = True
+        if right is not None and right.is_dir(): self.right_root = right; changed = True
+        if not changed:
+            messagebox.showinfo(tr("Set Base Folder"), tr("The selected row is not a folder."), parent=self)
+            return "break"
+        self._update_path_labels(); self.start_scan(); return "break"
+
+    def _update_path_labels(self):
+        self.left_path_label.configure(text=f"{tr('Left')}: {self._base_label('left')}")
+        self.right_path_label.configure(text=f"{tr('Right')}: {self._base_label('right')}")
+
+    def _open(self, _event=None):
+        selected = self._selected_items()
         if selected:
             left, right = self.item_paths.get(selected[0], (None, None))
             if left and right and left.is_file() and right.is_file(): self.open_detail(left, right)
@@ -2927,6 +3758,7 @@ class CompareWindow(tk.Toplevel):
         self.palette = getattr(master, "palette", color_scheme("light"))
         self.sync_executor = sync_executor
         self.comparisons = {}
+        self._archive_workspaces = []
         self.scale = 1.0
         self.marker_position = config.get("compare", "marker_position", fallback="middle")
         if self.marker_position not in {"left", "middle", "right"}:
@@ -2983,11 +3815,24 @@ class CompareWindow(tk.Toplevel):
 
     def _make_frame(self, left: Path, right: Path, kind: str):
         if kind == "Folder":
-            return FolderCompare(self.notebook, left, right, self.add, self.sync_executor)
+            left_root, left_read_only = self._prepare_folder_source(left)
+            right_root, right_read_only = self._prepare_folder_source(right)
+            return FolderCompare(self.notebook, left_root, right_root, self.add, self.sync_executor,
+                                 left_label=left, right_label=right,
+                                 left_read_only=left_read_only, right_read_only=right_read_only,
+                                 marker_position=self.marker_position,
+                                 marker_changed=self.set_marker_position)
         args = (self.notebook, left, right, self.marker_position, self.set_marker_position)
         if kind == "Text": return TextCompare(*args)
         if kind == "Table": return TableCompare(*args)
         return BinaryCompare(*args)
+
+    def _prepare_folder_source(self, path: Path):
+        if not is_compare_archive(path):
+            return path, False
+        workspace, root = extract_compare_archive(path)
+        self._archive_workspaces.append(workspace)
+        return root, True
 
     def set_marker_position(self, position: str) -> None:
         if position not in {"left", "middle", "right"}:
@@ -3003,9 +3848,12 @@ class CompareWindow(tk.Toplevel):
         self.save_config()
 
     def add(self, left: Path, right: Path, requested="Auto"):
+        left_container, right_container = is_compare_container(left), is_compare_container(right)
         kind = detect_compare_type(left, right) if requested == "Auto" else requested
-        if left.is_dir() != right.is_dir():
+        if left_container != right_container:
             messagebox.showerror(tr("Compare"), tr("Select two files or two folders."), parent=self); return
+        if left_container and right_container:
+            kind = "Folder"
         frame = self._make_frame(left, right, kind)
         install_button_tooltips(frame)
         self.notebook.add(frame, text=f"{tr(kind)}: {left.name} ↔ {right.name}")
@@ -3077,6 +3925,9 @@ class CompareWindow(tk.Toplevel):
         for frame in list(self.comparisons):
             if hasattr(frame, "cancel_scan"): frame.cancel_scan()
         self.save_config(); self.destroy()
+        for workspace in self._archive_workspaces:
+            workspace.cleanup()
+        self._archive_workspaces.clear()
 
     def close_active(self):
         tabs = self.notebook.tabs()
@@ -4344,14 +5195,19 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.5"
+__version__ = "0.12.6"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/22"
+BUILD_DATE = "2026/07/23"
 VERSION_HISTORY = (
+    ("v0.12.6", "2026/07/23", (
+        "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.",
+        "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.",
+        "Adjusted: Added semantic red difference/newer and purple orphan indicators, scalable controls, and delayed keyboard hints.",
+    )),
     ("v0.12.5", "2026/07/22", (
         "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.",
     )),

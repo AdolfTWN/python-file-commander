@@ -1,9 +1,11 @@
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
-from pycommander.compare import (aligned_text, compare_row_height, detect_compare_type,
-                                 file_hash, folder_rows)
+from pycommander.compare import (FolderCompare, aligned_text, compare_row_height,
+                                 detect_compare_type, extract_compare_archive, file_hash,
+                                 folder_rows, is_compare_archive)
 
 
 class CompareTests(unittest.TestCase):
@@ -40,6 +42,36 @@ class CompareTests(unittest.TestCase):
             statuses = {(status, path) for status, path, _, _ in folder_rows(left, right, by_content=True)}
             self.assertIn(("Identical", "same.txt"), statuses)
             self.assertIn(("Left only", "only.txt"), statuses)
+
+    def test_zip_is_a_folder_compare_source(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw); folder = root / "folder"; folder.mkdir()
+            (folder / "same.txt").write_text("same", encoding="utf-8")
+            archive_path = root / "folder.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.write(folder / "same.txt", "same.txt")
+            self.assertTrue(is_compare_archive(archive_path))
+            self.assertEqual(detect_compare_type(folder, archive_path), "Folder")
+            workspace, extracted = extract_compare_archive(archive_path)
+            try:
+                rows = list(folder_rows(folder, extracted, by_content=True))
+                self.assertIn(("Identical", "same.txt"), {(status, path) for status, path, *_ in rows})
+            finally:
+                workspace.cleanup()
+
+    def test_archive_path_traversal_is_rejected(self):
+        with tempfile.TemporaryDirectory() as raw:
+            archive_path = Path(raw) / "unsafe.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("../outside.txt", "unsafe")
+            with self.assertRaises(OSError):
+                extract_compare_archive(archive_path)
+
+    def test_diff_presets_cover_beyond_compare_workflows(self):
+        self.assertIn("Identical", FolderCompare.DIFF_FILTERS["no_orphans"])
+        self.assertNotIn("Left only", FolderCompare.DIFF_FILTERS["differences_no_orphans"])
+        self.assertEqual(FolderCompare.DIFF_FILTERS["left_newer_orphans"],
+                         {"Left newer", "Left only"})
 
     def test_folder_compare_filters_depth_and_newer_status(self):
         with tempfile.TemporaryDirectory() as raw:

@@ -33,6 +33,11 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.6", "2026/07/23", (
+        "Added: Compare folders, ZIP, and 7z sources with Set Base Folder, Diffs presets, expand/collapse, and side swapping.",
+        "Adjusted: Unified file and folder comparison around synchronized left/right panes, a central swap control, difference navigation, search, and bottom status.",
+        "Adjusted: Added semantic red difference/newer and purple orphan indicators, scalable controls, and delayed keyboard hints.",
+    )),
     ("v0.12.5", "2026/07/22", (
         "Adjusted: Replaced tab-lock stripes with space-free solid edge markers that automatically contrast with each tab colour.",
     )),
