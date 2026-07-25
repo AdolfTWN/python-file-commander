@@ -26,6 +26,29 @@ def search_row_height(linespace: int, scale: float) -> int:
     return max(24, int(linespace) + max(8, round(6 * float(scale))))
 
 
+def search_column_widths(available: int, desired: dict[str, int]) -> dict[str, int]:
+    """Fit result columns while reserving useful space for both name and folder."""
+    available = max(520, int(available))
+    fixed = {
+        "size": min(max(desired.get("size", 80), 72), 125),
+        "modified": min(max(desired.get("modified", 150), 148), 200),
+        "ext": min(max(desired.get("ext", 54), 48), 105),
+    }
+    flexible = max(280, available - sum(fixed.values()) - 8)
+    wanted_name = min(max(desired.get("name", 160), 130), int(available * .48))
+    wanted_folder = min(max(desired.get("folder", 220), 150), int(available * .52))
+    wanted_total = wanted_name + wanted_folder
+    if wanted_total <= flexible:
+        name = wanted_name
+        folder = flexible - name
+    else:
+        name = max(130, round(flexible * wanted_name / wanted_total))
+        folder = max(150, flexible - name)
+        if name + folder > flexible:
+            name = max(130, flexible - folder)
+    return {"name": name, "folder": folder, **fixed}
+
+
 def name_matches(name: str, masks: str, case_sensitive: bool) -> bool:
     patterns = [part.strip() for part in masks.split(";") if part.strip()] or ["*"]
     patterns = [pattern if any(char in pattern for char in "*?[]") else f"*{pattern}*" for pattern in patterns]
@@ -66,6 +89,8 @@ class SearchWindow(tk.Toplevel):
         self.item_data = {}
         self.sort_column, self.sort_reverse = "name", False
         self.cancel_event = threading.Event(); self.messages = queue.Queue(); self.poll_job = None
+        self._column_resize_job = None
+        self._column_desired = {}
         self.path_var = tk.StringVar(value=str(start_path))
         self.mask_var = tk.StringVar(value=config.get("search", "mask", fallback="*"))
         self.content_var = tk.StringVar(value=config.get("search", "content", fallback=""))
@@ -122,14 +147,15 @@ class SearchWindow(tk.Toplevel):
         columns = ("folder", "size", "modified", "ext")
         self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended",
                                  style="PFCSearch.Treeview")
-        self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260)
+        self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260, stretch=False)
         for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60)):
             self.tree.heading(col, text=tr(col.title()), command=lambda c=col: self.change_sort(c))
-            self.tree.column(col, width=width, anchor="e" if col == "size" else "w")
+            self.tree.column(col, width=width, anchor="e" if col == "size" else "w", stretch=False)
         scroll = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview); self.tree.configure(yscrollcommand=scroll.set)
         self.tree.pack(side="left", fill="both", expand=True); scroll.pack(side="right", fill="y")
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
+        self.tree.bind("<Configure>", self._schedule_column_resize)
         for variable in (self.mask_var, self.content_var, self.case_var, self.depth_var,
                          self.files_var, self.folders_var, self.min_size_var,
                          self.max_size_var, self.days_var):
@@ -137,6 +163,45 @@ class SearchWindow(tk.Toplevel):
         self._update_criteria_summary()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def _reset_column_measurements(self) -> None:
+        font = tkfont.nametofont("TkDefaultFont")
+        heading = tkfont.nametofont("TkHeadingFont")
+        self._column_desired = {
+            "name": heading.measure(tr("Name") + " ▲") + 32,
+            "folder": heading.measure(tr("Folder")) + 32,
+            "size": heading.measure(tr("Size")) + 28,
+            "modified": heading.measure(tr("Modified")) + 28,
+            "ext": heading.measure(tr("Ext")) + 28,
+        }
+        for iid in self.tree.get_children():
+            values = self.tree.item(iid, "values")
+            if len(values) >= 4:
+                self._measure_result(str(self.tree.item(iid, "text")), *map(str, values[:4]),
+                                     schedule=False)
+        self._schedule_column_resize()
+
+    def _measure_result(self, name: str, folder: str, size: str, modified: str, ext: str,
+                        schedule: bool = True) -> None:
+        font = tkfont.nametofont("TkDefaultFont")
+        for key, value in (("name", name), ("folder", folder), ("size", size),
+                           ("modified", modified), ("ext", ext)):
+            self._column_desired[key] = max(self._column_desired.get(key, 0),
+                                            font.measure(value) + (38 if key == "name" else 24))
+        if schedule:
+            self._schedule_column_resize()
+
+    def _schedule_column_resize(self, _event=None) -> None:
+        if self._column_resize_job is not None:
+            self.after_cancel(self._column_resize_job)
+        self._column_resize_job = self.after(90, self._resize_columns)
+
+    def _resize_columns(self) -> None:
+        self._column_resize_job = None
+        widths = search_column_widths(self.tree.winfo_width(), self._column_desired)
+        self.tree.column("#0", width=widths["name"])
+        for column in ("folder", "size", "modified", "ext"):
+            self.tree.column(column, width=widths[column])
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -148,6 +213,7 @@ class SearchWindow(tk.Toplevel):
         style.configure("PFCSearch.Treeview", font=default_font,
                         rowheight=search_row_height(default_font.metrics("linespace"), scale))
         style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
+        self._reset_column_measurements()
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
@@ -158,6 +224,7 @@ class SearchWindow(tk.Toplevel):
         self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
         self.title(tr("PFC Search"))
         self._apply_sort()
+        self._reset_column_measurements()
         self._update_criteria_summary()
         if self.worker is not None and self.worker.is_alive():
             self.status.configure(text=tr("Searching…"))
@@ -236,6 +303,7 @@ class SearchWindow(tk.Toplevel):
         criteria = self.criteria()
         if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
+        self._reset_column_measurements()
         self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
@@ -264,15 +332,20 @@ class SearchWindow(tk.Toplevel):
         except OSError as exc: self.messages.put(("error", str(exc)))
 
     def _poll(self):
-        while True:
+        processed = 0
+        while processed < 250:
             try: message = self.messages.get_nowait()
             except queue.Empty: break
+            processed += 1
             if message[0] == "item":
                 _, path, stat = message; self.results.append(path)
+                folder = str(path.parent)
+                size_text = "<DIR>" if path.is_dir() else f"{stat.st_size:,}"
+                modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+                extension = "" if path.is_dir() else path.suffix[1:]
                 iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
-                                       values=(str(path.parent), "<DIR>" if path.is_dir() else f"{stat.st_size:,}",
-                                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
-                                               "" if path.is_dir() else path.suffix[1:]))
+                                       values=(folder, size_text, modified, extension))
+                self._measure_result(path.name, folder, size_text, modified, extension)
                 self.item_data[iid] = {"name": path.name.casefold(), "folder": str(path.parent).casefold(),
                                        "size": stat.st_size, "modified": stat.st_mtime,
                                        "ext": ("" if path.is_dir() else path.suffix[1:]).casefold()}
@@ -285,7 +358,8 @@ class SearchWindow(tk.Toplevel):
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
-        if self.worker and self.worker.is_alive(): self.poll_job = self.after(80, self._poll)
+        if not self.messages.empty() or (self.worker and self.worker.is_alive()):
+            self.poll_job = self.after(40, self._poll)
 
     def selected_paths(self):
         return [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.selection()
@@ -311,6 +385,9 @@ class SearchWindow(tk.Toplevel):
         self.cancel_event.set()
         if self.poll_job is not None:
             try: self.after_cancel(self.poll_job)
+            except tk.TclError: pass
+        if self._column_resize_job is not None:
+            try: self.after_cancel(self._column_resize_job)
             except tk.TclError: pass
         if not self.config_data.has_section("search"): self.config_data.add_section("search")
         for key, value in (("geometry", self.geometry()), ("mask", self.mask_var.get()), ("content", self.content_var.get()),

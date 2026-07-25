@@ -65,7 +65,7 @@ _TRANSLATIONS = {
     },
     "zh_TW": {
         "Files": "檔案", "View": "檢視", "Versions": "版本", "UI Language": "介面語言", "Build": "建置",
-        "Color Scheme": "配色方案", "Light": "明亮", "Light Grey": "淺灰", "Dark": "深色",
+        "Color Scheme": "配色方案", "Extension Effect": "副檔名效果", "Light": "明亮", "Light Grey": "淺灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "複製到剪貼簿", "Cut to Clipboard": "剪下到剪貼簿", "Paste": "貼上",
         "Copy to Next Panel": "複製到下一面板", "Move to Next Panel": "移動到下一面板",
@@ -93,6 +93,7 @@ _TRANSLATIONS = {
         "Keyboard Guide": "鍵盤操作指南", "Keyboard shortcuts not shown on the bottom action bar": "底部操作列未顯示的鍵盤快速鍵",
         "OK": "確定", "Cancel": "取消", "Close": "關閉", "Apply": "套用", "Ready": "就緒", "Find": "尋找", "Find:": "尋找：", "Find Prev": "尋找上一個", "Find Next": "尋找下一個", "Case sensitive": "區分大小寫", "Clear Filters": "清除篩選條件", "Filters:": "篩選條件：", "Filters cleared": "已清除篩選條件", "Settings could not be saved: {error}": "無法儲存設定：{error}",
         "File <<": "檔案 <<", "File >>": "檔案 >>", "View:": "檢視：", "Wrap": "自動換行", "Auto": "自動", "Text": "文字", "Hex": "十六進位", "Folder view": "資料夾",
+        "Markdown Source": "Markdown 原始碼", "Rendered": "轉譯", "Markdown rendered": "Markdown 轉譯", "{language} syntax": "{language} 語法",
         "No matches": "找不到相符項目", "Match {current} of {total}": "第 {current} 個，共 {total} 個",
         "PFC Preview": "PFC 預覽", "PFC Search": "PFC 搜尋", "PFC Compare": "PFC 比較", "PFC Multi-Rename": "PFC 批次重新命名",
         "Start in:": "開始位置：", "Name/mask:": "名稱／遮罩：", "Containing text:": "包含文字：", "Depth:": "深度：",
@@ -131,6 +132,8 @@ _TRANSLATIONS = {
         "Language saved": "語言設定已儲存", "Restart PFC to apply the selected UI language.": "請重新啟動 PFC 以套用所選的介面語言。",
         "No release notes available.": "沒有可用的版本資訊。",
         "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.": "新增：將資料夾或壓縮檔中的成對檔案開啟為可重複使用的巢狀比較分頁，並顯示邏輯來源路徑。",
+        "Added: Extension-aware F3 Preview with Python and popular code syntax colors plus Markdown source and rendered modes.": "新增：F3 預覽可依副檔名顯示 Python 與常見程式碼語法色彩，並提供 Markdown 原始碼與轉譯模式。",
+        "Adjusted: F4 Search continuously auto-sizes result columns as matches arrive and preserves readable detail columns.": "調整：F4 搜尋會隨結果持續出現而自動調整欄寬，並保持詳細資料欄清楚可讀。",
         "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.": "調整：獨立與巢狀檔案比較統一使用相同的左右窗格、差異圖、導覽、搜尋與狀態版面。",
         "Adjusted: Routed F7, F8, Ctrl+F, and Esc to the active nested comparison for uninterrupted keyboard use.": "調整：F7、F8、Ctrl+F 與 Esc 會作用於目前巢狀比較，維持不中斷的鍵盤操作。",
         "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "調整：詳細資料欄會自動調整寬度，讓名稱欄固定使用面板剩餘空間。",
@@ -180,7 +183,7 @@ _TRANSLATIONS = {
     },
     "zh_CN": {
         "Files": "文件", "View": "查看", "Versions": "版本", "UI Language": "界面语言", "Build": "构建",
-        "Color Scheme": "配色方案", "Light": "浅色", "Light Grey": "浅灰", "Dark": "深色",
+        "Color Scheme": "配色方案", "Extension Effect": "扩展名效果", "Light": "浅色", "Light Grey": "浅灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "复制到剪贴板", "Cut to Clipboard": "剪切到剪贴板", "Paste": "粘贴",
         "Copy to Next Panel": "复制到下一面板", "Move to Next Panel": "移动到下一面板", "Copy to Target Panel": "复制到目标面板", "Move to Target Panel": "移动到目标面板", "Rename": "重命名", "Multi-Rename": "批量重命名", "New Folder": "新建文件夹",
@@ -198,6 +201,7 @@ _TRANSLATIONS = {
         "Keyboard Guide": "键盘操作指南", "Keyboard shortcuts not shown on the bottom action bar": "底部操作栏未显示的键盘快捷键",
         "OK": "确定", "Cancel": "取消", "Close": "关闭", "Apply": "应用", "Ready": "就绪", "Find": "查找", "Find:": "查找：", "Find Prev": "查找上一个", "Find Next": "查找下一个", "Case sensitive": "区分大小写", "Clear Filters": "清除筛选条件", "Filters:": "筛选条件：", "Filters cleared": "已清除筛选条件", "Settings could not be saved: {error}": "无法保存设置：{error}",
         "File <<": "文件 <<", "File >>": "文件 >>", "View:": "查看：", "Wrap": "自动换行", "Auto": "自动", "Text": "文本", "Hex": "十六进制", "Folder view": "文件夹", "No matches": "未找到匹配项", "Match {current} of {total}": "第 {current} 个，共 {total} 个",
+        "Markdown Source": "Markdown 源代码", "Rendered": "渲染", "Markdown rendered": "Markdown 渲染", "{language} syntax": "{language} 语法",
         "PFC Preview": "PFC 预览", "PFC Search": "PFC 搜索", "PFC Compare": "PFC 比较", "PFC Multi-Rename": "PFC 批量重命名",
         "Start in:": "开始位置：", "Name/mask:": "名称／掩码：", "Containing text:": "包含文本：", "Depth:": "深度：", "Current": "当前文件夹", "All": "全部", "Files": "文件", "Folders": "文件夹",
         "Size KB min:": "最小大小 (KB)：", "max:": "最大：", "Modified within days:": "最近修改天数：", "Go to File": "转到文件", "Searching…": "正在搜索…", "Cancelling…": "正在取消…", "{count} found": "找到 {count} 个", " — cancelled": " — 已取消", " — limit reached": " — 已达上限", "Start path is not a folder.": "开始路径不是文件夹。", "Search failed": "搜索失败",
@@ -220,6 +224,8 @@ _TRANSLATIONS = {
         "Language saved": "语言设置已保存", "Restart PFC to apply the selected UI language.": "请重新启动 PFC 以应用所选的界面语言。",
         "No release notes available.": "没有可用的版本信息。",
         "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.": "新增：将文件夹或压缩文件中的成对文件打开为可重复使用的嵌套比较标签页，并显示逻辑来源路径。",
+        "Added: Extension-aware F3 Preview with Python and popular code syntax colors plus Markdown source and rendered modes.": "新增：F3 预览可按扩展名显示 Python 与常见代码语法颜色，并提供 Markdown 源代码与渲染模式。",
+        "Adjusted: F4 Search continuously auto-sizes result columns as matches arrive and preserves readable detail columns.": "调整：F4 搜索会随结果持续出现而自动调整列宽，并保持详细信息列清晰可读。",
         "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.": "调整：独立与嵌套文件比较统一使用相同的左右窗格、差异图、导航、搜索和状态布局。",
         "Adjusted: Routed F7, F8, Ctrl+F, and Esc to the active nested comparison for uninterrupted keyboard use.": "调整：F7、F8、Ctrl+F 和 Esc 会作用于当前嵌套比较，保持不中断的键盘操作。",
         "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "调整：详细信息列会自动调整宽度，让名称列始终使用面板剩余空间。",
@@ -269,7 +275,7 @@ _TRANSLATIONS = {
     },
     "ko": {
         "Files": "파일", "View": "보기", "Versions": "버전", "UI Language": "UI 언어", "Build": "빌드",
-        "Color Scheme": "색 구성표", "Light": "밝게", "Light Grey": "밝은 회색", "Dark": "어둡게",
+        "Color Scheme": "색 구성표", "Extension Effect": "확장자 효과", "Light": "밝게", "Light Grey": "밝은 회색", "Dark": "어둡게",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "클립보드에 복사", "Cut to Clipboard": "클립보드로 잘라내기", "Paste": "붙여넣기",
         "Copy to Next Panel": "다음 패널로 복사", "Move to Next Panel": "다음 패널로 이동", "Copy to Target Panel": "대상 패널로 복사", "Move to Target Panel": "대상 패널로 이동", "Rename": "이름 바꾸기", "Multi-Rename": "일괄 이름 바꾸기", "New Folder": "새 폴더",
@@ -285,6 +291,7 @@ _TRANSLATIONS = {
         "Add Current Folder": "현재 폴더 추가", "Remove Current Folder": "현재 폴더 제거", "Clear Recent Folders": "최근 폴더 지우기", "No recent folders": "최근 폴더 없음", "Keyboard Guide": "키보드 사용 안내", "Keyboard shortcuts not shown on the bottom action bar": "아래 작업 표시줄에 없는 키보드 바로 가기",
         "OK": "확인", "Cancel": "취소", "Close": "닫기", "Apply": "적용", "Ready": "준비", "Find": "찾기", "Find:": "찾기:", "Find Prev": "이전 찾기", "Find Next": "다음 찾기", "Case sensitive": "대/소문자 구분", "Clear Filters": "필터 지우기", "Filters:": "필터:", "Filters cleared": "필터를 지웠습니다", "Settings could not be saved: {error}": "설정을 저장할 수 없습니다: {error}",
         "File <<": "파일 <<", "File >>": "파일 >>", "View:": "보기:", "Wrap": "자동 줄 바꿈", "Auto": "자동", "Text": "텍스트", "Hex": "16진수", "Folder view": "폴더", "No matches": "일치 항목 없음", "Match {current} of {total}": "{total}개 중 {current}번째",
+        "Markdown Source": "Markdown 소스", "Rendered": "렌더링", "Markdown rendered": "Markdown 렌더링", "{language} syntax": "{language} 구문",
         "PFC Preview": "PFC 미리 보기", "PFC Search": "PFC 검색", "PFC Compare": "PFC 비교", "PFC Multi-Rename": "PFC 일괄 이름 바꾸기",
         "Start in:": "검색 위치:", "Name/mask:": "이름/마스크:", "Containing text:": "포함할 텍스트:", "Depth:": "깊이:", "Current": "현재 폴더", "All": "모두", "Files": "파일", "Folders": "폴더", "Size KB min:": "최소 크기(KB):", "max:": "최대:", "Modified within days:": "최근 수정 일수:", "Go to File": "파일로 이동", "Searching…": "검색 중…", "Cancelling…": "취소 중…", "{count} found": "{count}개 찾음", " — cancelled": " — 취소됨", " — limit reached": " — 한도 도달", "Start path is not a folder.": "시작 경로가 폴더가 아닙니다.", "Search failed": "검색 실패",
         "Name mask:": "이름 마스크:", "[N] original   [C] counter   [E] extension": "[N] 원래 이름   [C] 번호   [E] 확장명", "Replace:": "바꿀 내용:", "Keep extension": "확장명 유지", "Start:": "시작:", "Digits:": "자릿수:", "Old": "이전 이름", "New": "새 이름", "Status": "상태", "Ctrl+Z Undo": "Ctrl+Z 실행 취소", "Ctrl+Enter Rename": "Ctrl+Enter 이름 바꾸기",
@@ -306,6 +313,8 @@ _TRANSLATIONS = {
         "Language saved": "언어 설정 저장됨", "Restart PFC to apply the selected UI language.": "선택한 UI 언어를 적용하려면 PFC를 다시 시작하세요.",
         "No release notes available.": "사용 가능한 릴리스 정보가 없습니다.",
         "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.": "추가: 폴더 또는 압축 파일의 쌍을 이룬 파일을 논리적 원본 경로와 함께 재사용 가능한 중첩 비교 탭으로 엽니다.",
+        "Added: Extension-aware F3 Preview with Python and popular code syntax colors plus Markdown source and rendered modes.": "추가: F3 미리 보기에서 확장자에 따라 Python 및 주요 코드 구문 색상을 표시하고 Markdown 소스와 렌더링 모드를 제공합니다.",
+        "Adjusted: F4 Search continuously auto-sizes result columns as matches arrive and preserves readable detail columns.": "조정: F4 검색은 결과가 추가될 때마다 열 너비를 자동 조정하며 세부 정보 열의 가독성을 유지합니다.",
         "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.": "조정: 독립 및 중첩 파일 비교가 동일한 좌우 창, 차이 지도, 탐색, 검색 및 상태 레이아웃을 사용하도록 통합했습니다.",
         "Adjusted: Routed F7, F8, Ctrl+F, and Esc to the active nested comparison for uninterrupted keyboard use.": "조정: F7, F8, Ctrl+F 및 Esc가 활성 중첩 비교에 작동하도록 하여 키보드 사용이 끊기지 않게 했습니다.",
         "Adjusted: Auto-sized detail columns so the Name column consistently receives the remaining panel width.": "조정: 세부 정보 열 너비를 자동으로 맞추고 이름 열이 패널의 남은 너비를 사용하도록 했습니다.",
@@ -4128,6 +4137,10 @@ class CompareWindow(tk.Toplevel):
         widget.destroy()
 
 
+import io
+import keyword
+import re
+import tokenize
 import tkinter as tk
 import tkinter.font as tkfont
 from pathlib import Path
@@ -4141,6 +4154,140 @@ TEXT_EXTENSIONS = {
 }
 TEXT_LIMIT = 8 * 1024 * 1024
 HEX_LIMIT = 1024 * 1024
+SYNTAX_BATCH_SIZE = 600
+
+CODE_EXTENSIONS = {
+    ".py": "Python", ".js": "JavaScript", ".jsx": "JavaScript",
+    ".ts": "TypeScript", ".tsx": "TypeScript", ".java": "Java",
+    ".c": "C", ".h": "C", ".cpp": "C++", ".cc": "C++", ".hpp": "C++",
+    ".cs": "C#", ".go": "Go", ".rs": "Rust", ".php": "PHP",
+    ".sql": "SQL", ".ps1": "PowerShell", ".sh": "Shell",
+    ".bat": "Batch", ".cmd": "Batch", ".json": "JSON",
+    ".xml": "XML", ".html": "HTML", ".htm": "HTML", ".xhtml": "HTML",
+    ".svg": "SVG", ".css": "CSS", ".scss": "SCSS",
+    ".yaml": "YAML", ".yml": "YAML", ".ini": "INI",
+    ".cfg": "Config", ".conf": "Config", ".md": "Markdown",
+}
+
+COMMON_KEYWORDS = set("""
+abstract as async await break case catch class const continue def default delete do
+else enum except export extends false finally for from function if import in
+interface lambda let match namespace new nil none null package pass private
+protected public raise return self static struct super switch this throw true try
+type typeof using var void while with yield select range where
+""".split())
+
+
+def _line_offsets(text: str) -> list[int]:
+    offsets, total = [0], 0
+    for line in text.splitlines(keepends=True):
+        total += len(line); offsets.append(total)
+    return offsets
+
+
+def syntax_spans(text: str, suffix: str) -> list[tuple[int, int, str]]:
+    """Return lightweight syntax spans without requiring third-party packages."""
+    suffix = suffix.casefold()
+    if suffix == ".py":
+        offsets = _line_offsets(text)
+        spans = []
+        try:
+            for token in tokenize.generate_tokens(io.StringIO(text).readline):
+                if token.type not in (tokenize.COMMENT, tokenize.STRING, tokenize.NUMBER,
+                                      tokenize.NAME, tokenize.OP):
+                    continue
+                tag = {
+                    tokenize.COMMENT: "syntax_comment", tokenize.STRING: "syntax_string",
+                    tokenize.NUMBER: "syntax_number", tokenize.OP: "syntax_operator",
+                }.get(token.type)
+                if token.type == tokenize.NAME and keyword.iskeyword(token.string):
+                    tag = "syntax_keyword"
+                if tag and token.start[0] <= len(offsets) and token.end[0] <= len(offsets):
+                    start = offsets[token.start[0] - 1] + token.start[1]
+                    end = offsets[token.end[0] - 1] + token.end[1]
+                    spans.append((start, end, tag))
+        except (tokenize.TokenError, IndentationError):
+            pass
+        return spans
+
+    spans = []
+    comment_pattern = (r"(?m)(?://|;|--).*?$|/\*[\s\S]*?\*/|<!--[\s\S]*?-->"
+                       if suffix == ".md" else
+                       r"(?m)(?://|#|;|--).*?$|/\*[\s\S]*?\*/|<!--[\s\S]*?-->")
+    patterns = [
+        ("syntax_comment", comment_pattern),
+        ("syntax_string", r"""(?s:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')"""),
+        ("syntax_number", r"\b(?:0x[0-9a-fA-F]+|\d+(?:\.\d+)?)\b"),
+    ]
+    if suffix in {".xml", ".html", ".htm", ".xhtml", ".svg"}:
+        patterns.append(("syntax_keyword", r"</?[\w:-]+|/?>"))
+    elif suffix == ".md":
+        patterns.extend([
+            ("syntax_heading", r"(?m)^#{1,6}\s+.*$"),
+            ("syntax_keyword", r"(?m)^(?:\s*[-*+]\s+|\s*\d+\.\s+|>\s+)|`{1,3}"),
+            ("syntax_link", r"\[[^\]]+\]\([^)]+\)"),
+        ])
+    else:
+        words = COMMON_KEYWORDS
+        patterns.append(("syntax_keyword", r"\b(?:" + "|".join(sorted(map(re.escape, words))) + r")\b"))
+    occupied = [False] * len(text)
+    for tag, pattern in patterns:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            start, end = match.span()
+            if start < end and not any(occupied[start:end]):
+                spans.append((start, end, tag))
+                occupied[start:end] = [True] * (end - start)
+    return spans
+
+
+def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
+    """Render common Markdown structure into readable Tk text and style spans."""
+    output, spans, in_code, length = [], [], False, 0
+
+    def append(value: str, tag: str | None = None) -> None:
+        nonlocal length
+        start = length; output.append(value); length += len(value)
+        if tag and value: spans.append((start, start + len(value), tag))
+
+    def inline(value: str) -> None:
+        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[[^\]]+\]\([^)]+\)|(?<!\*)\*[^*]+\*)")
+        cursor = 0
+        for match in pattern.finditer(value):
+            append(value[cursor:match.start()])
+            token = match.group()
+            if token.startswith(("**", "__")):
+                append(token[2:-2], "markdown_bold")
+            elif token.startswith("`"):
+                append(token[1:-1], "markdown_code")
+            elif token.startswith("["):
+                label, url = re.match(r"\[([^\]]+)\]\(([^)]+)\)", token).groups()
+                append(label, "markdown_link"); append(f" ({url})", "markdown_url")
+            else:
+                append(token[1:-1], "markdown_italic")
+            cursor = match.end()
+        append(value[cursor:])
+
+    for raw in text.splitlines():
+        if raw.strip().startswith("```"):
+            in_code = not in_code
+            continue
+        if in_code:
+            append(raw + "\n", "markdown_code")
+            continue
+        heading = re.match(r"^(#{1,6})\s+(.*)$", raw)
+        if heading:
+            start = length; inline(heading.group(2)); append("\n")
+            spans.append((start, length - 1,
+                          f"markdown_h{min(3, len(heading.group(1)))}"))
+        elif re.match(r"^\s*[-*+]\s+", raw):
+            append("• ", "markdown_bullet"); inline(re.sub(r"^\s*[-*+]\s+", "", raw)); append("\n")
+        elif raw.startswith(">"):
+            append("│ ", "markdown_quote"); inline(raw[1:].lstrip()); append("\n")
+        elif re.match(r"^\s*(?:---+|\*\*\*+)\s*$", raw):
+            append("────────────────────────\n", "markdown_rule")
+        else:
+            inline(raw); append("\n")
+    return "".join(output), spans
 
 
 def looks_text(path: Path, sample: bytes) -> bool:
@@ -4173,7 +4320,8 @@ def render_hex(data: bytes) -> str:
 
 
 class PreviewWindow(tk.Toplevel):
-    def __init__(self, master, config, save_config, files, selected) -> None:
+    def __init__(self, master, config, save_config, files, selected,
+                 extension_effect: bool = True) -> None:
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
         self.files = list(files)
@@ -4183,10 +4331,15 @@ class PreviewWindow(tk.Toplevel):
         self.wrap_var = tk.BooleanVar(value=config.getboolean("preview", "wrap", fallback=False))
         self.case_var = tk.BooleanVar(value=False)
         self.search_var = tk.StringVar()
+        self.extension_effect = bool(extension_effect)
+        self.markdown_values = {tr("Markdown Source"): "source", tr("Rendered"): "rendered"}
+        self.markdown_var = tk.StringVar(value=tr("Rendered"))
         self.matches = []
         self.match_index = -1
         self._signature = None
         self._refresh_job = None
+        self._span_job = None
+        self._pending_spans = []
         self.title(tr("PFC Preview"))
         self.geometry(config.get("preview", "geometry", fallback="1100x720"))
         self.minsize(640, 400)
@@ -4207,6 +4360,13 @@ class PreviewWindow(tk.Toplevel):
         self.mode_combo.bind("<<ComboboxSelected>>", lambda _event: self.load())
         ttk.Checkbutton(file_row, text=tr("Wrap"), variable=self.wrap_var,
                         command=self.set_wrap).pack(side="left", padx=10)
+        self.markdown_frame = ttk.Frame(file_row)
+        ttk.Label(self.markdown_frame, text="Markdown:").pack(side="left", padx=(2, 3))
+        self.markdown_combo = ttk.Combobox(self.markdown_frame, width=10, state="readonly",
+                                           textvariable=self.markdown_var,
+                                           values=tuple(self.markdown_values))
+        self.markdown_combo.pack(side="left")
+        self.markdown_combo.bind("<<ComboboxSelected>>", lambda _event: self.load())
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left", padx=(0, 3))
         self.search = ttk.Entry(find_row, textvariable=self.search_var, width=24)
@@ -4229,6 +4389,7 @@ class PreviewWindow(tk.Toplevel):
         self.text.pack(side="left", fill="both", expand=True); vertical.pack(side="right", fill="y")
         self.text.tag_configure("match", background="#fff0a6")
         self.text.tag_configure("current_match", background="#ffb347")
+        self._configure_effect_fonts()
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self)
@@ -4242,7 +4403,27 @@ class PreviewWindow(tk.Toplevel):
         self.mode_values = {tr("Auto"): "Auto", tr("Text"): "Text", tr("Hex"): "Hex"}
         self.mode_combo.configure(values=tuple(self.mode_values))
         self.mode_var.set(next(label for label, value in self.mode_values.items() if value == mode))
+        markdown_mode = self.markdown_values.get(self.markdown_var.get(), "rendered")
+        self.markdown_values = {tr("Markdown Source"): "source", tr("Rendered"): "rendered"}
+        self.markdown_combo.configure(values=tuple(self.markdown_values))
+        self.markdown_var.set(next(label for label, value in self.markdown_values.items()
+                                   if value == markdown_mode))
         self.load()
+
+    def _configure_effect_fonts(self) -> None:
+        base = tkfont.nametofont("TkFixedFont")
+        family, size = base.cget("family"), base.cget("size")
+        self.effect_fonts = {
+            "bold": tkfont.Font(self, family=family, size=size, weight="bold"),
+            "italic": tkfont.Font(self, family=family, size=size, slant="italic"),
+            "h1": tkfont.Font(self, family=family, size=max(size + 6, round(size * 1.55)), weight="bold"),
+            "h2": tkfont.Font(self, family=family, size=max(size + 4, round(size * 1.35)), weight="bold"),
+            "h3": tkfont.Font(self, family=family, size=max(size + 2, round(size * 1.18)), weight="bold"),
+        }
+
+    def apply_scale(self, _scale: float) -> None:
+        self._configure_effect_fonts()
+        self.apply_color_scheme(self.palette)
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -4252,6 +4433,30 @@ class PreviewWindow(tk.Toplevel):
                             selectforeground="#ffffff")
         self.text.tag_configure("match", background=palette["match"], foreground=palette["text"])
         self.text.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
+        dark = sum(int(palette["content"][i:i + 2], 16) for i in (1, 3, 5)) < 330
+        colors = {
+            "syntax_keyword": "#6cb6ff" if dark else "#005cc5",
+            "syntax_string": "#a5d6a7" if dark else "#116329",
+            "syntax_comment": "#9aa7b0" if dark else "#66737d",
+            "syntax_number": "#f2a65a" if dark else "#b35900",
+            "syntax_operator": "#d2a8ff" if dark else "#7a3e9d",
+            "syntax_heading": "#79c0ff" if dark else "#174f86",
+            "syntax_link": "#58a6ff" if dark else "#0969da",
+        }
+        for tag, foreground in colors.items():
+            self.text.tag_configure(tag, foreground=foreground)
+        self.text.tag_configure("markdown_bold", font=self.effect_fonts["bold"])
+        self.text.tag_configure("markdown_italic", font=self.effect_fonts["italic"])
+        self.text.tag_configure("markdown_code", background=palette["surface_alt"],
+                                foreground=colors["syntax_string"])
+        self.text.tag_configure("markdown_link", foreground=colors["syntax_link"], underline=True)
+        self.text.tag_configure("markdown_url", foreground=palette["muted"])
+        self.text.tag_configure("markdown_quote", foreground=palette["muted"])
+        self.text.tag_configure("markdown_bullet", foreground=colors["syntax_keyword"])
+        self.text.tag_configure("markdown_rule", foreground=palette["border"])
+        for level in (1, 2, 3):
+            self.text.tag_configure(f"markdown_h{level}", font=self.effect_fonts[f"h{level}"],
+                                    foreground=colors["syntax_heading"], spacing1=8, spacing3=4)
 
     @property
     def path(self) -> Path:
@@ -4261,6 +4466,27 @@ class PreviewWindow(tk.Toplevel):
         self.files = list(files)
         self.index = self.files.index(selected) if selected in self.files else 0
         self.load(); self.activate()
+
+    def set_extension_effect(self, enabled: bool) -> None:
+        self.extension_effect = bool(enabled)
+        self.load()
+
+    def _apply_spans(self, spans: list[tuple[int, int, str]]) -> None:
+        self._pending_spans = list(spans)
+        self._apply_span_batch()
+
+    def _apply_span_batch(self) -> None:
+        self._span_job = None
+        batch, self._pending_spans = (
+            self._pending_spans[:SYNTAX_BATCH_SIZE],
+            self._pending_spans[SYNTAX_BATCH_SIZE:])
+        grouped: dict[str, list[str]] = {}
+        for start, end, tag in batch:
+            grouped.setdefault(tag, []).extend((f"1.0+{start}c", f"1.0+{end}c"))
+        for tag, ranges in grouped.items():
+            self.text.tag_add(tag, *ranges)
+        if self._pending_spans and self.winfo_exists():
+            self._span_job = self.after(8, self._apply_span_batch)
 
     def activate(self) -> None:
         self.deiconify(); self.lift(); self.focus_force(); self.text.focus_set()
@@ -4287,10 +4513,13 @@ class PreviewWindow(tk.Toplevel):
 
     def load(self) -> None:
         path = self.path
+        if self._span_job is not None:
+            self.after_cancel(self._span_job); self._span_job = None
+        self._pending_spans = []
         self.title(f"{tr('PFC Preview')} — {path.name}")
         self.text.configure(state="normal"); self.text.delete("1.0", "end")
         mode = self.mode_values.get(self.mode_var.get(), self.mode_var.get())
-        encoding, truncated = "", False
+        encoding, truncated, spans = "", False, []
         try:
             if path.is_dir():
                 entries = sorted(path.iterdir(), key=lambda item: (not item.is_dir(), item.name.casefold()))
@@ -4307,10 +4536,25 @@ class PreviewWindow(tk.Toplevel):
                 truncated = len(data) > limit; data = data[:limit]
                 if chosen == "Text":
                     content, encoding = decode_text(data); shown_mode = tr("Text")
+                    suffix = path.suffix.casefold()
+                    markdown_mode = self.markdown_values.get(self.markdown_var.get(), "rendered")
+                    if self.extension_effect and suffix == ".md" and markdown_mode == "rendered":
+                        content, spans = render_markdown(content)
+                        shown_mode = tr("Markdown rendered")
+                    elif self.extension_effect and suffix in CODE_EXTENSIONS:
+                        spans = syntax_spans(content, suffix)
+                        shown_mode = tr("{language} syntax", language=CODE_EXTENSIONS[suffix])
                 else:
                     content = render_hex(data); shown_mode = tr("Hex")
                 size = path.stat().st_size
             self.text.insert("1.0", content)
+            self._apply_spans(spans)
+            show_markdown = (path.is_file() and path.suffix.casefold() == ".md"
+                             and chosen == "Text" and self.extension_effect)
+            if show_markdown:
+                self.markdown_frame.pack(side="left", padx=(4, 0))
+            else:
+                self.markdown_frame.pack_forget()
             size = path.stat().st_size if path.is_file() else 0
             detail = f"{shown_mode}   {size:,} bytes"
             if encoding: detail += f"   {encoding}"
@@ -4320,6 +4564,7 @@ class PreviewWindow(tk.Toplevel):
             self.text.insert("1.0", f"{tr('Cannot preview file')}:\n{exc}")
             self.status.configure(text=str(path))
         self.text.configure(state="disabled")
+        self.text.tag_raise("match"); self.text.tag_raise("current_match")
         self._signature = self._path_signature()
         self.find_all()
 
@@ -4365,6 +4610,8 @@ class PreviewWindow(tk.Toplevel):
     def close(self) -> None:
         if self._refresh_job is not None:
             self.after_cancel(self._refresh_job); self._refresh_job = None
+        if self._span_job is not None:
+            self.after_cancel(self._span_job); self._span_job = None
         if not self.config_data.has_section("preview"): self.config_data.add_section("preview")
         self.config_data.set("preview", "geometry", self.geometry())
         self.config_data.set("preview", "wrap", str(self.wrap_var.get()).lower())
@@ -4392,6 +4639,29 @@ RESULT_LIMIT = 10000
 def search_row_height(linespace: int, scale: float) -> int:
     """Leave enough vertical padding for scaled Search result text."""
     return max(24, int(linespace) + max(8, round(6 * float(scale))))
+
+
+def search_column_widths(available: int, desired: dict[str, int]) -> dict[str, int]:
+    """Fit result columns while reserving useful space for both name and folder."""
+    available = max(520, int(available))
+    fixed = {
+        "size": min(max(desired.get("size", 80), 72), 125),
+        "modified": min(max(desired.get("modified", 150), 148), 200),
+        "ext": min(max(desired.get("ext", 54), 48), 105),
+    }
+    flexible = max(280, available - sum(fixed.values()) - 8)
+    wanted_name = min(max(desired.get("name", 160), 130), int(available * .48))
+    wanted_folder = min(max(desired.get("folder", 220), 150), int(available * .52))
+    wanted_total = wanted_name + wanted_folder
+    if wanted_total <= flexible:
+        name = wanted_name
+        folder = flexible - name
+    else:
+        name = max(130, round(flexible * wanted_name / wanted_total))
+        folder = max(150, flexible - name)
+        if name + folder > flexible:
+            name = max(130, flexible - folder)
+    return {"name": name, "folder": folder, **fixed}
 
 
 def name_matches(name: str, masks: str, case_sensitive: bool) -> bool:
@@ -4434,6 +4704,8 @@ class SearchWindow(tk.Toplevel):
         self.item_data = {}
         self.sort_column, self.sort_reverse = "name", False
         self.cancel_event = threading.Event(); self.messages = queue.Queue(); self.poll_job = None
+        self._column_resize_job = None
+        self._column_desired = {}
         self.path_var = tk.StringVar(value=str(start_path))
         self.mask_var = tk.StringVar(value=config.get("search", "mask", fallback="*"))
         self.content_var = tk.StringVar(value=config.get("search", "content", fallback=""))
@@ -4490,14 +4762,15 @@ class SearchWindow(tk.Toplevel):
         columns = ("folder", "size", "modified", "ext")
         self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended",
                                  style="PFCSearch.Treeview")
-        self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260)
+        self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260, stretch=False)
         for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60)):
             self.tree.heading(col, text=tr(col.title()), command=lambda c=col: self.change_sort(c))
-            self.tree.column(col, width=width, anchor="e" if col == "size" else "w")
+            self.tree.column(col, width=width, anchor="e" if col == "size" else "w", stretch=False)
         scroll = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview); self.tree.configure(yscrollcommand=scroll.set)
         self.tree.pack(side="left", fill="both", expand=True); scroll.pack(side="right", fill="y")
         self.tree.bind("<Double-1>", lambda _e: self.go_selected())
         self.tree.bind("<Return>", lambda _e: self.go_selected())
+        self.tree.bind("<Configure>", self._schedule_column_resize)
         for variable in (self.mask_var, self.content_var, self.case_var, self.depth_var,
                          self.files_var, self.folders_var, self.min_size_var,
                          self.max_size_var, self.days_var):
@@ -4505,6 +4778,45 @@ class SearchWindow(tk.Toplevel):
         self._update_criteria_summary()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def _reset_column_measurements(self) -> None:
+        font = tkfont.nametofont("TkDefaultFont")
+        heading = tkfont.nametofont("TkHeadingFont")
+        self._column_desired = {
+            "name": heading.measure(tr("Name") + " ▲") + 32,
+            "folder": heading.measure(tr("Folder")) + 32,
+            "size": heading.measure(tr("Size")) + 28,
+            "modified": heading.measure(tr("Modified")) + 28,
+            "ext": heading.measure(tr("Ext")) + 28,
+        }
+        for iid in self.tree.get_children():
+            values = self.tree.item(iid, "values")
+            if len(values) >= 4:
+                self._measure_result(str(self.tree.item(iid, "text")), *map(str, values[:4]),
+                                     schedule=False)
+        self._schedule_column_resize()
+
+    def _measure_result(self, name: str, folder: str, size: str, modified: str, ext: str,
+                        schedule: bool = True) -> None:
+        font = tkfont.nametofont("TkDefaultFont")
+        for key, value in (("name", name), ("folder", folder), ("size", size),
+                           ("modified", modified), ("ext", ext)):
+            self._column_desired[key] = max(self._column_desired.get(key, 0),
+                                            font.measure(value) + (38 if key == "name" else 24))
+        if schedule:
+            self._schedule_column_resize()
+
+    def _schedule_column_resize(self, _event=None) -> None:
+        if self._column_resize_job is not None:
+            self.after_cancel(self._column_resize_job)
+        self._column_resize_job = self.after(90, self._resize_columns)
+
+    def _resize_columns(self) -> None:
+        self._column_resize_job = None
+        widths = search_column_widths(self.tree.winfo_width(), self._column_desired)
+        self.tree.column("#0", width=widths["name"])
+        for column in ("folder", "size", "modified", "ext"):
+            self.tree.column(column, width=widths[column])
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -4516,6 +4828,7 @@ class SearchWindow(tk.Toplevel):
         style.configure("PFCSearch.Treeview", font=default_font,
                         rowheight=search_row_height(default_font.metrics("linespace"), scale))
         style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
+        self._reset_column_measurements()
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
@@ -4526,6 +4839,7 @@ class SearchWindow(tk.Toplevel):
         self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
         self.title(tr("PFC Search"))
         self._apply_sort()
+        self._reset_column_measurements()
         self._update_criteria_summary()
         if self.worker is not None and self.worker.is_alive():
             self.status.configure(text=tr("Searching…"))
@@ -4604,6 +4918,7 @@ class SearchWindow(tk.Toplevel):
         criteria = self.criteria()
         if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
+        self._reset_column_measurements()
         self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
@@ -4632,15 +4947,20 @@ class SearchWindow(tk.Toplevel):
         except OSError as exc: self.messages.put(("error", str(exc)))
 
     def _poll(self):
-        while True:
+        processed = 0
+        while processed < 250:
             try: message = self.messages.get_nowait()
             except queue.Empty: break
+            processed += 1
             if message[0] == "item":
                 _, path, stat = message; self.results.append(path)
+                folder = str(path.parent)
+                size_text = "<DIR>" if path.is_dir() else f"{stat.st_size:,}"
+                modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+                extension = "" if path.is_dir() else path.suffix[1:]
                 iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
-                                       values=(str(path.parent), "<DIR>" if path.is_dir() else f"{stat.st_size:,}",
-                                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
-                                               "" if path.is_dir() else path.suffix[1:]))
+                                       values=(folder, size_text, modified, extension))
+                self._measure_result(path.name, folder, size_text, modified, extension)
                 self.item_data[iid] = {"name": path.name.casefold(), "folder": str(path.parent).casefold(),
                                        "size": stat.st_size, "modified": stat.st_mtime,
                                        "ext": ("" if path.is_dir() else path.suffix[1:]).casefold()}
@@ -4653,7 +4973,8 @@ class SearchWindow(tk.Toplevel):
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
-        if self.worker and self.worker.is_alive(): self.poll_job = self.after(80, self._poll)
+        if not self.messages.empty() or (self.worker and self.worker.is_alive()):
+            self.poll_job = self.after(40, self._poll)
 
     def selected_paths(self):
         return [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.selection()
@@ -4679,6 +5000,9 @@ class SearchWindow(tk.Toplevel):
         self.cancel_event.set()
         if self.poll_job is not None:
             try: self.after_cancel(self.poll_job)
+            except tk.TclError: pass
+        if self._column_resize_job is not None:
+            try: self.after_cancel(self._column_resize_job)
             except tk.TclError: pass
         if not self.config_data.has_section("search"): self.config_data.add_section("search")
         for key, value in (("geometry", self.geometry()), ("mask", self.mask_var.get()), ("content", self.content_var.get()),
@@ -5380,14 +5704,18 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.8"
+__version__ = "0.12.9"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/23"
+BUILD_DATE = "2026/07/26"
 VERSION_HISTORY = (
+    ("v0.12.9", "2026/07/26", (
+        "Added: Extension-aware F3 Preview with Python and popular code syntax colors plus Markdown source and rendered modes.",
+        "Adjusted: F4 Search continuously auto-sizes result columns as matches arrive and preserves readable detail columns.",
+    )),
     ("v0.12.8", "2026/07/23", (
         "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.",
         "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.",
@@ -5475,7 +5803,7 @@ VERSION_HISTORY = (
 def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
         "view": {"font_size": "small", "tab_style": "right_skirt", "panel_count": "2",
-                 "ui_language": "en", "color_scheme": "light"},
+                 "ui_language": "en", "color_scheme": "light", "extension_effect": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -6351,6 +6679,8 @@ class Commander(tk.Tk):
         if saved_scheme not in COLOR_SCHEMES:
             saved_scheme = "light"
         self.color_scheme_var = tk.StringVar(value=saved_scheme)
+        self.extension_effect_var = tk.BooleanVar(
+            value=self.config_data.getboolean("view", "extension_effect", fallback=True))
         self.palette = color_scheme(saved_scheme)
         saved_tab_style = self.config_data.get("view", "tab_style", fallback="right_skirt")
         if saved_tab_style == "compact":
@@ -6658,6 +6988,7 @@ class Commander(tk.Tk):
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
         self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
+        self.config_data.set("view", "extension_effect", str(self.extension_effect_var.get()).lower())
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
@@ -6812,6 +7143,8 @@ class Commander(tk.Tk):
             add_scaled_radiobutton(color_scheme_menu, tr(label), value, self.color_scheme_var,
                                    self.apply_color_scheme)
         add_scaled_cascade(view, tr("Color Scheme"), color_scheme_menu)
+        add_scaled_checkbutton(view, tr("Extension Effect"), self.extension_effect_var,
+                               self.set_extension_effect)
         tab_style = tk.Menu(view, tearoff=False, font=menu_font)
         for value, label in TAB_STYLES.items():
             add_scaled_radiobutton(tab_style, tr(label), value, self.tab_style_var,
@@ -6879,6 +7212,7 @@ class Commander(tk.Tk):
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
             "Color Scheme": "Choose the overall application contrast and colors.",
+            "Extension Effect": "Apply syntax colors and Markdown rendering in F3 Preview.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the adjacent panel.",
@@ -7722,7 +8056,8 @@ class Commander(tk.Tk):
 
     def preview_paths(self, paths, selected) -> None:
         if self.preview_window is None or not self.preview_window.winfo_exists():
-            self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected)
+            self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected,
+                                                self.extension_effect_var.get())
         else: self.preview_window.show(paths, selected)
 
     def search(self) -> None:
@@ -7856,6 +8191,11 @@ class Commander(tk.Tk):
         source.show_extensions = self.show_extensions_var.get()
         source.refresh(); source.on_change()
 
+    def set_extension_effect(self) -> None:
+        if self.preview_window is not None and self.preview_window.winfo_exists():
+            self.preview_window.set_extension_effect(self.extension_effect_var.get())
+        self.save_config()
+
     def compare_selected(self) -> None:
         source, target = self.panes()
         source_items = source.selected_paths()
@@ -7931,6 +8271,8 @@ class Commander(tk.Tk):
             self.compare_window.apply_scale(scale)
         if self.search_window is not None and self.search_window.winfo_exists():
             self.search_window.apply_scale(scale)
+        if self.preview_window is not None and self.preview_window.winfo_exists():
+            self.preview_window.apply_scale(scale)
         self.update_idletasks()
         if hasattr(self, "clipboard_summary_frame"):
             self._clipboard_visual_key = None

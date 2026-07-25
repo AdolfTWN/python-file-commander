@@ -33,6 +33,10 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.12.9", "2026/07/26", (
+        "Added: Extension-aware F3 Preview with Python and popular code syntax colors plus Markdown source and rendered modes.",
+        "Adjusted: F4 Search continuously auto-sizes result columns as matches arrive and preserves readable detail columns.",
+    )),
     ("v0.12.8", "2026/07/23", (
         "Added: Open paired folder or archive files as reusable nested compare tabs with logical source paths.",
         "Adjusted: Unified standalone and nested file comparison around the same panes, difference map, navigation, search, and status layout.",
@@ -120,7 +124,7 @@ VERSION_HISTORY = (
 def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
         "view": {"font_size": "small", "tab_style": "right_skirt", "panel_count": "2",
-                 "ui_language": "en", "color_scheme": "light"},
+                 "ui_language": "en", "color_scheme": "light", "extension_effect": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -996,6 +1000,8 @@ class Commander(tk.Tk):
         if saved_scheme not in COLOR_SCHEMES:
             saved_scheme = "light"
         self.color_scheme_var = tk.StringVar(value=saved_scheme)
+        self.extension_effect_var = tk.BooleanVar(
+            value=self.config_data.getboolean("view", "extension_effect", fallback=True))
         self.palette = color_scheme(saved_scheme)
         saved_tab_style = self.config_data.get("view", "tab_style", fallback="right_skirt")
         if saved_tab_style == "compact":
@@ -1303,6 +1309,7 @@ class Commander(tk.Tk):
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
         self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
+        self.config_data.set("view", "extension_effect", str(self.extension_effect_var.get()).lower())
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
@@ -1457,6 +1464,8 @@ class Commander(tk.Tk):
             add_scaled_radiobutton(color_scheme_menu, tr(label), value, self.color_scheme_var,
                                    self.apply_color_scheme)
         add_scaled_cascade(view, tr("Color Scheme"), color_scheme_menu)
+        add_scaled_checkbutton(view, tr("Extension Effect"), self.extension_effect_var,
+                               self.set_extension_effect)
         tab_style = tk.Menu(view, tearoff=False, font=menu_font)
         for value, label in TAB_STYLES.items():
             add_scaled_radiobutton(tab_style, tr(label), value, self.tab_style_var,
@@ -1524,6 +1533,7 @@ class Commander(tk.Tk):
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
             "Color Scheme": "Choose the overall application contrast and colors.",
+            "Extension Effect": "Apply syntax colors and Markdown rendering in F3 Preview.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the adjacent panel.",
@@ -2367,7 +2377,8 @@ class Commander(tk.Tk):
 
     def preview_paths(self, paths, selected) -> None:
         if self.preview_window is None or not self.preview_window.winfo_exists():
-            self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected)
+            self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected,
+                                                self.extension_effect_var.get())
         else: self.preview_window.show(paths, selected)
 
     def search(self) -> None:
@@ -2501,6 +2512,11 @@ class Commander(tk.Tk):
         source.show_extensions = self.show_extensions_var.get()
         source.refresh(); source.on_change()
 
+    def set_extension_effect(self) -> None:
+        if self.preview_window is not None and self.preview_window.winfo_exists():
+            self.preview_window.set_extension_effect(self.extension_effect_var.get())
+        self.save_config()
+
     def compare_selected(self) -> None:
         source, target = self.panes()
         source_items = source.selected_paths()
@@ -2576,6 +2592,8 @@ class Commander(tk.Tk):
             self.compare_window.apply_scale(scale)
         if self.search_window is not None and self.search_window.winfo_exists():
             self.search_window.apply_scale(scale)
+        if self.preview_window is not None and self.preview_window.winfo_exists():
+            self.preview_window.apply_scale(scale)
         self.update_idletasks()
         if hasattr(self, "clipboard_summary_frame"):
             self._clipboard_visual_key = None
