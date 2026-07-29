@@ -84,6 +84,23 @@ class FileOpsTests(unittest.TestCase):
             self.assertTrue(result.successful)
             self.assertEqual((target / item.name).read_text(encoding="utf-8"), "office")
 
+    def test_ubuntu_recycle_uses_freedesktop_trash(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            home = root / "home"
+            home.mkdir()
+            item = root / "report.txt"
+            item.write_text("safe", encoding="utf-8")
+            with mock.patch.object(fileops.os, "name", "posix"), \
+                    mock.patch.object(Path, "home", return_value=home):
+                result = recycle_items([item])
+            self.assertTrue(result.successful)
+            self.assertFalse(item.exists())
+            self.assertEqual((home / ".local/share/Trash/files/report.txt").read_text(), "safe")
+            info = (home / ".local/share/Trash/info/report.txt.trashinfo").read_text()
+            self.assertIn("[Trash Info]", info)
+            self.assertIn("DeletionDate=", info)
+
     def test_unc_path_is_not_treated_as_safely_recyclable(self):
         path = Path(r"\\pfc-invalid-server\missing\report.txt")
         result = recycle_items([path])

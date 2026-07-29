@@ -3,9 +3,11 @@ from __future__ import annotations
 import os
 import shutil
 import ctypes
+from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
+from urllib.parse import quote
 
 
 ConflictResolver = Callable[[Path, Path], str]
@@ -152,8 +154,34 @@ class _SHFILEOPSTRUCTW(ctypes.Structure):
 def recycle_items(items: list[Path], continue_on_error: bool = True) -> OperationResult:
     result = OperationResult()
     if os.name != "nt":
-        return OperationResult(failures=[OperationFailure(item, None, "Recycle Bin requires Windows.")
-                                         for item in items])
+        trash_root = Path.home() / ".local" / "share" / "Trash"
+        files_root, info_root = trash_root / "files", trash_root / "info"
+        files_root.mkdir(parents=True, exist_ok=True)
+        info_root.mkdir(parents=True, exist_ok=True)
+        for index, item in enumerate(items):
+            target = None
+            try:
+                original = item.resolve()
+                target = unique_target(files_root / item.name)
+                shutil.move(str(item), str(target))
+                info = info_root / f"{target.name}.trashinfo"
+                info.write_text(
+                    "[Trash Info]\n"
+                    f"Path={quote(str(original), safe='/')}\n"
+                    f"DeletionDate={datetime.now():%Y-%m-%dT%H:%M:%S}\n",
+                    encoding="utf-8")
+                result.completed.append(item)
+            except (OSError, shutil.Error) as exc:
+                if target is not None and target.exists() and not item.exists():
+                    try:
+                        shutil.move(str(target), str(item))
+                    except (OSError, shutil.Error):
+                        pass
+                result.failures.append(OperationFailure(item, None, str(exc)))
+                if not continue_on_error:
+                    result.skipped.extend(items[index + 1:])
+                    break
+        return result
     shell32 = ctypes.windll.shell32
     kernel32 = ctypes.windll.kernel32
     kernel32.GetDriveTypeW.argtypes = [ctypes.c_wchar_p]

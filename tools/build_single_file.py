@@ -19,6 +19,7 @@ def build() -> Path:
     preview = (ROOT / "pycommander" / "preview.py").read_text(encoding="utf-8")
     search = (ROOT / "pycommander" / "search.py").read_text(encoding="utf-8")
     multirename = (ROOT / "pycommander" / "multirename.py").read_text(encoding="utf-8")
+    archivefs = (ROOT / "pycommander" / "archivefs.py").read_text(encoding="utf-8")
     shelldnd = (ROOT / "pycommander" / "shelldnd.py").read_text(encoding="utf-8")
     app = (ROOT / "pycommander" / "app.py").read_text(encoding="utf-8")
     package = (ROOT / "pycommander" / "__init__.py").read_text(encoding="utf-8")
@@ -45,6 +46,7 @@ def build() -> Path:
     search = "\n".join(line for line in search.splitlines() if not line.startswith("from .")) + "\n"
     multirename = multirename.replace("from __future__ import annotations\n\n", "", 1)
     multirename = "\n".join(line for line in multirename.splitlines() if not line.startswith("from .")) + "\n"
+    archivefs = archivefs.replace("from __future__ import annotations\n\n", "", 1)
     shelldnd = shelldnd.replace("from __future__ import annotations\n\n", "", 1)
     shelldnd = "\n".join(line for line in shelldnd.splitlines() if not line.startswith("from .")) + "\n"
     app = app.replace("from __future__ import annotations\n\n", "", 1)
@@ -59,7 +61,7 @@ from __future__ import annotations
 
 '''
     output = ROOT / "pfc.py"
-    output.write_text(banner + i18n + "\n\n" + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + tabs + "\n\n" + tooltip + "\n\n" + compare + "\n\n" + preview + "\n\n" + search + "\n\n" + multirename + "\n\n" + shelldnd + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
+    output.write_text(banner + i18n + "\n\n" + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + tabs + "\n\n" + tooltip + "\n\n" + compare + "\n\n" + preview + "\n\n" + search + "\n\n" + multirename + "\n\n" + archivefs + "\n\n" + shelldnd + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
     return output
 
 

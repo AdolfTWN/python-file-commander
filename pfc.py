@@ -64,6 +64,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Auto Font Size": "自動調整字型大小",
+        "Archive": "壓縮檔", "Leave the current archive before opening an archive stored inside it.": "請先離開目前的壓縮檔，再開啟其中所包含的壓縮檔。",
+        "Cannot open archive": "無法開啟壓縮檔", "Archive update failed": "壓縮檔更新失敗",
+        "Delete from Archive": "從壓縮檔刪除",
+        "Delete {count} selected item(s) from this archive?\n\nThis cannot be undone.": "要從這個壓縮檔刪除 {count} 個選取項目嗎？\n\n此操作無法復原。",
+        "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.": "新增：自動字型大小會依視窗尺寸與可見面板數量調整，並在「檢視」選單提供可儲存的開關。",
+        "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.": "新增：可將 ZIP 與 7z 壓縮檔當作資料夾瀏覽，並以安全重寫方式複製、貼上、移動、重新命名、新增或刪除內容。",
+        "Added: Ubuntu support for navigation, file operations, in-app clipboard transfers, native Trash, fonts, and file opening.": "新增：支援 Ubuntu 的導覽、檔案操作、應用程式內剪貼簿傳輸、原生垃圾桶、字型與檔案開啟。",
         "Files": "檔案", "View": "檢視", "Versions": "版本", "UI Language": "介面語言", "Build": "建置",
         "Color Scheme": "配色方案", "Extension Effect": "副檔名效果", "Light": "明亮", "Light Grey": "淺灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
@@ -182,6 +190,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Auto Font Size": "自动调整字体大小",
+        "Archive": "压缩文件", "Leave the current archive before opening an archive stored inside it.": "请先离开当前压缩文件，再打开其中包含的压缩文件。",
+        "Cannot open archive": "无法打开压缩文件", "Archive update failed": "压缩文件更新失败",
+        "Delete from Archive": "从压缩文件中删除",
+        "Delete {count} selected item(s) from this archive?\n\nThis cannot be undone.": "要从此压缩文件中删除 {count} 个所选项目吗？\n\n此操作无法撤消。",
+        "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.": "新增：自动字体大小会根据窗口尺寸与可见面板数量调整，并在“查看”菜单提供可保存的开关。",
+        "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.": "新增：可将 ZIP 与 7z 压缩文件作为文件夹浏览，并通过安全重写复制、粘贴、移动、重命名、新建或删除内容。",
+        "Added: Ubuntu support for navigation, file operations, in-app clipboard transfers, native Trash, fonts, and file opening.": "新增：支持 Ubuntu 的导航、文件操作、应用内剪贴板传输、原生回收站、字体与文件打开。",
         "Files": "文件", "View": "查看", "Versions": "版本", "UI Language": "界面语言", "Build": "构建",
         "Color Scheme": "配色方案", "Extension Effect": "扩展名效果", "Light": "浅色", "Light Grey": "浅灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
@@ -274,6 +290,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Auto Font Size": "자동 글꼴 크기",
+        "Archive": "압축 파일", "Leave the current archive before opening an archive stored inside it.": "현재 압축 파일을 나간 후 그 안에 저장된 압축 파일을 여세요.",
+        "Cannot open archive": "압축 파일을 열 수 없음", "Archive update failed": "압축 파일 업데이트 실패",
+        "Delete from Archive": "압축 파일에서 삭제",
+        "Delete {count} selected item(s) from this archive?\n\nThis cannot be undone.": "이 압축 파일에서 선택한 항목 {count}개를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.",
+        "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.": "추가: 자동 글꼴 크기가 창 크기와 표시 패널 수에 맞게 조정되며 보기 메뉴에서 설정을 저장할 수 있습니다.",
+        "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.": "추가: ZIP 및 7z 압축 파일을 폴더처럼 탐색하고 안전한 다시 쓰기로 내용을 복사, 붙여넣기, 이동, 이름 바꾸기, 만들기 또는 삭제할 수 있습니다.",
+        "Added: Ubuntu support for navigation, file operations, in-app clipboard transfers, native Trash, fonts, and file opening.": "추가: Ubuntu에서 탐색, 파일 작업, 앱 내부 클립보드 전송, 기본 휴지통, 글꼴 및 파일 열기를 지원합니다.",
         "Files": "파일", "View": "보기", "Versions": "버전", "UI Language": "UI 언어", "Build": "빌드",
         "Color Scheme": "색 구성표", "Extension Effect": "확장자 효과", "Light": "밝게", "Light Grey": "밝은 회색", "Dark": "어둡게",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
@@ -368,9 +392,11 @@ _TRANSLATIONS = {
 import os
 import shutil
 import ctypes
+from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
+from urllib.parse import quote
 
 
 ConflictResolver = Callable[[Path, Path], str]
@@ -517,8 +543,34 @@ class _SHFILEOPSTRUCTW(ctypes.Structure):
 def recycle_items(items: list[Path], continue_on_error: bool = True) -> OperationResult:
     result = OperationResult()
     if os.name != "nt":
-        return OperationResult(failures=[OperationFailure(item, None, "Recycle Bin requires Windows.")
-                                         for item in items])
+        trash_root = Path.home() / ".local" / "share" / "Trash"
+        files_root, info_root = trash_root / "files", trash_root / "info"
+        files_root.mkdir(parents=True, exist_ok=True)
+        info_root.mkdir(parents=True, exist_ok=True)
+        for index, item in enumerate(items):
+            target = None
+            try:
+                original = item.resolve()
+                target = unique_target(files_root / item.name)
+                shutil.move(str(item), str(target))
+                info = info_root / f"{target.name}.trashinfo"
+                info.write_text(
+                    "[Trash Info]\n"
+                    f"Path={quote(str(original), safe='/')}\n"
+                    f"DeletionDate={datetime.now():%Y-%m-%dT%H:%M:%S}\n",
+                    encoding="utf-8")
+                result.completed.append(item)
+            except (OSError, shutil.Error) as exc:
+                if target is not None and target.exists() and not item.exists():
+                    try:
+                        shutil.move(str(target), str(item))
+                    except (OSError, shutil.Error):
+                        pass
+                result.failures.append(OperationFailure(item, None, str(exc)))
+                if not continue_on_error:
+                    result.skipped.extend(items[index + 1:])
+                    break
+        return result
     shell32 = ctypes.windll.shell32
     kernel32 = ctypes.windll.kernel32
     kernel32.GetDriveTypeW.argtypes = [ctypes.c_wchar_p]
@@ -587,6 +639,8 @@ TYMED_HGLOBAL = 1
 TYMED_FILE = 2
 TYMED_ISTREAM = 4
 DVASPECT_CONTENT = 1
+_portable_paths: list[Path] = []
+_portable_cut = False
 
 
 @dataclass(frozen=True)
@@ -836,7 +890,10 @@ def _global_data(payload: bytes) -> int:
 def set_file_clipboard(paths: list[Path], cut: bool = False) -> None:
     """Publish files in the same clipboard formats used by File Explorer."""
     if os.name != "nt":
-        raise OSError("File clipboard integration requires Windows.")
+        global _portable_paths, _portable_cut
+        _portable_paths = [path.resolve() for path in paths]
+        _portable_cut = cut
+        return
     resolved = [str(path.resolve()) for path in paths]
     if not resolved:
         return
@@ -869,7 +926,7 @@ def set_file_clipboard(paths: list[Path], cut: bool = False) -> None:
 def get_file_clipboard() -> tuple[list[Path], bool]:
     """Read files copied or cut by PFC or Windows File Explorer."""
     if os.name != "nt":
-        return [], False
+        return list(_portable_paths), _portable_cut
     user32, shell32, kernel32 = ctypes.windll.user32, ctypes.windll.shell32, ctypes.windll.kernel32
     user32.GetClipboardData.restype = ctypes.c_void_p
     user32.GetClipboardData.argtypes = [ctypes.c_uint]
@@ -904,6 +961,9 @@ def get_file_clipboard() -> tuple[list[Path], bool]:
 
 def clear_file_clipboard() -> None:
     if os.name != "nt":
+        global _portable_paths, _portable_cut
+        _portable_paths = []
+        _portable_cut = False
         return
     _open_clipboard()
     try:
@@ -5230,6 +5290,134 @@ class MultiRenameWindow(tk.Toplevel):
         return "break"
 
 
+import os
+import shutil
+import subprocess
+import tempfile
+import zipfile
+from pathlib import Path, PurePosixPath
+
+
+ARCHIVE_SUFFIXES = {".zip", ".7z"}
+
+
+def is_browsable_archive(path: Path) -> bool:
+    return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
+
+
+def _seven_zip_executable() -> str | None:
+    candidates = ("7z", "7zz", "7za")
+    for name in candidates:
+        executable = shutil.which(name)
+        if executable:
+            return executable
+    if os.name == "nt":
+        for raw in (r"C:\Program Files\7-Zip\7z.exe",
+                    r"C:\Program Files (x86)\7-Zip\7z.exe"):
+            if Path(raw).is_file():
+                return raw
+    return None
+
+
+def _safe_destination(root: Path, member_name: str) -> Path:
+    member = PurePosixPath(member_name.replace("\\", "/"))
+    if member.is_absolute() or ".." in member.parts:
+        raise OSError(f"Unsafe archive item: {member_name}")
+    destination = root.joinpath(*member.parts).resolve()
+    if destination != root and root not in destination.parents:
+        raise OSError(f"Unsafe archive item: {member_name}")
+    return destination
+
+
+class ArchiveSession:
+    """Editable extracted workspace backed by one ZIP or 7z file."""
+
+    def __init__(self, archive_path: Path) -> None:
+        self.archive_path = archive_path.expanduser().resolve()
+        if not is_browsable_archive(self.archive_path):
+            raise OSError(f"Unsupported archive: {self.archive_path.name}")
+        self._temporary = tempfile.TemporaryDirectory(prefix="pfc-archive-")
+        self.root = Path(self._temporary.name).resolve()
+        try:
+            self._extract()
+        except Exception:
+            self._temporary.cleanup()
+            raise
+
+    @property
+    def kind(self) -> str:
+        return self.archive_path.suffix.casefold()
+
+    def contains(self, path: Path) -> bool:
+        try:
+            resolved = path.resolve()
+        except OSError:
+            resolved = Path(os.path.abspath(path))
+        return resolved == self.root or self.root in resolved.parents
+
+    def relative_path(self, path: Path) -> Path:
+        return path.resolve().relative_to(self.root)
+
+    def display_path(self, path: Path) -> str:
+        relative = self.relative_path(path)
+        return str(self.archive_path) if not relative.parts else f"{self.archive_path}{os.sep}{relative}"
+
+    def _extract(self) -> None:
+        if self.kind == ".zip":
+            with zipfile.ZipFile(self.archive_path) as archive:
+                for info in archive.infolist():
+                    destination = _safe_destination(self.root, info.filename)
+                    if info.is_dir():
+                        destination.mkdir(parents=True, exist_ok=True)
+                        continue
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    with archive.open(info) as source, destination.open("wb") as target:
+                        shutil.copyfileobj(source, target)
+            return
+        executable = _seven_zip_executable()
+        if executable is None:
+            raise OSError("7z browsing requires the 7-Zip command-line tool (7z or 7zz).")
+        result = subprocess.run(
+            [executable, "x", "-y", f"-o{self.root}", str(self.archive_path)],
+            capture_output=True, text=True, errors="replace")
+        if result.returncode:
+            raise OSError(result.stderr.strip() or result.stdout.strip() or "7z extraction failed.")
+
+    def commit(self) -> None:
+        suffix = self.archive_path.suffix
+        descriptor, raw_temporary = tempfile.mkstemp(
+            prefix=f".{self.archive_path.stem}.pfc-", suffix=suffix,
+            dir=self.archive_path.parent)
+        os.close(descriptor)
+        temporary = Path(raw_temporary)
+        temporary.unlink(missing_ok=True)
+        try:
+            if self.kind == ".zip":
+                with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                    for path in sorted(self.root.rglob("*")):
+                        relative = path.relative_to(self.root).as_posix()
+                        if path.is_dir():
+                            if not any(path.iterdir()):
+                                archive.writestr(relative.rstrip("/") + "/", b"")
+                        else:
+                            archive.write(path, relative)
+            else:
+                executable = _seven_zip_executable()
+                if executable is None:
+                    raise OSError("7z writing requires the 7-Zip command-line tool (7z or 7zz).")
+                result = subprocess.run(
+                    [executable, "a", "-t7z", "-mx=5", str(temporary), "."],
+                    cwd=self.root, capture_output=True, text=True, errors="replace")
+                if result.returncode:
+                    raise OSError(result.stderr.strip() or result.stdout.strip() or "7z update failed.")
+            os.replace(temporary, self.archive_path)
+        finally:
+            temporary.unlink(missing_ok=True)
+
+    def close(self) -> None:
+        self._temporary.cleanup()
+
+
 import ctypes
 import os
 import shutil
@@ -5700,18 +5888,24 @@ import sys
 import tempfile
 import tkinter as tk
 import tkinter.font as tkfont
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.12.9"
+__version__ = "0.13.0"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/26"
+BUILD_DATE = "2026/07/30"
 VERSION_HISTORY = (
+    ("v0.13.0", "2026/07/30", (
+        "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.",
+        "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.",
+        "Added: Ubuntu support for navigation, file operations, in-app clipboard transfers, native Trash, fonts, and file opening.",
+    )),
     ("v0.12.9", "2026/07/26", (
         "Added: Extension-aware F3 Preview with Python and popular code syntax colors plus Markdown source and rendered modes.",
         "Adjusted: F4 Search continuously auto-sizes result columns as matches arrive and preserves readable detail columns.",
@@ -5802,7 +5996,8 @@ VERSION_HISTORY = (
 
 def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
-        "view": {"font_size": "small", "tab_style": "right_skirt", "panel_count": "2",
+        "view": {"font_size": "small", "auto_font_size": "true",
+                 "tab_style": "right_skirt", "panel_count": "2",
                  "ui_language": "en", "color_scheme": "light", "extension_effect": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
@@ -5872,8 +6067,11 @@ def enable_windows_dpi_awareness() -> bool:
 
 def preferred_font_families(available) -> tuple[str, str]:
     names = {str(name).casefold(): str(name) for name in available}
-    interface = names.get("segoe ui", "Segoe UI")
-    fixed = next((names[name.casefold()] for name in ("Cascadia Mono", "Consolas")
+    interface = next((names[name.casefold()] for name in
+                      ("Segoe UI", "Ubuntu", "Noto Sans", "DejaVu Sans")
+                      if name.casefold() in names), "TkDefaultFont")
+    fixed = next((names[name.casefold()] for name in
+                  ("Cascadia Mono", "Consolas", "Ubuntu Mono", "DejaVu Sans Mono")
                   if name.casefold() in names), "TkFixedFont")
     return interface, fixed
 
@@ -5934,6 +6132,16 @@ def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
     icon_size = max(16, round(16 * scale))
     vertical_space = max(8, round(8 * scale))
     return max(24, font_linespace + vertical_space, icon_size + vertical_space)
+
+
+def automatic_font_size(window_width: int, window_height: int, panel_count: int) -> str:
+    """Choose the largest scale that keeps each visible file panel usable."""
+    per_panel = max(1, window_width) / max(1, panel_count)
+    height_level = (3 if window_height >= 1250 else 2 if window_height >= 900
+                    else 1 if window_height >= 650 else 0)
+    width_level = (3 if per_panel >= 1200 else 2 if per_panel >= 850
+                   else 1 if per_panel >= 500 else 0)
+    return ("small", "medium", "large", "huge")[min(height_level, width_level)]
 
 
 def ellipsize_middle(text: str, max_width: int, measure) -> str:
@@ -5998,12 +6206,17 @@ class FilePane(ttk.Frame):
 
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None,
                  on_drag=lambda _action, _pane, _event: None,
-                 on_context=lambda _pane, _path, _x, _y: None) -> None:
+                 on_context=lambda _pane, _path, _x, _y: None,
+                 on_open_file=lambda _pane, _path: False,
+                 on_exit_archive=lambda _pane: False) -> None:
         super().__init__(master)
         self.on_activate = on_activate
         self.on_change = on_change
         self.on_drag = on_drag
         self.on_context = on_context
+        self.on_open_file = on_open_file
+        self.on_exit_archive = on_exit_archive
+        self.archive_session: ArchiveSession | None = None
         self.path = Path.home()
         self.history: list[Path] = []
         self.folder_selections: dict[Path, Path] = {}
@@ -6036,9 +6249,11 @@ class FilePane(ttk.Frame):
         bar.pack(fill="x", pady=(0, 3))
         self.drive = ttk.Combobox(bar, state="readonly", width=8, values=[str(p) for p in roots()])
         self.drive.pack(side="left")
-        self.drive.bind("<<ComboboxSelected>>", lambda _e: self.navigate(Path(self.drive.get())))
+        self.drive.bind("<<ComboboxSelected>>",
+                        lambda _e: self.navigate_external(Path(self.drive.get())))
         ttk.Button(bar, text="↑", width=3, command=self.up).pack(side="left", padx=2)
-        ttk.Button(bar, text="⌂", width=3, command=lambda: self.navigate(Path.home())).pack(side="left")
+        ttk.Button(bar, text="⌂", width=3,
+                   command=lambda: self.navigate_external(Path.home())).pack(side="left")
         self.path_var = tk.StringVar()
         self.path_entry = ttk.Entry(bar, textvariable=self.path_var)
         self.path_entry.pack(side="left", fill="x", expand=True, padx=(4, 0))
@@ -6206,10 +6421,14 @@ class FilePane(ttk.Frame):
                 self.history.append(self.path)
             self.path = path
             self.mode = "files"
-            self.display_title = path.name or str(path)
-            self.path_var.set(str(path))
-            if os.name == "nt":
-                self.drive.set(path.anchor)
+            if self.archive_session is not None and self.archive_session.contains(path):
+                relative = self.archive_session.relative_path(path)
+                self.display_title = (relative.name if relative.parts
+                                      else self.archive_session.archive_path.name)
+            else:
+                self.display_title = path.name or str(path)
+            self.path_var.set(self.display_path())
+            self.drive.set(path.anchor or os.sep)
             self.refresh()
             if restore_selection is not None:
                 self.select_path(restore_selection)
@@ -6221,10 +6440,43 @@ class FilePane(ttk.Frame):
             return False
 
     def up(self) -> None:
+        if self.archive_session is not None and self.path == self.archive_session.root:
+            if self.on_exit_archive(self):
+                return
         self.navigate(self.path.parent)
 
+    def navigate_external(self, path: Path) -> bool:
+        if self.archive_session is not None:
+            self.on_exit_archive(self)
+        return self.navigate(path)
+
+    def display_path(self) -> str:
+        if self.archive_session is not None and self.archive_session.contains(self.path):
+            return self.archive_session.display_path(self.path)
+        return str(self.path)
+
+    def logical_path(self, path: Path) -> str:
+        if self.archive_session is not None and self.archive_session.contains(path):
+            return self.archive_session.display_path(path)
+        return str(path.resolve())
+
+    def persistent_path(self) -> Path:
+        if self.archive_session is not None:
+            return self.archive_session.archive_path.parent
+        return self.path
+
     def navigate_from_entry(self, _event=None) -> str:
-        typed = Path(self.path_var.get().strip().strip('"'))
+        raw = self.path_var.get().strip().strip('"')
+        if self.archive_session is not None:
+            archive_text = str(self.archive_session.archive_path)
+            if raw == archive_text or raw.startswith(archive_text + os.sep):
+                relative = raw[len(archive_text):].lstrip("\\/")
+                target = self.archive_session.root / relative
+                if self.navigate(target):
+                    self.focus_file_list()
+                return "break"
+            self.on_exit_archive(self)
+        typed = Path(raw)
         folder, selected_file = navigation_destination(typed)
         if self.navigate(folder):
             if selected_file is not None:
@@ -6394,7 +6646,7 @@ class FilePane(ttk.Frame):
 
     def toggle_quick_filter(self) -> str:
         if self.mode != "files":
-            self.mode = "files"; self.path_var.set(str(self.path)); self.refresh()
+            self.mode = "files"; self.path_var.set(self.display_path()); self.refresh()
         self.quick_filter_entry.focus_set()
         self.quick_filter_entry.selection_range(0, "end")
         return "break"
@@ -6412,6 +6664,8 @@ class FilePane(ttk.Frame):
         item = items[0]
         if item.is_dir():
             self.navigate(item)
+        elif self.on_open_file(self, item):
+            return
         else:
             try:
                 os.startfile(item) if os.name == "nt" else subprocess.Popen(["xdg-open", str(item)])
@@ -6507,6 +6761,9 @@ class PaneTabs(ChamferNotebook):
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None,
                  on_drag=lambda _action, _pane, _event: None,
                  on_context=lambda _pane, _path, _x, _y: None,
+                 on_open_file=lambda _pane, _path: False,
+                 on_exit_archive=lambda _pane: False,
+                 on_close_archive=lambda _pane: None,
                  on_selection=lambda: None,
                  on_tab_drag=lambda _action, _tabs, _pane, _event: False,
                  tab_style="right_skirt") -> None:
@@ -6514,6 +6771,9 @@ class PaneTabs(ChamferNotebook):
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
         self.on_context = on_context
+        self.on_open_file = on_open_file
+        self.on_exit_archive = on_exit_archive
+        self.on_close_archive = on_close_archive
         self.on_selection = on_selection
         super().__init__(master, on_color_changed=self._color_changed,
                          on_lock_changed=self._lock_changed,
@@ -6529,7 +6789,8 @@ class PaneTabs(ChamferNotebook):
         if position is None:
             position = self.index(self.select()) + 1 if self.tabs() else 0
         pane = FilePane(self, self.on_activate, on_drag=self.on_drag,
-                        on_context=self.on_context)
+                        on_context=self.on_context, on_open_file=self.on_open_file,
+                        on_exit_archive=self.on_exit_archive)
         pane.tree.bind("<<TreeviewSelect>>", lambda _event: self.on_selection(), add="+")
         pane.on_change = lambda source=pane: self._pane_changed(source)
         pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
@@ -6575,7 +6836,10 @@ class PaneTabs(ChamferNotebook):
 
     def close_current(self) -> None:
         if len(self.tabs()) > 1:
-            self.forget(self.select())
+            pane = self.current()
+            self.forget(pane)
+            self.on_close_archive(pane)
+            pane.destroy()
             self.on_change()
 
     def panes(self) -> list[FilePane]:
@@ -6665,6 +6929,7 @@ class Commander(tk.Tk):
         self._drag_ghost = None
         self._drag_highlight = None
         self._tab_drag_target = None
+        self._archive_sessions: list[ArchiveSession] = []
         saved_panel_count = self.config_data.getint("view", "panel_count", fallback=2)
         self.panel_count_var = tk.IntVar(value=max(2, min(4, saved_panel_count)))
         self.ui_language_var = tk.StringVar(value=saved_language if saved_language in dict(LANGUAGES) else "en")
@@ -6675,6 +6940,10 @@ class Commander(tk.Tk):
         self._clipboard_icon_size = 18
         self.clipboard_icons = ShellIconProvider(self._clipboard_icon_size)
         self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
+        self.auto_font_size_var = tk.BooleanVar(
+            value=self.config_data.getboolean("view", "auto_font_size", fallback=True))
+        self._auto_font_job = None
+        self._last_auto_window_size = None
         saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
         if saved_scheme not in COLOR_SCHEMES:
             saved_scheme = "light"
@@ -6732,11 +7001,16 @@ class Commander(tk.Tk):
         self.split = split
         self.panel_tabs = []
         for section in PANEL_SECTIONS:
-            tabs = PaneTabs(split, self.set_active, self.save_config, self._saved_paths(section),
-                            self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
-                            self._show_file_context_menu, self.update_rename_action,
-                            self._handle_tab_drag,
-                            self.tab_style_var.get())
+            tabs = PaneTabs(
+                split, self.set_active, self.save_config, self._saved_paths(section),
+                self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
+                self._show_file_context_menu,
+                on_open_file=self._open_special_file,
+                on_exit_archive=self._exit_archive,
+                on_close_archive=self._discard_archive,
+                on_selection=self.update_rename_action,
+                on_tab_drag=self._handle_tab_drag,
+                tab_style=self.tab_style_var.get())
             self.panel_tabs.append(tabs)
         self.left_tabs, self.right_tabs = self.panel_tabs[:2]
         self.left = self.left_tabs.current()
@@ -6837,10 +7111,12 @@ class Commander(tk.Tk):
         self._clipboard_job = None
         self.bind("<Configure>", self._schedule_save)
         self.bind("<Configure>", self._schedule_clipboard_layout, add="+")
+        self.bind("<Configure>", self._schedule_auto_font_size, add="+")
         self.set_active(self.active)
         self.save_config()
         self._schedule_auto_refresh(250)
         self._schedule_clipboard_summary(250)
+        self._schedule_auto_font_size(delay=300)
 
     def _install_priority_hotkeys(self, hotkeys, commands) -> None:
         """Run tab navigation before Tk widget/class bindings can consume Tab."""
@@ -6949,18 +7225,22 @@ class Commander(tk.Tk):
             return
         ensure_config_defaults(self.config_data)
         if record_recent and self.active is not None:
-            self._record_recent(self.active.path)
+            self._record_recent(self.active.persistent_path())
         for side, tabs in zip(PANEL_SECTIONS, self.panel_tabs):
             if not self.config_data.has_section(side):
                 self.config_data.add_section(side)
             panes = tabs.panes()
-            saved_paths = [p.locked_path if p.lock_mode == "reset" and p.locked_path else p.path for p in panes]
+            saved_paths = [
+                p.persistent_path() if p.archive_session is not None
+                else p.locked_path if p.lock_mode == "reset" and p.locked_path
+                else p.persistent_path() for p in panes]
             self.config_data.set(side, "tabs", json.dumps([str(path) for path in saved_paths]))
             self.config_data.set(side, "tab_colors", json.dumps([
                 tabs._colors.get(p, "default") for p in panes]))
             self.config_data.set(side, "tab_locks", json.dumps([p.lock_mode for p in panes]))
             self.config_data.set(side, "locked_paths", json.dumps([
-                str(p.locked_path or p.path) for p in panes]))
+                str(p.persistent_path() if p.archive_session is not None
+                    else p.locked_path or p.persistent_path()) for p in panes]))
             self.config_data.set(side, "tab_filters", json.dumps([
                 p.quick_filter_var.get() for p in panes], ensure_ascii=False))
             self.config_data.set(side, "selected", str(tabs.index(tabs.select())))
@@ -6984,6 +7264,7 @@ class Commander(tk.Tk):
         active_tabs = self._tabs_for(self.active) if self.active is not None else self.panel_tabs[0]
         self.config_data.set("state", "active_panel", PANEL_SECTIONS[self.panel_tabs.index(active_tabs)])
         self.config_data.set("view", "font_size", self.font_size_var.get())
+        self.config_data.set("view", "auto_font_size", str(self.auto_font_size_var.get()).lower())
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
@@ -7019,7 +7300,12 @@ class Commander(tk.Tk):
             self.after_cancel(self._clipboard_job)
         if self._clipboard_resize_job is not None:
             self.after_cancel(self._clipboard_resize_job)
+        if self._auto_font_job is not None:
+            self.after_cancel(self._auto_font_job)
         self.save_config()
+        for session in self._archive_sessions:
+            session.close()
+        self._archive_sessions.clear()
         self.destroy()
 
     def _schedule_auto_refresh(self, delay=None) -> None:
@@ -7136,8 +7422,10 @@ class Commander(tk.Tk):
         for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
                              ("Large (200%)", "large"), ("Huge (300%)", "huge")):
             add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
-                                   self.apply_font_size)
+                                   self.select_manual_font_size)
         add_scaled_cascade(view, tr("Font Size"), font_size)
+        add_scaled_checkbutton(view, tr("Auto Font Size"), self.auto_font_size_var,
+                               self.set_auto_font_size)
         color_scheme_menu = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Light", "light"), ("Light Grey", "light_grey"), ("Dark", "dark")):
             add_scaled_radiobutton(color_scheme_menu, tr(label), value, self.color_scheme_var,
@@ -7214,6 +7502,7 @@ class Commander(tk.Tk):
             "Color Scheme": "Choose the overall application contrast and colors.",
             "Extension Effect": "Apply syntax colors and Markdown rendering in F3 Preview.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
+            "Auto Font Size": "Automatically choose a readable font size for the current window and panel widths.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the adjacent panel.",
         }
@@ -7435,6 +7724,7 @@ class Commander(tk.Tk):
         else:
             self.set_active(self.active)
         self.update_idletasks()
+        self._schedule_auto_font_size(delay=0)
         if save:
             self.save_config()
 
@@ -7560,13 +7850,32 @@ class Commander(tk.Tk):
             return False
         color = source_tabs._colors.get(pane, "default")
         lock_mode, locked_path = pane.lock_mode, pane.locked_path
-        target = target_tabs.add_tab(pane.path, notify=False, position=position)
+        archive_path = None
+        archive_relative = None
+        if pane.archive_session is not None:
+            archive_path = pane.archive_session.archive_path
+            archive_relative = pane.archive_session.relative_path(pane.path)
+        target = target_tabs.add_tab(
+            archive_path.parent if archive_path is not None else pane.path,
+            notify=False, position=position)
+        if archive_path is not None:
+            self._open_special_file(target, archive_path)
+            if target.archive_session is not None and archive_relative.parts:
+                target.navigate(target.archive_session.root / archive_relative, bypass_lock=True)
         self._copy_tab_view(pane, target)
         target.lock_mode = lock_mode
-        target.locked_path = locked_path
+        if (archive_path is not None and locked_path is not None
+                and pane.archive_session is not None
+                and pane.archive_session.contains(locked_path)
+                and target.archive_session is not None):
+            target.locked_path = (target.archive_session.root /
+                                  pane.archive_session.relative_path(locked_path))
+        else:
+            target.locked_path = locked_path
         target_tabs.set_color(target, color, notify=False)
         target_tabs.set_lock(target, lock_mode, notify=False)
         source_tabs.forget(pane)
+        self._discard_archive(pane)
         pane.destroy()
         target_tabs.select(target)
         self.set_active(target)
@@ -8024,6 +8333,72 @@ class Commander(tk.Tk):
         for pane in self.visible_panes():
             pane.refresh()
 
+    def _open_special_file(self, pane: FilePane, item: Path) -> bool:
+        if not is_browsable_archive(item):
+            return False
+        if pane.archive_session is not None:
+            messagebox.showinfo(
+                tr("Archive"),
+                tr("Leave the current archive before opening an archive stored inside it."),
+                parent=self)
+            return True
+        try:
+            session = ArchiveSession(item)
+        except (OSError, zipfile.BadZipFile) as exc:
+            messagebox.showerror(tr("Cannot open archive"), str(exc), parent=self)
+            return True
+        pane.archive_session = session
+        self._archive_sessions.append(session)
+        pane.navigate(session.root, bypass_lock=True)
+        pane.focus_file_list()
+        return True
+
+    def _close_archive_session(self, session: ArchiveSession) -> None:
+        if session in self._archive_sessions:
+            self._archive_sessions.remove(session)
+        session.close()
+
+    def _discard_archive(self, pane: FilePane) -> None:
+        session = pane.archive_session
+        if session is None:
+            return
+        pane.archive_session = None
+        self._close_archive_session(session)
+
+    def _exit_archive(self, pane: FilePane) -> bool:
+        session = pane.archive_session
+        if session is None:
+            return False
+        archive_path = session.archive_path
+        pane.archive_session = None
+        self._close_archive_session(session)
+        if pane.navigate(archive_path.parent, bypass_lock=True):
+            pane.select_path(archive_path)
+            pane.focus_file_list()
+        return True
+
+    def _archive_sessions_for_paths(self, paths) -> list[ArchiveSession]:
+        sessions = []
+        for session in self._archive_sessions:
+            if any(session.contains(Path(path)) for path in paths):
+                sessions.append(session)
+        return sessions
+
+    def _commit_archive_changes(self, paths) -> bool:
+        sessions = self._archive_sessions_for_paths(paths)
+        for session in sessions:
+            try:
+                session.commit()
+            except OSError as exc:
+                messagebox.showerror(
+                    tr("Archive update failed"),
+                    f"{session.archive_path}\n\n{exc}", parent=self)
+                return False
+        for pane in self.all_panes():
+            if pane.archive_session in sessions:
+                pane.refresh()
+        return True
+
     def open(self) -> None:
         self.panes()[0].open_selected()
 
@@ -8084,7 +8459,15 @@ class Commander(tk.Tk):
     def new_tab(self) -> None:
         source, _ = self.panes()
         tabs = self._tabs_for(source)
-        self.active = tabs.add_tab(source.path)
+        if source.archive_session is None:
+            self.active = tabs.add_tab(source.path)
+            return
+        session = source.archive_session
+        relative = session.relative_path(source.path)
+        self.active = tabs.add_tab(session.archive_path.parent)
+        if (self._open_special_file(self.active, session.archive_path)
+                and self.active.archive_session is not None and relative.parts):
+            self.active.navigate(self.active.archive_session.root / relative, bypass_lock=True)
 
     def close_tab(self) -> None:
         source, _ = self.panes()
@@ -8099,7 +8482,7 @@ class Commander(tk.Tk):
     def copy_path(self) -> None:
         source, _ = self.panes()
         items = source.selected_paths()
-        value = str(items[0] if items else source.path)
+        value = source.logical_path(items[0]) if items else source.display_path()
         self.clipboard_clear(); self.clipboard_append(value)
 
     def copy_paths(self) -> str:
@@ -8108,7 +8491,8 @@ class Commander(tk.Tk):
             messagebox.showinfo(tr("Copy Path"), tr("Select one or more files or folders."), parent=self)
             return "break"
         self.clipboard_clear()
-        self.clipboard_append("\n".join(str(item.resolve()) for item in items))
+        source = self.panes()[0]
+        self.clipboard_append("\n".join(source.logical_path(item) for item in items))
         self.update_idletasks()
         noun = "path" if len(items) == 1 else "paths"
         messagebox.showinfo(tr("Copy Path"), tr("{count} {kind} copied to clipboard.",
@@ -8235,6 +8619,39 @@ class Commander(tk.Tk):
                 break
         self.refresh(); self._show_operation_result("Safe Sync", result)
         return result
+
+    def select_manual_font_size(self) -> None:
+        self.auto_font_size_var.set(False)
+        self.apply_font_size()
+
+    def set_auto_font_size(self) -> None:
+        if self.auto_font_size_var.get():
+            self._schedule_auto_font_size(delay=0)
+        self.save_config()
+
+    def _schedule_auto_font_size(self, _event=None, delay: int = 180) -> None:
+        if not getattr(self, "_ready", False) or not self.auto_font_size_var.get():
+            return
+        if self._auto_font_job is not None:
+            try:
+                self.after_cancel(self._auto_font_job)
+            except tk.TclError:
+                pass
+        self._auto_font_job = self.after(delay, self._apply_automatic_font_size)
+
+    def _apply_automatic_font_size(self) -> None:
+        self._auto_font_job = None
+        if not self.auto_font_size_var.get() or not self.winfo_exists():
+            return
+        size = (self.winfo_width(), self.winfo_height(), self.panel_count_var.get())
+        if size == self._last_auto_window_size:
+            return
+        self._last_auto_window_size = size
+        selected = automatic_font_size(*size)
+        if selected != self.font_size_var.get():
+            self.font_size_var.set(selected)
+            self.apply_font_size(save=False)
+            self.save_config()
 
     def apply_font_size(self, save: bool = True) -> None:
         scale = self._font_scales.get(self.font_size_var.get(), 1.0)
@@ -8413,6 +8830,11 @@ class Commander(tk.Tk):
             result = operation(items, destination, self._conflict_resolver(), self.continue_errors_var.get())
         except (OSError, shutil.Error) as exc:
             result = OperationResult(failures=[OperationFailure(items[0], destination, str(exc))])
+        changed_paths = [destination]
+        if operation is move_items:
+            changed_paths.extend(items)
+        if result.completed:
+            self._commit_archive_changes(changed_paths)
         self.refresh()
         retry = (lambda failed: self._execute_transfer(verb, operation, failed, destination,
                                                         confirm=False, allow_retry=allow_retry)) if allow_retry else None
@@ -8435,6 +8857,19 @@ class Commander(tk.Tk):
         source, _ = self.panes()
         items = source.selected_paths()
         if not items:
+            return
+        archive_sessions = self._archive_sessions_for_paths(items)
+        if archive_sessions:
+            prompt = tr("Delete {count} selected item(s) from this archive?\n\nThis cannot be undone.",
+                        count=len(items))
+            if not messagebox.askyesno(tr("Delete from Archive"), prompt,
+                                       icon="warning", parent=self):
+                return
+            result = delete_items(items, self.continue_errors_var.get())
+            if result.completed:
+                self._commit_archive_changes(items)
+            self.refresh()
+            self._show_operation_result("Delete from Archive", result)
             return
         permanent = permanent or not self.recycle_bin_var.get()
         if permanent:
@@ -8473,6 +8908,7 @@ class Commander(tk.Tk):
                         source.quick_filter_var.get().strip().casefold() not in name.casefold()):
                     source.quick_filter_var.set("")
                 source.refresh(); source.select_path(created); source.focus_file_list()
+                self._commit_archive_changes([created])
             except OSError as exc:
                 messagebox.showerror(tr("Create failed"), str(exc))
 
@@ -8486,7 +8922,10 @@ class Commander(tk.Tk):
         name = simpledialog.askstring(tr("Rename"), tr("New name:"), initialvalue=items[0].name, parent=self)
         if name and name != items[0].name:
             try:
-                items[0].rename(items[0].with_name(name)); self.refresh()
+                renamed = items[0].with_name(name)
+                items[0].rename(renamed)
+                self._commit_archive_changes([renamed])
+                self.refresh()
             except OSError as exc:
                 messagebox.showerror(tr("Rename failed"), str(exc))
 

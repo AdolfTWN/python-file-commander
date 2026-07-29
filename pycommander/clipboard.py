@@ -17,6 +17,8 @@ TYMED_HGLOBAL = 1
 TYMED_FILE = 2
 TYMED_ISTREAM = 4
 DVASPECT_CONTENT = 1
+_portable_paths: list[Path] = []
+_portable_cut = False
 
 
 @dataclass(frozen=True)
@@ -266,7 +268,10 @@ def _global_data(payload: bytes) -> int:
 def set_file_clipboard(paths: list[Path], cut: bool = False) -> None:
     """Publish files in the same clipboard formats used by File Explorer."""
     if os.name != "nt":
-        raise OSError("File clipboard integration requires Windows.")
+        global _portable_paths, _portable_cut
+        _portable_paths = [path.resolve() for path in paths]
+        _portable_cut = cut
+        return
     resolved = [str(path.resolve()) for path in paths]
     if not resolved:
         return
@@ -299,7 +304,7 @@ def set_file_clipboard(paths: list[Path], cut: bool = False) -> None:
 def get_file_clipboard() -> tuple[list[Path], bool]:
     """Read files copied or cut by PFC or Windows File Explorer."""
     if os.name != "nt":
-        return [], False
+        return list(_portable_paths), _portable_cut
     user32, shell32, kernel32 = ctypes.windll.user32, ctypes.windll.shell32, ctypes.windll.kernel32
     user32.GetClipboardData.restype = ctypes.c_void_p
     user32.GetClipboardData.argtypes = [ctypes.c_uint]
@@ -334,6 +339,9 @@ def get_file_clipboard() -> tuple[list[Path], bool]:
 
 def clear_file_clipboard() -> None:
     if os.name != "nt":
+        global _portable_paths, _portable_cut
+        _portable_paths = []
+        _portable_cut = False
         return
     _open_clipboard()
     try:

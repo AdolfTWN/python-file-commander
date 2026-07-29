@@ -5,12 +5,23 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import pycommander.clipboard as clipboard
 from pycommander.clipboard import (_FILEDESCRIPTORW, _STGMEDIUM, VirtualFileDescriptor,
                                    extract_virtual_files_from_data_object,
                                    parse_file_group_descriptor)
 
 
 class ClipboardVirtualFileTests(unittest.TestCase):
+    def test_non_windows_in_app_file_clipboard(self):
+        with tempfile.TemporaryDirectory() as raw:
+            item = Path(raw) / "report.txt"
+            item.write_text("portable", encoding="utf-8")
+            with patch.object(clipboard.os, "name", "posix"):
+                clipboard.set_file_clipboard([item], cut=True)
+                self.assertEqual(clipboard.get_file_clipboard(), ([item.resolve()], True))
+                clipboard.clear_file_clipboard()
+                self.assertEqual(clipboard.get_file_clipboard(), ([], False))
+
     def test_outlook_file_group_descriptor_names_and_sizes(self):
         first = _FILEDESCRIPTORW(); first.cFileName = "Quarterly Report.xlsx"; first.nFileSizeLow = 1234
         second = _FILEDESCRIPTORW(); second.cFileName = r"folder\safe.pdf"; second.nFileSizeHigh = 1

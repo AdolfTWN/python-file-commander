@@ -21,6 +21,7 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(restored.getint("view", "panel_count"), 2)
             self.assertEqual(restored.get("view", "ui_language"), "en")
             self.assertEqual(restored.get("view", "color_scheme"), "light")
+            self.assertTrue(restored.getboolean("view", "auto_font_size"))
 
     def test_existing_preferences_are_not_overwritten(self):
         config = configparser.ConfigParser()

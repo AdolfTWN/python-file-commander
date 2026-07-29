@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.12.9 — Extension-Aware Preview**
+Current version: **v0.13.0 — Archive Folders & Ubuntu**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -13,6 +13,15 @@ python run.py
 ```
 
 On Windows, `python pfc.py` automatically hands the GUI to the matching `pythonw.exe` and exits the console process, leaving one taskbar app. If `pythonw.exe` is unavailable, PFC safely falls back to hiding only a private console. Direct `pythonw pfc.py` remains supported.
+
+On Ubuntu, install Python with Tk and optionally 7-Zip support, then launch the same file:
+
+```bash
+sudo apt install python3 python3-tk p7zip-full
+python3 pfc.py
+```
+
+ZIP browsing uses Python's standard library. Editable 7z browsing uses an installed `7z`, `7zz`, or `7za` command.
 
 For transfer to a restricted office computer, copy only
 `pfc.py` plus `pfc.ini` and run:
@@ -37,13 +46,15 @@ Favorites and the 20 most recent folders are stored in `pfc.ini`. Ctrl+D adds/re
 
 Internal drag-and-drop copies selected items by default; holding Shift changes the action to Move. Drop onto the other visible panel to use its current folder, or onto any visible folder row to use that folder. A floating action/count/destination card follows the pointer and folder targets are highlighted. Drops reuse PFC's conflict, partial-failure, and recovery handling. Native Windows Shell integration also accepts files and folders dragged in from File Explorer (Copy by default, Shift+drop to Move) and exports selected PFC items to File Explorer with standard Windows Copy/Move modifier behavior. Outlook and Teams virtual attachments can be dragged directly into a PFC panel or pasted with Ctrl+V.
 
+ZIP and 7z files open like folders with Enter, double-click, or Right. Their contents use the normal PFC copy, paste, move, rename, new-folder, and delete workflows. PFC extracts to an isolated workspace and safely replaces the original archive after each successful change; deletion inside an archive is explicitly confirmed because it cannot use the Recycle Bin. Left at the archive root returns to the containing folder and restores the selection to the archive.
+
 The Files menu uses the native accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Versions header menu (Alt+H) opens one concise, bulleted changes window per version series. Its separate `Yoda — Portable App Advocate` item identifies Yoda as the advocate who helped bring this portable app into being, asks users to report problems, and reminds them to use file operations carefully. Version bumps are reserved for meaningful feature milestones instead of individual visual refinements.
 
 View > Tab Style provides Right Skirt (default), Rounded, and Squarish. All three use the same height at every font scale. Right Skirt has a vertical left edge and steep curved bottom-right skirt; Rounded curves only the top corners and keeps a square bottom. The selection applies immediately to all main panels and Compare tabs and is saved in `pfc.ini`; legacy Compact settings migrate automatically to Right Skirt.
 
 View > UI Language provides English (default), Traditional Chinese, Simplified Chinese, and Korean. Language names are shown in their native scripts, and file-management terms follow each platform language's familiar conventions. The selection is saved in `pfc.ini` and applies immediately—without restarting—to the main window and any open Preview, Search, Compare, or Multi-Rename window.
 
-On Windows, PFC uses Segoe UI for the interface, Cascadia Mono or Consolas for fixed-width content, and the best available process DPI-awareness mode for smoother text on scaled and mixed-DPI displays.
+On Windows, PFC uses Segoe UI for the interface, Cascadia Mono or Consolas for fixed-width content, and the best available process DPI-awareness mode for smoother text on scaled and mixed-DPI displays. Ubuntu uses the first available native Ubuntu, Noto, or DejaVu family. Navigation, general file operations, in-app copy/cut/paste, file opening, and the FreeDesktop Trash are supported; Windows Shell icons, Outlook attachment formats, and Explorer drag integration remain Windows-specific.
 
 Versions > v0.x.x Changes opens a large, resizable release-notes window. Its heading, description text, and controls follow the selected UI font size and update with live language changes.
 
@@ -71,11 +82,11 @@ Visible folders auto-refresh adaptively: every 2 seconds while PFC is focused, e
 
 `View > File Visibility` independently shows or hides Hidden and Windows System files. Both are hidden by default.
 
-`View > Font Size` provides Small (100%), Medium (150%), Large (200%), and Huge (300%). Fonts, the in-client application header and menus, tab geometry, path controls, row heights, native Shell icons, and the icon gutter scale and reflow together. The choice is saved in `pfc.ini`. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
+`View > Auto Font Size` is enabled by default and selects Small, Medium, Large, or Huge from the current window height and available width per visible panel. Choosing a size manually turns Auto Font Size off. Fonts, the in-client application header and menus, tab geometry, path controls, row heights, native Shell icons, and the icon gutter scale and reflow together. Both the switch and current choice are saved in `pfc.ini`. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
 
 All persistent state is kept in the single `pfc.ini` beside `pfc.py`. If it is absent, PFC creates it with safe defaults on first launch. It is updated after navigation, tab, sorting, display, active-panel, hotkey, and window changes so tabs and paths survive an unexpected shutdown. Hotkeys can be changed in its `[hotkeys]` section.
 
-> File operations use your current Windows permissions. Del uses the Windows Recycle Bin by default; Shift+Del always shows an irreversible permanent-delete warning. Network locations are never silently treated as safely recyclable.
+> File operations use your current account permissions. Del uses the Windows Recycle Bin or Ubuntu FreeDesktop Trash by default; Shift+Del always shows an irreversible permanent-delete warning. Network locations are never silently treated as safely recyclable.
 
 ## Scope and roadmap
 
@@ -91,7 +102,7 @@ The original project is a mature Pascal application with a large plugin ecosyste
 6. **In progress — Release reliability gate** covering long paths, UNC/network folders, denied permissions, non-ASCII names, links, disconnected drives, large folders, clipboard contention, and interrupted settings writes. Automated coverage now includes non-ASCII conflicts, same-folder safety, partial failures, atomic default INI creation, and portable privacy; environment-dependent Windows cases remain release smoke tests.
 7. **Privacy-safe portable handoff**: a documented clean-start workflow and validation that `pfc.py` contains no repository URL, account name, or local user path. Do not share a personal `pfc.ini`, because it intentionally stores folder and tab history.
 
-Items 1–5 are complete. Promote to **v1.0.0** only after item 6 passes and no high-severity data-loss or keyboard-navigation defect remains. Archive browsing and checksum tools remain useful post-v1.0 enhancements rather than release blockers.
+Items 1–5 are complete. Promote to **v1.0.0** only after item 6 passes and no high-severity data-loss or keyboard-navigation defect remains.
 
 Low-ROI features deferred until the office workflow is complete:
 
@@ -100,7 +111,7 @@ Low-ROI features deferred until the office workflow is complete:
 - Virtual file systems and privileged/admin operations: restricted office accounts typically cannot use the benefit.
 - Full internal editor, syntax highlighter library, and media/thumbnail codecs: existing associated apps cover the common workflow.
 - A full multi-rename scripting DSL and content-plugin columns: v0.9 includes the high-ROI preview/mask/undo subset without plugin complexity.
-- Cross-platform desktop integration parity and pixel-perfect theme engine: the target is the restricted Windows office machine.
+- Pixel-perfect desktop-integration parity across Windows and Ubuntu: platform-specific Shell capabilities remain native to each operating system.
 - Lua scripting and third-party plugin SDK: ecosystem work should follow a stable core API.
 
 These are deferred, not declared impossible. "100%" functional parity would require defining plugin/protocol/platform compatibility and is a multi-year product effort rather than a mechanical language conversion.
