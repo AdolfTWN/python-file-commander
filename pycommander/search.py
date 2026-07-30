@@ -342,7 +342,7 @@ class SearchWindow(tk.Toplevel):
                 folder = str(path.parent)
                 size_text = "<DIR>" if path.is_dir() else f"{stat.st_size:,}"
                 modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
-                extension = "" if path.is_dir() else path.suffix[1:]
+                extension = "" if path.is_dir() else path.suffix[1:].upper()
                 iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
                                        values=(folder, size_text, modified, extension))
                 self._measure_result(path.name, folder, size_text, modified, extension)

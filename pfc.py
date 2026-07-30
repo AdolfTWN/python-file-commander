@@ -64,6 +64,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "調整：副檔名統一以大寫顯示、移除屬性欄，細節欄位自動調整寬度，名稱欄使用剩餘空間。",
+        "Adjusted: The application icon now uses bold red transfer arrows.": "調整：應用程式圖示改用粗體紅色傳輸箭頭。",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "調整：資料夾空間分析器現在會在左鍵單擊時確認是否前往，並在右鍵選單提供明確的移至資源回收筒或永久刪除操作。",
         "Fixed: F9 rejects file-versus-folder selections before opening Compare, preventing an empty comparison window.": "修正：F9 會在開啟比較視窗前拒絕檔案對資料夾的選取，避免產生空白比較視窗。",
         "Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.": "互動式資料夾空間分析器，提供等比例大小區塊、資料夾深入檢視、取消、歷程及一鍵在 PFC 定位。",
@@ -215,6 +217,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "调整：扩展名统一以大写显示、移除属性列，详细信息列自动调整宽度，名称列使用剩余空间。",
+        "Adjusted: The application icon now uses bold red transfer arrows.": "调整：应用程序图标改用粗体红色传输箭头。",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "调整：文件夹空间分析器现在会在左键单击时确认是否转到，并在右键菜单提供明确的移至回收站或永久删除操作。",
         "Fixed: F9 rejects file-versus-folder selections before opening Compare, preventing an empty comparison window.": "修复：F9 会在打开比较窗口前拒绝文件与文件夹的混合选择，避免出现空白比较窗口。",
         "Added: Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.": "新增：交互式文件夹空间分析器，提供等比例大小区块、文件夹深入查看、取消、历史记录及一键在 PFC 中定位。",
@@ -339,6 +343,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "조정: 확장자를 대문자로 표시하고 특성 열을 제거했으며, 세부 정보 열은 자동 맞춤하고 이름 열은 남은 너비를 사용합니다.",
+        "Adjusted: The application icon now uses bold red transfer arrows.": "조정: 응용 프로그램 아이콘을 굵은 빨간색 전송 화살표로 변경했습니다.",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "조정: 폴더 공간 분석기에서 마우스 왼쪽 클릭 시 이동 여부를 확인하고, 오른쪽 클릭 메뉴에 휴지통 이동 또는 영구 삭제 작업을 명확히 제공합니다.",
         "Fixed: F9 rejects file-versus-folder selections before opening Compare, preventing an empty comparison window.": "수정: F9가 비교 창을 열기 전에 파일과 폴더의 혼합 선택을 거부하여 빈 비교 창이 생기지 않도록 했습니다.",
         "Added: Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.": "추가: 크기 비례 블록, 폴더 상세 탐색, 취소, 기록 및 PFC에서 한 번에 위치 찾기를 제공하는 대화형 폴더 공간 분석기.",
@@ -1119,18 +1125,18 @@ def _paint_polygon(pixels: bytearray, canvas_size: int, points, color) -> None:
 
 
 def pfc_icon_png(size: int = 32) -> bytes:
-    """Render the embedded four-panel transfer mark as an antialiased PNG."""
+    """Render the embedded bold red four-way transfer mark as an antialiased PNG."""
     if size < 8:
         raise ValueError("PFC icon size must be at least 8 pixels")
     supersample = 4
     canvas_size = size * supersample
     factor = canvas_size / 64
     pixels = bytearray(canvas_size * canvas_size * 4)
-    arrow = ((4.2, 9.8), (16.2, 21.8), (12.6, 25.4),
-             (29.0, 29.0), (25.4, 12.6), (21.8, 16.2), (9.8, 4.2))
-    inner_arrow = ((5.4, 8.6), (17.4, 20.6), (14.2, 23.8),
-                   (28.1, 28.1), (23.8, 14.2), (20.6, 17.4), (8.6, 5.4))
-    outline, fill = (32, 67, 92, 255), (247, 177, 52, 255)
+    arrow = ((3.2, 10.8), (15.8, 23.4), (11.8, 27.4),
+             (29.7, 29.7), (27.4, 11.8), (23.4, 15.8), (10.8, 3.2))
+    inner_arrow = ((5.4, 10.6), (17.4, 22.6), (14.3, 25.7),
+                   (28.6, 28.6), (25.7, 14.3), (22.6, 17.4), (10.6, 5.4))
+    outline, fill = (125, 18, 28, 255), (224, 36, 48, 255)
 
     def rotate(points):
         return tuple((64 - y, x) for x, y in points)
@@ -5090,7 +5096,7 @@ class SearchWindow(tk.Toplevel):
                 folder = str(path.parent)
                 size_text = "<DIR>" if path.is_dir() else f"{stat.st_size:,}"
                 modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
-                extension = "" if path.is_dir() else path.suffix[1:]
+                extension = "" if path.is_dir() else path.suffix[1:].upper()
                 iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
                                        values=(folder, size_text, modified, extension))
                 self._measure_result(path.name, folder, size_text, modified, extension)
@@ -6416,7 +6422,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.14.1"
+__version__ = "0.14.2"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -6424,6 +6430,10 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/07/31"
 VERSION_HISTORY = (
+    ("v0.14.2", "2026/07/31", (
+        "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.",
+        "Adjusted: The application icon now uses bold red transfer arrows.",
+    )),
     ("v0.14.1", "2026/07/31", (
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.",
         "Fixed: F9 rejects file-versus-folder selections before opening Compare, preventing an empty comparison window.",
@@ -6749,9 +6759,9 @@ def relaunch_with_pythonw() -> bool:
 
 
 class FilePane(ttk.Frame):
-    columns = ("ext", "size", "modified", "attr")
-    all_sort_columns = ("name", "ext", "size", "modified", "attr")
-    base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135, "attr": 55}
+    columns = ("ext", "size", "modified")
+    all_sort_columns = ("name", "ext", "size", "modified")
+    base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135}
 
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None,
                  on_drag=lambda _action, _pane, _event: None,
@@ -6786,7 +6796,7 @@ class FilePane(ttk.Frame):
         self._dragging = False
         self._column_resize_job = None
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
-                               "modified": tr("Date Modified"), "attr": tr("Attr")}
+                               "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
 
         # Keep the command target visible even when the panel has no selected row.
@@ -6855,7 +6865,7 @@ class FilePane(ttk.Frame):
 
     def apply_language(self) -> None:
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
-                               "modified": tr("Date Modified"), "attr": tr("Attr")}
+                               "modified": tr("Date Modified")}
         for column in self.all_sort_columns:
             marker = (" ▼" if self.reverse else " ▲") if column == self.sort_column else ""
             self.tree.heading("#0" if column == "name" else column,
@@ -7058,7 +7068,7 @@ class FilePane(ttk.Frame):
                 try:
                     stat = p.stat()
                     values = {"name": p.name.lower(), "ext": p.suffix.lower(), "size": stat.st_size,
-                              "modified": stat.st_mtime, "attr": p.name.startswith(".")}
+                              "modified": stat.st_mtime}
                     return (not p.is_dir(), values[self.sort_column])
                 except OSError:
                     return (True, p.name.lower())
@@ -7071,9 +7081,9 @@ class FilePane(ttk.Frame):
                     total += 0 if is_dir else stat.st_size
                     visible_name = p.name if is_dir or self.show_extensions else p.stem
                     name = f"[{visible_name}]" if is_dir else visible_name
-                    values = ("" if is_dir else p.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
-                              datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
-                              ("d" if is_dir else "-") + ("h" if p.name.startswith(".") else "-"))
+                    values = ("" if is_dir else p.suffix[1:].upper(),
+                              "<DIR>" if is_dir else format_size(stat.st_size),
+                              datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
                     iid = self.tree.insert("", "end", text=name, image=self.icons.get(p, is_dir), values=values, tags=(str(p),))
                     if str(p) in selected:
                         self.tree.selection_add(iid)
@@ -7113,7 +7123,6 @@ class FilePane(ttk.Frame):
             "ext": (40, font.measure("W" * 14) + padding),
             "size": (55, font.measure("0000.0 MB") + padding),
             "modified": (110, font.measure("0000-00-00 00:00") + padding),
-            "attr": (40, font.measure("Attr") + padding),
         }
         children = self.tree.get_children()
         fixed_total = 0
@@ -7243,7 +7252,7 @@ class FilePane(ttk.Frame):
             else:
                 details.append("Binary file: metadata preview only.")
             for line in details:
-                self.tree.insert("", "end", text=line, values=("", "", "", ""))
+                self.tree.insert("", "end", text=line, values=("", "", ""))
             self.status.configure(text=f"Previewing {item.name}")
             self.on_change()
         except OSError as exc:
@@ -7266,8 +7275,9 @@ class FilePane(ttk.Frame):
                     relative = item.relative_to(self.path)
                     display = str(relative if is_dir or self.show_extensions else relative.with_name(item.stem))
                     self.tree.insert("", "end", text=display, image=self.icons.get(item, is_dir), values=(
-                        "" if is_dir else item.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
-                        datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"), "d-" if is_dir else "--"),
+                        "" if is_dir else item.suffix[1:].upper(),
+                        "<DIR>" if is_dir else format_size(stat.st_size),
+                        datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
                         tags=(str(item),))
                     count += 1
                     if count >= 2000:

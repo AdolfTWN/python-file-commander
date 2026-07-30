@@ -74,18 +74,18 @@ def _paint_polygon(pixels: bytearray, canvas_size: int, points, color) -> None:
 
 
 def pfc_icon_png(size: int = 32) -> bytes:
-    """Render the embedded four-panel transfer mark as an antialiased PNG."""
+    """Render the embedded bold red four-way transfer mark as an antialiased PNG."""
     if size < 8:
         raise ValueError("PFC icon size must be at least 8 pixels")
     supersample = 4
     canvas_size = size * supersample
     factor = canvas_size / 64
     pixels = bytearray(canvas_size * canvas_size * 4)
-    arrow = ((4.2, 9.8), (16.2, 21.8), (12.6, 25.4),
-             (29.0, 29.0), (25.4, 12.6), (21.8, 16.2), (9.8, 4.2))
-    inner_arrow = ((5.4, 8.6), (17.4, 20.6), (14.2, 23.8),
-                   (28.1, 28.1), (23.8, 14.2), (20.6, 17.4), (8.6, 5.4))
-    outline, fill = (32, 67, 92, 255), (247, 177, 52, 255)
+    arrow = ((3.2, 10.8), (15.8, 23.4), (11.8, 27.4),
+             (29.7, 29.7), (27.4, 11.8), (23.4, 15.8), (10.8, 3.2))
+    inner_arrow = ((5.4, 10.6), (17.4, 22.6), (14.3, 25.7),
+                   (28.6, 28.6), (25.7, 14.3), (22.6, 17.4), (10.6, 5.4))
+    outline, fill = (125, 18, 28, 255), (224, 36, 48, 255)
 
     def rotate(points):
         return tuple((64 - y, x) for x, y in points)

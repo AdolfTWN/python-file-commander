@@ -37,6 +37,10 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.14.2", "2026/07/31", (
+        "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.",
+        "Adjusted: The application icon now uses bold red transfer arrows.",
+    )),
     ("v0.14.1", "2026/07/31", (
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.",
         "Fixed: F9 rejects file-versus-folder selections before opening Compare, preventing an empty comparison window.",
@@ -362,9 +366,9 @@ def relaunch_with_pythonw() -> bool:
 
 
 class FilePane(ttk.Frame):
-    columns = ("ext", "size", "modified", "attr")
-    all_sort_columns = ("name", "ext", "size", "modified", "attr")
-    base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135, "attr": 55}
+    columns = ("ext", "size", "modified")
+    all_sort_columns = ("name", "ext", "size", "modified")
+    base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135}
 
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None,
                  on_drag=lambda _action, _pane, _event: None,
@@ -399,7 +403,7 @@ class FilePane(ttk.Frame):
         self._dragging = False
         self._column_resize_job = None
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
-                               "modified": tr("Date Modified"), "attr": tr("Attr")}
+                               "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
 
         # Keep the command target visible even when the panel has no selected row.
@@ -468,7 +472,7 @@ class FilePane(ttk.Frame):
 
     def apply_language(self) -> None:
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
-                               "modified": tr("Date Modified"), "attr": tr("Attr")}
+                               "modified": tr("Date Modified")}
         for column in self.all_sort_columns:
             marker = (" ▼" if self.reverse else " ▲") if column == self.sort_column else ""
             self.tree.heading("#0" if column == "name" else column,
@@ -671,7 +675,7 @@ class FilePane(ttk.Frame):
                 try:
                     stat = p.stat()
                     values = {"name": p.name.lower(), "ext": p.suffix.lower(), "size": stat.st_size,
-                              "modified": stat.st_mtime, "attr": p.name.startswith(".")}
+                              "modified": stat.st_mtime}
                     return (not p.is_dir(), values[self.sort_column])
                 except OSError:
                     return (True, p.name.lower())
@@ -684,9 +688,9 @@ class FilePane(ttk.Frame):
                     total += 0 if is_dir else stat.st_size
                     visible_name = p.name if is_dir or self.show_extensions else p.stem
                     name = f"[{visible_name}]" if is_dir else visible_name
-                    values = ("" if is_dir else p.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
-                              datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
-                              ("d" if is_dir else "-") + ("h" if p.name.startswith(".") else "-"))
+                    values = ("" if is_dir else p.suffix[1:].upper(),
+                              "<DIR>" if is_dir else format_size(stat.st_size),
+                              datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
                     iid = self.tree.insert("", "end", text=name, image=self.icons.get(p, is_dir), values=values, tags=(str(p),))
                     if str(p) in selected:
                         self.tree.selection_add(iid)
@@ -726,7 +730,6 @@ class FilePane(ttk.Frame):
             "ext": (40, font.measure("W" * 14) + padding),
             "size": (55, font.measure("0000.0 MB") + padding),
             "modified": (110, font.measure("0000-00-00 00:00") + padding),
-            "attr": (40, font.measure("Attr") + padding),
         }
         children = self.tree.get_children()
         fixed_total = 0
@@ -856,7 +859,7 @@ class FilePane(ttk.Frame):
             else:
                 details.append("Binary file: metadata preview only.")
             for line in details:
-                self.tree.insert("", "end", text=line, values=("", "", "", ""))
+                self.tree.insert("", "end", text=line, values=("", "", ""))
             self.status.configure(text=f"Previewing {item.name}")
             self.on_change()
         except OSError as exc:
@@ -879,8 +882,9 @@ class FilePane(ttk.Frame):
                     relative = item.relative_to(self.path)
                     display = str(relative if is_dir or self.show_extensions else relative.with_name(item.stem))
                     self.tree.insert("", "end", text=display, image=self.icons.get(item, is_dir), values=(
-                        "" if is_dir else item.suffix[1:], "<DIR>" if is_dir else format_size(stat.st_size),
-                        datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"), "d-" if is_dir else "--"),
+                        "" if is_dir else item.suffix[1:].upper(),
+                        "<DIR>" if is_dir else format_size(stat.st_size),
+                        datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
                         tags=(str(item),))
                     count += 1
                     if count >= 2000:

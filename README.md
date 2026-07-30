@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.14.1 — Safer Space Analyzer Actions**
+Current version: **v0.14.2 — Cleaner File Columns & Red Icon**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
