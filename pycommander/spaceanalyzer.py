@@ -92,12 +92,14 @@ class SpaceAnalyzerWindow(tk.Toplevel):
     COLORS = ("#4f8fc9", "#66a65c", "#e29b45", "#9b72cf", "#d85d67",
               "#4fb5ad", "#c8885d", "#7d92a8", "#d3b94f")
 
-    def __init__(self, parent, start_path: Path, on_locate, palette: dict) -> None:
+    def __init__(self, parent, start_path: Path, on_locate, on_remove,
+                 palette: dict) -> None:
         super().__init__(parent)
         self.withdraw()
         self.title(tr("Folder Space Analyzer"))
         self.transient(parent)
         self.on_locate = on_locate
+        self.on_remove = on_remove
         self.palette = palette
         self.path_var = tk.StringVar(value=str(start_path))
         self.status_var = tk.StringVar(value=tr("Ready"))
@@ -110,6 +112,7 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         self._worker = None
         self._poll_job = None
         self._resize_job = None
+        self._click_job = None
         self._build()
         parent.update_idletasks()
         width = max(840, int(parent.winfo_width() * 0.78))
@@ -151,7 +154,7 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         info.pack(fill="x")
         ttk.Label(
             info,
-            text=tr("Block area is proportional to file or folder size. Click to locate; double-click a folder to analyze it."),
+            text=tr("Block area is proportional to size. Click for Go to, double-click a folder to analyze, or right-click for delete options."),
             anchor="w").pack(fill="x")
 
         self.canvas = tk.Canvas(self, highlightthickness=1, relief="sunken",
@@ -159,6 +162,7 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         self.canvas.pack(fill="both", expand=True, padx=8)
         self.canvas.bind("<Button-1>", self._click)
         self.canvas.bind("<Double-Button-1>", self._double_click)
+        self.canvas.bind("<Button-3>", self._right_click)
         self.canvas.bind("<Configure>", self._schedule_redraw)
 
         legend = ttk.Frame(self, padding=(8, 5, 8, 2))
@@ -330,25 +334,85 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         node = self._node_at(event.x, event.y)
         if node is None:
             return
-        self.selected_node = node
-        self.status_var.set(f"{node.path}   {format_size(node.size)}")
-        self._redraw()
-        self.on_locate(node.path)
+        self._select_node(node)
+        if self._click_job is not None:
+            self.after_cancel(self._click_job)
+        self._click_job = self.after(
+            250, lambda target=node: self._confirm_go_to(target))
 
     def _double_click(self, event) -> None:
+        if self._click_job is not None:
+            self.after_cancel(self._click_job)
+            self._click_job = None
         node = self._node_at(event.x, event.y)
         if node is not None and node.is_dir:
             self.scan(node.path)
 
+    def _right_click(self, event) -> None:
+        if self._click_job is not None:
+            self.after_cancel(self._click_job)
+            self._click_job = None
+        node = self._node_at(event.x, event.y)
+        if node is None:
+            return
+        self._select_node(node)
+        menu = tk.Menu(
+            self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        menu.add_command(
+            label=tr("Move to Recycle Bin"),
+            command=lambda target=node: self._confirm_remove(
+                target, permanent=False))
+        menu.add_command(
+            label=tr("Permanently Delete"),
+            command=lambda target=node: self._confirm_remove(
+                target, permanent=True))
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def _select_node(self, node: SpaceNode) -> None:
+        self.selected_node = node
+        self.status_var.set(f"{node.path}   {format_size(node.size)}")
+        self._redraw()
+
+    def _confirm_go_to(self, node: SpaceNode) -> None:
+        self._click_job = None
+        if messagebox.askyesno(
+                tr("Go to"),
+                tr("Go to this item in PFC?\n\n{path}", path=node.path),
+                parent=self):
+            self.on_locate(node.path)
+
+    def _confirm_remove(self, node: SpaceNode, permanent: bool) -> None:
+        if permanent:
+            title = tr("Permanent delete warning")
+            prompt = tr(
+                "This cannot be undone.\n\nPermanently delete this item?\n\n{path}",
+                path=node.path)
+        else:
+            title = tr("Recycle Bin")
+            prompt = tr(
+                "Move this item to the Recycle Bin?\n\n{path}", path=node.path)
+        if not messagebox.askyesno(
+                title, prompt, icon="warning" if permanent else "question",
+                parent=self):
+            return
+        if self.on_remove(node.path, permanent):
+            self.scan(Path(self.path_var.get()), remember=False)
+
     def locate_selected(self) -> None:
         if self.selected_node is not None:
-            self.on_locate(self.selected_node.path)
+            self._confirm_go_to(self.selected_node)
 
     def close(self) -> None:
         self._cancel_event.set()
         if self._poll_job is not None:
             self.after_cancel(self._poll_job)
             self._poll_job = None
+        if self._click_job is not None:
+            self.after_cancel(self._click_job)
+            self._click_job = None
         self.destroy()
 
 

@@ -1,9 +1,12 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 from pycommander.app import admin_launch_spec
-from pycommander.spaceanalyzer import SpaceNode, partition_rectangles, scan_space
+from pycommander.spaceanalyzer import (
+    SpaceAnalyzerWindow, SpaceNode, partition_rectangles, scan_space)
 
 
 class SpaceAnalyzerTests(unittest.TestCase):
@@ -37,6 +40,34 @@ class SpaceAnalyzerTests(unittest.TestCase):
         executable, parameters = admin_launch_spec(Path("C:/Temp/setup.msi"))
         self.assertEqual(executable, "msiexec.exe")
         self.assertTrue(parameters.startswith("/i "))
+
+    def test_go_to_only_runs_after_confirmation(self):
+        node = SpaceNode(Path("C:/Temp/example.txt"), 10, False)
+        locate = Mock()
+        window = SimpleNamespace(_click_job=object(), on_locate=locate)
+        with patch("pycommander.spaceanalyzer.messagebox.askyesno",
+                   side_effect=[False, True]):
+            SpaceAnalyzerWindow._confirm_go_to(window, node)
+            locate.assert_not_called()
+            SpaceAnalyzerWindow._confirm_go_to(window, node)
+        locate.assert_called_once_with(node.path)
+
+    def test_remove_choice_passes_explicit_recycle_or_permanent_action(self):
+        node = SpaceNode(Path("C:/Temp/example.txt"), 10, False)
+        remove = Mock(return_value=True)
+        scan = Mock()
+        window = SimpleNamespace(
+            on_remove=remove, scan=scan,
+            path_var=SimpleNamespace(get=lambda: "C:/Temp"))
+        with patch("pycommander.spaceanalyzer.messagebox.askyesno",
+                   return_value=True):
+            SpaceAnalyzerWindow._confirm_remove(window, node, permanent=False)
+            SpaceAnalyzerWindow._confirm_remove(window, node, permanent=True)
+        self.assertEqual(
+            remove.call_args_list[0].args, (node.path, False))
+        self.assertEqual(
+            remove.call_args_list[1].args, (node.path, True))
+        self.assertEqual(scan.call_count, 2)
 
 
 if __name__ == "__main__":

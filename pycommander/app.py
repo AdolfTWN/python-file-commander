@@ -20,7 +20,7 @@ from . import __version__
 from .fileops import OperationFailure, OperationResult, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
 from .clipboard import clear_file_clipboard, extract_virtual_files, get_file_clipboard, get_virtual_file_descriptors, set_file_clipboard
 from .icons import ShellIconProvider, create_pfc_icon
-from .compare import CompareWindow
+from .compare import CompareWindow, is_compare_container
 from .preview import PreviewWindow
 from .search import SearchWindow
 from .multirename import MultiRenameWindow
@@ -37,6 +37,10 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.14.1", "2026/07/31", (
+        "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.",
+        "Fixed: F9 rejects file-versus-folder selections before opening Compare, preventing an empty comparison window.",
+    )),
     ("v0.14.0", "2026/07/31", (
         "Added: Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.",
         "Added: Run supported files as administrator from the file context menu on Windows.",
@@ -2358,7 +2362,8 @@ class Commander(tk.Tk):
         if (self.space_analyzer_window is None or
                 not self.space_analyzer_window.winfo_exists()):
             self.space_analyzer_window = SpaceAnalyzerWindow(
-                self, target, self._locate_from_analyzer, self.palette)
+                self, target, self._locate_from_analyzer,
+                self._remove_from_analyzer, self.palette)
             self.space_analyzer_window.apply_scale(
                 self._font_scales.get(self.font_size_var.get(), 1.0))
         else:
@@ -2377,6 +2382,19 @@ class Commander(tk.Tk):
             source.select_path(path)
             source.focus_file_list()
             self.lift()
+
+    def _remove_from_analyzer(self, path: Path, permanent: bool) -> bool:
+        if not path.exists():
+            return False
+        operation, verb = (
+            (delete_items, "Permanent delete") if permanent
+            else (recycle_items, "Recycle"))
+        result = operation([path], self.continue_errors_var.get())
+        self.refresh()
+        self._show_operation_result(
+            verb, result,
+            retry=lambda failed: self._retry_delete(failed, permanent))
+        return bool(result.completed)
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
@@ -2919,6 +2937,9 @@ class Commander(tk.Tk):
                 messagebox.showinfo(tr("Compare"), tr("Select one item in the active and next panel, or two items in the active panel."), parent=self)
                 return
             left, right = active_items
+        if is_compare_container(left) != is_compare_container(right):
+            messagebox.showinfo(tr("Compare"), tr("Select two files or two folders."), parent=self)
+            return
         try:
             if self.compare_window is None or not self.compare_window.winfo_exists():
                 self.compare_window = CompareWindow(self, self.config_data, self.save_config,
