@@ -1,10 +1,11 @@
 import tempfile
+import threading
 import unittest
 import zipfile
 import subprocess
 from pathlib import Path
 
-from pycommander.archivefs import ArchiveSession, _seven_zip_executable, is_browsable_archive
+from pycommander.archivefs import ArchiveCancelled, ArchiveSession, _seven_zip_executable, is_browsable_archive
 
 
 class ArchiveSessionTests(unittest.TestCase):
@@ -37,6 +38,16 @@ class ArchiveSessionTests(unittest.TestCase):
             with self.assertRaises(OSError):
                 ArchiveSession(archive_path)
             self.assertFalse((Path(raw) / "outside.txt").exists())
+
+    def test_open_can_be_cancelled_before_extraction(self):
+        with tempfile.TemporaryDirectory() as raw:
+            archive_path = Path(raw) / "sample.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("file.txt", "content")
+            cancelled = threading.Event()
+            cancelled.set()
+            with self.assertRaises(ArchiveCancelled):
+                ArchiveSession(archive_path, cancelled)
 
     @unittest.skipUnless(_seven_zip_executable(), "7-Zip command-line tool is unavailable")
     def test_7z_is_extracted_and_rewritten(self):

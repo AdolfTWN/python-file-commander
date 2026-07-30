@@ -4,13 +4,14 @@ import os
 import configparser
 import ctypes
 import json
+import queue
 import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import tkinter as tk
 import tkinter.font as tkfont
-import zipfile
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
@@ -23,7 +24,8 @@ from .compare import CompareWindow
 from .preview import PreviewWindow
 from .search import SearchWindow
 from .multirename import MultiRenameWindow
-from .archivefs import ArchiveSession, is_browsable_archive
+from .archivefs import ArchiveCancelled, ArchiveSession, is_browsable_archive
+from .spaceanalyzer import SpaceAnalyzerWindow
 from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
 from .tooltip import MenuToolTip, install_button_tooltips
 from .tabs import COLOR_SCHEMES, ChamferNotebook, HeaderPopupController, TAB_STYLES, add_scaled_cascade, add_scaled_checkbutton, add_scaled_radiobutton, align_scaled_cascade_arrows, color_scheme, configure_ttk_theme
@@ -35,6 +37,12 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.14.0", "2026/07/31", (
+        "Added: Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.",
+        "Added: Run supported files as administrator from the file context menu on Windows.",
+        "Adjusted: Open ZIP and 7z archives in the background with visible, cancellable progress so large archives do not freeze PFC.",
+        "Adjusted: Moved Auto Font Size into the View > Font Size menu.",
+    )),
     ("v0.13.0", "2026/07/30", (
         "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.",
         "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.",
@@ -175,6 +183,22 @@ def hide_private_console() -> bool:
     user32.ShowWindow.argtypes = [ctypes.c_void_p, ctypes.c_int]
     user32.ShowWindow(window, 0)  # SW_HIDE
     return True
+
+
+def admin_launch_spec(path: Path, python_executable: str | None = None) -> tuple[str, str | None]:
+    """Return the Windows elevated executable and parameters for a supported file."""
+    path = path.resolve()
+    suffix = path.suffix.casefold()
+    quoted = f'"{path}"'
+    if suffix in {".py", ".pyw"}:
+        return python_executable or sys.executable, quoted
+    if suffix == ".msi":
+        return "msiexec.exe", f"/i {quoted}"
+    if suffix in {".bat", ".cmd"}:
+        return "cmd.exe", f'/c ""{path}""'
+    if suffix == ".ps1":
+        return "powershell.exe", f"-NoProfile -ExecutionPolicy Bypass -File {quoted}"
+    return str(path), None
 
 
 def enable_windows_dpi_awareness() -> bool:
@@ -1056,6 +1080,7 @@ class Commander(tk.Tk):
         self.preview_window = None
         self.search_window = None
         self.multi_rename_window = None
+        self.space_analyzer_window = None
         self.version_window = None
         self.version_window_series = None
         self._rename_undo = []
@@ -1064,6 +1089,9 @@ class Commander(tk.Tk):
         self._drag_highlight = None
         self._tab_drag_target = None
         self._archive_sessions: list[ArchiveSession] = []
+        self._archive_open_jobs = {}
+        self._archive_open_messages: queue.Queue = queue.Queue()
+        self._archive_open_poll_job = None
         saved_panel_count = self.config_data.getint("view", "panel_count", fallback=2)
         self.panel_count_var = tk.IntVar(value=max(2, min(4, saved_panel_count)))
         self.ui_language_var = tk.StringVar(value=saved_language if saved_language in dict(LANGUAGES) else "en")
@@ -1436,6 +1464,16 @@ class Commander(tk.Tk):
             self.after_cancel(self._clipboard_resize_job)
         if self._auto_font_job is not None:
             self.after_cancel(self._auto_font_job)
+        if self._archive_open_poll_job is not None:
+            self.after_cancel(self._archive_open_poll_job)
+        for job in self._archive_open_jobs.values():
+            job["cancel"].set()
+            try:
+                job["progress"].destroy()
+            except tk.TclError:
+                pass
+        if self.space_analyzer_window is not None and self.space_analyzer_window.winfo_exists():
+            self.space_analyzer_window.close()
         self.save_config()
         for session in self._archive_sessions:
             session.close()
@@ -1532,6 +1570,7 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
         files.add_command(label=tr("Search"), accelerator="F4", command=self.search)
         files.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
+        files.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
         files.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
         files.add_command(label=tr("Change Dir"), accelerator="F12", command=self.change_dir)
         files.add_separator()
@@ -1557,9 +1596,10 @@ class Commander(tk.Tk):
                              ("Large (200%)", "large"), ("Huge (300%)", "huge")):
             add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
                                    self.select_manual_font_size)
-        add_scaled_cascade(view, tr("Font Size"), font_size)
-        add_scaled_checkbutton(view, tr("Auto Font Size"), self.auto_font_size_var,
+        font_size.add_separator()
+        add_scaled_checkbutton(font_size, tr("Auto Font Size"), self.auto_font_size_var,
                                self.set_auto_font_size)
+        add_scaled_cascade(view, tr("Font Size"), font_size)
         color_scheme_menu = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Light", "light"), ("Light Grey", "light_grey"), ("Dark", "dark")):
             add_scaled_radiobutton(color_scheme_menu, tr(label), value, self.color_scheme_var,
@@ -1628,6 +1668,7 @@ class Commander(tk.Tk):
             "Continue After File Errors": "Continue remaining items, then show exact failures and retry options.",
             "Favorites": "Open or maintain favorite folders.", "Recent Folders": "Open recently visited folders.",
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
+            "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Copy Path": "Copy all selected full paths.",
             "Change Dir": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
@@ -1882,7 +1923,8 @@ class Commander(tk.Tk):
         for pane in self.all_panes():
             pane.apply_language()
         for window in (self.preview_window, self.search_window,
-                       self.compare_window, self.multi_rename_window):
+                       self.compare_window, self.multi_rename_window,
+                       self.space_analyzer_window):
             if window is not None and window.winfo_exists() and hasattr(window, "apply_language"):
                 window.apply_language(old_language)
         if self.version_window is not None and self.version_window.winfo_exists():
@@ -1986,24 +2028,29 @@ class Commander(tk.Tk):
         lock_mode, locked_path = pane.lock_mode, pane.locked_path
         archive_path = None
         archive_relative = None
+        locked_relative = None
         if pane.archive_session is not None:
             archive_path = pane.archive_session.archive_path
             archive_relative = pane.archive_session.relative_path(pane.path)
+            if (locked_path is not None and
+                    pane.archive_session.contains(locked_path)):
+                locked_relative = pane.archive_session.relative_path(locked_path)
         target = target_tabs.add_tab(
             archive_path.parent if archive_path is not None else pane.path,
             notify=False, position=position)
         if archive_path is not None:
-            self._open_special_file(target, archive_path)
-            if target.archive_session is not None and archive_relative.parts:
-                target.navigate(target.archive_session.root / archive_relative, bypass_lock=True)
+            def restore_archive(opened: ArchiveSession) -> None:
+                if archive_relative.parts:
+                    target.navigate(opened.root / archive_relative, bypass_lock=True)
+                if locked_relative is not None:
+                    target.locked_path = opened.root / locked_relative
+                target_tabs.set_lock(target, lock_mode, notify=False)
+                self.save_config()
+            self._open_special_file(target, archive_path, on_ready=restore_archive)
         self._copy_tab_view(pane, target)
         target.lock_mode = lock_mode
-        if (archive_path is not None and locked_path is not None
-                and pane.archive_session is not None
-                and pane.archive_session.contains(locked_path)
-                and target.archive_session is not None):
-            target.locked_path = (target.archive_session.root /
-                                  pane.archive_session.relative_path(locked_path))
+        if archive_path is not None and locked_relative is not None:
+            target.locked_path = None
         else:
             target.locked_path = locked_path
         target_tabs.set_color(target, color, notify=False)
@@ -2211,10 +2258,16 @@ class Commander(tk.Tk):
                          state=normal_if(single), command=pane.open_selected)
         menu.add_command(label=tr("Open Folder in New Tab"), state=normal_if(single and clicked_folder),
                          command=lambda: self._open_folder_in_new_tab(pane, clicked))
+        menu.add_command(label=tr("Run as Admin"),
+                         state=normal_if(single and self._can_run_as_admin(clicked)),
+                         command=lambda path=clicked: self.run_as_admin(path))
         menu.add_command(label=tr("Preview"), accelerator="F3",
                          state=normal_if(single and clicked.is_file()), command=self.preview)
         menu.add_command(label=tr("Compare"), accelerator="F9",
                          state=normal_if(can_compare), command=self.compare_selected)
+        menu.add_command(label=tr("Folder Space Analyzer"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.show_space_analyzer(path))
         menu.add_separator()
         menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
@@ -2238,8 +2291,10 @@ class Commander(tk.Tk):
         descriptions = {
             "Open / Enter Folder": "Open the selected file or enter the selected folder.",
             "Open Folder in New Tab": "Open this folder in a new tab beside the current tab.",
+            "Run as Admin": "Launch the selected supported file with administrator privileges.",
             "Preview": "Open the selected file in PFC Preview.",
             "Compare": "Compare the active and next panel, or two selected items.",
+            "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
             "Paste into This Folder": "Paste clipboard items directly into the clicked folder.",
@@ -2267,6 +2322,61 @@ class Commander(tk.Tk):
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
         if path.is_dir():
             self.active = self._tabs_for(pane).add_tab(path)
+
+    @staticmethod
+    def _can_run_as_admin(path: Path) -> bool:
+        return (os.name == "nt" and path.is_file() and
+                path.suffix.casefold() in {
+                    ".exe", ".com", ".msi", ".bat", ".cmd", ".ps1", ".py", ".pyw"
+                })
+
+    def run_as_admin(self, path: Path | None = None) -> None:
+        if path is None:
+            items = self.panes()[0].selected_paths()
+            path = items[0] if len(items) == 1 else None
+        if path is None or not self._can_run_as_admin(path):
+            messagebox.showinfo(
+                tr("Run as Admin"),
+                tr("Select one supported executable or script on Windows."),
+                parent=self)
+            return
+        executable, parameters = admin_launch_spec(path)
+        result = ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", executable, parameters, str(path.parent), 1)
+        if result <= 32:
+            messagebox.showerror(
+                tr("Run as Admin"),
+                tr("Windows could not start this item as administrator. Error {code}.",
+                   code=result),
+                parent=self)
+
+    def show_space_analyzer(self, path: Path | None = None) -> None:
+        source = self.panes()[0]
+        target = Path(path or source.path)
+        if not target.is_dir():
+            target = target.parent
+        if (self.space_analyzer_window is None or
+                not self.space_analyzer_window.winfo_exists()):
+            self.space_analyzer_window = SpaceAnalyzerWindow(
+                self, target, self._locate_from_analyzer, self.palette)
+            self.space_analyzer_window.apply_scale(
+                self._font_scales.get(self.font_size_var.get(), 1.0))
+        else:
+            self.space_analyzer_window.show(target)
+
+    def _locate_from_analyzer(self, path: Path) -> None:
+        source = next(
+            (pane for pane in self.all_panes()
+             if pane.archive_session is not None and pane.archive_session.contains(path)),
+            self.panes()[0])
+        folder = path.parent if path.parent != path else path
+        self.set_active(source)
+        navigate = source.navigate if (source.archive_session is not None and
+                                       source.archive_session.contains(folder)) else source.navigate_external
+        if navigate(folder):
+            source.select_path(path)
+            source.focus_file_list()
+            self.lift()
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
@@ -2467,7 +2577,7 @@ class Commander(tk.Tk):
         for pane in self.visible_panes():
             pane.refresh()
 
-    def _open_special_file(self, pane: FilePane, item: Path) -> bool:
+    def _open_special_file(self, pane: FilePane, item: Path, on_ready=None) -> bool:
         if not is_browsable_archive(item):
             return False
         if pane.archive_session is not None:
@@ -2476,16 +2586,90 @@ class Commander(tk.Tk):
                 tr("Leave the current archive before opening an archive stored inside it."),
                 parent=self)
             return True
-        try:
-            session = ArchiveSession(item)
-        except (OSError, zipfile.BadZipFile) as exc:
-            messagebox.showerror(tr("Cannot open archive"), str(exc), parent=self)
+        if pane in self._archive_open_jobs:
             return True
-        pane.archive_session = session
-        self._archive_sessions.append(session)
-        pane.navigate(session.root, bypass_lock=True)
-        pane.focus_file_list()
+        cancel_event = threading.Event()
+        token = object()
+        progress = tk.Toplevel(self)
+        progress.title(tr("Opening Archive"))
+        progress.resizable(False, False)
+        progress.transient(self)
+        body = ttk.Frame(progress, padding=16)
+        body.pack(fill="both", expand=True)
+        ttk.Label(body, text=tr("Opening {name}…", name=item.name),
+                  anchor="w").pack(fill="x")
+        bar = ttk.Progressbar(body, mode="indeterminate", length=360)
+        bar.pack(fill="x", pady=(12, 10))
+        bar.start(12)
+        status = ttk.Label(body, text=tr("PFC remains available while the archive is prepared."))
+        status.pack(fill="x")
+
+        def cancel_open():
+            cancel_event.set()
+            status.configure(text=tr("Cancelling…"))
+            cancel_button.state(["disabled"])
+
+        cancel_button = ttk.Button(body, text=tr("Cancel"), command=cancel_open)
+        cancel_button.pack(anchor="e", pady=(10, 0))
+        progress.protocol("WM_DELETE_WINDOW", cancel_open)
+        progress.bind("<Escape>", lambda _event: cancel_open())
+        progress.update_idletasks()
+        x = self.winfo_rootx() + max(0, (self.winfo_width() - progress.winfo_width()) // 2)
+        y = self.winfo_rooty() + max(0, (self.winfo_height() - progress.winfo_height()) // 3)
+        progress.geometry(f"+{x}+{y}")
+        progress.lift()
+        self._archive_open_jobs[pane] = {
+            "token": token, "cancel": cancel_event, "progress": progress,
+            "path": item, "on_ready": on_ready,
+        }
+
+        def worker():
+            try:
+                value = ArchiveSession(item, cancel_event)
+                result = ("done", value)
+            except Exception as exc:
+                result = ("error", exc)
+            self._archive_open_messages.put((pane, token, *result))
+
+        threading.Thread(target=worker, daemon=True).start()
+        if self._archive_open_poll_job is None:
+            self._archive_open_poll_job = self.after(80, self._poll_archive_open)
         return True
+
+    def _poll_archive_open(self) -> None:
+        self._archive_open_poll_job = None
+        while True:
+            try:
+                pane, token, kind, value = self._archive_open_messages.get_nowait()
+            except queue.Empty:
+                break
+            job = self._archive_open_jobs.get(pane)
+            if job is None or job["token"] is not token:
+                if kind == "done":
+                    value.close()
+                continue
+            self._archive_open_jobs.pop(pane, None)
+            try:
+                job["progress"].destroy()
+            except tk.TclError:
+                pass
+            if kind == "error":
+                if not isinstance(value, ArchiveCancelled):
+                    messagebox.showerror(tr("Cannot open archive"), str(value), parent=self)
+                continue
+            session = value
+            if job["cancel"].is_set() or not pane.winfo_exists():
+                session.close()
+                continue
+            pane.archive_session = session
+            self._archive_sessions.append(session)
+            pane.navigate(session.root, bypass_lock=True)
+            callback = job.get("on_ready")
+            if callback is not None:
+                callback(session)
+            pane.focus_file_list()
+        if self._archive_open_jobs and self.winfo_exists():
+            self._archive_open_poll_job = self.after(80, self._poll_archive_open)
 
     def _close_archive_session(self, session: ArchiveSession) -> None:
         if session in self._archive_sessions:
@@ -2493,6 +2677,9 @@ class Commander(tk.Tk):
         session.close()
 
     def _discard_archive(self, pane: FilePane) -> None:
+        job = self._archive_open_jobs.get(pane)
+        if job is not None:
+            job["cancel"].set()
         session = pane.archive_session
         if session is None:
             return
@@ -2599,9 +2786,13 @@ class Commander(tk.Tk):
         session = source.archive_session
         relative = session.relative_path(source.path)
         self.active = tabs.add_tab(session.archive_path.parent)
-        if (self._open_special_file(self.active, session.archive_path)
-                and self.active.archive_session is not None and relative.parts):
-            self.active.navigate(self.active.archive_session.root / relative, bypass_lock=True)
+        target = self.active
+
+        def restore_relative(opened: ArchiveSession) -> None:
+            if relative.parts and target.winfo_exists():
+                target.navigate(opened.root / relative, bypass_lock=True)
+
+        self._open_special_file(target, session.archive_path, on_ready=restore_relative)
 
     def close_tab(self) -> None:
         source, _ = self.panes()
@@ -2824,6 +3015,8 @@ class Commander(tk.Tk):
             self.search_window.apply_scale(scale)
         if self.preview_window is not None and self.preview_window.winfo_exists():
             self.preview_window.apply_scale(scale)
+        if self.space_analyzer_window is not None and self.space_analyzer_window.winfo_exists():
+            self.space_analyzer_window.apply_scale(scale)
         self.update_idletasks()
         if hasattr(self, "clipboard_summary_frame"):
             self._clipboard_visual_key = None
@@ -2876,7 +3069,8 @@ class Commander(tk.Tk):
                 tabs.set_theme(palette)
             for pane in self.all_panes():
                 pane.set_active_appearance(pane is self.active, palette)
-        for window_name in ("preview_window", "search_window", "compare_window", "multi_rename_window"):
+        for window_name in ("preview_window", "search_window", "compare_window",
+                            "multi_rename_window", "space_analyzer_window"):
             window = getattr(self, window_name, None)
             if window is not None and window.winfo_exists():
                 handler = getattr(window, "apply_color_scheme", None)

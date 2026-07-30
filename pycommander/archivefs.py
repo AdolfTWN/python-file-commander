@@ -4,11 +4,16 @@ import os
 import shutil
 import subprocess
 import tempfile
+import threading
 import zipfile
 from pathlib import Path, PurePosixPath
 
 
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
+
+
+class ArchiveCancelled(OSError):
+    pass
 
 
 def is_browsable_archive(path: Path) -> bool:
@@ -42,8 +47,10 @@ def _safe_destination(root: Path, member_name: str) -> Path:
 class ArchiveSession:
     """Editable extracted workspace backed by one ZIP or 7z file."""
 
-    def __init__(self, archive_path: Path) -> None:
+    def __init__(self, archive_path: Path,
+                 cancel_event: threading.Event | None = None) -> None:
         self.archive_path = archive_path.expanduser().resolve()
+        self.cancel_event = cancel_event
         if not is_browsable_archive(self.archive_path):
             raise OSError(f"Unsupported archive: {self.archive_path.name}")
         self._temporary = tempfile.TemporaryDirectory(prefix="pfc-archive-")
@@ -76,22 +83,46 @@ class ArchiveSession:
         if self.kind == ".zip":
             with zipfile.ZipFile(self.archive_path) as archive:
                 for info in archive.infolist():
+                    self._check_cancelled()
                     destination = _safe_destination(self.root, info.filename)
                     if info.is_dir():
                         destination.mkdir(parents=True, exist_ok=True)
                         continue
                     destination.parent.mkdir(parents=True, exist_ok=True)
                     with archive.open(info) as source, destination.open("wb") as target:
-                        shutil.copyfileobj(source, target)
+                        while True:
+                            self._check_cancelled()
+                            chunk = source.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            target.write(chunk)
             return
         executable = _seven_zip_executable()
         if executable is None:
             raise OSError("7z browsing requires the 7-Zip command-line tool (7z or 7zz).")
-        result = subprocess.run(
-            [executable, "x", "-y", f"-o{self.root}", str(self.archive_path)],
-            capture_output=True, text=True, errors="replace")
-        if result.returncode:
-            raise OSError(result.stderr.strip() or result.stdout.strip() or "7z extraction failed.")
+        process = subprocess.Popen(
+            [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
+             f"-o{self.root}", str(self.archive_path)],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+        while True:
+            try:
+                stdout, stderr = process.communicate(timeout=0.15)
+                break
+            except subprocess.TimeoutExpired:
+                if self.cancel_event is not None and self.cancel_event.is_set():
+                    process.terminate()
+                    try:
+                        process.communicate(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.communicate()
+                    raise ArchiveCancelled("Archive opening cancelled.")
+        if process.returncode:
+            raise OSError(stderr.strip() or stdout.strip() or "7z extraction failed.")
+
+    def _check_cancelled(self) -> None:
+        if self.cancel_event is not None and self.cancel_event.is_set():
+            raise ArchiveCancelled("Archive opening cancelled.")
 
     def commit(self) -> None:
         suffix = self.archive_path.suffix

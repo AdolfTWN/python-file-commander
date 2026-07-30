@@ -64,6 +64,23 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.": "互動式資料夾空間分析器，提供等比例大小區塊、資料夾深入檢視、取消、歷程及一鍵在 PFC 定位。",
+        "Added: Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.": "新增：互動式資料夾空間分析器，提供等比例大小區塊、資料夾深入檢視、取消、歷程及一鍵在 PFC 定位。",
+        "Added: Run supported files as administrator from the file context menu on Windows.": "新增：在 Windows 的檔案右鍵選單中，以系統管理員身分執行支援的檔案。",
+        "Adjusted: Open ZIP and 7z archives in the background with visible, cancellable progress so large archives do not freeze PFC.": "調整：在背景開啟 ZIP 與 7z，顯示可取消的進度，避免大型壓縮檔凍結 PFC。",
+        "Adjusted: Moved Auto Font Size into the View > Font Size menu.": "調整：將「自動調整字型大小」移至「檢視 > 字型大小」選單。",
+        "Folder Space Analyzer": "資料夾空間分析器", "Run as Admin": "以系統管理員身分執行",
+        "Opening Archive": "正在開啟壓縮檔", "Opening {name}…": "正在開啟 {name}…",
+        "PFC remains available while the archive is prepared.": "準備壓縮檔期間仍可繼續使用 PFC。",
+        "Archive opening cancelled.": "已取消開啟壓縮檔。",
+        "Select one supported executable or script on Windows.": "請在 Windows 選取一個支援的可執行檔或指令碼。",
+        "Windows could not start this item as administrator. Error {code}.": "Windows 無法以系統管理員身分啟動此項目。錯誤 {code}。",
+        "Analyze": "分析", "Stop": "停止", "Back": "返回", "Parent Folder": "上層資料夾", "Folder:": "資料夾：",
+        "Locate in PFC": "在 PFC 定位", "Selected": "已選取",
+        "Select a folder to analyze.": "請選取要分析的資料夾。",
+        "Block area is proportional to file or folder size. Click to locate; double-click a folder to analyze it.": "區塊面積與檔案或資料夾大小成比例。單擊可定位；雙擊資料夾可深入分析。",
+        "{count} top-level items   {size}": "{count} 個頂層項目   {size}",
+        "Scanning…  Esc closes": "正在掃描…  Esc 關閉",
         "Auto Font Size": "自動調整字型大小",
         "Archive": "壓縮檔", "Leave the current archive before opening an archive stored inside it.": "請先離開目前的壓縮檔，再開啟其中所包含的壓縮檔。",
         "Cannot open archive": "無法開啟壓縮檔", "Archive update failed": "壓縮檔更新失敗",
@@ -190,6 +207,22 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Added: Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.": "新增：交互式文件夹空间分析器，提供等比例大小区块、文件夹深入查看、取消、历史记录及一键在 PFC 中定位。",
+        "Added: Run supported files as administrator from the file context menu on Windows.": "新增：在 Windows 的文件右键菜单中，以管理员身份运行支持的文件。",
+        "Adjusted: Open ZIP and 7z archives in the background with visible, cancellable progress so large archives do not freeze PFC.": "调整：在后台打开 ZIP 与 7z，显示可取消的进度，避免大型压缩文件冻结 PFC。",
+        "Adjusted: Moved Auto Font Size into the View > Font Size menu.": "调整：将“自动调整字体大小”移至“查看 > 字体大小”菜单。",
+        "Folder Space Analyzer": "文件夹空间分析器", "Run as Admin": "以管理员身份运行",
+        "Opening Archive": "正在打开压缩文件", "Opening {name}…": "正在打开 {name}…",
+        "PFC remains available while the archive is prepared.": "准备压缩文件期间仍可继续使用 PFC。",
+        "Archive opening cancelled.": "已取消打开压缩文件。",
+        "Select one supported executable or script on Windows.": "请在 Windows 中选择一个支持的可执行文件或脚本。",
+        "Windows could not start this item as administrator. Error {code}.": "Windows 无法以管理员身份启动此项目。错误 {code}。",
+        "Analyze": "分析", "Stop": "停止", "Back": "返回", "Parent Folder": "上级文件夹", "Folder:": "文件夹：",
+        "Locate in PFC": "在 PFC 中定位", "Selected": "已选择",
+        "Select a folder to analyze.": "请选择要分析的文件夹。",
+        "Block area is proportional to file or folder size. Click to locate; double-click a folder to analyze it.": "区块面积与文件或文件夹大小成比例。单击可定位；双击文件夹可深入分析。",
+        "{count} top-level items   {size}": "{count} 个顶层项目   {size}",
+        "Scanning…  Esc closes": "正在扫描…  Esc 关闭",
         "Auto Font Size": "自动调整字体大小",
         "Archive": "压缩文件", "Leave the current archive before opening an archive stored inside it.": "请先离开当前压缩文件，再打开其中包含的压缩文件。",
         "Cannot open archive": "无法打开压缩文件", "Archive update failed": "压缩文件更新失败",
@@ -290,6 +323,22 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Added: Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.": "추가: 크기 비례 블록, 폴더 상세 탐색, 취소, 기록 및 PFC에서 한 번에 위치 찾기를 제공하는 대화형 폴더 공간 분석기.",
+        "Added: Run supported files as administrator from the file context menu on Windows.": "추가: Windows 파일 바로 가기 메뉴에서 지원 파일을 관리자 권한으로 실행.",
+        "Adjusted: Open ZIP and 7z archives in the background with visible, cancellable progress so large archives do not freeze PFC.": "조정: 진행 상황을 표시하고 취소할 수 있도록 ZIP 및 7z를 백그라운드에서 열어 큰 압축 파일이 PFC를 멈추지 않게 함.",
+        "Adjusted: Moved Auto Font Size into the View > Font Size menu.": "조정: 자동 글꼴 크기를 보기 > 글꼴 크기 메뉴로 이동.",
+        "Folder Space Analyzer": "폴더 공간 분석기", "Run as Admin": "관리자 권한으로 실행",
+        "Opening Archive": "압축 파일 여는 중", "Opening {name}…": "{name} 여는 중…",
+        "PFC remains available while the archive is prepared.": "압축 파일을 준비하는 동안에도 PFC를 계속 사용할 수 있습니다.",
+        "Archive opening cancelled.": "압축 파일 열기가 취소되었습니다.",
+        "Select one supported executable or script on Windows.": "Windows에서 지원되는 실행 파일 또는 스크립트 하나를 선택하세요.",
+        "Windows could not start this item as administrator. Error {code}.": "Windows에서 이 항목을 관리자 권한으로 시작하지 못했습니다. 오류 {code}.",
+        "Analyze": "분석", "Stop": "중지", "Back": "뒤로", "Parent Folder": "상위 폴더", "Folder:": "폴더:",
+        "Locate in PFC": "PFC에서 위치 찾기", "Selected": "선택됨",
+        "Select a folder to analyze.": "분석할 폴더를 선택하세요.",
+        "Block area is proportional to file or folder size. Click to locate; double-click a folder to analyze it.": "블록 면적은 파일 또는 폴더 크기에 비례합니다. 클릭하면 위치를 찾고, 폴더를 두 번 클릭하면 분석합니다.",
+        "{count} top-level items   {size}": "최상위 항목 {count}개   {size}",
+        "Scanning…  Esc closes": "검사 중…  Esc 닫기",
         "Auto Font Size": "자동 글꼴 크기",
         "Archive": "압축 파일", "Leave the current archive before opening an archive stored inside it.": "현재 압축 파일을 나간 후 그 안에 저장된 압축 파일을 여세요.",
         "Cannot open archive": "압축 파일을 열 수 없음", "Archive update failed": "압축 파일 업데이트 실패",
@@ -5294,11 +5343,16 @@ import os
 import shutil
 import subprocess
 import tempfile
+import threading
 import zipfile
 from pathlib import Path, PurePosixPath
 
 
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
+
+
+class ArchiveCancelled(OSError):
+    pass
 
 
 def is_browsable_archive(path: Path) -> bool:
@@ -5332,8 +5386,10 @@ def _safe_destination(root: Path, member_name: str) -> Path:
 class ArchiveSession:
     """Editable extracted workspace backed by one ZIP or 7z file."""
 
-    def __init__(self, archive_path: Path) -> None:
+    def __init__(self, archive_path: Path,
+                 cancel_event: threading.Event | None = None) -> None:
         self.archive_path = archive_path.expanduser().resolve()
+        self.cancel_event = cancel_event
         if not is_browsable_archive(self.archive_path):
             raise OSError(f"Unsupported archive: {self.archive_path.name}")
         self._temporary = tempfile.TemporaryDirectory(prefix="pfc-archive-")
@@ -5366,22 +5422,46 @@ class ArchiveSession:
         if self.kind == ".zip":
             with zipfile.ZipFile(self.archive_path) as archive:
                 for info in archive.infolist():
+                    self._check_cancelled()
                     destination = _safe_destination(self.root, info.filename)
                     if info.is_dir():
                         destination.mkdir(parents=True, exist_ok=True)
                         continue
                     destination.parent.mkdir(parents=True, exist_ok=True)
                     with archive.open(info) as source, destination.open("wb") as target:
-                        shutil.copyfileobj(source, target)
+                        while True:
+                            self._check_cancelled()
+                            chunk = source.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            target.write(chunk)
             return
         executable = _seven_zip_executable()
         if executable is None:
             raise OSError("7z browsing requires the 7-Zip command-line tool (7z or 7zz).")
-        result = subprocess.run(
-            [executable, "x", "-y", f"-o{self.root}", str(self.archive_path)],
-            capture_output=True, text=True, errors="replace")
-        if result.returncode:
-            raise OSError(result.stderr.strip() or result.stdout.strip() or "7z extraction failed.")
+        process = subprocess.Popen(
+            [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
+             f"-o{self.root}", str(self.archive_path)],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+        while True:
+            try:
+                stdout, stderr = process.communicate(timeout=0.15)
+                break
+            except subprocess.TimeoutExpired:
+                if self.cancel_event is not None and self.cancel_event.is_set():
+                    process.terminate()
+                    try:
+                        process.communicate(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.communicate()
+                    raise ArchiveCancelled("Archive opening cancelled.")
+        if process.returncode:
+            raise OSError(stderr.strip() or stdout.strip() or "7z extraction failed.")
+
+    def _check_cancelled(self) -> None:
+        if self.cancel_event is not None and self.cancel_event.is_set():
+            raise ArchiveCancelled("Archive opening cancelled.")
 
     def commit(self) -> None:
         suffix = self.archive_path.suffix
@@ -5416,6 +5496,360 @@ class ArchiveSession:
 
     def close(self) -> None:
         self._temporary.cleanup()
+
+
+import os
+import queue
+import threading
+import tkinter as tk
+import tkinter.font as tkfont
+from dataclasses import dataclass, field
+from pathlib import Path
+from tkinter import messagebox, ttk
+
+
+
+@dataclass
+class SpaceNode:
+    path: Path
+    size: int
+    is_dir: bool
+    children: list["SpaceNode"] = field(default_factory=list)
+
+
+def scan_space(path: Path, cancel_event: threading.Event | None = None) -> SpaceNode:
+    """Return a best-effort, symlink-safe disk usage tree."""
+    cancel_event = cancel_event or threading.Event()
+    path = path.expanduser().resolve()
+    if cancel_event.is_set():
+        raise InterruptedError
+    try:
+        is_dir = path.is_dir()
+    except OSError:
+        return SpaceNode(path, 0, False)
+    if not is_dir:
+        try:
+            return SpaceNode(path, path.stat().st_size, False)
+        except OSError:
+            return SpaceNode(path, 0, False)
+    children = []
+    try:
+        entries = list(os.scandir(path))
+    except OSError:
+        return SpaceNode(path, 0, True)
+    for entry in entries:
+        if cancel_event.is_set():
+            raise InterruptedError
+        child = Path(entry.path)
+        try:
+            if entry.is_symlink():
+                size = entry.stat(follow_symlinks=False).st_size
+                children.append(SpaceNode(child, size, False))
+            elif entry.is_dir(follow_symlinks=False):
+                children.append(scan_space(child, cancel_event))
+            else:
+                children.append(SpaceNode(
+                    child, entry.stat(follow_symlinks=False).st_size, False))
+        except OSError:
+            children.append(SpaceNode(child, 0, False))
+    children.sort(key=lambda node: node.size, reverse=True)
+    return SpaceNode(path, sum(child.size for child in children), True, children)
+
+
+def partition_rectangles(nodes: list[SpaceNode], x: float, y: float,
+                         width: float, height: float) -> list[tuple[SpaceNode, tuple[float, float, float, float]]]:
+    """Balanced slice-and-dice layout with area proportional to byte size."""
+    nodes = [node for node in nodes if node.size > 0]
+    if not nodes or width <= 0 or height <= 0:
+        return []
+    if len(nodes) == 1:
+        return [(nodes[0], (x, y, x + width, y + height))]
+    total = sum(node.size for node in nodes)
+    halfway, running, split = total / 2, 0, 1
+    for index, node in enumerate(nodes[:-1], 1):
+        running += node.size
+        split = index
+        if running >= halfway:
+            break
+    first, second = nodes[:split], nodes[split:]
+    first_total = sum(node.size for node in first)
+    ratio = first_total / total
+    if width >= height:
+        first_box = (x, y, width * ratio, height)
+        second_box = (x + width * ratio, y, width * (1 - ratio), height)
+    else:
+        first_box = (x, y, width, height * ratio)
+        second_box = (x, y + height * ratio, width, height * (1 - ratio))
+    return (partition_rectangles(first, *first_box) +
+            partition_rectangles(second, *second_box))
+
+
+class SpaceAnalyzerWindow(tk.Toplevel):
+    COLORS = ("#4f8fc9", "#66a65c", "#e29b45", "#9b72cf", "#d85d67",
+              "#4fb5ad", "#c8885d", "#7d92a8", "#d3b94f")
+
+    def __init__(self, parent, start_path: Path, on_locate, palette: dict) -> None:
+        super().__init__(parent)
+        self.withdraw()
+        self.title(tr("Folder Space Analyzer"))
+        self.transient(parent)
+        self.on_locate = on_locate
+        self.palette = palette
+        self.path_var = tk.StringVar(value=str(start_path))
+        self.status_var = tk.StringVar(value=tr("Ready"))
+        self.history: list[Path] = []
+        self.root_node: SpaceNode | None = None
+        self.selected_node: SpaceNode | None = None
+        self._rectangles: list[tuple[int, SpaceNode]] = []
+        self._messages: queue.Queue = queue.Queue()
+        self._cancel_event = threading.Event()
+        self._worker = None
+        self._poll_job = None
+        self._resize_job = None
+        self._build()
+        parent.update_idletasks()
+        width = max(840, int(parent.winfo_width() * 0.78))
+        height = max(560, int(parent.winfo_height() * 0.80))
+        screen_width, screen_height = self.winfo_screenwidth(), self.winfo_screenheight()
+        width, height = min(width, screen_width - 50), min(height, screen_height - 80)
+        x = parent.winfo_rootx() + max(0, (parent.winfo_width() - width) // 2)
+        y = parent.winfo_rooty() + max(0, (parent.winfo_height() - height) // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+        self.minsize(min(840, width), min(560, height))
+        self.protocol("WM_DELETE_WINDOW", self.close)
+        self.bind("<Escape>", lambda _event: self.close())
+        self.bind("<F5>", lambda _event: self.scan())
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+        self.scan(start_path, remember=False)
+
+    def _build(self) -> None:
+        toolbar = ttk.Frame(self, padding=(8, 7, 8, 3))
+        toolbar.pack(fill="x")
+        ttk.Button(toolbar, text=tr("Back"), command=self.back).pack(side="left")
+        ttk.Button(toolbar, text=tr("Parent Folder"), command=self.parent_folder).pack(side="left", padx=4)
+        self.scan_button = ttk.Button(toolbar, text=tr("Analyze"), command=self.scan)
+        self.scan_button.pack(side="left", padx=(6, 3))
+        self.stop_button = ttk.Button(toolbar, text=tr("Stop"), command=self.stop)
+        self.stop_button.pack(side="left")
+        ttk.Button(toolbar, text=tr("Locate in PFC"),
+                   command=self.locate_selected).pack(side="right")
+
+        path_row = ttk.Frame(self, padding=(8, 3, 8, 5))
+        path_row.pack(fill="x")
+        ttk.Label(path_row, text=tr("Folder:")).pack(side="left", padx=(0, 5))
+        self.path_entry = ttk.Entry(path_row, textvariable=self.path_var)
+        self.path_entry.pack(side="left", fill="x", expand=True)
+        self.path_entry.bind("<Return>", lambda _event: self.scan())
+
+        info = ttk.Frame(self, padding=(8, 0, 8, 6))
+        info.pack(fill="x")
+        ttk.Label(
+            info,
+            text=tr("Block area is proportional to file or folder size. Click to locate; double-click a folder to analyze it."),
+            anchor="w").pack(fill="x")
+
+        self.canvas = tk.Canvas(self, highlightthickness=1, relief="sunken",
+                                background=palette_color(self.palette, "background", "#f2f2f2"))
+        self.canvas.pack(fill="both", expand=True, padx=8)
+        self.canvas.bind("<Button-1>", self._click)
+        self.canvas.bind("<Double-Button-1>", self._double_click)
+        self.canvas.bind("<Configure>", self._schedule_redraw)
+
+        legend = ttk.Frame(self, padding=(8, 5, 8, 2))
+        legend.pack(fill="x")
+        for label, color in ((tr("Folders"), self.COLORS[0]),
+                             (tr("Files"), self.COLORS[2]),
+                             (tr("Selected"), "#ffcf45")):
+            swatch = tk.Label(legend, width=2, background=color, relief="solid", borderwidth=1)
+            swatch.pack(side="left", padx=(0, 3))
+            ttk.Label(legend, text=label).pack(side="left", padx=(0, 12))
+        ttk.Label(self, textvariable=self.status_var, anchor="w",
+                  padding=(8, 4)).pack(fill="x")
+
+    def apply_scale(self, _scale: float) -> None:
+        self.after_idle(self._redraw)
+
+    def apply_color_scheme(self, palette: dict) -> None:
+        self.palette = palette
+        self.canvas.configure(
+            background=palette_color(palette, "content", "#f2f2f2"),
+            highlightbackground=palette_color(palette, "border", "#808080"))
+        self._redraw()
+
+    def apply_language(self, old_language: str) -> None:
+        self.title(tr("Folder Space Analyzer"))
+        retranslate_widgets(self, old_language)
+
+    def show(self, path: Path) -> None:
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+        target = path if path.is_dir() else path.parent
+        if str(target) != self.path_var.get():
+            self.scan(target)
+
+    def scan(self, path: Path | None = None, remember: bool = True) -> None:
+        target = Path(path or self.path_var.get().strip().strip('"')).expanduser()
+        if not target.is_dir():
+            messagebox.showerror(tr("Folder Space Analyzer"),
+                                 tr("Select a folder to analyze."), parent=self)
+            self.path_var.set(str(self.root_node.path if self.root_node else target.parent))
+            return
+        target = target.resolve()
+        if self._worker is not None and self._worker.is_alive():
+            self.stop()
+        if remember and self.root_node is not None and self.root_node.path != target:
+            self.history.append(self.root_node.path)
+        self.path_var.set(str(target))
+        self.root_node = None
+        self.selected_node = None
+        self.canvas.delete("all")
+        self._cancel_event = threading.Event()
+        self.status_var.set(tr("Scanning…  Esc closes"))
+        self.stop_button.state(["!disabled"])
+        self.scan_button.state(["disabled"])
+
+        def worker():
+            try:
+                self._messages.put(("done", scan_space(target, self._cancel_event)))
+            except InterruptedError:
+                self._messages.put(("cancelled", None))
+            except Exception as exc:
+                self._messages.put(("error", exc))
+
+        self._worker = threading.Thread(target=worker, daemon=True)
+        self._worker.start()
+        if self._poll_job is None:
+            self._poll()
+
+    def _poll(self) -> None:
+        self._poll_job = None
+        try:
+            kind, value = self._messages.get_nowait()
+        except queue.Empty:
+            if self.winfo_exists():
+                self._poll_job = self.after(80, self._poll)
+            return
+        self.scan_button.state(["!disabled"])
+        self.stop_button.state(["disabled"])
+        if kind == "done":
+            self.root_node = value
+            self.status_var.set(tr("{count} top-level items   {size}",
+                                   count=len(value.children), size=format_size(value.size)))
+            self._redraw()
+        elif kind == "cancelled":
+            self.status_var.set(tr("Scan cancelled"))
+        else:
+            self.status_var.set(tr("Scan failed"))
+            messagebox.showerror(tr("Folder Space Analyzer"), str(value), parent=self)
+
+    def stop(self) -> None:
+        self._cancel_event.set()
+        self.status_var.set(tr("Cancelling…"))
+
+    def back(self) -> None:
+        if self.history:
+            self.scan(self.history.pop(), remember=False)
+
+    def parent_folder(self) -> None:
+        current = Path(self.path_var.get())
+        if current.parent != current:
+            self.scan(current.parent)
+
+    def _schedule_redraw(self, _event=None) -> None:
+        if self._resize_job is not None:
+            self.after_cancel(self._resize_job)
+        self._resize_job = self.after(100, self._redraw)
+
+    def _redraw(self) -> None:
+        self._resize_job = None
+        self.canvas.delete("all")
+        self._rectangles.clear()
+        if self.root_node is None:
+            return
+        width, height = max(1, self.canvas.winfo_width()), max(1, self.canvas.winfo_height())
+        boxes = partition_rectangles(self.root_node.children, 2, 2, width - 4, height - 4)
+        font = tkfont.nametofont("TkDefaultFont")
+        for index, (node, box) in enumerate(boxes):
+            self._draw_node(node, box, font, depth=0, color_index=index)
+
+    def _draw_node(self, node: SpaceNode, box, font, depth: int,
+                   color_index: int) -> None:
+        x1, y1, x2, y2 = box
+        width, height = x2 - x1, y2 - y1
+        if width < 2 or height < 2:
+            return
+        if node.is_dir:
+            color = self.COLORS[depth % 2]
+        else:
+            suffix_value = sum(ord(char) for char in node.path.suffix.casefold())
+            color = self.COLORS[2 + suffix_value % (len(self.COLORS) - 2)]
+        if node is self.selected_node:
+            color = "#ffcf45"
+        item = self.canvas.create_rectangle(
+            x1, y1, x2, y2, fill=color, outline="#ffffff",
+            width=max(1, 2 - min(depth, 1)))
+        self._rectangles.append((item, node))
+        line = font.metrics("linespace")
+        label_height = line + 5 if node.is_dir and node.children else 0
+        if width > font.measure("MMMM") and height > line * 1.25:
+            max_width = max(1, int(width - 8))
+            label = node.path.name
+            while label and font.measure(label) > max_width:
+                label = label[:-1]
+            if label != node.path.name:
+                label = label[:-1] + "…" if label else ""
+            detail = label if label_height else f"{label}\n{format_size(node.size)}"
+            self.canvas.create_text(
+                x1 + 5, y1 + 3, text=detail, anchor="nw",
+                width=max_width, fill="#101820", font=font)
+        inner_height = height - label_height - 3
+        if (node.is_dir and node.children and depth < 7 and
+                width >= 34 and inner_height >= 24):
+            inner = partition_rectangles(
+                node.children, x1 + 2, y1 + label_height,
+                width - 4, inner_height)
+            for index, (child, child_box) in enumerate(inner):
+                self._draw_node(child, child_box, font, depth + 1,
+                                color_index + index)
+
+    def _node_at(self, x: int, y: int) -> SpaceNode | None:
+        overlapping = set(self.canvas.find_overlapping(x, y, x, y))
+        for item, node in reversed(self._rectangles):
+            if item in overlapping:
+                return node
+        return None
+
+    def _click(self, event) -> None:
+        node = self._node_at(event.x, event.y)
+        if node is None:
+            return
+        self.selected_node = node
+        self.status_var.set(f"{node.path}   {format_size(node.size)}")
+        self._redraw()
+        self.on_locate(node.path)
+
+    def _double_click(self, event) -> None:
+        node = self._node_at(event.x, event.y)
+        if node is not None and node.is_dir:
+            self.scan(node.path)
+
+    def locate_selected(self) -> None:
+        if self.selected_node is not None:
+            self.on_locate(self.selected_node.path)
+
+    def close(self) -> None:
+        self._cancel_event.set()
+        if self._poll_job is not None:
+            self.after_cancel(self._poll_job)
+            self._poll_job = None
+        self.destroy()
+
+
+def palette_color(palette: dict, key: str, fallback: str) -> str:
+    return palette.get(key, fallback)
 
 
 import ctypes
@@ -5882,25 +6316,32 @@ import os
 import configparser
 import ctypes
 import json
+import queue
 import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import tkinter as tk
 import tkinter.font as tkfont
-import zipfile
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
-__version__ = "0.13.0"
+__version__ = "0.14.0"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/30"
+BUILD_DATE = "2026/07/31"
 VERSION_HISTORY = (
+    ("v0.14.0", "2026/07/31", (
+        "Added: Interactive Folder Space Analyzer with proportional size blocks, folder drill-down, cancellation, history, and one-click location in PFC.",
+        "Added: Run supported files as administrator from the file context menu on Windows.",
+        "Adjusted: Open ZIP and 7z archives in the background with visible, cancellable progress so large archives do not freeze PFC.",
+        "Adjusted: Moved Auto Font Size into the View > Font Size menu.",
+    )),
     ("v0.13.0", "2026/07/30", (
         "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.",
         "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.",
@@ -6041,6 +6482,22 @@ def hide_private_console() -> bool:
     user32.ShowWindow.argtypes = [ctypes.c_void_p, ctypes.c_int]
     user32.ShowWindow(window, 0)  # SW_HIDE
     return True
+
+
+def admin_launch_spec(path: Path, python_executable: str | None = None) -> tuple[str, str | None]:
+    """Return the Windows elevated executable and parameters for a supported file."""
+    path = path.resolve()
+    suffix = path.suffix.casefold()
+    quoted = f'"{path}"'
+    if suffix in {".py", ".pyw"}:
+        return python_executable or sys.executable, quoted
+    if suffix == ".msi":
+        return "msiexec.exe", f"/i {quoted}"
+    if suffix in {".bat", ".cmd"}:
+        return "cmd.exe", f'/c ""{path}""'
+    if suffix == ".ps1":
+        return "powershell.exe", f"-NoProfile -ExecutionPolicy Bypass -File {quoted}"
+    return str(path), None
 
 
 def enable_windows_dpi_awareness() -> bool:
@@ -6922,6 +7379,7 @@ class Commander(tk.Tk):
         self.preview_window = None
         self.search_window = None
         self.multi_rename_window = None
+        self.space_analyzer_window = None
         self.version_window = None
         self.version_window_series = None
         self._rename_undo = []
@@ -6930,6 +7388,9 @@ class Commander(tk.Tk):
         self._drag_highlight = None
         self._tab_drag_target = None
         self._archive_sessions: list[ArchiveSession] = []
+        self._archive_open_jobs = {}
+        self._archive_open_messages: queue.Queue = queue.Queue()
+        self._archive_open_poll_job = None
         saved_panel_count = self.config_data.getint("view", "panel_count", fallback=2)
         self.panel_count_var = tk.IntVar(value=max(2, min(4, saved_panel_count)))
         self.ui_language_var = tk.StringVar(value=saved_language if saved_language in dict(LANGUAGES) else "en")
@@ -7302,6 +7763,16 @@ class Commander(tk.Tk):
             self.after_cancel(self._clipboard_resize_job)
         if self._auto_font_job is not None:
             self.after_cancel(self._auto_font_job)
+        if self._archive_open_poll_job is not None:
+            self.after_cancel(self._archive_open_poll_job)
+        for job in self._archive_open_jobs.values():
+            job["cancel"].set()
+            try:
+                job["progress"].destroy()
+            except tk.TclError:
+                pass
+        if self.space_analyzer_window is not None and self.space_analyzer_window.winfo_exists():
+            self.space_analyzer_window.close()
         self.save_config()
         for session in self._archive_sessions:
             session.close()
@@ -7398,6 +7869,7 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
         files.add_command(label=tr("Search"), accelerator="F4", command=self.search)
         files.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
+        files.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
         files.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
         files.add_command(label=tr("Change Dir"), accelerator="F12", command=self.change_dir)
         files.add_separator()
@@ -7423,9 +7895,10 @@ class Commander(tk.Tk):
                              ("Large (200%)", "large"), ("Huge (300%)", "huge")):
             add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
                                    self.select_manual_font_size)
-        add_scaled_cascade(view, tr("Font Size"), font_size)
-        add_scaled_checkbutton(view, tr("Auto Font Size"), self.auto_font_size_var,
+        font_size.add_separator()
+        add_scaled_checkbutton(font_size, tr("Auto Font Size"), self.auto_font_size_var,
                                self.set_auto_font_size)
+        add_scaled_cascade(view, tr("Font Size"), font_size)
         color_scheme_menu = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Light", "light"), ("Light Grey", "light_grey"), ("Dark", "dark")):
             add_scaled_radiobutton(color_scheme_menu, tr(label), value, self.color_scheme_var,
@@ -7494,6 +7967,7 @@ class Commander(tk.Tk):
             "Continue After File Errors": "Continue remaining items, then show exact failures and retry options.",
             "Favorites": "Open or maintain favorite folders.", "Recent Folders": "Open recently visited folders.",
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
+            "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Copy Path": "Copy all selected full paths.",
             "Change Dir": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
@@ -7748,7 +8222,8 @@ class Commander(tk.Tk):
         for pane in self.all_panes():
             pane.apply_language()
         for window in (self.preview_window, self.search_window,
-                       self.compare_window, self.multi_rename_window):
+                       self.compare_window, self.multi_rename_window,
+                       self.space_analyzer_window):
             if window is not None and window.winfo_exists() and hasattr(window, "apply_language"):
                 window.apply_language(old_language)
         if self.version_window is not None and self.version_window.winfo_exists():
@@ -7852,24 +8327,29 @@ class Commander(tk.Tk):
         lock_mode, locked_path = pane.lock_mode, pane.locked_path
         archive_path = None
         archive_relative = None
+        locked_relative = None
         if pane.archive_session is not None:
             archive_path = pane.archive_session.archive_path
             archive_relative = pane.archive_session.relative_path(pane.path)
+            if (locked_path is not None and
+                    pane.archive_session.contains(locked_path)):
+                locked_relative = pane.archive_session.relative_path(locked_path)
         target = target_tabs.add_tab(
             archive_path.parent if archive_path is not None else pane.path,
             notify=False, position=position)
         if archive_path is not None:
-            self._open_special_file(target, archive_path)
-            if target.archive_session is not None and archive_relative.parts:
-                target.navigate(target.archive_session.root / archive_relative, bypass_lock=True)
+            def restore_archive(opened: ArchiveSession) -> None:
+                if archive_relative.parts:
+                    target.navigate(opened.root / archive_relative, bypass_lock=True)
+                if locked_relative is not None:
+                    target.locked_path = opened.root / locked_relative
+                target_tabs.set_lock(target, lock_mode, notify=False)
+                self.save_config()
+            self._open_special_file(target, archive_path, on_ready=restore_archive)
         self._copy_tab_view(pane, target)
         target.lock_mode = lock_mode
-        if (archive_path is not None and locked_path is not None
-                and pane.archive_session is not None
-                and pane.archive_session.contains(locked_path)
-                and target.archive_session is not None):
-            target.locked_path = (target.archive_session.root /
-                                  pane.archive_session.relative_path(locked_path))
+        if archive_path is not None and locked_relative is not None:
+            target.locked_path = None
         else:
             target.locked_path = locked_path
         target_tabs.set_color(target, color, notify=False)
@@ -8077,10 +8557,16 @@ class Commander(tk.Tk):
                          state=normal_if(single), command=pane.open_selected)
         menu.add_command(label=tr("Open Folder in New Tab"), state=normal_if(single and clicked_folder),
                          command=lambda: self._open_folder_in_new_tab(pane, clicked))
+        menu.add_command(label=tr("Run as Admin"),
+                         state=normal_if(single and self._can_run_as_admin(clicked)),
+                         command=lambda path=clicked: self.run_as_admin(path))
         menu.add_command(label=tr("Preview"), accelerator="F3",
                          state=normal_if(single and clicked.is_file()), command=self.preview)
         menu.add_command(label=tr("Compare"), accelerator="F9",
                          state=normal_if(can_compare), command=self.compare_selected)
+        menu.add_command(label=tr("Folder Space Analyzer"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.show_space_analyzer(path))
         menu.add_separator()
         menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
@@ -8104,8 +8590,10 @@ class Commander(tk.Tk):
         descriptions = {
             "Open / Enter Folder": "Open the selected file or enter the selected folder.",
             "Open Folder in New Tab": "Open this folder in a new tab beside the current tab.",
+            "Run as Admin": "Launch the selected supported file with administrator privileges.",
             "Preview": "Open the selected file in PFC Preview.",
             "Compare": "Compare the active and next panel, or two selected items.",
+            "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
             "Paste into This Folder": "Paste clipboard items directly into the clicked folder.",
@@ -8133,6 +8621,61 @@ class Commander(tk.Tk):
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
         if path.is_dir():
             self.active = self._tabs_for(pane).add_tab(path)
+
+    @staticmethod
+    def _can_run_as_admin(path: Path) -> bool:
+        return (os.name == "nt" and path.is_file() and
+                path.suffix.casefold() in {
+                    ".exe", ".com", ".msi", ".bat", ".cmd", ".ps1", ".py", ".pyw"
+                })
+
+    def run_as_admin(self, path: Path | None = None) -> None:
+        if path is None:
+            items = self.panes()[0].selected_paths()
+            path = items[0] if len(items) == 1 else None
+        if path is None or not self._can_run_as_admin(path):
+            messagebox.showinfo(
+                tr("Run as Admin"),
+                tr("Select one supported executable or script on Windows."),
+                parent=self)
+            return
+        executable, parameters = admin_launch_spec(path)
+        result = ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", executable, parameters, str(path.parent), 1)
+        if result <= 32:
+            messagebox.showerror(
+                tr("Run as Admin"),
+                tr("Windows could not start this item as administrator. Error {code}.",
+                   code=result),
+                parent=self)
+
+    def show_space_analyzer(self, path: Path | None = None) -> None:
+        source = self.panes()[0]
+        target = Path(path or source.path)
+        if not target.is_dir():
+            target = target.parent
+        if (self.space_analyzer_window is None or
+                not self.space_analyzer_window.winfo_exists()):
+            self.space_analyzer_window = SpaceAnalyzerWindow(
+                self, target, self._locate_from_analyzer, self.palette)
+            self.space_analyzer_window.apply_scale(
+                self._font_scales.get(self.font_size_var.get(), 1.0))
+        else:
+            self.space_analyzer_window.show(target)
+
+    def _locate_from_analyzer(self, path: Path) -> None:
+        source = next(
+            (pane for pane in self.all_panes()
+             if pane.archive_session is not None and pane.archive_session.contains(path)),
+            self.panes()[0])
+        folder = path.parent if path.parent != path else path
+        self.set_active(source)
+        navigate = source.navigate if (source.archive_session is not None and
+                                       source.archive_session.contains(folder)) else source.navigate_external
+        if navigate(folder):
+            source.select_path(path)
+            source.focus_file_list()
+            self.lift()
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
@@ -8333,7 +8876,7 @@ class Commander(tk.Tk):
         for pane in self.visible_panes():
             pane.refresh()
 
-    def _open_special_file(self, pane: FilePane, item: Path) -> bool:
+    def _open_special_file(self, pane: FilePane, item: Path, on_ready=None) -> bool:
         if not is_browsable_archive(item):
             return False
         if pane.archive_session is not None:
@@ -8342,16 +8885,90 @@ class Commander(tk.Tk):
                 tr("Leave the current archive before opening an archive stored inside it."),
                 parent=self)
             return True
-        try:
-            session = ArchiveSession(item)
-        except (OSError, zipfile.BadZipFile) as exc:
-            messagebox.showerror(tr("Cannot open archive"), str(exc), parent=self)
+        if pane in self._archive_open_jobs:
             return True
-        pane.archive_session = session
-        self._archive_sessions.append(session)
-        pane.navigate(session.root, bypass_lock=True)
-        pane.focus_file_list()
+        cancel_event = threading.Event()
+        token = object()
+        progress = tk.Toplevel(self)
+        progress.title(tr("Opening Archive"))
+        progress.resizable(False, False)
+        progress.transient(self)
+        body = ttk.Frame(progress, padding=16)
+        body.pack(fill="both", expand=True)
+        ttk.Label(body, text=tr("Opening {name}…", name=item.name),
+                  anchor="w").pack(fill="x")
+        bar = ttk.Progressbar(body, mode="indeterminate", length=360)
+        bar.pack(fill="x", pady=(12, 10))
+        bar.start(12)
+        status = ttk.Label(body, text=tr("PFC remains available while the archive is prepared."))
+        status.pack(fill="x")
+
+        def cancel_open():
+            cancel_event.set()
+            status.configure(text=tr("Cancelling…"))
+            cancel_button.state(["disabled"])
+
+        cancel_button = ttk.Button(body, text=tr("Cancel"), command=cancel_open)
+        cancel_button.pack(anchor="e", pady=(10, 0))
+        progress.protocol("WM_DELETE_WINDOW", cancel_open)
+        progress.bind("<Escape>", lambda _event: cancel_open())
+        progress.update_idletasks()
+        x = self.winfo_rootx() + max(0, (self.winfo_width() - progress.winfo_width()) // 2)
+        y = self.winfo_rooty() + max(0, (self.winfo_height() - progress.winfo_height()) // 3)
+        progress.geometry(f"+{x}+{y}")
+        progress.lift()
+        self._archive_open_jobs[pane] = {
+            "token": token, "cancel": cancel_event, "progress": progress,
+            "path": item, "on_ready": on_ready,
+        }
+
+        def worker():
+            try:
+                value = ArchiveSession(item, cancel_event)
+                result = ("done", value)
+            except Exception as exc:
+                result = ("error", exc)
+            self._archive_open_messages.put((pane, token, *result))
+
+        threading.Thread(target=worker, daemon=True).start()
+        if self._archive_open_poll_job is None:
+            self._archive_open_poll_job = self.after(80, self._poll_archive_open)
         return True
+
+    def _poll_archive_open(self) -> None:
+        self._archive_open_poll_job = None
+        while True:
+            try:
+                pane, token, kind, value = self._archive_open_messages.get_nowait()
+            except queue.Empty:
+                break
+            job = self._archive_open_jobs.get(pane)
+            if job is None or job["token"] is not token:
+                if kind == "done":
+                    value.close()
+                continue
+            self._archive_open_jobs.pop(pane, None)
+            try:
+                job["progress"].destroy()
+            except tk.TclError:
+                pass
+            if kind == "error":
+                if not isinstance(value, ArchiveCancelled):
+                    messagebox.showerror(tr("Cannot open archive"), str(value), parent=self)
+                continue
+            session = value
+            if job["cancel"].is_set() or not pane.winfo_exists():
+                session.close()
+                continue
+            pane.archive_session = session
+            self._archive_sessions.append(session)
+            pane.navigate(session.root, bypass_lock=True)
+            callback = job.get("on_ready")
+            if callback is not None:
+                callback(session)
+            pane.focus_file_list()
+        if self._archive_open_jobs and self.winfo_exists():
+            self._archive_open_poll_job = self.after(80, self._poll_archive_open)
 
     def _close_archive_session(self, session: ArchiveSession) -> None:
         if session in self._archive_sessions:
@@ -8359,6 +8976,9 @@ class Commander(tk.Tk):
         session.close()
 
     def _discard_archive(self, pane: FilePane) -> None:
+        job = self._archive_open_jobs.get(pane)
+        if job is not None:
+            job["cancel"].set()
         session = pane.archive_session
         if session is None:
             return
@@ -8465,9 +9085,13 @@ class Commander(tk.Tk):
         session = source.archive_session
         relative = session.relative_path(source.path)
         self.active = tabs.add_tab(session.archive_path.parent)
-        if (self._open_special_file(self.active, session.archive_path)
-                and self.active.archive_session is not None and relative.parts):
-            self.active.navigate(self.active.archive_session.root / relative, bypass_lock=True)
+        target = self.active
+
+        def restore_relative(opened: ArchiveSession) -> None:
+            if relative.parts and target.winfo_exists():
+                target.navigate(opened.root / relative, bypass_lock=True)
+
+        self._open_special_file(target, session.archive_path, on_ready=restore_relative)
 
     def close_tab(self) -> None:
         source, _ = self.panes()
@@ -8690,6 +9314,8 @@ class Commander(tk.Tk):
             self.search_window.apply_scale(scale)
         if self.preview_window is not None and self.preview_window.winfo_exists():
             self.preview_window.apply_scale(scale)
+        if self.space_analyzer_window is not None and self.space_analyzer_window.winfo_exists():
+            self.space_analyzer_window.apply_scale(scale)
         self.update_idletasks()
         if hasattr(self, "clipboard_summary_frame"):
             self._clipboard_visual_key = None
@@ -8742,7 +9368,8 @@ class Commander(tk.Tk):
                 tabs.set_theme(palette)
             for pane in self.all_panes():
                 pane.set_active_appearance(pane is self.active, palette)
-        for window_name in ("preview_window", "search_window", "compare_window", "multi_rename_window"):
+        for window_name in ("preview_window", "search_window", "compare_window",
+                            "multi_rename_window", "space_analyzer_window"):
             window = getattr(self, window_name, None)
             if window is not None and window.winfo_exists():
                 handler = getattr(window, "apply_color_scheme", None)
