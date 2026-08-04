@@ -5,7 +5,9 @@ import zipfile
 import subprocess
 from pathlib import Path
 
-from pycommander.archivefs import ArchiveCancelled, ArchiveSession, _seven_zip_executable, is_browsable_archive
+from pycommander.archivefs import (ArchiveCancelled, ArchiveSession,
+                                   _seven_zip_executable, create_zip_archive,
+                                   extract_archive_to, is_browsable_archive)
 
 
 class ArchiveSessionTests(unittest.TestCase):
@@ -48,6 +50,21 @@ class ArchiveSessionTests(unittest.TestCase):
             cancelled.set()
             with self.assertRaises(ArchiveCancelled):
                 ArchiveSession(archive_path, cancelled)
+
+    def test_create_and_extract_zip_preserves_selected_roots(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            folder = root / "folder"; folder.mkdir()
+            (folder / "nested.txt").write_text("nested", encoding="utf-8")
+            file_path = root / "single.txt"; file_path.write_text("single", encoding="utf-8")
+            archive_path = root / "bundle.zip"
+            create_zip_archive([folder, file_path], archive_path)
+            with zipfile.ZipFile(archive_path) as archive:
+                self.assertEqual(set(archive.namelist()), {"folder/nested.txt", "single.txt"})
+            destination = root / "extracted"
+            extract_archive_to(archive_path, destination)
+            self.assertEqual((destination / "folder" / "nested.txt").read_text(), "nested")
+            self.assertEqual((destination / "single.txt").read_text(), "single")
 
     @unittest.skipUnless(_seven_zip_executable(), "7-Zip command-line tool is unavailable")
     def test_7z_is_extracted_and_rewritten(self):

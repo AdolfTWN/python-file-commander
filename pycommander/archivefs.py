@@ -20,6 +20,46 @@ def is_browsable_archive(path: Path) -> bool:
     return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
 
 
+def create_zip_archive(items, target: Path) -> Path:
+    """Create a ZIP containing each selected item under its own display name."""
+    paths = [Path(item) for item in items]
+    if not paths:
+        raise OSError("No items are selected for compression.")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for item in paths:
+            if item.is_dir():
+                descendants = sorted(item.rglob("*"))
+                if not descendants:
+                    archive.writestr(item.name.rstrip("/") + "/", b"")
+                for child in descendants:
+                    relative = Path(item.name) / child.relative_to(item)
+                    if child.is_dir():
+                        if not any(child.iterdir()):
+                            archive.writestr(relative.as_posix().rstrip("/") + "/", b"")
+                    else:
+                        archive.write(child, relative.as_posix())
+            else:
+                archive.write(item, item.name)
+    return target
+
+
+def extract_archive_to(archive_path: Path, destination: Path) -> Path:
+    """Safely extract a browsable ZIP/7z archive into an existing destination."""
+    destination.mkdir(parents=True, exist_ok=True)
+    session = ArchiveSession(archive_path)
+    try:
+        for child in session.root.iterdir():
+            target = destination / child.name
+            if child.is_dir():
+                shutil.copytree(child, target, dirs_exist_ok=True)
+            else:
+                shutil.copy2(child, target)
+    finally:
+        session.close()
+    return destination
+
+
 def _seven_zip_executable() -> str | None:
     candidates = ("7z", "7zz", "7za")
     for name in candidates:

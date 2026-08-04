@@ -1,9 +1,28 @@
 from __future__ import annotations
 
+import ctypes
+import os
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
 from .i18n import tr
+
+
+def virtual_screen_bounds(widget) -> tuple[int, int, int, int]:
+    """Return the complete desktop bounds, including negative monitor origins."""
+    if os.name == "nt":
+        user32 = ctypes.windll.user32
+        return tuple(user32.GetSystemMetrics(index) for index in (76, 77, 78, 79))
+    return (widget.winfo_vrootx(), widget.winfo_vrooty(),
+            widget.winfo_vrootwidth(), widget.winfo_vrootheight())
+
+
+def clamp_popup_position(x: int, y: int, width: int, height: int,
+                         bounds: tuple[int, int, int, int]) -> tuple[int, int]:
+    left, top, screen_width, screen_height = bounds
+    right, bottom = left + screen_width, top + screen_height
+    return (max(left, min(int(x), right - int(width))),
+            max(top, min(int(y), bottom - int(height))))
 
 
 TAB_COLORS = {
@@ -222,7 +241,8 @@ class HeaderPopupController:
         row_top = parent.row_bounds[index][0]
         x = parent.top.winfo_rootx() + parent.width - 1
         y = parent.top.winfo_rooty() + row_top
-        if x + child.width > child.top.winfo_screenwidth():
+        left, _top, width, _height = virtual_screen_bounds(child.top)
+        if x + child.width > left + width:
             x = parent.top.winfo_rootx() - child.width + 1
         child.show(x, y)
         child.canvas.focus_force()
@@ -375,9 +395,8 @@ class _HeaderPopup:
         self.marker_x = self.width - self.left_pad
 
     def show(self, x: int, y: int) -> None:
-        screen_w, screen_h = self.top.winfo_screenwidth(), self.top.winfo_screenheight()
-        x = max(0, min(x, screen_w - self.width))
-        y = max(0, min(y, screen_h - self.height))
+        x, y = clamp_popup_position(
+            x, y, self.width, self.height, virtual_screen_bounds(self.top))
         self.top.geometry(f"{self.width}x{self.height}+{x}+{y}")
         self.top.deiconify()
         self.top.lift()

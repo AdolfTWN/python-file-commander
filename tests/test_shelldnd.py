@@ -4,11 +4,13 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 from pycommander.clipboard import (CF_HDROP, DVASPECT_CONTENT, TYMED_HGLOBAL,
                                    _FORMATETC, _vtable_method)
 from pycommander.shelldnd import (DROPEFFECT_COPY, DROPEFFECT_MOVE, MK_SHIFT,
-                                  ShellDataObject, _OleDropTarget, _drop_effect)
+                                  ShellDataObject, ShellFileDropTarget,
+                                  _OleDropTarget, _drop_effect)
 
 
 class DropEffectTests(unittest.TestCase):
@@ -20,6 +22,23 @@ class DropEffectTests(unittest.TestCase):
         allowed = DROPEFFECT_COPY | DROPEFFECT_MOVE
         self.assertEqual(_drop_effect("files", 0, allowed), DROPEFFECT_COPY)
         self.assertEqual(_drop_effect("files", MK_SHIFT, allowed), DROPEFFECT_MOVE)
+
+    def test_virtual_drop_starts_background_extraction(self):
+        target = ShellFileDropTarget.__new__(ShellFileDropTarget)
+        target.widget = SimpleNamespace(after=Mock(return_value="poll-job"))
+        target.virtual_callback = Mock()
+        target._virtual_results = __import__("queue").Queue()
+        target._virtual_workers = 0
+        target._virtual_poll_job = None
+        thread = Mock()
+        with tempfile.TemporaryDirectory() as raw, \
+                patch("pycommander.shelldnd.tempfile.mkdtemp", return_value=raw), \
+                patch("pycommander.shelldnd._marshal_data_object", return_value=123), \
+                patch("pycommander.shelldnd.threading.Thread", return_value=thread):
+            target._queue_virtual_drop(456, 10, 20)
+        thread.start.assert_called_once_with()
+        target.virtual_callback.assert_not_called()
+        self.assertEqual(target._virtual_workers, 1)
 
 
 @unittest.skipUnless(os.name == "nt", "Windows Shell integration test")

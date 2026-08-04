@@ -64,6 +64,16 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.": "新增：F2 直接內嵌重新命名、F7 直接內嵌建立資料夾，並讓 Page Up／Down 選取列保持穩定。",
+        "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.": "修正：頂端選單維持在相同螢幕，Teams 虛擬附件改於背景擷取，不再凍結 PFC。",
+        "Added: Search results can compare two selections or send the complete listing to a new panel tab.": "新增：搜尋結果可比較兩個選取項目，或將完整清單送至新的面板分頁。",
+        "Added: ZIP compression, ZIP/7z extraction, and CMD or PowerShell folder shortcuts in the file context menu.": "新增：檔案右鍵選單提供 ZIP 壓縮、ZIP／7z 解壓縮，以及在資料夾開啟 CMD 或 PowerShell。",
+        "Adjusted: The Diffs control is centered above the Compare divider, F12 is named Change Path, and the red app arrows have a yellow contrast edge.": "調整：差異控制移至比較分隔線上方中央、F12 改名為變更路徑，紅色應用程式箭頭增加黃色高對比外框。",
+        "Change Path": "變更路徑", "Send Listing to New Tab": "將清單送至新分頁",
+        "Select two search results first.": "請先選取兩個搜尋結果。", "Search Results": "搜尋結果",
+        "Compression": "壓縮與解壓縮", "Compress to ZIP": "壓縮為 ZIP", "Extract Here": "解壓縮至此處",
+        "Extract to Folder": "解壓縮至資料夾", "Archive": "壓縮檔", "Compression failed": "壓縮失敗",
+        "Extraction failed": "解壓縮失敗", "Open terminal failed": "開啟終端機失敗",
         "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "調整：副檔名統一以大寫顯示、移除屬性欄，細節欄位自動調整寬度，名稱欄使用剩餘空間。",
         "Adjusted: The application icon now uses bold red transfer arrows.": "調整：應用程式圖示改用粗體紅色傳輸箭頭。",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "調整：資料夾空間分析器現在會在左鍵單擊時確認是否前往，並在右鍵選單提供明確的移至資源回收筒或永久刪除操作。",
@@ -217,6 +227,16 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.": "新增：F2 直接内嵌重命名、F7 直接内嵌新建文件夹，并让 Page Up／Down 选择行保持稳定。",
+        "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.": "修复：顶部菜单保持在同一显示器，Teams 虚拟附件改为后台提取，不再冻结 PFC。",
+        "Added: Search results can compare two selections or send the complete listing to a new panel tab.": "新增：搜索结果可比较两个所选项目，或将完整列表发送到新的面板选项卡。",
+        "Added: ZIP compression, ZIP/7z extraction, and CMD or PowerShell folder shortcuts in the file context menu.": "新增：文件右键菜单提供 ZIP 压缩、ZIP／7z 解压缩，以及在文件夹中打开 CMD 或 PowerShell。",
+        "Adjusted: The Diffs control is centered above the Compare divider, F12 is named Change Path, and the red app arrows have a yellow contrast edge.": "调整：差异控件移至比较分隔线上方中央、F12 改名为更改路径，红色应用程序箭头增加黄色高对比边框。",
+        "Change Path": "更改路径", "Send Listing to New Tab": "将列表发送到新选项卡",
+        "Select two search results first.": "请先选择两个搜索结果。", "Search Results": "搜索结果",
+        "Compression": "压缩与解压缩", "Compress to ZIP": "压缩为 ZIP", "Extract Here": "解压到此处",
+        "Extract to Folder": "解压到文件夹", "Archive": "压缩包", "Compression failed": "压缩失败",
+        "Extraction failed": "解压失败", "Open terminal failed": "打开终端失败",
         "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "调整：扩展名统一以大写显示、移除属性列，详细信息列自动调整宽度，名称列使用剩余空间。",
         "Adjusted: The application icon now uses bold red transfer arrows.": "调整：应用程序图标改用粗体红色传输箭头。",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "调整：文件夹空间分析器现在会在左键单击时确认是否转到，并在右键菜单提供明确的移至回收站或永久删除操作。",
@@ -343,6 +363,16 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.": "추가: F2 인라인 이름 바꾸기와 F7 인라인 폴더 만들기, 안정적인 Page Up/Down 선택을 지원합니다.",
+        "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.": "수정: 상단 메뉴가 같은 모니터에 유지되고 Teams 가상 첨부 파일을 백그라운드에서 추출하여 PFC가 멈추지 않습니다.",
+        "Added: Search results can compare two selections or send the complete listing to a new panel tab.": "추가: 검색 결과에서 두 항목을 비교하거나 전체 목록을 새 패널 탭으로 보낼 수 있습니다.",
+        "Added: ZIP compression, ZIP/7z extraction, and CMD or PowerShell folder shortcuts in the file context menu.": "추가: 파일 바로 가기 메뉴에서 ZIP 압축, ZIP/7z 압축 풀기 및 폴더 CMD/PowerShell 바로 가기를 제공합니다.",
+        "Adjusted: The Diffs control is centered above the Compare divider, F12 is named Change Path, and the red app arrows have a yellow contrast edge.": "조정: 차이 컨트롤을 비교 구분선 상단 중앙으로 옮기고 F12를 경로 변경으로 이름 바꾸며 빨간 앱 화살표에 노란색 대비 테두리를 추가했습니다.",
+        "Change Path": "경로 변경", "Send Listing to New Tab": "목록을 새 탭으로 보내기",
+        "Select two search results first.": "검색 결과 두 개를 먼저 선택하세요.", "Search Results": "검색 결과",
+        "Compression": "압축 및 풀기", "Compress to ZIP": "ZIP으로 압축", "Extract Here": "여기에 압축 풀기",
+        "Extract to Folder": "폴더에 압축 풀기", "Archive": "압축 파일", "Compression failed": "압축 실패",
+        "Extraction failed": "압축 풀기 실패", "Open terminal failed": "터미널 열기 실패",
         "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "조정: 확장자를 대문자로 표시하고 특성 열을 제거했으며, 세부 정보 열은 자동 맞춤하고 이름 열은 남은 너비를 사용합니다.",
         "Adjusted: The application icon now uses bold red transfer arrows.": "조정: 응용 프로그램 아이콘을 굵은 빨간색 전송 화살표로 변경했습니다.",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "조정: 폴더 공간 분석기에서 마우스 왼쪽 클릭 시 이동 여부를 확인하고, 오른쪽 클릭 메뉴에 휴지통 이동 또는 영구 삭제 작업을 명확히 제공합니다.",
@@ -1136,7 +1166,7 @@ def pfc_icon_png(size: int = 32) -> bytes:
              (29.7, 29.7), (27.4, 11.8), (23.4, 15.8), (10.8, 3.2))
     inner_arrow = ((5.4, 10.6), (17.4, 22.6), (14.3, 25.7),
                    (28.6, 28.6), (25.7, 14.3), (22.6, 17.4), (10.6, 5.4))
-    outline, fill = (125, 18, 28, 255), (224, 36, 48, 255)
+    outline, fill = (255, 205, 32, 255), (224, 36, 48, 255)
 
     def rotate(points):
         return tuple((64 - y, x) for x, y in points)
@@ -1256,9 +1286,28 @@ class ShellIconProvider:
             return None
 
 
+import ctypes
+import os
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
+
+
+def virtual_screen_bounds(widget) -> tuple[int, int, int, int]:
+    """Return the complete desktop bounds, including negative monitor origins."""
+    if os.name == "nt":
+        user32 = ctypes.windll.user32
+        return tuple(user32.GetSystemMetrics(index) for index in (76, 77, 78, 79))
+    return (widget.winfo_vrootx(), widget.winfo_vrooty(),
+            widget.winfo_vrootwidth(), widget.winfo_vrootheight())
+
+
+def clamp_popup_position(x: int, y: int, width: int, height: int,
+                         bounds: tuple[int, int, int, int]) -> tuple[int, int]:
+    left, top, screen_width, screen_height = bounds
+    right, bottom = left + screen_width, top + screen_height
+    return (max(left, min(int(x), right - int(width))),
+            max(top, min(int(y), bottom - int(height))))
 
 
 TAB_COLORS = {
@@ -1477,7 +1526,8 @@ class HeaderPopupController:
         row_top = parent.row_bounds[index][0]
         x = parent.top.winfo_rootx() + parent.width - 1
         y = parent.top.winfo_rooty() + row_top
-        if x + child.width > child.top.winfo_screenwidth():
+        left, _top, width, _height = virtual_screen_bounds(child.top)
+        if x + child.width > left + width:
             x = parent.top.winfo_rootx() - child.width + 1
         child.show(x, y)
         child.canvas.focus_force()
@@ -1630,9 +1680,8 @@ class _HeaderPopup:
         self.marker_x = self.width - self.left_pad
 
     def show(self, x: int, y: int) -> None:
-        screen_w, screen_h = self.top.winfo_screenwidth(), self.top.winfo_screenheight()
-        x = max(0, min(x, screen_w - self.width))
-        y = max(0, min(y, screen_h - self.height))
+        x, y = clamp_popup_position(
+            x, y, self.width, self.height, virtual_screen_bounds(self.top))
         self.top.geometry(f"{self.width}x{self.height}+{x}+{y}")
         self.top.deiconify()
         self.top.lift()
@@ -2085,7 +2134,7 @@ BUTTON_HELP = {
     "F6 Move": "Move selected items to the opposite panel.", "F7 New folder": "Create a folder here.",
     "F8": "Reserved for a future action.", "F9 Compare": "Compare selected files or folders.",
     "F11 Copy Path": "Copy all selected full paths as text.",
-    "F12 Change Dir": "Focus and select the path bar for direct paste.",
+    "F12 Change Path": "Focus and select the path bar for direct paste.",
     "File <<": "Preview the previous item.", "File >>": "Preview the next item.",
     "Find Prev": "Go to the previous search match.", "Find Next": "Go to the next search match.",
     "F7 Diff <<": "Go to the previous difference.", "F8 Diff >>": "Go to the next difference.",
@@ -3416,11 +3465,13 @@ class FolderCompare(_FolderCompareLogic):
         self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
         self.content_button.pack(side="left")
 
+        self.body = ttk.Frame(self.summary)
+        self.center_header = ttk.Frame(self.body)
         options = ttk.Frame(self.summary, padding=(3, 1)); options.pack(fill="x")
-        self.diff_button = ttk.Menubutton(options, text=tr("All"))
+        self.diff_button = ttk.Menubutton(self.center_header, text=tr("Diffs"))
         self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
         self.diff_button.configure(menu=self.diff_menu, compound="left")
-        self.diff_button.pack(side="left", padx=(0, 3))
+        self.diff_button.pack(side="top", fill="x")
         self._build_diff_menu()
         ttk.Button(options, text=tr("Expand All"), command=self.expand_all).pack(side="left", padx=(0, 3))
         ttk.Button(options, text=tr("Collapse All"), command=self.collapse_all).pack(side="left", padx=(0, 3))
@@ -3458,18 +3509,19 @@ class FolderCompare(_FolderCompareLogic):
         ttk.Label(status_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(12, 0))
         ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run).pack(side="right")
 
-        self.body = ttk.Frame(self.summary); self.body.pack(fill="both", expand=True, pady=(3, 0))
+        self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
         self.left_path_label = tk.Label(self.body, anchor="w", background="#2d668f",
                                         foreground="white", font="TkHeadingFont", padx=6, pady=3)
         self.right_path_label = tk.Label(self.body, anchor="w", background="#9b5d2e",
                                          foreground="white", font="TkHeadingFont", padx=6, pady=3)
-        self.map_header = tk.Button(self.body, text="⇄", command=self.swap_sides,
+        self.map_header = tk.Button(self.center_header, text="⇄", command=self.swap_sides,
                                     background="#263d4c", foreground="white",
                                     activebackground="#36566b", activeforeground="white",
                                     font="TkHeadingFont", relief="flat", borderwidth=0,
                                     cursor="hand2", pady=3)
         self.map_header._pfc_tooltip = ToolTip(self.map_header, tr("Swap Sides"))
+        self.map_header.pack(side="top", fill="x")
         self._update_path_labels()
         self.left_frame = ttk.Frame(self.body); self.right_frame = ttk.Frame(self.body)
         for frame in (self.left_frame, self.right_frame):
@@ -3589,8 +3641,12 @@ class FolderCompare(_FolderCompareLogic):
     def _update_diff_button(self):
         key = self.view_mode_var.get()
         image = self._diff_icons.get(key)
-        self.diff_button.configure(text=f"{tr('Diffs')}: {tr(self.DIFF_LABELS.get(key, 'Show All'))}",
-                                   image=image or "", compound="left")
+        self.diff_button.configure(text=tr("Diffs"), image=image or "", compound="left")
+        tooltip_text = tr(self.DIFF_LABELS.get(key, "Show All"))
+        if hasattr(self, "_diff_tooltip"):
+            self._diff_tooltip.text = tooltip_text
+        else:
+            self._diff_tooltip = ToolTip(self.diff_button, tooltip_text)
 
     def _select_diff_filter(self, value):
         self.view_mode_var.set(value); self._set_diff_filter()
@@ -3691,7 +3747,7 @@ class FolderCompare(_FolderCompareLogic):
         self.left_frame.grid(row=1, column=left_column, sticky="nsew")
         self.right_path_label.grid(row=0, column=right_column, sticky="ew")
         self.right_frame.grid(row=1, column=right_column, sticky="nsew")
-        self.map_header.grid(row=0, column=center_column, sticky="ew", padx=4)
+        self.center_header.grid(row=0, column=center_column, sticky="ew", padx=4)
         self.difference_map.grid(row=1, column=map_column, sticky="ns", padx=4)
         if position == "middle":
             self.center_divider.grid_forget()
@@ -4835,10 +4891,12 @@ def content_matches(path: Path, needle: str, case_sensitive: bool) -> bool:
 
 
 class SearchWindow(tk.Toplevel):
-    def __init__(self, master, config, save_config, start_path, on_go, on_preview):
+    def __init__(self, master, config, save_config, start_path, on_go, on_preview,
+                 on_compare=None, on_send_listing=None):
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
         self.on_go, self.on_preview = on_go, on_preview
+        self.on_compare, self.on_send_listing = on_compare, on_send_listing
         self.results, self.worker = [], None
         self.item_data = {}
         self.sort_column, self.sort_reverse = "name", False
@@ -4861,6 +4919,7 @@ class SearchWindow(tk.Toplevel):
         self.title(tr("PFC Search")); self.geometry(config.get("search", "geometry", fallback="1100x720")); self.minsize(720, 480)
         self.protocol("WM_DELETE_WINDOW", self.close); self.bind("<Escape>", lambda _e: self.escape())
         self.bind("<F3>", lambda _e: self.preview_selected())
+        self.bind("<F9>", lambda _e: self.compare_selected())
 
         form = ttk.Frame(self, padding=7); form.pack(fill="x")
         self.mask_entry = None
@@ -4893,6 +4952,9 @@ class SearchWindow(tk.Toplevel):
         ttk.Button(actions, text=tr("Clear Filters"), command=self.clear_filters).pack(side="left", padx=(3, 9))
         ttk.Button(actions, text=tr("Go to File"), command=self.go_selected).pack(side="left", padx=(12, 3))
         ttk.Button(actions, text=tr("Preview"), command=self.preview_selected).pack(side="left")
+        ttk.Button(actions, text=tr("Compare"), command=self.compare_selected).pack(side="left", padx=3)
+        ttk.Button(actions, text=tr("Send Listing to New Tab"),
+                   command=self.send_listing).pack(side="left", padx=(0, 3))
         ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
         self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
         form.columnconfigure(1, weight=1)
@@ -5130,6 +5192,18 @@ class SearchWindow(tk.Toplevel):
             ordered = [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.get_children()
                        if self.tree.item(iid, "tags")]
             self.on_preview(ordered, paths[0])
+    def compare_selected(self):
+        paths = self.selected_paths()
+        if len(paths) < 2:
+            messagebox.showinfo(tr("Compare"), tr("Select two search results first."), parent=self)
+            return
+        if self.on_compare is not None:
+            self.on_compare(paths[0], paths[1])
+    def send_listing(self):
+        paths = [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.get_children()
+                 if self.tree.item(iid, "tags")]
+        if paths and self.on_send_listing is not None:
+            self.on_send_listing(paths)
     def copy_paths(self):
         paths=self.selected_paths()
         if paths: self.clipboard_clear(); self.clipboard_append("\n".join(map(str, paths))); self.update_idletasks()
@@ -5387,6 +5461,46 @@ class ArchiveCancelled(OSError):
 
 def is_browsable_archive(path: Path) -> bool:
     return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
+
+
+def create_zip_archive(items, target: Path) -> Path:
+    """Create a ZIP containing each selected item under its own display name."""
+    paths = [Path(item) for item in items]
+    if not paths:
+        raise OSError("No items are selected for compression.")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for item in paths:
+            if item.is_dir():
+                descendants = sorted(item.rglob("*"))
+                if not descendants:
+                    archive.writestr(item.name.rstrip("/") + "/", b"")
+                for child in descendants:
+                    relative = Path(item.name) / child.relative_to(item)
+                    if child.is_dir():
+                        if not any(child.iterdir()):
+                            archive.writestr(relative.as_posix().rstrip("/") + "/", b"")
+                    else:
+                        archive.write(child, relative.as_posix())
+            else:
+                archive.write(item, item.name)
+    return target
+
+
+def extract_archive_to(archive_path: Path, destination: Path) -> Path:
+    """Safely extract a browsable ZIP/7z archive into an existing destination."""
+    destination.mkdir(parents=True, exist_ok=True)
+    session = ArchiveSession(archive_path)
+    try:
+        for child in session.root.iterdir():
+            target = destination / child.name
+            if child.is_dir():
+                shutil.copytree(child, target, dirs_exist_ok=True)
+            else:
+                shutil.copy2(child, target)
+    finally:
+        session.close()
+    return destination
 
 
 def _seven_zip_executable() -> str | None:
@@ -5948,8 +6062,10 @@ def palette_color(palette: dict, key: str, fallback: str) -> str:
 
 import ctypes
 import os
+import queue
 import shutil
 import tempfile
+import threading
 from pathlib import Path
 
 
@@ -5964,6 +6080,7 @@ VK_SHIFT = 0x10
 MK_SHIFT = 0x0004
 S_OK = 0
 E_NOINTERFACE = -2147467262
+COINIT_APARTMENTTHREADED = 0x2
 
 
 class _GUID(ctypes.Structure):
@@ -6003,6 +6120,33 @@ def _release_interface(pointer: int) -> None:
     table = ctypes.cast(pointer, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
     release = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)(table[2])
     release(pointer)
+
+
+def _marshal_data_object(data_object: int) -> int:
+    """Marshal IDataObject so Office attachment download can leave the UI thread."""
+    ole32 = ctypes.windll.ole32
+    ole32.CoMarshalInterThreadInterfaceInStream.argtypes = [
+        ctypes.POINTER(_GUID), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+    ole32.CoMarshalInterThreadInterfaceInStream.restype = ctypes.c_long
+    stream = ctypes.c_void_p()
+    status = ole32.CoMarshalInterThreadInterfaceInStream(
+        ctypes.byref(IID_IDATAOBJECT), ctypes.c_void_p(data_object), ctypes.byref(stream))
+    if _failed(status) or not stream.value:
+        raise OSError(f"Cannot prepare Office attachment transfer ({_status_text(status)}).")
+    return stream.value
+
+
+def _unmarshal_data_object(stream: int) -> int:
+    ole32 = ctypes.windll.ole32
+    ole32.CoGetInterfaceAndReleaseStream.argtypes = [
+        ctypes.c_void_p, ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p)]
+    ole32.CoGetInterfaceAndReleaseStream.restype = ctypes.c_long
+    data_object = ctypes.c_void_p()
+    status = ole32.CoGetInterfaceAndReleaseStream(
+        ctypes.c_void_p(stream), ctypes.byref(IID_IDATAOBJECT), ctypes.byref(data_object))
+    if _failed(status) or not data_object.value:
+        raise OSError(f"Cannot open Office attachment transfer ({_status_text(status)}).")
+    return data_object.value
 
 
 class ShellDataObject:
@@ -6277,6 +6421,9 @@ class ShellFileDropTarget:
         self._ole_target = None
         self._ole_initialized = False
         self._ole_registered = False
+        self._virtual_results = queue.Queue()
+        self._virtual_workers = 0
+        self._virtual_poll_job = None
         if os.name == "nt":
             self.install()
 
@@ -6333,17 +6480,48 @@ class ShellFileDropTarget:
     def _queue_virtual_drop(self, data_object: int, x_root: int, y_root: int) -> None:
         raw = tempfile.mkdtemp(prefix="pfc-office-drop-")
         try:
-            items, failures = extract_virtual_files_from_data_object(data_object, Path(raw))
+            stream = _marshal_data_object(data_object)
         except Exception:
             shutil.rmtree(raw, ignore_errors=True)
             raise
 
-        def deliver():
+        self._virtual_workers += 1
+        if self._virtual_poll_job is None:
+            self._virtual_poll_job = self.widget.after(40, self._poll_virtual_results)
+
+        def extract():
+            initialized = False; marshalled = None
+            try:
+                ole32 = ctypes.windll.ole32
+                status = ole32.CoInitializeEx(None, COINIT_APARTMENTTHREADED)
+                initialized = not _failed(status)
+                marshalled = _unmarshal_data_object(stream)
+                items, failures = extract_virtual_files_from_data_object(
+                    marshalled, Path(raw))
+                self._virtual_results.put((raw, items, failures, x_root, y_root))
+            except Exception as exc:
+                self._virtual_results.put((raw, [], [("Office attachment", str(exc))],
+                                           x_root, y_root))
+            finally:
+                if marshalled: _release_interface(marshalled)
+                if initialized: ctypes.windll.ole32.CoUninitialize()
+        threading.Thread(target=extract, daemon=True,
+                         name="PFC-Office-Drop").start()
+
+    def _poll_virtual_results(self) -> None:
+        self._virtual_poll_job = None
+        while True:
+            try:
+                raw, items, failures, x_root, y_root = self._virtual_results.get_nowait()
+            except queue.Empty:
+                break
+            self._virtual_workers = max(0, self._virtual_workers - 1)
             try:
                 self.virtual_callback(items, failures, x_root, y_root)
             finally:
                 shutil.rmtree(raw, ignore_errors=True)
-        self.widget.after_idle(deliver)
+        if self._virtual_workers:
+            self._virtual_poll_job = self.widget.after(40, self._poll_virtual_results)
 
     def _dispatch(self, hwnd, message, wparam, lparam):
         if message == WM_DROPFILES:
@@ -6392,6 +6570,10 @@ class ShellFileDropTarget:
         if self._ole_registered:
             ctypes.windll.ole32.RevokeDragDrop(ctypes.c_void_p(self.hwnd))
             self._ole_registered = False
+        if self._virtual_poll_job is not None:
+            try: self.widget.after_cancel(self._virtual_poll_job)
+            except Exception: pass
+            self._virtual_poll_job = None
         self._ole_target = None
         if self._ole_initialized:
             ctypes.windll.ole32.OleUninitialize()
@@ -6420,16 +6602,23 @@ import tkinter as tk
 import tkinter.font as tkfont
 from datetime import datetime
 from pathlib import Path
-from tkinter import messagebox, simpledialog, ttk
+from tkinter import messagebox, ttk
 
-__version__ = "0.14.2"
+__version__ = "0.15.0"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/07/31"
+BUILD_DATE = "2026/08/05"
 VERSION_HISTORY = (
+    ("v0.15.0", "2026/08/05", (
+        "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.",
+        "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.",
+        "Added: Search results can compare two selections or send the complete listing to a new panel tab.",
+        "Added: ZIP compression, ZIP/7z extraction, and CMD or PowerShell folder shortcuts in the file context menu.",
+        "Adjusted: The Diffs control is centered above the Compare divider, F12 is named Change Path, and the red app arrows have a yellow contrast edge.",
+    )),
     ("v0.14.2", "2026/07/31", (
         "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.",
         "Adjusted: The application icon now uses bold red transfer arrows.",
@@ -6795,6 +6984,9 @@ class FilePane(ttk.Frame):
         self._drag_press_xy = None
         self._dragging = False
         self._column_resize_job = None
+        self._inline_editor = None
+        self._inline_item = None
+        self._inline_placeholder = False
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
@@ -6843,6 +7035,8 @@ class FilePane(ttk.Frame):
         self.tree.bind("<Button-3>", self._context_click)
         self.tree.bind("<Shift-F10>", self._context_keyboard)
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
+        self.tree.bind("<Prior>", lambda _event: self.page_selection(-1))
+        self.tree.bind("<Next>", lambda _event: self.page_selection(1))
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text=tr("Quick Filter:")).pack(side="left")
@@ -6957,6 +7151,92 @@ class FilePane(ttk.Frame):
             self.on_context(self, Path(tags[0]), x, y)
         return "break"
 
+    def page_selection(self, direction: int) -> str:
+        """Move a full visible page while keeping focus and selection together."""
+        children = list(self.tree.get_children())
+        if not children:
+            return "break"
+        current = self.tree.focus() or (self.tree.selection()[0] if self.tree.selection() else children[0])
+        try:
+            index = children.index(current)
+        except ValueError:
+            index = 0
+        row_height = max(1, int(ttk.Style(self).lookup(self.tree.cget("style"), "rowheight") or 24))
+        page = max(1, self.tree.winfo_height() // row_height - 1)
+        target = children[max(0, min(len(children) - 1, index + direction * page))]
+        self.tree.selection_set(target)
+        self.tree.focus(target)
+        self.tree.see(target)
+        self.tree.focus_set()
+        self.on_activate(self)
+        return "break"
+
+    def begin_inline_name(self, initial_name: str, commit,
+                          path: Path | None = None, placeholder: bool = False) -> bool:
+        self.cancel_inline_name()
+        iid = ""
+        if path is not None:
+            normalized = os.path.normcase(str(path))
+            for candidate in self.tree.get_children():
+                tags = self.tree.item(candidate, "tags")
+                if tags and os.path.normcase(tags[0]) == normalized:
+                    iid = candidate
+                    break
+        if not iid and placeholder:
+            iid = self.tree.insert("", "end", text=f"[{initial_name}]",
+                                   image=self.icons.blank, values=("", "<DIR>", ""),
+                                   tags=("PFC_INLINE_PLACEHOLDER",))
+        if not iid:
+            return False
+        self.tree.see(iid); self.tree.update_idletasks()
+        bounds = self.tree.bbox(iid, "#0")
+        if not bounds:
+            if placeholder: self.tree.delete(iid)
+            return False
+        x, y, width, height = bounds
+        icon_gap = self.icons.size + self.icons.text_gap + 2
+        editor = ttk.Entry(self.tree)
+        editor.insert(0, initial_name)
+        editor.place(x=x + icon_gap, y=y, width=max(80, width - icon_gap), height=height)
+        self._inline_editor, self._inline_item = editor, iid
+        self._inline_placeholder = placeholder
+        editor.bind("<Return>", lambda _event: self._finish_inline_name(True, commit))
+        editor.bind("<Escape>", lambda _event: self._finish_inline_name(False, commit))
+        editor.bind("<FocusOut>", lambda _event: self.after_idle(
+            lambda: self._finish_inline_name(True, commit)))
+        editor.focus_force()
+        if path is not None and path.is_file() and path.suffix:
+            editor.selection_range(0, len(path.stem))
+            editor.icursor(len(path.stem))
+        else:
+            editor.selection_range(0, "end")
+        return True
+
+    def _finish_inline_name(self, accepted: bool, commit) -> str:
+        editor, iid = self._inline_editor, self._inline_item
+        if editor is None:
+            return "break"
+        name = editor.get().strip()
+        placeholder = self._inline_placeholder
+        self._inline_editor = self._inline_item = None
+        self._inline_placeholder = False
+        try: editor.destroy()
+        except tk.TclError: pass
+        if not accepted:
+            if placeholder and iid and self.tree.exists(iid): self.tree.delete(iid)
+            self.focus_file_list()
+            return "break"
+        result = commit(name)
+        if placeholder and iid and self.tree.exists(iid): self.tree.delete(iid)
+        if isinstance(result, Path):
+            self.refresh(); self.select_path(result)
+        self.focus_file_list()
+        return "break"
+
+    def cancel_inline_name(self) -> None:
+        if self._inline_editor is not None:
+            self._finish_inline_name(False, lambda _name: None)
+
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
         try:
             path = path.expanduser().resolve()
@@ -7054,6 +7334,8 @@ class FilePane(ttk.Frame):
         self.on_change()
 
     def refresh(self) -> None:
+        if self._inline_editor is not None:
+            return
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
@@ -7154,7 +7436,7 @@ class FilePane(ttk.Frame):
         return tuple(sorted(signature))
 
     def refresh_if_changed(self) -> bool:
-        if self.mode != "files":
+        if self.mode != "files" or self._inline_editor is not None:
             return False
         try:
             entries = [p for p in self.path.iterdir()
@@ -7288,6 +7570,33 @@ class FilePane(ttk.Frame):
             self.on_change()
         except OSError as exc:
             messagebox.showerror(tr("Search failed"), str(exc))
+
+    def show_file_listing(self, paths, title: str) -> None:
+        """Show arbitrary search results as an actionable temporary panel tab."""
+        self.mode = "search_results"
+        self.display_title = title
+        self.path_var.set(f"[{title}]")
+        self.tree.delete(*self.tree.get_children())
+        total = 0
+        for item in paths:
+            path = Path(item)
+            try:
+                stat, is_dir = path.stat(), path.is_dir()
+                total += 0 if is_dir else stat.st_size
+                self.tree.insert("", "end", text=f"[{path.name}]" if is_dir else path.name,
+                                 image=self.icons.get(path, is_dir),
+                                 values=("" if is_dir else path.suffix[1:].upper(),
+                                         "<DIR>" if is_dir else format_size(stat.st_size),
+                                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
+                                 tags=(str(path),))
+            except OSError:
+                continue
+        self.status.configure(text=tr("{count} items   {size}",
+                                      count=len(self.tree.get_children()), size=format_size(total)))
+        children = self.tree.get_children()
+        if children:
+            self.tree.selection_set(children[0]); self.tree.focus(children[0]); self.tree.see(children[0])
+        self._schedule_column_autosize(); self.on_change(); self.focus_file_list()
 
     def toggle_hidden(self) -> None:
         self.show_hidden = not self.show_hidden
@@ -7600,7 +7909,7 @@ class Commander(tk.Tk):
                                        ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
                                        ("F8", "", None), ("F9", "Compare", self.compare_selected),
                                        ("F11", "Copy Path", self.copy_paths),
-                                       ("F12", "Change Dir", self.change_dir)):
+                                       ("F12", "Change Path", self.change_dir)):
             text = f"{hotkey} {tr(label)}".rstrip()
             button = ttk.Button(actions, text=text, command=command)
             if command is None:
@@ -7973,7 +8282,7 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
         files.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
         files.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
-        files.add_command(label=tr("Change Dir"), accelerator="F12", command=self.change_dir)
+        files.add_command(label=tr("Change Path"), accelerator="F12", command=self.change_dir)
         files.add_separator()
         files.add_command(label=tr("Exit"), command=self.close_app)
         align_scaled_cascade_arrows(files)
@@ -8071,7 +8380,7 @@ class Commander(tk.Tk):
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Copy Path": "Copy all selected full paths.",
-            "Change Dir": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
+            "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
@@ -8669,6 +8978,22 @@ class Commander(tk.Tk):
         menu.add_command(label=tr("Folder Space Analyzer"),
                          command=lambda path=(clicked if clicked_folder else clicked.parent):
                              self.show_space_analyzer(path))
+        compression = tk.Menu(menu, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        compression.add_command(label=tr("Compress to ZIP"),
+                                state=normal_if(bool(items)), command=self.compress_selected)
+        archive_selected = single and is_browsable_archive(clicked)
+        compression.add_command(label=tr("Extract Here"), state=normal_if(archive_selected),
+                                command=lambda path=clicked: self.extract_archive(path, clicked.parent))
+        compression.add_command(label=tr("Extract to Folder"), state=normal_if(archive_selected),
+                                command=lambda path=clicked:
+                                    self.extract_archive(path, clicked.parent / clicked.stem))
+        menu.add_cascade(label=tr("Compression"), menu=compression)
+        menu.add_command(label=tr("CMD"), state=normal_if(os.name == "nt"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.open_terminal(path, "cmd"))
+        menu.add_command(label=tr("PowerShell"), state=normal_if(os.name == "nt"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.open_terminal(path, "powershell"))
         menu.add_separator()
         menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
@@ -8696,6 +9021,9 @@ class Commander(tk.Tk):
             "Preview": "Open the selected file in PFC Preview.",
             "Compare": "Compare the active and next panel, or two selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
+            "Compression": "Compress selected items or extract a ZIP/7z archive.",
+            "CMD": "Open Command Prompt in this folder.",
+            "PowerShell": "Open PowerShell in this folder.",
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
             "Paste into This Folder": "Paste clipboard items directly into the clicked folder.",
@@ -8711,6 +9039,47 @@ class Commander(tk.Tk):
         descriptions = {tr(label): tr(help_text) for label, help_text in descriptions.items()}
         self._file_context_tooltip = MenuToolTip(menu, descriptions)
         return menu
+
+    def compress_selected(self) -> None:
+        source, _target = self.panes()
+        items = source.selected_paths()
+        if not items:
+            return
+        stem = items[0].stem if len(items) == 1 else tr("Archive")
+        target = source.path / f"{stem}.zip"
+        number = 2
+        while target.exists():
+            target = source.path / f"{stem} ({number}).zip"; number += 1
+        try:
+            create_zip_archive(items, target)
+            source.refresh(); source.select_path(target); source.focus_file_list()
+            self._commit_archive_changes([target])
+        except OSError as exc:
+            messagebox.showerror(tr("Compression failed"), str(exc), parent=self)
+
+    def extract_archive(self, archive_path: Path, destination: Path) -> None:
+        try:
+            extract_archive_to(archive_path, destination)
+            self.refresh()
+            source = self.panes()[0]
+            if destination.parent == source.path:
+                source.select_path(destination)
+            self._commit_archive_changes([destination])
+        except OSError as exc:
+            messagebox.showerror(tr("Extraction failed"), str(exc), parent=self)
+
+    def open_terminal(self, folder: Path, kind: str) -> None:
+        folder = Path(folder)
+        try:
+            flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+            if kind == "powershell":
+                command = ["powershell.exe", "-NoExit", "-NoProfile", "-Command",
+                           "Set-Location -LiteralPath $args[0]", str(folder)]
+            else:
+                command = ["cmd.exe", "/K", f'cd /d "{folder}"']
+            subprocess.Popen(command, cwd=folder, creationflags=flags)
+        except OSError as exc:
+            messagebox.showerror(tr("Open terminal failed"), str(exc), parent=self)
 
     def _show_file_context_menu(self, pane: FilePane, clicked: Path,
                                 x_root: int, y_root: int) -> None:
@@ -9176,12 +9545,25 @@ class Commander(tk.Tk):
         if self.search_window is None or not self.search_window.winfo_exists():
             self.search_window = SearchWindow(self, self.config_data, self.save_config, source.path,
                                               lambda path, pane=source: self.go_to_search_result(path, pane),
-                                              self.preview_paths)
+                                              self.preview_paths, self.compare_paths,
+                                              lambda paths, pane=source:
+                                                  self.send_search_listing_to_tab(paths, pane))
             self.search_window.apply_scale(self._font_scales.get(self.font_size_var.get(), 1.0))
         else:
             self.search_window.path_var.set(str(source.path))
             self.search_window.on_go = lambda path, pane=source: self.go_to_search_result(path, pane)
+            self.search_window.on_compare = self.compare_paths
+            self.search_window.on_send_listing = lambda paths, pane=source: \
+                self.send_search_listing_to_tab(paths, pane)
             self.search_window.activate()
+
+    def send_search_listing_to_tab(self, paths, source: FilePane) -> None:
+        tabs = self._tabs_for(source)
+        pane = tabs.add_tab(source.path)
+        pane.show_file_listing(paths, tr("Search Results"))
+        self.set_active(pane)
+        self.active = pane
+        self.save_config()
 
     def go_to_search_result(self, path: Path, source: FilePane) -> None:
         self.set_active(source)
@@ -9334,6 +9716,10 @@ class Commander(tk.Tk):
                 messagebox.showinfo(tr("Compare"), tr("Select one item in the active and next panel, or two items in the active panel."), parent=self)
                 return
             left, right = active_items
+        self.compare_paths(left, right)
+
+    def compare_paths(self, left: Path, right: Path) -> None:
+        left, right = Path(left), Path(right)
         if is_compare_container(left) != is_compare_container(right):
             messagebox.showinfo(tr("Compare"), tr("Select two files or two folders."), parent=self)
             return
@@ -9645,18 +10031,22 @@ class Commander(tk.Tk):
 
     def mkdir(self) -> None:
         source, _ = self.panes()
-        name = simpledialog.askstring(tr("New Folder"), tr("Folder name:"), parent=self)
-        if name:
+        def create(name: str):
+            if not name:
+                return None
             try:
                 created = source.path / name
                 created.mkdir()
                 if (source.quick_filter_var.get().strip() and
                         source.quick_filter_var.get().strip().casefold() not in name.casefold()):
                     source.quick_filter_var.set("")
-                source.refresh(); source.select_path(created); source.focus_file_list()
                 self._commit_archive_changes([created])
+                source.on_change()
+                return created
             except OSError as exc:
-                messagebox.showerror(tr("Create failed"), str(exc))
+                messagebox.showerror(tr("Create failed"), str(exc), parent=self)
+                return None
+        source.begin_inline_name(tr("New Folder"), create, placeholder=True)
 
     def rename(self) -> None:
         source, _ = self.panes()
@@ -9665,15 +10055,20 @@ class Commander(tk.Tk):
             self.multi_rename(); return
         if len(items) != 1:
             messagebox.showinfo(tr("Rename"), tr("Select exactly one item.")); return
-        name = simpledialog.askstring(tr("Rename"), tr("New name:"), initialvalue=items[0].name, parent=self)
-        if name and name != items[0].name:
+        original = items[0]
+        def commit(name: str):
+            if not name or name == original.name:
+                return original
             try:
-                renamed = items[0].with_name(name)
-                items[0].rename(renamed)
+                renamed = original.with_name(name)
+                original.rename(renamed)
                 self._commit_archive_changes([renamed])
-                self.refresh()
+                source.on_change()
+                return renamed
             except OSError as exc:
-                messagebox.showerror(tr("Rename failed"), str(exc))
+                messagebox.showerror(tr("Rename failed"), str(exc), parent=self)
+                return None
+        source.begin_inline_name(original.name, commit, path=original)
 
     def multi_rename(self) -> None:
         items = self.panes()[0].selected_paths()

@@ -12,7 +12,7 @@ BUTTON_HELP = {
     "F6 Move": "Move selected items to the opposite panel.", "F7 New folder": "Create a folder here.",
     "F8": "Reserved for a future action.", "F9 Compare": "Compare selected files or folders.",
     "F11 Copy Path": "Copy all selected full paths as text.",
-    "F12 Change Dir": "Focus and select the path bar for direct paste.",
+    "F12 Change Path": "Focus and select the path bar for direct paste.",
     "File <<": "Preview the previous item.", "File >>": "Preview the next item.",
     "Find Prev": "Go to the previous search match.", "Find Next": "Go to the next search match.",
     "F7 Diff <<": "Go to the previous difference.", "F8 Diff >>": "Go to the next difference.",

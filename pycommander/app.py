@@ -14,7 +14,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from datetime import datetime
 from pathlib import Path
-from tkinter import messagebox, simpledialog, ttk
+from tkinter import messagebox, ttk
 
 from . import __version__
 from .fileops import OperationFailure, OperationResult, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
@@ -24,7 +24,7 @@ from .compare import CompareWindow, is_compare_container
 from .preview import PreviewWindow
 from .search import SearchWindow
 from .multirename import MultiRenameWindow
-from .archivefs import ArchiveCancelled, ArchiveSession, is_browsable_archive
+from .archivefs import ArchiveCancelled, ArchiveSession, create_zip_archive, extract_archive_to, is_browsable_archive
 from .spaceanalyzer import SpaceAnalyzerWindow
 from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
 from .tooltip import MenuToolTip, install_button_tooltips
@@ -37,6 +37,13 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.15.0", "2026/08/05", (
+        "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.",
+        "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.",
+        "Added: Search results can compare two selections or send the complete listing to a new panel tab.",
+        "Added: ZIP compression, ZIP/7z extraction, and CMD or PowerShell folder shortcuts in the file context menu.",
+        "Adjusted: The Diffs control is centered above the Compare divider, F12 is named Change Path, and the red app arrows have a yellow contrast edge.",
+    )),
     ("v0.14.2", "2026/07/31", (
         "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.",
         "Adjusted: The application icon now uses bold red transfer arrows.",
@@ -402,6 +409,9 @@ class FilePane(ttk.Frame):
         self._drag_press_xy = None
         self._dragging = False
         self._column_resize_job = None
+        self._inline_editor = None
+        self._inline_item = None
+        self._inline_placeholder = False
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
@@ -450,6 +460,8 @@ class FilePane(ttk.Frame):
         self.tree.bind("<Button-3>", self._context_click)
         self.tree.bind("<Shift-F10>", self._context_keyboard)
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
+        self.tree.bind("<Prior>", lambda _event: self.page_selection(-1))
+        self.tree.bind("<Next>", lambda _event: self.page_selection(1))
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text=tr("Quick Filter:")).pack(side="left")
@@ -564,6 +576,92 @@ class FilePane(ttk.Frame):
             self.on_context(self, Path(tags[0]), x, y)
         return "break"
 
+    def page_selection(self, direction: int) -> str:
+        """Move a full visible page while keeping focus and selection together."""
+        children = list(self.tree.get_children())
+        if not children:
+            return "break"
+        current = self.tree.focus() or (self.tree.selection()[0] if self.tree.selection() else children[0])
+        try:
+            index = children.index(current)
+        except ValueError:
+            index = 0
+        row_height = max(1, int(ttk.Style(self).lookup(self.tree.cget("style"), "rowheight") or 24))
+        page = max(1, self.tree.winfo_height() // row_height - 1)
+        target = children[max(0, min(len(children) - 1, index + direction * page))]
+        self.tree.selection_set(target)
+        self.tree.focus(target)
+        self.tree.see(target)
+        self.tree.focus_set()
+        self.on_activate(self)
+        return "break"
+
+    def begin_inline_name(self, initial_name: str, commit,
+                          path: Path | None = None, placeholder: bool = False) -> bool:
+        self.cancel_inline_name()
+        iid = ""
+        if path is not None:
+            normalized = os.path.normcase(str(path))
+            for candidate in self.tree.get_children():
+                tags = self.tree.item(candidate, "tags")
+                if tags and os.path.normcase(tags[0]) == normalized:
+                    iid = candidate
+                    break
+        if not iid and placeholder:
+            iid = self.tree.insert("", "end", text=f"[{initial_name}]",
+                                   image=self.icons.blank, values=("", "<DIR>", ""),
+                                   tags=("PFC_INLINE_PLACEHOLDER",))
+        if not iid:
+            return False
+        self.tree.see(iid); self.tree.update_idletasks()
+        bounds = self.tree.bbox(iid, "#0")
+        if not bounds:
+            if placeholder: self.tree.delete(iid)
+            return False
+        x, y, width, height = bounds
+        icon_gap = self.icons.size + self.icons.text_gap + 2
+        editor = ttk.Entry(self.tree)
+        editor.insert(0, initial_name)
+        editor.place(x=x + icon_gap, y=y, width=max(80, width - icon_gap), height=height)
+        self._inline_editor, self._inline_item = editor, iid
+        self._inline_placeholder = placeholder
+        editor.bind("<Return>", lambda _event: self._finish_inline_name(True, commit))
+        editor.bind("<Escape>", lambda _event: self._finish_inline_name(False, commit))
+        editor.bind("<FocusOut>", lambda _event: self.after_idle(
+            lambda: self._finish_inline_name(True, commit)))
+        editor.focus_force()
+        if path is not None and path.is_file() and path.suffix:
+            editor.selection_range(0, len(path.stem))
+            editor.icursor(len(path.stem))
+        else:
+            editor.selection_range(0, "end")
+        return True
+
+    def _finish_inline_name(self, accepted: bool, commit) -> str:
+        editor, iid = self._inline_editor, self._inline_item
+        if editor is None:
+            return "break"
+        name = editor.get().strip()
+        placeholder = self._inline_placeholder
+        self._inline_editor = self._inline_item = None
+        self._inline_placeholder = False
+        try: editor.destroy()
+        except tk.TclError: pass
+        if not accepted:
+            if placeholder and iid and self.tree.exists(iid): self.tree.delete(iid)
+            self.focus_file_list()
+            return "break"
+        result = commit(name)
+        if placeholder and iid and self.tree.exists(iid): self.tree.delete(iid)
+        if isinstance(result, Path):
+            self.refresh(); self.select_path(result)
+        self.focus_file_list()
+        return "break"
+
+    def cancel_inline_name(self) -> None:
+        if self._inline_editor is not None:
+            self._finish_inline_name(False, lambda _name: None)
+
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
         try:
             path = path.expanduser().resolve()
@@ -661,6 +759,8 @@ class FilePane(ttk.Frame):
         self.on_change()
 
     def refresh(self) -> None:
+        if self._inline_editor is not None:
+            return
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
@@ -761,7 +861,7 @@ class FilePane(ttk.Frame):
         return tuple(sorted(signature))
 
     def refresh_if_changed(self) -> bool:
-        if self.mode != "files":
+        if self.mode != "files" or self._inline_editor is not None:
             return False
         try:
             entries = [p for p in self.path.iterdir()
@@ -895,6 +995,33 @@ class FilePane(ttk.Frame):
             self.on_change()
         except OSError as exc:
             messagebox.showerror(tr("Search failed"), str(exc))
+
+    def show_file_listing(self, paths, title: str) -> None:
+        """Show arbitrary search results as an actionable temporary panel tab."""
+        self.mode = "search_results"
+        self.display_title = title
+        self.path_var.set(f"[{title}]")
+        self.tree.delete(*self.tree.get_children())
+        total = 0
+        for item in paths:
+            path = Path(item)
+            try:
+                stat, is_dir = path.stat(), path.is_dir()
+                total += 0 if is_dir else stat.st_size
+                self.tree.insert("", "end", text=f"[{path.name}]" if is_dir else path.name,
+                                 image=self.icons.get(path, is_dir),
+                                 values=("" if is_dir else path.suffix[1:].upper(),
+                                         "<DIR>" if is_dir else format_size(stat.st_size),
+                                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
+                                 tags=(str(path),))
+            except OSError:
+                continue
+        self.status.configure(text=tr("{count} items   {size}",
+                                      count=len(self.tree.get_children()), size=format_size(total)))
+        children = self.tree.get_children()
+        if children:
+            self.tree.selection_set(children[0]); self.tree.focus(children[0]); self.tree.see(children[0])
+        self._schedule_column_autosize(); self.on_change(); self.focus_file_list()
 
     def toggle_hidden(self) -> None:
         self.show_hidden = not self.show_hidden
@@ -1207,7 +1334,7 @@ class Commander(tk.Tk):
                                        ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
                                        ("F8", "", None), ("F9", "Compare", self.compare_selected),
                                        ("F11", "Copy Path", self.copy_paths),
-                                       ("F12", "Change Dir", self.change_dir)):
+                                       ("F12", "Change Path", self.change_dir)):
             text = f"{hotkey} {tr(label)}".rstrip()
             button = ttk.Button(actions, text=text, command=command)
             if command is None:
@@ -1580,7 +1707,7 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
         files.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
         files.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
-        files.add_command(label=tr("Change Dir"), accelerator="F12", command=self.change_dir)
+        files.add_command(label=tr("Change Path"), accelerator="F12", command=self.change_dir)
         files.add_separator()
         files.add_command(label=tr("Exit"), command=self.close_app)
         align_scaled_cascade_arrows(files)
@@ -1678,7 +1805,7 @@ class Commander(tk.Tk):
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Copy Path": "Copy all selected full paths.",
-            "Change Dir": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
+            "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
@@ -2276,6 +2403,22 @@ class Commander(tk.Tk):
         menu.add_command(label=tr("Folder Space Analyzer"),
                          command=lambda path=(clicked if clicked_folder else clicked.parent):
                              self.show_space_analyzer(path))
+        compression = tk.Menu(menu, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        compression.add_command(label=tr("Compress to ZIP"),
+                                state=normal_if(bool(items)), command=self.compress_selected)
+        archive_selected = single and is_browsable_archive(clicked)
+        compression.add_command(label=tr("Extract Here"), state=normal_if(archive_selected),
+                                command=lambda path=clicked: self.extract_archive(path, clicked.parent))
+        compression.add_command(label=tr("Extract to Folder"), state=normal_if(archive_selected),
+                                command=lambda path=clicked:
+                                    self.extract_archive(path, clicked.parent / clicked.stem))
+        menu.add_cascade(label=tr("Compression"), menu=compression)
+        menu.add_command(label=tr("CMD"), state=normal_if(os.name == "nt"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.open_terminal(path, "cmd"))
+        menu.add_command(label=tr("PowerShell"), state=normal_if(os.name == "nt"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.open_terminal(path, "powershell"))
         menu.add_separator()
         menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
@@ -2303,6 +2446,9 @@ class Commander(tk.Tk):
             "Preview": "Open the selected file in PFC Preview.",
             "Compare": "Compare the active and next panel, or two selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
+            "Compression": "Compress selected items or extract a ZIP/7z archive.",
+            "CMD": "Open Command Prompt in this folder.",
+            "PowerShell": "Open PowerShell in this folder.",
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
             "Paste into This Folder": "Paste clipboard items directly into the clicked folder.",
@@ -2318,6 +2464,47 @@ class Commander(tk.Tk):
         descriptions = {tr(label): tr(help_text) for label, help_text in descriptions.items()}
         self._file_context_tooltip = MenuToolTip(menu, descriptions)
         return menu
+
+    def compress_selected(self) -> None:
+        source, _target = self.panes()
+        items = source.selected_paths()
+        if not items:
+            return
+        stem = items[0].stem if len(items) == 1 else tr("Archive")
+        target = source.path / f"{stem}.zip"
+        number = 2
+        while target.exists():
+            target = source.path / f"{stem} ({number}).zip"; number += 1
+        try:
+            create_zip_archive(items, target)
+            source.refresh(); source.select_path(target); source.focus_file_list()
+            self._commit_archive_changes([target])
+        except OSError as exc:
+            messagebox.showerror(tr("Compression failed"), str(exc), parent=self)
+
+    def extract_archive(self, archive_path: Path, destination: Path) -> None:
+        try:
+            extract_archive_to(archive_path, destination)
+            self.refresh()
+            source = self.panes()[0]
+            if destination.parent == source.path:
+                source.select_path(destination)
+            self._commit_archive_changes([destination])
+        except OSError as exc:
+            messagebox.showerror(tr("Extraction failed"), str(exc), parent=self)
+
+    def open_terminal(self, folder: Path, kind: str) -> None:
+        folder = Path(folder)
+        try:
+            flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
+            if kind == "powershell":
+                command = ["powershell.exe", "-NoExit", "-NoProfile", "-Command",
+                           "Set-Location -LiteralPath $args[0]", str(folder)]
+            else:
+                command = ["cmd.exe", "/K", f'cd /d "{folder}"']
+            subprocess.Popen(command, cwd=folder, creationflags=flags)
+        except OSError as exc:
+            messagebox.showerror(tr("Open terminal failed"), str(exc), parent=self)
 
     def _show_file_context_menu(self, pane: FilePane, clicked: Path,
                                 x_root: int, y_root: int) -> None:
@@ -2783,12 +2970,25 @@ class Commander(tk.Tk):
         if self.search_window is None or not self.search_window.winfo_exists():
             self.search_window = SearchWindow(self, self.config_data, self.save_config, source.path,
                                               lambda path, pane=source: self.go_to_search_result(path, pane),
-                                              self.preview_paths)
+                                              self.preview_paths, self.compare_paths,
+                                              lambda paths, pane=source:
+                                                  self.send_search_listing_to_tab(paths, pane))
             self.search_window.apply_scale(self._font_scales.get(self.font_size_var.get(), 1.0))
         else:
             self.search_window.path_var.set(str(source.path))
             self.search_window.on_go = lambda path, pane=source: self.go_to_search_result(path, pane)
+            self.search_window.on_compare = self.compare_paths
+            self.search_window.on_send_listing = lambda paths, pane=source: \
+                self.send_search_listing_to_tab(paths, pane)
             self.search_window.activate()
+
+    def send_search_listing_to_tab(self, paths, source: FilePane) -> None:
+        tabs = self._tabs_for(source)
+        pane = tabs.add_tab(source.path)
+        pane.show_file_listing(paths, tr("Search Results"))
+        self.set_active(pane)
+        self.active = pane
+        self.save_config()
 
     def go_to_search_result(self, path: Path, source: FilePane) -> None:
         self.set_active(source)
@@ -2941,6 +3141,10 @@ class Commander(tk.Tk):
                 messagebox.showinfo(tr("Compare"), tr("Select one item in the active and next panel, or two items in the active panel."), parent=self)
                 return
             left, right = active_items
+        self.compare_paths(left, right)
+
+    def compare_paths(self, left: Path, right: Path) -> None:
+        left, right = Path(left), Path(right)
         if is_compare_container(left) != is_compare_container(right):
             messagebox.showinfo(tr("Compare"), tr("Select two files or two folders."), parent=self)
             return
@@ -3252,18 +3456,22 @@ class Commander(tk.Tk):
 
     def mkdir(self) -> None:
         source, _ = self.panes()
-        name = simpledialog.askstring(tr("New Folder"), tr("Folder name:"), parent=self)
-        if name:
+        def create(name: str):
+            if not name:
+                return None
             try:
                 created = source.path / name
                 created.mkdir()
                 if (source.quick_filter_var.get().strip() and
                         source.quick_filter_var.get().strip().casefold() not in name.casefold()):
                     source.quick_filter_var.set("")
-                source.refresh(); source.select_path(created); source.focus_file_list()
                 self._commit_archive_changes([created])
+                source.on_change()
+                return created
             except OSError as exc:
-                messagebox.showerror(tr("Create failed"), str(exc))
+                messagebox.showerror(tr("Create failed"), str(exc), parent=self)
+                return None
+        source.begin_inline_name(tr("New Folder"), create, placeholder=True)
 
     def rename(self) -> None:
         source, _ = self.panes()
@@ -3272,15 +3480,20 @@ class Commander(tk.Tk):
             self.multi_rename(); return
         if len(items) != 1:
             messagebox.showinfo(tr("Rename"), tr("Select exactly one item.")); return
-        name = simpledialog.askstring(tr("Rename"), tr("New name:"), initialvalue=items[0].name, parent=self)
-        if name and name != items[0].name:
+        original = items[0]
+        def commit(name: str):
+            if not name or name == original.name:
+                return original
             try:
-                renamed = items[0].with_name(name)
-                items[0].rename(renamed)
+                renamed = original.with_name(name)
+                original.rename(renamed)
                 self._commit_archive_changes([renamed])
-                self.refresh()
+                source.on_change()
+                return renamed
             except OSError as exc:
-                messagebox.showerror(tr("Rename failed"), str(exc))
+                messagebox.showerror(tr("Rename failed"), str(exc), parent=self)
+                return None
+        source.begin_inline_name(original.name, commit, path=original)
 
     def multi_rename(self) -> None:
         items = self.panes()[0].selected_paths()

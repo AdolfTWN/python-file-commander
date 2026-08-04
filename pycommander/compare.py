@@ -1240,11 +1240,13 @@ class FolderCompare(_FolderCompareLogic):
         self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
         self.content_button.pack(side="left")
 
+        self.body = ttk.Frame(self.summary)
+        self.center_header = ttk.Frame(self.body)
         options = ttk.Frame(self.summary, padding=(3, 1)); options.pack(fill="x")
-        self.diff_button = ttk.Menubutton(options, text=tr("All"))
+        self.diff_button = ttk.Menubutton(self.center_header, text=tr("Diffs"))
         self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
         self.diff_button.configure(menu=self.diff_menu, compound="left")
-        self.diff_button.pack(side="left", padx=(0, 3))
+        self.diff_button.pack(side="top", fill="x")
         self._build_diff_menu()
         ttk.Button(options, text=tr("Expand All"), command=self.expand_all).pack(side="left", padx=(0, 3))
         ttk.Button(options, text=tr("Collapse All"), command=self.collapse_all).pack(side="left", padx=(0, 3))
@@ -1282,18 +1284,19 @@ class FolderCompare(_FolderCompareLogic):
         ttk.Label(status_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(12, 0))
         ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run).pack(side="right")
 
-        self.body = ttk.Frame(self.summary); self.body.pack(fill="both", expand=True, pady=(3, 0))
+        self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
         self.left_path_label = tk.Label(self.body, anchor="w", background="#2d668f",
                                         foreground="white", font="TkHeadingFont", padx=6, pady=3)
         self.right_path_label = tk.Label(self.body, anchor="w", background="#9b5d2e",
                                          foreground="white", font="TkHeadingFont", padx=6, pady=3)
-        self.map_header = tk.Button(self.body, text="⇄", command=self.swap_sides,
+        self.map_header = tk.Button(self.center_header, text="⇄", command=self.swap_sides,
                                     background="#263d4c", foreground="white",
                                     activebackground="#36566b", activeforeground="white",
                                     font="TkHeadingFont", relief="flat", borderwidth=0,
                                     cursor="hand2", pady=3)
         self.map_header._pfc_tooltip = ToolTip(self.map_header, tr("Swap Sides"))
+        self.map_header.pack(side="top", fill="x")
         self._update_path_labels()
         self.left_frame = ttk.Frame(self.body); self.right_frame = ttk.Frame(self.body)
         for frame in (self.left_frame, self.right_frame):
@@ -1413,8 +1416,12 @@ class FolderCompare(_FolderCompareLogic):
     def _update_diff_button(self):
         key = self.view_mode_var.get()
         image = self._diff_icons.get(key)
-        self.diff_button.configure(text=f"{tr('Diffs')}: {tr(self.DIFF_LABELS.get(key, 'Show All'))}",
-                                   image=image or "", compound="left")
+        self.diff_button.configure(text=tr("Diffs"), image=image or "", compound="left")
+        tooltip_text = tr(self.DIFF_LABELS.get(key, "Show All"))
+        if hasattr(self, "_diff_tooltip"):
+            self._diff_tooltip.text = tooltip_text
+        else:
+            self._diff_tooltip = ToolTip(self.diff_button, tooltip_text)
 
     def _select_diff_filter(self, value):
         self.view_mode_var.set(value); self._set_diff_filter()
@@ -1515,7 +1522,7 @@ class FolderCompare(_FolderCompareLogic):
         self.left_frame.grid(row=1, column=left_column, sticky="nsew")
         self.right_path_label.grid(row=0, column=right_column, sticky="ew")
         self.right_frame.grid(row=1, column=right_column, sticky="nsew")
-        self.map_header.grid(row=0, column=center_column, sticky="ew", padx=4)
+        self.center_header.grid(row=0, column=center_column, sticky="ew", padx=4)
         self.difference_map.grid(row=1, column=map_column, sticky="ns", padx=4)
         if position == "middle":
             self.center_divider.grid_forget()

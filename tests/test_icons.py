@@ -36,7 +36,10 @@ class IconTests(unittest.TestCase):
         ]
         visible = [pixel for pixel in pixels if pixel[3]]
         self.assertGreater(len(visible), 32 * 32 // 4)
-        self.assertTrue(all(pixel[0] > pixel[1] * 2 for pixel in visible))
+        red = [pixel for pixel in visible if pixel[0] > 180 and pixel[1] < 90]
+        yellow = [pixel for pixel in visible if pixel[0] > 220 and pixel[1] > 150]
+        self.assertGreater(len(red), 120)
+        self.assertGreater(len(yellow), 40)
 
     def test_bgra_is_encoded_as_png(self):
         image = _png_from_bgra(bytes((0, 0, 255, 255)), 1)

@@ -1,7 +1,7 @@
 import unittest
 
 from pycommander.tabs import (COLOR_SCHEMES, TAB_COLORS, TAB_STYLES, color_scheme,
-                              contrasting_edge_color, lock_indicator_segment,
+                              clamp_popup_position, contrasting_edge_color, lock_indicator_segment,
                               normalize_tab_color)
 
 
@@ -34,6 +34,13 @@ class TabPaletteTests(unittest.TestCase):
         self.assertIsNone(lock_indicator_segment("unlocked", 10, 100, 4, 34, 6, "rounded"))
         self.assertEqual(contrasting_edge_color("#f2c14e"), "#17232c")
         self.assertEqual(contrasting_edge_color("#4c606e"), "#f7fbff")
+
+    def test_popup_clamps_inside_multi_monitor_virtual_desktop(self):
+        bounds = (0, 0, 3840, 1080)
+        self.assertEqual(clamp_popup_position(2100, 100, 300, 400, bounds),
+                         (2100, 100))
+        self.assertEqual(clamp_popup_position(3700, 900, 300, 300, bounds),
+                         (3540, 780))
 
 
 if __name__ == "__main__":

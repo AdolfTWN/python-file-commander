@@ -81,10 +81,12 @@ def content_matches(path: Path, needle: str, case_sensitive: bool) -> bool:
 
 
 class SearchWindow(tk.Toplevel):
-    def __init__(self, master, config, save_config, start_path, on_go, on_preview):
+    def __init__(self, master, config, save_config, start_path, on_go, on_preview,
+                 on_compare=None, on_send_listing=None):
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
         self.on_go, self.on_preview = on_go, on_preview
+        self.on_compare, self.on_send_listing = on_compare, on_send_listing
         self.results, self.worker = [], None
         self.item_data = {}
         self.sort_column, self.sort_reverse = "name", False
@@ -107,6 +109,7 @@ class SearchWindow(tk.Toplevel):
         self.title(tr("PFC Search")); self.geometry(config.get("search", "geometry", fallback="1100x720")); self.minsize(720, 480)
         self.protocol("WM_DELETE_WINDOW", self.close); self.bind("<Escape>", lambda _e: self.escape())
         self.bind("<F3>", lambda _e: self.preview_selected())
+        self.bind("<F9>", lambda _e: self.compare_selected())
 
         form = ttk.Frame(self, padding=7); form.pack(fill="x")
         self.mask_entry = None
@@ -139,6 +142,9 @@ class SearchWindow(tk.Toplevel):
         ttk.Button(actions, text=tr("Clear Filters"), command=self.clear_filters).pack(side="left", padx=(3, 9))
         ttk.Button(actions, text=tr("Go to File"), command=self.go_selected).pack(side="left", padx=(12, 3))
         ttk.Button(actions, text=tr("Preview"), command=self.preview_selected).pack(side="left")
+        ttk.Button(actions, text=tr("Compare"), command=self.compare_selected).pack(side="left", padx=3)
+        ttk.Button(actions, text=tr("Send Listing to New Tab"),
+                   command=self.send_listing).pack(side="left", padx=(0, 3))
         ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
         self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
         form.columnconfigure(1, weight=1)
@@ -376,6 +382,18 @@ class SearchWindow(tk.Toplevel):
             ordered = [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.get_children()
                        if self.tree.item(iid, "tags")]
             self.on_preview(ordered, paths[0])
+    def compare_selected(self):
+        paths = self.selected_paths()
+        if len(paths) < 2:
+            messagebox.showinfo(tr("Compare"), tr("Select two search results first."), parent=self)
+            return
+        if self.on_compare is not None:
+            self.on_compare(paths[0], paths[1])
+    def send_listing(self):
+        paths = [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.get_children()
+                 if self.tree.item(iid, "tags")]
+        if paths and self.on_send_listing is not None:
+            self.on_send_listing(paths)
     def copy_paths(self):
         paths=self.selected_paths()
         if paths: self.clipboard_clear(); self.clipboard_append("\n".join(map(str, paths))); self.update_idletasks()

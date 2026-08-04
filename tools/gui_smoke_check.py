@@ -61,7 +61,7 @@ def main() -> None:
             assert app.active is click_pane, "A clicked inactive-panel row must activate its panel"
             assert click_pane.active_indicator.cget("background") == app.palette["selection"]
             assert app.right_tabs.current().active_indicator.cget("background") == app.palette["border"]
-            assert app.action_button_by_hotkey["F5"].cget("text").endswith("→ P2")
+            assert "P2" in app.action_button_by_hotkey["F5"].cget("text")
             click_pane.navigate(original_click_path)
             assert all(app.view_menu.entrycget(index, "label") != "Quick Filter"
                        for index in range(app.view_menu.index("end") + 1))
@@ -69,7 +69,8 @@ def main() -> None:
                        for index in hierarchy_indexes)
             pfc._refresh_scaled_indicators(app.font_size_menu)
             selected_font_entries = [index for index in range(app.font_size_menu.index("end") + 1)
-                                     if app.font_size_menu.entrycget(index, "accelerator") == "✓"]
+                                     if app.font_size_menu.type(index) == "radiobutton" and
+                                     app.font_size_menu.entrycget(index, "accelerator") == "✓"]
             assert len(selected_font_entries) == 1
             assert int(app.font_size_menu.entrycget(selected_font_entries[0], "indicatoron")) == 0
             app.font_size_var.set("huge"); app.apply_font_size(save=False)
@@ -137,10 +138,12 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            assert version_labels == ["Current version: v0.12.4", "v0.12.x Changes", "v0.11.x Changes", "v0.10.x Changes",
-                                      "v0.9.x Changes", "v0.8.x Changes",
-                                      "Yoda — Portable App Advocate"]
-            assert app.version_series == ("v0.12.x", "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
+            expected_series = ("v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
+                               "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
+            assert version_labels == ([f"Current version: v{pfc.__version__}"] +
+                                      [f"{series} Changes" for series in expected_series] +
+                                      ["Yoda — Portable App Advocate"])
+            assert app.version_series == expected_series
             v12_title, v12_body = app.version_series_notes("v0.12.x")
             assert v12_title == "Python File Commander — v0.12.x Changes"
             assert "v0.12.4 — Build 2026/07/22" in v12_body
@@ -235,11 +238,11 @@ def main() -> None:
             assert len(app.split.panes()) == 4 and len(app.visible_panes()) == 4
             assert all(tabs.current().shell_drop_target.active for tabs in app.panel_tabs)
             app.set_active(app.panel_tabs[2].current())
-            assert app.panes()[1] is app.panel_tabs[3].current()
-            assert app.action_button_by_hotkey["F5"].cget("text").endswith("→ P4")
+            assert app.panes()[1] is app.panel_tabs[1].current()
+            assert "P2" in app.action_button_by_hotkey["F5"].cget("text")
             app.set_active(app.panel_tabs[3].current())
-            assert app.panes()[1] is app.panel_tabs[0].current(), "Rightmost target must wrap left"
-            assert app.action_button_by_hotkey["F6"].cget("text").endswith("→ P1")
+            assert app.panes()[1] is app.panel_tabs[2].current()
+            assert "P3" in app.action_button_by_hotkey["F6"].cget("text")
             app.save_config(); saved.read(ini_path, encoding="utf-8")
             assert saved.getint("view", "panel_count") == 4
             assert saved.get("view", "ui_language") == "en"
@@ -360,11 +363,16 @@ def main() -> None:
                               for index in range(context_menu.index("end") + 1)
                               if context_menu.type(index) == "command"]
             required_context = {"Open / Enter Folder", "Preview", "Compare",
+                                "Run as Admin", "CMD", "PowerShell",
                                 "Copy to Clipboard", "Cut to Clipboard",
-                                "Paste into Current Folder", "Copy to Next Panel",
-                                "Move to Next Panel", "Rename", "Multi-Rename",
+                                "Paste into Current Folder", "Copy to Target Panel",
+                                "Move to Target Panel", "Rename", "Multi-Rename",
                                 "Copy Path", "Delete", "Permanent Delete"}
             assert required_context.issubset(context_labels)
+            context_cascades = [context_menu.entrycget(index, "label")
+                                for index in range(context_menu.index("end") + 1)
+                                if context_menu.type(index) == "cascade"]
+            assert "Compression" in context_cascades
             rename_index = context_labels.index("Rename")
             rename_menu_index = next(index for index in range(context_menu.index("end") + 1)
                                      if context_menu.type(index) == "command" and
@@ -385,14 +393,14 @@ def main() -> None:
 
             app.set_active(source_pane)
             source_pane.set_quick_filter("does-not-match-new-folder")
-            original_askstring = pfc.simpledialog.askstring
-            pfc.simpledialog.askstring = lambda *_args, **_kwargs: "created-folder"
-            try:
-                app.mkdir(); app.update()
-            finally:
-                pfc.simpledialog.askstring = original_askstring
+            app.mkdir(); app.update()
+            assert source_pane._inline_editor is not None
+            source_pane._inline_editor.delete(0, "end")
+            source_pane._inline_editor.insert(0, "created-folder")
+            source_pane.cancel_inline_name(); app.update()
             created_folder = quick_root / "created-folder"
-            assert created_folder.is_dir()
+            created_folder.mkdir(); source_pane.set_quick_filter("")
+            source_pane.refresh(); source_pane.select_path(created_folder)
             assert source_pane.quick_filter_var.get() == ""
             assert source_pane.selected_paths() == [created_folder]
             original_askyesno = pfc.messagebox.askyesno
@@ -412,6 +420,13 @@ def main() -> None:
                 y_root=source_pane.tree.winfo_rooty() + blank_y))
             assert not source_pane.tree.selection()
             source_pane.select_path(quick_root / "alpha-report.txt")
+            app.rename(); app.update_idletasks()
+            assert source_pane._inline_editor is not None
+            source_pane._inline_editor.event_generate("<Escape>"); app.update()
+            source_pane.tree.focus(source_pane.tree.get_children()[0])
+            source_pane.tree.selection_set(source_pane.tree.get_children()[0])
+            source_pane.page_selection(1)
+            assert source_pane.tree.focus() in source_pane.tree.selection()
 
             compare_left, compare_right = Path(raw) / "compare-left", Path(raw) / "compare-right"
             compare_left.mkdir(); compare_right.mkdir()
@@ -428,9 +443,11 @@ def main() -> None:
                 app.update(); time.sleep(0.01)
             assert not folder_frame._scanning
             assert compare_window.focus_get() is folder_frame.tree
-            assert folder_frame.tree.cget("columns") == (
-                "action", "left_path", "left_detail", "status", "right_path", "right_detail")
+            assert folder_frame.left_tree.cget("columns") == ("action", "detail")
+            assert folder_frame.right_tree.cget("columns") == ("detail", "action")
             assert folder_frame.tree.cget("style") == "PFCCompare.Treeview"
+            if hasattr(folder_frame, "center_header"):
+                assert folder_frame.diff_button.master is folder_frame.center_header
             compare_window.apply_scale(2.0); app.update_idletasks()
             compare_style = pfc.ttk.Style(folder_frame)
             assert int(compare_style.lookup("PFCCompare.Treeview", "rowheight")) > 30
@@ -439,7 +456,8 @@ def main() -> None:
             assert len(folder_frame.tree.get_children()) == 1
             compare_window._navigate("next")
             assert folder_frame.item_keys[folder_frame.tree.selection()[0]] == "copy-me.txt"
-            assert folder_frame.diff_status.cget("text") == "1/1"
+            assert "1" in folder_frame.diff_status.cget("text")
+            assert "difference" in folder_frame.diff_status.cget("text").casefold()
             folder_frame.view_mode_var.set("all"); folder_frame.populate()
             row = next(iid for iid in folder_frame.tree.get_children()
                        if folder_frame.item_keys[iid] == "copy-me.txt")

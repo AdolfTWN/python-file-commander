@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import ctypes
 import os
+import queue
 import shutil
 import tempfile
+import threading
 from pathlib import Path
 
 from .clipboard import CF_HDROP, TYMED_HGLOBAL, data_object_has_format, extract_virtual_files_from_data_object, virtual_file_format_id, _get_medium, _release_medium
@@ -19,6 +21,7 @@ VK_SHIFT = 0x10
 MK_SHIFT = 0x0004
 S_OK = 0
 E_NOINTERFACE = -2147467262
+COINIT_APARTMENTTHREADED = 0x2
 
 
 class _GUID(ctypes.Structure):
@@ -58,6 +61,33 @@ def _release_interface(pointer: int) -> None:
     table = ctypes.cast(pointer, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
     release = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)(table[2])
     release(pointer)
+
+
+def _marshal_data_object(data_object: int) -> int:
+    """Marshal IDataObject so Office attachment download can leave the UI thread."""
+    ole32 = ctypes.windll.ole32
+    ole32.CoMarshalInterThreadInterfaceInStream.argtypes = [
+        ctypes.POINTER(_GUID), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+    ole32.CoMarshalInterThreadInterfaceInStream.restype = ctypes.c_long
+    stream = ctypes.c_void_p()
+    status = ole32.CoMarshalInterThreadInterfaceInStream(
+        ctypes.byref(IID_IDATAOBJECT), ctypes.c_void_p(data_object), ctypes.byref(stream))
+    if _failed(status) or not stream.value:
+        raise OSError(f"Cannot prepare Office attachment transfer ({_status_text(status)}).")
+    return stream.value
+
+
+def _unmarshal_data_object(stream: int) -> int:
+    ole32 = ctypes.windll.ole32
+    ole32.CoGetInterfaceAndReleaseStream.argtypes = [
+        ctypes.c_void_p, ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p)]
+    ole32.CoGetInterfaceAndReleaseStream.restype = ctypes.c_long
+    data_object = ctypes.c_void_p()
+    status = ole32.CoGetInterfaceAndReleaseStream(
+        ctypes.c_void_p(stream), ctypes.byref(IID_IDATAOBJECT), ctypes.byref(data_object))
+    if _failed(status) or not data_object.value:
+        raise OSError(f"Cannot open Office attachment transfer ({_status_text(status)}).")
+    return data_object.value
 
 
 class ShellDataObject:
@@ -332,6 +362,9 @@ class ShellFileDropTarget:
         self._ole_target = None
         self._ole_initialized = False
         self._ole_registered = False
+        self._virtual_results = queue.Queue()
+        self._virtual_workers = 0
+        self._virtual_poll_job = None
         if os.name == "nt":
             self.install()
 
@@ -388,17 +421,48 @@ class ShellFileDropTarget:
     def _queue_virtual_drop(self, data_object: int, x_root: int, y_root: int) -> None:
         raw = tempfile.mkdtemp(prefix="pfc-office-drop-")
         try:
-            items, failures = extract_virtual_files_from_data_object(data_object, Path(raw))
+            stream = _marshal_data_object(data_object)
         except Exception:
             shutil.rmtree(raw, ignore_errors=True)
             raise
 
-        def deliver():
+        self._virtual_workers += 1
+        if self._virtual_poll_job is None:
+            self._virtual_poll_job = self.widget.after(40, self._poll_virtual_results)
+
+        def extract():
+            initialized = False; marshalled = None
+            try:
+                ole32 = ctypes.windll.ole32
+                status = ole32.CoInitializeEx(None, COINIT_APARTMENTTHREADED)
+                initialized = not _failed(status)
+                marshalled = _unmarshal_data_object(stream)
+                items, failures = extract_virtual_files_from_data_object(
+                    marshalled, Path(raw))
+                self._virtual_results.put((raw, items, failures, x_root, y_root))
+            except Exception as exc:
+                self._virtual_results.put((raw, [], [("Office attachment", str(exc))],
+                                           x_root, y_root))
+            finally:
+                if marshalled: _release_interface(marshalled)
+                if initialized: ctypes.windll.ole32.CoUninitialize()
+        threading.Thread(target=extract, daemon=True,
+                         name="PFC-Office-Drop").start()
+
+    def _poll_virtual_results(self) -> None:
+        self._virtual_poll_job = None
+        while True:
+            try:
+                raw, items, failures, x_root, y_root = self._virtual_results.get_nowait()
+            except queue.Empty:
+                break
+            self._virtual_workers = max(0, self._virtual_workers - 1)
             try:
                 self.virtual_callback(items, failures, x_root, y_root)
             finally:
                 shutil.rmtree(raw, ignore_errors=True)
-        self.widget.after_idle(deliver)
+        if self._virtual_workers:
+            self._virtual_poll_job = self.widget.after(40, self._poll_virtual_results)
 
     def _dispatch(self, hwnd, message, wparam, lparam):
         if message == WM_DROPFILES:
@@ -447,6 +511,10 @@ class ShellFileDropTarget:
         if self._ole_registered:
             ctypes.windll.ole32.RevokeDragDrop(ctypes.c_void_p(self.hwnd))
             self._ole_registered = False
+        if self._virtual_poll_job is not None:
+            try: self.widget.after_cancel(self._virtual_poll_job)
+            except Exception: pass
+            self._virtual_poll_job = None
         self._ole_target = None
         if self._ole_initialized:
             ctypes.windll.ole32.OleUninitialize()
