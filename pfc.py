@@ -64,6 +64,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.": "調整：資料夾樹與檔案樹現在以目前路徑作為單一根節點，並提供連接線、縮排及可展開的巢狀節點。",
+        "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.": "調整：應用程式徽章改為紅黑交錯箭頭標誌，並加入亮色外框以提高深色工作列對比。",
         "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "新增：每個面板可切換清單、資料夾樹及檔案樹檢視，並採用延遲展開資料夾。",
         "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.": "新增：可在選取項目旁建立原生捷徑，並以移動操作送至剪貼簿。",
         "Adjusted: Search, compression, and extraction show progress while archive work runs without blocking the main window.": "調整：搜尋、壓縮與解壓縮會顯示進度，封存作業執行時不阻塞主視窗。",
@@ -236,6 +238,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.": "调整：文件夹树和文件树现在以当前路径作为单一根节点，并提供连接线、缩进及可展开的嵌套节点。",
+        "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.": "调整：应用程序徽标改为红黑交错箭头标志，并加入亮色轮廓以提高深色任务栏对比度。",
         "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "新增：每个面板可切换列表、文件夹树及文件树视图，并采用延迟展开文件夹。",
         "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.": "新增：可在所选项目旁创建原生快捷方式，并以移动操作发送到剪贴板。",
         "Adjusted: Search, compression, and extraction show progress while archive work runs without blocking the main window.": "调整：搜索、压缩与解压缩会显示进度，存档操作运行时不会阻塞主窗口。",
@@ -381,6 +385,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.": "조정: 폴더 트리와 파일 트리가 현재 경로를 하나의 루트로 사용하며 연결선, 들여쓰기 및 확장 가능한 중첩 노드를 제공합니다.",
+        "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.": "조정: 앱 배지를 빨강과 검정이 맞물린 화살표 표식으로 바꾸고 어두운 작업 표시줄 대비를 위한 밝은 외곽선을 추가했습니다.",
         "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "추가: 각 패널에서 목록, 폴더 트리, 파일 트리 보기를 전환하고 폴더를 지연 확장할 수 있습니다.",
         "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.": "추가: 선택한 항목 옆에 기본 바로 가기를 만들고 이동 작업으로 클립보드에 보낼 수 있습니다.",
         "Adjusted: Search, compression, and extraction show progress while archive work runs without blocking the main window.": "조정: 검색, 압축 및 압축 풀기 진행률을 표시하고 보관 작업이 기본 창을 차단하지 않도록 했습니다.",
@@ -1182,40 +1188,67 @@ def _paint_polygon(pixels: bytearray, canvas_size: int, points, color) -> None:
 
 
 def pfc_icon_png(size: int = 32) -> bytes:
-    """Render a high-contrast transfer badge that stays visible on dark taskbars."""
+    """Render a red/black interlocking-arrow mark with a light taskbar outline."""
     if size < 8:
         raise ValueError("PFC icon size must be at least 8 pixels")
     supersample = 4
     canvas_size = size * supersample
     factor = canvas_size / 64
-    pixels = bytearray(canvas_size * canvas_size * 4)
-    outer_badge = ((8, 1), (56, 1), (63, 8), (63, 56),
-                   (56, 63), (8, 63), (1, 56), (1, 8))
-    inner_badge = ((10, 5), (54, 5), (59, 10), (59, 54),
-                   (54, 59), (10, 59), (5, 54), (5, 10))
-    _paint_polygon(pixels, canvas_size,
-                   tuple((x * factor, y * factor) for x, y in outer_badge),
-                   (255, 210, 35, 255))
-    _paint_polygon(pixels, canvas_size,
-                   tuple((x * factor, y * factor) for x, y in inner_badge),
-                   (14, 73, 132, 255))
-    arrow = ((3.2, 10.8), (15.8, 23.4), (11.8, 27.4),
-             (29.7, 29.7), (27.4, 11.8), (23.4, 15.8), (10.8, 3.2))
-    inner_arrow = ((5.4, 10.6), (17.4, 22.6), (14.3, 25.7),
-                   (28.6, 28.6), (25.7, 14.3), (22.6, 17.4), (10.6, 5.4))
-    outline, fill = (255, 255, 255, 255), (238, 42, 55, 255)
+    shape = bytearray(canvas_size * canvas_size * 4)
+    red, black = (238, 28, 45, 255), (25, 24, 27, 255)
+    left_half = ((19, 3), (32, 16), (32, 30), (19, 18))
+    right_half = ((45, 3), (32, 16), (32, 30), (45, 18))
 
     def rotate(points):
         return tuple((64 - y, x) for x, y in points)
 
-    current, current_inner = arrow, inner_arrow
-    for _index in range(4):
-        scaled = tuple((x * factor, y * factor) for x, y in current)
-        _paint_polygon(pixels, canvas_size, scaled, outline)
-        inset = tuple((x * factor, y * factor) for x, y in current_inner)
-        _paint_polygon(pixels, canvas_size, inset, fill)
-        current = rotate(current)
-        current_inner = rotate(current_inner)
+    left, right = left_half, right_half
+    for index in range(4):
+        left_color, right_color = ((black, red) if index % 2 == 0 else
+                                   (red, black))
+        _paint_polygon(shape, canvas_size,
+                       tuple((x * factor, y * factor) for x, y in left),
+                       left_color)
+        _paint_polygon(shape, canvas_size,
+                       tuple((x * factor, y * factor) for x, y in right),
+                       right_color)
+        left, right = rotate(left), rotate(right)
+
+    # The open center keeps the four inward arrows visually separate.
+    center = ((32, 25), (39, 32), (32, 39), (25, 32))
+    _paint_polygon(shape, canvas_size,
+                   tuple((x * factor, y * factor) for x, y in center),
+                   (0, 0, 0, 0))
+
+    # A narrow white silhouette keeps the black vanes visible on dark Aero/taskbars.
+    pixels = bytearray(canvas_size * canvas_size * 4)
+    radius = max(2, round(1.35 * factor))
+    for row in range(canvas_size):
+        for column in range(canvas_size):
+            index = (row * canvas_size + column) * 4
+            if shape[index + 3]:
+                continue
+            found = False
+            for offset_y in range(-radius, radius + 1):
+                check_y = row + offset_y
+                if not 0 <= check_y < canvas_size:
+                    continue
+                for offset_x in range(-radius, radius + 1):
+                    if offset_x * offset_x + offset_y * offset_y > radius * radius:
+                        continue
+                    check_x = column + offset_x
+                    if not 0 <= check_x < canvas_size:
+                        continue
+                    check = (check_y * canvas_size + check_x) * 4
+                    if shape[check + 3]:
+                        found = True; break
+                if found:
+                    break
+            if found:
+                pixels[index:index + 4] = bytes((255, 255, 255, 255))
+    for index in range(0, len(shape), 4):
+        if shape[index + 3]:
+            pixels[index:index + 4] = shape[index:index + 4]
 
     rgba = bytearray()
     for row in range(size):
@@ -6646,7 +6679,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.15.1"
+__version__ = "0.15.2"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -6654,6 +6687,10 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/08/06"
 VERSION_HISTORY = (
+    ("v0.15.2", "2026/08/06", (
+        "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.",
+        "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.",
+    )),
     ("v0.15.1", "2026/08/06", (
         "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.",
         "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.",
@@ -7173,6 +7210,10 @@ class FilePane(ttk.Frame):
                 "<DIR>" if is_dir else format_size(stat.st_size),
                 datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
 
+    def _tree_label(self, path: Path, is_dir: bool, is_last: bool = False) -> str:
+        visible = path.name if is_dir or self.show_extensions else path.stem
+        return ("└─ " if is_last else "├─ ") + visible
+
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
             entries = [path for path in folder.iterdir()
@@ -7195,12 +7236,12 @@ class FilePane(ttk.Frame):
                 return (True, path.name.casefold())
         entries.sort(key=sort_key, reverse=self.reverse)
         added = 0
-        for path in entries:
+        for index, path in enumerate(entries):
             try:
                 stat, is_dir = path.stat(), path.is_dir()
-                visible = path.name if is_dir or self.show_extensions else path.stem
                 iid = self.tree.insert(parent_iid, "end",
-                                       text=f"[{visible}]" if is_dir else visible,
+                                       text=self._tree_label(path, is_dir,
+                                                            index == len(entries) - 1),
                                        image=self.icons.get(path, is_dir),
                                        values=self._tree_values(path, is_dir, stat),
                                        tags=(str(path),))
@@ -7224,6 +7265,29 @@ class FilePane(ttk.Frame):
         if all(not self.tree.item(child, "tags") for child in children):
             self.tree.delete(*children)
             self._populate_tree_children(iid, Path(tags[0]))
+            self._schedule_column_autosize()
+
+    def _expanded_tree_paths(self) -> set[str]:
+        expanded = set()
+        def collect(parent=""):
+            for iid in self.tree.get_children(parent):
+                tags = self.tree.item(iid, "tags")
+                if tags and self.tree.item(iid, "open"):
+                    expanded.add(tags[0]); collect(iid)
+        collect()
+        return expanded
+
+    def _restore_tree_expansion(self, parent_iid: str, expanded: set[str]) -> None:
+        for iid in self.tree.get_children(parent_iid):
+            tags = self.tree.item(iid, "tags")
+            if not tags or tags[0] not in expanded:
+                continue
+            children = self.tree.get_children(iid)
+            if children and all(not self.tree.item(child, "tags") for child in children):
+                self.tree.delete(*children)
+                self._populate_tree_children(iid, Path(tags[0]))
+            self.tree.item(iid, open=True)
+            self._restore_tree_expansion(iid, expanded)
 
     def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
         self.on_drag("external_drop", self, {
@@ -7491,7 +7555,12 @@ class FilePane(ttk.Frame):
     def refresh(self) -> None:
         if self._inline_editor is not None:
             return
+        if self.mode == "files" and self.view_mode != "list":
+            self.tree.configure(show="tree", displaycolumns=())
+        else:
+            self.tree.configure(show="tree headings", displaycolumns=self.columns)
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
+        expanded = self._expanded_tree_paths() if self.view_mode != "list" else set()
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
         try:
@@ -7500,13 +7569,27 @@ class FilePane(ttk.Frame):
                                    if (self.show_hidden or not p.name.startswith(".")) and
                                    (self.show_system or not is_system(p))]
                 self._signature = self.signature_for(visible_entries)
-                count = self._populate_tree_children("", self.path)
+                root_stat = self.path.stat()
+                root_label = self.path.name or str(self.path)
+                root_iid = self.tree.insert("", "end", text=root_label,
+                                            image=self.icons.get(self.path, True),
+                                            values=self._tree_values(self.path, True, root_stat),
+                                            tags=(str(self.path),), open=True)
+                count = self._populate_tree_children(root_iid, self.path)
+                self._restore_tree_expansion(root_iid, expanded)
                 mode_label = tr("Folder Tree") if self.view_mode == "folder" else tr("File Tree")
                 self.status.configure(text=tr("{mode} — {count} items", mode=mode_label,
                                               count=count))
-                children = self.tree.get_children()
-                if children:
-                    self.tree.selection_set(children[0]); self.tree.focus(children[0])
+                selected_iids = []
+                def restore_selection(parent=""):
+                    for iid in self.tree.get_children(parent):
+                        tags = self.tree.item(iid, "tags")
+                        if tags and tags[0] in selected:
+                            selected_iids.append(iid)
+                        restore_selection(iid)
+                restore_selection()
+                target_iids = selected_iids or [root_iid]
+                self.tree.selection_set(target_iids); self.tree.focus(target_iids[0])
                 self._schedule_column_autosize()
                 return
             entries = [p for p in self.path.iterdir()

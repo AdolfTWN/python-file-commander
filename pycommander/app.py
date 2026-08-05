@@ -37,6 +37,10 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.15.2", "2026/08/06", (
+        "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.",
+        "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.",
+    )),
     ("v0.15.1", "2026/08/06", (
         "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.",
         "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.",
@@ -556,6 +560,10 @@ class FilePane(ttk.Frame):
                 "<DIR>" if is_dir else format_size(stat.st_size),
                 datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
 
+    def _tree_label(self, path: Path, is_dir: bool, is_last: bool = False) -> str:
+        visible = path.name if is_dir or self.show_extensions else path.stem
+        return ("└─ " if is_last else "├─ ") + visible
+
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
             entries = [path for path in folder.iterdir()
@@ -578,12 +586,12 @@ class FilePane(ttk.Frame):
                 return (True, path.name.casefold())
         entries.sort(key=sort_key, reverse=self.reverse)
         added = 0
-        for path in entries:
+        for index, path in enumerate(entries):
             try:
                 stat, is_dir = path.stat(), path.is_dir()
-                visible = path.name if is_dir or self.show_extensions else path.stem
                 iid = self.tree.insert(parent_iid, "end",
-                                       text=f"[{visible}]" if is_dir else visible,
+                                       text=self._tree_label(path, is_dir,
+                                                            index == len(entries) - 1),
                                        image=self.icons.get(path, is_dir),
                                        values=self._tree_values(path, is_dir, stat),
                                        tags=(str(path),))
@@ -607,6 +615,29 @@ class FilePane(ttk.Frame):
         if all(not self.tree.item(child, "tags") for child in children):
             self.tree.delete(*children)
             self._populate_tree_children(iid, Path(tags[0]))
+            self._schedule_column_autosize()
+
+    def _expanded_tree_paths(self) -> set[str]:
+        expanded = set()
+        def collect(parent=""):
+            for iid in self.tree.get_children(parent):
+                tags = self.tree.item(iid, "tags")
+                if tags and self.tree.item(iid, "open"):
+                    expanded.add(tags[0]); collect(iid)
+        collect()
+        return expanded
+
+    def _restore_tree_expansion(self, parent_iid: str, expanded: set[str]) -> None:
+        for iid in self.tree.get_children(parent_iid):
+            tags = self.tree.item(iid, "tags")
+            if not tags or tags[0] not in expanded:
+                continue
+            children = self.tree.get_children(iid)
+            if children and all(not self.tree.item(child, "tags") for child in children):
+                self.tree.delete(*children)
+                self._populate_tree_children(iid, Path(tags[0]))
+            self.tree.item(iid, open=True)
+            self._restore_tree_expansion(iid, expanded)
 
     def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
         self.on_drag("external_drop", self, {
@@ -874,7 +905,12 @@ class FilePane(ttk.Frame):
     def refresh(self) -> None:
         if self._inline_editor is not None:
             return
+        if self.mode == "files" and self.view_mode != "list":
+            self.tree.configure(show="tree", displaycolumns=())
+        else:
+            self.tree.configure(show="tree headings", displaycolumns=self.columns)
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
+        expanded = self._expanded_tree_paths() if self.view_mode != "list" else set()
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
         try:
@@ -883,13 +919,27 @@ class FilePane(ttk.Frame):
                                    if (self.show_hidden or not p.name.startswith(".")) and
                                    (self.show_system or not is_system(p))]
                 self._signature = self.signature_for(visible_entries)
-                count = self._populate_tree_children("", self.path)
+                root_stat = self.path.stat()
+                root_label = self.path.name or str(self.path)
+                root_iid = self.tree.insert("", "end", text=root_label,
+                                            image=self.icons.get(self.path, True),
+                                            values=self._tree_values(self.path, True, root_stat),
+                                            tags=(str(self.path),), open=True)
+                count = self._populate_tree_children(root_iid, self.path)
+                self._restore_tree_expansion(root_iid, expanded)
                 mode_label = tr("Folder Tree") if self.view_mode == "folder" else tr("File Tree")
                 self.status.configure(text=tr("{mode} — {count} items", mode=mode_label,
                                               count=count))
-                children = self.tree.get_children()
-                if children:
-                    self.tree.selection_set(children[0]); self.tree.focus(children[0])
+                selected_iids = []
+                def restore_selection(parent=""):
+                    for iid in self.tree.get_children(parent):
+                        tags = self.tree.item(iid, "tags")
+                        if tags and tags[0] in selected:
+                            selected_iids.append(iid)
+                        restore_selection(iid)
+                restore_selection()
+                target_iids = selected_iids or [root_iid]
+                self.tree.selection_set(target_iids); self.tree.focus(target_iids[0])
                 self._schedule_column_autosize()
                 return
             entries = [p for p in self.path.iterdir()

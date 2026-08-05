@@ -74,40 +74,67 @@ def _paint_polygon(pixels: bytearray, canvas_size: int, points, color) -> None:
 
 
 def pfc_icon_png(size: int = 32) -> bytes:
-    """Render a high-contrast transfer badge that stays visible on dark taskbars."""
+    """Render a red/black interlocking-arrow mark with a light taskbar outline."""
     if size < 8:
         raise ValueError("PFC icon size must be at least 8 pixels")
     supersample = 4
     canvas_size = size * supersample
     factor = canvas_size / 64
-    pixels = bytearray(canvas_size * canvas_size * 4)
-    outer_badge = ((8, 1), (56, 1), (63, 8), (63, 56),
-                   (56, 63), (8, 63), (1, 56), (1, 8))
-    inner_badge = ((10, 5), (54, 5), (59, 10), (59, 54),
-                   (54, 59), (10, 59), (5, 54), (5, 10))
-    _paint_polygon(pixels, canvas_size,
-                   tuple((x * factor, y * factor) for x, y in outer_badge),
-                   (255, 210, 35, 255))
-    _paint_polygon(pixels, canvas_size,
-                   tuple((x * factor, y * factor) for x, y in inner_badge),
-                   (14, 73, 132, 255))
-    arrow = ((3.2, 10.8), (15.8, 23.4), (11.8, 27.4),
-             (29.7, 29.7), (27.4, 11.8), (23.4, 15.8), (10.8, 3.2))
-    inner_arrow = ((5.4, 10.6), (17.4, 22.6), (14.3, 25.7),
-                   (28.6, 28.6), (25.7, 14.3), (22.6, 17.4), (10.6, 5.4))
-    outline, fill = (255, 255, 255, 255), (238, 42, 55, 255)
+    shape = bytearray(canvas_size * canvas_size * 4)
+    red, black = (238, 28, 45, 255), (25, 24, 27, 255)
+    left_half = ((19, 3), (32, 16), (32, 30), (19, 18))
+    right_half = ((45, 3), (32, 16), (32, 30), (45, 18))
 
     def rotate(points):
         return tuple((64 - y, x) for x, y in points)
 
-    current, current_inner = arrow, inner_arrow
-    for _index in range(4):
-        scaled = tuple((x * factor, y * factor) for x, y in current)
-        _paint_polygon(pixels, canvas_size, scaled, outline)
-        inset = tuple((x * factor, y * factor) for x, y in current_inner)
-        _paint_polygon(pixels, canvas_size, inset, fill)
-        current = rotate(current)
-        current_inner = rotate(current_inner)
+    left, right = left_half, right_half
+    for index in range(4):
+        left_color, right_color = ((black, red) if index % 2 == 0 else
+                                   (red, black))
+        _paint_polygon(shape, canvas_size,
+                       tuple((x * factor, y * factor) for x, y in left),
+                       left_color)
+        _paint_polygon(shape, canvas_size,
+                       tuple((x * factor, y * factor) for x, y in right),
+                       right_color)
+        left, right = rotate(left), rotate(right)
+
+    # The open center keeps the four inward arrows visually separate.
+    center = ((32, 25), (39, 32), (32, 39), (25, 32))
+    _paint_polygon(shape, canvas_size,
+                   tuple((x * factor, y * factor) for x, y in center),
+                   (0, 0, 0, 0))
+
+    # A narrow white silhouette keeps the black vanes visible on dark Aero/taskbars.
+    pixels = bytearray(canvas_size * canvas_size * 4)
+    radius = max(2, round(1.35 * factor))
+    for row in range(canvas_size):
+        for column in range(canvas_size):
+            index = (row * canvas_size + column) * 4
+            if shape[index + 3]:
+                continue
+            found = False
+            for offset_y in range(-radius, radius + 1):
+                check_y = row + offset_y
+                if not 0 <= check_y < canvas_size:
+                    continue
+                for offset_x in range(-radius, radius + 1):
+                    if offset_x * offset_x + offset_y * offset_y > radius * radius:
+                        continue
+                    check_x = column + offset_x
+                    if not 0 <= check_x < canvas_size:
+                        continue
+                    check = (check_y * canvas_size + check_x) * 4
+                    if shape[check + 3]:
+                        found = True; break
+                if found:
+                    break
+            if found:
+                pixels[index:index + 4] = bytes((255, 255, 255, 255))
+    for index in range(0, len(shape), 4):
+        if shape[index + 3]:
+            pixels[index:index + 4] = shape[index:index + 4]
 
     rgba = bytearray()
     for row in range(size):

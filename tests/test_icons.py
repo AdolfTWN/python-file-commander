@@ -17,7 +17,7 @@ class IconTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             pfc_icon_png(7)
 
-    def test_pfc_logo_uses_a_high_contrast_badge_and_red_arrows(self):
+    def test_pfc_logo_uses_interlocking_red_black_arrows_with_light_outline(self):
         png = pfc_icon_png(32)
         offset = 8
         compressed = bytearray()
@@ -35,13 +35,13 @@ class IconTests(unittest.TestCase):
             for row in range(32) for column in range(32)
         ]
         visible = [pixel for pixel in pixels if pixel[3]]
-        self.assertGreater(len(visible), 32 * 32 // 4)
+        self.assertGreater(len(visible), 32 * 32 // 5)
         red = [pixel for pixel in visible if pixel[0] > 180 and pixel[1] < 90]
-        yellow = [pixel for pixel in visible if pixel[0] > 220 and pixel[1] > 150]
-        blue = [pixel for pixel in visible if pixel[2] > 100 and pixel[0] < 80]
-        self.assertGreater(len(red), 120)
-        self.assertGreater(len(yellow), 40)
-        self.assertGreater(len(blue), 180)
+        black = [pixel for pixel in visible if max(pixel[:3]) < 65]
+        white = [pixel for pixel in visible if min(pixel[:3]) > 220]
+        self.assertGreater(len(red), 100)
+        self.assertGreater(len(black), 100)
+        self.assertGreater(len(white), 30)
 
     def test_bgra_is_encoded_as_png(self):
         image = _png_from_bgra(bytes((0, 0, 255, 255)), 1)

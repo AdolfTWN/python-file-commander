@@ -340,15 +340,26 @@ def main() -> None:
             assert source_pane.view_mode == "list" and source_pane.view_mode_button.cget("text") == "List"
             source_pane.cycle_view_mode(); app.update()
             assert source_pane.view_mode == "folder" and source_pane.view_mode_button.cget("text") == "Folder"
+            assert "headings" not in str(source_pane.tree.cget("show"))
+            assert not source_pane.tree.cget("displaycolumns")
             assert len(source_pane.tree.get_children()) == 1
-            folder_row = source_pane.tree.get_children()[0]
+            tree_root_row = source_pane.tree.get_children()[0]
+            assert source_pane.tree.item(tree_root_row, "text") == tree_root.name
+            assert source_pane.tree.item(tree_root_row, "open")
+            assert source_pane.tree.item(tree_root_row, "tags")[0] == str(tree_root)
+            folder_rows = source_pane.tree.get_children(tree_root_row)
+            assert len(folder_rows) == 1
+            folder_row = folder_rows[0]
+            assert source_pane.tree.item(folder_row, "text").startswith("└─ ")
             source_pane.tree.focus(folder_row); source_pane.tree.item(folder_row, open=True)
             source_pane._tree_open(); assert source_pane.tree.get_children(folder_row)
             source_pane.cycle_view_mode(); app.update()
             assert source_pane.view_mode == "file" and source_pane.view_mode_button.cget("text") == "File"
-            assert len(source_pane.tree.get_children()) == 2
+            tree_root_row = source_pane.tree.get_children()[0]
+            assert len(source_pane.tree.get_children(tree_root_row)) == 2
             source_pane.cycle_view_mode(); source_pane.navigate(quick_root); app.update()
             assert source_pane.view_mode == "list"
+            assert "headings" in str(source_pane.tree.cget("show"))
             app.set_active(source_pane); app.search(); app.update()
             search_window = app.search_window
             assert search_window is not None and search_window.progress.winfo_manager() == "grid"
