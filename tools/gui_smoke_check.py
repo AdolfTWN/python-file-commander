@@ -333,6 +333,42 @@ def main() -> None:
             source_pane.clear_quick_filter(); app.update()
             assert len(source_pane.tree.get_children()) == 2
             assert source_pane.quick_filter_bar.winfo_manager() == "pack"
+            tree_root = Path(raw) / "tree-modes"; tree_root.mkdir()
+            branch = tree_root / "branch"; branch.mkdir(); (branch / "leaf").mkdir()
+            (tree_root / "root-file.txt").write_text("tree", encoding="utf-8")
+            source_pane.navigate(tree_root); app.update()
+            assert source_pane.view_mode == "list" and source_pane.view_mode_button.cget("text") == "List"
+            source_pane.cycle_view_mode(); app.update()
+            assert source_pane.view_mode == "folder" and source_pane.view_mode_button.cget("text") == "Folder"
+            assert len(source_pane.tree.get_children()) == 1
+            folder_row = source_pane.tree.get_children()[0]
+            source_pane.tree.focus(folder_row); source_pane.tree.item(folder_row, open=True)
+            source_pane._tree_open(); assert source_pane.tree.get_children(folder_row)
+            source_pane.cycle_view_mode(); app.update()
+            assert source_pane.view_mode == "file" and source_pane.view_mode_button.cget("text") == "File"
+            assert len(source_pane.tree.get_children()) == 2
+            source_pane.cycle_view_mode(); source_pane.navigate(quick_root); app.update()
+            assert source_pane.view_mode == "list"
+            app.set_active(source_pane); app.search(); app.update()
+            search_window = app.search_window
+            assert search_window is not None and search_window.progress.winfo_manager() == "grid"
+            search_window.start(); deadline = time.time() + 3
+            while search_window.worker and search_window.worker.is_alive() and time.time() < deadline:
+                app.update(); time.sleep(0.01)
+            for _ in range(10): app.update(); time.sleep(0.01)
+            assert float(search_window.progress.cget("value")) == 100
+            search_window.destroy(); app.search_window = None
+            progress_results = []
+            app._run_progress_operation("Compressing…", lambda: "done",
+                                        progress_results.append)
+            progress_windows = [widget for widget in app.winfo_children()
+                                if isinstance(widget, pfc.tk.Toplevel) and
+                                widget.title() == "Compressing…"]
+            assert len(progress_windows) == 1
+            deadline = time.time() + 2
+            while not progress_results and time.time() < deadline:
+                app.update(); time.sleep(0.01)
+            assert progress_results == ["done"]
             source_pane.tree.selection_set(source_pane.tree.get_children())
             app.set_active(source_pane); app.update()
             assert app.action_button_by_hotkey["F2"].cget("text") == "F2 Multi-Rename"
@@ -364,6 +400,7 @@ def main() -> None:
                               if context_menu.type(index) == "command"]
             required_context = {"Open / Enter Folder", "Preview", "Compare",
                                 "Run as Admin", "CMD", "PowerShell",
+                                "Create Shortcut & Send to Clipboard",
                                 "Copy to Clipboard", "Cut to Clipboard",
                                 "Paste into Current Folder", "Copy to Target Panel",
                                 "Move to Target Panel", "Rename", "Multi-Rename",

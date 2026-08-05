@@ -1,8 +1,10 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
 
-from pycommander.app import (folder_history_selection, navigation_destination,
+from pycommander.app import (create_shortcut_file, folder_history_selection,
+                             navigation_destination, shortcut_path_for,
                              transfer_target_index)
 
 
@@ -41,6 +43,28 @@ class NavigationDestinationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as raw:
             missing = Path(raw, "missing.txt").resolve()
             self.assertEqual(navigation_destination(missing), (missing, None))
+
+    def test_shortcut_name_is_unique_beside_the_source(self):
+        with tempfile.TemporaryDirectory() as raw:
+            folder = Path(raw)
+            source = folder / "Quarterly Report.txt"
+            source.write_text("report", encoding="utf-8")
+            first = shortcut_path_for(source, folder)
+            first.touch()
+            second = shortcut_path_for(source, folder)
+            self.assertNotEqual(first, second)
+            self.assertIn("Quarterly Report - Shortcut", first.name)
+            self.assertIn("(2)", second.name)
+
+    @unittest.skipUnless(os.name == "nt", "Windows shortcut integration")
+    def test_native_windows_shortcut_is_created(self):
+        with tempfile.TemporaryDirectory() as raw:
+            folder = Path(raw)
+            source = folder / "source.txt"
+            source.write_text("source", encoding="utf-8")
+            shortcut = shortcut_path_for(source, folder)
+            self.assertEqual(create_shortcut_file(source, shortcut), shortcut)
+            self.assertTrue(shortcut.is_file())
 
 
 if __name__ == "__main__":

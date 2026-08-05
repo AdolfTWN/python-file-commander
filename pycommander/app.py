@@ -37,6 +37,12 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.15.1", "2026/08/06", (
+        "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.",
+        "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.",
+        "Adjusted: Search, compression, and extraction show progress while archive work runs without blocking the main window.",
+        "Adjusted: Reworked the application icon as a high-contrast yellow, blue, white, and red badge for dark taskbars.",
+    )),
     ("v0.15.0", "2026/08/05", (
         "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.",
         "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.",
@@ -270,6 +276,38 @@ def navigation_destination(path: Path) -> tuple[Path, Path | None]:
     return (target.parent, target) if target.is_file() else (target, None)
 
 
+def shortcut_path_for(source: Path, folder: Path) -> Path:
+    suffix = ".lnk" if os.name == "nt" else ".shortcut"
+    base = f"{source.stem if source.is_file() else source.name} - Shortcut"
+    candidate = folder / f"{base}{suffix}"
+    number = 2
+    while candidate.exists():
+        candidate = folder / f"{base} ({number}){suffix}"
+        number += 1
+    return candidate
+
+
+def create_shortcut_file(source: Path, shortcut: Path) -> Path:
+    """Create a native Windows shortcut or a portable symlink."""
+    source, shortcut = source.resolve(), shortcut.resolve()
+    if os.name == "nt":
+        script = ("$w=New-Object -ComObject WScript.Shell;"
+                  "$s=$w.CreateShortcut($env:PFC_SHORTCUT_PATH);"
+                  "$s.TargetPath=$env:PFC_SHORTCUT_SOURCE;"
+                  "$s.WorkingDirectory=(Split-Path -LiteralPath $env:PFC_SHORTCUT_SOURCE -Parent);"
+                  "$s.Save()")
+        environment = os.environ.copy()
+        environment["PFC_SHORTCUT_SOURCE"] = str(source)
+        environment["PFC_SHORTCUT_PATH"] = str(shortcut)
+        subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script],
+            check=True, capture_output=True, env=environment,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    else:
+        shortcut.symlink_to(source, target_is_directory=source.is_dir())
+    return shortcut
+
+
 def folder_history_selection(previous: Path, target: Path,
                              remembered: dict[Path, Path]) -> Path | None:
     """Choose the row to restore after entering or leaving a folder."""
@@ -399,6 +437,7 @@ class FilePane(ttk.Frame):
         self.show_system = False
         self.show_extensions = True
         self.mode = "files"
+        self.view_mode = "list"
         self.display_title = self.path.name or str(self.path)
         self.lock_mode = "unlocked"
         self.locked_path: Path | None = None
@@ -431,9 +470,12 @@ class FilePane(ttk.Frame):
         ttk.Button(bar, text="⌂", width=3,
                    command=lambda: self.navigate_external(Path.home())).pack(side="left")
         self.path_var = tk.StringVar()
+        self.view_mode_button = ttk.Button(bar, width=7, command=self.cycle_view_mode)
+        self.view_mode_button.pack(side="right", padx=(4, 0))
         self.path_entry = ttk.Entry(bar, textvariable=self.path_var)
         self.path_entry.pack(side="left", fill="x", expand=True, padx=(4, 0))
         self.path_entry.bind("<Return>", self.navigate_from_entry)
+        self._update_view_mode_button()
 
         frame = ttk.Frame(self)
         frame.pack(fill="both", expand=True)
@@ -462,6 +504,7 @@ class FilePane(ttk.Frame):
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
         self.tree.bind("<Prior>", lambda _event: self.page_selection(-1))
         self.tree.bind("<Next>", lambda _event: self.page_selection(1))
+        self.tree.bind("<<TreeviewOpen>>", self._tree_open)
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text=tr("Quick Filter:")).pack(side="left")
@@ -493,7 +536,77 @@ class FilePane(ttk.Frame):
             if isinstance(child, ttk.Label):
                 child.configure(text=tr("Quick Filter:"))
                 break
+        self._update_view_mode_button()
         self.refresh()
+
+    def _update_view_mode_button(self) -> None:
+        labels = {"list": "List", "folder": "Folder", "file": "File"}
+        self.view_mode_button.configure(text=tr(labels[self.view_mode]))
+
+    def cycle_view_mode(self) -> None:
+        order = ("list", "folder", "file")
+        self.view_mode = order[(order.index(self.view_mode) + 1) % len(order)]
+        self._update_view_mode_button()
+        self.refresh()
+        self.focus_file_list()
+        self.on_change()
+
+    def _tree_values(self, path: Path, is_dir: bool, stat) -> tuple[str, str, str]:
+        return ("" if is_dir else path.suffix[1:].upper(),
+                "<DIR>" if is_dir else format_size(stat.st_size),
+                datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
+
+    def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
+        try:
+            entries = [path for path in folder.iterdir()
+                       if (self.show_hidden or not path.name.startswith(".")) and
+                       (self.show_system or not is_system(path))]
+        except OSError:
+            return 0
+        needle = self.quick_filter_var.get().strip().casefold()
+        if needle:
+            entries = [path for path in entries if needle in path.name.casefold()]
+        if self.view_mode == "folder":
+            entries = [path for path in entries if path.is_dir()]
+        def sort_key(path: Path):
+            try:
+                stat = path.stat()
+                values = {"name": path.name.casefold(), "ext": path.suffix.casefold(),
+                          "size": stat.st_size, "modified": stat.st_mtime}
+                return (not path.is_dir(), values[self.sort_column])
+            except OSError:
+                return (True, path.name.casefold())
+        entries.sort(key=sort_key, reverse=self.reverse)
+        added = 0
+        for path in entries:
+            try:
+                stat, is_dir = path.stat(), path.is_dir()
+                visible = path.name if is_dir or self.show_extensions else path.stem
+                iid = self.tree.insert(parent_iid, "end",
+                                       text=f"[{visible}]" if is_dir else visible,
+                                       image=self.icons.get(path, is_dir),
+                                       values=self._tree_values(path, is_dir, stat),
+                                       tags=(str(path),))
+                if is_dir:
+                    self.tree.insert(iid, "end", text="", tags=())
+                added += 1
+            except OSError:
+                continue
+        return added
+
+    def _tree_open(self, _event=None) -> None:
+        if self.view_mode == "list":
+            return
+        iid = self.tree.focus()
+        if not iid:
+            return
+        tags = self.tree.item(iid, "tags")
+        children = self.tree.get_children(iid)
+        if not tags or not children:
+            return
+        if all(not self.tree.item(child, "tags") for child in children):
+            self.tree.delete(*children)
+            self._populate_tree_children(iid, Path(tags[0]))
 
     def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
         self.on_drag("external_drop", self, {
@@ -765,6 +878,20 @@ class FilePane(ttk.Frame):
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
         try:
+            if self.mode == "files" and self.view_mode != "list":
+                visible_entries = [p for p in self.path.iterdir()
+                                   if (self.show_hidden or not p.name.startswith(".")) and
+                                   (self.show_system or not is_system(p))]
+                self._signature = self.signature_for(visible_entries)
+                count = self._populate_tree_children("", self.path)
+                mode_label = tr("Folder Tree") if self.view_mode == "folder" else tr("File Tree")
+                self.status.configure(text=tr("{mode} — {count} items", mode=mode_label,
+                                              count=count))
+                children = self.tree.get_children()
+                if children:
+                    self.tree.selection_set(children[0]); self.tree.focus(children[0])
+                self._schedule_column_autosize()
+                return
             entries = [p for p in self.path.iterdir()
                        if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
             self._signature = self.signature_for(entries)
@@ -928,7 +1055,14 @@ class FilePane(ttk.Frame):
             return
         item = items[0]
         if item.is_dir():
-            self.navigate(item)
+            if self.view_mode == "list":
+                self.navigate(item)
+            else:
+                iid = self.tree.focus() or self.tree.selection()[0]
+                opening = not bool(self.tree.item(iid, "open"))
+                self.tree.item(iid, open=opening)
+                if opening:
+                    self._tree_open()
         elif self.on_open_file(self, item):
             return
         else:
@@ -2413,6 +2547,8 @@ class Commander(tk.Tk):
                                 command=lambda path=clicked:
                                     self.extract_archive(path, clicked.parent / clicked.stem))
         menu.add_cascade(label=tr("Compression"), menu=compression)
+        menu.add_command(label=tr("Create Shortcut & Send to Clipboard"),
+                         state=normal_if(bool(items)), command=self.create_shortcuts_to_clipboard)
         menu.add_command(label=tr("CMD"), state=normal_if(os.name == "nt"),
                          command=lambda path=(clicked if clicked_folder else clicked.parent):
                              self.open_terminal(path, "cmd"))
@@ -2447,6 +2583,8 @@ class Commander(tk.Tk):
             "Compare": "Compare the active and next panel, or two selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Compression": "Compress selected items or extract a ZIP/7z archive.",
+            "Create Shortcut & Send to Clipboard":
+                "Create shortcuts beside the selected items and cut them to the clipboard.",
             "CMD": "Open Command Prompt in this folder.",
             "PowerShell": "Open PowerShell in this folder.",
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
@@ -2465,6 +2603,68 @@ class Commander(tk.Tk):
         self._file_context_tooltip = MenuToolTip(menu, descriptions)
         return menu
 
+    def _run_progress_operation(self, title: str, work, done) -> None:
+        window = tk.Toplevel(self)
+        window.title(tr(title)); window.transient(self)
+        window.resizable(False, False); window.protocol("WM_DELETE_WINDOW", lambda: None)
+        frame = ttk.Frame(window, padding=16); frame.pack(fill="both", expand=True)
+        ttk.Label(frame, text=tr(title), anchor="w").pack(fill="x", pady=(0, 8))
+        progress = ttk.Progressbar(frame, mode="indeterminate", length=360)
+        progress.pack(fill="x"); progress.start(12)
+        window.update_idletasks()
+        x = self.winfo_rootx() + max(0, (self.winfo_width() - window.winfo_reqwidth()) // 2)
+        y = self.winfo_rooty() + max(0, (self.winfo_height() - window.winfo_reqheight()) // 3)
+        window.geometry(f"+{x}+{y}"); window.lift(); window.focus_force()
+        results = queue.Queue()
+
+        def runner():
+            try: results.put((True, work()))
+            except Exception as exc: results.put((False, exc))
+
+        threading.Thread(target=runner, daemon=True, name=f"PFC-{title}").start()
+
+        def poll():
+            try: success, payload = results.get_nowait()
+            except queue.Empty:
+                if window.winfo_exists(): window.after(50, poll)
+                return
+            progress.stop(); window.destroy()
+            if success:
+                done(payload)
+            else:
+                error_title = {"Compressing…": "Compression failed",
+                               "Extracting…": "Extraction failed"}.get(title, title)
+                messagebox.showerror(tr(error_title), str(payload), parent=self)
+
+        window.after(50, poll)
+
+    def create_shortcuts_to_clipboard(self) -> None:
+        source, _target = self.panes()
+        items = source.selected_paths()
+        if not items:
+            return
+        created = []
+        try:
+            for item in items:
+                created.append(create_shortcut_file(item, shortcut_path_for(item, source.path)))
+            set_file_clipboard(created, cut=True)
+            source.refresh()
+            shortcut_paths = {str(shortcut) for shortcut in created}
+            shortcut_iids = [iid for iid in source.tree.get_children()
+                             if source.tree.item(iid, "tags") and
+                             source.tree.item(iid, "tags")[0] in shortcut_paths]
+            if shortcut_iids:
+                source.tree.selection_set(shortcut_iids)
+                source.tree.focus(shortcut_iids[0])
+                source.tree.see(shortcut_iids[0])
+            self._clipboard_visual_key = None
+            self._update_clipboard_summary()
+        except (OSError, subprocess.SubprocessError, MemoryError) as exc:
+            for shortcut in created:
+                try: shortcut.unlink()
+                except OSError: pass
+            messagebox.showerror(tr("Create shortcut failed"), str(exc), parent=self)
+
     def compress_selected(self) -> None:
         source, _target = self.panes()
         items = source.selected_paths()
@@ -2475,23 +2675,22 @@ class Commander(tk.Tk):
         number = 2
         while target.exists():
             target = source.path / f"{stem} ({number}).zip"; number += 1
-        try:
-            create_zip_archive(items, target)
+        def finished(_result):
             source.refresh(); source.select_path(target); source.focus_file_list()
             self._commit_archive_changes([target])
-        except OSError as exc:
-            messagebox.showerror(tr("Compression failed"), str(exc), parent=self)
+        self._run_progress_operation("Compressing…",
+                                     lambda: create_zip_archive(items, target), finished)
 
     def extract_archive(self, archive_path: Path, destination: Path) -> None:
-        try:
-            extract_archive_to(archive_path, destination)
+        def finished(_result):
             self.refresh()
             source = self.panes()[0]
             if destination.parent == source.path:
                 source.select_path(destination)
             self._commit_archive_changes([destination])
-        except OSError as exc:
-            messagebox.showerror(tr("Extraction failed"), str(exc), parent=self)
+        self._run_progress_operation("Extracting…",
+                                     lambda: extract_archive_to(archive_path, destination),
+                                     finished)
 
     def open_terminal(self, folder: Path, kind: str) -> None:
         folder = Path(folder)

@@ -147,6 +147,8 @@ class SearchWindow(tk.Toplevel):
                    command=self.send_listing).pack(side="left", padx=(0, 3))
         ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
         self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
+        self.progress = ttk.Progressbar(form, mode="determinate", value=0)
+        self.progress.grid(row=7, column=0, columnspan=8, sticky="ew", pady=(5, 0))
         form.columnconfigure(1, weight=1)
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
@@ -311,6 +313,7 @@ class SearchWindow(tk.Toplevel):
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self._reset_column_measurements()
         self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
+        self.progress.stop(); self.progress.configure(mode="indeterminate", value=0); self.progress.start(12)
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
     def _search(self, c):
@@ -360,9 +363,11 @@ class SearchWindow(tk.Toplevel):
                 _, count, cancelled, limited = message
                 suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
                 self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
+                self.progress.stop(); self.progress.configure(mode="determinate", value=100)
                 self._apply_sort()
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
+                self.progress.stop(); self.progress.configure(mode="determinate", value=0)
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
         if not self.messages.empty() or (self.worker and self.worker.is_alive()):
             self.poll_job = self.after(40, self._poll)

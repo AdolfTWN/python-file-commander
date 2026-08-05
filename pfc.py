@@ -64,6 +64,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "新增：每個面板可切換清單、資料夾樹及檔案樹檢視，並採用延遲展開資料夾。",
+        "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.": "新增：可在選取項目旁建立原生捷徑，並以移動操作送至剪貼簿。",
+        "Adjusted: Search, compression, and extraction show progress while archive work runs without blocking the main window.": "調整：搜尋、壓縮與解壓縮會顯示進度，封存作業執行時不阻塞主視窗。",
+        "Adjusted: Reworked the application icon as a high-contrast yellow, blue, white, and red badge for dark taskbars.": "調整：應用程式圖示改為黃、藍、白、紅高對比徽章，方便在深色工作列中辨識。",
         "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.": "新增：F2 直接內嵌重新命名、F7 直接內嵌建立資料夾，並讓 Page Up／Down 選取列保持穩定。",
         "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.": "修正：頂端選單維持在相同螢幕，Teams 虛擬附件改於背景擷取，不再凍結 PFC。",
         "Added: Search results can compare two selections or send the complete listing to a new panel tab.": "新增：搜尋結果可比較兩個選取項目，或將完整清單送至新的面板分頁。",
@@ -74,6 +78,11 @@ _TRANSLATIONS = {
         "Compression": "壓縮與解壓縮", "Compress to ZIP": "壓縮為 ZIP", "Extract Here": "解壓縮至此處",
         "Extract to Folder": "解壓縮至資料夾", "Archive": "壓縮檔", "Compression failed": "壓縮失敗",
         "Extraction failed": "解壓縮失敗", "Open terminal failed": "開啟終端機失敗",
+        "List": "清單", "File": "檔案", "Folder Tree": "資料夾樹狀檢視", "File Tree": "檔案樹狀檢視",
+        "{mode} — {count} items": "{mode} — {count} 個項目",
+        "Create Shortcut & Send to Clipboard": "建立捷徑並送至剪貼簿",
+        "Create shortcut failed": "建立捷徑失敗", "Compressing…": "正在壓縮…",
+        "Extracting…": "正在解壓縮…",
         "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "調整：副檔名統一以大寫顯示、移除屬性欄，細節欄位自動調整寬度，名稱欄使用剩餘空間。",
         "Adjusted: The application icon now uses bold red transfer arrows.": "調整：應用程式圖示改用粗體紅色傳輸箭頭。",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "調整：資料夾空間分析器現在會在左鍵單擊時確認是否前往，並在右鍵選單提供明確的移至資源回收筒或永久刪除操作。",
@@ -227,6 +236,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "新增：每个面板可切换列表、文件夹树及文件树视图，并采用延迟展开文件夹。",
+        "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.": "新增：可在所选项目旁创建原生快捷方式，并以移动操作发送到剪贴板。",
+        "Adjusted: Search, compression, and extraction show progress while archive work runs without blocking the main window.": "调整：搜索、压缩与解压缩会显示进度，存档操作运行时不会阻塞主窗口。",
+        "Adjusted: Reworked the application icon as a high-contrast yellow, blue, white, and red badge for dark taskbars.": "调整：应用程序图标改为黄、蓝、白、红高对比徽标，便于在深色任务栏中识别。",
         "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.": "新增：F2 直接内嵌重命名、F7 直接内嵌新建文件夹，并让 Page Up／Down 选择行保持稳定。",
         "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.": "修复：顶部菜单保持在同一显示器，Teams 虚拟附件改为后台提取，不再冻结 PFC。",
         "Added: Search results can compare two selections or send the complete listing to a new panel tab.": "新增：搜索结果可比较两个所选项目，或将完整列表发送到新的面板选项卡。",
@@ -237,6 +250,11 @@ _TRANSLATIONS = {
         "Compression": "压缩与解压缩", "Compress to ZIP": "压缩为 ZIP", "Extract Here": "解压到此处",
         "Extract to Folder": "解压到文件夹", "Archive": "压缩包", "Compression failed": "压缩失败",
         "Extraction failed": "解压失败", "Open terminal failed": "打开终端失败",
+        "List": "列表", "File": "文件", "Folder Tree": "文件夹树视图", "File Tree": "文件树视图",
+        "{mode} — {count} items": "{mode} — {count} 个项目",
+        "Create Shortcut & Send to Clipboard": "创建快捷方式并发送到剪贴板",
+        "Create shortcut failed": "创建快捷方式失败", "Compressing…": "正在压缩…",
+        "Extracting…": "正在解压…",
         "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "调整：扩展名统一以大写显示、移除属性列，详细信息列自动调整宽度，名称列使用剩余空间。",
         "Adjusted: The application icon now uses bold red transfer arrows.": "调整：应用程序图标改用粗体红色传输箭头。",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "调整：文件夹空间分析器现在会在左键单击时确认是否转到，并在右键菜单提供明确的移至回收站或永久删除操作。",
@@ -363,6 +381,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "추가: 각 패널에서 목록, 폴더 트리, 파일 트리 보기를 전환하고 폴더를 지연 확장할 수 있습니다.",
+        "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.": "추가: 선택한 항목 옆에 기본 바로 가기를 만들고 이동 작업으로 클립보드에 보낼 수 있습니다.",
+        "Adjusted: Search, compression, and extraction show progress while archive work runs without blocking the main window.": "조정: 검색, 압축 및 압축 풀기 진행률을 표시하고 보관 작업이 기본 창을 차단하지 않도록 했습니다.",
+        "Adjusted: Reworked the application icon as a high-contrast yellow, blue, white, and red badge for dark taskbars.": "조정: 어두운 작업 표시줄에서 잘 보이도록 앱 아이콘을 노랑, 파랑, 흰색, 빨강의 고대비 배지로 변경했습니다.",
         "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.": "추가: F2 인라인 이름 바꾸기와 F7 인라인 폴더 만들기, 안정적인 Page Up/Down 선택을 지원합니다.",
         "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.": "수정: 상단 메뉴가 같은 모니터에 유지되고 Teams 가상 첨부 파일을 백그라운드에서 추출하여 PFC가 멈추지 않습니다.",
         "Added: Search results can compare two selections or send the complete listing to a new panel tab.": "추가: 검색 결과에서 두 항목을 비교하거나 전체 목록을 새 패널 탭으로 보낼 수 있습니다.",
@@ -373,6 +395,11 @@ _TRANSLATIONS = {
         "Compression": "압축 및 풀기", "Compress to ZIP": "ZIP으로 압축", "Extract Here": "여기에 압축 풀기",
         "Extract to Folder": "폴더에 압축 풀기", "Archive": "압축 파일", "Compression failed": "압축 실패",
         "Extraction failed": "압축 풀기 실패", "Open terminal failed": "터미널 열기 실패",
+        "List": "목록", "File": "파일", "Folder Tree": "폴더 트리", "File Tree": "파일 트리",
+        "{mode} — {count} items": "{mode} — 항목 {count}개",
+        "Create Shortcut & Send to Clipboard": "바로 가기를 만들어 클립보드로 보내기",
+        "Create shortcut failed": "바로 가기 만들기 실패", "Compressing…": "압축 중…",
+        "Extracting…": "압축 푸는 중…",
         "Adjusted: File extensions are displayed in uppercase, the Attr column is removed, and detail columns auto-fit while Name uses the remaining width.": "조정: 확장자를 대문자로 표시하고 특성 열을 제거했으며, 세부 정보 열은 자동 맞춤하고 이름 열은 남은 너비를 사용합니다.",
         "Adjusted: The application icon now uses bold red transfer arrows.": "조정: 응용 프로그램 아이콘을 굵은 빨간색 전송 화살표로 변경했습니다.",
         "Adjusted: Folder Space Analyzer now confirms Go to on left-click and offers explicit Recycle Bin or permanent delete actions on right-click.": "조정: 폴더 공간 분석기에서 마우스 왼쪽 클릭 시 이동 여부를 확인하고, 오른쪽 클릭 메뉴에 휴지통 이동 또는 영구 삭제 작업을 명확히 제공합니다.",
@@ -1155,18 +1182,28 @@ def _paint_polygon(pixels: bytearray, canvas_size: int, points, color) -> None:
 
 
 def pfc_icon_png(size: int = 32) -> bytes:
-    """Render the embedded bold red four-way transfer mark as an antialiased PNG."""
+    """Render a high-contrast transfer badge that stays visible on dark taskbars."""
     if size < 8:
         raise ValueError("PFC icon size must be at least 8 pixels")
     supersample = 4
     canvas_size = size * supersample
     factor = canvas_size / 64
     pixels = bytearray(canvas_size * canvas_size * 4)
+    outer_badge = ((8, 1), (56, 1), (63, 8), (63, 56),
+                   (56, 63), (8, 63), (1, 56), (1, 8))
+    inner_badge = ((10, 5), (54, 5), (59, 10), (59, 54),
+                   (54, 59), (10, 59), (5, 54), (5, 10))
+    _paint_polygon(pixels, canvas_size,
+                   tuple((x * factor, y * factor) for x, y in outer_badge),
+                   (255, 210, 35, 255))
+    _paint_polygon(pixels, canvas_size,
+                   tuple((x * factor, y * factor) for x, y in inner_badge),
+                   (14, 73, 132, 255))
     arrow = ((3.2, 10.8), (15.8, 23.4), (11.8, 27.4),
              (29.7, 29.7), (27.4, 11.8), (23.4, 15.8), (10.8, 3.2))
     inner_arrow = ((5.4, 10.6), (17.4, 22.6), (14.3, 25.7),
                    (28.6, 28.6), (25.7, 14.3), (22.6, 17.4), (10.6, 5.4))
-    outline, fill = (255, 205, 32, 255), (224, 36, 48, 255)
+    outline, fill = (255, 255, 255, 255), (238, 42, 55, 255)
 
     def rotate(points):
         return tuple((64 - y, x) for x, y in points)
@@ -4957,6 +4994,8 @@ class SearchWindow(tk.Toplevel):
                    command=self.send_listing).pack(side="left", padx=(0, 3))
         ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
         self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
+        self.progress = ttk.Progressbar(form, mode="determinate", value=0)
+        self.progress.grid(row=7, column=0, columnspan=8, sticky="ew", pady=(5, 0))
         form.columnconfigure(1, weight=1)
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
@@ -5121,6 +5160,7 @@ class SearchWindow(tk.Toplevel):
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self._reset_column_measurements()
         self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
+        self.progress.stop(); self.progress.configure(mode="indeterminate", value=0); self.progress.start(12)
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
     def _search(self, c):
@@ -5170,9 +5210,11 @@ class SearchWindow(tk.Toplevel):
                 _, count, cancelled, limited = message
                 suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
                 self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
+                self.progress.stop(); self.progress.configure(mode="determinate", value=100)
                 self._apply_sort()
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
+                self.progress.stop(); self.progress.configure(mode="determinate", value=0)
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
         if not self.messages.empty() or (self.worker and self.worker.is_alive()):
             self.poll_job = self.after(40, self._poll)
@@ -6604,14 +6646,20 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.15.0"
+__version__ = "0.15.1"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/05"
+BUILD_DATE = "2026/08/06"
 VERSION_HISTORY = (
+    ("v0.15.1", "2026/08/06", (
+        "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.",
+        "Added: Create native shortcuts beside selected items and send them to the clipboard as a move operation.",
+        "Adjusted: Search, compression, and extraction show progress while archive work runs without blocking the main window.",
+        "Adjusted: Reworked the application icon as a high-contrast yellow, blue, white, and red badge for dark taskbars.",
+    )),
     ("v0.15.0", "2026/08/05", (
         "Added: Inline F2 rename and F7 folder creation, with stable Page Up/Down selection.",
         "Fixed: Header menus stay on the same monitor and Teams virtual attachments extract in the background without freezing PFC.",
@@ -6845,6 +6893,38 @@ def navigation_destination(path: Path) -> tuple[Path, Path | None]:
     return (target.parent, target) if target.is_file() else (target, None)
 
 
+def shortcut_path_for(source: Path, folder: Path) -> Path:
+    suffix = ".lnk" if os.name == "nt" else ".shortcut"
+    base = f"{source.stem if source.is_file() else source.name} - Shortcut"
+    candidate = folder / f"{base}{suffix}"
+    number = 2
+    while candidate.exists():
+        candidate = folder / f"{base} ({number}){suffix}"
+        number += 1
+    return candidate
+
+
+def create_shortcut_file(source: Path, shortcut: Path) -> Path:
+    """Create a native Windows shortcut or a portable symlink."""
+    source, shortcut = source.resolve(), shortcut.resolve()
+    if os.name == "nt":
+        script = ("$w=New-Object -ComObject WScript.Shell;"
+                  "$s=$w.CreateShortcut($env:PFC_SHORTCUT_PATH);"
+                  "$s.TargetPath=$env:PFC_SHORTCUT_SOURCE;"
+                  "$s.WorkingDirectory=(Split-Path -LiteralPath $env:PFC_SHORTCUT_SOURCE -Parent);"
+                  "$s.Save()")
+        environment = os.environ.copy()
+        environment["PFC_SHORTCUT_SOURCE"] = str(source)
+        environment["PFC_SHORTCUT_PATH"] = str(shortcut)
+        subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script],
+            check=True, capture_output=True, env=environment,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    else:
+        shortcut.symlink_to(source, target_is_directory=source.is_dir())
+    return shortcut
+
+
 def folder_history_selection(previous: Path, target: Path,
                              remembered: dict[Path, Path]) -> Path | None:
     """Choose the row to restore after entering or leaving a folder."""
@@ -6974,6 +7054,7 @@ class FilePane(ttk.Frame):
         self.show_system = False
         self.show_extensions = True
         self.mode = "files"
+        self.view_mode = "list"
         self.display_title = self.path.name or str(self.path)
         self.lock_mode = "unlocked"
         self.locked_path: Path | None = None
@@ -7006,9 +7087,12 @@ class FilePane(ttk.Frame):
         ttk.Button(bar, text="⌂", width=3,
                    command=lambda: self.navigate_external(Path.home())).pack(side="left")
         self.path_var = tk.StringVar()
+        self.view_mode_button = ttk.Button(bar, width=7, command=self.cycle_view_mode)
+        self.view_mode_button.pack(side="right", padx=(4, 0))
         self.path_entry = ttk.Entry(bar, textvariable=self.path_var)
         self.path_entry.pack(side="left", fill="x", expand=True, padx=(4, 0))
         self.path_entry.bind("<Return>", self.navigate_from_entry)
+        self._update_view_mode_button()
 
         frame = ttk.Frame(self)
         frame.pack(fill="both", expand=True)
@@ -7037,6 +7121,7 @@ class FilePane(ttk.Frame):
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
         self.tree.bind("<Prior>", lambda _event: self.page_selection(-1))
         self.tree.bind("<Next>", lambda _event: self.page_selection(1))
+        self.tree.bind("<<TreeviewOpen>>", self._tree_open)
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text=tr("Quick Filter:")).pack(side="left")
@@ -7068,7 +7153,77 @@ class FilePane(ttk.Frame):
             if isinstance(child, ttk.Label):
                 child.configure(text=tr("Quick Filter:"))
                 break
+        self._update_view_mode_button()
         self.refresh()
+
+    def _update_view_mode_button(self) -> None:
+        labels = {"list": "List", "folder": "Folder", "file": "File"}
+        self.view_mode_button.configure(text=tr(labels[self.view_mode]))
+
+    def cycle_view_mode(self) -> None:
+        order = ("list", "folder", "file")
+        self.view_mode = order[(order.index(self.view_mode) + 1) % len(order)]
+        self._update_view_mode_button()
+        self.refresh()
+        self.focus_file_list()
+        self.on_change()
+
+    def _tree_values(self, path: Path, is_dir: bool, stat) -> tuple[str, str, str]:
+        return ("" if is_dir else path.suffix[1:].upper(),
+                "<DIR>" if is_dir else format_size(stat.st_size),
+                datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
+
+    def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
+        try:
+            entries = [path for path in folder.iterdir()
+                       if (self.show_hidden or not path.name.startswith(".")) and
+                       (self.show_system or not is_system(path))]
+        except OSError:
+            return 0
+        needle = self.quick_filter_var.get().strip().casefold()
+        if needle:
+            entries = [path for path in entries if needle in path.name.casefold()]
+        if self.view_mode == "folder":
+            entries = [path for path in entries if path.is_dir()]
+        def sort_key(path: Path):
+            try:
+                stat = path.stat()
+                values = {"name": path.name.casefold(), "ext": path.suffix.casefold(),
+                          "size": stat.st_size, "modified": stat.st_mtime}
+                return (not path.is_dir(), values[self.sort_column])
+            except OSError:
+                return (True, path.name.casefold())
+        entries.sort(key=sort_key, reverse=self.reverse)
+        added = 0
+        for path in entries:
+            try:
+                stat, is_dir = path.stat(), path.is_dir()
+                visible = path.name if is_dir or self.show_extensions else path.stem
+                iid = self.tree.insert(parent_iid, "end",
+                                       text=f"[{visible}]" if is_dir else visible,
+                                       image=self.icons.get(path, is_dir),
+                                       values=self._tree_values(path, is_dir, stat),
+                                       tags=(str(path),))
+                if is_dir:
+                    self.tree.insert(iid, "end", text="", tags=())
+                added += 1
+            except OSError:
+                continue
+        return added
+
+    def _tree_open(self, _event=None) -> None:
+        if self.view_mode == "list":
+            return
+        iid = self.tree.focus()
+        if not iid:
+            return
+        tags = self.tree.item(iid, "tags")
+        children = self.tree.get_children(iid)
+        if not tags or not children:
+            return
+        if all(not self.tree.item(child, "tags") for child in children):
+            self.tree.delete(*children)
+            self._populate_tree_children(iid, Path(tags[0]))
 
     def _shell_files_dropped(self, paths, x_root: int, y_root: int, move: bool) -> None:
         self.on_drag("external_drop", self, {
@@ -7340,6 +7495,20 @@ class FilePane(ttk.Frame):
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
         try:
+            if self.mode == "files" and self.view_mode != "list":
+                visible_entries = [p for p in self.path.iterdir()
+                                   if (self.show_hidden or not p.name.startswith(".")) and
+                                   (self.show_system or not is_system(p))]
+                self._signature = self.signature_for(visible_entries)
+                count = self._populate_tree_children("", self.path)
+                mode_label = tr("Folder Tree") if self.view_mode == "folder" else tr("File Tree")
+                self.status.configure(text=tr("{mode} — {count} items", mode=mode_label,
+                                              count=count))
+                children = self.tree.get_children()
+                if children:
+                    self.tree.selection_set(children[0]); self.tree.focus(children[0])
+                self._schedule_column_autosize()
+                return
             entries = [p for p in self.path.iterdir()
                        if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
             self._signature = self.signature_for(entries)
@@ -7503,7 +7672,14 @@ class FilePane(ttk.Frame):
             return
         item = items[0]
         if item.is_dir():
-            self.navigate(item)
+            if self.view_mode == "list":
+                self.navigate(item)
+            else:
+                iid = self.tree.focus() or self.tree.selection()[0]
+                opening = not bool(self.tree.item(iid, "open"))
+                self.tree.item(iid, open=opening)
+                if opening:
+                    self._tree_open()
         elif self.on_open_file(self, item):
             return
         else:
@@ -8988,6 +9164,8 @@ class Commander(tk.Tk):
                                 command=lambda path=clicked:
                                     self.extract_archive(path, clicked.parent / clicked.stem))
         menu.add_cascade(label=tr("Compression"), menu=compression)
+        menu.add_command(label=tr("Create Shortcut & Send to Clipboard"),
+                         state=normal_if(bool(items)), command=self.create_shortcuts_to_clipboard)
         menu.add_command(label=tr("CMD"), state=normal_if(os.name == "nt"),
                          command=lambda path=(clicked if clicked_folder else clicked.parent):
                              self.open_terminal(path, "cmd"))
@@ -9022,6 +9200,8 @@ class Commander(tk.Tk):
             "Compare": "Compare the active and next panel, or two selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Compression": "Compress selected items or extract a ZIP/7z archive.",
+            "Create Shortcut & Send to Clipboard":
+                "Create shortcuts beside the selected items and cut them to the clipboard.",
             "CMD": "Open Command Prompt in this folder.",
             "PowerShell": "Open PowerShell in this folder.",
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
@@ -9040,6 +9220,68 @@ class Commander(tk.Tk):
         self._file_context_tooltip = MenuToolTip(menu, descriptions)
         return menu
 
+    def _run_progress_operation(self, title: str, work, done) -> None:
+        window = tk.Toplevel(self)
+        window.title(tr(title)); window.transient(self)
+        window.resizable(False, False); window.protocol("WM_DELETE_WINDOW", lambda: None)
+        frame = ttk.Frame(window, padding=16); frame.pack(fill="both", expand=True)
+        ttk.Label(frame, text=tr(title), anchor="w").pack(fill="x", pady=(0, 8))
+        progress = ttk.Progressbar(frame, mode="indeterminate", length=360)
+        progress.pack(fill="x"); progress.start(12)
+        window.update_idletasks()
+        x = self.winfo_rootx() + max(0, (self.winfo_width() - window.winfo_reqwidth()) // 2)
+        y = self.winfo_rooty() + max(0, (self.winfo_height() - window.winfo_reqheight()) // 3)
+        window.geometry(f"+{x}+{y}"); window.lift(); window.focus_force()
+        results = queue.Queue()
+
+        def runner():
+            try: results.put((True, work()))
+            except Exception as exc: results.put((False, exc))
+
+        threading.Thread(target=runner, daemon=True, name=f"PFC-{title}").start()
+
+        def poll():
+            try: success, payload = results.get_nowait()
+            except queue.Empty:
+                if window.winfo_exists(): window.after(50, poll)
+                return
+            progress.stop(); window.destroy()
+            if success:
+                done(payload)
+            else:
+                error_title = {"Compressing…": "Compression failed",
+                               "Extracting…": "Extraction failed"}.get(title, title)
+                messagebox.showerror(tr(error_title), str(payload), parent=self)
+
+        window.after(50, poll)
+
+    def create_shortcuts_to_clipboard(self) -> None:
+        source, _target = self.panes()
+        items = source.selected_paths()
+        if not items:
+            return
+        created = []
+        try:
+            for item in items:
+                created.append(create_shortcut_file(item, shortcut_path_for(item, source.path)))
+            set_file_clipboard(created, cut=True)
+            source.refresh()
+            shortcut_paths = {str(shortcut) for shortcut in created}
+            shortcut_iids = [iid for iid in source.tree.get_children()
+                             if source.tree.item(iid, "tags") and
+                             source.tree.item(iid, "tags")[0] in shortcut_paths]
+            if shortcut_iids:
+                source.tree.selection_set(shortcut_iids)
+                source.tree.focus(shortcut_iids[0])
+                source.tree.see(shortcut_iids[0])
+            self._clipboard_visual_key = None
+            self._update_clipboard_summary()
+        except (OSError, subprocess.SubprocessError, MemoryError) as exc:
+            for shortcut in created:
+                try: shortcut.unlink()
+                except OSError: pass
+            messagebox.showerror(tr("Create shortcut failed"), str(exc), parent=self)
+
     def compress_selected(self) -> None:
         source, _target = self.panes()
         items = source.selected_paths()
@@ -9050,23 +9292,22 @@ class Commander(tk.Tk):
         number = 2
         while target.exists():
             target = source.path / f"{stem} ({number}).zip"; number += 1
-        try:
-            create_zip_archive(items, target)
+        def finished(_result):
             source.refresh(); source.select_path(target); source.focus_file_list()
             self._commit_archive_changes([target])
-        except OSError as exc:
-            messagebox.showerror(tr("Compression failed"), str(exc), parent=self)
+        self._run_progress_operation("Compressing…",
+                                     lambda: create_zip_archive(items, target), finished)
 
     def extract_archive(self, archive_path: Path, destination: Path) -> None:
-        try:
-            extract_archive_to(archive_path, destination)
+        def finished(_result):
             self.refresh()
             source = self.panes()[0]
             if destination.parent == source.path:
                 source.select_path(destination)
             self._commit_archive_changes([destination])
-        except OSError as exc:
-            messagebox.showerror(tr("Extraction failed"), str(exc), parent=self)
+        self._run_progress_operation("Extracting…",
+                                     lambda: extract_archive_to(archive_path, destination),
+                                     finished)
 
     def open_terminal(self, folder: Path, kind: str) -> None:
         folder = Path(folder)
