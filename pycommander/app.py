@@ -5,6 +5,7 @@ import configparser
 import ctypes
 import json
 import queue
+import re
 import shutil
 import subprocess
 import sys
@@ -12,6 +13,7 @@ import tempfile
 import threading
 import tkinter as tk
 import tkinter.font as tkfont
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
@@ -33,10 +35,18 @@ from .i18n import LANGUAGES, get_language, set_language, tr
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
+UPDATE_URL = "https://raw.githubusercontent.com/AdolfTWN/python-file-commander/main/pfc.py"
+UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
 
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.15.3", "2026/08/07", (
+        "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.",
+        "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.",
+        "Adjusted: Archive-folder loading immediately raises a cancellable progress window and explicitly stops it when ZIP/7z preparation finishes.",
+        "Added: File/Folder Mix Sorting is enabled by default, with a View switch to restore folders-first grouping.",
+    )),
     ("v0.15.2", "2026/08/06", (
         "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.",
         "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.",
@@ -165,7 +175,8 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
         "view": {"font_size": "small", "auto_font_size": "true",
                  "tab_style": "right_skirt", "panel_count": "2",
-                 "ui_language": "en", "color_scheme": "light", "extension_effect": "true"},
+                 "ui_language": "en", "color_scheme": "light", "extension_effect": "true",
+                 "mix_sorting": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -328,6 +339,49 @@ def transfer_target_index(source_index: int, panel_count: int) -> int:
     return 1 if source_index == 0 else source_index - 1
 
 
+def version_key(value: str) -> tuple[int, ...]:
+    """Return a comparable numeric key for a dotted PFC version."""
+    parts = value.strip().lstrip("vV").split(".")
+    if not parts or any(not part.isdigit() for part in parts):
+        raise ValueError(f"Invalid PFC version: {value}")
+    return tuple(int(part) for part in parts)
+
+
+def downloaded_pfc_version(payload: bytes) -> str:
+    """Validate a downloaded portable script and return its declared version."""
+    if not payload or len(payload) > UPDATE_SIZE_LIMIT:
+        raise ValueError("Downloaded pfc.py has an invalid size.")
+    source = payload.decode("utf-8")
+    match = re.search(r'^__version__\s*=\s*["\'](\d+\.\d+\.\d+)["\']',
+                      source, re.MULTILINE)
+    if match is None or "Python File Commander" not in source:
+        raise ValueError("Downloaded file is not a valid PFC portable script.")
+    compile(source, "pfc.py", "exec")
+    return match.group(1)
+
+
+def fetch_pfc_update(url: str = UPDATE_URL) -> tuple[str, bytes]:
+    request = urllib.request.Request(url, headers={"User-Agent": "Python-File-Commander-Updater"})
+    with urllib.request.urlopen(request, timeout=20) as response:
+        declared = response.headers.get("Content-Length")
+        if declared and int(declared) > UPDATE_SIZE_LIMIT:
+            raise ValueError("Downloaded pfc.py is too large.")
+        payload = response.read(UPDATE_SIZE_LIMIT + 1)
+    return downloaded_pfc_version(payload), payload
+
+
+def replace_portable_script(target: Path, payload: bytes) -> None:
+    """Atomically replace pfc.py only after full validation succeeds."""
+    downloaded_pfc_version(payload)
+    temporary = target.with_name(f".{target.name}.update")
+    try:
+        with temporary.open("wb") as stream:
+            stream.write(payload); stream.flush(); os.fsync(stream.fileno())
+        os.replace(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def is_noop_drag_drop(items: list[Path], destination: Path) -> bool:
     """Treat a drag back to its source folder (or onto itself) as cancellation."""
     if not items:
@@ -418,6 +472,7 @@ class FilePane(ttk.Frame):
     columns = ("ext", "size", "modified")
     all_sort_columns = ("name", "ext", "size", "modified")
     base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135}
+    default_mix_sorting = True
 
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None,
                  on_drag=lambda _action, _pane, _event: None,
@@ -437,6 +492,7 @@ class FilePane(ttk.Frame):
         self.folder_selections: dict[Path, Path] = {}
         self.sort_column = "name"
         self.reverse = False
+        self.mix_sorting = self.default_mix_sorting
         self.show_hidden = False
         self.show_system = False
         self.show_extensions = True
@@ -581,10 +637,12 @@ class FilePane(ttk.Frame):
                 stat = path.stat()
                 values = {"name": path.name.casefold(), "ext": path.suffix.casefold(),
                           "size": stat.st_size, "modified": stat.st_mtime}
-                return (not path.is_dir(), values[self.sort_column])
+                return values[self.sort_column]
             except OSError:
-                return (True, path.name.casefold())
+                return path.name.casefold()
         entries.sort(key=sort_key, reverse=self.reverse)
+        if not self.mix_sorting:
+            entries.sort(key=lambda path: not path.is_dir())
         added = 0
         for index, path in enumerate(entries):
             try:
@@ -953,10 +1011,12 @@ class FilePane(ttk.Frame):
                     stat = p.stat()
                     values = {"name": p.name.lower(), "ext": p.suffix.lower(), "size": stat.st_size,
                               "modified": stat.st_mtime}
-                    return (not p.is_dir(), values[self.sort_column])
+                    return values[self.sort_column]
                 except OSError:
-                    return (True, p.name.lower())
+                    return p.name.lower()
             entries.sort(key=key, reverse=self.reverse)
+            if not self.mix_sorting:
+                entries.sort(key=lambda path: not path.is_dir())
             total = 0
             for p in entries:
                 try:
@@ -1431,6 +1491,9 @@ class Commander(tk.Tk):
         self.color_scheme_var = tk.StringVar(value=saved_scheme)
         self.extension_effect_var = tk.BooleanVar(
             value=self.config_data.getboolean("view", "extension_effect", fallback=True))
+        self.mix_sorting_var = tk.BooleanVar(
+            value=self.config_data.getboolean("view", "mix_sorting", fallback=True))
+        FilePane.default_mix_sorting = self.mix_sorting_var.get()
         self.palette = color_scheme(saved_scheme)
         saved_tab_style = self.config_data.get("view", "tab_style", fallback="right_skirt")
         if saved_tab_style == "compact":
@@ -1678,6 +1741,7 @@ class Commander(tk.Tk):
         for index, pane in enumerate(tabs.panes()):
             pane.sort_column = column if column in pane.all_sort_columns else "name"
             pane.reverse = descending
+            pane.mix_sorting = self.mix_sorting_var.get()
             pane.show_hidden = show_hidden
             pane.show_system = show_system
             pane.show_extensions = show_extensions
@@ -1751,6 +1815,7 @@ class Commander(tk.Tk):
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
         self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
         self.config_data.set("view", "extension_effect", str(self.extension_effect_var.get()).lower())
+        self.config_data.set("view", "mix_sorting", str(self.mix_sorting_var.get()).lower())
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
@@ -1788,6 +1853,7 @@ class Commander(tk.Tk):
         for job in self._archive_open_jobs.values():
             job["cancel"].set()
             try:
+                job["bar"].stop()
                 job["progress"].destroy()
             except tk.TclError:
                 pass
@@ -1910,6 +1976,8 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(visibility, tr("Show File Extension"), self.show_extensions_var,
                                self.set_extension_visibility)
         add_scaled_cascade(view, tr("File Visibility"), visibility)
+        add_scaled_checkbutton(view, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
+                               self.set_mix_sorting)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
                              ("Large (200%)", "large"), ("Huge (300%)", "huge")):
@@ -1947,6 +2015,7 @@ class Commander(tk.Tk):
         versions_button.pack(side="left")
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
         versions.add_command(label=tr("Current version: v{version}", version=__version__), state="disabled")
+        versions.add_command(label=tr("Check Update"), command=self.check_update)
         versions.add_separator()
         version_series = []
         for version, build_date, notes in VERSION_HISTORY:
@@ -1993,6 +2062,7 @@ class Commander(tk.Tk):
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
+            "File/Folder Mix Sorting": "Sort files and folders together; disable to keep folders first.",
             "Color Scheme": "Choose the overall application contrast and colors.",
             "Extension Effect": "Apply syntax colors and Markdown rendering in F3 Preview.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
@@ -2002,6 +2072,7 @@ class Commander(tk.Tk):
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
         version_help = {
+            tr("Check Update"): tr("Check GitHub for a newer portable pfc.py."),
             **{tr("{series} Changes", series=series): f"Show every {series} release in one window."
                for series in version_series},
             tr("Yoda — Portable App Advocate"):
@@ -2322,6 +2393,7 @@ class Commander(tk.Tk):
         target.folder_selections = dict(source.folder_selections)
         target.sort_column = source.sort_column
         target.reverse = source.reverse
+        target.mix_sorting = source.mix_sorting
         target.show_hidden = source.show_hidden
         target.show_system = source.show_system
         target.show_extensions = source.show_extensions
@@ -2668,25 +2740,50 @@ class Commander(tk.Tk):
         results = queue.Queue()
 
         def runner():
-            try: results.put((True, work()))
-            except Exception as exc: results.put((False, exc))
+            try:
+                results.put((True, work()))
+            except BaseException as exc:
+                results.put((False, exc))
 
-        threading.Thread(target=runner, daemon=True, name=f"PFC-{title}").start()
+        worker = threading.Thread(target=runner, daemon=True, name=f"PFC-{title}")
+        worker.start()
+
+        finished = False
+        def finish_window():
+            nonlocal finished
+            if finished:
+                return
+            finished = True
+            try: progress.stop()
+            except tk.TclError: pass
+            try:
+                if window.winfo_exists(): window.destroy()
+            except tk.TclError:
+                pass
 
         def poll():
             try: success, payload = results.get_nowait()
             except queue.Empty:
-                if window.winfo_exists(): window.after(50, poll)
+                if not worker.is_alive():
+                    finish_window()
+                    messagebox.showerror(tr(title), tr("The operation ended without a result."),
+                                         parent=self)
+                elif self.winfo_exists():
+                    self.after(50, poll)
                 return
-            progress.stop(); window.destroy()
+            finish_window()
             if success:
-                done(payload)
+                try:
+                    done(payload)
+                except Exception as exc:
+                    messagebox.showerror(tr(title), str(exc), parent=self)
             else:
                 error_title = {"Compressing…": "Compression failed",
-                               "Extracting…": "Extraction failed"}.get(title, title)
+                               "Extracting…": "Extraction failed",
+                               "Checking for updates…": "Update check failed"}.get(title, title)
                 messagebox.showerror(tr(error_title), str(payload), parent=self)
 
-        window.after(50, poll)
+        self.after(50, poll)
 
     def create_shortcuts_to_clipboard(self) -> None:
         source, _target = self.panes()
@@ -2976,6 +3073,50 @@ class Commander(tk.Tk):
         self.version_text.configure(state="disabled")
         self.version_text.yview_moveto(position)
 
+    def _portable_script_path(self) -> Path:
+        launched = Path(sys.argv[0]).resolve()
+        if launched.name.casefold() == "pfc.py":
+            return launched
+        bundled = Path(__file__).resolve()
+        if bundled.name.casefold() == "pfc.py":
+            return bundled
+        return bundled.parents[1] / "pfc.py"
+
+    def _restart_updated_script(self, target: Path) -> None:
+        executable = Path(sys.executable)
+        environment = os.environ.copy()
+        if os.name == "nt" and "pythonw" not in executable.name.casefold():
+            gui_name = re.sub("^python", "pythonw", executable.name,
+                              count=1, flags=re.IGNORECASE)
+            gui_executable = executable.with_name(gui_name)
+            if gui_executable.is_file():
+                executable = gui_executable
+                environment["PFC_PYTHONW"] = "1"
+        subprocess.Popen([str(executable), str(target)], cwd=str(target.parent),
+                         env=environment, close_fds=True)
+        self.after(50, self.close_app)
+
+    def check_update(self) -> None:
+        def checked(result) -> None:
+            remote_version, payload = result
+            if version_key(remote_version) <= version_key(__version__):
+                messagebox.showinfo(tr("Check Update"),
+                                    tr("PFC is up to date (v{version}).", version=__version__),
+                                    parent=self)
+                return
+            prompt = tr("Found newer ver {version}, proceed to Update?",
+                        version=remote_version)
+            if not messagebox.askyesno(tr("Check Update"), prompt, parent=self):
+                return
+            target = self._portable_script_path()
+            try:
+                replace_portable_script(target, payload)
+                self._restart_updated_script(target)
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                messagebox.showerror(tr("Update failed"), str(exc), parent=self)
+
+        self._run_progress_operation("Checking for updates…", fetch_pfc_update, checked)
+
     def show_yoda_note(self) -> None:
         body = (
             "Yoda is the advocate who helped bring this portable app into being.\n\n"
@@ -3075,9 +3216,9 @@ class Commander(tk.Tk):
         x = self.winfo_rootx() + max(0, (self.winfo_width() - progress.winfo_width()) // 2)
         y = self.winfo_rooty() + max(0, (self.winfo_height() - progress.winfo_height()) // 3)
         progress.geometry(f"+{x}+{y}")
-        progress.lift()
+        progress.deiconify(); progress.lift(); progress.focus_force(); progress.update()
         self._archive_open_jobs[pane] = {
-            "token": token, "cancel": cancel_event, "progress": progress,
+            "token": token, "cancel": cancel_event, "progress": progress, "bar": bar,
             "path": item, "on_ready": on_ready,
         }
 
@@ -3108,6 +3249,7 @@ class Commander(tk.Tk):
                 continue
             self._archive_open_jobs.pop(pane, None)
             try:
+                job["bar"].stop()
                 job["progress"].destroy()
             except tk.TclError:
                 pass
@@ -3374,6 +3516,14 @@ class Commander(tk.Tk):
     def set_extension_effect(self) -> None:
         if self.preview_window is not None and self.preview_window.winfo_exists():
             self.preview_window.set_extension_effect(self.extension_effect_var.get())
+        self.save_config()
+
+    def set_mix_sorting(self) -> None:
+        enabled = self.mix_sorting_var.get()
+        FilePane.default_mix_sorting = enabled
+        for pane in self.all_panes():
+            pane.mix_sorting = enabled
+            pane.refresh()
         self.save_config()
 
     def compare_selected(self) -> None:

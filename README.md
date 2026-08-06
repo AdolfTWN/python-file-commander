@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.15.2 — Hierarchical Trees & Visual Identity**
+Current version: **v0.15.3 — Portable Updates & Reliable Progress**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -70,6 +70,8 @@ Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copi
 
 Every panel keeps an always-visible Quick Filter at its bottom. Ctrl+Y focuses the active panel's filter for immediate typing. The active panel instantly hides non-matching names; Enter returns to the file list and Esc or the × button clears the filter without hiding it. Filter text is stored with each tab in `pfc.ini`.
 
+`View > File/Folder Mix Sorting` is enabled by default so files and folders share the selected column order. Disable it to keep folders grouped before files.
+
 F2 opens Multi-Rename when two or more items are selected. `[N]`, `[C]`, and `[E]` masks, find/replace, case matching, counter start/digits, and extension preservation update a live Old/New/Status preview. Invalid names, duplicates, and existing targets block execution. Batch renames use temporary names so swaps are safe, roll back on failure, and Ctrl+Z restores the last successful batch in the current session.
 
 Keyboard navigation is end-to-end: Tab switches panels, Ctrl+Tab and Ctrl+Shift+Tab cycle the active panel's tabs, Ctrl+L focuses the path, Esc returns to the file list, Alt+F/Alt+V open the header menus, and F1 (or clicking the Python File Commander header) opens the built-in keyboard guide.
@@ -89,6 +91,8 @@ Visible folders auto-refresh adaptively: every 2 seconds while PFC is focused, e
 `View > Font Size > Auto Font Size` is enabled by default and selects Small, Medium, Large, or Huge from the current window height and available width per visible panel. Choosing a size manually turns Auto Font Size off. Fonts, the in-client application header and menus, tab geometry, path controls, row heights, native Shell icons, and the icon gutter scale and reflow together. Both the switch and current choice are saved in `pfc.ini`. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
 
 All persistent state is kept in the single `pfc.ini` beside `pfc.py`. If it is absent, PFC creates it with safe defaults on first launch. It is updated after navigation, tab, sorting, display, active-panel, hotkey, and window changes so tabs and paths survive an unexpected shutdown. Hotkeys can be changed in its `[hotkeys]` section.
+
+`Versions > Check Update` checks the project's GitHub `main` copy for a newer portable `pfc.py`. PFC applies a timeout and size limit, validates its declared version and Python syntax, asks before updating, atomically replaces the local script, then closes the old process and launches the new copy.
 
 > File operations use your current account permissions. Del uses the Windows Recycle Bin or Ubuntu FreeDesktop Trash by default; Shift+Del always shows an irreversible permanent-delete warning. Network locations are never silently treated as safely recyclable.
 

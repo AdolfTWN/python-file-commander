@@ -64,6 +64,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.": "新增：版本 > 檢查更新會安全驗證較新的 GitHub pfc.py，經同意後原子替換可攜式副本並重新啟動 PFC。",
+        "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.": "修正：搜尋與背景作業進度視窗在成功、取消、非預期錯誤或工作未傳回結果時都能可靠停止。",
+        "Adjusted: Archive-folder loading immediately raises a cancellable progress window and explicitly stops it when ZIP/7z preparation finishes.": "調整：載入壓縮檔資料夾時立即顯示可取消的進度視窗，ZIP／7z 準備完成後會明確停止。",
+        "Added: File/Folder Mix Sorting is enabled by default, with a View switch to restore folders-first grouping.": "新增：預設啟用檔案／資料夾混合排序，並可從檢視選單恢復資料夾優先分組。",
         "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.": "調整：資料夾樹與檔案樹現在以目前路徑作為單一根節點，並提供連接線、縮排及可展開的巢狀節點。",
         "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.": "調整：應用程式徽章改為紅黑交錯箭頭標誌，並加入亮色外框以提高深色工作列對比。",
         "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "新增：每個面板可切換清單、資料夾樹及檔案樹檢視，並採用延遲展開資料夾。",
@@ -81,6 +85,14 @@ _TRANSLATIONS = {
         "Extract to Folder": "解壓縮至資料夾", "Archive": "壓縮檔", "Compression failed": "壓縮失敗",
         "Extraction failed": "解壓縮失敗", "Open terminal failed": "開啟終端機失敗",
         "List": "清單", "File": "檔案", "Folder Tree": "資料夾樹狀檢視", "File Tree": "檔案樹狀檢視",
+        "File/Folder Mix Sorting": "檔案／資料夾混合排序",
+        "Sort files and folders together; disable to keep folders first.": "將檔案與資料夾混合排序；停用後資料夾會保持在前。",
+        "Check Update": "檢查更新", "Check GitHub for a newer portable pfc.py.": "檢查 GitHub 是否有較新的可攜式 pfc.py。",
+        "Checking for updates…": "正在檢查更新…", "Update check failed": "更新檢查失敗",
+        "The operation ended without a result.": "作業已結束，但未傳回結果。",
+        "PFC is up to date (v{version}).": "PFC 已是最新版本（v{version}）。",
+        "Found newer ver {version}, proceed to Update?": "找到較新版本 {version}，是否繼續更新？",
+        "Update failed": "更新失敗",
         "{mode} — {count} items": "{mode} — {count} 個項目",
         "Create Shortcut & Send to Clipboard": "建立捷徑並送至剪貼簿",
         "Create shortcut failed": "建立捷徑失敗", "Compressing…": "正在壓縮…",
@@ -238,6 +250,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.": "新增：版本 > 检查更新会安全验证较新的 GitHub pfc.py，经同意后原子替换便携式副本并重新启动 PFC。",
+        "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.": "修复：搜索与后台操作进度窗口在成功、取消、意外错误或任务未返回结果时都能可靠停止。",
+        "Adjusted: Archive-folder loading immediately raises a cancellable progress window and explicitly stops it when ZIP/7z preparation finishes.": "调整：加载压缩文件夹时立即显示可取消的进度窗口，ZIP／7z 准备完成后会明确停止。",
+        "Added: File/Folder Mix Sorting is enabled by default, with a View switch to restore folders-first grouping.": "新增：默认启用文件／文件夹混合排序，并可从查看菜单恢复文件夹优先分组。",
         "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.": "调整：文件夹树和文件树现在以当前路径作为单一根节点，并提供连接线、缩进及可展开的嵌套节点。",
         "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.": "调整：应用程序徽标改为红黑交错箭头标志，并加入亮色轮廓以提高深色任务栏对比度。",
         "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "新增：每个面板可切换列表、文件夹树及文件树视图，并采用延迟展开文件夹。",
@@ -255,6 +271,14 @@ _TRANSLATIONS = {
         "Extract to Folder": "解压到文件夹", "Archive": "压缩包", "Compression failed": "压缩失败",
         "Extraction failed": "解压失败", "Open terminal failed": "打开终端失败",
         "List": "列表", "File": "文件", "Folder Tree": "文件夹树视图", "File Tree": "文件树视图",
+        "File/Folder Mix Sorting": "文件／文件夹混合排序",
+        "Sort files and folders together; disable to keep folders first.": "将文件与文件夹混合排序；停用后文件夹会保持在前。",
+        "Check Update": "检查更新", "Check GitHub for a newer portable pfc.py.": "检查 GitHub 是否有较新的便携式 pfc.py。",
+        "Checking for updates…": "正在检查更新…", "Update check failed": "更新检查失败",
+        "The operation ended without a result.": "操作已结束，但未返回结果。",
+        "PFC is up to date (v{version}).": "PFC 已是最新版本（v{version}）。",
+        "Found newer ver {version}, proceed to Update?": "发现较新版本 {version}，是否继续更新？",
+        "Update failed": "更新失败",
         "{mode} — {count} items": "{mode} — {count} 个项目",
         "Create Shortcut & Send to Clipboard": "创建快捷方式并发送到剪贴板",
         "Create shortcut failed": "创建快捷方式失败", "Compressing…": "正在压缩…",
@@ -385,6 +409,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.": "추가: 버전 > 업데이트 확인에서 최신 GitHub pfc.py를 안전하게 검증하고 승인 후 휴대용 파일을 원자적으로 교체한 뒤 PFC를 다시 시작합니다.",
+        "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.": "수정: 검색 및 백그라운드 작업 진행 창이 성공, 취소, 예기치 않은 오류 또는 작업 결과 누락 시에도 안정적으로 멈춥니다.",
+        "Adjusted: Archive-folder loading immediately raises a cancellable progress window and explicitly stops it when ZIP/7z preparation finishes.": "조정: 압축 파일 폴더를 불러올 때 취소 가능한 진행 창을 즉시 표시하고 ZIP/7z 준비가 끝나면 명확히 중지합니다.",
+        "Added: File/Folder Mix Sorting is enabled by default, with a View switch to restore folders-first grouping.": "추가: 파일/폴더 혼합 정렬을 기본으로 켜고 보기 메뉴에서 폴더 우선 그룹으로 되돌릴 수 있습니다.",
         "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.": "조정: 폴더 트리와 파일 트리가 현재 경로를 하나의 루트로 사용하며 연결선, 들여쓰기 및 확장 가능한 중첩 노드를 제공합니다.",
         "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.": "조정: 앱 배지를 빨강과 검정이 맞물린 화살표 표식으로 바꾸고 어두운 작업 표시줄 대비를 위한 밝은 외곽선을 추가했습니다.",
         "Added: Each panel can switch between List, Folder Tree, and File Tree views with lazy folder expansion.": "추가: 각 패널에서 목록, 폴더 트리, 파일 트리 보기를 전환하고 폴더를 지연 확장할 수 있습니다.",
@@ -402,6 +430,14 @@ _TRANSLATIONS = {
         "Extract to Folder": "폴더에 압축 풀기", "Archive": "압축 파일", "Compression failed": "압축 실패",
         "Extraction failed": "압축 풀기 실패", "Open terminal failed": "터미널 열기 실패",
         "List": "목록", "File": "파일", "Folder Tree": "폴더 트리", "File Tree": "파일 트리",
+        "File/Folder Mix Sorting": "파일/폴더 혼합 정렬",
+        "Sort files and folders together; disable to keep folders first.": "파일과 폴더를 함께 정렬합니다. 끄면 폴더가 먼저 유지됩니다.",
+        "Check Update": "업데이트 확인", "Check GitHub for a newer portable pfc.py.": "GitHub에서 더 새로운 휴대용 pfc.py를 확인합니다.",
+        "Checking for updates…": "업데이트 확인 중…", "Update check failed": "업데이트 확인 실패",
+        "The operation ended without a result.": "작업이 결과 없이 종료되었습니다.",
+        "PFC is up to date (v{version}).": "PFC가 최신 버전입니다(v{version}).",
+        "Found newer ver {version}, proceed to Update?": "새 버전 {version}을 찾았습니다. 업데이트하시겠습니까?",
+        "Update failed": "업데이트 실패",
         "{mode} — {count} items": "{mode} — 항목 {count}개",
         "Create Shortcut & Send to Clipboard": "바로 가기를 만들어 클립보드로 보내기",
         "Create shortcut failed": "바로 가기 만들기 실패", "Compressing…": "압축 중…",
@@ -5218,7 +5254,8 @@ class SearchWindow(tk.Toplevel):
                         self.messages.put(("item", path, stat)); count += 1
                     except OSError: continue
             self.messages.put(("done", count, self.cancel_event.is_set(), count >= RESULT_LIMIT))
-        except OSError as exc: self.messages.put(("error", str(exc)))
+        except BaseException as exc:
+            self.messages.put(("error", str(exc)))
 
     def _poll(self):
         processed = 0
@@ -5244,10 +5281,12 @@ class SearchWindow(tk.Toplevel):
                 suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
                 self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self.progress.stop(); self.progress.configure(mode="determinate", value=100)
+                self.worker = None
                 self._apply_sort()
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self.progress.stop(); self.progress.configure(mode="determinate", value=0)
+                self.worker = None
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
         if not self.messages.empty() or (self.worker and self.worker.is_alive()):
             self.poll_job = self.after(40, self._poll)
@@ -6668,6 +6707,7 @@ import configparser
 import ctypes
 import json
 import queue
+import re
 import shutil
 import subprocess
 import sys
@@ -6675,18 +6715,27 @@ import tempfile
 import threading
 import tkinter as tk
 import tkinter.font as tkfont
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.15.2"
+__version__ = "0.15.3"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
+UPDATE_URL = "https://raw.githubusercontent.com/AdolfTWN/python-file-commander/main/pfc.py"
+UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/06"
+BUILD_DATE = "2026/08/07"
 VERSION_HISTORY = (
+    ("v0.15.3", "2026/08/07", (
+        "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.",
+        "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.",
+        "Adjusted: Archive-folder loading immediately raises a cancellable progress window and explicitly stops it when ZIP/7z preparation finishes.",
+        "Added: File/Folder Mix Sorting is enabled by default, with a View switch to restore folders-first grouping.",
+    )),
     ("v0.15.2", "2026/08/06", (
         "Adjusted: Folder and File Tree views now use the current path as one root with connector lines, indentation, and expandable nested nodes.",
         "Adjusted: Replaced the app badge with a red-and-black interlocking-arrow mark and a light outline for dark-taskbar contrast.",
@@ -6815,7 +6864,8 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
     defaults = {
         "view": {"font_size": "small", "auto_font_size": "true",
                  "tab_style": "right_skirt", "panel_count": "2",
-                 "ui_language": "en", "color_scheme": "light", "extension_effect": "true"},
+                 "ui_language": "en", "color_scheme": "light", "extension_effect": "true",
+                 "mix_sorting": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -6978,6 +7028,49 @@ def transfer_target_index(source_index: int, panel_count: int) -> int:
     return 1 if source_index == 0 else source_index - 1
 
 
+def version_key(value: str) -> tuple[int, ...]:
+    """Return a comparable numeric key for a dotted PFC version."""
+    parts = value.strip().lstrip("vV").split(".")
+    if not parts or any(not part.isdigit() for part in parts):
+        raise ValueError(f"Invalid PFC version: {value}")
+    return tuple(int(part) for part in parts)
+
+
+def downloaded_pfc_version(payload: bytes) -> str:
+    """Validate a downloaded portable script and return its declared version."""
+    if not payload or len(payload) > UPDATE_SIZE_LIMIT:
+        raise ValueError("Downloaded pfc.py has an invalid size.")
+    source = payload.decode("utf-8")
+    match = re.search(r'^__version__\s*=\s*["\'](\d+\.\d+\.\d+)["\']',
+                      source, re.MULTILINE)
+    if match is None or "Python File Commander" not in source:
+        raise ValueError("Downloaded file is not a valid PFC portable script.")
+    compile(source, "pfc.py", "exec")
+    return match.group(1)
+
+
+def fetch_pfc_update(url: str = UPDATE_URL) -> tuple[str, bytes]:
+    request = urllib.request.Request(url, headers={"User-Agent": "Python-File-Commander-Updater"})
+    with urllib.request.urlopen(request, timeout=20) as response:
+        declared = response.headers.get("Content-Length")
+        if declared and int(declared) > UPDATE_SIZE_LIMIT:
+            raise ValueError("Downloaded pfc.py is too large.")
+        payload = response.read(UPDATE_SIZE_LIMIT + 1)
+    return downloaded_pfc_version(payload), payload
+
+
+def replace_portable_script(target: Path, payload: bytes) -> None:
+    """Atomically replace pfc.py only after full validation succeeds."""
+    downloaded_pfc_version(payload)
+    temporary = target.with_name(f".{target.name}.update")
+    try:
+        with temporary.open("wb") as stream:
+            stream.write(payload); stream.flush(); os.fsync(stream.fileno())
+        os.replace(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def is_noop_drag_drop(items: list[Path], destination: Path) -> bool:
     """Treat a drag back to its source folder (or onto itself) as cancellation."""
     if not items:
@@ -7068,6 +7161,7 @@ class FilePane(ttk.Frame):
     columns = ("ext", "size", "modified")
     all_sort_columns = ("name", "ext", "size", "modified")
     base_widths = {"name": 300, "ext": 55, "size": 85, "modified": 135}
+    default_mix_sorting = True
 
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None,
                  on_drag=lambda _action, _pane, _event: None,
@@ -7087,6 +7181,7 @@ class FilePane(ttk.Frame):
         self.folder_selections: dict[Path, Path] = {}
         self.sort_column = "name"
         self.reverse = False
+        self.mix_sorting = self.default_mix_sorting
         self.show_hidden = False
         self.show_system = False
         self.show_extensions = True
@@ -7231,10 +7326,12 @@ class FilePane(ttk.Frame):
                 stat = path.stat()
                 values = {"name": path.name.casefold(), "ext": path.suffix.casefold(),
                           "size": stat.st_size, "modified": stat.st_mtime}
-                return (not path.is_dir(), values[self.sort_column])
+                return values[self.sort_column]
             except OSError:
-                return (True, path.name.casefold())
+                return path.name.casefold()
         entries.sort(key=sort_key, reverse=self.reverse)
+        if not self.mix_sorting:
+            entries.sort(key=lambda path: not path.is_dir())
         added = 0
         for index, path in enumerate(entries):
             try:
@@ -7603,10 +7700,12 @@ class FilePane(ttk.Frame):
                     stat = p.stat()
                     values = {"name": p.name.lower(), "ext": p.suffix.lower(), "size": stat.st_size,
                               "modified": stat.st_mtime}
-                    return (not p.is_dir(), values[self.sort_column])
+                    return values[self.sort_column]
                 except OSError:
-                    return (True, p.name.lower())
+                    return p.name.lower()
             entries.sort(key=key, reverse=self.reverse)
+            if not self.mix_sorting:
+                entries.sort(key=lambda path: not path.is_dir())
             total = 0
             for p in entries:
                 try:
@@ -8081,6 +8180,9 @@ class Commander(tk.Tk):
         self.color_scheme_var = tk.StringVar(value=saved_scheme)
         self.extension_effect_var = tk.BooleanVar(
             value=self.config_data.getboolean("view", "extension_effect", fallback=True))
+        self.mix_sorting_var = tk.BooleanVar(
+            value=self.config_data.getboolean("view", "mix_sorting", fallback=True))
+        FilePane.default_mix_sorting = self.mix_sorting_var.get()
         self.palette = color_scheme(saved_scheme)
         saved_tab_style = self.config_data.get("view", "tab_style", fallback="right_skirt")
         if saved_tab_style == "compact":
@@ -8328,6 +8430,7 @@ class Commander(tk.Tk):
         for index, pane in enumerate(tabs.panes()):
             pane.sort_column = column if column in pane.all_sort_columns else "name"
             pane.reverse = descending
+            pane.mix_sorting = self.mix_sorting_var.get()
             pane.show_hidden = show_hidden
             pane.show_system = show_system
             pane.show_extensions = show_extensions
@@ -8401,6 +8504,7 @@ class Commander(tk.Tk):
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
         self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
         self.config_data.set("view", "extension_effect", str(self.extension_effect_var.get()).lower())
+        self.config_data.set("view", "mix_sorting", str(self.mix_sorting_var.get()).lower())
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
@@ -8438,6 +8542,7 @@ class Commander(tk.Tk):
         for job in self._archive_open_jobs.values():
             job["cancel"].set()
             try:
+                job["bar"].stop()
                 job["progress"].destroy()
             except tk.TclError:
                 pass
@@ -8560,6 +8665,8 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(visibility, tr("Show File Extension"), self.show_extensions_var,
                                self.set_extension_visibility)
         add_scaled_cascade(view, tr("File Visibility"), visibility)
+        add_scaled_checkbutton(view, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
+                               self.set_mix_sorting)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
                              ("Large (200%)", "large"), ("Huge (300%)", "huge")):
@@ -8597,6 +8704,7 @@ class Commander(tk.Tk):
         versions_button.pack(side="left")
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
         versions.add_command(label=tr("Current version: v{version}", version=__version__), state="disabled")
+        versions.add_command(label=tr("Check Update"), command=self.check_update)
         versions.add_separator()
         version_series = []
         for version, build_date, notes in VERSION_HISTORY:
@@ -8643,6 +8751,7 @@ class Commander(tk.Tk):
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
             "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
             "File Visibility": "Choose which file names and attributes are visible.",
+            "File/Folder Mix Sorting": "Sort files and folders together; disable to keep folders first.",
             "Color Scheme": "Choose the overall application contrast and colors.",
             "Extension Effect": "Apply syntax colors and Markdown rendering in F3 Preview.",
             "Font Size": "Scale PFC fonts, controls, tabs and icons.",
@@ -8652,6 +8761,7 @@ class Commander(tk.Tk):
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
         version_help = {
+            tr("Check Update"): tr("Check GitHub for a newer portable pfc.py."),
             **{tr("{series} Changes", series=series): f"Show every {series} release in one window."
                for series in version_series},
             tr("Yoda — Portable App Advocate"):
@@ -8972,6 +9082,7 @@ class Commander(tk.Tk):
         target.folder_selections = dict(source.folder_selections)
         target.sort_column = source.sort_column
         target.reverse = source.reverse
+        target.mix_sorting = source.mix_sorting
         target.show_hidden = source.show_hidden
         target.show_system = source.show_system
         target.show_extensions = source.show_extensions
@@ -9318,25 +9429,50 @@ class Commander(tk.Tk):
         results = queue.Queue()
 
         def runner():
-            try: results.put((True, work()))
-            except Exception as exc: results.put((False, exc))
+            try:
+                results.put((True, work()))
+            except BaseException as exc:
+                results.put((False, exc))
 
-        threading.Thread(target=runner, daemon=True, name=f"PFC-{title}").start()
+        worker = threading.Thread(target=runner, daemon=True, name=f"PFC-{title}")
+        worker.start()
+
+        finished = False
+        def finish_window():
+            nonlocal finished
+            if finished:
+                return
+            finished = True
+            try: progress.stop()
+            except tk.TclError: pass
+            try:
+                if window.winfo_exists(): window.destroy()
+            except tk.TclError:
+                pass
 
         def poll():
             try: success, payload = results.get_nowait()
             except queue.Empty:
-                if window.winfo_exists(): window.after(50, poll)
+                if not worker.is_alive():
+                    finish_window()
+                    messagebox.showerror(tr(title), tr("The operation ended without a result."),
+                                         parent=self)
+                elif self.winfo_exists():
+                    self.after(50, poll)
                 return
-            progress.stop(); window.destroy()
+            finish_window()
             if success:
-                done(payload)
+                try:
+                    done(payload)
+                except Exception as exc:
+                    messagebox.showerror(tr(title), str(exc), parent=self)
             else:
                 error_title = {"Compressing…": "Compression failed",
-                               "Extracting…": "Extraction failed"}.get(title, title)
+                               "Extracting…": "Extraction failed",
+                               "Checking for updates…": "Update check failed"}.get(title, title)
                 messagebox.showerror(tr(error_title), str(payload), parent=self)
 
-        window.after(50, poll)
+        self.after(50, poll)
 
     def create_shortcuts_to_clipboard(self) -> None:
         source, _target = self.panes()
@@ -9626,6 +9762,50 @@ class Commander(tk.Tk):
         self.version_text.configure(state="disabled")
         self.version_text.yview_moveto(position)
 
+    def _portable_script_path(self) -> Path:
+        launched = Path(sys.argv[0]).resolve()
+        if launched.name.casefold() == "pfc.py":
+            return launched
+        bundled = Path(__file__).resolve()
+        if bundled.name.casefold() == "pfc.py":
+            return bundled
+        return bundled.parents[1] / "pfc.py"
+
+    def _restart_updated_script(self, target: Path) -> None:
+        executable = Path(sys.executable)
+        environment = os.environ.copy()
+        if os.name == "nt" and "pythonw" not in executable.name.casefold():
+            gui_name = re.sub("^python", "pythonw", executable.name,
+                              count=1, flags=re.IGNORECASE)
+            gui_executable = executable.with_name(gui_name)
+            if gui_executable.is_file():
+                executable = gui_executable
+                environment["PFC_PYTHONW"] = "1"
+        subprocess.Popen([str(executable), str(target)], cwd=str(target.parent),
+                         env=environment, close_fds=True)
+        self.after(50, self.close_app)
+
+    def check_update(self) -> None:
+        def checked(result) -> None:
+            remote_version, payload = result
+            if version_key(remote_version) <= version_key(__version__):
+                messagebox.showinfo(tr("Check Update"),
+                                    tr("PFC is up to date (v{version}).", version=__version__),
+                                    parent=self)
+                return
+            prompt = tr("Found newer ver {version}, proceed to Update?",
+                        version=remote_version)
+            if not messagebox.askyesno(tr("Check Update"), prompt, parent=self):
+                return
+            target = self._portable_script_path()
+            try:
+                replace_portable_script(target, payload)
+                self._restart_updated_script(target)
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                messagebox.showerror(tr("Update failed"), str(exc), parent=self)
+
+        self._run_progress_operation("Checking for updates…", fetch_pfc_update, checked)
+
     def show_yoda_note(self) -> None:
         body = (
             "Yoda is the advocate who helped bring this portable app into being.\n\n"
@@ -9725,9 +9905,9 @@ class Commander(tk.Tk):
         x = self.winfo_rootx() + max(0, (self.winfo_width() - progress.winfo_width()) // 2)
         y = self.winfo_rooty() + max(0, (self.winfo_height() - progress.winfo_height()) // 3)
         progress.geometry(f"+{x}+{y}")
-        progress.lift()
+        progress.deiconify(); progress.lift(); progress.focus_force(); progress.update()
         self._archive_open_jobs[pane] = {
-            "token": token, "cancel": cancel_event, "progress": progress,
+            "token": token, "cancel": cancel_event, "progress": progress, "bar": bar,
             "path": item, "on_ready": on_ready,
         }
 
@@ -9758,6 +9938,7 @@ class Commander(tk.Tk):
                 continue
             self._archive_open_jobs.pop(pane, None)
             try:
+                job["bar"].stop()
                 job["progress"].destroy()
             except tk.TclError:
                 pass
@@ -10024,6 +10205,14 @@ class Commander(tk.Tk):
     def set_extension_effect(self) -> None:
         if self.preview_window is not None and self.preview_window.winfo_exists():
             self.preview_window.set_extension_effect(self.extension_effect_var.get())
+        self.save_config()
+
+    def set_mix_sorting(self) -> None:
+        enabled = self.mix_sorting_var.get()
+        FilePane.default_mix_sorting = enabled
+        for pane in self.all_panes():
+            pane.mix_sorting = enabled
+            pane.refresh()
         self.save_config()
 
     def compare_selected(self) -> None:

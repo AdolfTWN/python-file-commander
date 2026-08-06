@@ -338,7 +338,8 @@ class SearchWindow(tk.Toplevel):
                         self.messages.put(("item", path, stat)); count += 1
                     except OSError: continue
             self.messages.put(("done", count, self.cancel_event.is_set(), count >= RESULT_LIMIT))
-        except OSError as exc: self.messages.put(("error", str(exc)))
+        except BaseException as exc:
+            self.messages.put(("error", str(exc)))
 
     def _poll(self):
         processed = 0
@@ -364,10 +365,12 @@ class SearchWindow(tk.Toplevel):
                 suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
                 self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self.progress.stop(); self.progress.configure(mode="determinate", value=100)
+                self.worker = None
                 self._apply_sort()
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self.progress.stop(); self.progress.configure(mode="determinate", value=0)
+                self.worker = None
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
         if not self.messages.empty() or (self.worker and self.worker.is_alive()):
             self.poll_job = self.after(40, self._poll)

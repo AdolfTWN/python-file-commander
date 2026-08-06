@@ -38,6 +38,10 @@ def main() -> None:
                                  if app.view_menu.type(index) == "cascade"]
             assert len(hierarchy_indexes) == 6
             assert app.color_scheme_var.get() == "light"
+            assert app.mix_sorting_var.get()
+            assert any(app.versions_menu.entrycget(index, "label") == "Check Update"
+                       for index in range(app.versions_menu.index("end") + 1)
+                       if app.versions_menu.type(index) == "command")
             assert app.color_scheme_menu.index("end") == 2
             app.color_scheme_var.set("dark"); app.apply_color_scheme(save=False)
             app.update_idletasks()
@@ -140,7 +144,7 @@ def main() -> None:
                               if app.versions_menu.type(index) in {"command", "cascade"}]
             expected_series = ("v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
                                "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
-            assert version_labels == ([f"Current version: v{pfc.__version__}"] +
+            assert version_labels == ([f"Current version: v{pfc.__version__}", "Check Update"] +
                                       [f"{series} Changes" for series in expected_series] +
                                       ["Yoda — Portable App Advocate"])
             assert app.version_series == expected_series
@@ -333,6 +337,14 @@ def main() -> None:
             source_pane.clear_quick_filter(); app.update()
             assert len(source_pane.tree.get_children()) == 2
             assert source_pane.quick_filter_bar.winfo_manager() == "pack"
+            mixed_root = Path(raw) / "mixed-sort"; mixed_root.mkdir()
+            (mixed_root / "z-folder").mkdir()
+            (mixed_root / "a-file.txt").write_text("a", encoding="utf-8")
+            source_pane.navigate(mixed_root); app.update()
+            assert Path(source_pane.tree.item(source_pane.tree.get_children()[0], "tags")[0]).is_file()
+            app.mix_sorting_var.set(False); app.set_mix_sorting(); app.update()
+            assert Path(source_pane.tree.item(source_pane.tree.get_children()[0], "tags")[0]).is_dir()
+            app.mix_sorting_var.set(True); app.set_mix_sorting(); app.update()
             tree_root = Path(raw) / "tree-modes"; tree_root.mkdir()
             branch = tree_root / "branch"; branch.mkdir(); (branch / "leaf").mkdir()
             (tree_root / "root-file.txt").write_text("tree", encoding="utf-8")
@@ -360,6 +372,18 @@ def main() -> None:
             source_pane.cycle_view_mode(); source_pane.navigate(quick_root); app.update()
             assert source_pane.view_mode == "list"
             assert "headings" in str(source_pane.tree.cget("show"))
+            archive_path = Path(raw) / "visible-progress.zip"
+            with pfc.zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("folder/item.txt", "archive")
+            assert app._open_special_file(source_pane, archive_path)
+            archive_job = app._archive_open_jobs[source_pane]
+            assert archive_job["progress"].winfo_exists()
+            assert archive_job["bar"].winfo_manager() == "pack"
+            deadline = time.time() + 3
+            while source_pane in app._archive_open_jobs and time.time() < deadline:
+                app.update(); time.sleep(0.01)
+            assert source_pane.archive_session is not None
+            app._exit_archive(source_pane); source_pane.navigate(quick_root); app.update()
             app.set_active(source_pane); app.search(); app.update()
             search_window = app.search_window
             assert search_window is not None and search_window.progress.winfo_manager() == "grid"
@@ -380,6 +404,22 @@ def main() -> None:
             while not progress_results and time.time() < deadline:
                 app.update(); time.sleep(0.01)
             assert progress_results == ["done"]
+            progress_errors = []
+            original_showerror = pfc.messagebox.showerror
+            pfc.messagebox.showerror = lambda title, body, **_kwargs: progress_errors.append((title, body))
+            try:
+                app._run_progress_operation("Extracting…",
+                                            lambda: (_ for _ in ()).throw(OSError("expected")),
+                                            lambda _value: None)
+                deadline = time.time() + 2
+                while not progress_errors and time.time() < deadline:
+                    app.update(); time.sleep(0.01)
+            finally:
+                pfc.messagebox.showerror = original_showerror
+            assert progress_errors and progress_errors[0][0] == "Extraction failed"
+            assert not [widget for widget in app.winfo_children()
+                        if isinstance(widget, pfc.tk.Toplevel) and
+                        widget.title() == "Extracting…"]
             source_pane.tree.selection_set(source_pane.tree.get_children())
             app.set_active(source_pane); app.update()
             assert app.action_button_by_hotkey["F2"].cget("text") == "F2 Multi-Rename"
