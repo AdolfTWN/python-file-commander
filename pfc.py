@@ -64,6 +64,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "修正：Git／SVN 狀態檢查不再顯示命令列視窗，狀態未改變時也不再重繪或閃爍檔案清單。",
+        "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "調整：Git／SVN 覆蓋圖示改用抗鋸齒狀態符號與深淺雙層外框，在各種圖示及配色下均保持清楚對比。",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "調整：字型大小現在提供 100%、125%、150%、200% 與 250% 五段級距，自動調整也會使用全部五段。",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "調整：過長檔名與比較目標路徑會從中間省略，游標停留三秒後顯示完整名稱。",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修正：ZIP／7z 解壓縮與壓縮檔比較支援 Windows 延伸長度目的路徑。",
@@ -263,6 +265,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "修复：Git／SVN 状态检查不再显示命令行窗口，状态未变化时也不再重绘或闪烁文件列表。",
+        "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "调整：Git／SVN 叠加图标改用抗锯齿状态符号与深浅双层轮廓，在各种图标和配色下均保持清晰对比。",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "调整：字体大小现在提供 100%、125%、150%、200% 和 250% 五档级别，自动调整也会使用全部五档。",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "调整：过长文件名与比较目标路径会从中间省略，光标停留三秒后显示完整名称。",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修复：ZIP／7z 解压缩与压缩文件比较支持 Windows 扩展长度目标路径。",
@@ -435,6 +439,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "수정: Git/SVN 상태 확인 시 콘솔 창을 표시하지 않으며 결과가 바뀌지 않으면 파일 목록을 다시 그리거나 깜박이지 않습니다.",
+        "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "조정: Git/SVN 오버레이에 안티앨리어싱 상태 기호와 어둡고 밝은 이중 외곽선을 적용하여 모든 아이콘과 색상 구성에서 선명한 대비를 유지합니다.",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "조정: 글꼴 크기에 100%, 125%, 150%, 200%, 250%의 다섯 단계를 제공하며 자동 크기 조절도 모든 단계를 사용합니다.",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "조정: 긴 파일 이름과 비교 대상 경로를 가운데 생략하고 3초 동안 가리키면 전체 이름을 표시합니다.",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "수정: ZIP/7z 압축 풀기와 압축 파일 비교에서 Windows 확장 길이 대상 경로를 지원합니다.",
@@ -1199,6 +1205,16 @@ from pathlib import Path
 from tkinter import PhotoImage
 
 
+VCS_BADGE_SPECS = {
+    "clean": ("#218838", "check", "#ffffff"),
+    "modified": ("#e02f2f", "alert", "#ffffff"),
+    "added": ("#1266b3", "plus", "#ffffff"),
+    "untracked": ("#6f42c1", "question", "#ffffff"),
+    "deleted": ("#a80f20", "minus", "#ffffff"),
+    "conflict": ("#f2b705", "cross", "#171717"),
+}
+
+
 class _SHFILEINFO(ctypes.Structure):
     _fields_ = [("hIcon", ctypes.c_void_p), ("iIcon", ctypes.c_int),
                 ("dwAttributes", ctypes.c_uint32), ("szDisplayName", ctypes.c_wchar * 260),
@@ -1354,6 +1370,113 @@ def create_pfc_icon(size: int = 32) -> PhotoImage:
     return PhotoImage(data=encoded, format="png")
 
 
+def _rgba_png_downsample(pixels: bytearray, output_size: int, supersample: int) -> bytes:
+    canvas_size = output_size * supersample
+    rgba = bytearray()
+    for row in range(output_size):
+        rgba.append(0)
+        for column in range(output_size):
+            samples = []
+            for sub_y in range(supersample):
+                for sub_x in range(supersample):
+                    index = (((row * supersample + sub_y) * canvas_size +
+                              column * supersample + sub_x) * 4)
+                    samples.append(pixels[index:index + 4])
+            alpha_sum = sum(sample[3] for sample in samples)
+            alpha = round(alpha_sum / len(samples))
+            if alpha_sum:
+                colors = [round(sum(sample[channel] * sample[3] for sample in samples) / alpha_sum)
+                          for channel in range(3)]
+            else:
+                colors = [0, 0, 0]
+            rgba.extend((*colors, alpha))
+    header = struct.pack(">IIBBBBB", output_size, output_size, 8, 6, 0, 0, 0)
+    return (b"\x89PNG\r\n\x1a\n" + _chunk(b"IHDR", header) +
+            _chunk(b"IDAT", zlib.compress(bytes(rgba), 9)) + _chunk(b"IEND", b""))
+
+
+def _hex_rgba(value: str) -> tuple[int, int, int, int]:
+    value = value.lstrip("#")
+    return tuple(int(value[index:index + 2], 16) for index in (0, 2, 4)) + (255,)
+
+
+def _distance_to_segment(px, py, x1, y1, x2, y2) -> float:
+    dx, dy = x2 - x1, y2 - y1
+    if dx == dy == 0:
+        return ((px - x1) ** 2 + (py - y1) ** 2) ** .5
+    position = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) /
+                                (dx * dx + dy * dy)))
+    nearest_x, nearest_y = x1 + position * dx, y1 + position * dy
+    return ((px - nearest_x) ** 2 + (py - nearest_y) ** 2) ** .5
+
+
+def vcs_badge_png(size: int, status: str) -> bytes:
+    """Render one anti-aliased, dual-outline Git/SVN status badge."""
+    if size < 8 or status not in VCS_BADGE_SPECS:
+        raise ValueError("Unsupported VCS badge")
+    fill, glyph, ink = VCS_BADGE_SPECS[status]
+    supersample, canvas_size = 4, size * 4
+    pixels = bytearray(canvas_size * canvas_size * 4)
+    center = (canvas_size - 1) / 2
+    outer = canvas_size / 2 - .5
+    dark_edge = _hex_rgba("#17212b")
+    white_edge = _hex_rgba("#ffffff")
+    fill_rgba, ink_rgba = _hex_rgba(fill), _hex_rgba(ink)
+    dark_width = max(4, round(canvas_size * .075))
+    white_width = max(4, round(canvas_size * .075))
+    for y in range(canvas_size):
+        for x in range(canvas_size):
+            distance = ((x - center) ** 2 + (y - center) ** 2) ** .5
+            color = (dark_edge if distance <= outer else None)
+            if distance <= outer - dark_width:
+                color = white_edge
+            if distance <= outer - dark_width - white_width:
+                color = fill_rgba
+            if color:
+                index = (y * canvas_size + x) * 4
+                pixels[index:index + 4] = bytes(color)
+
+    def point(x, y):
+        return x * (canvas_size - 1), y * (canvas_size - 1)
+
+    segments, dots = [], []
+    if glyph == "check":
+        segments = [((*point(.20, .52), *point(.42, .73))),
+                    ((*point(.42, .73), *point(.79, .27)))]
+    elif glyph == "alert":
+        segments = [((*point(.50, .22), *point(.50, .59)))]
+        dots = [point(.50, .76)]
+    elif glyph == "plus":
+        segments = [((*point(.50, .23), *point(.50, .77))),
+                    ((*point(.23, .50), *point(.77, .50)))]
+    elif glyph == "minus":
+        segments = [((*point(.22, .50), *point(.78, .50)))]
+    elif glyph == "cross":
+        segments = [((*point(.25, .25), *point(.75, .75))),
+                    ((*point(.75, .25), *point(.25, .75)))]
+    elif glyph == "question":
+        segments = [((*point(.28, .31), *point(.39, .21))),
+                    ((*point(.39, .21), *point(.63, .21))),
+                    ((*point(.63, .21), *point(.74, .33))),
+                    ((*point(.74, .33), *point(.69, .46))),
+                    ((*point(.69, .46), *point(.52, .56))),
+                    ((*point(.52, .56), *point(.50, .64)))]
+        dots = [point(.50, .78)]
+    line_radius = max(2, round(canvas_size * .065))
+    dot_radius = max(2, round(canvas_size * .07))
+    for y in range(canvas_size):
+        for x in range(canvas_size):
+            sample_x, sample_y = x + .5, y + .5
+            painted = any(_distance_to_segment(sample_x, sample_y, *segment) <= line_radius
+                          for segment in segments)
+            painted = painted or any(((sample_x - dot_x) ** 2 + (sample_y - dot_y) ** 2) ** .5
+                                     <= dot_radius for dot_x, dot_y in dots)
+            if painted:
+                index = (y * canvas_size + x) * 4
+                pixels[index:index + 4] = bytes(ink_rgba)
+    return _rgba_png_downsample(pixels, size, supersample)
+
+
 class ShellIconProvider:
     """Caches native Windows Shell icons as Tk images."""
 
@@ -1379,28 +1502,13 @@ class ShellIconProvider:
     def _with_overlay(self, icon: PhotoImage, overlay: str) -> PhotoImage:
         result = PhotoImage(width=self.size, height=self.size)
         result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
-        colors = {"clean": "#16a34a", "modified": "#f4b400", "added": "#16a34a", "untracked": "#2583e9",
-                  "deleted": "#dc2626", "conflict": "#d000d0"}
-        color = colors.get(overlay)
-        if color:
-            diameter = max(7, round(self.size * .46))
-            start = self.size - diameter
-            result.put("#ffffff", to=(max(0, start - 1), max(0, start - 1), self.size, self.size))
-            result.put(color, to=(start, start, self.size, self.size))
-            mid = start + diameter // 2
-            ink = "#ffffff" if overlay not in {"modified"} else "#111827"
-            if overlay in {"clean", "added"}:
-                result.put(ink, to=(mid, start + 2, mid + 2, self.size - 2))
-                result.put(ink, to=(start + 2, mid, self.size - 2, mid + 2))
-            elif overlay == "deleted":
-                result.put(ink, to=(start + 2, mid, self.size - 2, mid + 2))
-            elif overlay == "conflict":
-                for offset in range(1, diameter - 1):
-                    result.put(ink, to=(start + offset, start + offset))
-                    result.put(ink, to=(self.size - 1 - offset, start + offset))
-            else:
-                result.put(ink, to=(mid, start + 2, mid + 2, self.size - 4))
-                result.put(ink, to=(mid, self.size - 3, mid + 2, self.size - 1))
+        if overlay in VCS_BADGE_SPECS:
+            diameter = min(self.size, max(10, round(self.size * .62)))
+            encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
+            badge = PhotoImage(data=encoded, format="png")
+            result.tk.call(str(result), "copy", str(badge),
+                           "-to", self.size - diameter, self.size - diameter,
+                           "-compositingrule", "overlay")
         return result
 
     def _with_text_gap(self, icon: PhotoImage) -> PhotoImage:
@@ -1474,6 +1582,11 @@ _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
 
 
+def _run_options() -> dict:
+    """Keep background VCS commands invisible in Windows GUI launches."""
+    return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+
+
 def _merge(statuses: dict[str, str], path: Path, status: str, root: Path) -> None:
     try:
         current = path.resolve()
@@ -1512,12 +1625,12 @@ def _git_status(folder: Path) -> dict[str, str] | None:
     relative = os.path.relpath(folder, root)
     command = ["git", "-C", str(root), "status", "--porcelain=v1", "-z",
                "--untracked-files=all", "--", relative]
-    result = subprocess.run(command, capture_output=True, timeout=4)
+    result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
     if result.returncode:
         return {}
     statuses: dict[str, str] = {}
     tracked = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", relative],
-                             capture_output=True, timeout=4)
+                             capture_output=True, timeout=4, **_run_options())
     if tracked.returncode == 0:
         for raw_path in tracked.stdout.split(b"\0"):
             if raw_path:
@@ -1548,7 +1661,8 @@ def _svn_status(folder: Path) -> dict[str, str] | None:
         return None
     try:
         result = subprocess.run(["svn", "status", "-v", "--xml", str(folder)],
-                                capture_output=True, text=True, errors="replace", timeout=4)
+                                capture_output=True, text=True, errors="replace", timeout=4,
+                                **_run_options())
     except (OSError, subprocess.TimeoutExpired):
         return {}
     if result.returncode:
@@ -7078,7 +7192,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.16.2"
+__version__ = "0.16.3"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -7116,6 +7230,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/08/08"
 VERSION_HISTORY = (
+    ("v0.16.3", "2026/08/08", (
+        "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.",
+        "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.",
+    )),
     ("v0.16.2", "2026/08/08", (
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.",
     )),
@@ -7764,7 +7882,7 @@ class FilePane(ttk.Frame):
         now, path = time.monotonic(), self.path
         if self._vcs_loading and self._vcs_path == path:
             return
-        if self._vcs_path == path and now - self._vcs_requested_at < 5.0:
+        if self._vcs_path == path and now - self._vcs_requested_at < 10.0:
             return
         if self._vcs_path != path:
             self._vcs_statuses = {}
@@ -7782,8 +7900,10 @@ class FilePane(ttk.Frame):
                 generation, path, statuses = self._vcs_results.get_nowait()
                 if generation == self._vcs_generation and path == self.path:
                     self._vcs_loading = False
-                    self._vcs_statuses = statuses
-                    self._apply_vcs_icons()
+                    previous = self._vcs_statuses
+                    if statuses != previous:
+                        self._vcs_statuses = statuses
+                        self._apply_vcs_icons(previous)
         except queue.Empty:
             pass
         try:
@@ -7791,14 +7911,16 @@ class FilePane(ttk.Frame):
         except tk.TclError:
             pass
 
-    def _apply_vcs_icons(self) -> None:
+    def _apply_vcs_icons(self, previous: dict[str, str] | None = None) -> None:
+        previous = previous or {}
         def apply(parent=""):
             for iid in self.tree.get_children(parent):
                 tags = self.tree.item(iid, "tags")
                 if tags and tags[0] != "PFC_INLINE_PLACEHOLDER":
                     path = Path(tags[0])
-                    try: self.tree.item(iid, image=self._icon(path, path.is_dir()))
-                    except OSError: pass
+                    if status_for(previous, path) != status_for(self._vcs_statuses, path):
+                        try: self.tree.item(iid, image=self._icon(path, path.is_dir()))
+                        except OSError: pass
                 apply(iid)
         apply()
 

@@ -3,11 +3,23 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from pycommander.vcs import folder_statuses, is_metadata_path, status_for
+from pycommander.vcs import _git_status, folder_statuses, is_metadata_path, status_for
 
 
 class VCSOverlayTests(unittest.TestCase):
+    def test_git_commands_never_create_a_windows_console(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw); (root / ".git").mkdir()
+            completed = subprocess.CompletedProcess([], 0, stdout=b"", stderr=b"")
+            with patch("pycommander.vcs.subprocess.run", return_value=completed) as run:
+                self.assertEqual(_git_status(root), {})
+            self.assertEqual(run.call_count, 2)
+            expected = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+            self.assertTrue(all(call.kwargs.get("creationflags") == expected
+                                for call in run.call_args_list))
+
     def test_metadata_folder_is_not_status_scanned(self):
         with tempfile.TemporaryDirectory() as raw:
             metadata = Path(raw) / ".git" / "objects"

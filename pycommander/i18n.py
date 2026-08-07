@@ -58,6 +58,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "修正：Git／SVN 狀態檢查不再顯示命令列視窗，狀態未改變時也不再重繪或閃爍檔案清單。",
+        "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "調整：Git／SVN 覆蓋圖示改用抗鋸齒狀態符號與深淺雙層外框，在各種圖示及配色下均保持清楚對比。",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "調整：字型大小現在提供 100%、125%、150%、200% 與 250% 五段級距，自動調整也會使用全部五段。",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "調整：過長檔名與比較目標路徑會從中間省略，游標停留三秒後顯示完整名稱。",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修正：ZIP／7z 解壓縮與壓縮檔比較支援 Windows 延伸長度目的路徑。",
@@ -257,6 +259,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "修复：Git／SVN 状态检查不再显示命令行窗口，状态未变化时也不再重绘或闪烁文件列表。",
+        "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "调整：Git／SVN 叠加图标改用抗锯齿状态符号与深浅双层轮廓，在各种图标和配色下均保持清晰对比。",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "调整：字体大小现在提供 100%、125%、150%、200% 和 250% 五档级别，自动调整也会使用全部五档。",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "调整：过长文件名与比较目标路径会从中间省略，光标停留三秒后显示完整名称。",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修复：ZIP／7z 解压缩与压缩文件比较支持 Windows 扩展长度目标路径。",
@@ -429,6 +433,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "수정: Git/SVN 상태 확인 시 콘솔 창을 표시하지 않으며 결과가 바뀌지 않으면 파일 목록을 다시 그리거나 깜박이지 않습니다.",
+        "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "조정: Git/SVN 오버레이에 안티앨리어싱 상태 기호와 어둡고 밝은 이중 외곽선을 적용하여 모든 아이콘과 색상 구성에서 선명한 대비를 유지합니다.",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "조정: 글꼴 크기에 100%, 125%, 150%, 200%, 250%의 다섯 단계를 제공하며 자동 크기 조절도 모든 단계를 사용합니다.",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "조정: 긴 파일 이름과 비교 대상 경로를 가운데 생략하고 3초 동안 가리키면 전체 이름을 표시합니다.",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "수정: ZIP/7z 압축 풀기와 압축 파일 비교에서 Windows 확장 길이 대상 경로를 지원합니다.",

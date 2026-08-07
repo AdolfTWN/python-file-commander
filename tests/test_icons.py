@@ -2,10 +2,36 @@ import struct
 import unittest
 import zlib
 
-from pycommander.icons import _png_from_bgra, pfc_icon_png
+from pycommander.icons import VCS_BADGE_SPECS, _png_from_bgra, pfc_icon_png, vcs_badge_png
 
 
 class IconTests(unittest.TestCase):
+    def test_vcs_badges_use_distinct_high_contrast_git_style_symbols(self):
+        self.assertEqual(set(VCS_BADGE_SPECS),
+                         {"clean", "modified", "added", "untracked", "deleted", "conflict"})
+        self.assertEqual({spec[1] for spec in VCS_BADGE_SPECS.values()},
+                         {"check", "alert", "plus", "question", "minus", "cross"})
+        self.assertEqual(len({spec[0] for spec in VCS_BADGE_SPECS.values()}), 6)
+        self.assertTrue(all(spec[2] in {"#ffffff", "#171717"}
+                            for spec in VCS_BADGE_SPECS.values()))
+
+    def test_vcs_badge_has_antialiasing_and_dark_light_outline(self):
+        png = vcs_badge_png(20, "modified")
+        self.assertEqual(struct.unpack(">II", png[16:24]), (20, 20))
+        offset, compressed = 8, bytearray()
+        while offset < len(png):
+            length = struct.unpack(">I", png[offset:offset + 4])[0]
+            kind = png[offset + 4:offset + 8]
+            if kind == b"IDAT":
+                compressed.extend(png[offset + 8:offset + 8 + length])
+            offset += 12 + length
+        rows = zlib.decompress(bytes(compressed)); stride = 1 + 20 * 4
+        pixels = [rows[row * stride + 1 + column * 4:row * stride + 5 + column * 4]
+                  for row in range(20) for column in range(20)]
+        self.assertTrue(any(0 < pixel[3] < 255 for pixel in pixels))
+        self.assertTrue(any(pixel[3] and max(pixel[:3]) < 60 for pixel in pixels))
+        self.assertTrue(any(pixel[3] and min(pixel[:3]) > 230 for pixel in pixels))
+
     def test_pfc_logo_is_an_embedded_rgba_png_at_requested_size(self):
         png = pfc_icon_png(32)
         self.assertEqual(png[:8], b"\x89PNG\r\n\x1a\n")

@@ -13,6 +13,11 @@ _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
 
 
+def _run_options() -> dict:
+    """Keep background VCS commands invisible in Windows GUI launches."""
+    return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+
+
 def _merge(statuses: dict[str, str], path: Path, status: str, root: Path) -> None:
     try:
         current = path.resolve()
@@ -51,12 +56,12 @@ def _git_status(folder: Path) -> dict[str, str] | None:
     relative = os.path.relpath(folder, root)
     command = ["git", "-C", str(root), "status", "--porcelain=v1", "-z",
                "--untracked-files=all", "--", relative]
-    result = subprocess.run(command, capture_output=True, timeout=4)
+    result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
     if result.returncode:
         return {}
     statuses: dict[str, str] = {}
     tracked = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", relative],
-                             capture_output=True, timeout=4)
+                             capture_output=True, timeout=4, **_run_options())
     if tracked.returncode == 0:
         for raw_path in tracked.stdout.split(b"\0"):
             if raw_path:
@@ -87,7 +92,8 @@ def _svn_status(folder: Path) -> dict[str, str] | None:
         return None
     try:
         result = subprocess.run(["svn", "status", "-v", "--xml", str(folder)],
-                                capture_output=True, text=True, errors="replace", timeout=4)
+                                capture_output=True, text=True, errors="replace", timeout=4,
+                                **_run_options())
     except (OSError, subprocess.TimeoutExpired):
         return {}
     if result.returncode:

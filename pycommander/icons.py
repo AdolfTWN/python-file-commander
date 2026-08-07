@@ -10,6 +10,16 @@ from pathlib import Path
 from tkinter import PhotoImage
 
 
+VCS_BADGE_SPECS = {
+    "clean": ("#218838", "check", "#ffffff"),
+    "modified": ("#e02f2f", "alert", "#ffffff"),
+    "added": ("#1266b3", "plus", "#ffffff"),
+    "untracked": ("#6f42c1", "question", "#ffffff"),
+    "deleted": ("#a80f20", "minus", "#ffffff"),
+    "conflict": ("#f2b705", "cross", "#171717"),
+}
+
+
 class _SHFILEINFO(ctypes.Structure):
     _fields_ = [("hIcon", ctypes.c_void_p), ("iIcon", ctypes.c_int),
                 ("dwAttributes", ctypes.c_uint32), ("szDisplayName", ctypes.c_wchar * 260),
@@ -165,6 +175,113 @@ def create_pfc_icon(size: int = 32) -> PhotoImage:
     return PhotoImage(data=encoded, format="png")
 
 
+def _rgba_png_downsample(pixels: bytearray, output_size: int, supersample: int) -> bytes:
+    canvas_size = output_size * supersample
+    rgba = bytearray()
+    for row in range(output_size):
+        rgba.append(0)
+        for column in range(output_size):
+            samples = []
+            for sub_y in range(supersample):
+                for sub_x in range(supersample):
+                    index = (((row * supersample + sub_y) * canvas_size +
+                              column * supersample + sub_x) * 4)
+                    samples.append(pixels[index:index + 4])
+            alpha_sum = sum(sample[3] for sample in samples)
+            alpha = round(alpha_sum / len(samples))
+            if alpha_sum:
+                colors = [round(sum(sample[channel] * sample[3] for sample in samples) / alpha_sum)
+                          for channel in range(3)]
+            else:
+                colors = [0, 0, 0]
+            rgba.extend((*colors, alpha))
+    header = struct.pack(">IIBBBBB", output_size, output_size, 8, 6, 0, 0, 0)
+    return (b"\x89PNG\r\n\x1a\n" + _chunk(b"IHDR", header) +
+            _chunk(b"IDAT", zlib.compress(bytes(rgba), 9)) + _chunk(b"IEND", b""))
+
+
+def _hex_rgba(value: str) -> tuple[int, int, int, int]:
+    value = value.lstrip("#")
+    return tuple(int(value[index:index + 2], 16) for index in (0, 2, 4)) + (255,)
+
+
+def _distance_to_segment(px, py, x1, y1, x2, y2) -> float:
+    dx, dy = x2 - x1, y2 - y1
+    if dx == dy == 0:
+        return ((px - x1) ** 2 + (py - y1) ** 2) ** .5
+    position = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) /
+                                (dx * dx + dy * dy)))
+    nearest_x, nearest_y = x1 + position * dx, y1 + position * dy
+    return ((px - nearest_x) ** 2 + (py - nearest_y) ** 2) ** .5
+
+
+def vcs_badge_png(size: int, status: str) -> bytes:
+    """Render one anti-aliased, dual-outline Git/SVN status badge."""
+    if size < 8 or status not in VCS_BADGE_SPECS:
+        raise ValueError("Unsupported VCS badge")
+    fill, glyph, ink = VCS_BADGE_SPECS[status]
+    supersample, canvas_size = 4, size * 4
+    pixels = bytearray(canvas_size * canvas_size * 4)
+    center = (canvas_size - 1) / 2
+    outer = canvas_size / 2 - .5
+    dark_edge = _hex_rgba("#17212b")
+    white_edge = _hex_rgba("#ffffff")
+    fill_rgba, ink_rgba = _hex_rgba(fill), _hex_rgba(ink)
+    dark_width = max(4, round(canvas_size * .075))
+    white_width = max(4, round(canvas_size * .075))
+    for y in range(canvas_size):
+        for x in range(canvas_size):
+            distance = ((x - center) ** 2 + (y - center) ** 2) ** .5
+            color = (dark_edge if distance <= outer else None)
+            if distance <= outer - dark_width:
+                color = white_edge
+            if distance <= outer - dark_width - white_width:
+                color = fill_rgba
+            if color:
+                index = (y * canvas_size + x) * 4
+                pixels[index:index + 4] = bytes(color)
+
+    def point(x, y):
+        return x * (canvas_size - 1), y * (canvas_size - 1)
+
+    segments, dots = [], []
+    if glyph == "check":
+        segments = [((*point(.20, .52), *point(.42, .73))),
+                    ((*point(.42, .73), *point(.79, .27)))]
+    elif glyph == "alert":
+        segments = [((*point(.50, .22), *point(.50, .59)))]
+        dots = [point(.50, .76)]
+    elif glyph == "plus":
+        segments = [((*point(.50, .23), *point(.50, .77))),
+                    ((*point(.23, .50), *point(.77, .50)))]
+    elif glyph == "minus":
+        segments = [((*point(.22, .50), *point(.78, .50)))]
+    elif glyph == "cross":
+        segments = [((*point(.25, .25), *point(.75, .75))),
+                    ((*point(.75, .25), *point(.25, .75)))]
+    elif glyph == "question":
+        segments = [((*point(.28, .31), *point(.39, .21))),
+                    ((*point(.39, .21), *point(.63, .21))),
+                    ((*point(.63, .21), *point(.74, .33))),
+                    ((*point(.74, .33), *point(.69, .46))),
+                    ((*point(.69, .46), *point(.52, .56))),
+                    ((*point(.52, .56), *point(.50, .64)))]
+        dots = [point(.50, .78)]
+    line_radius = max(2, round(canvas_size * .065))
+    dot_radius = max(2, round(canvas_size * .07))
+    for y in range(canvas_size):
+        for x in range(canvas_size):
+            sample_x, sample_y = x + .5, y + .5
+            painted = any(_distance_to_segment(sample_x, sample_y, *segment) <= line_radius
+                          for segment in segments)
+            painted = painted or any(((sample_x - dot_x) ** 2 + (sample_y - dot_y) ** 2) ** .5
+                                     <= dot_radius for dot_x, dot_y in dots)
+            if painted:
+                index = (y * canvas_size + x) * 4
+                pixels[index:index + 4] = bytes(ink_rgba)
+    return _rgba_png_downsample(pixels, size, supersample)
+
+
 class ShellIconProvider:
     """Caches native Windows Shell icons as Tk images."""
 
@@ -190,28 +307,13 @@ class ShellIconProvider:
     def _with_overlay(self, icon: PhotoImage, overlay: str) -> PhotoImage:
         result = PhotoImage(width=self.size, height=self.size)
         result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
-        colors = {"clean": "#16a34a", "modified": "#f4b400", "added": "#16a34a", "untracked": "#2583e9",
-                  "deleted": "#dc2626", "conflict": "#d000d0"}
-        color = colors.get(overlay)
-        if color:
-            diameter = max(7, round(self.size * .46))
-            start = self.size - diameter
-            result.put("#ffffff", to=(max(0, start - 1), max(0, start - 1), self.size, self.size))
-            result.put(color, to=(start, start, self.size, self.size))
-            mid = start + diameter // 2
-            ink = "#ffffff" if overlay not in {"modified"} else "#111827"
-            if overlay in {"clean", "added"}:
-                result.put(ink, to=(mid, start + 2, mid + 2, self.size - 2))
-                result.put(ink, to=(start + 2, mid, self.size - 2, mid + 2))
-            elif overlay == "deleted":
-                result.put(ink, to=(start + 2, mid, self.size - 2, mid + 2))
-            elif overlay == "conflict":
-                for offset in range(1, diameter - 1):
-                    result.put(ink, to=(start + offset, start + offset))
-                    result.put(ink, to=(self.size - 1 - offset, start + offset))
-            else:
-                result.put(ink, to=(mid, start + 2, mid + 2, self.size - 4))
-                result.put(ink, to=(mid, self.size - 3, mid + 2, self.size - 1))
+        if overlay in VCS_BADGE_SPECS:
+            diameter = min(self.size, max(10, round(self.size * .62)))
+            encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
+            badge = PhotoImage(data=encoded, format="png")
+            result.tk.call(str(result), "copy", str(badge),
+                           "-to", self.size - diameter, self.size - diameter,
+                           "-compositingrule", "overlay")
         return result
 
     def _with_text_gap(self, icon: PhotoImage) -> PhotoImage:

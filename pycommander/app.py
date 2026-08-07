@@ -72,6 +72,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.16.3", "2026/08/08", (
+        "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.",
+        "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.",
+    )),
     ("v0.16.2", "2026/08/08", (
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.",
     )),
@@ -720,7 +724,7 @@ class FilePane(ttk.Frame):
         now, path = time.monotonic(), self.path
         if self._vcs_loading and self._vcs_path == path:
             return
-        if self._vcs_path == path and now - self._vcs_requested_at < 5.0:
+        if self._vcs_path == path and now - self._vcs_requested_at < 10.0:
             return
         if self._vcs_path != path:
             self._vcs_statuses = {}
@@ -738,8 +742,10 @@ class FilePane(ttk.Frame):
                 generation, path, statuses = self._vcs_results.get_nowait()
                 if generation == self._vcs_generation and path == self.path:
                     self._vcs_loading = False
-                    self._vcs_statuses = statuses
-                    self._apply_vcs_icons()
+                    previous = self._vcs_statuses
+                    if statuses != previous:
+                        self._vcs_statuses = statuses
+                        self._apply_vcs_icons(previous)
         except queue.Empty:
             pass
         try:
@@ -747,14 +753,16 @@ class FilePane(ttk.Frame):
         except tk.TclError:
             pass
 
-    def _apply_vcs_icons(self) -> None:
+    def _apply_vcs_icons(self, previous: dict[str, str] | None = None) -> None:
+        previous = previous or {}
         def apply(parent=""):
             for iid in self.tree.get_children(parent):
                 tags = self.tree.item(iid, "tags")
                 if tags and tags[0] != "PFC_INLINE_PLACEHOLDER":
                     path = Path(tags[0])
-                    try: self.tree.item(iid, image=self._icon(path, path.is_dir()))
-                    except OSError: pass
+                    if status_for(previous, path) != status_for(self._vcs_statuses, path):
+                        try: self.tree.item(iid, image=self._icon(path, path.is_dir()))
+                        except OSError: pass
                 apply(iid)
         apply()
 
