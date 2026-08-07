@@ -72,6 +72,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.16.2", "2026/08/08", (
+        "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.",
+    )),
     ("v0.16.1", "2026/08/08", (
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.",
@@ -461,11 +464,11 @@ def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
 def automatic_font_size(window_width: int, window_height: int, panel_count: int) -> str:
     """Choose the largest scale that keeps each visible file panel usable."""
     per_panel = max(1, window_width) / max(1, panel_count)
-    height_level = (3 if window_height >= 1250 else 2 if window_height >= 900
-                    else 1 if window_height >= 650 else 0)
-    width_level = (3 if per_panel >= 1200 else 2 if per_panel >= 850
-                   else 1 if per_panel >= 500 else 0)
-    return ("small", "medium", "large", "huge")[min(height_level, width_level)]
+    height_level = (4 if window_height >= 1250 else 3 if window_height >= 1050
+                    else 2 if window_height >= 850 else 1 if window_height >= 650 else 0)
+    width_level = (4 if per_panel >= 1200 else 3 if per_panel >= 1000
+                   else 2 if per_panel >= 750 else 1 if per_panel >= 500 else 0)
+    return ("small", "medium", "large", "xl", "xxl")[min(height_level, width_level)]
 
 
 def ellipsize_middle(text: str, max_width: int, measure) -> str:
@@ -1624,7 +1627,12 @@ class Commander(tk.Tk):
         self._clipboard_icon_images = []
         self._clipboard_icon_size = 18
         self.clipboard_icons = ShellIconProvider(self._clipboard_icon_size)
-        self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
+        saved_font_size = self.config_data.get("view", "font_size", fallback="small")
+        if saved_font_size == "huge":
+            saved_font_size = "xxl"
+        if saved_font_size not in {"small", "medium", "large", "xl", "xxl"}:
+            saved_font_size = "small"
+        self.font_size_var = tk.StringVar(value=saved_font_size)
         self.auto_font_size_var = tk.BooleanVar(
             value=self.config_data.getboolean("view", "auto_font_size", fallback=True))
         self._auto_font_job = None
@@ -1651,7 +1659,8 @@ class Commander(tk.Tk):
             value=self.config_data.getboolean("operations", "continue_after_error", fallback=True))
         self.favorites = self._load_navigation_paths("favorites")
         self.recent_folders = self._load_navigation_paths("recent_folders")
-        self._font_scales = {"small": 1.0, "medium": 1.5, "large": 2.0, "huge": 3.0}
+        self._font_scales = {"small": 1.0, "medium": 1.25, "large": 1.5,
+                             "xl": 2.0, "xxl": 2.5}
         self._base_tk_scaling = float(self.tk.call("tk", "scaling"))
         self._base_font_sizes = {}
         for name in ("TkDefaultFont", "TkTextFont", "TkFixedFont", "TkMenuFont", "TkHeadingFont",
@@ -2133,8 +2142,9 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(view, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
                                self.set_mix_sorting)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
-        for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
-                             ("Large (200%)", "large"), ("Huge (300%)", "huge")):
+        for label, value in (("100% Small", "small"), ("125% Medium", "medium"),
+                             ("150% Large", "large"), ("200% XL", "xl"),
+                             ("250% XXL", "xxl")):
             add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
                                    self.select_manual_font_size)
         font_size.add_separator()

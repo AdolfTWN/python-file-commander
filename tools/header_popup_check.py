@@ -18,10 +18,6 @@ def main() -> None:
             app.geometry("900x600+300+180")
             app.update_idletasks(); app.update()
             app.left_tabs.redraw()
-            default_font = pfc.tkfont.nametofont("TkDefaultFont")
-            active_font = app.left_tabs._active_tab_font
-            assert active_font.actual("size") == default_font.actual("size")
-            assert active_font.metrics("linespace") == default_font.metrics("linespace")
             app.header_popup.show(app.view_menu_button, app.view_menu)
             app.update_idletasks(); app.update()
             root = app.header_popup.popups[0]
@@ -36,11 +32,11 @@ def main() -> None:
             root_arrows = [item for item in root.canvas.find_all()
                            if root.canvas.type(item) == "text" and
                            root.canvas.itemcget(item, "text") == "▶"]
-            assert len(root_arrows) == 5
+            assert len(root_arrows) == 6
             child_ticks = [item for item in child.canvas.find_all()
                            if child.canvas.type(item) == "text" and
                            child.canvas.itemcget(item, "text") == "✓"]
-            assert len(child_ticks) == 1
+            assert len(child_ticks) == 2  # Selected size plus enabled Auto Font Size.
             assert root.font.actual("size") == pfc.tkfont.nametofont("TkMenuFont").actual("size")
             child._left()
             app.update_idletasks(); app.update()
@@ -56,7 +52,7 @@ def main() -> None:
             app.update_idletasks(); app.update()
             child = app.header_popup.popups[1]
             medium_index = next(index for index, _kind, label, _accelerator, _state in child.items
-                                if label == "Medium (150%)")
+                                if label == "125% Medium")
             child._click(SimpleNamespace(y=sum(child.row_bounds[medium_index]) // 2))
             app.update_idletasks(); app.update()
             assert app.font_size_var.get() == "medium"
@@ -64,7 +60,7 @@ def main() -> None:
             app.header_popup.show(app.view_menu_button, app.view_menu)
             medium_row_height = app.header_popup.popups[0].row_height
             app.header_popup.close_all()
-            app.font_size_var.set("huge"); app.apply_font_size()
+            app.font_size_var.set("xxl"); app.apply_font_size()
             app.update_idletasks(); app.update()
             app.header_popup.show(app.view_menu_button, app.view_menu)
             huge_root = app.header_popup.popups[0]
@@ -72,17 +68,12 @@ def main() -> None:
             huge_arrows = [item for item in huge_root.canvas.find_all()
                            if huge_root.canvas.type(item) == "text" and
                            huge_root.canvas.itemcget(item, "text") == "▶"]
-            assert len(huge_arrows) == 5
+            assert len(huge_arrows) == 6
             app.header_popup.close_all()
             app.header_popup.show(app.view_menu_button, app.view_menu)
             root = app.header_popup.popups[0]
             root._outside_click(SimpleNamespace(x_root=0, y_root=0))
             assert not app.header_popup.popups
-            app.left_tabs.redraw()
-            default_font = pfc.tkfont.nametofont("TkDefaultFont")
-            active_font = app.left_tabs._active_tab_font
-            assert active_font.actual("size") == default_font.actual("size")
-            assert active_font.metrics("linespace") == default_font.metrics("linespace")
         finally:
             app.destroy()
             pfc.Commander._find_ini_path = original

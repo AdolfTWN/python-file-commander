@@ -82,10 +82,10 @@ def main() -> None:
                                      app.font_size_menu.entrycget(index, "accelerator") == "✓"]
             assert len(selected_font_entries) == 1
             assert int(app.font_size_menu.entrycget(selected_font_entries[0], "indicatoron")) == 0
-            app.font_size_var.set("huge"); app.apply_font_size(save=False)
-            huge_pane = app.left_tabs.current()
-            huge_rowheight = int(pfc.ttk.Style(app).lookup("Active.Treeview", "rowheight"))
-            assert abs(huge_pane.icons.size - round(huge_rowheight * .9)) <= 1
+            app.font_size_var.set("xxl"); app.apply_font_size(save=False)
+            xxl_pane = app.left_tabs.current()
+            xxl_rowheight = int(pfc.ttk.Style(app).lookup("Active.Treeview", "rowheight"))
+            assert abs(xxl_pane.icons.size - round(xxl_rowheight * .9)) <= 1
             app.search(); app.update_idletasks(); app.update()
             assert "Estimated time remaining" in app.search_window.progress_eta.cget("text")
             app.search_window.mask_var.set("*.log")
@@ -101,7 +101,7 @@ def main() -> None:
             search_rowheight = int(app.search_window.tree.tk.call(
                 "ttk::style", "lookup", search_style, "-rowheight"))
             search_linespace = pfc.tkfont.nametofont("TkDefaultFont").metrics("linespace")
-            assert search_rowheight >= search_linespace + 18, (
+            assert search_rowheight >= search_linespace + max(8, round(6 * 2.5)), (
                 search_rowheight, search_linespace)
             app.search_window.close(); app.search_window = None
             app.font_size_var.set("small"); app.apply_font_size(save=False)

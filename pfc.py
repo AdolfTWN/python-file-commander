@@ -64,6 +64,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "調整：字型大小現在提供 100%、125%、150%、200% 與 250% 五段級距，自動調整也會使用全部五段。",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "調整：過長檔名與比較目標路徑會從中間省略，游標停留三秒後顯示完整名稱。",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修正：ZIP／7z 解壓縮與壓縮檔比較支援 Windows 延伸長度目的路徑。",
         "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "修正：資料夾比較可穩定處理資料夾與壓縮檔，並排除 Git／SVN 中繼資料樹。",
@@ -157,7 +158,7 @@ _TRANSLATIONS = {
         "Change Dir": "變更目錄", "Exit": "結束", "File Visibility": "檔案可見性",
         "Show Hidden": "顯示隱藏項目", "Show System": "顯示系統項目", "Show File Extension": "顯示副檔名",
         "Font Size": "字型大小", "Tab Style": "分頁樣式", "Panel Counts": "面板數量", "Quick Filter": "快速篩選",
-        "Small (100%)": "小 (100%)", "Medium (150%)": "中 (150%)", "Large (200%)": "大 (200%)", "Huge (300%)": "特大 (300%)",
+        "100% Small": "100% 小", "125% Medium": "125% 中", "150% Large": "150% 大", "200% XL": "200% 特大", "250% XXL": "250% 超特大",
         "Right Skirt": "右側裙襬", "Rounded": "圓角", "Squarish": "方形",
         "{count} Panels": "{count} 個面板", "Current version: v{version}": "目前版本：v{version}",
         "{series} Changes": "{series} 變更內容", "Yoda — Portable App Advocate": "Yoda — 可攜式應用程式推動者",
@@ -262,6 +263,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "调整：字体大小现在提供 100%、125%、150%、200% 和 250% 五档级别，自动调整也会使用全部五档。",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "调整：过长文件名与比较目标路径会从中间省略，光标停留三秒后显示完整名称。",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修复：ZIP／7z 解压缩与压缩文件比较支持 Windows 扩展长度目标路径。",
         "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "修复：文件夹比较可稳定处理文件夹与压缩文件，并排除 Git／SVN 元数据树。",
@@ -349,7 +351,7 @@ _TRANSLATIONS = {
         "Delete": "删除", "Permanent Delete": "永久删除", "Send Delete to Recycle Bin": "删除时移至回收站", "Continue After File Errors": "发生文件错误后继续",
         "Favorites": "收藏夹", "Recent Folders": "最近使用的文件夹", "Preview": "预览", "Search": "搜索", "Compare": "比较", "Copy Path": "复制路径", "Change Dir": "更改目录", "Exit": "退出",
         "File Visibility": "文件可见性", "Show Hidden": "显示隐藏项目", "Show System": "显示系统项目", "Show File Extension": "显示文件扩展名", "Font Size": "字体大小", "Tab Style": "选项卡样式", "Panel Counts": "面板数量", "Quick Filter": "快速筛选",
-        "Small (100%)": "小 (100%)", "Medium (150%)": "中 (150%)", "Large (200%)": "大 (200%)", "Huge (300%)": "特大 (300%)", "Right Skirt": "右侧裙边", "Rounded": "圆角", "Squarish": "方形",
+        "100% Small": "100% 小", "125% Medium": "125% 中", "150% Large": "150% 大", "200% XL": "200% 特大", "250% XXL": "250% 超大", "Right Skirt": "右侧裙边", "Rounded": "圆角", "Squarish": "方形",
         "{count} Panels": "{count} 个面板", "Current version: v{version}": "当前版本：v{version}", "{series} Changes": "{series} 更新内容", "Yoda — Portable App Advocate": "Yoda — 便携式应用推动者",
         "Clipboard: checking…": "剪贴板：检查中…", "Clipboard": "剪贴板", "Clipboard (Cut)": "剪贴板（剪切）", "Clipboard: Empty": "剪贴板：空", "Clipboard: OBJ": "剪贴板：对象", "Clipboard: String {size} Bytes": "剪贴板：文本 {size} 字节",
         "and {count} more {kind}": "以及另外 {count} 个{kind}", "& other {count} {kind}": "及其他 {count} 个{kind}", "and {count} {kind}...": "以及 {count} 个{kind}…", "file": "文件", "files": "文件", "folder": "文件夹", "folders": "文件夹", "item": "项目", "items": "项目", "attachments": "附件",
@@ -433,6 +435,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "조정: 글꼴 크기에 100%, 125%, 150%, 200%, 250%의 다섯 단계를 제공하며 자동 크기 조절도 모든 단계를 사용합니다.",
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "조정: 긴 파일 이름과 비교 대상 경로를 가운데 생략하고 3초 동안 가리키면 전체 이름을 표시합니다.",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "수정: ZIP/7z 압축 풀기와 압축 파일 비교에서 Windows 확장 길이 대상 경로를 지원합니다.",
         "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "수정: 폴더 비교가 폴더와 압축 파일을 안정적으로 처리하고 Git/SVN 메타데이터 트리를 제외합니다.",
@@ -520,7 +523,7 @@ _TRANSLATIONS = {
         "Delete": "삭제", "Permanent Delete": "완전히 삭제", "Send Delete to Recycle Bin": "삭제 시 휴지통으로 이동", "Continue After File Errors": "파일 오류 후 계속",
         "Favorites": "즐겨찾기", "Recent Folders": "최근 폴더", "Preview": "미리 보기", "Search": "검색", "Compare": "비교", "Copy Path": "경로 복사", "Change Dir": "디렉터리 변경", "Exit": "끝내기",
         "File Visibility": "파일 표시", "Show Hidden": "숨김 항목 표시", "Show System": "시스템 항목 표시", "Show File Extension": "파일 확장명 표시", "Font Size": "글꼴 크기", "Tab Style": "탭 스타일", "Panel Counts": "패널 수", "Quick Filter": "빠른 필터",
-        "Small (100%)": "작게 (100%)", "Medium (150%)": "보통 (150%)", "Large (200%)": "크게 (200%)", "Huge (300%)": "매우 크게 (300%)", "Right Skirt": "오른쪽 스커트", "Rounded": "둥근 모서리", "Squarish": "사각형",
+        "100% Small": "100% 작게", "125% Medium": "125% 보통", "150% Large": "150% 크게", "200% XL": "200% 매우 크게", "250% XXL": "250% 초대형", "Right Skirt": "오른쪽 스커트", "Rounded": "둥근 모서리", "Squarish": "사각형",
         "{count} Panels": "패널 {count}개", "Current version: v{version}": "현재 버전: v{version}", "{series} Changes": "{series} 변경 내용", "Yoda — Portable App Advocate": "Yoda — 포터블 앱 추진자",
         "Clipboard: checking…": "클립보드: 확인 중…", "Clipboard": "클립보드", "Clipboard (Cut)": "클립보드(잘라내기)", "Clipboard: Empty": "클립보드: 비어 있음", "Clipboard: OBJ": "클립보드: 개체", "Clipboard: String {size} Bytes": "클립보드: 텍스트 {size}바이트",
         "and {count} more {kind}": "외 {count}개 {kind}", "& other {count} {kind}": "외 {count}개 {kind}", "and {count} {kind}...": "외 {count}개 {kind}…", "file": "파일", "files": "파일", "folder": "폴더", "folders": "폴더", "item": "항목", "items": "항목", "attachments": "첨부 파일",
@@ -7075,7 +7078,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.16.1"
+__version__ = "0.16.2"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -7113,6 +7116,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/08/08"
 VERSION_HISTORY = (
+    ("v0.16.2", "2026/08/08", (
+        "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.",
+    )),
     ("v0.16.1", "2026/08/08", (
         "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.",
         "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.",
@@ -7502,11 +7508,11 @@ def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
 def automatic_font_size(window_width: int, window_height: int, panel_count: int) -> str:
     """Choose the largest scale that keeps each visible file panel usable."""
     per_panel = max(1, window_width) / max(1, panel_count)
-    height_level = (3 if window_height >= 1250 else 2 if window_height >= 900
-                    else 1 if window_height >= 650 else 0)
-    width_level = (3 if per_panel >= 1200 else 2 if per_panel >= 850
-                   else 1 if per_panel >= 500 else 0)
-    return ("small", "medium", "large", "huge")[min(height_level, width_level)]
+    height_level = (4 if window_height >= 1250 else 3 if window_height >= 1050
+                    else 2 if window_height >= 850 else 1 if window_height >= 650 else 0)
+    width_level = (4 if per_panel >= 1200 else 3 if per_panel >= 1000
+                   else 2 if per_panel >= 750 else 1 if per_panel >= 500 else 0)
+    return ("small", "medium", "large", "xl", "xxl")[min(height_level, width_level)]
 
 
 def ellipsize_middle(text: str, max_width: int, measure) -> str:
@@ -8665,7 +8671,12 @@ class Commander(tk.Tk):
         self._clipboard_icon_images = []
         self._clipboard_icon_size = 18
         self.clipboard_icons = ShellIconProvider(self._clipboard_icon_size)
-        self.font_size_var = tk.StringVar(value=self.config_data.get("view", "font_size", fallback="small"))
+        saved_font_size = self.config_data.get("view", "font_size", fallback="small")
+        if saved_font_size == "huge":
+            saved_font_size = "xxl"
+        if saved_font_size not in {"small", "medium", "large", "xl", "xxl"}:
+            saved_font_size = "small"
+        self.font_size_var = tk.StringVar(value=saved_font_size)
         self.auto_font_size_var = tk.BooleanVar(
             value=self.config_data.getboolean("view", "auto_font_size", fallback=True))
         self._auto_font_job = None
@@ -8692,7 +8703,8 @@ class Commander(tk.Tk):
             value=self.config_data.getboolean("operations", "continue_after_error", fallback=True))
         self.favorites = self._load_navigation_paths("favorites")
         self.recent_folders = self._load_navigation_paths("recent_folders")
-        self._font_scales = {"small": 1.0, "medium": 1.5, "large": 2.0, "huge": 3.0}
+        self._font_scales = {"small": 1.0, "medium": 1.25, "large": 1.5,
+                             "xl": 2.0, "xxl": 2.5}
         self._base_tk_scaling = float(self.tk.call("tk", "scaling"))
         self._base_font_sizes = {}
         for name in ("TkDefaultFont", "TkTextFont", "TkFixedFont", "TkMenuFont", "TkHeadingFont",
@@ -9174,8 +9186,9 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(view, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
                                self.set_mix_sorting)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
-        for label, value in (("Small (100%)", "small"), ("Medium (150%)", "medium"),
-                             ("Large (200%)", "large"), ("Huge (300%)", "huge")):
+        for label, value in (("100% Small", "small"), ("125% Medium", "medium"),
+                             ("150% Large", "large"), ("200% XL", "xl"),
+                             ("250% XXL", "xxl")):
             add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
                                    self.select_manual_font_size)
         font_size.add_separator()
