@@ -6,19 +6,18 @@ import fnmatch
 import hashlib
 import os
 import queue
-import shutil
 import subprocess
 import tempfile
 import threading
-import zipfile
 from datetime import datetime
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import tkinter as tk
 from tkinter import font as tkfont, messagebox, ttk
 
 from .tabs import ChamferNotebook, color_scheme
 from .tooltip import ToolTip, install_button_tooltips
 from .i18n import retranslate_widgets, tr
+from .archivefs import extract_archive_to
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -45,54 +44,12 @@ def nested_source_label(source: Path, relative: str) -> str:
     return f"{source}{separator}{relative}"
 
 
-def _safe_archive_member(name: str) -> bool:
-    normalized = name.replace("\\", "/")
-    member = PurePosixPath(normalized)
-    return bool(normalized) and not member.is_absolute() and ".." not in member.parts and not (
-        member.parts and ":" in member.parts[0])
-
-
 def extract_compare_archive(path: Path):
     """Extract ZIP/7z into an isolated temporary folder for read-only comparison."""
     workspace = tempfile.TemporaryDirectory(prefix="pfc-compare-")
     destination = Path(workspace.name)
     try:
-        if path.suffix.casefold() == ".zip":
-            with zipfile.ZipFile(path) as archive:
-                for info in archive.infolist():
-                    if not _safe_archive_member(info.filename):
-                        raise OSError(f"Unsafe archive path: {info.filename}")
-                    member = PurePosixPath(info.filename.replace("\\", "/"))
-                    target = destination.joinpath(*member.parts)
-                    if info.is_dir():
-                        target.mkdir(parents=True, exist_ok=True)
-                    else:
-                        target.parent.mkdir(parents=True, exist_ok=True)
-                        with archive.open(info) as source, target.open("wb") as output:
-                            shutil.copyfileobj(source, output)
-                        try:
-                            timestamp = datetime(*info.date_time).timestamp()
-                            os.utime(target, (timestamp, timestamp))
-                        except (OSError, ValueError):
-                            pass
-        else:
-            tar = shutil.which("tar.exe") or shutil.which("tar")
-            if not tar:
-                raise OSError("7z comparison requires the Windows tar component.")
-            run_options = {"capture_output": True, "text": True, "errors": "replace"}
-            if os.name == "nt":
-                run_options["creationflags"] = subprocess.CREATE_NO_WINDOW
-            listing = subprocess.run([tar, "-tf", str(path)], **run_options)
-            if listing.returncode:
-                raise OSError(listing.stderr.strip() or "Unable to read 7z archive.")
-            members = [line.strip() for line in listing.stdout.splitlines() if line.strip()]
-            unsafe = next((name for name in members if not _safe_archive_member(name)), None)
-            if unsafe:
-                raise OSError(f"Unsafe archive path: {unsafe}")
-            extraction = subprocess.run([tar, "-xf", str(path), "-C", str(destination)],
-                                        **run_options)
-            if extraction.returncode:
-                raise OSError(extraction.stderr.strip() or "Unable to extract 7z archive.")
+        extract_archive_to(path, destination)
         return workspace, destination
     except Exception:
         workspace.cleanup()
@@ -601,12 +558,29 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
                 cancelled=lambda: False):
     patterns = [item.strip() for item in masks.split(";") if item.strip()] or ["*"]
     def collect(root):
-        iterator = root.rglob("*") if recursive else root.iterdir()
+        if recursive:
+            def paths():
+                for folder, directories, filenames in os.walk(root, topdown=True,
+                                                                onerror=lambda _error: None):
+                    directories[:] = [name for name in directories
+                                      if name.casefold() not in {".git", ".svn"}]
+                    base = Path(folder)
+                    yield from (base / name for name in directories)
+                    yield from (base / name for name in filenames)
+            iterator = paths()
+        else:
+            iterator = root.iterdir()
         result = {}
         for path in iterator:
             if cancelled():
                 break
-            relative = str(path.relative_to(root))
+            try:
+                relative_path = path.relative_to(root)
+            except ValueError:
+                continue
+            if any(part.casefold() in {".git", ".svn"} for part in relative_path.parts):
+                continue
+            relative = str(relative_path)
             if path.is_dir() or any(fnmatch.fnmatch(path.name.casefold(), pattern.casefold())
                                     for pattern in patterns):
                 result[relative.casefold()] = path

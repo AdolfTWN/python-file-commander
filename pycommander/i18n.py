@@ -58,6 +58,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "調整：過長檔名與比較目標路徑會從中間省略，游標停留三秒後顯示完整名稱。",
+        "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修正：ZIP／7z 解壓縮與壓縮檔比較支援 Windows 延伸長度目的路徑。",
+        "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "修正：資料夾比較可穩定處理資料夾與壓縮檔，並排除 Git／SVN 中繼資料樹。",
+        "Fixed: Git/SVN overlays load without blocking folder navigation, and repository metadata folders open without status scans.": "修正：Git／SVN 覆蓋圖示改為非阻塞載入，開啟版本庫中繼資料夾時不再執行狀態掃描。",
         "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "新增：F9 可將一個選取的檔案或資料夾設為可見的比較目標，再與下一個選取項目比較。",
         "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "調整：檔案圖示佔選取列高度的 90%，並顯示快取的 Git／SVN 狀態覆蓋圖示。",
         "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "新增：搜尋、壓縮、解壓縮、更新下載與開啟壓縮檔會顯示平順的確定式進度及預估剩餘時間。",
@@ -252,6 +256,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "调整：过长文件名与比较目标路径会从中间省略，光标停留三秒后显示完整名称。",
+        "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修复：ZIP／7z 解压缩与压缩文件比较支持 Windows 扩展长度目标路径。",
+        "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "修复：文件夹比较可稳定处理文件夹与压缩文件，并排除 Git／SVN 元数据树。",
+        "Fixed: Git/SVN overlays load without blocking folder navigation, and repository metadata folders open without status scans.": "修复：Git／SVN 叠加图标改为非阻塞加载，打开版本库元数据文件夹时不再执行状态扫描。",
         "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "新增：F9 可将一个所选文件或文件夹设为可见的比较目标，再与下一个所选项目比较。",
         "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "调整：文件图标占选择行高度的 90%，并显示缓存的 Git／SVN 状态叠加图标。",
         "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "新增：搜索、压缩、解压缩、更新下载与打开压缩文件会显示平滑的确定进度和预计剩余时间。",
@@ -419,6 +427,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "조정: 긴 파일 이름과 비교 대상 경로를 가운데 생략하고 3초 동안 가리키면 전체 이름을 표시합니다.",
+        "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "수정: ZIP/7z 압축 풀기와 압축 파일 비교에서 Windows 확장 길이 대상 경로를 지원합니다.",
+        "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "수정: 폴더 비교가 폴더와 압축 파일을 안정적으로 처리하고 Git/SVN 메타데이터 트리를 제외합니다.",
+        "Fixed: Git/SVN overlays load without blocking folder navigation, and repository metadata folders open without status scans.": "수정: Git/SVN 오버레이를 폴더 탐색을 막지 않고 불러오며 저장소 메타데이터 폴더에서는 상태 검사를 실행하지 않습니다.",
         "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "추가: F9로 선택한 파일이나 폴더 하나를 보이는 비교 대상으로 지정한 뒤 다음 선택 항목과 비교할 수 있습니다.",
         "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "조정: 파일 아이콘이 선택 행 높이의 90%를 사용하고 캐시된 Git/SVN 상태 오버레이를 표시합니다.",
         "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "추가: 검색, 압축, 압축 풀기, 업데이트 다운로드 및 압축 파일 열기에 부드러운 확정 진행률과 예상 남은 시간을 표시합니다.",

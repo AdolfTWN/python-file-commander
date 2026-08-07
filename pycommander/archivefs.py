@@ -18,6 +18,20 @@ class ArchiveCancelled(OSError):
     pass
 
 
+def filesystem_path(path: Path) -> str:
+    """Return a Windows extended-length path without changing its logical value."""
+    raw = str(Path(path).absolute())
+    if os.name != "nt" or raw.startswith("\\\\?\\"):
+        return raw
+    if raw.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + raw[2:]
+    return "\\\\?\\" + raw
+
+
+def _mkdir(path: Path) -> None:
+    os.makedirs(filesystem_path(path), exist_ok=True)
+
+
 def is_browsable_archive(path: Path) -> bool:
     return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
 
@@ -63,7 +77,7 @@ def extract_archive_to(archive_path: Path, destination: Path,
                        progress: ProgressCallback | None = None) -> Path:
     """Safely extract ZIP/7z directly, avoiding long temporary copy paths."""
     archive_path = archive_path.expanduser().resolve()
-    destination.mkdir(parents=True, exist_ok=True)
+    _mkdir(destination)
     if archive_path.suffix.casefold() == ".zip":
         with zipfile.ZipFile(archive_path) as archive:
             members = archive.infolist()
@@ -72,10 +86,10 @@ def extract_archive_to(archive_path: Path, destination: Path,
             for info in members:
                 target = _safe_destination(destination.resolve(), info.filename)
                 if info.is_dir():
-                    target.mkdir(parents=True, exist_ok=True)
+                    _mkdir(target)
                     continue
-                target.parent.mkdir(parents=True, exist_ok=True)
-                with archive.open(info) as source, target.open("wb") as output:
+                _mkdir(target.parent)
+                with archive.open(info) as source, open(filesystem_path(target), "wb") as output:
                     while True:
                         chunk = source.read(1024 * 1024)
                         if not chunk:
@@ -99,7 +113,7 @@ def extract_archive_to(archive_path: Path, destination: Path,
         _safe_destination(destination.resolve(), member)
     process = subprocess.Popen(
         [executable, "x", "-y", "-bso0", "-bse1", "-bsp1",
-         f"-o{destination}", str(archive_path)],
+         f"-o{filesystem_path(destination)}", str(archive_path)],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
     output = ""
     assert process.stdout is not None
@@ -193,10 +207,10 @@ class ArchiveSession:
                     self._check_cancelled()
                     destination = _safe_destination(self.root, info.filename)
                     if info.is_dir():
-                        destination.mkdir(parents=True, exist_ok=True)
+                        _mkdir(destination)
                         continue
-                    destination.parent.mkdir(parents=True, exist_ok=True)
-                    with archive.open(info) as source, destination.open("wb") as target:
+                    _mkdir(destination.parent)
+                    with archive.open(info) as source, open(filesystem_path(destination), "wb") as target:
                         while True:
                             self._check_cancelled()
                             chunk = source.read(1024 * 1024)
@@ -214,7 +228,7 @@ class ArchiveSession:
             raise OSError("7z browsing requires the 7-Zip command-line tool (7z or 7zz).")
         process = subprocess.Popen(
             [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
-             f"-o{self.root}", str(self.archive_path)],
+             f"-o{filesystem_path(self.root)}", str(self.archive_path)],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
         started = __import__("time").monotonic()
         last_percent = 0

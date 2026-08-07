@@ -4,10 +4,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pycommander.vcs import folder_statuses, status_for
+from pycommander.vcs import folder_statuses, is_metadata_path, status_for
 
 
 class VCSOverlayTests(unittest.TestCase):
+    def test_metadata_folder_is_not_status_scanned(self):
+        with tempfile.TemporaryDirectory() as raw:
+            metadata = Path(raw) / ".git" / "objects"
+            metadata.mkdir(parents=True)
+            self.assertTrue(is_metadata_path(metadata))
+            self.assertEqual(folder_statuses(metadata), {})
     def test_git_modified_and_untracked_statuses_include_parent_folder(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)

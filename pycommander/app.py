@@ -32,7 +32,7 @@ from .multirename import MultiRenameWindow
 from .archivefs import ArchiveCancelled, ArchiveSession, create_zip_archive, extract_archive_to, is_browsable_archive
 from .spaceanalyzer import SpaceAnalyzerWindow
 from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
-from .tooltip import MenuToolTip, install_button_tooltips
+from .tooltip import MenuToolTip, ToolTip, TreeItemToolTip, install_button_tooltips
 from .tabs import COLOR_SCHEMES, ChamferNotebook, HeaderPopupController, TAB_STYLES, add_scaled_cascade, add_scaled_checkbutton, add_scaled_radiobutton, align_scaled_cascade_arrows, color_scheme, configure_ttk_theme
 from .i18n import LANGUAGES, get_language, set_language, tr
 
@@ -41,9 +41,43 @@ PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 UPDATE_URL = "https://raw.githubusercontent.com/AdolfTWN/python-file-commander/main/pfc.py"
 UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
 
+
+def middle_ellipsize(text: str, max_width: int, measure) -> str:
+    """Fit text by preserving both identifying ends instead of losing the suffix."""
+    if max_width <= 0 or measure(text) <= max_width:
+        return text
+    marker = "..."
+    if measure(marker) >= max_width:
+        return marker
+    right = min(8, max(1, len(text) - 1))
+    while right > 1 and measure(marker + text[-right:]) > max_width:
+        right -= 1
+    left = 1 if measure(text[:1] + marker + text[-right:]) <= max_width else 0
+    while left + right < len(text):
+        prefer_left = left / max(1, left + right) < .55
+        options = ((left + 1, right), (left, right + 1)) if prefer_left else (
+            (left, right + 1), (left + 1, right))
+        accepted = False
+        for next_left, next_right in options:
+            if next_left + next_right >= len(text):
+                continue
+            candidate = text[:next_left] + marker + text[-next_right:]
+            if measure(candidate) <= max_width:
+                left, right, accepted = next_left, next_right, True
+                break
+        if not accepted:
+            break
+    return text[:left] + marker + text[-right:]
+
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.16.1", "2026/08/08", (
+        "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.",
+        "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.",
+        "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.",
+        "Fixed: Git/SVN overlays load without blocking folder navigation, and repository metadata folders open without status scans.",
+    )),
     ("v0.16.0", "2026/08/07", (
         "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.",
         "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.",
@@ -536,6 +570,11 @@ class FilePane(ttk.Frame):
                                "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
         self._vcs_statuses: dict[str, str] = {}
+        self._vcs_path: Path | None = None
+        self._vcs_requested_at = 0.0
+        self._vcs_generation = 0
+        self._vcs_loading = False
+        self._vcs_results = queue.Queue()
 
         # Keep the command target visible even when the panel has no selected row.
         self.active_indicator = tk.Frame(self, height=3, background="#9aa7b3",
@@ -587,6 +626,7 @@ class FilePane(ttk.Frame):
         self.tree.bind("<Prior>", lambda _event: self.page_selection(-1))
         self.tree.bind("<Next>", lambda _event: self.page_selection(1))
         self.tree.bind("<<TreeviewOpen>>", self._tree_open)
+        self._name_tooltip = TreeItemToolTip(self.tree, self._tooltip_name, delay=3000)
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text=tr("Quick Filter:")).pack(side="left")
@@ -600,6 +640,7 @@ class FilePane(ttk.Frame):
         self.status.pack(fill="x", pady=(3, 0))
         self.quick_filter_bar.pack(fill="x", pady=(2, 0))
         install_button_tooltips(self)
+        self.after(150, self._poll_vcs_results)
         self.navigate(self.path)
         try:
             self.shell_drop_target = ShellFileDropTarget(
@@ -640,6 +681,79 @@ class FilePane(ttk.Frame):
 
     def _icon(self, path: Path, is_dir: bool):
         return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path))
+
+    def _full_item_name(self, iid: str) -> str:
+        tags = self.tree.item(iid, "tags")
+        if not tags or tags[0] == "PFC_INLINE_PLACEHOLDER":
+            return ""
+        path = Path(tags[0])
+        visible = path.name if path.is_dir() or self.show_extensions else path.stem
+        if self.view_mode == "list":
+            return f"[{visible}]" if path.is_dir() else visible
+        current = str(self.tree.item(iid, "text"))
+        prefix = "└─ " if current.startswith("└─ ") else "├─ " if current.startswith("├─ ") else ""
+        return prefix + visible
+
+    def _tooltip_name(self, iid: str) -> str:
+        full = self._full_item_name(iid)
+        return full if full and str(self.tree.item(iid, "text")) != full else ""
+
+    def _fit_visible_names(self) -> None:
+        font = tkfont.nametofont("TkDefaultFont")
+        width = max(24, int(self.tree.column("#0", "width")) - self.icons.size -
+                    self.icons.text_gap - font.measure("MM"))
+        def fit(parent=""):
+            for iid in self.tree.get_children(parent):
+                full = self._full_item_name(iid)
+                if full:
+                    self.tree.item(iid, text=middle_ellipsize(full, width, font.measure))
+                fit(iid)
+        fit()
+
+    def _request_vcs_statuses(self) -> None:
+        if self.archive_session is not None:
+            self._vcs_path = None; self._vcs_statuses = {}
+            return
+        now, path = time.monotonic(), self.path
+        if self._vcs_loading and self._vcs_path == path:
+            return
+        if self._vcs_path == path and now - self._vcs_requested_at < 5.0:
+            return
+        if self._vcs_path != path:
+            self._vcs_statuses = {}
+        self._vcs_path = path; self._vcs_requested_at = now
+        self._vcs_generation += 1
+        self._vcs_loading = True
+        generation = self._vcs_generation
+        def load():
+            self._vcs_results.put((generation, path, folder_statuses(path)))
+        threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
+
+    def _poll_vcs_results(self) -> None:
+        try:
+            while True:
+                generation, path, statuses = self._vcs_results.get_nowait()
+                if generation == self._vcs_generation and path == self.path:
+                    self._vcs_loading = False
+                    self._vcs_statuses = statuses
+                    self._apply_vcs_icons()
+        except queue.Empty:
+            pass
+        try:
+            self.after(150, self._poll_vcs_results)
+        except tk.TclError:
+            pass
+
+    def _apply_vcs_icons(self) -> None:
+        def apply(parent=""):
+            for iid in self.tree.get_children(parent):
+                tags = self.tree.item(iid, "tags")
+                if tags and tags[0] != "PFC_INLINE_PLACEHOLDER":
+                    path = Path(tags[0])
+                    try: self.tree.item(iid, image=self._icon(path, path.is_dir()))
+                    except OSError: pass
+                apply(iid)
+        apply()
 
     def _tree_label(self, path: Path, is_dir: bool, is_last: bool = False) -> str:
         visible = path.name if is_dir or self.show_extensions else path.stem
@@ -997,8 +1111,7 @@ class FilePane(ttk.Frame):
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
         try:
-            self._vcs_statuses = ({} if self.archive_session is not None
-                                  else folder_statuses(self.path))
+            self._request_vcs_statuses()
             if self.mode == "files" and self.view_mode != "list":
                 visible_entries = [p for p in self.path.iterdir()
                                    if (self.show_hidden or not p.name.startswith(".")) and
@@ -1112,6 +1225,7 @@ class FilePane(ttk.Frame):
         available = max(1, self.tree.winfo_width() - 4)
         self.tree.column("#0", width=max(120, available - fixed_total), minwidth=120,
                          stretch=True)
+        self._fit_visible_names()
 
     @staticmethod
     def signature_for(entries) -> tuple:
@@ -1127,6 +1241,7 @@ class FilePane(ttk.Frame):
     def refresh_if_changed(self) -> bool:
         if self.mode != "files" or self._inline_editor is not None:
             return False
+        self._request_vcs_statuses()
         try:
             entries = [p for p in self.path.iterdir()
                        if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
@@ -1945,6 +2060,11 @@ class Commander(tk.Tk):
             header, text="", anchor="center", font=menu_font, padx=12, pady=2,
             background="#b8ef18", foreground="#c41421")
         self.compare_target_label.place(relx=.5, rely=.5, anchor="center")
+        self.compare_target_tooltip = ToolTip(
+            self.compare_target_label,
+            lambda: (tr("Compare Target - {path}", path=str(self.compare_target))
+                     if self.compare_target is not None else ""), delay=3000)
+        header.bind("<Configure>", lambda _event: self._update_compare_target_label(), add="+")
         self._update_compare_target_label()
         title = tk.Label(header, text="PFC",
                          font=tkfont.nametofont("TkCaptionFont"),
@@ -3651,7 +3771,11 @@ class Commander(tk.Tk):
         if self.compare_target is None:
             label.place_forget()
         else:
-            label.configure(text=tr("Compare Target - {path}", path=str(self.compare_target)))
+            full = tr("Compare Target - {path}", path=str(self.compare_target))
+            font = tkfont.Font(font=label.cget("font"))
+            header_width = max(400, int(getattr(self, "header", self).winfo_width()))
+            maximum = max(180, min(760, int(header_width * .44)))
+            label.configure(text=middle_ellipsize(full, maximum, font.measure))
             label.place(relx=.5, rely=.5, anchor="center")
             label.lift()
 

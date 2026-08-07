@@ -35,6 +35,15 @@ def _find_root(folder: Path, marker: str) -> Path | None:
     return None
 
 
+def is_metadata_path(folder: Path) -> bool:
+    """VCS internals are data, not a working-tree location to status-scan."""
+    try:
+        parts = folder.resolve().parts
+    except OSError:
+        parts = Path(os.path.abspath(folder)).parts
+    return any(part.casefold() in {".git", ".svn"} for part in parts)
+
+
 def _git_status(folder: Path) -> dict[str, str] | None:
     root = _find_root(folder, ".git")
     if root is None:
@@ -103,6 +112,8 @@ def _svn_status(folder: Path) -> dict[str, str] | None:
 
 def folder_statuses(folder: Path) -> dict[str, str]:
     """Return Git/SVN overlay states keyed by normalized absolute path."""
+    if is_metadata_path(folder):
+        return {}
     key = os.path.normcase(str(folder.resolve()))
     cached = _CACHE.get(key)
     now = time.monotonic()

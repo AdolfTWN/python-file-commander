@@ -41,7 +41,10 @@ class ToolTip:
         self.popup.geometry(f"+{x + 14}+{y + 18}")
         owner = self.widget.winfo_toplevel()
         palette = getattr(owner, "palette", {})
-        tk.Label(self.popup, text=self.text, justify="left",
+        text = self.text() if callable(self.text) else self.text
+        if not text:
+            self.popup.destroy(); self.popup = None; return
+        tk.Label(self.popup, text=text, justify="left",
                  background=palette.get("tooltip", "#fffbd6"),
                  foreground=palette.get("tooltip_text", "#18232c"),
                  relief="solid", borderwidth=1, padx=7, pady=4).pack()
@@ -55,6 +58,53 @@ class ToolTip:
             try: self.popup.destroy()
             except tk.TclError: pass
             self.popup = None
+
+
+class TreeItemToolTip:
+    """Shows delayed text for the Treeview row currently under the pointer."""
+
+    def __init__(self, tree, text_for_item, delay=3000):
+        self.tree, self.text_for_item, self.delay = tree, text_for_item, delay
+        self.job = self.popup = None
+        self.item = ""
+        tree.bind("<Motion>", self._motion, add="+")
+        tree.bind("<Leave>", self.hide, add="+")
+        tree.bind("<Button>", self.hide, add="+")
+
+    def _motion(self, event):
+        item = self.tree.identify_row(event.y)
+        if item == self.item:
+            return
+        self.hide(); self.item = item
+        if item and self.text_for_item(item):
+            self.job = self.tree.after(self.delay, self.show)
+
+    def show(self):
+        self.job = None
+        text = self.text_for_item(self.item) if self.item else ""
+        if not text or not self.tree.winfo_exists():
+            return
+        self.popup = tk.Toplevel(self.tree.winfo_toplevel())
+        self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
+        x, y = self.tree.winfo_pointerxy()
+        self.popup.geometry(f"+{x + 14}+{y + 18}")
+        owner = self.tree.winfo_toplevel()
+        palette = getattr(owner, "palette", {})
+        tk.Label(self.popup, text=text, justify="left", wraplength=900,
+                 background=palette.get("tooltip", "#fffbd6"),
+                 foreground=palette.get("tooltip_text", "#18232c"),
+                 relief="solid", borderwidth=1, padx=7, pady=4).pack()
+
+    def hide(self, _event=None):
+        if self.job is not None:
+            try: self.tree.after_cancel(self.job)
+            except tk.TclError: pass
+            self.job = None
+        if self.popup is not None:
+            try: self.popup.destroy()
+            except tk.TclError: pass
+            self.popup = None
+        self.item = ""
 
 
 class MenuToolTip:

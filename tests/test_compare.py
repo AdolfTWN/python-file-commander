@@ -43,6 +43,19 @@ class CompareTests(unittest.TestCase):
             self.assertIn(("Identical", "same.txt"), statuses)
             self.assertIn(("Left only", "only.txt"), statuses)
 
+    def test_folder_compare_skips_git_and_svn_metadata(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw); left, right = root / "left", root / "right"
+            left.mkdir(); right.mkdir(); (left / ".git").mkdir(); (right / ".svn").mkdir()
+            (left / ".git" / "index").write_bytes(b"internal")
+            (right / ".svn" / "wc.db").write_bytes(b"internal")
+            (left / "visible.txt").write_text("same", encoding="utf-8")
+            (right / "visible.txt").write_text("same", encoding="utf-8")
+            rows = list(folder_rows(left, right, by_content=True))
+            names = {relative for _status, relative, *_rest in rows}
+            self.assertIn("visible.txt", names)
+            self.assertFalse(any(".git" in name or ".svn" in name for name in names))
+
     def test_zip_is_a_folder_compare_source(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw); folder = root / "folder"; folder.mkdir()

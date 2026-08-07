@@ -11,6 +11,18 @@ from pycommander.archivefs import (ArchiveCancelled, ArchiveSession,
 
 
 class ArchiveSessionTests(unittest.TestCase):
+    def test_zip_extracts_extended_total_path_length(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            archive_path = root / "long.zip"
+            member = "/".join(["segment_" + str(index) + "_" + "x" * 36
+                               for index in range(6)] + ["result.txt"])
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr(member, "long-path-ok")
+            destination = root / "output"
+            extract_archive_to(archive_path, destination)
+            self.assertEqual(destination.joinpath(*member.split("/")).read_text(encoding="utf-8"),
+                             "long-path-ok")
     def test_zip_is_browsable_and_changes_are_rewritten(self):
         with tempfile.TemporaryDirectory() as raw:
             archive_path = Path(raw) / "sample.zip"

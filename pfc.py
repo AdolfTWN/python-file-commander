@@ -64,6 +64,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "調整：過長檔名與比較目標路徑會從中間省略，游標停留三秒後顯示完整名稱。",
+        "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修正：ZIP／7z 解壓縮與壓縮檔比較支援 Windows 延伸長度目的路徑。",
+        "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "修正：資料夾比較可穩定處理資料夾與壓縮檔，並排除 Git／SVN 中繼資料樹。",
+        "Fixed: Git/SVN overlays load without blocking folder navigation, and repository metadata folders open without status scans.": "修正：Git／SVN 覆蓋圖示改為非阻塞載入，開啟版本庫中繼資料夾時不再執行狀態掃描。",
         "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "新增：F9 可將一個選取的檔案或資料夾設為可見的比較目標，再與下一個選取項目比較。",
         "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "調整：檔案圖示佔選取列高度的 90%，並顯示快取的 Git／SVN 狀態覆蓋圖示。",
         "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "新增：搜尋、壓縮、解壓縮、更新下載與開啟壓縮檔會顯示平順的確定式進度及預估剩餘時間。",
@@ -258,6 +262,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "调整：过长文件名与比较目标路径会从中间省略，光标停留三秒后显示完整名称。",
+        "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "修复：ZIP／7z 解压缩与压缩文件比较支持 Windows 扩展长度目标路径。",
+        "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "修复：文件夹比较可稳定处理文件夹与压缩文件，并排除 Git／SVN 元数据树。",
+        "Fixed: Git/SVN overlays load without blocking folder navigation, and repository metadata folders open without status scans.": "修复：Git／SVN 叠加图标改为非阻塞加载，打开版本库元数据文件夹时不再执行状态扫描。",
         "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "新增：F9 可将一个所选文件或文件夹设为可见的比较目标，再与下一个所选项目比较。",
         "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "调整：文件图标占选择行高度的 90%，并显示缓存的 Git／SVN 状态叠加图标。",
         "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "新增：搜索、压缩、解压缩、更新下载与打开压缩文件会显示平滑的确定进度和预计剩余时间。",
@@ -425,6 +433,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.": "조정: 긴 파일 이름과 비교 대상 경로를 가운데 생략하고 3초 동안 가리키면 전체 이름을 표시합니다.",
+        "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.": "수정: ZIP/7z 압축 풀기와 압축 파일 비교에서 Windows 확장 길이 대상 경로를 지원합니다.",
+        "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.": "수정: 폴더 비교가 폴더와 압축 파일을 안정적으로 처리하고 Git/SVN 메타데이터 트리를 제외합니다.",
+        "Fixed: Git/SVN overlays load without blocking folder navigation, and repository metadata folders open without status scans.": "수정: Git/SVN 오버레이를 폴더 탐색을 막지 않고 불러오며 저장소 메타데이터 폴더에서는 상태 검사를 실행하지 않습니다.",
         "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "추가: F9로 선택한 파일이나 폴더 하나를 보이는 비교 대상으로 지정한 뒤 다음 선택 항목과 비교할 수 있습니다.",
         "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "조정: 파일 아이콘이 선택 행 높이의 90%를 사용하고 캐시된 Git/SVN 상태 오버레이를 표시합니다.",
         "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "추가: 검색, 압축, 압축 풀기, 업데이트 다운로드 및 압축 파일 열기에 부드러운 확정 진행률과 예상 남은 시간을 표시합니다.",
@@ -1368,10 +1380,24 @@ class ShellIconProvider:
                   "deleted": "#dc2626", "conflict": "#d000d0"}
         color = colors.get(overlay)
         if color:
-            diameter = max(5, round(self.size * .38))
+            diameter = max(7, round(self.size * .46))
             start = self.size - diameter
             result.put("#ffffff", to=(max(0, start - 1), max(0, start - 1), self.size, self.size))
-            result.put(color, to=(start, start, self.size - 1, self.size - 1))
+            result.put(color, to=(start, start, self.size, self.size))
+            mid = start + diameter // 2
+            ink = "#ffffff" if overlay not in {"modified"} else "#111827"
+            if overlay in {"clean", "added"}:
+                result.put(ink, to=(mid, start + 2, mid + 2, self.size - 2))
+                result.put(ink, to=(start + 2, mid, self.size - 2, mid + 2))
+            elif overlay == "deleted":
+                result.put(ink, to=(start + 2, mid, self.size - 2, mid + 2))
+            elif overlay == "conflict":
+                for offset in range(1, diameter - 1):
+                    result.put(ink, to=(start + offset, start + offset))
+                    result.put(ink, to=(self.size - 1 - offset, start + offset))
+            else:
+                result.put(ink, to=(mid, start + 2, mid + 2, self.size - 4))
+                result.put(ink, to=(mid, self.size - 3, mid + 2, self.size - 1))
         return result
 
     def _with_text_gap(self, icon: PhotoImage) -> PhotoImage:
@@ -1467,6 +1493,15 @@ def _find_root(folder: Path, marker: str) -> Path | None:
     return None
 
 
+def is_metadata_path(folder: Path) -> bool:
+    """VCS internals are data, not a working-tree location to status-scan."""
+    try:
+        parts = folder.resolve().parts
+    except OSError:
+        parts = Path(os.path.abspath(folder)).parts
+    return any(part.casefold() in {".git", ".svn"} for part in parts)
+
+
 def _git_status(folder: Path) -> dict[str, str] | None:
     root = _find_root(folder, ".git")
     if root is None:
@@ -1535,6 +1570,8 @@ def _svn_status(folder: Path) -> dict[str, str] | None:
 
 def folder_statuses(folder: Path) -> dict[str, str]:
     """Return Git/SVN overlay states keyed by normalized absolute path."""
+    if is_metadata_path(folder):
+        return {}
     key = os.path.normcase(str(folder.resolve()))
     cached = _CACHE.get(key)
     now = time.monotonic()
@@ -2436,7 +2473,10 @@ class ToolTip:
         self.popup.geometry(f"+{x + 14}+{y + 18}")
         owner = self.widget.winfo_toplevel()
         palette = getattr(owner, "palette", {})
-        tk.Label(self.popup, text=self.text, justify="left",
+        text = self.text() if callable(self.text) else self.text
+        if not text:
+            self.popup.destroy(); self.popup = None; return
+        tk.Label(self.popup, text=text, justify="left",
                  background=palette.get("tooltip", "#fffbd6"),
                  foreground=palette.get("tooltip_text", "#18232c"),
                  relief="solid", borderwidth=1, padx=7, pady=4).pack()
@@ -2450,6 +2490,53 @@ class ToolTip:
             try: self.popup.destroy()
             except tk.TclError: pass
             self.popup = None
+
+
+class TreeItemToolTip:
+    """Shows delayed text for the Treeview row currently under the pointer."""
+
+    def __init__(self, tree, text_for_item, delay=3000):
+        self.tree, self.text_for_item, self.delay = tree, text_for_item, delay
+        self.job = self.popup = None
+        self.item = ""
+        tree.bind("<Motion>", self._motion, add="+")
+        tree.bind("<Leave>", self.hide, add="+")
+        tree.bind("<Button>", self.hide, add="+")
+
+    def _motion(self, event):
+        item = self.tree.identify_row(event.y)
+        if item == self.item:
+            return
+        self.hide(); self.item = item
+        if item and self.text_for_item(item):
+            self.job = self.tree.after(self.delay, self.show)
+
+    def show(self):
+        self.job = None
+        text = self.text_for_item(self.item) if self.item else ""
+        if not text or not self.tree.winfo_exists():
+            return
+        self.popup = tk.Toplevel(self.tree.winfo_toplevel())
+        self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
+        x, y = self.tree.winfo_pointerxy()
+        self.popup.geometry(f"+{x + 14}+{y + 18}")
+        owner = self.tree.winfo_toplevel()
+        palette = getattr(owner, "palette", {})
+        tk.Label(self.popup, text=text, justify="left", wraplength=900,
+                 background=palette.get("tooltip", "#fffbd6"),
+                 foreground=palette.get("tooltip_text", "#18232c"),
+                 relief="solid", borderwidth=1, padx=7, pady=4).pack()
+
+    def hide(self, _event=None):
+        if self.job is not None:
+            try: self.tree.after_cancel(self.job)
+            except tk.TclError: pass
+            self.job = None
+        if self.popup is not None:
+            try: self.popup.destroy()
+            except tk.TclError: pass
+            self.popup = None
+        self.item = ""
 
 
 class MenuToolTip:
@@ -2507,13 +2594,11 @@ import fnmatch
 import hashlib
 import os
 import queue
-import shutil
 import subprocess
 import tempfile
 import threading
-import zipfile
 from datetime import datetime
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import tkinter as tk
 from tkinter import font as tkfont, messagebox, ttk
 
@@ -2543,54 +2628,12 @@ def nested_source_label(source: Path, relative: str) -> str:
     return f"{source}{separator}{relative}"
 
 
-def _safe_archive_member(name: str) -> bool:
-    normalized = name.replace("\\", "/")
-    member = PurePosixPath(normalized)
-    return bool(normalized) and not member.is_absolute() and ".." not in member.parts and not (
-        member.parts and ":" in member.parts[0])
-
-
 def extract_compare_archive(path: Path):
     """Extract ZIP/7z into an isolated temporary folder for read-only comparison."""
     workspace = tempfile.TemporaryDirectory(prefix="pfc-compare-")
     destination = Path(workspace.name)
     try:
-        if path.suffix.casefold() == ".zip":
-            with zipfile.ZipFile(path) as archive:
-                for info in archive.infolist():
-                    if not _safe_archive_member(info.filename):
-                        raise OSError(f"Unsafe archive path: {info.filename}")
-                    member = PurePosixPath(info.filename.replace("\\", "/"))
-                    target = destination.joinpath(*member.parts)
-                    if info.is_dir():
-                        target.mkdir(parents=True, exist_ok=True)
-                    else:
-                        target.parent.mkdir(parents=True, exist_ok=True)
-                        with archive.open(info) as source, target.open("wb") as output:
-                            shutil.copyfileobj(source, output)
-                        try:
-                            timestamp = datetime(*info.date_time).timestamp()
-                            os.utime(target, (timestamp, timestamp))
-                        except (OSError, ValueError):
-                            pass
-        else:
-            tar = shutil.which("tar.exe") or shutil.which("tar")
-            if not tar:
-                raise OSError("7z comparison requires the Windows tar component.")
-            run_options = {"capture_output": True, "text": True, "errors": "replace"}
-            if os.name == "nt":
-                run_options["creationflags"] = subprocess.CREATE_NO_WINDOW
-            listing = subprocess.run([tar, "-tf", str(path)], **run_options)
-            if listing.returncode:
-                raise OSError(listing.stderr.strip() or "Unable to read 7z archive.")
-            members = [line.strip() for line in listing.stdout.splitlines() if line.strip()]
-            unsafe = next((name for name in members if not _safe_archive_member(name)), None)
-            if unsafe:
-                raise OSError(f"Unsafe archive path: {unsafe}")
-            extraction = subprocess.run([tar, "-xf", str(path), "-C", str(destination)],
-                                        **run_options)
-            if extraction.returncode:
-                raise OSError(extraction.stderr.strip() or "Unable to extract 7z archive.")
+        extract_archive_to(path, destination)
         return workspace, destination
     except Exception:
         workspace.cleanup()
@@ -3099,12 +3142,29 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
                 cancelled=lambda: False):
     patterns = [item.strip() for item in masks.split(";") if item.strip()] or ["*"]
     def collect(root):
-        iterator = root.rglob("*") if recursive else root.iterdir()
+        if recursive:
+            def paths():
+                for folder, directories, filenames in os.walk(root, topdown=True,
+                                                                onerror=lambda _error: None):
+                    directories[:] = [name for name in directories
+                                      if name.casefold() not in {".git", ".svn"}]
+                    base = Path(folder)
+                    yield from (base / name for name in directories)
+                    yield from (base / name for name in filenames)
+            iterator = paths()
+        else:
+            iterator = root.iterdir()
         result = {}
         for path in iterator:
             if cancelled():
                 break
-            relative = str(path.relative_to(root))
+            try:
+                relative_path = path.relative_to(root)
+            except ValueError:
+                continue
+            if any(part.casefold() in {".git", ".svn"} for part in relative_path.parts):
+                continue
+            relative = str(relative_path)
             if path.is_dir() or any(fnmatch.fnmatch(path.name.casefold(), pattern.casefold())
                                     for pattern in patterns):
                 result[relative.casefold()] = path
@@ -5770,6 +5830,20 @@ class ArchiveCancelled(OSError):
     pass
 
 
+def filesystem_path(path: Path) -> str:
+    """Return a Windows extended-length path without changing its logical value."""
+    raw = str(Path(path).absolute())
+    if os.name != "nt" or raw.startswith("\\\\?\\"):
+        return raw
+    if raw.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + raw[2:]
+    return "\\\\?\\" + raw
+
+
+def _mkdir(path: Path) -> None:
+    os.makedirs(filesystem_path(path), exist_ok=True)
+
+
 def is_browsable_archive(path: Path) -> bool:
     return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
 
@@ -5815,7 +5889,7 @@ def extract_archive_to(archive_path: Path, destination: Path,
                        progress: ProgressCallback | None = None) -> Path:
     """Safely extract ZIP/7z directly, avoiding long temporary copy paths."""
     archive_path = archive_path.expanduser().resolve()
-    destination.mkdir(parents=True, exist_ok=True)
+    _mkdir(destination)
     if archive_path.suffix.casefold() == ".zip":
         with zipfile.ZipFile(archive_path) as archive:
             members = archive.infolist()
@@ -5824,10 +5898,10 @@ def extract_archive_to(archive_path: Path, destination: Path,
             for info in members:
                 target = _safe_destination(destination.resolve(), info.filename)
                 if info.is_dir():
-                    target.mkdir(parents=True, exist_ok=True)
+                    _mkdir(target)
                     continue
-                target.parent.mkdir(parents=True, exist_ok=True)
-                with archive.open(info) as source, target.open("wb") as output:
+                _mkdir(target.parent)
+                with archive.open(info) as source, open(filesystem_path(target), "wb") as output:
                     while True:
                         chunk = source.read(1024 * 1024)
                         if not chunk:
@@ -5851,7 +5925,7 @@ def extract_archive_to(archive_path: Path, destination: Path,
         _safe_destination(destination.resolve(), member)
     process = subprocess.Popen(
         [executable, "x", "-y", "-bso0", "-bse1", "-bsp1",
-         f"-o{destination}", str(archive_path)],
+         f"-o{filesystem_path(destination)}", str(archive_path)],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
     output = ""
     assert process.stdout is not None
@@ -5945,10 +6019,10 @@ class ArchiveSession:
                     self._check_cancelled()
                     destination = _safe_destination(self.root, info.filename)
                     if info.is_dir():
-                        destination.mkdir(parents=True, exist_ok=True)
+                        _mkdir(destination)
                         continue
-                    destination.parent.mkdir(parents=True, exist_ok=True)
-                    with archive.open(info) as source, destination.open("wb") as target:
+                    _mkdir(destination.parent)
+                    with archive.open(info) as source, open(filesystem_path(destination), "wb") as target:
                         while True:
                             self._check_cancelled()
                             chunk = source.read(1024 * 1024)
@@ -5966,7 +6040,7 @@ class ArchiveSession:
             raise OSError("7z browsing requires the 7-Zip command-line tool (7z or 7zz).")
         process = subprocess.Popen(
             [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
-             f"-o{self.root}", str(self.archive_path)],
+             f"-o{filesystem_path(self.root)}", str(self.archive_path)],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
         started = __import__("time").monotonic()
         last_percent = 0
@@ -7001,16 +7075,50 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.16.0"
+__version__ = "0.16.1"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
 UPDATE_URL = "https://raw.githubusercontent.com/AdolfTWN/python-file-commander/main/pfc.py"
 UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
 
+
+def middle_ellipsize(text: str, max_width: int, measure) -> str:
+    """Fit text by preserving both identifying ends instead of losing the suffix."""
+    if max_width <= 0 or measure(text) <= max_width:
+        return text
+    marker = "..."
+    if measure(marker) >= max_width:
+        return marker
+    right = min(8, max(1, len(text) - 1))
+    while right > 1 and measure(marker + text[-right:]) > max_width:
+        right -= 1
+    left = 1 if measure(text[:1] + marker + text[-right:]) <= max_width else 0
+    while left + right < len(text):
+        prefer_left = left / max(1, left + right) < .55
+        options = ((left + 1, right), (left, right + 1)) if prefer_left else (
+            (left, right + 1), (left + 1, right))
+        accepted = False
+        for next_left, next_right in options:
+            if next_left + next_right >= len(text):
+                continue
+            candidate = text[:next_left] + marker + text[-next_right:]
+            if measure(candidate) <= max_width:
+                left, right, accepted = next_left, next_right, True
+                break
+        if not accepted:
+            break
+    return text[:left] + marker + text[-right:]
+
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/07"
+BUILD_DATE = "2026/08/08"
 VERSION_HISTORY = (
+    ("v0.16.1", "2026/08/08", (
+        "Adjusted: Long file names and Compare Target paths use a middle ellipsis, with the full name shown after a three-second hover.",
+        "Fixed: ZIP/7z extraction and archive comparison support Windows extended-length destination paths.",
+        "Fixed: Folder comparison consistently handles folders and archives while excluding Git/SVN metadata trees.",
+        "Fixed: Git/SVN overlays load without blocking folder navigation, and repository metadata folders open without status scans.",
+    )),
     ("v0.16.0", "2026/08/07", (
         "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.",
         "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.",
@@ -7503,6 +7611,11 @@ class FilePane(ttk.Frame):
                                "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
         self._vcs_statuses: dict[str, str] = {}
+        self._vcs_path: Path | None = None
+        self._vcs_requested_at = 0.0
+        self._vcs_generation = 0
+        self._vcs_loading = False
+        self._vcs_results = queue.Queue()
 
         # Keep the command target visible even when the panel has no selected row.
         self.active_indicator = tk.Frame(self, height=3, background="#9aa7b3",
@@ -7554,6 +7667,7 @@ class FilePane(ttk.Frame):
         self.tree.bind("<Prior>", lambda _event: self.page_selection(-1))
         self.tree.bind("<Next>", lambda _event: self.page_selection(1))
         self.tree.bind("<<TreeviewOpen>>", self._tree_open)
+        self._name_tooltip = TreeItemToolTip(self.tree, self._tooltip_name, delay=3000)
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text=tr("Quick Filter:")).pack(side="left")
@@ -7567,6 +7681,7 @@ class FilePane(ttk.Frame):
         self.status.pack(fill="x", pady=(3, 0))
         self.quick_filter_bar.pack(fill="x", pady=(2, 0))
         install_button_tooltips(self)
+        self.after(150, self._poll_vcs_results)
         self.navigate(self.path)
         try:
             self.shell_drop_target = ShellFileDropTarget(
@@ -7607,6 +7722,79 @@ class FilePane(ttk.Frame):
 
     def _icon(self, path: Path, is_dir: bool):
         return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path))
+
+    def _full_item_name(self, iid: str) -> str:
+        tags = self.tree.item(iid, "tags")
+        if not tags or tags[0] == "PFC_INLINE_PLACEHOLDER":
+            return ""
+        path = Path(tags[0])
+        visible = path.name if path.is_dir() or self.show_extensions else path.stem
+        if self.view_mode == "list":
+            return f"[{visible}]" if path.is_dir() else visible
+        current = str(self.tree.item(iid, "text"))
+        prefix = "└─ " if current.startswith("└─ ") else "├─ " if current.startswith("├─ ") else ""
+        return prefix + visible
+
+    def _tooltip_name(self, iid: str) -> str:
+        full = self._full_item_name(iid)
+        return full if full and str(self.tree.item(iid, "text")) != full else ""
+
+    def _fit_visible_names(self) -> None:
+        font = tkfont.nametofont("TkDefaultFont")
+        width = max(24, int(self.tree.column("#0", "width")) - self.icons.size -
+                    self.icons.text_gap - font.measure("MM"))
+        def fit(parent=""):
+            for iid in self.tree.get_children(parent):
+                full = self._full_item_name(iid)
+                if full:
+                    self.tree.item(iid, text=middle_ellipsize(full, width, font.measure))
+                fit(iid)
+        fit()
+
+    def _request_vcs_statuses(self) -> None:
+        if self.archive_session is not None:
+            self._vcs_path = None; self._vcs_statuses = {}
+            return
+        now, path = time.monotonic(), self.path
+        if self._vcs_loading and self._vcs_path == path:
+            return
+        if self._vcs_path == path and now - self._vcs_requested_at < 5.0:
+            return
+        if self._vcs_path != path:
+            self._vcs_statuses = {}
+        self._vcs_path = path; self._vcs_requested_at = now
+        self._vcs_generation += 1
+        self._vcs_loading = True
+        generation = self._vcs_generation
+        def load():
+            self._vcs_results.put((generation, path, folder_statuses(path)))
+        threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
+
+    def _poll_vcs_results(self) -> None:
+        try:
+            while True:
+                generation, path, statuses = self._vcs_results.get_nowait()
+                if generation == self._vcs_generation and path == self.path:
+                    self._vcs_loading = False
+                    self._vcs_statuses = statuses
+                    self._apply_vcs_icons()
+        except queue.Empty:
+            pass
+        try:
+            self.after(150, self._poll_vcs_results)
+        except tk.TclError:
+            pass
+
+    def _apply_vcs_icons(self) -> None:
+        def apply(parent=""):
+            for iid in self.tree.get_children(parent):
+                tags = self.tree.item(iid, "tags")
+                if tags and tags[0] != "PFC_INLINE_PLACEHOLDER":
+                    path = Path(tags[0])
+                    try: self.tree.item(iid, image=self._icon(path, path.is_dir()))
+                    except OSError: pass
+                apply(iid)
+        apply()
 
     def _tree_label(self, path: Path, is_dir: bool, is_last: bool = False) -> str:
         visible = path.name if is_dir or self.show_extensions else path.stem
@@ -7964,8 +8152,7 @@ class FilePane(ttk.Frame):
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
         try:
-            self._vcs_statuses = ({} if self.archive_session is not None
-                                  else folder_statuses(self.path))
+            self._request_vcs_statuses()
             if self.mode == "files" and self.view_mode != "list":
                 visible_entries = [p for p in self.path.iterdir()
                                    if (self.show_hidden or not p.name.startswith(".")) and
@@ -8079,6 +8266,7 @@ class FilePane(ttk.Frame):
         available = max(1, self.tree.winfo_width() - 4)
         self.tree.column("#0", width=max(120, available - fixed_total), minwidth=120,
                          stretch=True)
+        self._fit_visible_names()
 
     @staticmethod
     def signature_for(entries) -> tuple:
@@ -8094,6 +8282,7 @@ class FilePane(ttk.Frame):
     def refresh_if_changed(self) -> bool:
         if self.mode != "files" or self._inline_editor is not None:
             return False
+        self._request_vcs_statuses()
         try:
             entries = [p for p in self.path.iterdir()
                        if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
@@ -8912,6 +9101,11 @@ class Commander(tk.Tk):
             header, text="", anchor="center", font=menu_font, padx=12, pady=2,
             background="#b8ef18", foreground="#c41421")
         self.compare_target_label.place(relx=.5, rely=.5, anchor="center")
+        self.compare_target_tooltip = ToolTip(
+            self.compare_target_label,
+            lambda: (tr("Compare Target - {path}", path=str(self.compare_target))
+                     if self.compare_target is not None else ""), delay=3000)
+        header.bind("<Configure>", lambda _event: self._update_compare_target_label(), add="+")
         self._update_compare_target_label()
         title = tk.Label(header, text="PFC",
                          font=tkfont.nametofont("TkCaptionFont"),
@@ -10618,7 +10812,11 @@ class Commander(tk.Tk):
         if self.compare_target is None:
             label.place_forget()
         else:
-            label.configure(text=tr("Compare Target - {path}", path=str(self.compare_target)))
+            full = tr("Compare Target - {path}", path=str(self.compare_target))
+            font = tkfont.Font(font=label.cget("font"))
+            header_width = max(400, int(getattr(self, "header", self).winfo_width()))
+            maximum = max(180, min(760, int(header_width * .44)))
+            label.configure(text=middle_ellipsize(full, maximum, font.measure))
             label.place(relx=.5, rely=.5, anchor="center")
             label.lift()
 

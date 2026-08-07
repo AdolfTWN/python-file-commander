@@ -194,10 +194,24 @@ class ShellIconProvider:
                   "deleted": "#dc2626", "conflict": "#d000d0"}
         color = colors.get(overlay)
         if color:
-            diameter = max(5, round(self.size * .38))
+            diameter = max(7, round(self.size * .46))
             start = self.size - diameter
             result.put("#ffffff", to=(max(0, start - 1), max(0, start - 1), self.size, self.size))
-            result.put(color, to=(start, start, self.size - 1, self.size - 1))
+            result.put(color, to=(start, start, self.size, self.size))
+            mid = start + diameter // 2
+            ink = "#ffffff" if overlay not in {"modified"} else "#111827"
+            if overlay in {"clean", "added"}:
+                result.put(ink, to=(mid, start + 2, mid + 2, self.size - 2))
+                result.put(ink, to=(start + 2, mid, self.size - 2, mid + 2))
+            elif overlay == "deleted":
+                result.put(ink, to=(start + 2, mid, self.size - 2, mid + 2))
+            elif overlay == "conflict":
+                for offset in range(1, diameter - 1):
+                    result.put(ink, to=(start + offset, start + offset))
+                    result.put(ink, to=(self.size - 1 - offset, start + offset))
+            else:
+                result.put(ink, to=(mid, start + 2, mid + 2, self.size - 4))
+                result.put(ink, to=(mid, self.size - 3, mid + 2, self.size - 1))
         return result
 
     def _with_text_gap(self, icon: PhotoImage) -> PhotoImage:
