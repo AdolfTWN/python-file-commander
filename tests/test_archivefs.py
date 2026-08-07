@@ -66,6 +66,39 @@ class ArchiveSessionTests(unittest.TestCase):
             self.assertEqual((destination / "folder" / "nested.txt").read_text(), "nested")
             self.assertEqual((destination / "single.txt").read_text(), "single")
 
+    def test_extract_overwrites_existing_file_and_reports_progress(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            archive_path = root / "bundle.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("nested/file.txt", "replacement")
+            destination = root / "out"
+            existing = destination / "nested" / "file.txt"
+            existing.parent.mkdir(parents=True)
+            existing.write_text("old", encoding="utf-8")
+            updates = []
+            extract_archive_to(archive_path, destination,
+                               lambda completed, total, detail: updates.append((completed, total, detail)))
+            self.assertEqual(existing.read_text(encoding="utf-8"), "replacement")
+            self.assertTrue(updates)
+            self.assertEqual(updates[-1][0], updates[-1][1])
+
+    @unittest.skipUnless(_seven_zip_executable(), "7-Zip command-line tool is unavailable")
+    def test_7z_direct_extraction_reports_completion(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            source = root / "source"; source.mkdir()
+            (source / "item.txt").write_text("content", encoding="utf-8")
+            archive_path = root / "sample.7z"
+            subprocess.run([_seven_zip_executable(), "a", str(archive_path), "."],
+                           cwd=source, check=True, capture_output=True)
+            updates = []
+            destination = root / "output"
+            extract_archive_to(archive_path, destination,
+                               lambda completed, total, detail: updates.append((completed, total, detail)))
+            self.assertEqual((destination / "item.txt").read_text(encoding="utf-8"), "content")
+            self.assertEqual(updates[-1][:2], (100, 100))
+
     @unittest.skipUnless(_seven_zip_executable(), "7-Zip command-line tool is unavailable")
     def test_7z_is_extracted_and_rewritten(self):
         with tempfile.TemporaryDirectory() as raw:

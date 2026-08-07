@@ -64,6 +64,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "新增：F9 可將一個選取的檔案或資料夾設為可見的比較目標，再與下一個選取項目比較。",
+        "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "調整：檔案圖示佔選取列高度的 90%，並顯示快取的 Git／SVN 狀態覆蓋圖示。",
+        "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "新增：搜尋、壓縮、解壓縮、更新下載與開啟壓縮檔會顯示平順的確定式進度及預估剩餘時間。",
+        "Fixed: ZIP/7z extraction writes safely to the destination without a long temporary-copy path, preventing repeated decompression failures.": "修正：ZIP／7z 會安全地直接寫入目的地，不再經過過長的暫存複製路徑，避免重複解壓縮失敗。",
         "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.": "新增：版本 > 檢查更新會安全驗證較新的 GitHub pfc.py，經同意後原子替換可攜式副本並重新啟動 PFC。",
         "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.": "修正：搜尋與背景作業進度視窗在成功、取消、非預期錯誤或工作未傳回結果時都能可靠停止。",
         "Adjusted: Archive-folder loading immediately raises a cancellable progress window and explicitly stops it when ZIP/7z preparation finishes.": "調整：載入壓縮檔資料夾時立即顯示可取消的進度視窗，ZIP／7z 準備完成後會明確停止。",
@@ -89,6 +93,10 @@ _TRANSLATIONS = {
         "Sort files and folders together; disable to keep folders first.": "將檔案與資料夾混合排序；停用後資料夾會保持在前。",
         "Check Update": "檢查更新", "Check GitHub for a newer portable pfc.py.": "檢查 GitHub 是否有較新的可攜式 pfc.py。",
         "Checking for updates…": "正在檢查更新…", "Update check failed": "更新檢查失敗",
+        "Compare Target - {path}": "比較目標 - {path}",
+        "Estimated time remaining: calculating…": "預估剩餘時間：計算中…",
+        "Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds": "預估剩餘時間：{minutes:02d} 分 {seconds:02d} 秒",
+        "Estimated time remaining: 00 minutes 00 seconds": "預估剩餘時間：00 分 00 秒",
         "The operation ended without a result.": "作業已結束，但未傳回結果。",
         "PFC is up to date (v{version}).": "PFC 已是最新版本（v{version}）。",
         "Found newer ver {version}, proceed to Update?": "找到較新版本 {version}，是否繼續更新？",
@@ -250,6 +258,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "新增：F9 可将一个所选文件或文件夹设为可见的比较目标，再与下一个所选项目比较。",
+        "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "调整：文件图标占选择行高度的 90%，并显示缓存的 Git／SVN 状态叠加图标。",
+        "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "新增：搜索、压缩、解压缩、更新下载与打开压缩文件会显示平滑的确定进度和预计剩余时间。",
+        "Fixed: ZIP/7z extraction writes safely to the destination without a long temporary-copy path, preventing repeated decompression failures.": "修复：ZIP／7z 会安全地直接写入目标位置，不再经过过长的临时复制路径，避免反复解压失败。",
         "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.": "新增：版本 > 检查更新会安全验证较新的 GitHub pfc.py，经同意后原子替换便携式副本并重新启动 PFC。",
         "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.": "修复：搜索与后台操作进度窗口在成功、取消、意外错误或任务未返回结果时都能可靠停止。",
         "Adjusted: Archive-folder loading immediately raises a cancellable progress window and explicitly stops it when ZIP/7z preparation finishes.": "调整：加载压缩文件夹时立即显示可取消的进度窗口，ZIP／7z 准备完成后会明确停止。",
@@ -275,6 +287,10 @@ _TRANSLATIONS = {
         "Sort files and folders together; disable to keep folders first.": "将文件与文件夹混合排序；停用后文件夹会保持在前。",
         "Check Update": "检查更新", "Check GitHub for a newer portable pfc.py.": "检查 GitHub 是否有较新的便携式 pfc.py。",
         "Checking for updates…": "正在检查更新…", "Update check failed": "更新检查失败",
+        "Compare Target - {path}": "比较目标 - {path}",
+        "Estimated time remaining: calculating…": "预计剩余时间：计算中…",
+        "Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds": "预计剩余时间：{minutes:02d} 分 {seconds:02d} 秒",
+        "Estimated time remaining: 00 minutes 00 seconds": "预计剩余时间：00 分 00 秒",
         "The operation ended without a result.": "操作已结束，但未返回结果。",
         "PFC is up to date (v{version}).": "PFC 已是最新版本（v{version}）。",
         "Found newer ver {version}, proceed to Update?": "发现较新版本 {version}，是否继续更新？",
@@ -409,6 +425,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.": "추가: F9로 선택한 파일이나 폴더 하나를 보이는 비교 대상으로 지정한 뒤 다음 선택 항목과 비교할 수 있습니다.",
+        "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.": "조정: 파일 아이콘이 선택 행 높이의 90%를 사용하고 캐시된 Git/SVN 상태 오버레이를 표시합니다.",
+        "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.": "추가: 검색, 압축, 압축 풀기, 업데이트 다운로드 및 압축 파일 열기에 부드러운 확정 진행률과 예상 남은 시간을 표시합니다.",
+        "Fixed: ZIP/7z extraction writes safely to the destination without a long temporary-copy path, preventing repeated decompression failures.": "수정: ZIP/7z를 긴 임시 복사 경로 없이 대상에 안전하게 직접 기록하여 반복적인 압축 풀기 실패를 방지합니다.",
         "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.": "추가: 버전 > 업데이트 확인에서 최신 GitHub pfc.py를 안전하게 검증하고 승인 후 휴대용 파일을 원자적으로 교체한 뒤 PFC를 다시 시작합니다.",
         "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.": "수정: 검색 및 백그라운드 작업 진행 창이 성공, 취소, 예기치 않은 오류 또는 작업 결과 누락 시에도 안정적으로 멈춥니다.",
         "Adjusted: Archive-folder loading immediately raises a cancellable progress window and explicitly stops it when ZIP/7z preparation finishes.": "조정: 압축 파일 폴더를 불러올 때 취소 가능한 진행 창을 즉시 표시하고 ZIP/7z 준비가 끝나면 명확히 중지합니다.",
@@ -434,6 +454,10 @@ _TRANSLATIONS = {
         "Sort files and folders together; disable to keep folders first.": "파일과 폴더를 함께 정렬합니다. 끄면 폴더가 먼저 유지됩니다.",
         "Check Update": "업데이트 확인", "Check GitHub for a newer portable pfc.py.": "GitHub에서 더 새로운 휴대용 pfc.py를 확인합니다.",
         "Checking for updates…": "업데이트 확인 중…", "Update check failed": "업데이트 확인 실패",
+        "Compare Target - {path}": "비교 대상 - {path}",
+        "Estimated time remaining: calculating…": "예상 남은 시간: 계산 중…",
+        "Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds": "예상 남은 시간: {minutes:02d}분 {seconds:02d}초",
+        "Estimated time remaining: 00 minutes 00 seconds": "예상 남은 시간: 00분 00초",
         "The operation ended without a result.": "작업이 결과 없이 종료되었습니다.",
         "PFC is up to date (v{version}).": "PFC가 최신 버전입니다(v{version}).",
         "Found newer ver {version}, proceed to Update?": "새 버전 {version}을 찾았습니다. 업데이트하시겠습니까?",
@@ -1324,15 +1348,31 @@ class ShellIconProvider:
         self.cache: dict[str, PhotoImage] = {}
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
-    def get(self, path: Path, is_dir: bool) -> PhotoImage:
+    def get(self, path: Path, is_dir: bool, overlay: str | None = None) -> PhotoImage:
         if os.name != "nt":
             return self.blank
         suffix = path.suffix.casefold()
-        key = "<folder>" if is_dir else (str(path) if suffix in {".exe", ".lnk", ".ico"} else suffix or "<file>")
+        base_key = "<folder>" if is_dir else (str(path) if suffix in {".exe", ".lnk", ".ico"} else suffix or "<file>")
+        key = f"{base_key}|{overlay or ''}"
         if key not in self.cache:
             icon = self._load(path)
+            if icon is not None and overlay:
+                icon = self._with_overlay(icon, overlay)
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
         return self.cache[key]
+
+    def _with_overlay(self, icon: PhotoImage, overlay: str) -> PhotoImage:
+        result = PhotoImage(width=self.size, height=self.size)
+        result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
+        colors = {"clean": "#16a34a", "modified": "#f4b400", "added": "#16a34a", "untracked": "#2583e9",
+                  "deleted": "#dc2626", "conflict": "#d000d0"}
+        color = colors.get(overlay)
+        if color:
+            diameter = max(5, round(self.size * .38))
+            start = self.size - diameter
+            result.put("#ffffff", to=(max(0, start - 1), max(0, start - 1), self.size, self.size))
+            result.put(color, to=(start, start, self.size - 1, self.size - 1))
+        return result
 
     def _with_text_gap(self, icon: PhotoImage) -> PhotoImage:
         padded = PhotoImage(width=self.size + self.text_gap, height=self.size)
@@ -1390,6 +1430,133 @@ class ShellIconProvider:
             return PhotoImage(data=encoded, format="png")
         except Exception:
             return None
+
+
+import os
+import subprocess
+import time
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+
+_CACHE: dict[str, tuple[float, dict[str, str]]] = {}
+_CACHE_SECONDS = 3.0
+_PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
+             "deleted": 1, "clean": 0}
+
+
+def _merge(statuses: dict[str, str], path: Path, status: str, root: Path) -> None:
+    try:
+        current = path.resolve()
+    except OSError:
+        current = Path(os.path.abspath(path))
+    while current == root or root in current.parents:
+        key = os.path.normcase(str(current))
+        if key not in statuses or _PRIORITY.get(status, 0) > _PRIORITY.get(statuses[key], 0):
+            statuses[key] = status
+        if current == root:
+            break
+        current = current.parent
+
+
+def _find_root(folder: Path, marker: str) -> Path | None:
+    current = folder.resolve()
+    for candidate in (current, *current.parents):
+        if (candidate / marker).exists():
+            return candidate
+    return None
+
+
+def _git_status(folder: Path) -> dict[str, str] | None:
+    root = _find_root(folder, ".git")
+    if root is None:
+        return None
+    relative = os.path.relpath(folder, root)
+    command = ["git", "-C", str(root), "status", "--porcelain=v1", "-z",
+               "--untracked-files=all", "--", relative]
+    result = subprocess.run(command, capture_output=True, timeout=4)
+    if result.returncode:
+        return {}
+    statuses: dict[str, str] = {}
+    tracked = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", relative],
+                             capture_output=True, timeout=4)
+    if tracked.returncode == 0:
+        for raw_path in tracked.stdout.split(b"\0"):
+            if raw_path:
+                _merge(statuses, root / raw_path.decode("utf-8", "surrogateescape"),
+                       "clean", root)
+    records = result.stdout.split(b"\0")
+    index = 0
+    while index < len(records):
+        record = records[index]
+        index += 1
+        if len(record) < 4:
+            continue
+        code = record[:2].decode("ascii", "replace")
+        raw_path = record[3:].decode("utf-8", "surrogateescape")
+        if "R" in code or "C" in code:
+            index += 1  # porcelain -z adds the source name after the destination.
+        status = ("conflict" if "U" in code or code in {"AA", "DD"} else
+                  "untracked" if code == "??" else
+                  "added" if "A" in code else
+                  "deleted" if "D" in code else "modified")
+        _merge(statuses, root / raw_path, status, root)
+    return statuses
+
+
+def _svn_status(folder: Path) -> dict[str, str] | None:
+    root = _find_root(folder, ".svn")
+    if root is None:
+        return None
+    try:
+        result = subprocess.run(["svn", "status", "-v", "--xml", str(folder)],
+                                capture_output=True, text=True, errors="replace", timeout=4)
+    except (OSError, subprocess.TimeoutExpired):
+        return {}
+    if result.returncode:
+        return {}
+    mapping = {"conflicted": "conflict", "added": "added", "unversioned": "untracked",
+               "missing": "deleted", "deleted": "deleted", "modified": "modified",
+               "replaced": "modified", "normal": "clean"}
+    statuses: dict[str, str] = {}
+    try:
+        document = ET.fromstring(result.stdout)
+    except ET.ParseError:
+        return statuses
+    for entry in document.findall(".//entry"):
+        wc = entry.find("wc-status")
+        if wc is None:
+            continue
+        status = mapping.get(wc.get("item", ""))
+        if status:
+            _merge(statuses, Path(entry.get("path", "")), status, root)
+    return statuses
+
+
+def folder_statuses(folder: Path) -> dict[str, str]:
+    """Return Git/SVN overlay states keyed by normalized absolute path."""
+    key = os.path.normcase(str(folder.resolve()))
+    cached = _CACHE.get(key)
+    now = time.monotonic()
+    if cached and now - cached[0] < _CACHE_SECONDS:
+        return cached[1]
+    try:
+        statuses = _git_status(folder)
+        if statuses is None:
+            statuses = _svn_status(folder)
+        value = statuses or {}
+    except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
+        value = {}
+    _CACHE[key] = (now, value)
+    return value
+
+
+def status_for(statuses: dict[str, str], path: Path) -> str | None:
+    try:
+        key = os.path.normcase(str(path.resolve()))
+    except OSError:
+        key = os.path.normcase(os.path.abspath(path))
+    return statuses.get(key)
 
 
 import ctypes
@@ -4923,6 +5090,7 @@ import fnmatch
 import os
 import queue
 import threading
+import time
 import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -5009,6 +5177,9 @@ class SearchWindow(tk.Toplevel):
         self.cancel_event = threading.Event(); self.messages = queue.Queue(); self.poll_job = None
         self._column_resize_job = None
         self._column_desired = {}
+        self._progress_started = 0.0
+        self._progress_target = 0.0
+        self._progress_displayed = 0.0
         self.path_var = tk.StringVar(value=str(start_path))
         self.mask_var = tk.StringVar(value=config.get("search", "mask", fallback="*"))
         self.content_var = tk.StringVar(value=config.get("search", "content", fallback=""))
@@ -5065,6 +5236,8 @@ class SearchWindow(tk.Toplevel):
         self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
         self.progress = ttk.Progressbar(form, mode="determinate", value=0)
         self.progress.grid(row=7, column=0, columnspan=8, sticky="ew", pady=(5, 0))
+        self.progress_eta = ttk.Label(form, text=tr("Estimated time remaining: calculating…"), anchor="w")
+        self.progress_eta.grid(row=8, column=0, columnspan=8, sticky="ew", pady=(3, 0))
         form.columnconfigure(1, weight=1)
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
@@ -5229,17 +5402,22 @@ class SearchWindow(tk.Toplevel):
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self._reset_column_measurements()
         self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
-        self.progress.stop(); self.progress.configure(mode="indeterminate", value=0); self.progress.start(12)
+        self._progress_started = time.monotonic(); self._progress_target = 0.0; self._progress_displayed = 0.0
+        self.progress.stop(); self.progress.configure(mode="determinate", maximum=100, value=0)
+        self.progress_eta.configure(text=tr("Estimated time remaining: calculating…"))
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
     def _search(self, c):
-        count = 0
+        count = 0; processed_folders = 0; discovered_folders = 1
         try:
             for current, dirs, files in os.walk(c["root"]):
                 if self.cancel_event.is_set(): break
                 depth = len(Path(current).relative_to(c["root"]).parts)
                 folder_names = list(dirs)
                 if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
+                discovered_folders += len(dirs)
+                processed_folders += 1
+                self.messages.put(("progress", processed_folders, discovered_folders))
                 candidates = ([Path(current) / name for name in folder_names] if c["folders"] else []) + ([Path(current) / name for name in files] if c["files"] else [])
                 for path in candidates:
                     if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
@@ -5281,6 +5459,8 @@ class SearchWindow(tk.Toplevel):
                 suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
                 self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self.progress.stop(); self.progress.configure(mode="determinate", value=100)
+                self._progress_target = self._progress_displayed = 100
+                self.progress_eta.configure(text=tr("Estimated time remaining: 00 minutes 00 seconds"))
                 self.worker = None
                 self._apply_sort()
             elif message[0] == "error":
@@ -5288,6 +5468,21 @@ class SearchWindow(tk.Toplevel):
                 self.progress.stop(); self.progress.configure(mode="determinate", value=0)
                 self.worker = None
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
+            elif message[0] == "progress":
+                _, completed, total = message
+                if total:
+                    self._progress_target = max(self._progress_target,
+                                                min(95.0, completed * 100 / total))
+        if self._progress_displayed < self._progress_target:
+            delta = min(5, max(1, self._progress_target - self._progress_displayed))
+            self._progress_displayed = min(self._progress_target, self._progress_displayed + delta)
+            self.progress.configure(value=self._progress_displayed)
+            elapsed = max(.001, time.monotonic() - self._progress_started)
+            remaining = max(0, round(elapsed * (100 - self._progress_displayed) /
+                                     max(1, self._progress_displayed)))
+            self.progress_eta.configure(text=tr(
+                "Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds",
+                minutes=remaining // 60, seconds=remaining % 60))
         if not self.messages.empty() or (self.worker and self.worker.is_alive()):
             self.poll_job = self.after(40, self._poll)
 
@@ -5564,9 +5759,11 @@ import tempfile
 import threading
 import zipfile
 from pathlib import Path, PurePosixPath
+from typing import Callable
 
 
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
+ProgressCallback = Callable[[int, int, str], None]
 
 
 class ArchiveCancelled(OSError):
@@ -5577,12 +5774,17 @@ def is_browsable_archive(path: Path) -> bool:
     return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
 
 
-def create_zip_archive(items, target: Path) -> Path:
+def create_zip_archive(items, target: Path,
+                       progress: ProgressCallback | None = None) -> Path:
     """Create a ZIP containing each selected item under its own display name."""
     paths = [Path(item) for item in items]
     if not paths:
         raise OSError("No items are selected for compression.")
     target.parent.mkdir(parents=True, exist_ok=True)
+    files = [child for item in paths for child in
+             ([item] if item.is_file() else [p for p in item.rglob("*") if p.is_file()])]
+    total = max(1, sum(path.stat().st_size for path in files))
+    completed = 0
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for item in paths:
             if item.is_dir():
@@ -5596,24 +5798,79 @@ def create_zip_archive(items, target: Path) -> Path:
                             archive.writestr(relative.as_posix().rstrip("/") + "/", b"")
                     else:
                         archive.write(child, relative.as_posix())
+                        completed += child.stat().st_size
+                        if progress:
+                            progress(completed, total, child.name)
             else:
                 archive.write(item, item.name)
+                completed += item.stat().st_size
+                if progress:
+                    progress(completed, total, item.name)
+    if progress:
+        progress(total, total, target.name)
     return target
 
 
-def extract_archive_to(archive_path: Path, destination: Path) -> Path:
-    """Safely extract a browsable ZIP/7z archive into an existing destination."""
+def extract_archive_to(archive_path: Path, destination: Path,
+                       progress: ProgressCallback | None = None) -> Path:
+    """Safely extract ZIP/7z directly, avoiding long temporary copy paths."""
+    archive_path = archive_path.expanduser().resolve()
     destination.mkdir(parents=True, exist_ok=True)
-    session = ArchiveSession(archive_path)
-    try:
-        for child in session.root.iterdir():
-            target = destination / child.name
-            if child.is_dir():
-                shutil.copytree(child, target, dirs_exist_ok=True)
-            else:
-                shutil.copy2(child, target)
-    finally:
-        session.close()
+    if archive_path.suffix.casefold() == ".zip":
+        with zipfile.ZipFile(archive_path) as archive:
+            members = archive.infolist()
+            total = max(1, sum(info.file_size for info in members if not info.is_dir()))
+            completed = 0
+            for info in members:
+                target = _safe_destination(destination.resolve(), info.filename)
+                if info.is_dir():
+                    target.mkdir(parents=True, exist_ok=True)
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with archive.open(info) as source, target.open("wb") as output:
+                    while True:
+                        chunk = source.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        output.write(chunk)
+                        completed += len(chunk)
+                        if progress:
+                            progress(completed, total, Path(info.filename).name)
+        if progress:
+            progress(total, total, archive_path.name)
+        return destination
+    executable = _seven_zip_executable()
+    if executable is None:
+        raise OSError("7z extraction requires the 7-Zip command-line tool (7z or 7zz).")
+    listing = subprocess.run([executable, "l", "-slt", str(archive_path)],
+                             capture_output=True, text=True, errors="replace")
+    if listing.returncode:
+        raise OSError(listing.stderr.strip() or listing.stdout.strip() or "Unable to read 7z archive.")
+    members = [line[7:] for line in listing.stdout.splitlines() if line.startswith("Path = ")][1:]
+    for member in members:
+        _safe_destination(destination.resolve(), member)
+    process = subprocess.Popen(
+        [executable, "x", "-y", "-bso0", "-bse1", "-bsp1",
+         f"-o{destination}", str(archive_path)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+    output = ""
+    assert process.stdout is not None
+    while True:
+        character = process.stdout.read(1)
+        if not character:
+            break
+        output = (output + character)[-200:]
+        if character in {"%", "\r", "\n"}:
+            import re
+            matches = re.findall(r"(\d{1,3})%", output)
+            if matches and progress:
+                percent = min(100, int(matches[-1]))
+                progress(percent, 100, archive_path.name)
+    _stdout, stderr = process.communicate()
+    if process.returncode:
+        raise OSError(stderr.strip() or output.strip() or "7z extraction failed.")
+    if progress:
+        progress(100, 100, archive_path.name)
     return destination
 
 
@@ -5645,9 +5902,11 @@ class ArchiveSession:
     """Editable extracted workspace backed by one ZIP or 7z file."""
 
     def __init__(self, archive_path: Path,
-                 cancel_event: threading.Event | None = None) -> None:
+                 cancel_event: threading.Event | None = None,
+                 progress: ProgressCallback | None = None) -> None:
         self.archive_path = archive_path.expanduser().resolve()
         self.cancel_event = cancel_event
+        self.progress = progress
         if not is_browsable_archive(self.archive_path):
             raise OSError(f"Unsupported archive: {self.archive_path.name}")
         self._temporary = tempfile.TemporaryDirectory(prefix="pfc-archive-")
@@ -5679,7 +5938,10 @@ class ArchiveSession:
     def _extract(self) -> None:
         if self.kind == ".zip":
             with zipfile.ZipFile(self.archive_path) as archive:
-                for info in archive.infolist():
+                members = archive.infolist()
+                total = max(1, sum(info.file_size for info in members if not info.is_dir()))
+                completed = 0
+                for info in members:
                     self._check_cancelled()
                     destination = _safe_destination(self.root, info.filename)
                     if info.is_dir():
@@ -5693,6 +5955,11 @@ class ArchiveSession:
                             if not chunk:
                                 break
                             target.write(chunk)
+                            completed += len(chunk)
+                            if self.progress:
+                                self.progress(completed, total, Path(info.filename).name)
+            if self.progress:
+                self.progress(total, total, self.archive_path.name)
             return
         executable = _seven_zip_executable()
         if executable is None:
@@ -5701,11 +5968,21 @@ class ArchiveSession:
             [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
              f"-o{self.root}", str(self.archive_path)],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+        started = __import__("time").monotonic()
+        last_percent = 0
+        if self.progress:
+            self.progress(1, 100, self.archive_path.name)
         while True:
             try:
                 stdout, stderr = process.communicate(timeout=0.15)
                 break
             except subprocess.TimeoutExpired:
+                if self.progress:
+                    elapsed = __import__("time").monotonic() - started
+                    percent = min(90, 1 + int(elapsed * 2))
+                    if percent > last_percent:
+                        last_percent = percent
+                        self.progress(percent, 100, self.archive_path.name)
                 if self.cancel_event is not None and self.cancel_event.is_set():
                     process.terminate()
                     try:
@@ -5716,6 +5993,8 @@ class ArchiveSession:
                     raise ArchiveCancelled("Archive opening cancelled.")
         if process.returncode:
             raise OSError(stderr.strip() or stdout.strip() or "7z extraction failed.")
+        if self.progress:
+            self.progress(100, 100, self.archive_path.name)
 
     def _check_cancelled(self) -> None:
         if self.cancel_event is not None and self.cancel_event.is_set():
@@ -6706,6 +6985,7 @@ import os
 import configparser
 import ctypes
 import json
+import inspect
 import queue
 import re
 import shutil
@@ -6713,6 +6993,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import tkinter as tk
 import tkinter.font as tkfont
 import urllib.request
@@ -6720,7 +7001,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.15.3"
+__version__ = "0.16.0"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -6730,6 +7011,12 @@ UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/08/07"
 VERSION_HISTORY = (
+    ("v0.16.0", "2026/08/07", (
+        "Added: F9 can stage one selected file or folder as a visible Compare Target, then compare it with the next selected item.",
+        "Adjusted: File icons occupy 90% of the selection-row height and show cached Git/SVN status overlays.",
+        "Added: Search, compression, extraction, update download, and archive opening show smooth determinate progress with estimated time remaining.",
+        "Fixed: ZIP/7z extraction writes safely to the destination without a long temporary-copy path, preventing repeated decompression failures.",
+    )),
     ("v0.15.3", "2026/08/07", (
         "Added: Versions > Check Update securely validates a newer GitHub pfc.py, replaces the portable copy atomically, and restarts PFC after approval.",
         "Fixed: Search and background-operation progress windows now stop reliably on success, cancellation, unexpected errors, or missing worker results.",
@@ -7049,13 +7336,26 @@ def downloaded_pfc_version(payload: bytes) -> str:
     return match.group(1)
 
 
-def fetch_pfc_update(url: str = UPDATE_URL) -> tuple[str, bytes]:
+def fetch_pfc_update(url: str = UPDATE_URL, progress=None) -> tuple[str, bytes]:
     request = urllib.request.Request(url, headers={"User-Agent": "Python-File-Commander-Updater"})
     with urllib.request.urlopen(request, timeout=20) as response:
         declared = response.headers.get("Content-Length")
         if declared and int(declared) > UPDATE_SIZE_LIMIT:
             raise ValueError("Downloaded pfc.py is too large.")
-        payload = response.read(UPDATE_SIZE_LIMIT + 1)
+        total = int(declared) if declared else 0
+        chunks, received = [], 0
+        while True:
+            chunk = response.read(64 * 1024)
+            if not chunk:
+                break
+            chunks.append(chunk); received += len(chunk)
+            if received > UPDATE_SIZE_LIMIT:
+                raise ValueError("Downloaded pfc.py is too large.")
+            if progress:
+                progress(received, total or max(received + 1, UPDATE_SIZE_LIMIT), "pfc.py")
+        payload = b"".join(chunks)
+        if progress:
+            progress(total or received, total or received, "pfc.py")
     return downloaded_pfc_version(payload), payload
 
 
@@ -7086,10 +7386,9 @@ def is_noop_drag_drop(items: list[Path], destination: Path) -> bool:
 
 
 def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
-    """Keep text descenders and scaled shell icons clear of adjacent rows."""
-    icon_size = max(16, round(16 * scale))
+    """Keep text descenders clear while icons occupy about 90% of each row."""
     vertical_space = max(8, round(8 * scale))
-    return max(24, font_linespace + vertical_space, icon_size + vertical_space)
+    return max(24, font_linespace + vertical_space)
 
 
 def automatic_font_size(window_width: int, window_height: int, panel_count: int) -> str:
@@ -7203,6 +7502,7 @@ class FilePane(ttk.Frame):
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
+        self._vcs_statuses: dict[str, str] = {}
 
         # Keep the command target visible even when the panel has no selected row.
         self.active_indicator = tk.Frame(self, height=3, background="#9aa7b3",
@@ -7303,7 +7603,10 @@ class FilePane(ttk.Frame):
     def _tree_values(self, path: Path, is_dir: bool, stat) -> tuple[str, str, str]:
         return ("" if is_dir else path.suffix[1:].upper(),
                 "<DIR>" if is_dir else format_size(stat.st_size),
-                datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
+                 datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
+
+    def _icon(self, path: Path, is_dir: bool):
+        return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path))
 
     def _tree_label(self, path: Path, is_dir: bool, is_last: bool = False) -> str:
         visible = path.name if is_dir or self.show_extensions else path.stem
@@ -7339,7 +7642,7 @@ class FilePane(ttk.Frame):
                 iid = self.tree.insert(parent_iid, "end",
                                        text=self._tree_label(path, is_dir,
                                                             index == len(entries) - 1),
-                                       image=self.icons.get(path, is_dir),
+                                       image=self._icon(path, is_dir),
                                        values=self._tree_values(path, is_dir, stat),
                                        tags=(str(path),))
                 if is_dir:
@@ -7661,6 +7964,8 @@ class FilePane(ttk.Frame):
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         self.tree.delete(*self.tree.get_children())
         try:
+            self._vcs_statuses = ({} if self.archive_session is not None
+                                  else folder_statuses(self.path))
             if self.mode == "files" and self.view_mode != "list":
                 visible_entries = [p for p in self.path.iterdir()
                                    if (self.show_hidden or not p.name.startswith(".")) and
@@ -7669,7 +7974,7 @@ class FilePane(ttk.Frame):
                 root_stat = self.path.stat()
                 root_label = self.path.name or str(self.path)
                 root_iid = self.tree.insert("", "end", text=root_label,
-                                            image=self.icons.get(self.path, True),
+                                            image=self._icon(self.path, True),
                                             values=self._tree_values(self.path, True, root_stat),
                                             tags=(str(self.path),), open=True)
                 count = self._populate_tree_children(root_iid, self.path)
@@ -7717,7 +8022,7 @@ class FilePane(ttk.Frame):
                     values = ("" if is_dir else p.suffix[1:].upper(),
                               "<DIR>" if is_dir else format_size(stat.st_size),
                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
-                    iid = self.tree.insert("", "end", text=name, image=self.icons.get(p, is_dir), values=values, tags=(str(p),))
+                    iid = self.tree.insert("", "end", text=name, image=self._icon(p, is_dir), values=values, tags=(str(p),))
                     if str(p) in selected:
                         self.tree.selection_add(iid)
                 except OSError:
@@ -7914,7 +8219,7 @@ class FilePane(ttk.Frame):
                     is_dir = item.is_dir()
                     relative = item.relative_to(self.path)
                     display = str(relative if is_dir or self.show_extensions else relative.with_name(item.stem))
-                    self.tree.insert("", "end", text=display, image=self.icons.get(item, is_dir), values=(
+                    self.tree.insert("", "end", text=display, image=self._icon(item, is_dir), values=(
                         "" if is_dir else item.suffix[1:].upper(),
                         "<DIR>" if is_dir else format_size(stat.st_size),
                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
@@ -7942,7 +8247,7 @@ class FilePane(ttk.Frame):
                 stat, is_dir = path.stat(), path.is_dir()
                 total += 0 if is_dir else stat.st_size
                 self.tree.insert("", "end", text=f"[{path.name}]" if is_dir else path.name,
-                                 image=self.icons.get(path, is_dir),
+                                 image=self._icon(path, is_dir),
                                  values=("" if is_dir else path.suffix[1:].upper(),
                                          "<DIR>" if is_dir else format_size(stat.st_size),
                                          datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
@@ -7975,7 +8280,8 @@ class FilePane(ttk.Frame):
 
     def apply_scale(self, scale: float) -> None:
         self.active_indicator.configure(height=max(2, round(3 * scale)))
-        icon_size = max(16, round(16 * scale))
+        linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
+        icon_size = max(16, round(scaled_tree_row_height(linespace, scale) * .9))
         if self.icons.size != icon_size:
             self.icons = ShellIconProvider(icon_size)
         self.refresh()
@@ -8145,6 +8451,7 @@ class Commander(tk.Tk):
         self.minsize(800, 480)
         self.active: FilePane | None = None
         self.compare_window = None
+        self.compare_target: Path | None = None
         self.preview_window = None
         self.search_window = None
         self.multi_rename_window = None
@@ -8601,6 +8908,11 @@ class Commander(tk.Tk):
                                           anchor="e", width=1,
                                           font=menu_font,
                                           background=header_bg, foreground=self.palette["header_muted"])
+        self.compare_target_label = tk.Label(
+            header, text="", anchor="center", font=menu_font, padx=12, pady=2,
+            background="#b8ef18", foreground="#c41421")
+        self.compare_target_label.place(relx=.5, rely=.5, anchor="center")
+        self._update_compare_target_label()
         title = tk.Label(header, text="PFC",
                          font=tkfont.nametofont("TkCaptionFont"),
                          background=header_bg, foreground=header_fg, cursor="hand2")
@@ -9325,8 +9637,7 @@ class Commander(tk.Tk):
         source, target = self.panes()
         source_items = source.selected_paths()
         target_items = target.selected_paths()
-        can_compare = ((len(source_items) == 1 and len(target_items) == 1) or
-                       len(items) == 2)
+        can_compare = len(items) in {1, 2} or self.compare_target is not None
         old_menu = getattr(self, "file_context_menu", None)
         if old_menu is not None:
             try: old_menu.destroy()
@@ -9420,24 +9731,30 @@ class Commander(tk.Tk):
         window.resizable(False, False); window.protocol("WM_DELETE_WINDOW", lambda: None)
         frame = ttk.Frame(window, padding=16); frame.pack(fill="both", expand=True)
         ttk.Label(frame, text=tr(title), anchor="w").pack(fill="x", pady=(0, 8))
-        progress = ttk.Progressbar(frame, mode="indeterminate", length=360)
-        progress.pack(fill="x"); progress.start(12)
+        progress = ttk.Progressbar(frame, mode="determinate", maximum=100, value=0, length=360)
+        progress.pack(fill="x")
+        eta_label = ttk.Label(frame, text=tr("Estimated time remaining: calculating…"), anchor="w")
+        eta_label.pack(fill="x", pady=(6, 0))
         window.update_idletasks()
         x = self.winfo_rootx() + max(0, (self.winfo_width() - window.winfo_reqwidth()) // 2)
         y = self.winfo_rooty() + max(0, (self.winfo_height() - window.winfo_reqheight()) // 3)
         window.geometry(f"+{x}+{y}"); window.lift(); window.focus_force()
-        results = queue.Queue()
+        results = queue.Queue(); started = time.monotonic()
+
+        def report(completed: int, total: int, detail: str = "") -> None:
+            results.put(("progress", max(0, completed), max(0, total), detail))
 
         def runner():
             try:
-                results.put((True, work()))
+                accepts_progress = bool(inspect.signature(work).parameters)
+                results.put(("result", True, work(report) if accepts_progress else work()))
             except BaseException as exc:
-                results.put((False, exc))
+                results.put(("result", False, exc))
 
         worker = threading.Thread(target=runner, daemon=True, name=f"PFC-{title}")
         worker.start()
 
-        finished = False
+        finished = False; target_percent = 0.0; displayed_percent = 0.0
         def finish_window():
             nonlocal finished
             if finished:
@@ -9451,8 +9768,28 @@ class Commander(tk.Tk):
                 pass
 
         def poll():
-            try: success, payload = results.get_nowait()
-            except queue.Empty:
+            nonlocal target_percent, displayed_percent
+            result = None
+            while True:
+                try: message = results.get_nowait()
+                except queue.Empty: break
+                if message[0] == "progress":
+                    _kind, completed, total, detail = message
+                    if total > 0:
+                        target_percent = max(target_percent, min(99.0, completed * 100 / total))
+                    if detail:
+                        eta_label.configure(text=detail)
+                else:
+                    result = message
+            if displayed_percent < target_percent:
+                displayed_percent = min(target_percent, displayed_percent + min(5, max(1, target_percent - displayed_percent)))
+                progress.configure(value=displayed_percent)
+                elapsed = max(.001, time.monotonic() - started)
+                if displayed_percent >= 1:
+                    remaining = max(0, round(elapsed * (100 - displayed_percent) / displayed_percent))
+                    eta_label.configure(text=tr("Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds",
+                                                minutes=remaining // 60, seconds=remaining % 60))
+            if result is None:
                 if not worker.is_alive():
                     finish_window()
                     messagebox.showerror(tr(title), tr("The operation ended without a result."),
@@ -9460,6 +9797,9 @@ class Commander(tk.Tk):
                 elif self.winfo_exists():
                     self.after(50, poll)
                 return
+            _kind, success, payload = result
+            progress.configure(value=100); eta_label.configure(
+                text=tr("Estimated time remaining: 00 minutes 00 seconds"))
             finish_window()
             if success:
                 try:
@@ -9515,7 +9855,7 @@ class Commander(tk.Tk):
             source.refresh(); source.select_path(target); source.focus_file_list()
             self._commit_archive_changes([target])
         self._run_progress_operation("Compressing…",
-                                     lambda: create_zip_archive(items, target), finished)
+                                     lambda progress: create_zip_archive(items, target, progress), finished)
 
     def extract_archive(self, archive_path: Path, destination: Path) -> None:
         def finished(_result):
@@ -9525,7 +9865,7 @@ class Commander(tk.Tk):
                 source.select_path(destination)
             self._commit_archive_changes([destination])
         self._run_progress_operation("Extracting…",
-                                     lambda: extract_archive_to(archive_path, destination),
+                                     lambda progress: extract_archive_to(archive_path, destination, progress),
                                      finished)
 
     def open_terminal(self, folder: Path, kind: str) -> None:
@@ -9804,7 +10144,8 @@ class Commander(tk.Tk):
             except (OSError, ValueError, subprocess.SubprocessError) as exc:
                 messagebox.showerror(tr("Update failed"), str(exc), parent=self)
 
-        self._run_progress_operation("Checking for updates…", fetch_pfc_update, checked)
+        self._run_progress_operation("Checking for updates…",
+                                     lambda progress: fetch_pfc_update(progress=progress), checked)
 
     def show_yoda_note(self) -> None:
         body = (
@@ -9886,10 +10227,9 @@ class Commander(tk.Tk):
         body.pack(fill="both", expand=True)
         ttk.Label(body, text=tr("Opening {name}…", name=item.name),
                   anchor="w").pack(fill="x")
-        bar = ttk.Progressbar(body, mode="indeterminate", length=360)
+        bar = ttk.Progressbar(body, mode="determinate", maximum=100, value=0, length=360)
         bar.pack(fill="x", pady=(12, 10))
-        bar.start(12)
-        status = ttk.Label(body, text=tr("PFC remains available while the archive is prepared."))
+        status = ttk.Label(body, text=tr("Estimated time remaining: calculating…"))
         status.pack(fill="x")
 
         def cancel_open():
@@ -9908,12 +10248,16 @@ class Commander(tk.Tk):
         progress.deiconify(); progress.lift(); progress.focus_force(); progress.update()
         self._archive_open_jobs[pane] = {
             "token": token, "cancel": cancel_event, "progress": progress, "bar": bar,
-            "path": item, "on_ready": on_ready,
+            "path": item, "on_ready": on_ready, "started": time.monotonic(), "status": status,
+            "target_percent": 0.0, "displayed_percent": 0.0,
         }
 
         def worker():
             try:
-                value = ArchiveSession(item, cancel_event)
+                def report(completed, total, detail=""):
+                    self._archive_open_messages.put(
+                        (pane, token, "progress", (completed, total, detail)))
+                value = ArchiveSession(item, cancel_event, report)
                 result = ("done", value)
             except Exception as exc:
                 result = ("error", exc)
@@ -9936,9 +10280,15 @@ class Commander(tk.Tk):
                 if kind == "done":
                     value.close()
                 continue
+            if kind == "progress":
+                completed, total, _detail = value
+                if total > 0:
+                    job["target_percent"] = max(job["target_percent"],
+                                                min(99.0, completed * 100 / total))
+                continue
             self._archive_open_jobs.pop(pane, None)
             try:
-                job["bar"].stop()
+                job["bar"].configure(value=100)
                 job["progress"].destroy()
             except tk.TclError:
                 pass
@@ -9958,6 +10308,19 @@ class Commander(tk.Tk):
                 callback(session)
             pane.focus_file_list()
         if self._archive_open_jobs and self.winfo_exists():
+            for job in self._archive_open_jobs.values():
+                target = job["target_percent"]
+                shown = job["displayed_percent"]
+                if shown < target:
+                    shown = min(target, shown + min(5, max(1, target - shown)))
+                    job["displayed_percent"] = shown
+                    job["bar"].configure(value=shown)
+                if shown >= 1:
+                    elapsed = max(.001, time.monotonic() - job["started"])
+                    remaining = max(0, round(elapsed * (100 - shown) / shown))
+                    job["status"].configure(text=tr(
+                        "Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds",
+                        minutes=remaining // 60, seconds=remaining % 60))
             self._archive_open_poll_job = self.after(80, self._poll_archive_open)
 
     def _close_archive_session(self, session: ArchiveSession) -> None:
@@ -10221,15 +10584,43 @@ class Commander(tk.Tk):
         target_items = target.selected_paths()
         if not source_items and not target_items:
             left, right = source.path, target.path
-        elif len(source_items) == 1 and len(target_items) == 1:
-            left, right = source_items[0], target_items[0]
+            self._set_compare_target(None)
+        elif len(source_items) == 1:
+            chosen = source_items[0]
+            if self.compare_target is None or self.compare_target == chosen:
+                self._set_compare_target(chosen)
+                return
+            left, right = self.compare_target, chosen
+            self._set_compare_target(None)
+        elif not source_items and len(target_items) == 1:
+            chosen = target_items[0]
+            if self.compare_target is None or self.compare_target == chosen:
+                self._set_compare_target(chosen)
+                return
+            left, right = self.compare_target, chosen
+            self._set_compare_target(None)
         else:
-            active_items = source.selected_paths()
-            if len(active_items) != 2:
+            if len(source_items) != 2:
                 messagebox.showinfo(tr("Compare"), tr("Select one item in the active and next panel, or two items in the active panel."), parent=self)
                 return
-            left, right = active_items
+            left, right = source_items
+            self._set_compare_target(None)
         self.compare_paths(left, right)
+
+    def _set_compare_target(self, path: Path | None) -> None:
+        self.compare_target = Path(path) if path is not None else None
+        self._update_compare_target_label()
+
+    def _update_compare_target_label(self) -> None:
+        label = getattr(self, "compare_target_label", None)
+        if label is None:
+            return
+        if self.compare_target is None:
+            label.place_forget()
+        else:
+            label.configure(text=tr("Compare Target - {path}", path=str(self.compare_target)))
+            label.place(relx=.5, rely=.5, anchor="center")
+            label.lift()
 
     def compare_paths(self, left: Path, right: Path) -> None:
         left, right = Path(left), Path(right)

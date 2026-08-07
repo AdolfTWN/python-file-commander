@@ -174,15 +174,31 @@ class ShellIconProvider:
         self.cache: dict[str, PhotoImage] = {}
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
-    def get(self, path: Path, is_dir: bool) -> PhotoImage:
+    def get(self, path: Path, is_dir: bool, overlay: str | None = None) -> PhotoImage:
         if os.name != "nt":
             return self.blank
         suffix = path.suffix.casefold()
-        key = "<folder>" if is_dir else (str(path) if suffix in {".exe", ".lnk", ".ico"} else suffix or "<file>")
+        base_key = "<folder>" if is_dir else (str(path) if suffix in {".exe", ".lnk", ".ico"} else suffix or "<file>")
+        key = f"{base_key}|{overlay or ''}"
         if key not in self.cache:
             icon = self._load(path)
+            if icon is not None and overlay:
+                icon = self._with_overlay(icon, overlay)
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
         return self.cache[key]
+
+    def _with_overlay(self, icon: PhotoImage, overlay: str) -> PhotoImage:
+        result = PhotoImage(width=self.size, height=self.size)
+        result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
+        colors = {"clean": "#16a34a", "modified": "#f4b400", "added": "#16a34a", "untracked": "#2583e9",
+                  "deleted": "#dc2626", "conflict": "#d000d0"}
+        color = colors.get(overlay)
+        if color:
+            diameter = max(5, round(self.size * .38))
+            start = self.size - diameter
+            result.put("#ffffff", to=(max(0, start - 1), max(0, start - 1), self.size, self.size))
+            result.put(color, to=(start, start, self.size - 1, self.size - 1))
+        return result
 
     def _with_text_gap(self, icon: PhotoImage) -> PhotoImage:
         padded = PhotoImage(width=self.size + self.text_gap, height=self.size)

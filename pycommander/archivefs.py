@@ -7,9 +7,11 @@ import tempfile
 import threading
 import zipfile
 from pathlib import Path, PurePosixPath
+from typing import Callable
 
 
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
+ProgressCallback = Callable[[int, int, str], None]
 
 
 class ArchiveCancelled(OSError):
@@ -20,12 +22,17 @@ def is_browsable_archive(path: Path) -> bool:
     return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
 
 
-def create_zip_archive(items, target: Path) -> Path:
+def create_zip_archive(items, target: Path,
+                       progress: ProgressCallback | None = None) -> Path:
     """Create a ZIP containing each selected item under its own display name."""
     paths = [Path(item) for item in items]
     if not paths:
         raise OSError("No items are selected for compression.")
     target.parent.mkdir(parents=True, exist_ok=True)
+    files = [child for item in paths for child in
+             ([item] if item.is_file() else [p for p in item.rglob("*") if p.is_file()])]
+    total = max(1, sum(path.stat().st_size for path in files))
+    completed = 0
     with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for item in paths:
             if item.is_dir():
@@ -39,24 +46,79 @@ def create_zip_archive(items, target: Path) -> Path:
                             archive.writestr(relative.as_posix().rstrip("/") + "/", b"")
                     else:
                         archive.write(child, relative.as_posix())
+                        completed += child.stat().st_size
+                        if progress:
+                            progress(completed, total, child.name)
             else:
                 archive.write(item, item.name)
+                completed += item.stat().st_size
+                if progress:
+                    progress(completed, total, item.name)
+    if progress:
+        progress(total, total, target.name)
     return target
 
 
-def extract_archive_to(archive_path: Path, destination: Path) -> Path:
-    """Safely extract a browsable ZIP/7z archive into an existing destination."""
+def extract_archive_to(archive_path: Path, destination: Path,
+                       progress: ProgressCallback | None = None) -> Path:
+    """Safely extract ZIP/7z directly, avoiding long temporary copy paths."""
+    archive_path = archive_path.expanduser().resolve()
     destination.mkdir(parents=True, exist_ok=True)
-    session = ArchiveSession(archive_path)
-    try:
-        for child in session.root.iterdir():
-            target = destination / child.name
-            if child.is_dir():
-                shutil.copytree(child, target, dirs_exist_ok=True)
-            else:
-                shutil.copy2(child, target)
-    finally:
-        session.close()
+    if archive_path.suffix.casefold() == ".zip":
+        with zipfile.ZipFile(archive_path) as archive:
+            members = archive.infolist()
+            total = max(1, sum(info.file_size for info in members if not info.is_dir()))
+            completed = 0
+            for info in members:
+                target = _safe_destination(destination.resolve(), info.filename)
+                if info.is_dir():
+                    target.mkdir(parents=True, exist_ok=True)
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with archive.open(info) as source, target.open("wb") as output:
+                    while True:
+                        chunk = source.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        output.write(chunk)
+                        completed += len(chunk)
+                        if progress:
+                            progress(completed, total, Path(info.filename).name)
+        if progress:
+            progress(total, total, archive_path.name)
+        return destination
+    executable = _seven_zip_executable()
+    if executable is None:
+        raise OSError("7z extraction requires the 7-Zip command-line tool (7z or 7zz).")
+    listing = subprocess.run([executable, "l", "-slt", str(archive_path)],
+                             capture_output=True, text=True, errors="replace")
+    if listing.returncode:
+        raise OSError(listing.stderr.strip() or listing.stdout.strip() or "Unable to read 7z archive.")
+    members = [line[7:] for line in listing.stdout.splitlines() if line.startswith("Path = ")][1:]
+    for member in members:
+        _safe_destination(destination.resolve(), member)
+    process = subprocess.Popen(
+        [executable, "x", "-y", "-bso0", "-bse1", "-bsp1",
+         f"-o{destination}", str(archive_path)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+    output = ""
+    assert process.stdout is not None
+    while True:
+        character = process.stdout.read(1)
+        if not character:
+            break
+        output = (output + character)[-200:]
+        if character in {"%", "\r", "\n"}:
+            import re
+            matches = re.findall(r"(\d{1,3})%", output)
+            if matches and progress:
+                percent = min(100, int(matches[-1]))
+                progress(percent, 100, archive_path.name)
+    _stdout, stderr = process.communicate()
+    if process.returncode:
+        raise OSError(stderr.strip() or output.strip() or "7z extraction failed.")
+    if progress:
+        progress(100, 100, archive_path.name)
     return destination
 
 
@@ -88,9 +150,11 @@ class ArchiveSession:
     """Editable extracted workspace backed by one ZIP or 7z file."""
 
     def __init__(self, archive_path: Path,
-                 cancel_event: threading.Event | None = None) -> None:
+                 cancel_event: threading.Event | None = None,
+                 progress: ProgressCallback | None = None) -> None:
         self.archive_path = archive_path.expanduser().resolve()
         self.cancel_event = cancel_event
+        self.progress = progress
         if not is_browsable_archive(self.archive_path):
             raise OSError(f"Unsupported archive: {self.archive_path.name}")
         self._temporary = tempfile.TemporaryDirectory(prefix="pfc-archive-")
@@ -122,7 +186,10 @@ class ArchiveSession:
     def _extract(self) -> None:
         if self.kind == ".zip":
             with zipfile.ZipFile(self.archive_path) as archive:
-                for info in archive.infolist():
+                members = archive.infolist()
+                total = max(1, sum(info.file_size for info in members if not info.is_dir()))
+                completed = 0
+                for info in members:
                     self._check_cancelled()
                     destination = _safe_destination(self.root, info.filename)
                     if info.is_dir():
@@ -136,6 +203,11 @@ class ArchiveSession:
                             if not chunk:
                                 break
                             target.write(chunk)
+                            completed += len(chunk)
+                            if self.progress:
+                                self.progress(completed, total, Path(info.filename).name)
+            if self.progress:
+                self.progress(total, total, self.archive_path.name)
             return
         executable = _seven_zip_executable()
         if executable is None:
@@ -144,11 +216,21 @@ class ArchiveSession:
             [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
              f"-o{self.root}", str(self.archive_path)],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+        started = __import__("time").monotonic()
+        last_percent = 0
+        if self.progress:
+            self.progress(1, 100, self.archive_path.name)
         while True:
             try:
                 stdout, stderr = process.communicate(timeout=0.15)
                 break
             except subprocess.TimeoutExpired:
+                if self.progress:
+                    elapsed = __import__("time").monotonic() - started
+                    percent = min(90, 1 + int(elapsed * 2))
+                    if percent > last_percent:
+                        last_percent = percent
+                        self.progress(percent, 100, self.archive_path.name)
                 if self.cancel_event is not None and self.cancel_event.is_set():
                     process.terminate()
                     try:
@@ -159,6 +241,8 @@ class ArchiveSession:
                     raise ArchiveCancelled("Archive opening cancelled.")
         if process.returncode:
             raise OSError(stderr.strip() or stdout.strip() or "7z extraction failed.")
+        if self.progress:
+            self.progress(100, 100, self.archive_path.name)
 
     def _check_cancelled(self) -> None:
         if self.cancel_event is not None and self.cancel_event.is_set():

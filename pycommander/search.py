@@ -4,6 +4,7 @@ import fnmatch
 import os
 import queue
 import threading
+import time
 import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -93,6 +94,9 @@ class SearchWindow(tk.Toplevel):
         self.cancel_event = threading.Event(); self.messages = queue.Queue(); self.poll_job = None
         self._column_resize_job = None
         self._column_desired = {}
+        self._progress_started = 0.0
+        self._progress_target = 0.0
+        self._progress_displayed = 0.0
         self.path_var = tk.StringVar(value=str(start_path))
         self.mask_var = tk.StringVar(value=config.get("search", "mask", fallback="*"))
         self.content_var = tk.StringVar(value=config.get("search", "content", fallback=""))
@@ -149,6 +153,8 @@ class SearchWindow(tk.Toplevel):
         self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
         self.progress = ttk.Progressbar(form, mode="determinate", value=0)
         self.progress.grid(row=7, column=0, columnspan=8, sticky="ew", pady=(5, 0))
+        self.progress_eta = ttk.Label(form, text=tr("Estimated time remaining: calculating…"), anchor="w")
+        self.progress_eta.grid(row=8, column=0, columnspan=8, sticky="ew", pady=(3, 0))
         form.columnconfigure(1, weight=1)
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
@@ -313,17 +319,22 @@ class SearchWindow(tk.Toplevel):
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self._reset_column_measurements()
         self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
-        self.progress.stop(); self.progress.configure(mode="indeterminate", value=0); self.progress.start(12)
+        self._progress_started = time.monotonic(); self._progress_target = 0.0; self._progress_displayed = 0.0
+        self.progress.stop(); self.progress.configure(mode="determinate", maximum=100, value=0)
+        self.progress_eta.configure(text=tr("Estimated time remaining: calculating…"))
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
     def _search(self, c):
-        count = 0
+        count = 0; processed_folders = 0; discovered_folders = 1
         try:
             for current, dirs, files in os.walk(c["root"]):
                 if self.cancel_event.is_set(): break
                 depth = len(Path(current).relative_to(c["root"]).parts)
                 folder_names = list(dirs)
                 if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
+                discovered_folders += len(dirs)
+                processed_folders += 1
+                self.messages.put(("progress", processed_folders, discovered_folders))
                 candidates = ([Path(current) / name for name in folder_names] if c["folders"] else []) + ([Path(current) / name for name in files] if c["files"] else [])
                 for path in candidates:
                     if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
@@ -365,6 +376,8 @@ class SearchWindow(tk.Toplevel):
                 suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
                 self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self.progress.stop(); self.progress.configure(mode="determinate", value=100)
+                self._progress_target = self._progress_displayed = 100
+                self.progress_eta.configure(text=tr("Estimated time remaining: 00 minutes 00 seconds"))
                 self.worker = None
                 self._apply_sort()
             elif message[0] == "error":
@@ -372,6 +385,21 @@ class SearchWindow(tk.Toplevel):
                 self.progress.stop(); self.progress.configure(mode="determinate", value=0)
                 self.worker = None
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
+            elif message[0] == "progress":
+                _, completed, total = message
+                if total:
+                    self._progress_target = max(self._progress_target,
+                                                min(95.0, completed * 100 / total))
+        if self._progress_displayed < self._progress_target:
+            delta = min(5, max(1, self._progress_target - self._progress_displayed))
+            self._progress_displayed = min(self._progress_target, self._progress_displayed + delta)
+            self.progress.configure(value=self._progress_displayed)
+            elapsed = max(.001, time.monotonic() - self._progress_started)
+            remaining = max(0, round(elapsed * (100 - self._progress_displayed) /
+                                     max(1, self._progress_displayed)))
+            self.progress_eta.configure(text=tr(
+                "Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds",
+                minutes=remaining // 60, seconds=remaining % 60))
         if not self.messages.empty() or (self.worker and self.worker.is_alive()):
             self.poll_job = self.after(40, self._poll)
 

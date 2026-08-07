@@ -66,6 +66,11 @@ def main() -> None:
             assert click_pane.active_indicator.cget("background") == app.palette["selection"]
             assert app.right_tabs.current().active_indicator.cget("background") == app.palette["border"]
             assert "P2" in app.action_button_by_hotkey["F5"].cget("text")
+            app.compare_selected(); app.update()
+            assert app.compare_target == click_root / "activate-me.txt"
+            assert app.compare_target_label.place_info()
+            assert "Compare Target" in app.compare_target_label.cget("text")
+            app._set_compare_target(None)
             click_pane.navigate(original_click_path)
             assert all(app.view_menu.entrycget(index, "label") != "Quick Filter"
                        for index in range(app.view_menu.index("end") + 1))
@@ -78,7 +83,11 @@ def main() -> None:
             assert len(selected_font_entries) == 1
             assert int(app.font_size_menu.entrycget(selected_font_entries[0], "indicatoron")) == 0
             app.font_size_var.set("huge"); app.apply_font_size(save=False)
+            huge_pane = app.left_tabs.current()
+            huge_rowheight = int(pfc.ttk.Style(app).lookup("Active.Treeview", "rowheight"))
+            assert abs(huge_pane.icons.size - round(huge_rowheight * .9)) <= 1
             app.search(); app.update_idletasks(); app.update()
+            assert "Estimated time remaining" in app.search_window.progress_eta.cget("text")
             app.search_window.mask_var.set("*.log")
             app.search_window.content_var.set("error")
             app.update_idletasks()
@@ -142,7 +151,7 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            expected_series = ("v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
+            expected_series = ("v0.16.x", "v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
                                "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
             assert version_labels == ([f"Current version: v{pfc.__version__}", "Check Update"] +
                                       [f"{series} Changes" for series in expected_series] +
