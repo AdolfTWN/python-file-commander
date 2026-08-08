@@ -5,7 +5,8 @@ from pathlib import Path
 
 from pycommander.compare import (FolderCompare, aligned_text, compare_row_height,
                                  detect_compare_type, extract_compare_archive, file_hash,
-                                 folder_rows, is_compare_archive, nested_source_label)
+                                 folder_rows, is_compare_archive, nested_source_label,
+                                 text_files_equivalent)
 
 
 class CompareTests(unittest.TestCase):
@@ -42,6 +43,25 @@ class CompareTests(unittest.TestCase):
             statuses = {(status, path) for status, path, _, _ in folder_rows(left, right, by_content=True)}
             self.assertIn(("Identical", "same.txt"), statuses)
             self.assertIn(("Left only", "only.txt"), statuses)
+
+    def test_text_equivalence_ignores_only_invisible_representation_details(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw); left, right = root / "left.txt", root / "right.txt"
+            left.write_bytes(b"\xef\xbb\xbfCafe\xcc\x81  \r\nNext\xe2\x80\x8b\r\n")
+            right.write_text("Caf\u00e9\nNext\n", encoding="utf-8")
+            self.assertTrue(text_files_equivalent(left, right))
+            right.write_text("Caf\u00e9\nChanged\n", encoding="utf-8")
+            self.assertFalse(text_files_equivalent(left, right))
+
+    def test_folder_text_equivalence_overrides_size_and_timestamp_noise(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw); left, right = root / "left", root / "right"
+            left.mkdir(); right.mkdir()
+            (left / "note.md").write_bytes(b"same  \r\n")
+            (right / "note.md").write_bytes(b"same\n")
+            rows = list(folder_rows(left, right, ignore_invisible_text=True))
+            self.assertIn(("Identical", "note.md"),
+                          {(status, path) for status, path, *_ in rows})
 
     def test_folder_compare_skips_git_and_svn_metadata(self):
         with tempfile.TemporaryDirectory() as raw:

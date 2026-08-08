@@ -6,6 +6,7 @@ import sys
 import configparser
 import json
 import time
+import zipfile
 from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -72,6 +73,43 @@ def main() -> None:
             assert "Compare Target" in app.compare_target_label.cget("text")
             app._set_compare_target(None)
             click_pane.navigate(original_click_path)
+            archive_path = Path(raw) / "menu-counts.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("one/a.txt", "a")
+                archive.writestr("two/b.txt", "b")
+            click_pane.navigate(Path(raw)); click_pane.select_path(archive_path)
+            context_menu = app._build_file_context_menu(click_pane, archive_path)
+            compression_menu = next(widget for widget in context_menu.children.values()
+                                    if isinstance(widget, pfc.tk.Menu))
+            deadline = time.monotonic() + 3
+            extract_label = ""
+            while time.monotonic() < deadline:
+                app.update()
+                extract_label = compression_menu.entrycget(1, "label")
+                if "folders" in extract_label:
+                    break
+                time.sleep(.03)
+            assert extract_label == "Extract Here (2 folders, 2 files)", extract_label
+            assert str(compression_menu.entrycget(1, "foreground")) == "#c41414", (
+                compression_menu.entrycget(1, "foreground"), extract_label)
+            assert pfc.tkfont.Font(root=app, font=compression_menu.entrycget(1, "font")).actual("weight") == "bold"
+            context_menu.destroy(); click_pane.navigate(original_click_path)
+            compare_left, compare_right = (Path(raw) / "text-equivalent-left",
+                                           Path(raw) / "text-equivalent-right")
+            compare_left.mkdir(); compare_right.mkdir()
+            (compare_left / "same.md").write_bytes(b"same  \r\n")
+            (compare_right / "same.md").write_bytes(b"same\n")
+            compare_view = pfc.FolderCompare(app, compare_left, compare_right,
+                                             open_detail=lambda *_args: None)
+            compare_view.pack(fill="both", expand=True)
+            deadline = time.monotonic() + 3
+            while compare_view._scanning and time.monotonic() < deadline:
+                app.update(); time.sleep(.03)
+            assert compare_view.text_equivalent_var.get()
+            assert "Text equivalent" in compare_view.text_equivalent_button.cget("text")
+            assert [(status, path) for status, path, *_rest in compare_view.rows] == [
+                ("Identical", "same.md")]
+            compare_view.destroy()
             assert all(app.view_menu.entrycget(index, "label") != "Quick Filter"
                        for index in range(app.view_menu.index("end") + 1))
             assert all(not app.view_menu.entrycget(index, "accelerator")

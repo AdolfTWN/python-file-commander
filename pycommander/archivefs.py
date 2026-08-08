@@ -36,6 +36,52 @@ def is_browsable_archive(path: Path) -> bool:
     return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
 
 
+def archive_item_counts(path: Path) -> tuple[int, int]:
+    """Return distinct contained folder and file counts without extracting."""
+    path = Path(path).expanduser().resolve()
+    folders: set[str] = set()
+    files = 0
+
+    def add_member(raw_name: str, is_folder: bool) -> None:
+        nonlocal files
+        member = PurePosixPath(raw_name.replace("\\", "/"))
+        parts = [part for part in member.parts if part not in {"", "."}]
+        if not parts:
+            return
+        parent_limit = len(parts) if is_folder else len(parts) - 1
+        for index in range(1, parent_limit + 1):
+            folders.add("/".join(parts[:index]).casefold())
+        if not is_folder:
+            files += 1
+
+    if path.suffix.casefold() == ".zip":
+        with zipfile.ZipFile(path) as archive:
+            for info in archive.infolist():
+                add_member(info.filename, info.is_dir())
+        return len(folders), files
+
+    executable = _seven_zip_executable()
+    if executable is None:
+        raise OSError("7z listing requires the 7-Zip command-line tool (7z or 7zz).")
+    listing = subprocess.run([executable, "l", "-slt", str(path)], capture_output=True,
+                             text=True, errors="replace", **_hidden_process_options())
+    if listing.returncode:
+        raise OSError(listing.stderr.strip() or listing.stdout.strip() or
+                      "Unable to read 7z archive.")
+    blocks = listing.stdout.replace("\r\n", "\n").split("\n\n")[1:]
+    for block in blocks:
+        fields = dict(line.split(" = ", 1) for line in block.splitlines() if " = " in line)
+        name = fields.get("Path")
+        if name:
+            add_member(name, fields.get("Folder") == "+" or "D" in fields.get("Attributes", ""))
+    return len(folders), files
+
+
+def _hidden_process_options() -> dict:
+    return ({"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+            if os.name == "nt" else {})
+
+
 def create_zip_archive(items, target: Path,
                        progress: ProgressCallback | None = None) -> Path:
     """Create a ZIP containing each selected item under its own display name."""
@@ -105,7 +151,8 @@ def extract_archive_to(archive_path: Path, destination: Path,
     if executable is None:
         raise OSError("7z extraction requires the 7-Zip command-line tool (7z or 7zz).")
     listing = subprocess.run([executable, "l", "-slt", str(archive_path)],
-                             capture_output=True, text=True, errors="replace")
+                             capture_output=True, text=True, errors="replace",
+                             **_hidden_process_options())
     if listing.returncode:
         raise OSError(listing.stderr.strip() or listing.stdout.strip() or "Unable to read 7z archive.")
     members = [line[7:] for line in listing.stdout.splitlines() if line.startswith("Path = ")][1:]
@@ -114,7 +161,8 @@ def extract_archive_to(archive_path: Path, destination: Path,
     process = subprocess.Popen(
         [executable, "x", "-y", "-bso0", "-bse1", "-bsp1",
          f"-o{filesystem_path(destination)}", str(archive_path)],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace",
+        **_hidden_process_options())
     output = ""
     assert process.stdout is not None
     while True:
@@ -229,7 +277,8 @@ class ArchiveSession:
         process = subprocess.Popen(
             [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
              f"-o{filesystem_path(self.root)}", str(self.archive_path)],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace",
+            **_hidden_process_options())
         started = __import__("time").monotonic()
         last_percent = 0
         if self.progress:

@@ -5,12 +5,21 @@ import zipfile
 import subprocess
 from pathlib import Path
 
-from pycommander.archivefs import (ArchiveCancelled, ArchiveSession,
+from pycommander.archivefs import (ArchiveCancelled, ArchiveSession, archive_item_counts,
                                    _seven_zip_executable, create_zip_archive,
                                    extract_archive_to, is_browsable_archive)
 
 
 class ArchiveSessionTests(unittest.TestCase):
+    def test_archive_item_counts_include_implicit_folders(self):
+        with tempfile.TemporaryDirectory() as raw:
+            archive_path = Path(raw) / "counts.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("root/one.txt", "1")
+                archive.writestr("root/nested/two.txt", "2")
+                archive.writestr("empty/", b"")
+            self.assertEqual(archive_item_counts(archive_path), (3, 2))
+
     def test_zip_extracts_extended_total_path_length(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)

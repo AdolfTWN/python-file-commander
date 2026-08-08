@@ -64,6 +64,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "新增：資料夾比較可將文字檔視為等同，並忽略 BOM、換行格式、行尾空白、Unicode 組合及控制字元等不可見的表示差異。",
+        "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "調整：縮短檔名時優先保留版本與修訂識別資訊，讓名稱相近的版本仍可分辨。",
+        "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "新增：壓縮檔解壓縮選單會顯示內含的資料夾與檔案數量，且不會延遲右鍵選單。",
+        "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "調整：Git／SVN 覆蓋圖示採用較大徽章、更強的雙層外框及間距更清楚的狀態符號。",
+        "Extract Here (counting…)": "解壓縮至此處（計算中…）",
+        "Extract Here ({folders} folders, {files} files)": "解壓縮至此處（{folders} 個資料夾、{files} 個檔案）",
+        "Text equivalent": "文字等同",
+        "Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files.": "忽略文字檔的 BOM、換行格式、行尾空白、Unicode 組合及不可見控制字元差異。",
         "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "修正：Git／SVN 狀態檢查不再顯示命令列視窗，狀態未改變時也不再重繪或閃爍檔案清單。",
         "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "調整：Git／SVN 覆蓋圖示改用抗鋸齒狀態符號與深淺雙層外框，在各種圖示及配色下均保持清楚對比。",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "調整：字型大小現在提供 100%、125%、150%、200% 與 250% 五段級距，自動調整也會使用全部五段。",
@@ -265,6 +273,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "新增：文件夹比较可将文本文件视为等同，并忽略 BOM、换行格式、行尾空格、Unicode 组合及控制字符等不可见的表示差异。",
+        "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "调整：缩短文件名时优先保留版本和修订标识信息，让名称相近的版本仍可区分。",
+        "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "新增：压缩包解压菜单会显示所含文件夹和文件数量，且不会延迟右键菜单。",
+        "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "调整：Git／SVN 叠加图标采用更大徽标、更强的双层轮廓和间距更清晰的状态符号。",
+        "Extract Here (counting…)": "解压到此处（计算中…）",
+        "Extract Here ({folders} folders, {files} files)": "解压到此处（{folders} 个文件夹、{files} 个文件）",
+        "Text equivalent": "文本等同",
+        "Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files.": "忽略文本文件的 BOM、换行格式、行尾空格、Unicode 组合及不可见控制字符差异。",
         "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "修复：Git／SVN 状态检查不再显示命令行窗口，状态未变化时也不再重绘或闪烁文件列表。",
         "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "调整：Git／SVN 叠加图标改用抗锯齿状态符号与深浅双层轮廓，在各种图标和配色下均保持清晰对比。",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "调整：字体大小现在提供 100%、125%、150%、200% 和 250% 五档级别，自动调整也会使用全部五档。",
@@ -439,6 +455,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "추가: 폴더 비교에서 BOM, 줄 바꿈 형식, 줄 끝 공백, Unicode 조합 및 제어 문자 같은 보이지 않는 표현 차이를 무시하고 텍스트 파일을 동일하게 처리할 수 있습니다.",
+        "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "조정: 파일 이름을 줄일 때 릴리스 및 리비전 식별자를 우선 보존하여 비슷한 버전을 구분할 수 있습니다.",
+        "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "추가: 압축 풀기 메뉴에 포함된 폴더와 파일 수를 표시하며 오른쪽 클릭 메뉴를 지연시키지 않습니다.",
+        "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "조정: Git/SVN 오버레이에 더 큰 배지, 강한 이중 외곽선 및 여유 있게 배치된 상태 기호를 적용했습니다.",
+        "Extract Here (counting…)": "여기에 압축 풀기(계산 중…)",
+        "Extract Here ({folders} folders, {files} files)": "여기에 압축 풀기(폴더 {folders}개, 파일 {files}개)",
+        "Text equivalent": "텍스트 동등",
+        "Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files.": "텍스트 파일의 BOM, 줄 바꿈 형식, 줄 끝 공백, Unicode 조합 및 보이지 않는 제어 문자 차이를 무시합니다.",
         "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "수정: Git/SVN 상태 확인 시 콘솔 창을 표시하지 않으며 결과가 바뀌지 않으면 파일 목록을 다시 그리거나 깜박이지 않습니다.",
         "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.": "조정: Git/SVN 오버레이에 안티앨리어싱 상태 기호와 어둡고 밝은 이중 외곽선을 적용하여 모든 아이콘과 색상 구성에서 선명한 대비를 유지합니다.",
         "Adjusted: Font Size now provides 100%, 125%, 150%, 200%, and 250% steps with automatic sizing across all five levels.": "조정: 글꼴 크기에 100%, 125%, 150%, 200%, 250%의 다섯 단계를 제공하며 자동 크기 조절도 모든 단계를 사용합니다.",
@@ -1209,7 +1233,7 @@ VCS_BADGE_SPECS = {
     "clean": ("#218838", "check", "#ffffff"),
     "modified": ("#e02f2f", "alert", "#ffffff"),
     "added": ("#1266b3", "plus", "#ffffff"),
-    "untracked": ("#6f42c1", "question", "#ffffff"),
+    "untracked": ("#582a9b", "question", "#ffffff"),
     "deleted": ("#a80f20", "minus", "#ffffff"),
     "conflict": ("#f2b705", "cross", "#171717"),
 }
@@ -1422,8 +1446,8 @@ def vcs_badge_png(size: int, status: str) -> bytes:
     dark_edge = _hex_rgba("#17212b")
     white_edge = _hex_rgba("#ffffff")
     fill_rgba, ink_rgba = _hex_rgba(fill), _hex_rgba(ink)
-    dark_width = max(4, round(canvas_size * .075))
-    white_width = max(4, round(canvas_size * .075))
+    dark_width = max(4, round(canvas_size * .095))
+    white_width = max(3, round(canvas_size * .055))
     for y in range(canvas_size):
         for x in range(canvas_size):
             distance = ((x - center) ** 2 + (y - center) ** 2) ** .5
@@ -1455,15 +1479,15 @@ def vcs_badge_png(size: int, status: str) -> bytes:
         segments = [((*point(.25, .25), *point(.75, .75))),
                     ((*point(.75, .25), *point(.25, .75)))]
     elif glyph == "question":
-        segments = [((*point(.28, .31), *point(.39, .21))),
-                    ((*point(.39, .21), *point(.63, .21))),
-                    ((*point(.63, .21), *point(.74, .33))),
-                    ((*point(.74, .33), *point(.69, .46))),
-                    ((*point(.69, .46), *point(.52, .56))),
-                    ((*point(.52, .56), *point(.50, .64)))]
-        dots = [point(.50, .78)]
-    line_radius = max(2, round(canvas_size * .065))
-    dot_radius = max(2, round(canvas_size * .07))
+        segments = [((*point(.31, .34), *point(.40, .27))),
+                    ((*point(.40, .27), *point(.60, .27))),
+                    ((*point(.60, .27), *point(.68, .36))),
+                    ((*point(.68, .36), *point(.64, .45))),
+                    ((*point(.64, .45), *point(.51, .53))),
+                    ((*point(.51, .53), *point(.50, .60)))]
+        dots = [point(.50, .70)]
+    line_radius = max(2, round(canvas_size * .06))
+    dot_radius = max(2, round(canvas_size * .065))
     for y in range(canvas_size):
         for x in range(canvas_size):
             sample_x, sample_y = x + .5, y + .5
@@ -1503,7 +1527,7 @@ class ShellIconProvider:
         result = PhotoImage(width=self.size, height=self.size)
         result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
         if overlay in VCS_BADGE_SPECS:
-            diameter = min(self.size, max(10, round(self.size * .62)))
+            diameter = min(self.size, max(12, round(self.size * .70)))
             encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
             badge = PhotoImage(data=encoded, format="png")
             result.tk.call(str(result), "copy", str(badge),
@@ -2714,6 +2738,7 @@ import queue
 import subprocess
 import tempfile
 import threading
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 import tkinter as tk
@@ -2781,6 +2806,36 @@ def file_hash(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def text_files_equivalent(left: Path, right: Path) -> bool:
+    """Compare visible text while ignoring non-printing representation details.
+
+    This intentionally ignores BOMs, CRLF/LF choice, Unicode composition,
+    zero-width/control characters, trailing spaces, and the final newline.  It
+    does not ignore words, punctuation, indentation, or internal whitespace.
+    """
+    if left.suffix.casefold() not in TEXT_SUFFIXES or right.suffix.casefold() not in TEXT_SUFFIXES:
+        return False
+    try:
+        if max(left.stat().st_size, right.stat().st_size) > 64 * 1024 * 1024:
+            return False
+
+        def normalized(path: Path) -> tuple[str, ...]:
+            data = path.read_bytes()
+            if data.startswith((b"\xff\xfe", b"\xfe\xff")):
+                text = data.decode("utf-16")
+            else:
+                text = data.decode("utf-8-sig")
+            text = unicodedata.normalize("NFC", text).replace("\u00a0", " ")
+            text = "".join(character for character in text
+                           if character in {"\n", "\r", "\t"} or
+                           unicodedata.category(character) not in {"Cc", "Cf"})
+            return tuple(line.rstrip(" \t") for line in text.splitlines())
+
+        return normalized(left) == normalized(right)
+    except (OSError, UnicodeDecodeError):
+        return False
 
 
 def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int | None, str]], list[int]]:
@@ -3256,7 +3311,7 @@ class BinaryCompare(ttk.Frame):
 
 
 def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=False,
-                cancelled=lambda: False):
+                ignore_invisible_text=False, cancelled=lambda: False):
     patterns = [item.strip() for item in masks.split(";") if item.strip()] or ["*"]
     def collect(root):
         if recursive:
@@ -3299,7 +3354,9 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
             elif a.is_dir(): status = "Identical"
             else:
                 a_stat, b_stat = a.stat(), b.stat()
-                if a_stat.st_size != b_stat.st_size:
+                if ignore_invisible_text and text_files_equivalent(a, b):
+                    status = "Identical"
+                elif a_stat.st_size != b_stat.st_size:
                     status = "Different"
                 elif by_content and file_hash(a) == file_hash(b):
                     status = "Identical"
@@ -3420,9 +3477,12 @@ class _FolderCompareLogic(ttk.Frame):
         # contents by bytes by default so a repacked folder is not reported as
         # different solely because of container metadata.
         self.content_var = tk.BooleanVar(value=self.left_read_only or self.right_read_only)
+        self.text_equivalent_var = tk.BooleanVar(value=True)
         self.view_mode_var = tk.StringVar(value="all")
         ttk.Checkbutton(options, text=tr("Recursive"), variable=self.recursive_var).pack(side="left")
         ttk.Checkbutton(options, text=tr("By content"), variable=self.content_var).pack(side="left", padx=(5, 0))
+        ttk.Checkbutton(options, text=tr("Text equivalent"),
+                        variable=self.text_equivalent_var).pack(side="left", padx=(5, 0))
         self.diff_button = ttk.Menubutton(options, text=tr("All"))
         self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
         self.diff_button.configure(menu=self.diff_menu)
@@ -3653,11 +3713,12 @@ class _FolderCompareLogic(ttk.Frame):
         self._cancel_event = threading.Event(); self._scanning = True
         self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
         recursive, masks, by_content = self.recursive_var.get(), self.mask_var.get(), self.content_var.get()
+        text_equivalent = self.text_equivalent_var.get()
         cancel = self._cancel_event
         def worker():
             try:
                 rows = list(folder_rows(self.left_root, self.right_root, recursive, masks, by_content,
-                                        cancel.is_set))
+                                        text_equivalent, cancel.is_set))
                 self._scan_queue.put((cancel, rows, None))
             except OSError as exc:
                 self._scan_queue.put((cancel, [], str(exc)))
@@ -3901,6 +3962,7 @@ class FolderCompare(_FolderCompareLogic):
 
         self.recursive_var = tk.BooleanVar(value=True)
         self.content_var = tk.BooleanVar(value=self.left_read_only or self.right_read_only)
+        self.text_equivalent_var = tk.BooleanVar(value=True)
         self.view_mode_var = tk.StringVar(value="all")
 
         bar = ttk.Frame(self.summary, padding=(3, 3, 3, 1)); bar.pack(fill="x")
@@ -3913,7 +3975,13 @@ class FolderCompare(_FolderCompareLogic):
         self.recursive_button = ttk.Button(bar, command=lambda: self._toggle_option("recursive"))
         self.recursive_button.pack(side="left", padx=(0, 3))
         self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
-        self.content_button.pack(side="left")
+        self.content_button.pack(side="left", padx=(0, 3))
+        self.text_equivalent_button = ttk.Button(
+            bar, command=lambda: self._toggle_option("text_equivalent"))
+        self.text_equivalent_button.pack(side="left")
+        self.text_equivalent_button._pfc_tooltip = ToolTip(
+            self.text_equivalent_button,
+            lambda: tr("Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files."))
 
         self.body = ttk.Frame(self.summary)
         self.center_header = ttk.Frame(self.body)
@@ -4028,6 +4096,8 @@ class FolderCompare(_FolderCompareLogic):
             self.recursive_var.set(not self.recursive_var.get())
         elif option == "content":
             self.content_var.set(not self.content_var.get())
+        elif option == "text_equivalent":
+            self.text_equivalent_var.set(not self.text_equivalent_var.get())
         elif option == "case":
             self.case_var.set(not self.case_var.get()); self.find_all()
         self._update_toggle_buttons()
@@ -4038,6 +4108,8 @@ class FolderCompare(_FolderCompareLogic):
             text=f"{'✓' if self.recursive_var.get() else '–'} {tr('Recursive')}")
         self.content_button.configure(
             text=f"{'✓' if self.content_var.get() else '–'} {tr('By content')}")
+        self.text_equivalent_button.configure(
+            text=f"{'✓' if self.text_equivalent_var.get() else '–'} {tr('Text equivalent')}")
         self.case_button.configure(
             text=f"{'✓' if self.case_var.get() else '–'} {tr('Case sensitive')}")
 
@@ -5965,6 +6037,52 @@ def is_browsable_archive(path: Path) -> bool:
     return path.is_file() and path.suffix.casefold() in ARCHIVE_SUFFIXES
 
 
+def archive_item_counts(path: Path) -> tuple[int, int]:
+    """Return distinct contained folder and file counts without extracting."""
+    path = Path(path).expanduser().resolve()
+    folders: set[str] = set()
+    files = 0
+
+    def add_member(raw_name: str, is_folder: bool) -> None:
+        nonlocal files
+        member = PurePosixPath(raw_name.replace("\\", "/"))
+        parts = [part for part in member.parts if part not in {"", "."}]
+        if not parts:
+            return
+        parent_limit = len(parts) if is_folder else len(parts) - 1
+        for index in range(1, parent_limit + 1):
+            folders.add("/".join(parts[:index]).casefold())
+        if not is_folder:
+            files += 1
+
+    if path.suffix.casefold() == ".zip":
+        with zipfile.ZipFile(path) as archive:
+            for info in archive.infolist():
+                add_member(info.filename, info.is_dir())
+        return len(folders), files
+
+    executable = _seven_zip_executable()
+    if executable is None:
+        raise OSError("7z listing requires the 7-Zip command-line tool (7z or 7zz).")
+    listing = subprocess.run([executable, "l", "-slt", str(path)], capture_output=True,
+                             text=True, errors="replace", **_hidden_process_options())
+    if listing.returncode:
+        raise OSError(listing.stderr.strip() or listing.stdout.strip() or
+                      "Unable to read 7z archive.")
+    blocks = listing.stdout.replace("\r\n", "\n").split("\n\n")[1:]
+    for block in blocks:
+        fields = dict(line.split(" = ", 1) for line in block.splitlines() if " = " in line)
+        name = fields.get("Path")
+        if name:
+            add_member(name, fields.get("Folder") == "+" or "D" in fields.get("Attributes", ""))
+    return len(folders), files
+
+
+def _hidden_process_options() -> dict:
+    return ({"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+            if os.name == "nt" else {})
+
+
 def create_zip_archive(items, target: Path,
                        progress: ProgressCallback | None = None) -> Path:
     """Create a ZIP containing each selected item under its own display name."""
@@ -6034,7 +6152,8 @@ def extract_archive_to(archive_path: Path, destination: Path,
     if executable is None:
         raise OSError("7z extraction requires the 7-Zip command-line tool (7z or 7zz).")
     listing = subprocess.run([executable, "l", "-slt", str(archive_path)],
-                             capture_output=True, text=True, errors="replace")
+                             capture_output=True, text=True, errors="replace",
+                             **_hidden_process_options())
     if listing.returncode:
         raise OSError(listing.stderr.strip() or listing.stdout.strip() or "Unable to read 7z archive.")
     members = [line[7:] for line in listing.stdout.splitlines() if line.startswith("Path = ")][1:]
@@ -6043,7 +6162,8 @@ def extract_archive_to(archive_path: Path, destination: Path,
     process = subprocess.Popen(
         [executable, "x", "-y", "-bso0", "-bse1", "-bsp1",
          f"-o{filesystem_path(destination)}", str(archive_path)],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace",
+        **_hidden_process_options())
     output = ""
     assert process.stdout is not None
     while True:
@@ -6158,7 +6278,8 @@ class ArchiveSession:
         process = subprocess.Popen(
             [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
              f"-o{filesystem_path(self.root)}", str(self.archive_path)],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace",
+            **_hidden_process_options())
         started = __import__("time").monotonic()
         last_percent = 0
         if self.progress:
@@ -7192,7 +7313,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.16.3"
+__version__ = "0.16.4"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -7201,12 +7322,57 @@ UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
 
 
 def middle_ellipsize(text: str, max_width: int, measure) -> str:
-    """Fit text by preserving both identifying ends instead of losing the suffix."""
+    """Fit text while retaining release/version tokens used to distinguish files."""
     if max_width <= 0 or measure(text) <= max_width:
         return text
     marker = "..."
     if measure(marker) >= max_width:
         return marker
+    suffix = Path(text).suffix
+    stem_end = len(text) - len(suffix)
+    identifier_matches = list(re.finditer(
+        r"(?i)(?<![A-Za-z0-9])(?:v(?:ersion)?|ver|rev|r)?\d+(?:[._-]\d+)*(?![A-Za-z0-9])",
+        text[:stem_end]))
+    # Retain the last few revision-bearing tokens.  This makes, for example,
+    # UVIP_123_package.zip and UVIP_456_package.zip visibly different even in
+    # a narrow Name column.
+    identifiers = [(match.start(), match.end(), match.group(0))
+                   for match in identifier_matches[-3:]]
+    if identifiers:
+        prefix_length, tail_length = min(8, stem_end), min(10, stem_end)
+
+        def candidate(prefix_count, tail_count):
+            tail_start = max(prefix_count, stem_end - tail_count)
+            pieces = [text[:prefix_count]]
+            pieces.extend(value for start, end, value in identifiers
+                          if start >= prefix_count and end <= tail_start)
+            tail = text[tail_start:]
+            if tail and (not pieces or tail != pieces[-1]):
+                pieces.append(tail)
+            return marker.join(piece for piece in pieces if piece)
+
+        while (prefix_length > 3 or tail_length > min(3, stem_end)):
+            fitted = candidate(prefix_length, tail_length)
+            if measure(fitted) <= max_width:
+                # Use remaining room for more human-readable context around the
+                # protected identifiers.
+                while prefix_length + tail_length < stem_end:
+                    grown = candidate(prefix_length + 1, tail_length)
+                    if measure(grown) <= max_width:
+                        prefix_length += 1
+                        continue
+                    grown = candidate(prefix_length, tail_length + 1)
+                    if measure(grown) <= max_width:
+                        tail_length += 1
+                        continue
+                    break
+                return candidate(prefix_length, tail_length)
+            if tail_length > 3:
+                tail_length -= 1
+            elif prefix_length > 3:
+                prefix_length -= 1
+            else:
+                break
     right = min(8, max(1, len(text) - 1))
     while right > 1 and measure(marker + text[-right:]) > max_width:
         right -= 1
@@ -7228,8 +7394,14 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/08"
+BUILD_DATE = "2026/08/09"
 VERSION_HISTORY = (
+    ("v0.16.4", "2026/08/09", (
+        "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.",
+        "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.",
+        "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.",
+        "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.",
+    )),
     ("v0.16.3", "2026/08/08", (
         "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.",
         "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.",
@@ -9992,11 +10164,15 @@ class Commander(tk.Tk):
         compression.add_command(label=tr("Compress to ZIP"),
                                 state=normal_if(bool(items)), command=self.compress_selected)
         archive_selected = single and is_browsable_archive(clicked)
-        compression.add_command(label=tr("Extract Here"), state=normal_if(archive_selected),
+        extract_label = (tr("Extract Here (counting…)") if archive_selected else tr("Extract Here"))
+        compression.add_command(label=extract_label, state=normal_if(archive_selected),
                                 command=lambda path=clicked: self.extract_archive(path, clicked.parent))
+        extract_here_index = compression.index("end")
         compression.add_command(label=tr("Extract to Folder"), state=normal_if(archive_selected),
                                 command=lambda path=clicked:
                                     self.extract_archive(path, clicked.parent / clicked.stem))
+        if archive_selected:
+            self._load_archive_menu_count(compression, extract_here_index, clicked)
         menu.add_cascade(label=tr("Compression"), menu=compression)
         menu.add_command(label=tr("Create Shortcut & Send to Clipboard"),
                          state=normal_if(bool(items)), command=self.create_shortcuts_to_clipboard)
@@ -10053,6 +10229,43 @@ class Commander(tk.Tk):
         descriptions = {tr(label): tr(help_text) for label, help_text in descriptions.items()}
         self._file_context_tooltip = MenuToolTip(menu, descriptions)
         return menu
+
+    def _load_archive_menu_count(self, menu: tk.Menu, index: int, archive_path: Path) -> None:
+        """Populate archive counts without delaying the context menu opening."""
+        results = queue.Queue()
+
+        def worker():
+            try:
+                results.put(archive_item_counts(archive_path))
+            except (OSError, ValueError):
+                results.put(None)
+
+        def poll():
+            try:
+                result = results.get_nowait()
+            except queue.Empty:
+                if menu.winfo_exists():
+                    self.after(50, poll)
+                return
+            try:
+                if result is None:
+                    menu.entryconfigure(index, label=tr("Extract Here"))
+                    return
+                folders, files = result
+                menu.entryconfigure(
+                    index,
+                    label=tr("Extract Here ({folders} folders, {files} files)",
+                             folders=folders, files=files))
+                if folders > 1 or files > 1:
+                    emphasis = tkfont.Font(font=tkfont.nametofont("TkMenuFont"))
+                    emphasis.configure(weight="bold")
+                    menu._pfc_extract_count_font = emphasis
+                    menu.entryconfigure(index, foreground="#c41414", font=emphasis)
+            except tk.TclError:
+                pass
+
+        threading.Thread(target=worker, name="PFC-Archive-Count", daemon=True).start()
+        self.after(50, poll)
 
     def _run_progress_operation(self, title: str, work, done) -> None:
         window = tk.Toplevel(self)

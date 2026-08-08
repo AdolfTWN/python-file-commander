@@ -29,7 +29,7 @@ from .compare import CompareWindow, is_compare_container
 from .preview import PreviewWindow
 from .search import SearchWindow
 from .multirename import MultiRenameWindow
-from .archivefs import ArchiveCancelled, ArchiveSession, create_zip_archive, extract_archive_to, is_browsable_archive
+from .archivefs import ArchiveCancelled, ArchiveSession, archive_item_counts, create_zip_archive, extract_archive_to, is_browsable_archive
 from .spaceanalyzer import SpaceAnalyzerWindow
 from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
 from .tooltip import MenuToolTip, ToolTip, TreeItemToolTip, install_button_tooltips
@@ -43,12 +43,57 @@ UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
 
 
 def middle_ellipsize(text: str, max_width: int, measure) -> str:
-    """Fit text by preserving both identifying ends instead of losing the suffix."""
+    """Fit text while retaining release/version tokens used to distinguish files."""
     if max_width <= 0 or measure(text) <= max_width:
         return text
     marker = "..."
     if measure(marker) >= max_width:
         return marker
+    suffix = Path(text).suffix
+    stem_end = len(text) - len(suffix)
+    identifier_matches = list(re.finditer(
+        r"(?i)(?<![A-Za-z0-9])(?:v(?:ersion)?|ver|rev|r)?\d+(?:[._-]\d+)*(?![A-Za-z0-9])",
+        text[:stem_end]))
+    # Retain the last few revision-bearing tokens.  This makes, for example,
+    # UVIP_123_package.zip and UVIP_456_package.zip visibly different even in
+    # a narrow Name column.
+    identifiers = [(match.start(), match.end(), match.group(0))
+                   for match in identifier_matches[-3:]]
+    if identifiers:
+        prefix_length, tail_length = min(8, stem_end), min(10, stem_end)
+
+        def candidate(prefix_count, tail_count):
+            tail_start = max(prefix_count, stem_end - tail_count)
+            pieces = [text[:prefix_count]]
+            pieces.extend(value for start, end, value in identifiers
+                          if start >= prefix_count and end <= tail_start)
+            tail = text[tail_start:]
+            if tail and (not pieces or tail != pieces[-1]):
+                pieces.append(tail)
+            return marker.join(piece for piece in pieces if piece)
+
+        while (prefix_length > 3 or tail_length > min(3, stem_end)):
+            fitted = candidate(prefix_length, tail_length)
+            if measure(fitted) <= max_width:
+                # Use remaining room for more human-readable context around the
+                # protected identifiers.
+                while prefix_length + tail_length < stem_end:
+                    grown = candidate(prefix_length + 1, tail_length)
+                    if measure(grown) <= max_width:
+                        prefix_length += 1
+                        continue
+                    grown = candidate(prefix_length, tail_length + 1)
+                    if measure(grown) <= max_width:
+                        tail_length += 1
+                        continue
+                    break
+                return candidate(prefix_length, tail_length)
+            if tail_length > 3:
+                tail_length -= 1
+            elif prefix_length > 3:
+                prefix_length -= 1
+            else:
+                break
     right = min(8, max(1, len(text) - 1))
     while right > 1 and measure(marker + text[-right:]) > max_width:
         right -= 1
@@ -72,6 +117,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.16.4", "2026/08/09", (
+        "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.",
+        "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.",
+        "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.",
+        "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.",
+    )),
     ("v0.16.3", "2026/08/08", (
         "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.",
         "Adjusted: Git/SVN overlays use anti-aliased status symbols with dark and light outline layers for contrast on every icon and color scheme.",
@@ -2834,11 +2885,15 @@ class Commander(tk.Tk):
         compression.add_command(label=tr("Compress to ZIP"),
                                 state=normal_if(bool(items)), command=self.compress_selected)
         archive_selected = single and is_browsable_archive(clicked)
-        compression.add_command(label=tr("Extract Here"), state=normal_if(archive_selected),
+        extract_label = (tr("Extract Here (counting…)") if archive_selected else tr("Extract Here"))
+        compression.add_command(label=extract_label, state=normal_if(archive_selected),
                                 command=lambda path=clicked: self.extract_archive(path, clicked.parent))
+        extract_here_index = compression.index("end")
         compression.add_command(label=tr("Extract to Folder"), state=normal_if(archive_selected),
                                 command=lambda path=clicked:
                                     self.extract_archive(path, clicked.parent / clicked.stem))
+        if archive_selected:
+            self._load_archive_menu_count(compression, extract_here_index, clicked)
         menu.add_cascade(label=tr("Compression"), menu=compression)
         menu.add_command(label=tr("Create Shortcut & Send to Clipboard"),
                          state=normal_if(bool(items)), command=self.create_shortcuts_to_clipboard)
@@ -2895,6 +2950,43 @@ class Commander(tk.Tk):
         descriptions = {tr(label): tr(help_text) for label, help_text in descriptions.items()}
         self._file_context_tooltip = MenuToolTip(menu, descriptions)
         return menu
+
+    def _load_archive_menu_count(self, menu: tk.Menu, index: int, archive_path: Path) -> None:
+        """Populate archive counts without delaying the context menu opening."""
+        results = queue.Queue()
+
+        def worker():
+            try:
+                results.put(archive_item_counts(archive_path))
+            except (OSError, ValueError):
+                results.put(None)
+
+        def poll():
+            try:
+                result = results.get_nowait()
+            except queue.Empty:
+                if menu.winfo_exists():
+                    self.after(50, poll)
+                return
+            try:
+                if result is None:
+                    menu.entryconfigure(index, label=tr("Extract Here"))
+                    return
+                folders, files = result
+                menu.entryconfigure(
+                    index,
+                    label=tr("Extract Here ({folders} folders, {files} files)",
+                             folders=folders, files=files))
+                if folders > 1 or files > 1:
+                    emphasis = tkfont.Font(font=tkfont.nametofont("TkMenuFont"))
+                    emphasis.configure(weight="bold")
+                    menu._pfc_extract_count_font = emphasis
+                    menu.entryconfigure(index, foreground="#c41414", font=emphasis)
+            except tk.TclError:
+                pass
+
+        threading.Thread(target=worker, name="PFC-Archive-Count", daemon=True).start()
+        self.after(50, poll)
 
     def _run_progress_operation(self, title: str, work, done) -> None:
         window = tk.Toplevel(self)

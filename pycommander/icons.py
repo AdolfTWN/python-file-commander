@@ -14,7 +14,7 @@ VCS_BADGE_SPECS = {
     "clean": ("#218838", "check", "#ffffff"),
     "modified": ("#e02f2f", "alert", "#ffffff"),
     "added": ("#1266b3", "plus", "#ffffff"),
-    "untracked": ("#6f42c1", "question", "#ffffff"),
+    "untracked": ("#582a9b", "question", "#ffffff"),
     "deleted": ("#a80f20", "minus", "#ffffff"),
     "conflict": ("#f2b705", "cross", "#171717"),
 }
@@ -227,8 +227,8 @@ def vcs_badge_png(size: int, status: str) -> bytes:
     dark_edge = _hex_rgba("#17212b")
     white_edge = _hex_rgba("#ffffff")
     fill_rgba, ink_rgba = _hex_rgba(fill), _hex_rgba(ink)
-    dark_width = max(4, round(canvas_size * .075))
-    white_width = max(4, round(canvas_size * .075))
+    dark_width = max(4, round(canvas_size * .095))
+    white_width = max(3, round(canvas_size * .055))
     for y in range(canvas_size):
         for x in range(canvas_size):
             distance = ((x - center) ** 2 + (y - center) ** 2) ** .5
@@ -260,15 +260,15 @@ def vcs_badge_png(size: int, status: str) -> bytes:
         segments = [((*point(.25, .25), *point(.75, .75))),
                     ((*point(.75, .25), *point(.25, .75)))]
     elif glyph == "question":
-        segments = [((*point(.28, .31), *point(.39, .21))),
-                    ((*point(.39, .21), *point(.63, .21))),
-                    ((*point(.63, .21), *point(.74, .33))),
-                    ((*point(.74, .33), *point(.69, .46))),
-                    ((*point(.69, .46), *point(.52, .56))),
-                    ((*point(.52, .56), *point(.50, .64)))]
-        dots = [point(.50, .78)]
-    line_radius = max(2, round(canvas_size * .065))
-    dot_radius = max(2, round(canvas_size * .07))
+        segments = [((*point(.31, .34), *point(.40, .27))),
+                    ((*point(.40, .27), *point(.60, .27))),
+                    ((*point(.60, .27), *point(.68, .36))),
+                    ((*point(.68, .36), *point(.64, .45))),
+                    ((*point(.64, .45), *point(.51, .53))),
+                    ((*point(.51, .53), *point(.50, .60)))]
+        dots = [point(.50, .70)]
+    line_radius = max(2, round(canvas_size * .06))
+    dot_radius = max(2, round(canvas_size * .065))
     for y in range(canvas_size):
         for x in range(canvas_size):
             sample_x, sample_y = x + .5, y + .5
@@ -308,7 +308,7 @@ class ShellIconProvider:
         result = PhotoImage(width=self.size, height=self.size)
         result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
         if overlay in VCS_BADGE_SPECS:
-            diameter = min(self.size, max(10, round(self.size * .62)))
+            diameter = min(self.size, max(12, round(self.size * .70)))
             encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
             badge = PhotoImage(data=encoded, format="png")
             result.tk.call(str(result), "copy", str(badge),

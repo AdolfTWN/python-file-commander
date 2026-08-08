@@ -9,6 +9,7 @@ import queue
 import subprocess
 import tempfile
 import threading
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 import tkinter as tk
@@ -80,6 +81,36 @@ def file_hash(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def text_files_equivalent(left: Path, right: Path) -> bool:
+    """Compare visible text while ignoring non-printing representation details.
+
+    This intentionally ignores BOMs, CRLF/LF choice, Unicode composition,
+    zero-width/control characters, trailing spaces, and the final newline.  It
+    does not ignore words, punctuation, indentation, or internal whitespace.
+    """
+    if left.suffix.casefold() not in TEXT_SUFFIXES or right.suffix.casefold() not in TEXT_SUFFIXES:
+        return False
+    try:
+        if max(left.stat().st_size, right.stat().st_size) > 64 * 1024 * 1024:
+            return False
+
+        def normalized(path: Path) -> tuple[str, ...]:
+            data = path.read_bytes()
+            if data.startswith((b"\xff\xfe", b"\xfe\xff")):
+                text = data.decode("utf-16")
+            else:
+                text = data.decode("utf-8-sig")
+            text = unicodedata.normalize("NFC", text).replace("\u00a0", " ")
+            text = "".join(character for character in text
+                           if character in {"\n", "\r", "\t"} or
+                           unicodedata.category(character) not in {"Cc", "Cf"})
+            return tuple(line.rstrip(" \t") for line in text.splitlines())
+
+        return normalized(left) == normalized(right)
+    except (OSError, UnicodeDecodeError):
+        return False
 
 
 def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int | None, str]], list[int]]:
@@ -555,7 +586,7 @@ class BinaryCompare(ttk.Frame):
 
 
 def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=False,
-                cancelled=lambda: False):
+                ignore_invisible_text=False, cancelled=lambda: False):
     patterns = [item.strip() for item in masks.split(";") if item.strip()] or ["*"]
     def collect(root):
         if recursive:
@@ -598,7 +629,9 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
             elif a.is_dir(): status = "Identical"
             else:
                 a_stat, b_stat = a.stat(), b.stat()
-                if a_stat.st_size != b_stat.st_size:
+                if ignore_invisible_text and text_files_equivalent(a, b):
+                    status = "Identical"
+                elif a_stat.st_size != b_stat.st_size:
                     status = "Different"
                 elif by_content and file_hash(a) == file_hash(b):
                     status = "Identical"
@@ -719,9 +752,12 @@ class _FolderCompareLogic(ttk.Frame):
         # contents by bytes by default so a repacked folder is not reported as
         # different solely because of container metadata.
         self.content_var = tk.BooleanVar(value=self.left_read_only or self.right_read_only)
+        self.text_equivalent_var = tk.BooleanVar(value=True)
         self.view_mode_var = tk.StringVar(value="all")
         ttk.Checkbutton(options, text=tr("Recursive"), variable=self.recursive_var).pack(side="left")
         ttk.Checkbutton(options, text=tr("By content"), variable=self.content_var).pack(side="left", padx=(5, 0))
+        ttk.Checkbutton(options, text=tr("Text equivalent"),
+                        variable=self.text_equivalent_var).pack(side="left", padx=(5, 0))
         self.diff_button = ttk.Menubutton(options, text=tr("All"))
         self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
         self.diff_button.configure(menu=self.diff_menu)
@@ -952,11 +988,12 @@ class _FolderCompareLogic(ttk.Frame):
         self._cancel_event = threading.Event(); self._scanning = True
         self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
         recursive, masks, by_content = self.recursive_var.get(), self.mask_var.get(), self.content_var.get()
+        text_equivalent = self.text_equivalent_var.get()
         cancel = self._cancel_event
         def worker():
             try:
                 rows = list(folder_rows(self.left_root, self.right_root, recursive, masks, by_content,
-                                        cancel.is_set))
+                                        text_equivalent, cancel.is_set))
                 self._scan_queue.put((cancel, rows, None))
             except OSError as exc:
                 self._scan_queue.put((cancel, [], str(exc)))
@@ -1200,6 +1237,7 @@ class FolderCompare(_FolderCompareLogic):
 
         self.recursive_var = tk.BooleanVar(value=True)
         self.content_var = tk.BooleanVar(value=self.left_read_only or self.right_read_only)
+        self.text_equivalent_var = tk.BooleanVar(value=True)
         self.view_mode_var = tk.StringVar(value="all")
 
         bar = ttk.Frame(self.summary, padding=(3, 3, 3, 1)); bar.pack(fill="x")
@@ -1212,7 +1250,13 @@ class FolderCompare(_FolderCompareLogic):
         self.recursive_button = ttk.Button(bar, command=lambda: self._toggle_option("recursive"))
         self.recursive_button.pack(side="left", padx=(0, 3))
         self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
-        self.content_button.pack(side="left")
+        self.content_button.pack(side="left", padx=(0, 3))
+        self.text_equivalent_button = ttk.Button(
+            bar, command=lambda: self._toggle_option("text_equivalent"))
+        self.text_equivalent_button.pack(side="left")
+        self.text_equivalent_button._pfc_tooltip = ToolTip(
+            self.text_equivalent_button,
+            lambda: tr("Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files."))
 
         self.body = ttk.Frame(self.summary)
         self.center_header = ttk.Frame(self.body)
@@ -1327,6 +1371,8 @@ class FolderCompare(_FolderCompareLogic):
             self.recursive_var.set(not self.recursive_var.get())
         elif option == "content":
             self.content_var.set(not self.content_var.get())
+        elif option == "text_equivalent":
+            self.text_equivalent_var.set(not self.text_equivalent_var.get())
         elif option == "case":
             self.case_var.set(not self.case_var.get()); self.find_all()
         self._update_toggle_buttons()
@@ -1337,6 +1383,8 @@ class FolderCompare(_FolderCompareLogic):
             text=f"{'✓' if self.recursive_var.get() else '–'} {tr('Recursive')}")
         self.content_button.configure(
             text=f"{'✓' if self.content_var.get() else '–'} {tr('By content')}")
+        self.text_equivalent_button.configure(
+            text=f"{'✓' if self.text_equivalent_var.get() else '–'} {tr('Text equivalent')}")
         self.case_button.configure(
             text=f"{'✓' if self.case_var.get() else '–'} {tr('Case sensitive')}")
 
