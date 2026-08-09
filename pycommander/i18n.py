@@ -58,6 +58,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Adjusted: Repository clean status also considers locally known upstream ahead or behind state without delaying navigation with a network fetch.": "調整：版本庫乾淨狀態也會納入本機已知 upstream 的 ahead／behind 情況，且不會以網路 fetch 延遲導覽。",
+        "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.": "新增：從母資料夾即可在版本庫根資料夾看到乾淨或已變更的 Git／SVN 覆蓋圖示，不必先進入專案。",
+        "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "調整：Git／SVN 狀態徽章改用實心狀態色、清晰深色外框及明確分離的小型符號，並移除白色圓環。",
         "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "新增：資料夾比較可將文字檔視為等同，並忽略 BOM、換行格式、行尾空白、Unicode 組合及控制字元等不可見的表示差異。",
         "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "調整：縮短檔名時優先保留版本與修訂識別資訊，讓名稱相近的版本仍可分辨。",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "新增：壓縮檔解壓縮選單會顯示內含的資料夾與檔案數量，且不會延遲右鍵選單。",
@@ -267,6 +270,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Adjusted: Repository clean status also considers locally known upstream ahead or behind state without delaying navigation with a network fetch.": "调整：版本库干净状态也会考虑本机已知 upstream 的 ahead／behind 情况，且不会通过网络 fetch 延迟导航。",
+        "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.": "新增：从父文件夹即可在版本库根文件夹看到干净或已更改的 Git／SVN 叠加图标，无需先进入项目。",
+        "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "调整：Git／SVN 状态徽标改用实心状态色、清晰深色轮廓和明确分离的小型符号，并移除白色圆环。",
         "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "新增：文件夹比较可将文本文件视为等同，并忽略 BOM、换行格式、行尾空格、Unicode 组合及控制字符等不可见的表示差异。",
         "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "调整：缩短文件名时优先保留版本和修订标识信息，让名称相近的版本仍可区分。",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "新增：压缩包解压菜单会显示所含文件夹和文件数量，且不会延迟右键菜单。",
@@ -449,6 +455,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Adjusted: Repository clean status also considers locally known upstream ahead or behind state without delaying navigation with a network fetch.": "조정: 저장소의 깨끗함 상태는 로컬에서 알려진 upstream의 ahead/behind 상태도 반영하며 네트워크 fetch로 탐색을 지연시키지 않습니다.",
+        "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.": "추가: 프로젝트에 들어가지 않아도 상위 폴더에서 저장소 루트 폴더의 깨끗함 또는 변경됨 Git/SVN 오버레이를 볼 수 있습니다.",
+        "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "조정: Git/SVN 상태 배지에 단색 상태 면, 선명한 어두운 외곽선 및 명확히 분리된 작은 기호를 적용하고 흰색 고리를 제거했습니다.",
         "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "추가: 폴더 비교에서 BOM, 줄 바꿈 형식, 줄 끝 공백, Unicode 조합 및 제어 문자 같은 보이지 않는 표현 차이를 무시하고 텍스트 파일을 동일하게 처리할 수 있습니다.",
         "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "조정: 파일 이름을 줄일 때 릴리스 및 리비전 식별자를 우선 보존하여 비슷한 버전을 구분할 수 있습니다.",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "추가: 압축 풀기 메뉴에 포함된 폴더와 파일 수를 표시하며 오른쪽 클릭 메뉴를 지연시키지 않습니다.",

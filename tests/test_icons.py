@@ -15,7 +15,7 @@ class IconTests(unittest.TestCase):
         self.assertTrue(all(spec[2] in {"#ffffff", "#171717"}
                             for spec in VCS_BADGE_SPECS.values()))
 
-    def test_vcs_badge_has_antialiasing_and_dark_light_outline(self):
+    def test_vcs_badge_has_antialiasing_dark_outline_and_solid_color_face(self):
         png = vcs_badge_png(20, "modified")
         self.assertEqual(struct.unpack(">II", png[16:24]), (20, 20))
         offset, compressed = 8, bytearray()
@@ -31,6 +31,10 @@ class IconTests(unittest.TestCase):
         self.assertTrue(any(0 < pixel[3] < 255 for pixel in pixels))
         self.assertTrue(any(pixel[3] and max(pixel[:3]) < 60 for pixel in pixels))
         self.assertTrue(any(pixel[3] and min(pixel[:3]) > 230 for pixel in pixels))
+        upper_face = pixels[4 * 20 + 6]
+        self.assertGreater(upper_face[0], 180)
+        self.assertLess(upper_face[1], 100)
+        self.assertLess(upper_face[2], 100)
 
     def test_pfc_logo_is_an_embedded_rgba_png_at_requested_size(self):
         png = pfc_icon_png(32)

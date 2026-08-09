@@ -5,7 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from pycommander.vcs import _git_status, folder_statuses, is_metadata_path, status_for
+from pycommander.vcs import (_CACHE, _git_root_summary, _git_status, folder_statuses,
+                             is_metadata_path, status_for)
 
 
 class VCSOverlayTests(unittest.TestCase):
@@ -46,6 +47,31 @@ class VCSOverlayTests(unittest.TestCase):
             self.assertEqual(status_for(statuses, untracked), "untracked")
             self.assertEqual(status_for(statuses, clean), "clean")
             self.assertEqual(status_for(statuses, root), "modified")
+
+    def test_repository_root_overlay_is_visible_from_outer_folder(self):
+        with tempfile.TemporaryDirectory() as raw:
+            parent = Path(raw); root = parent / "project"; root.mkdir()
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            tracked = root / "tracked.txt"; tracked.write_text("one", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "tracked.txt"], check=True)
+            subprocess.run(["git", "-C", str(root), "-c", "user.name=PFC Test",
+                            "-c", "user.email=pfc@example.invalid", "commit", "-qm", "base"],
+                           check=True)
+            _CACHE.clear()
+            self.assertEqual(status_for(folder_statuses(parent), root), "clean")
+            tracked.write_text("two", encoding="utf-8")
+            _CACHE.clear()
+            self.assertEqual(status_for(folder_statuses(parent), root), "modified")
+            ordinary = parent / "ordinary"; ordinary.mkdir()
+            self.assertIsNone(status_for(folder_statuses(parent), ordinary))
+
+    def test_repository_root_is_not_clean_when_upstream_is_ahead_or_behind(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw); (root / ".git").mkdir()
+            completed = subprocess.CompletedProcess(
+                [], 0, stdout=b"## main...origin/main [ahead 1]\0", stderr=b"")
+            with patch("pycommander.vcs.subprocess.run", return_value=completed):
+                self.assertEqual(_git_root_summary(root), "modified")
 
 
 if __name__ == "__main__":

@@ -49,6 +49,69 @@ def is_metadata_path(folder: Path) -> bool:
     return any(part.casefold() in {".git", ".svn"} for part in parts)
 
 
+def _git_code_status(code: str) -> str:
+    return ("conflict" if "U" in code or code in {"AA", "DD"} else
+            "untracked" if code == "??" else
+            "added" if "A" in code else
+            "deleted" if "D" in code else "modified")
+
+
+def _git_root_summary(root: Path) -> str | None:
+    """Return one overlay state for a repository root shown from its parent."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "status", "--porcelain=v1", "--branch", "-z",
+             "--untracked-files=all"], capture_output=True, timeout=4, **_run_options())
+    except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode:
+        return None
+    summary = "clean"
+    records = result.stdout.split(b"\0")
+    index = 0
+    while index < len(records):
+        record = records[index]
+        index += 1
+        if record.startswith(b"## "):
+            if b"[ahead " in record or b"[behind " in record:
+                summary = "modified"
+            continue
+        if len(record) < 4:
+            continue
+        code = record[:2].decode("ascii", "replace")
+        if "R" in code or "C" in code:
+            index += 1
+        status = _git_code_status(code)
+        if _PRIORITY[status] > _PRIORITY[summary]:
+            summary = status
+    return summary
+
+
+def _child_repository_statuses(folder: Path) -> dict[str, str]:
+    """Expose direct child repository roots without recursively scanning folders."""
+    statuses: dict[str, str] = {}
+    try:
+        children = tuple(folder.iterdir())
+    except OSError:
+        return statuses
+    for child in children:
+        try:
+            if not child.is_dir():
+                continue
+            if (child / ".git").exists():
+                status = _git_root_summary(child)
+            elif (child / ".svn").exists():
+                nested = _svn_status(child)
+                status = status_for(nested or {}, child) or "clean"
+            else:
+                continue
+            if status is not None:
+                statuses[os.path.normcase(str(child.resolve()))] = status
+        except OSError:
+            continue
+    return statuses
+
+
 def _git_status(folder: Path) -> dict[str, str] | None:
     root = _find_root(folder, ".git")
     if root is None:
@@ -78,10 +141,7 @@ def _git_status(folder: Path) -> dict[str, str] | None:
         raw_path = record[3:].decode("utf-8", "surrogateescape")
         if "R" in code or "C" in code:
             index += 1  # porcelain -z adds the source name after the destination.
-        status = ("conflict" if "U" in code or code in {"AA", "DD"} else
-                  "untracked" if code == "??" else
-                  "added" if "A" in code else
-                  "deleted" if "D" in code else "modified")
+        status = _git_code_status(code)
         _merge(statuses, root / raw_path, status, root)
     return statuses
 
@@ -129,6 +189,8 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         statuses = _git_status(folder)
         if statuses is None:
             statuses = _svn_status(folder)
+        if statuses is None:
+            statuses = _child_repository_statuses(folder)
         value = statuses or {}
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
         value = {}

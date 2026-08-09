@@ -117,6 +117,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.16.5", "2026/08/09", (
+        "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.",
+        "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.",
+        "Adjusted: Repository clean status also considers locally known upstream ahead or behind state without delaying navigation with a network fetch.",
+    )),
     ("v0.16.4", "2026/08/09", (
         "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.",
         "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.",

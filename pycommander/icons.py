@@ -216,26 +216,22 @@ def _distance_to_segment(px, py, x1, y1, x2, y2) -> float:
 
 
 def vcs_badge_png(size: int, status: str) -> bytes:
-    """Render one anti-aliased, dual-outline Git/SVN status badge."""
+    """Render one anti-aliased Git/SVN badge with a solid status-color face."""
     if size < 8 or status not in VCS_BADGE_SPECS:
         raise ValueError("Unsupported VCS badge")
     fill, glyph, ink = VCS_BADGE_SPECS[status]
-    supersample, canvas_size = 4, size * 4
+    supersample, canvas_size = 6, size * 6
     pixels = bytearray(canvas_size * canvas_size * 4)
     center = (canvas_size - 1) / 2
     outer = canvas_size / 2 - .5
     dark_edge = _hex_rgba("#17212b")
-    white_edge = _hex_rgba("#ffffff")
     fill_rgba, ink_rgba = _hex_rgba(fill), _hex_rgba(ink)
-    dark_width = max(4, round(canvas_size * .095))
-    white_width = max(3, round(canvas_size * .055))
+    dark_width = max(5, round(canvas_size * .105))
     for y in range(canvas_size):
         for x in range(canvas_size):
             distance = ((x - center) ** 2 + (y - center) ** 2) ** .5
             color = (dark_edge if distance <= outer else None)
             if distance <= outer - dark_width:
-                color = white_edge
-            if distance <= outer - dark_width - white_width:
                 color = fill_rgba
             if color:
                 index = (y * canvas_size + x) * 4
@@ -246,29 +242,29 @@ def vcs_badge_png(size: int, status: str) -> bytes:
 
     segments, dots = [], []
     if glyph == "check":
-        segments = [((*point(.20, .52), *point(.42, .73))),
-                    ((*point(.42, .73), *point(.79, .27)))]
+        segments = [((*point(.24, .52), *point(.42, .68))),
+                    ((*point(.42, .68), *point(.76, .31)))]
     elif glyph == "alert":
-        segments = [((*point(.50, .22), *point(.50, .59)))]
-        dots = [point(.50, .76)]
+        segments = [((*point(.50, .23), *point(.50, .51)))]
+        dots = [point(.50, .72)]
     elif glyph == "plus":
-        segments = [((*point(.50, .23), *point(.50, .77))),
-                    ((*point(.23, .50), *point(.77, .50)))]
+        segments = [((*point(.50, .28), *point(.50, .72))),
+                    ((*point(.28, .50), *point(.72, .50)))]
     elif glyph == "minus":
-        segments = [((*point(.22, .50), *point(.78, .50)))]
+        segments = [((*point(.28, .50), *point(.72, .50)))]
     elif glyph == "cross":
-        segments = [((*point(.25, .25), *point(.75, .75))),
-                    ((*point(.75, .25), *point(.25, .75)))]
+        segments = [((*point(.29, .29), *point(.71, .71))),
+                    ((*point(.71, .29), *point(.29, .71)))]
     elif glyph == "question":
-        segments = [((*point(.31, .34), *point(.40, .27))),
-                    ((*point(.40, .27), *point(.60, .27))),
-                    ((*point(.60, .27), *point(.68, .36))),
-                    ((*point(.68, .36), *point(.64, .45))),
-                    ((*point(.64, .45), *point(.51, .53))),
-                    ((*point(.51, .53), *point(.50, .60)))]
-        dots = [point(.50, .70)]
-    line_radius = max(2, round(canvas_size * .06))
-    dot_radius = max(2, round(canvas_size * .065))
+        segments = [((*point(.32, .34), *point(.40, .28))),
+                    ((*point(.40, .28), *point(.59, .28))),
+                    ((*point(.59, .28), *point(.67, .36))),
+                    ((*point(.67, .36), *point(.63, .44))),
+                    ((*point(.63, .44), *point(.51, .51))),
+                    ((*point(.51, .51), *point(.50, .56)))]
+        dots = [point(.50, .72)]
+    line_radius = max(3, round(canvas_size * .055))
+    dot_radius = max(3, round(canvas_size * .055))
     for y in range(canvas_size):
         for x in range(canvas_size):
             sample_x, sample_y = x + .5, y + .5

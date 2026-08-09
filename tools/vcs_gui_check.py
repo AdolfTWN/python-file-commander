@@ -7,6 +7,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from pycommander.app import Commander
+from pycommander.vcs import _git_root_summary, status_for
 
 
 def wait_for_vcs(app, pane, timeout=10.0):
@@ -26,6 +27,17 @@ def main():
         app = Commander(); app.withdraw()
         try:
             pane = app.left_tabs.current()
+            assert pane.navigate(repository.parent)
+            wait_for_vcs(app, pane)
+            expected_root_status = _git_root_summary(repository)
+            assert expected_root_status is not None
+            assert status_for(pane._vcs_statuses, repository) == expected_root_status
+            repository_rows = [iid for iid in pane.tree.get_children()
+                               if pane.tree.item(iid, "tags") and
+                               Path(pane.tree.item(iid, "tags")[0]) == repository]
+            assert len(repository_rows) == 1
+            assert pane.tree.item(repository_rows[0], "image"), (
+                "Repository root shown from its parent has no overlay icon")
             assert pane.navigate(repository)
             wait_for_vcs(app, pane)
             original_item = pane.tree.item
