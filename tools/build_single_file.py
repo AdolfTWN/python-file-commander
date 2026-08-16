@@ -23,6 +23,7 @@ def build() -> Path:
     archivefs = (ROOT / "pycommander" / "archivefs.py").read_text(encoding="utf-8")
     spaceanalyzer = (ROOT / "pycommander" / "spaceanalyzer.py").read_text(encoding="utf-8")
     shelldnd = (ROOT / "pycommander" / "shelldnd.py").read_text(encoding="utf-8")
+    shellmenu = (ROOT / "pycommander" / "shellmenu.py").read_text(encoding="utf-8")
     app = (ROOT / "pycommander" / "app.py").read_text(encoding="utf-8")
     package = (ROOT / "pycommander" / "__init__.py").read_text(encoding="utf-8")
     version_match = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', package, re.MULTILINE)
@@ -55,6 +56,7 @@ def build() -> Path:
         line for line in spaceanalyzer.splitlines() if not line.startswith("from .")) + "\n"
     shelldnd = shelldnd.replace("from __future__ import annotations\n\n", "", 1)
     shelldnd = "\n".join(line for line in shelldnd.splitlines() if not line.startswith("from .")) + "\n"
+    shellmenu = shellmenu.replace("from __future__ import annotations\n\n", "", 1)
     app = app.replace("from __future__ import annotations\n\n", "", 1)
     app = "\n".join(line for line in app.splitlines() if not line.startswith("from .")) + "\n"
     banner = '''"""Portable Python File Commander.
@@ -67,7 +69,7 @@ from __future__ import annotations
 
 '''
     output = ROOT / "pfc.py"
-    output.write_text(banner + i18n + "\n\n" + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + vcs + "\n\n" + tabs + "\n\n" + tooltip + "\n\n" + compare + "\n\n" + preview + "\n\n" + search + "\n\n" + multirename + "\n\n" + archivefs + "\n\n" + spaceanalyzer + "\n\n" + shelldnd + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
+    output.write_text(banner + i18n + "\n\n" + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + vcs + "\n\n" + tabs + "\n\n" + tooltip + "\n\n" + compare + "\n\n" + preview + "\n\n" + search + "\n\n" + multirename + "\n\n" + archivefs + "\n\n" + spaceanalyzer + "\n\n" + shelldnd + "\n\n" + shellmenu + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
     return output
 
 

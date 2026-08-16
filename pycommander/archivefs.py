@@ -37,28 +37,34 @@ def is_browsable_archive(path: Path) -> bool:
 
 
 def archive_item_counts(path: Path) -> tuple[int, int]:
-    """Return distinct contained folder and file counts without extracting."""
+    """Return root-level folder/file counts without extracting.
+
+    This describes the extraction layout rather than every item in the
+    archive.  ``release/docs/readme.md`` therefore has one root folder
+    (``release``), not several loose folders/files.
+    """
     path = Path(path).expanduser().resolve()
-    folders: set[str] = set()
-    files = 0
+    roots: dict[str, bool] = {}
 
     def add_member(raw_name: str, is_folder: bool) -> None:
-        nonlocal files
         member = PurePosixPath(raw_name.replace("\\", "/"))
         parts = [part for part in member.parts if part not in {"", "."}]
         if not parts:
             return
-        parent_limit = len(parts) if is_folder else len(parts) - 1
-        for index in range(1, parent_limit + 1):
-            folders.add("/".join(parts[:index]).casefold())
-        if not is_folder:
-            files += 1
+        # When no explicit folder entry exists, a nested member still proves
+        # that its first component is a root folder.
+        key = parts[0].casefold()
+        roots[key] = roots.get(key, False) or is_folder or len(parts) > 1
+
+    def result() -> tuple[int, int]:
+        folders = sum(1 for is_folder in roots.values() if is_folder)
+        return folders, len(roots) - folders
 
     if path.suffix.casefold() == ".zip":
         with zipfile.ZipFile(path) as archive:
             for info in archive.infolist():
                 add_member(info.filename, info.is_dir())
-        return len(folders), files
+        return result()
 
     executable = _seven_zip_executable()
     if executable is None:
@@ -74,7 +80,7 @@ def archive_item_counts(path: Path) -> tuple[int, int]:
         name = fields.get("Path")
         if name:
             add_member(name, fields.get("Folder") == "+" or "D" in fields.get("Attributes", ""))
-    return len(folders), files
+    return result()
 
 
 def _hidden_process_options() -> dict:

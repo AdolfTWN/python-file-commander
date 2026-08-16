@@ -73,6 +73,17 @@ _TRANSLATIONS = {
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "調整：Git／SVN 覆蓋圖示採用較大徽章、更強的雙層外框及間距更清楚的狀態符號。",
         "Extract Here (counting…)": "解壓縮至此處（計算中…）",
         "Extract Here ({folders} folders, {files} files)": "解壓縮至此處（{folders} 個資料夾、{files} 個檔案）",
+        "Extract Here (root: {folders} folders, {files} files)": "解壓縮至此處（根層：{folders} 個資料夾、{files} 個檔案）",
+        "Explorer Menu": "檔案總管選單",
+        "Save": "儲存", "Save Left": "儲存左側", "Save Right": "儲存右側", "Save failed": "儲存失敗",
+        "Switch to All view before saving edited content.": "儲存編輯內容前，請先切換至全部檢視。",
+        "Explorer Menu is available for local files and folders, not archive workspaces.": "檔案總管選單僅適用於本機檔案與資料夾，不適用於壓縮檔工作區。",
+        "Open the native Windows Explorer context menu for the selected local items.": "開啟選取本機項目的 Windows 檔案總管原生右鍵選單。",
+        "Added: F8 opens the native Windows Explorer context menu for the selected local file or folder.": "新增：F8 可開啟選取本機檔案或資料夾的 Windows 檔案總管原生右鍵選單。",
+        "Fixed: Leaving a removed ZIP/7z workspace now falls back through parent folders to the first accessible location.": "修正：離開來源已刪除的 ZIP／7z 工作區時，會逐層回退至第一個可存取的位置。",
+        "Fixed: Archive extraction layout warnings inspect only root-level items, and Ext now has a fixed six-character width.": "修正：壓縮檔解壓縮版面警示只檢查根層項目，Ext 欄位固定為六個字元寬。",
+        "Added: Text file comparisons support direct selection, editing, and side-specific Save buttons or Ctrl+S.": "新增：文字檔比較支援直接選取、編輯，以及分側儲存按鈕或 Ctrl+S。",
+        "Fixed: Saving aligned text comparison content excludes blank rows used only as difference placeholders.": "修正：儲存對齊的文字比較內容時，會排除僅作為差異占位的空白列。",
         "Text equivalent": "文字等同",
         "Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files.": "忽略文字檔的 BOM、換行格式、行尾空白、Unicode 組合及不可見控制字元差異。",
         "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "修正：Git／SVN 狀態檢查不再顯示命令列視窗，狀態未改變時也不再重繪或閃爍檔案清單。",
@@ -285,6 +296,17 @@ _TRANSLATIONS = {
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "调整：Git／SVN 叠加图标采用更大徽标、更强的双层轮廓和间距更清晰的状态符号。",
         "Extract Here (counting…)": "解压到此处（计算中…）",
         "Extract Here ({folders} folders, {files} files)": "解压到此处（{folders} 个文件夹、{files} 个文件）",
+        "Extract Here (root: {folders} folders, {files} files)": "解压到此处（根层：{folders} 个文件夹、{files} 个文件）",
+        "Explorer Menu": "资源管理器菜单",
+        "Save": "保存", "Save Left": "保存左侧", "Save Right": "保存右侧", "Save failed": "保存失败",
+        "Switch to All view before saving edited content.": "保存编辑内容前，请先切换至全部视图。",
+        "Explorer Menu is available for local files and folders, not archive workspaces.": "资源管理器菜单仅适用于本地文件和文件夹，不适用于压缩包工作区。",
+        "Open the native Windows Explorer context menu for the selected local items.": "打开所选本地项目的 Windows 资源管理器原生右键菜单。",
+        "Added: F8 opens the native Windows Explorer context menu for the selected local file or folder.": "新增：F8 可打开所选本地文件或文件夹的 Windows 资源管理器原生右键菜单。",
+        "Fixed: Leaving a removed ZIP/7z workspace now falls back through parent folders to the first accessible location.": "修复：离开来源已删除的 ZIP/7z 工作区时，会逐层回退至第一个可访问的位置。",
+        "Fixed: Archive extraction layout warnings inspect only root-level items, and Ext now has a fixed six-character width.": "修复：压缩包解压布局警示只检查根层项目，Ext 栏固定为六个字符宽。",
+        "Added: Text file comparisons support direct selection, editing, and side-specific Save buttons or Ctrl+S.": "新增：文本文件比较支持直接选择、编辑，以及分侧保存按钮或 Ctrl+S。",
+        "Fixed: Saving aligned text comparison content excludes blank rows used only as difference placeholders.": "修复：保存对齐的文本比较内容时，会排除仅作为差异占位的空白行。",
         "Text equivalent": "文本等同",
         "Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files.": "忽略文本文件的 BOM、换行格式、行尾空格、Unicode 组合及不可见控制字符差异。",
         "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "修复：Git／SVN 状态检查不再显示命令行窗口，状态未变化时也不再重绘或闪烁文件列表。",
@@ -470,6 +492,17 @@ _TRANSLATIONS = {
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "조정: Git/SVN 오버레이에 더 큰 배지, 강한 이중 외곽선 및 여유 있게 배치된 상태 기호를 적용했습니다.",
         "Extract Here (counting…)": "여기에 압축 풀기(계산 중…)",
         "Extract Here ({folders} folders, {files} files)": "여기에 압축 풀기(폴더 {folders}개, 파일 {files}개)",
+        "Extract Here (root: {folders} folders, {files} files)": "여기에 압축 풀기(루트: 폴더 {folders}개, 파일 {files}개)",
+        "Explorer Menu": "탐색기 메뉴",
+        "Save": "저장", "Save Left": "왼쪽 저장", "Save Right": "오른쪽 저장", "Save failed": "저장 실패",
+        "Switch to All view before saving edited content.": "편집한 내용을 저장하기 전에 전체 보기로 전환하세요.",
+        "Explorer Menu is available for local files and folders, not archive workspaces.": "탐색기 메뉴는 로컬 파일과 폴더에서만 사용할 수 있으며 압축 파일 작업 공간에서는 사용할 수 없습니다.",
+        "Open the native Windows Explorer context menu for the selected local items.": "선택한 로컬 항목의 Windows 탐색기 기본 오른쪽 클릭 메뉴를 엽니다.",
+        "Added: F8 opens the native Windows Explorer context menu for the selected local file or folder.": "추가: F8로 선택한 로컬 파일 또는 폴더의 Windows 탐색기 기본 오른쪽 클릭 메뉴를 엽니다.",
+        "Fixed: Leaving a removed ZIP/7z workspace now falls back through parent folders to the first accessible location.": "수정: 원본이 삭제된 ZIP/7z 작업 공간을 나올 때 상위 폴더를 따라 첫 접근 가능한 위치로 돌아갑니다.",
+        "Fixed: Archive extraction layout warnings inspect only root-level items, and Ext now has a fixed six-character width.": "수정: 압축 풀기 레이아웃 경고는 루트 항목만 검사하며 Ext 열은 여섯 글자 너비로 고정됩니다.",
+        "Added: Text file comparisons support direct selection, editing, and side-specific Save buttons or Ctrl+S.": "추가: 텍스트 파일 비교에서 직접 선택·편집하고 좌우 저장 버튼 또는 Ctrl+S를 사용할 수 있습니다.",
+        "Fixed: Saving aligned text comparison content excludes blank rows used only as difference placeholders.": "수정: 정렬된 텍스트 비교 내용을 저장할 때 차이 정렬용 빈 자리 행은 제외합니다.",
         "Text equivalent": "텍스트 동등",
         "Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files.": "텍스트 파일의 BOM, 줄 바꿈 형식, 줄 끝 공백, Unicode 조합 및 보이지 않는 제어 문자 차이를 무시합니다.",
         "Fixed: Git/SVN status checks run without console windows and unchanged results no longer repaint or flicker the file list.": "수정: Git/SVN 상태 확인 시 콘솔 창을 표시하지 않으며 결과가 바뀌지 않으면 파일 목록을 다시 그리거나 깜박이지 않습니다.",
@@ -2921,6 +2954,21 @@ def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int
     return rows, differences
 
 
+def editable_aligned_content(rows, rendered: str, side: int) -> str:
+    """Convert an editable aligned pane back into its source-side text.
+
+    Empty placeholders introduced only to align an insertion/deletion are not
+    written back.  Real blank source lines retain their line number and are
+    therefore preserved.
+    """
+    output = []
+    for index, line in enumerate(rendered.split("\n")):
+        source_number = rows[index][side] if index < len(rows) else None
+        if source_number is not None or line:
+            output.append(line)
+    return "\n".join(output)
+
+
 def compare_row_height(linespace: int, scale: float) -> int:
     """Keep compare rows readable at every PFC font scale."""
     return max(24, int(linespace) + max(8, round(6 * scale)))
@@ -2999,7 +3047,8 @@ class DifferenceMap(tk.Canvas):
 
 class SideBySideText(ttk.Frame):
     def __init__(self, master, left_lines, right_lines, differences, status_text="", status_factory=None,
-                 left_title="", right_title="", marker_position="middle", marker_changed=None):
+                 left_title="", right_title="", marker_position="middle", marker_changed=None,
+                 editable=False, save_left=None, save_right=None):
         super().__init__(master)
         self.all_left_lines, self.all_right_lines = list(left_lines), list(right_lines)
         self.all_differences = list(differences)
@@ -3011,6 +3060,9 @@ class SideBySideText(ttk.Frame):
         self.marker_position_var = tk.StringVar(
             value=marker_position if marker_position in {"left", "middle", "right"} else "middle")
         self.marker_changed = marker_changed
+        self.editable = editable
+        self.save_left, self.save_right = save_left, save_right
+        self.visible_rows = []
         self.left_title, self.right_title = str(left_title), str(right_title)
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
         diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
@@ -3030,6 +3082,13 @@ class SideBySideText(ttk.Frame):
         self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
         self.marker_button.configure(menu=self.marker_menu)
         self.marker_button.pack(side="right")
+        if self.editable:
+            self.save_right_button = ttk.Button(
+                diff_row, text=tr("Save Right"), command=lambda: self._save(self.right, self.save_right))
+            self.save_right_button.pack(side="right", padx=(3, 0))
+            self.save_left_button = ttk.Button(
+                diff_row, text=tr("Save Left"), command=lambda: self._save(self.left, self.save_left))
+            self.save_left_button.pack(side="right")
         self._build_marker_menu(); self._update_marker_button()
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
@@ -3061,8 +3120,8 @@ class SideBySideText(ttk.Frame):
         self.right_path_label.configure(text=f"{tr('Right')}: {self.right_title}")
         self.map_header = tk.Label(body, text="↔", background="#263d4c", foreground="white",
                                    font="TkHeadingFont", pady=3)
-        self.left = tk.Text(self.left_frame, wrap="none", undo=False, borderwidth=0)
-        self.right = tk.Text(self.right_frame, wrap="none", undo=False, borderwidth=0)
+        self.left = tk.Text(self.left_frame, wrap="none", undo=self.editable, borderwidth=0, padx=4)
+        self.right = tk.Text(self.right_frame, wrap="none", undo=self.editable, borderwidth=0, padx=4)
         self.left_numbers = tk.Text(self.left_frame, width=6, wrap="none", undo=False, borderwidth=0,
                                     padx=4, takefocus=False, background="#e5ebef", foreground="#526575")
         self.right_numbers = tk.Text(self.right_frame, width=6, wrap="none", undo=False, borderwidth=0,
@@ -3086,6 +3145,9 @@ class SideBySideText(ttk.Frame):
             widget.bind("<MouseWheel>", self._mousewheel)
             widget.bind("<Button-4>", lambda _event: self._wheel_units(-3))
             widget.bind("<Button-5>", lambda _event: self._wheel_units(3))
+        if self.editable:
+            self.left.bind("<Control-s>", lambda _event: self._save(self.left, self.save_left))
+            self.right.bind("<Control-s>", lambda _event: self._save(self.right, self.save_right))
         for widget in (self.left_numbers, self.right_numbers):
             widget.tag_configure("diff", background="#f2c08d", foreground="#35434d")
             widget.tag_configure("current", background="#e8843b", foreground="white")
@@ -3130,6 +3192,7 @@ class SideBySideText(ttk.Frame):
                         list(range(1, len(self.all_left_lines) + 1)))
         self.differences = (list(range(1, len(visible_rows) + 1)) if only_differences else
                             list(self.all_differences))
+        self.visible_rows = visible_rows
         self.diff_index = -1
         for widget, number_widget, lines in (
                 (self.left, self.left_numbers, self.all_left_lines),
@@ -3142,11 +3205,34 @@ class SideBySideText(ttk.Frame):
                 number_text = "" if source_number is None else str(source_number)
                 tag = "diff" if output_row in self.differences else ""
                 number_widget.insert("end", f"{number_text:>5}\n", tag)
-                widget.insert("end", f" {line}\n", tag)
-            widget.configure(state="disabled"); number_widget.configure(state="disabled")
+                widget.insert("end", f"{line}\n", tag)
+            widget.configure(state="normal" if self.editable else "disabled")
+            number_widget.configure(state="disabled")
         self.difference_map.set_rows(self.differences, len(visible_rows))
         self._build_view_menu()
         self.find_all()
+
+    def _save(self, widget, callback):
+        if callback is None:
+            return "break"
+        if self.view_mode_var.get() != "all":
+            messagebox.showinfo(tr("Save"), tr("Switch to All view before saving edited content."),
+                                parent=self.winfo_toplevel())
+            return "break"
+        side = 0 if widget is self.left else 2
+        content = editable_aligned_content(self._aligned_rows(), widget.get("1.0", "end-1c"), side)
+        try:
+            callback(content)
+        except OSError as exc:
+            messagebox.showerror(tr("Save failed"), str(exc), parent=self.winfo_toplevel())
+        return "break"
+
+    def _aligned_rows(self):
+        return [(left[0] if isinstance(left, tuple) else index,
+                 left[1] if isinstance(left, tuple) else left,
+                 right[0] if isinstance(right, tuple) else index,
+                 right[1] if isinstance(right, tuple) else right)
+                for index, (left, right) in enumerate(zip(self.all_left_lines, self.all_right_lines), 1)]
 
     def _select_view_mode(self, value):
         self.view_mode_var.set(value); self.populate()
@@ -3320,16 +3406,42 @@ class TextCompare(ttk.Frame):
     def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
                  left_title=None, right_title=None):
         super().__init__(master)
-        a = left.read_text(encoding="utf-8", errors="replace")
-        b = right.read_text(encoding="utf-8", errors="replace")
+        self.left_path, self.right_path = left, right
+        self.left_title, self.right_title = left_title or left, right_title or right
+        self.marker_position, self.marker_changed = marker_position, marker_changed
+        self._load()
+
+    def _load(self):
+        a = self.left_path.read_text(encoding="utf-8", errors="replace")
+        b = self.right_path.read_text(encoding="utf-8", errors="replace")
+        self._left_ending = "\r\n" if "\r\n" in a else "\n"
+        self._right_ending = "\r\n" if "\r\n" in b else "\n"
+        self._left_final_newline = a.endswith(("\n", "\r"))
+        self._right_final_newline = b.endswith(("\n", "\r"))
         rows, differences = aligned_text(a, b)
         self.view = SideBySideText(
             self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
             status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count),
-            left_title=left_title or left, right_title=right_title or right,
-            marker_position=marker_position,
-            marker_changed=marker_changed)
+            left_title=self.left_title, right_title=self.right_title,
+            marker_position=self.marker_position,
+            marker_changed=self.marker_changed, editable=True,
+            save_left=self._save_left, save_right=self._save_right)
         self.view.pack(fill="both", expand=True)
+
+    def _save_left(self, content: str) -> None:
+        self._save(self.left_path, content, self._left_ending, self._left_final_newline)
+
+    def _save_right(self, content: str) -> None:
+        self._save(self.right_path, content, self._right_ending, self._right_final_newline)
+
+    def _save(self, path: Path, content: str, ending: str, final_newline: bool) -> None:
+        normalized = content.replace("\r\n", "\n").replace("\r", "\n")
+        result = normalized.replace("\n", ending)
+        if final_newline and not result.endswith(ending):
+            result += ending
+        path.write_text(result, encoding="utf-8")
+        self.view.destroy()
+        self._load()
 
     def apply_language(self, old_language: str) -> None:
         self.view.apply_language(old_language)
@@ -4733,8 +4845,11 @@ class CompareWindow(tk.Toplevel):
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.notebook.set_theme(self.palette)
         self.configure(background=self.palette["window"])
-        self.bind("<F7>", lambda _e: self._navigate("previous"))
-        self.bind("<F8>", lambda _e: self._navigate("next"))
+        self.bind("<F7>", lambda _e: (self._navigate("previous"), "break")[1])
+        # F8 is the Explorer context menu in the main commander.  A Compare
+        # window owns it for next-difference navigation, so stop it before the
+        # application's bind_all handler can receive the same key event.
+        self.bind("<F8>", lambda _e: (self._navigate("next"), "break")[1])
         self.bind("<Control-f>", lambda _e: self.focus_search())
         self.bind("<Escape>", lambda _e: self.close_active())
         install_button_tooltips(self)
@@ -6105,28 +6220,34 @@ def is_browsable_archive(path: Path) -> bool:
 
 
 def archive_item_counts(path: Path) -> tuple[int, int]:
-    """Return distinct contained folder and file counts without extracting."""
+    """Return root-level folder/file counts without extracting.
+
+    This describes the extraction layout rather than every item in the
+    archive.  ``release/docs/readme.md`` therefore has one root folder
+    (``release``), not several loose folders/files.
+    """
     path = Path(path).expanduser().resolve()
-    folders: set[str] = set()
-    files = 0
+    roots: dict[str, bool] = {}
 
     def add_member(raw_name: str, is_folder: bool) -> None:
-        nonlocal files
         member = PurePosixPath(raw_name.replace("\\", "/"))
         parts = [part for part in member.parts if part not in {"", "."}]
         if not parts:
             return
-        parent_limit = len(parts) if is_folder else len(parts) - 1
-        for index in range(1, parent_limit + 1):
-            folders.add("/".join(parts[:index]).casefold())
-        if not is_folder:
-            files += 1
+        # When no explicit folder entry exists, a nested member still proves
+        # that its first component is a root folder.
+        key = parts[0].casefold()
+        roots[key] = roots.get(key, False) or is_folder or len(parts) > 1
+
+    def result() -> tuple[int, int]:
+        folders = sum(1 for is_folder in roots.values() if is_folder)
+        return folders, len(roots) - folders
 
     if path.suffix.casefold() == ".zip":
         with zipfile.ZipFile(path) as archive:
             for info in archive.infolist():
                 add_member(info.filename, info.is_dir())
-        return len(folders), files
+        return result()
 
     executable = _seven_zip_executable()
     if executable is None:
@@ -6142,7 +6263,7 @@ def archive_item_counts(path: Path) -> tuple[int, int]:
         name = fields.get("Path")
         if name:
             add_member(name, fields.get("Folder") == "+" or "D" in fields.get("Attributes", ""))
-    return len(folders), files
+    return result()
 
 
 def _hidden_process_options() -> dict:
@@ -7360,6 +7481,154 @@ class ShellFileDropTarget:
         self._window_proc = None
 
 
+"""Small dependency-free bridge to the native Windows Shell context menu."""
+
+import ctypes
+import os
+from pathlib import Path
+
+
+S_OK = 0
+COINIT_APARTMENTTHREADED = 0x2
+CMF_NORMAL = 0
+TPM_RIGHTBUTTON = 0x0002
+TPM_RETURNCMD = 0x0100
+SW_SHOWNORMAL = 1
+
+
+class _GUID(ctypes.Structure):
+    _fields_ = [("Data1", ctypes.c_uint32), ("Data2", ctypes.c_uint16),
+                ("Data3", ctypes.c_uint16), ("Data4", ctypes.c_ubyte * 8)]
+
+
+class _CMINVOKECOMMANDINFO(ctypes.Structure):
+    _fields_ = [("cbSize", ctypes.c_uint32), ("fMask", ctypes.c_uint32),
+                ("hwnd", ctypes.c_void_p), ("lpVerb", ctypes.c_void_p),
+                ("lpParameters", ctypes.c_char_p), ("lpDirectory", ctypes.c_char_p),
+                ("nShow", ctypes.c_int), ("dwHotKey", ctypes.c_uint32),
+                ("hIcon", ctypes.c_void_p)]
+
+
+IID_ISHELLFOLDER = _GUID(
+    0x000214E6, 0x0000, 0x0000,
+    (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46))
+IID_ICONTEXTMENU = _GUID(
+    0x000214E4, 0x0000, 0x0000,
+    (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46))
+
+
+def context_menu_paths(paths) -> list[Path]:
+    """Validate that selected local items can share one Shell context menu."""
+    items = [Path(path).resolve() for path in paths]
+    if not items:
+        raise OSError("Select one or more local files or folders first.")
+    if any(not path.exists() for path in items):
+        raise OSError("A selected file or folder no longer exists.")
+    parents = {os.path.normcase(str(path.parent)) for path in items}
+    if len(parents) != 1:
+        raise OSError("Windows Shell context menus require items from one folder.")
+    return items
+
+
+def _failed(status: int) -> bool:
+    return status < 0
+
+
+def _method(pointer: int, index: int, *argtypes):
+    table = ctypes.cast(pointer, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
+    return ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, *argtypes)(table[index])
+
+
+def _release(pointer: int) -> None:
+    if pointer:
+        _method(pointer, 2)(pointer)
+
+
+def show_shell_context_menu(hwnd: int, paths, x_root: int, y_root: int) -> bool:
+    """Display the actual Explorer context menu and invoke its chosen command."""
+    if os.name != "nt":
+        raise OSError("Windows Shell context menus are available only on Windows.")
+    items = context_menu_paths(paths)
+    ole32, shell32, user32 = ctypes.windll.ole32, ctypes.windll.shell32, ctypes.windll.user32
+    ole32.CoInitializeEx.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
+    ole32.CoInitializeEx.restype = ctypes.c_long
+    initialized = ole32.CoInitializeEx(None, COINIT_APARTMENTTHREADED)
+    if _failed(initialized):
+        raise OSError("Windows could not initialize the Shell context menu.")
+    pidls: list[int] = []
+    parent = context = 0
+    menu = 0
+    try:
+        shell32.ILCreateFromPathW.argtypes = [ctypes.c_wchar_p]
+        shell32.ILCreateFromPathW.restype = ctypes.c_void_p
+        shell32.SHBindToParent.argtypes = [ctypes.c_void_p, ctypes.POINTER(_GUID),
+                                           ctypes.POINTER(ctypes.c_void_p),
+                                           ctypes.POINTER(ctypes.c_void_p)]
+        shell32.SHBindToParent.restype = ctypes.c_long
+        absolute = shell32.ILCreateFromPathW(str(items[0]))
+        if not absolute:
+            raise OSError("Windows could not identify the selected item.")
+        pidls.append(absolute)
+        child = ctypes.c_void_p()
+        parent_ptr = ctypes.c_void_p()
+        status = shell32.SHBindToParent(ctypes.c_void_p(absolute), ctypes.byref(IID_ISHELLFOLDER),
+                                        ctypes.byref(parent_ptr), ctypes.byref(child))
+        if _failed(status) or not parent_ptr.value or not child.value:
+            raise OSError("Windows could not open the selected folder menu.")
+        parent = parent_ptr.value
+        children = [child.value]
+        for path in items[1:]:
+            absolute = shell32.ILCreateFromPathW(str(path))
+            if not absolute:
+                raise OSError("Windows could not identify a selected item.")
+            pidls.append(absolute)
+            other_parent, other_child = ctypes.c_void_p(), ctypes.c_void_p()
+            status = shell32.SHBindToParent(ctypes.c_void_p(absolute), ctypes.byref(IID_ISHELLFOLDER),
+                                            ctypes.byref(other_parent), ctypes.byref(other_child))
+            if _failed(status) or not other_child.value:
+                raise OSError("Windows could not open a selected item menu.")
+            _release(other_parent.value)
+            children.append(other_child.value)
+        child_array = (ctypes.c_void_p * len(children))(*children)
+        context_ptr = ctypes.c_void_p()
+        get_ui_object = _method(parent, 10, ctypes.c_void_p, ctypes.c_uint,
+                                ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(_GUID),
+                                ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p))
+        status = get_ui_object(parent, ctypes.c_void_p(hwnd), len(children), child_array,
+                               ctypes.byref(IID_ICONTEXTMENU), None, ctypes.byref(context_ptr))
+        if _failed(status) or not context_ptr.value:
+            raise OSError("Windows could not create the Explorer context menu.")
+        context = context_ptr.value
+        menu = user32.CreatePopupMenu()
+        if not menu:
+            raise OSError("Windows could not create the Explorer context menu.")
+        query_menu = _method(context, 3, ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint,
+                             ctypes.c_uint, ctypes.c_uint)
+        status = query_menu(context, ctypes.c_void_p(menu), 0, 1, 0x7FFF, CMF_NORMAL)
+        if _failed(status):
+            raise OSError("Windows could populate the Explorer context menu.")
+        user32.SetForegroundWindow(ctypes.c_void_p(hwnd))
+        command = user32.TrackPopupMenu(ctypes.c_void_p(menu), TPM_RIGHTBUTTON | TPM_RETURNCMD,
+                                        int(x_root), int(y_root), 0, ctypes.c_void_p(hwnd), None)
+        if command:
+            invoke = _method(context, 4, ctypes.POINTER(_CMINVOKECOMMANDINFO))
+            info = _CMINVOKECOMMANDINFO(
+                ctypes.sizeof(_CMINVOKECOMMANDINFO), 0, ctypes.c_void_p(hwnd),
+                ctypes.c_void_p(command - 1), None, None, SW_SHOWNORMAL, 0, None)
+            status = invoke(context, ctypes.byref(info))
+            if _failed(status):
+                raise OSError("Windows could run the selected Explorer command.")
+        return bool(command)
+    finally:
+        if menu:
+            user32.DestroyMenu(ctypes.c_void_p(menu))
+        _release(context)
+        _release(parent)
+        for pidl in pidls:
+            ole32.CoTaskMemFree(ctypes.c_void_p(pidl))
+        ole32.CoUninitialize()
+
+
 import os
 import configparser
 import ctypes
@@ -7380,7 +7649,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.16.5"
+__version__ = "0.16.7"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -7461,8 +7730,17 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/09"
+BUILD_DATE = "2026/08/17"
 VERSION_HISTORY = (
+    ("v0.16.7", "2026/08/17", (
+        "Added: Text file comparisons support direct selection, editing, and side-specific Save buttons or Ctrl+S.",
+        "Fixed: Saving aligned text comparison content excludes blank rows used only as difference placeholders.",
+    )),
+    ("v0.16.6", "2026/08/17", (
+        "Added: F8 opens the native Windows Explorer context menu for the selected local file or folder.",
+        "Fixed: Leaving a removed ZIP/7z workspace now falls back through parent folders to the first accessible location.",
+        "Fixed: Archive extraction layout warnings inspect only root-level items, and Ext now has a fixed six-character width.",
+    )),
     ("v0.16.5", "2026/08/09", (
         "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.",
         "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.",
@@ -7741,6 +8019,34 @@ def navigation_destination(path: Path) -> tuple[Path, Path | None]:
     """Return the folder to open and an existing file to select, if supplied."""
     target = path.expanduser().resolve()
     return (target.parent, target) if target.is_file() else (target, None)
+
+
+def nearest_accessible_folder(path: Path) -> Path:
+    """Walk upward from *path* until a readable folder is found."""
+    candidate = Path(path).expanduser()
+    try:
+        candidate = candidate.resolve()
+    except OSError:
+        candidate = Path(os.path.abspath(candidate))
+    while True:
+        try:
+            if candidate.is_dir():
+                with os.scandir(candidate):
+                    return candidate
+        except OSError:
+            pass
+        parent = candidate.parent
+        if parent == candidate:
+            break
+        candidate = parent
+    for fallback in (Path.home(), *roots()):
+        try:
+            if fallback.is_dir():
+                with os.scandir(fallback):
+                    return fallback.resolve()
+        except OSError:
+            pass
+    return Path.home()
 
 
 def shortcut_path_for(source: Path, folder: Path) -> Path:
@@ -8617,13 +8923,17 @@ class FilePane(ttk.Frame):
         font = tkfont.nametofont("TkDefaultFont")
         padding = max(18, font.measure("MM"))
         limits = {
-            "ext": (40, font.measure("W" * 14) + padding),
             "size": (55, font.measure("0000.0 MB") + padding),
             "modified": (110, font.measure("0000-00-00 00:00") + padding),
         }
+        ext_width = max(40, font.measure("M" * 6) + padding)
         children = self.tree.get_children()
         fixed_total = 0
         for value_index, column in enumerate(self.columns):
+            if column == "ext":
+                self.tree.column(column, width=ext_width, minwidth=ext_width, stretch=False)
+                fixed_total += ext_width
+                continue
             heading_width = font.measure(str(self.tree.heading(column, "text"))) + padding
             measured = heading_width
             for iid in children:
@@ -9142,7 +9452,8 @@ class Commander(tk.Tk):
         for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
                                        ("F4", "Search", self.search), ("F5", "Copy", self.copy),
                                        ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
-                                       ("F8", "", None), ("F9", "Compare", self.compare_selected),
+                                       ("F8", "Explorer Menu", self.show_explorer_menu),
+                                       ("F9", "Compare", self.compare_selected),
                                        ("F11", "Copy Path", self.copy_paths),
                                        ("F12", "Change Path", self.change_dir)):
             text = f"{hotkey} {tr(label)}".rstrip()
@@ -9169,6 +9480,7 @@ class Commander(tk.Tk):
             "select_previous": "<Up>", "select_next": "<Down>",
             "files_menu": "<Alt-f>", "view_menu": "<Alt-v>", "versions_menu": "<Alt-h>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
+            "explorer_menu": "<F8>",
             "compare": "<F9>",
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
@@ -9192,6 +9504,7 @@ class Commander(tk.Tk):
             "view_menu": lambda: self.show_header_menu("view"),
             "versions_menu": lambda: self.show_header_menu("versions"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
+            "explorer_menu": self.show_explorer_menu,
             "compare": self.compare_selected,
             "permanent_delete": lambda: self.delete_hotkey(permanent=True),
             "toggle_favorite": self.toggle_favorite,
@@ -9529,6 +9842,7 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Search"), accelerator="F4", command=self.search)
         files.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
         files.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
+        files.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
         files.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
         files.add_command(label=tr("Change Path"), accelerator="F12", command=self.change_dir)
         files.add_separator()
@@ -9631,6 +9945,7 @@ class Commander(tk.Tk):
             "Favorites": "Open or maintain favorite folders.", "Recent Folders": "Open recently visited folders.",
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
+            "Explorer Menu": "Open the native Windows Explorer context menu for the selected local items.",
             "Copy Path": "Copy all selected full paths.",
             "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
@@ -10326,7 +10641,7 @@ class Commander(tk.Tk):
                 folders, files = result
                 menu.entryconfigure(
                     index,
-                    label=tr("Extract Here ({folders} folders, {files} files)",
+                    label=tr("Extract Here (root: {folders} folders, {files} files)",
                              folders=folders, files=files))
                 if folders > 1 or files > 1:
                     emphasis = tkfont.Font(font=tkfont.nametofont("TkMenuFont"))
@@ -10502,6 +10817,36 @@ class Commander(tk.Tk):
             menu.tk_popup(int(x_root), int(y_root))
         finally:
             menu.grab_release()
+
+    def show_explorer_menu(self) -> str:
+        """Show Explorer's own right-click menu for current local selections."""
+        pane = self.panes()[0]
+        if pane.archive_session is not None:
+            messagebox.showinfo(
+                tr("Explorer Menu"),
+                tr("Explorer Menu is available for local files and folders, not archive workspaces."),
+                parent=self)
+            return "break"
+        items = pane.selected_paths()
+        if not items:
+            messagebox.showinfo(tr("Explorer Menu"), tr("Select one or more files or folders first."),
+                                parent=self)
+            return "break"
+        focused = pane.tree.focus()
+        bounds = pane.tree.bbox(focused) if focused else ()
+        if bounds:
+            x, y, width, height = bounds
+            x_root = pane.tree.winfo_rootx() + max(12, x + min(width // 2, 80))
+            y_root = pane.tree.winfo_rooty() + y + height
+        else:
+            x_root, y_root = pane.tree.winfo_rootx() + 24, pane.tree.winfo_rooty() + 24
+        try:
+            show_shell_context_menu(pane.tree.winfo_id(), items, x_root, y_root)
+        except OSError as exc:
+            messagebox.showerror(tr("Explorer Menu"), str(exc), parent=self)
+        finally:
+            pane.focus_file_list()
+        return "break"
 
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
         if path.is_dir():
@@ -10959,7 +11304,8 @@ class Commander(tk.Tk):
         archive_path = session.archive_path
         pane.archive_session = None
         self._close_archive_session(session)
-        if pane.navigate(archive_path.parent, bypass_lock=True):
+        destination = nearest_accessible_folder(archive_path.parent)
+        if pane.navigate(destination, bypass_lock=True):
             pane.select_path(archive_path)
             pane.focus_file_list()
         return True

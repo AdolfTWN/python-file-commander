@@ -6,7 +6,7 @@ from pathlib import Path
 from pycommander.compare import (FolderCompare, aligned_text, compare_row_height,
                                  detect_compare_type, extract_compare_archive, file_hash,
                                  folder_rows, is_compare_archive, nested_source_label,
-                                 text_files_equivalent)
+                                 text_files_equivalent, editable_aligned_content)
 
 
 class CompareTests(unittest.TestCase):
@@ -24,6 +24,12 @@ class CompareTests(unittest.TestCase):
         rows, differences = aligned_text("one\nthree\n", "one\ntwo\nthree\n")
         self.assertEqual(rows, [(1, "one", 1, "one"), (None, "", 2, "two"), (2, "three", 3, "three")])
         self.assertEqual(differences, [2])
+
+    def test_editable_text_omits_only_alignment_placeholder_rows_on_save(self):
+        rows, _differences = aligned_text("one\nthree\n", "one\ntwo\nthree\n")
+        self.assertEqual(editable_aligned_content(rows, "one\n\nthree", 0), "one\nthree")
+        self.assertEqual(editable_aligned_content(rows, "one\ninserted\nthree", 0),
+                         "one\ninserted\nthree")
 
     def test_type_detection_and_hash(self):
         with tempfile.TemporaryDirectory() as raw:

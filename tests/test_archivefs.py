@@ -11,14 +11,22 @@ from pycommander.archivefs import (ArchiveCancelled, ArchiveSession, archive_ite
 
 
 class ArchiveSessionTests(unittest.TestCase):
-    def test_archive_item_counts_include_implicit_folders(self):
+    def test_archive_item_counts_describe_only_the_root_layout(self):
         with tempfile.TemporaryDirectory() as raw:
             archive_path = Path(raw) / "counts.zip"
             with zipfile.ZipFile(archive_path, "w") as archive:
                 archive.writestr("root/one.txt", "1")
                 archive.writestr("root/nested/two.txt", "2")
                 archive.writestr("empty/", b"")
-            self.assertEqual(archive_item_counts(archive_path), (3, 2))
+            self.assertEqual(archive_item_counts(archive_path), (2, 0))
+
+    def test_archive_item_counts_keep_root_files_and_folders_separate(self):
+        with tempfile.TemporaryDirectory() as raw:
+            archive_path = Path(raw) / "layout.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("release/nested/readme.md", "text")
+                archive.writestr("notes.txt", "notes")
+            self.assertEqual(archive_item_counts(archive_path), (1, 1))
 
     def test_zip_extracts_extended_total_path_length(self):
         with tempfile.TemporaryDirectory() as raw:

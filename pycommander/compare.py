@@ -129,6 +129,21 @@ def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int
     return rows, differences
 
 
+def editable_aligned_content(rows, rendered: str, side: int) -> str:
+    """Convert an editable aligned pane back into its source-side text.
+
+    Empty placeholders introduced only to align an insertion/deletion are not
+    written back.  Real blank source lines retain their line number and are
+    therefore preserved.
+    """
+    output = []
+    for index, line in enumerate(rendered.split("\n")):
+        source_number = rows[index][side] if index < len(rows) else None
+        if source_number is not None or line:
+            output.append(line)
+    return "\n".join(output)
+
+
 def compare_row_height(linespace: int, scale: float) -> int:
     """Keep compare rows readable at every PFC font scale."""
     return max(24, int(linespace) + max(8, round(6 * scale)))
@@ -207,7 +222,8 @@ class DifferenceMap(tk.Canvas):
 
 class SideBySideText(ttk.Frame):
     def __init__(self, master, left_lines, right_lines, differences, status_text="", status_factory=None,
-                 left_title="", right_title="", marker_position="middle", marker_changed=None):
+                 left_title="", right_title="", marker_position="middle", marker_changed=None,
+                 editable=False, save_left=None, save_right=None):
         super().__init__(master)
         self.all_left_lines, self.all_right_lines = list(left_lines), list(right_lines)
         self.all_differences = list(differences)
@@ -219,6 +235,9 @@ class SideBySideText(ttk.Frame):
         self.marker_position_var = tk.StringVar(
             value=marker_position if marker_position in {"left", "middle", "right"} else "middle")
         self.marker_changed = marker_changed
+        self.editable = editable
+        self.save_left, self.save_right = save_left, save_right
+        self.visible_rows = []
         self.left_title, self.right_title = str(left_title), str(right_title)
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
         diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
@@ -238,6 +257,13 @@ class SideBySideText(ttk.Frame):
         self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
         self.marker_button.configure(menu=self.marker_menu)
         self.marker_button.pack(side="right")
+        if self.editable:
+            self.save_right_button = ttk.Button(
+                diff_row, text=tr("Save Right"), command=lambda: self._save(self.right, self.save_right))
+            self.save_right_button.pack(side="right", padx=(3, 0))
+            self.save_left_button = ttk.Button(
+                diff_row, text=tr("Save Left"), command=lambda: self._save(self.left, self.save_left))
+            self.save_left_button.pack(side="right")
         self._build_marker_menu(); self._update_marker_button()
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
@@ -269,8 +295,8 @@ class SideBySideText(ttk.Frame):
         self.right_path_label.configure(text=f"{tr('Right')}: {self.right_title}")
         self.map_header = tk.Label(body, text="↔", background="#263d4c", foreground="white",
                                    font="TkHeadingFont", pady=3)
-        self.left = tk.Text(self.left_frame, wrap="none", undo=False, borderwidth=0)
-        self.right = tk.Text(self.right_frame, wrap="none", undo=False, borderwidth=0)
+        self.left = tk.Text(self.left_frame, wrap="none", undo=self.editable, borderwidth=0, padx=4)
+        self.right = tk.Text(self.right_frame, wrap="none", undo=self.editable, borderwidth=0, padx=4)
         self.left_numbers = tk.Text(self.left_frame, width=6, wrap="none", undo=False, borderwidth=0,
                                     padx=4, takefocus=False, background="#e5ebef", foreground="#526575")
         self.right_numbers = tk.Text(self.right_frame, width=6, wrap="none", undo=False, borderwidth=0,
@@ -294,6 +320,9 @@ class SideBySideText(ttk.Frame):
             widget.bind("<MouseWheel>", self._mousewheel)
             widget.bind("<Button-4>", lambda _event: self._wheel_units(-3))
             widget.bind("<Button-5>", lambda _event: self._wheel_units(3))
+        if self.editable:
+            self.left.bind("<Control-s>", lambda _event: self._save(self.left, self.save_left))
+            self.right.bind("<Control-s>", lambda _event: self._save(self.right, self.save_right))
         for widget in (self.left_numbers, self.right_numbers):
             widget.tag_configure("diff", background="#f2c08d", foreground="#35434d")
             widget.tag_configure("current", background="#e8843b", foreground="white")
@@ -338,6 +367,7 @@ class SideBySideText(ttk.Frame):
                         list(range(1, len(self.all_left_lines) + 1)))
         self.differences = (list(range(1, len(visible_rows) + 1)) if only_differences else
                             list(self.all_differences))
+        self.visible_rows = visible_rows
         self.diff_index = -1
         for widget, number_widget, lines in (
                 (self.left, self.left_numbers, self.all_left_lines),
@@ -350,11 +380,34 @@ class SideBySideText(ttk.Frame):
                 number_text = "" if source_number is None else str(source_number)
                 tag = "diff" if output_row in self.differences else ""
                 number_widget.insert("end", f"{number_text:>5}\n", tag)
-                widget.insert("end", f" {line}\n", tag)
-            widget.configure(state="disabled"); number_widget.configure(state="disabled")
+                widget.insert("end", f"{line}\n", tag)
+            widget.configure(state="normal" if self.editable else "disabled")
+            number_widget.configure(state="disabled")
         self.difference_map.set_rows(self.differences, len(visible_rows))
         self._build_view_menu()
         self.find_all()
+
+    def _save(self, widget, callback):
+        if callback is None:
+            return "break"
+        if self.view_mode_var.get() != "all":
+            messagebox.showinfo(tr("Save"), tr("Switch to All view before saving edited content."),
+                                parent=self.winfo_toplevel())
+            return "break"
+        side = 0 if widget is self.left else 2
+        content = editable_aligned_content(self._aligned_rows(), widget.get("1.0", "end-1c"), side)
+        try:
+            callback(content)
+        except OSError as exc:
+            messagebox.showerror(tr("Save failed"), str(exc), parent=self.winfo_toplevel())
+        return "break"
+
+    def _aligned_rows(self):
+        return [(left[0] if isinstance(left, tuple) else index,
+                 left[1] if isinstance(left, tuple) else left,
+                 right[0] if isinstance(right, tuple) else index,
+                 right[1] if isinstance(right, tuple) else right)
+                for index, (left, right) in enumerate(zip(self.all_left_lines, self.all_right_lines), 1)]
 
     def _select_view_mode(self, value):
         self.view_mode_var.set(value); self.populate()
@@ -528,16 +581,42 @@ class TextCompare(ttk.Frame):
     def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
                  left_title=None, right_title=None):
         super().__init__(master)
-        a = left.read_text(encoding="utf-8", errors="replace")
-        b = right.read_text(encoding="utf-8", errors="replace")
+        self.left_path, self.right_path = left, right
+        self.left_title, self.right_title = left_title or left, right_title or right
+        self.marker_position, self.marker_changed = marker_position, marker_changed
+        self._load()
+
+    def _load(self):
+        a = self.left_path.read_text(encoding="utf-8", errors="replace")
+        b = self.right_path.read_text(encoding="utf-8", errors="replace")
+        self._left_ending = "\r\n" if "\r\n" in a else "\n"
+        self._right_ending = "\r\n" if "\r\n" in b else "\n"
+        self._left_final_newline = a.endswith(("\n", "\r"))
+        self._right_final_newline = b.endswith(("\n", "\r"))
         rows, differences = aligned_text(a, b)
         self.view = SideBySideText(
             self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
             status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count),
-            left_title=left_title or left, right_title=right_title or right,
-            marker_position=marker_position,
-            marker_changed=marker_changed)
+            left_title=self.left_title, right_title=self.right_title,
+            marker_position=self.marker_position,
+            marker_changed=self.marker_changed, editable=True,
+            save_left=self._save_left, save_right=self._save_right)
         self.view.pack(fill="both", expand=True)
+
+    def _save_left(self, content: str) -> None:
+        self._save(self.left_path, content, self._left_ending, self._left_final_newline)
+
+    def _save_right(self, content: str) -> None:
+        self._save(self.right_path, content, self._right_ending, self._right_final_newline)
+
+    def _save(self, path: Path, content: str, ending: str, final_newline: bool) -> None:
+        normalized = content.replace("\r\n", "\n").replace("\r", "\n")
+        result = normalized.replace("\n", ending)
+        if final_newline and not result.endswith(ending):
+            result += ending
+        path.write_text(result, encoding="utf-8")
+        self.view.destroy()
+        self._load()
 
     def apply_language(self, old_language: str) -> None:
         self.view.apply_language(old_language)
@@ -1941,8 +2020,11 @@ class CompareWindow(tk.Toplevel):
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.notebook.set_theme(self.palette)
         self.configure(background=self.palette["window"])
-        self.bind("<F7>", lambda _e: self._navigate("previous"))
-        self.bind("<F8>", lambda _e: self._navigate("next"))
+        self.bind("<F7>", lambda _e: (self._navigate("previous"), "break")[1])
+        # F8 is the Explorer context menu in the main commander.  A Compare
+        # window owns it for next-difference navigation, so stop it before the
+        # application's bind_all handler can receive the same key event.
+        self.bind("<F8>", lambda _e: (self._navigate("next"), "break")[1])
         self.bind("<Control-f>", lambda _e: self.focus_search())
         self.bind("<Escape>", lambda _e: self.close_active())
         install_button_tooltips(self)

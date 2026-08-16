@@ -1,14 +1,23 @@
 import os
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
 
 from pycommander.app import (create_shortcut_file, folder_history_selection,
-                             navigation_destination, shortcut_path_for,
+                             nearest_accessible_folder, navigation_destination, shortcut_path_for,
                              transfer_target_index)
 
 
 class NavigationDestinationTests(unittest.TestCase):
+    def test_nearest_accessible_folder_walks_past_deleted_ancestors(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            stale = root / "removed" / "archive" / "nested"
+            stale.mkdir(parents=True)
+            shutil.rmtree(root / "removed")
+            self.assertEqual(nearest_accessible_folder(stale), root.resolve())
+
     def test_transfer_target_uses_right_for_p1_and_left_neighbor_afterward(self):
         self.assertEqual([transfer_target_index(index, 4) for index in range(4)],
                          [1, 0, 1, 2])

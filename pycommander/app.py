@@ -32,6 +32,7 @@ from .multirename import MultiRenameWindow
 from .archivefs import ArchiveCancelled, ArchiveSession, archive_item_counts, create_zip_archive, extract_archive_to, is_browsable_archive
 from .spaceanalyzer import SpaceAnalyzerWindow
 from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
+from .shellmenu import show_shell_context_menu
 from .tooltip import MenuToolTip, ToolTip, TreeItemToolTip, install_button_tooltips
 from .tabs import COLOR_SCHEMES, ChamferNotebook, HeaderPopupController, TAB_STYLES, add_scaled_cascade, add_scaled_checkbutton, add_scaled_radiobutton, align_scaled_cascade_arrows, color_scheme, configure_ttk_theme
 from .i18n import LANGUAGES, get_language, set_language, tr
@@ -117,6 +118,15 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.16.7", "2026/08/17", (
+        "Added: Text file comparisons support direct selection, editing, and side-specific Save buttons or Ctrl+S.",
+        "Fixed: Saving aligned text comparison content excludes blank rows used only as difference placeholders.",
+    )),
+    ("v0.16.6", "2026/08/17", (
+        "Added: F8 opens the native Windows Explorer context menu for the selected local file or folder.",
+        "Fixed: Leaving a removed ZIP/7z workspace now falls back through parent folders to the first accessible location.",
+        "Fixed: Archive extraction layout warnings inspect only root-level items, and Ext now has a fixed six-character width.",
+    )),
     ("v0.16.5", "2026/08/09", (
         "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.",
         "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.",
@@ -395,6 +405,34 @@ def navigation_destination(path: Path) -> tuple[Path, Path | None]:
     """Return the folder to open and an existing file to select, if supplied."""
     target = path.expanduser().resolve()
     return (target.parent, target) if target.is_file() else (target, None)
+
+
+def nearest_accessible_folder(path: Path) -> Path:
+    """Walk upward from *path* until a readable folder is found."""
+    candidate = Path(path).expanduser()
+    try:
+        candidate = candidate.resolve()
+    except OSError:
+        candidate = Path(os.path.abspath(candidate))
+    while True:
+        try:
+            if candidate.is_dir():
+                with os.scandir(candidate):
+                    return candidate
+        except OSError:
+            pass
+        parent = candidate.parent
+        if parent == candidate:
+            break
+        candidate = parent
+    for fallback in (Path.home(), *roots()):
+        try:
+            if fallback.is_dir():
+                with os.scandir(fallback):
+                    return fallback.resolve()
+        except OSError:
+            pass
+    return Path.home()
 
 
 def shortcut_path_for(source: Path, folder: Path) -> Path:
@@ -1271,13 +1309,17 @@ class FilePane(ttk.Frame):
         font = tkfont.nametofont("TkDefaultFont")
         padding = max(18, font.measure("MM"))
         limits = {
-            "ext": (40, font.measure("W" * 14) + padding),
             "size": (55, font.measure("0000.0 MB") + padding),
             "modified": (110, font.measure("0000-00-00 00:00") + padding),
         }
+        ext_width = max(40, font.measure("M" * 6) + padding)
         children = self.tree.get_children()
         fixed_total = 0
         for value_index, column in enumerate(self.columns):
+            if column == "ext":
+                self.tree.column(column, width=ext_width, minwidth=ext_width, stretch=False)
+                fixed_total += ext_width
+                continue
             heading_width = font.measure(str(self.tree.heading(column, "text"))) + padding
             measured = heading_width
             for iid in children:
@@ -1796,7 +1838,8 @@ class Commander(tk.Tk):
         for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
                                        ("F4", "Search", self.search), ("F5", "Copy", self.copy),
                                        ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
-                                       ("F8", "", None), ("F9", "Compare", self.compare_selected),
+                                       ("F8", "Explorer Menu", self.show_explorer_menu),
+                                       ("F9", "Compare", self.compare_selected),
                                        ("F11", "Copy Path", self.copy_paths),
                                        ("F12", "Change Path", self.change_dir)):
             text = f"{hotkey} {tr(label)}".rstrip()
@@ -1823,6 +1866,7 @@ class Commander(tk.Tk):
             "select_previous": "<Up>", "select_next": "<Down>",
             "files_menu": "<Alt-f>", "view_menu": "<Alt-v>", "versions_menu": "<Alt-h>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
+            "explorer_menu": "<F8>",
             "compare": "<F9>",
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
@@ -1846,6 +1890,7 @@ class Commander(tk.Tk):
             "view_menu": lambda: self.show_header_menu("view"),
             "versions_menu": lambda: self.show_header_menu("versions"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
+            "explorer_menu": self.show_explorer_menu,
             "compare": self.compare_selected,
             "permanent_delete": lambda: self.delete_hotkey(permanent=True),
             "toggle_favorite": self.toggle_favorite,
@@ -2183,6 +2228,7 @@ class Commander(tk.Tk):
         files.add_command(label=tr("Search"), accelerator="F4", command=self.search)
         files.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
         files.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
+        files.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
         files.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
         files.add_command(label=tr("Change Path"), accelerator="F12", command=self.change_dir)
         files.add_separator()
@@ -2285,6 +2331,7 @@ class Commander(tk.Tk):
             "Favorites": "Open or maintain favorite folders.", "Recent Folders": "Open recently visited folders.",
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
+            "Explorer Menu": "Open the native Windows Explorer context menu for the selected local items.",
             "Copy Path": "Copy all selected full paths.",
             "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
@@ -2980,7 +3027,7 @@ class Commander(tk.Tk):
                 folders, files = result
                 menu.entryconfigure(
                     index,
-                    label=tr("Extract Here ({folders} folders, {files} files)",
+                    label=tr("Extract Here (root: {folders} folders, {files} files)",
                              folders=folders, files=files))
                 if folders > 1 or files > 1:
                     emphasis = tkfont.Font(font=tkfont.nametofont("TkMenuFont"))
@@ -3156,6 +3203,36 @@ class Commander(tk.Tk):
             menu.tk_popup(int(x_root), int(y_root))
         finally:
             menu.grab_release()
+
+    def show_explorer_menu(self) -> str:
+        """Show Explorer's own right-click menu for current local selections."""
+        pane = self.panes()[0]
+        if pane.archive_session is not None:
+            messagebox.showinfo(
+                tr("Explorer Menu"),
+                tr("Explorer Menu is available for local files and folders, not archive workspaces."),
+                parent=self)
+            return "break"
+        items = pane.selected_paths()
+        if not items:
+            messagebox.showinfo(tr("Explorer Menu"), tr("Select one or more files or folders first."),
+                                parent=self)
+            return "break"
+        focused = pane.tree.focus()
+        bounds = pane.tree.bbox(focused) if focused else ()
+        if bounds:
+            x, y, width, height = bounds
+            x_root = pane.tree.winfo_rootx() + max(12, x + min(width // 2, 80))
+            y_root = pane.tree.winfo_rooty() + y + height
+        else:
+            x_root, y_root = pane.tree.winfo_rootx() + 24, pane.tree.winfo_rooty() + 24
+        try:
+            show_shell_context_menu(pane.tree.winfo_id(), items, x_root, y_root)
+        except OSError as exc:
+            messagebox.showerror(tr("Explorer Menu"), str(exc), parent=self)
+        finally:
+            pane.focus_file_list()
+        return "break"
 
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
         if path.is_dir():
@@ -3613,7 +3690,8 @@ class Commander(tk.Tk):
         archive_path = session.archive_path
         pane.archive_session = None
         self._close_archive_session(session)
-        if pane.navigate(archive_path.parent, bypass_lock=True):
+        destination = nearest_accessible_folder(archive_path.parent)
+        if pane.navigate(destination, bypass_lock=True):
             pane.select_path(archive_path)
             pane.focus_file_list()
         return True
