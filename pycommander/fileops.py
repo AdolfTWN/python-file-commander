@@ -13,6 +13,16 @@ from urllib.parse import quote
 ConflictResolver = Callable[[Path, Path], str]
 
 
+def filesystem_path(path: Path) -> str:
+    """Return a Windows extended-length path for filesystem API calls."""
+    raw = str(Path(path).absolute())
+    if os.name != "nt" or raw.startswith("\\\\?\\"):
+        return raw
+    if raw.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + raw[2:]
+    return "\\\\?\\" + raw
+
+
 @dataclass
 class OperationFailure:
     source: Path
@@ -49,12 +59,13 @@ def _remove_existing(path: Path) -> None:
 
 
 def _copy_or_move(source: Path, target: Path, move: bool) -> None:
+    source_path, target_path = filesystem_path(source), filesystem_path(target)
     if move:
-        shutil.move(str(source), str(target))
-    elif source.is_dir():
-        shutil.copytree(source, target)
+        shutil.move(source_path, target_path)
+    elif os.path.isdir(source_path):
+        shutil.copytree(source_path, target_path)
     else:
-        shutil.copy2(source, target)
+        shutil.copy2(source_path, target_path)
 
 
 def _replace_transactional(source: Path, target: Path, move: bool) -> None:

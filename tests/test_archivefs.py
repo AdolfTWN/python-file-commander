@@ -1,3 +1,4 @@
+import shutil
 import tempfile
 import threading
 import unittest
@@ -6,7 +7,7 @@ import subprocess
 from pathlib import Path
 
 from pycommander.archivefs import (ArchiveCancelled, ArchiveSession, archive_item_counts,
-                                   _seven_zip_executable, create_zip_archive,
+                                   _seven_zip_executable, create_zip_archive, filesystem_path,
                                    extract_archive_to, is_browsable_archive)
 
 
@@ -37,9 +38,13 @@ class ArchiveSessionTests(unittest.TestCase):
             with zipfile.ZipFile(archive_path, "w") as archive:
                 archive.writestr(member, "long-path-ok")
             destination = root / "output"
-            extract_archive_to(archive_path, destination)
-            self.assertEqual(destination.joinpath(*member.split("/")).read_text(encoding="utf-8"),
-                             "long-path-ok")
+            try:
+                extract_archive_to(archive_path, destination)
+                extracted = destination.joinpath(*member.split("/"))
+                with open(filesystem_path(extracted), encoding="utf-8") as source:
+                    self.assertEqual(source.read(), "long-path-ok")
+            finally:
+                shutil.rmtree(filesystem_path(destination), ignore_errors=True)
     def test_zip_is_browsable_and_changes_are_rewritten(self):
         with tempfile.TemporaryDirectory() as raw:
             archive_path = Path(raw) / "sample.zip"

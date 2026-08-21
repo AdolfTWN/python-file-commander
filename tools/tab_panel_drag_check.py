@@ -56,7 +56,7 @@ def main() -> None:
             moved_pane = target_tabs.current()
             assert moved_pane.path == moved
             assert target_tabs.index(moved_pane) == 1
-            assert target_tabs._colors[moved_pane] == "amber"
+            assert target_tabs._colors[moved_pane] == "orange"
             assert moved_pane.lock_mode == "reset" and moved_pane.locked_path == moved
             assert moved_pane.sort_column == "modified" and moved_pane.reverse
             assert moved_pane.show_hidden and not moved_pane.show_extensions

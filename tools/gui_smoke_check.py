@@ -13,6 +13,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import pfc
 
 
+def assert_shell_drop_targets(app) -> None:
+    """Check the platform-specific native Explorer drag-and-drop integration."""
+    if sys.platform == "win32":
+        assert all(pane.shell_drop_target is not None and
+                   pane.shell_drop_target._ole_registered for pane in app.all_panes())
+    else:
+        assert all(pane.shell_drop_target is not None and
+                   not pane.shell_drop_target.active and
+                   not pane.shell_drop_target._ole_registered for pane in app.all_panes())
+
+
 def main() -> None:
     original = pfc.Commander._find_ini_path
     with tempfile.TemporaryDirectory() as raw:
@@ -25,8 +36,7 @@ def main() -> None:
             assert [image.height() for image in app._app_icon_images] == [16, 32, 48, 64]
             assert all(tabs.current().quick_filter_bar.winfo_manager() == "pack"
                        for tabs in app.panel_tabs)
-            assert all(pane.shell_drop_target is not None and
-                       pane.shell_drop_target._ole_registered for pane in app.all_panes())
+            assert_shell_drop_targets(app)
             assert str(app.left_tabs.bar.cget("takefocus")) in {"1", "true"}
             assert int(app.left_tabs.bar.cget("highlightthickness")) >= 2
             assert app.header_left_widgets[0].cget("text") == "PFC"
@@ -89,7 +99,7 @@ def main() -> None:
                 if "folders" in extract_label:
                     break
                 time.sleep(.03)
-            assert extract_label == "Extract Here (2 folders, 2 files)", extract_label
+            assert extract_label == "Extract Here (root: 2 folders, 0 files)", extract_label
             assert str(compression_menu.entrycget(1, "foreground")) == "#c41414", (
                 compression_menu.entrycget(1, "foreground"), extract_label)
             assert pfc.tkfont.Font(root=app, font=compression_menu.entrycget(1, "font")).actual("weight") == "bold"
@@ -287,7 +297,7 @@ def main() -> None:
             assert app.ui_language_var.get() == "en"
             app.panel_count_var.set(4); app.apply_panel_count(save=False); app.update()
             assert len(app.split.panes()) == 4 and len(app.visible_panes()) == 4
-            assert all(tabs.current().shell_drop_target.active for tabs in app.panel_tabs)
+            assert_shell_drop_targets(app)
             app.set_active(app.panel_tabs[2].current())
             assert app.panes()[1] is app.panel_tabs[1].current()
             assert "P2" in app.action_button_by_hotkey["F5"].cget("text")
@@ -313,8 +323,7 @@ def main() -> None:
             assert len(app._clipboard_icon_images) == 1
             assert sum(app.clipboard_icon_canvas.type(item) == "image"
                        for item in app.clipboard_icon_canvas.find_all()) == 1
-            assert app.left_tabs.current().shell_drop_target.active
-            assert app.right_tabs.current().shell_drop_target.active
+            assert_shell_drop_targets(app)
             assert app.tab_style_var.get() == "right_skirt"
             skirt_height = int(float(app.left_tabs.bar.cget("height")))
             style_heights = set()

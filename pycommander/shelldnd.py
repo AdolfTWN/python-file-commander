@@ -8,7 +8,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from .clipboard import CF_HDROP, TYMED_HGLOBAL, data_object_has_format, extract_virtual_files_from_data_object, virtual_file_format_id, _get_medium, _release_medium
+from .clipboard import CF_HDROP, DVASPECT_CONTENT, TYMED_HGLOBAL, _FORMATETC, _STGMEDIUM, _get_medium, _register_clipboard_format, _release_medium, _vtable_method, data_object_has_format, extract_virtual_files_from_data_object, virtual_file_format_id
 
 
 DROPEFFECT_NONE = 0
@@ -24,7 +24,7 @@ E_NOINTERFACE = -2147467262
 COINIT_APARTMENTTHREADED = 0x2
 
 
-class _GUID(ctypes.Structure):
+class _DND_GUID(ctypes.Structure):
     _fields_ = [("Data1", ctypes.c_uint32), ("Data2", ctypes.c_uint16),
                 ("Data3", ctypes.c_uint16), ("Data4", ctypes.c_ubyte * 8)]
 
@@ -33,15 +33,15 @@ class _POINT(ctypes.Structure):
     _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
 
 
-IID_IDATAOBJECT = _GUID(
+IID_IDATAOBJECT = _DND_GUID(
     0x0000010E, 0x0000, 0x0000,
     (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
 )
-IID_IUNKNOWN = _GUID(
+IID_IUNKNOWN = _DND_GUID(
     0x00000000, 0x0000, 0x0000,
     (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
 )
-IID_IDROPTARGET = _GUID(
+IID_IDROPTARGET = _DND_GUID(
     0x00000122, 0x0000, 0x0000,
     (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
 )
@@ -63,11 +63,41 @@ def _release_interface(pointer: int) -> None:
     release(pointer)
 
 
+def _set_preferred_drop_effect(data_object: int, effect: int) -> None:
+    """Tell drop targets that local files, including ZIPs, are a copy by default."""
+    kernel32 = ctypes.windll.kernel32
+    kernel32.GlobalAlloc.argtypes = [ctypes.c_uint, ctypes.c_size_t]
+    kernel32.GlobalAlloc.restype = ctypes.c_void_p
+    kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
+    kernel32.GlobalLock.restype = ctypes.c_void_p
+    kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+    kernel32.GlobalFree.argtypes = [ctypes.c_void_p]
+    handle = kernel32.GlobalAlloc(0x0042, ctypes.sizeof(ctypes.c_uint32))
+    if not handle:
+        raise MemoryError("Cannot allocate the preferred drag effect.")
+    pointer = kernel32.GlobalLock(handle)
+    if not pointer:
+        kernel32.GlobalFree(handle)
+        raise MemoryError("Cannot lock the preferred drag effect.")
+    ctypes.c_uint32.from_address(pointer).value = effect
+    kernel32.GlobalUnlock(handle)
+    format_etc = _FORMATETC(_register_clipboard_format("Preferred DropEffect"), None,
+                            DVASPECT_CONTENT, -1, TYMED_HGLOBAL)
+    medium = _STGMEDIUM(TYMED_HGLOBAL, handle, None)
+    set_data = _vtable_method(data_object, 7, ctypes.c_long,
+                              ctypes.POINTER(_FORMATETC), ctypes.POINTER(_STGMEDIUM),
+                              ctypes.c_int)
+    status = set_data(data_object, ctypes.byref(format_etc), ctypes.byref(medium), True)
+    if _failed(status):
+        kernel32.GlobalFree(handle)
+        raise OSError(f"Cannot set the preferred drag effect ({_status_text(status)}).")
+
+
 def _marshal_data_object(data_object: int) -> int:
     """Marshal IDataObject so Office attachment download can leave the UI thread."""
     ole32 = ctypes.windll.ole32
     ole32.CoMarshalInterThreadInterfaceInStream.argtypes = [
-        ctypes.POINTER(_GUID), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        ctypes.POINTER(_DND_GUID), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
     ole32.CoMarshalInterThreadInterfaceInStream.restype = ctypes.c_long
     stream = ctypes.c_void_p()
     status = ole32.CoMarshalInterThreadInterfaceInStream(
@@ -80,7 +110,7 @@ def _marshal_data_object(data_object: int) -> int:
 def _unmarshal_data_object(stream: int) -> int:
     ole32 = ctypes.windll.ole32
     ole32.CoGetInterfaceAndReleaseStream.argtypes = [
-        ctypes.c_void_p, ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p)]
+        ctypes.c_void_p, ctypes.POINTER(_DND_GUID), ctypes.POINTER(ctypes.c_void_p)]
     ole32.CoGetInterfaceAndReleaseStream.restype = ctypes.c_long
     data_object = ctypes.c_void_p()
     status = ole32.CoGetInterfaceAndReleaseStream(
@@ -125,7 +155,7 @@ class ShellDataObject:
         shell32.ILFindLastID.restype = ctypes.c_void_p
         shell32.SHCreateDataObject.argtypes = [ctypes.c_void_p, ctypes.c_uint,
                                                ctypes.POINTER(ctypes.c_void_p), ctypes.c_void_p,
-                                               ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p)]
+                                               ctypes.POINTER(_DND_GUID), ctypes.POINTER(ctypes.c_void_p)]
         shell32.SHCreateDataObject.restype = ctypes.c_long
         try:
             parent = self._parse(str(self.paths[0].parent))
@@ -142,6 +172,9 @@ class ShellDataObject:
             if _failed(status) or not result.value:
                 raise OSError(f"Windows could not create drag data ({_status_text(status)}).")
             self.pointer = result.value
+            # Teams and other upload targets expect an explicit copy preference for
+            # local file uploads.  SHCreateDataObject permits extra Shell formats.
+            _set_preferred_drop_effect(self.pointer, DROPEFFECT_COPY)
         except Exception:
             self.close()
             raise
@@ -215,8 +248,8 @@ else:
     _WNDPROC = None
 
 
-def _guid_equal(first, second: _GUID) -> bool:
-    return bool(first) and ctypes.string_at(first, ctypes.sizeof(_GUID)) == bytes(second)
+def _guid_equal(first, second: _DND_GUID) -> bool:
+    return bool(first) and ctypes.string_at(first, ctypes.sizeof(_DND_GUID)) == bytes(second)
 
 
 def _drop_effect(kind: str | None, key_state: int, allowed: int) -> int:
@@ -252,7 +285,7 @@ def _hdrop_paths_from_data_object(data_object: int) -> list[Path]:
 
 if os.name == "nt":
     _QUERY_INTERFACE = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p,
-                                          ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p))
+                                          ctypes.POINTER(_DND_GUID), ctypes.POINTER(ctypes.c_void_p))
     _ADD_REF = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
     _RELEASE = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
     _DRAG_ENTER = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p,

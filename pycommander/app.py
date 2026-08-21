@@ -118,6 +118,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.16.8", "2026/08/21", (
+        "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.",
+        "Fixed: Copy and move operations support Windows extended-length paths, including deeply nested non-ASCII file names.",
+    )),
     ("v0.16.7", "2026/08/17", (
         "Added: Text file comparisons support direct selection, editing, and side-specific Save buttons or Ctrl+S.",
         "Fixed: Saving aligned text comparison content excludes blank rows used only as difference placeholders.",

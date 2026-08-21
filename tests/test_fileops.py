@@ -1,3 +1,5 @@
+import os
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -77,12 +79,18 @@ class FileOpsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw); deep = root
             for number in range(10): deep /= f"segment{number:02d}" + "x" * 20
-            deep.mkdir(parents=True)
-            item = deep / "年度報告.txt"; item.write_text("office", encoding="utf-8")
-            target = root / "target"; target.mkdir()
-            result = copy_items([item], target)
-            self.assertTrue(result.successful)
-            self.assertEqual((target / item.name).read_text(encoding="utf-8"), "office")
+            long_root = root / ("segment00" + "x" * 20)
+            try:
+                os.makedirs(fileops.filesystem_path(deep))
+                item = deep / "年度報告.txt"
+                with open(fileops.filesystem_path(item), "w", encoding="utf-8") as output:
+                    output.write("office")
+                target = root / "target"; target.mkdir()
+                result = copy_items([item], target)
+                self.assertTrue(result.successful, result.failures)
+                self.assertEqual((target / item.name).read_text(encoding="utf-8"), "office")
+            finally:
+                shutil.rmtree(fileops.filesystem_path(long_root), ignore_errors=True)
 
     def test_ubuntu_recycle_uses_freedesktop_trash(self):
         with tempfile.TemporaryDirectory() as raw:

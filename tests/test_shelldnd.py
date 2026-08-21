@@ -1,5 +1,6 @@
 import ctypes
 import os
+import struct
 import tempfile
 import unittest
 from pathlib import Path
@@ -7,7 +8,9 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from pycommander.clipboard import (CF_HDROP, DVASPECT_CONTENT, TYMED_HGLOBAL,
-                                   _FORMATETC, _vtable_method)
+                                   _FORMATETC, _get_medium, _global_bytes,
+                                   _register_clipboard_format, _release_medium,
+                                   _vtable_method, data_object_has_format)
 from pycommander.shelldnd import (DROPEFFECT_COPY, DROPEFFECT_MOVE, MK_SHIFT,
                                   ShellDataObject, ShellFileDropTarget,
                                   _OleDropTarget, _drop_effect)
@@ -53,6 +56,20 @@ class ShellDragDropTests(unittest.TestCase):
                 query = _vtable_method(data.pointer, 5, ctypes.c_long,
                                        ctypes.POINTER(_FORMATETC))
                 self.assertEqual(query(data.pointer, ctypes.byref(request)), 0)
+
+    def test_zip_drag_data_explicitly_prefers_copy_for_upload_targets(self):
+        with tempfile.TemporaryDirectory() as raw:
+            archive = Path(raw) / "upload.zip"; archive.write_bytes(b"PK\x05\x06" + b"\0" * 18)
+            with ShellDataObject([archive]) as data:
+                preferred = _register_clipboard_format("Preferred DropEffect")
+                self.assertTrue(data_object_has_format(data.pointer, preferred, -1,
+                                                        TYMED_HGLOBAL))
+                medium = _get_medium(data.pointer, preferred, -1, TYMED_HGLOBAL)
+                try:
+                    self.assertEqual(struct.unpack("<I", _global_bytes(medium.data)[:4])[0],
+                                     DROPEFFECT_COPY)
+                finally:
+                    _release_medium(medium)
 
     def test_ole_drop_target_recognizes_explorer_file_data(self):
         with tempfile.TemporaryDirectory() as raw:

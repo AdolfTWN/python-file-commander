@@ -1,4 +1,5 @@
 import ctypes
+import os
 import struct
 import tempfile
 import unittest
@@ -12,6 +13,30 @@ from pycommander.clipboard import (_FILEDESCRIPTORW, _STGMEDIUM, VirtualFileDesc
 
 
 class ClipboardVirtualFileTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == "nt", "Windows clipboard integration test")
+    def test_zip_copy_publishes_file_drop_and_copy_effect(self):
+        with tempfile.TemporaryDirectory() as raw:
+            archive = Path(raw) / "teams-upload.zip"
+            archive.write_bytes(b"PK\x05\x06" + b"\0" * 18)
+            try:
+                clipboard.set_file_clipboard([archive], cut=False)
+                self.assertEqual(clipboard.get_file_clipboard(), ([archive.resolve()], False))
+                effect_format = clipboard._register_clipboard_format("Preferred DropEffect")
+                clipboard._open_clipboard()
+                try:
+                    user32 = ctypes.windll.user32
+                    user32.GetClipboardData.restype = ctypes.c_void_p
+                    user32.GetClipboardData.argtypes = [ctypes.c_uint]
+                    self.assertTrue(user32.GetClipboardData(clipboard.CF_HDROP))
+                    effect_handle = user32.GetClipboardData(effect_format)
+                    self.assertTrue(effect_handle)
+                    self.assertEqual(struct.unpack("<I", clipboard._global_bytes(effect_handle)[:4])[0],
+                                     clipboard.DROPEFFECT_COPY)
+                finally:
+                    ctypes.windll.user32.CloseClipboard()
+            finally:
+                clipboard.clear_file_clipboard()
+
     def test_non_windows_in_app_file_clipboard(self):
         with tempfile.TemporaryDirectory() as raw:
             item = Path(raw) / "report.txt"
@@ -22,6 +47,7 @@ class ClipboardVirtualFileTests(unittest.TestCase):
                 clipboard.clear_file_clipboard()
                 self.assertEqual(clipboard.get_file_clipboard(), ([], False))
 
+    @unittest.skipUnless(os.name == "nt", "Windows FILEDESCRIPTORW layout")
     def test_outlook_file_group_descriptor_names_and_sizes(self):
         first = _FILEDESCRIPTORW(); first.cFileName = "Quarterly Report.xlsx"; first.nFileSizeLow = 1234
         second = _FILEDESCRIPTORW(); second.cFileName = r"folder\safe.pdf"; second.nFileSizeHigh = 1

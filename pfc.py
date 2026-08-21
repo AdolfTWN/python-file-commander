@@ -64,6 +64,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.": "修正：Windows 可攜版拖放會隔離 COM 介面型別，現在可將檔案從 PFC 拖入檔案總管與 Teams。",
+        "Fixed: Copy and move operations support Windows extended-length paths, including deeply nested non-ASCII file names.": "修正：複製與移動操作支援 Windows 延伸長度路徑，包括深層巢狀的非 ASCII 檔名。",
         "Adjusted: Repository clean status also considers locally known upstream ahead or behind state without delaying navigation with a network fetch.": "調整：版本庫乾淨狀態也會納入本機已知 upstream 的 ahead／behind 情況，且不會以網路 fetch 延遲導覽。",
         "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.": "新增：從母資料夾即可在版本庫根資料夾看到乾淨或已變更的 Git／SVN 覆蓋圖示，不必先進入專案。",
         "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "調整：Git／SVN 狀態徽章改用實心狀態色、清晰深色外框及明確分離的小型符號，並移除白色圓環。",
@@ -287,6 +289,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.": "修复：Windows 便携版拖放会隔离 COM 接口类型，现在可将文件从 PFC 拖入文件资源管理器和 Teams。",
+        "Fixed: Copy and move operations support Windows extended-length paths, including deeply nested non-ASCII file names.": "修复：复制和移动操作支持 Windows 扩展长度路径，包括深层嵌套的非 ASCII 文件名。",
         "Adjusted: Repository clean status also considers locally known upstream ahead or behind state without delaying navigation with a network fetch.": "调整：版本库干净状态也会考虑本机已知 upstream 的 ahead／behind 情况，且不会通过网络 fetch 延迟导航。",
         "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.": "新增：从父文件夹即可在版本库根文件夹看到干净或已更改的 Git／SVN 叠加图标，无需先进入项目。",
         "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "调整：Git／SVN 状态徽标改用实心状态色、清晰深色轮廓和明确分离的小型符号，并移除白色圆环。",
@@ -483,6 +487,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.": "수정: Windows 휴대용 버전의 드래그 앤 드롭 COM 인터페이스 형식을 분리하여 PFC에서 탐색기와 Teams로 파일을 끌 수 있습니다.",
+        "Fixed: Copy and move operations support Windows extended-length paths, including deeply nested non-ASCII file names.": "수정: 복사 및 이동 작업이 깊게 중첩된 비 ASCII 파일 이름을 포함한 Windows 확장 길이 경로를 지원합니다.",
         "Adjusted: Repository clean status also considers locally known upstream ahead or behind state without delaying navigation with a network fetch.": "조정: 저장소의 깨끗함 상태는 로컬에서 알려진 upstream의 ahead/behind 상태도 반영하며 네트워크 fetch로 탐색을 지연시키지 않습니다.",
         "Added: Repository root folders show clean or changed Git/SVN overlays from their parent folder, without entering the project.": "추가: 프로젝트에 들어가지 않아도 상위 폴더에서 저장소 루트 폴더의 깨끗함 또는 변경됨 Git/SVN 오버레이를 볼 수 있습니다.",
         "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "조정: Git/SVN 상태 배지에 단색 상태 면, 선명한 어두운 외곽선 및 명확히 분리된 작은 기호를 적용하고 흰색 고리를 제거했습니다.",
@@ -691,6 +697,16 @@ from urllib.parse import quote
 ConflictResolver = Callable[[Path, Path], str]
 
 
+def filesystem_path(path: Path) -> str:
+    """Return a Windows extended-length path for filesystem API calls."""
+    raw = str(Path(path).absolute())
+    if os.name != "nt" or raw.startswith("\\\\?\\"):
+        return raw
+    if raw.startswith("\\\\"):
+        return "\\\\?\\UNC\\" + raw[2:]
+    return "\\\\?\\" + raw
+
+
 @dataclass
 class OperationFailure:
     source: Path
@@ -727,12 +743,13 @@ def _remove_existing(path: Path) -> None:
 
 
 def _copy_or_move(source: Path, target: Path, move: bool) -> None:
+    source_path, target_path = filesystem_path(source), filesystem_path(target)
     if move:
-        shutil.move(str(source), str(target))
-    elif source.is_dir():
-        shutil.copytree(source, target)
+        shutil.move(source_path, target_path)
+    elif os.path.isdir(source_path):
+        shutil.copytree(source_path, target_path)
     else:
-        shutil.copy2(source, target)
+        shutil.copy2(source_path, target_path)
 
 
 def _replace_transactional(source: Path, target: Path, move: bool) -> None:
@@ -6976,7 +6993,7 @@ E_NOINTERFACE = -2147467262
 COINIT_APARTMENTTHREADED = 0x2
 
 
-class _GUID(ctypes.Structure):
+class _DND_GUID(ctypes.Structure):
     _fields_ = [("Data1", ctypes.c_uint32), ("Data2", ctypes.c_uint16),
                 ("Data3", ctypes.c_uint16), ("Data4", ctypes.c_ubyte * 8)]
 
@@ -6985,15 +7002,15 @@ class _POINT(ctypes.Structure):
     _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
 
 
-IID_IDATAOBJECT = _GUID(
+IID_IDATAOBJECT = _DND_GUID(
     0x0000010E, 0x0000, 0x0000,
     (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
 )
-IID_IUNKNOWN = _GUID(
+IID_IUNKNOWN = _DND_GUID(
     0x00000000, 0x0000, 0x0000,
     (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
 )
-IID_IDROPTARGET = _GUID(
+IID_IDROPTARGET = _DND_GUID(
     0x00000122, 0x0000, 0x0000,
     (ctypes.c_ubyte * 8)(0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46),
 )
@@ -7015,11 +7032,41 @@ def _release_interface(pointer: int) -> None:
     release(pointer)
 
 
+def _set_preferred_drop_effect(data_object: int, effect: int) -> None:
+    """Tell drop targets that local files, including ZIPs, are a copy by default."""
+    kernel32 = ctypes.windll.kernel32
+    kernel32.GlobalAlloc.argtypes = [ctypes.c_uint, ctypes.c_size_t]
+    kernel32.GlobalAlloc.restype = ctypes.c_void_p
+    kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
+    kernel32.GlobalLock.restype = ctypes.c_void_p
+    kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+    kernel32.GlobalFree.argtypes = [ctypes.c_void_p]
+    handle = kernel32.GlobalAlloc(0x0042, ctypes.sizeof(ctypes.c_uint32))
+    if not handle:
+        raise MemoryError("Cannot allocate the preferred drag effect.")
+    pointer = kernel32.GlobalLock(handle)
+    if not pointer:
+        kernel32.GlobalFree(handle)
+        raise MemoryError("Cannot lock the preferred drag effect.")
+    ctypes.c_uint32.from_address(pointer).value = effect
+    kernel32.GlobalUnlock(handle)
+    format_etc = _FORMATETC(_register_clipboard_format("Preferred DropEffect"), None,
+                            DVASPECT_CONTENT, -1, TYMED_HGLOBAL)
+    medium = _STGMEDIUM(TYMED_HGLOBAL, handle, None)
+    set_data = _vtable_method(data_object, 7, ctypes.c_long,
+                              ctypes.POINTER(_FORMATETC), ctypes.POINTER(_STGMEDIUM),
+                              ctypes.c_int)
+    status = set_data(data_object, ctypes.byref(format_etc), ctypes.byref(medium), True)
+    if _failed(status):
+        kernel32.GlobalFree(handle)
+        raise OSError(f"Cannot set the preferred drag effect ({_status_text(status)}).")
+
+
 def _marshal_data_object(data_object: int) -> int:
     """Marshal IDataObject so Office attachment download can leave the UI thread."""
     ole32 = ctypes.windll.ole32
     ole32.CoMarshalInterThreadInterfaceInStream.argtypes = [
-        ctypes.POINTER(_GUID), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+        ctypes.POINTER(_DND_GUID), ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
     ole32.CoMarshalInterThreadInterfaceInStream.restype = ctypes.c_long
     stream = ctypes.c_void_p()
     status = ole32.CoMarshalInterThreadInterfaceInStream(
@@ -7032,7 +7079,7 @@ def _marshal_data_object(data_object: int) -> int:
 def _unmarshal_data_object(stream: int) -> int:
     ole32 = ctypes.windll.ole32
     ole32.CoGetInterfaceAndReleaseStream.argtypes = [
-        ctypes.c_void_p, ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p)]
+        ctypes.c_void_p, ctypes.POINTER(_DND_GUID), ctypes.POINTER(ctypes.c_void_p)]
     ole32.CoGetInterfaceAndReleaseStream.restype = ctypes.c_long
     data_object = ctypes.c_void_p()
     status = ole32.CoGetInterfaceAndReleaseStream(
@@ -7077,7 +7124,7 @@ class ShellDataObject:
         shell32.ILFindLastID.restype = ctypes.c_void_p
         shell32.SHCreateDataObject.argtypes = [ctypes.c_void_p, ctypes.c_uint,
                                                ctypes.POINTER(ctypes.c_void_p), ctypes.c_void_p,
-                                               ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p)]
+                                               ctypes.POINTER(_DND_GUID), ctypes.POINTER(ctypes.c_void_p)]
         shell32.SHCreateDataObject.restype = ctypes.c_long
         try:
             parent = self._parse(str(self.paths[0].parent))
@@ -7094,6 +7141,9 @@ class ShellDataObject:
             if _failed(status) or not result.value:
                 raise OSError(f"Windows could not create drag data ({_status_text(status)}).")
             self.pointer = result.value
+            # Teams and other upload targets expect an explicit copy preference for
+            # local file uploads.  SHCreateDataObject permits extra Shell formats.
+            _set_preferred_drop_effect(self.pointer, DROPEFFECT_COPY)
         except Exception:
             self.close()
             raise
@@ -7167,8 +7217,8 @@ else:
     _WNDPROC = None
 
 
-def _guid_equal(first, second: _GUID) -> bool:
-    return bool(first) and ctypes.string_at(first, ctypes.sizeof(_GUID)) == bytes(second)
+def _guid_equal(first, second: _DND_GUID) -> bool:
+    return bool(first) and ctypes.string_at(first, ctypes.sizeof(_DND_GUID)) == bytes(second)
 
 
 def _drop_effect(kind: str | None, key_state: int, allowed: int) -> int:
@@ -7204,7 +7254,7 @@ def _hdrop_paths_from_data_object(data_object: int) -> list[Path]:
 
 if os.name == "nt":
     _QUERY_INTERFACE = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p,
-                                          ctypes.POINTER(_GUID), ctypes.POINTER(ctypes.c_void_p))
+                                          ctypes.POINTER(_DND_GUID), ctypes.POINTER(ctypes.c_void_p))
     _ADD_REF = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
     _RELEASE = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
     _DRAG_ENTER = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p,
@@ -7649,7 +7699,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.16.7"
+__version__ = "0.16.8"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -7730,8 +7780,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/17"
+BUILD_DATE = "2026/08/21"
 VERSION_HISTORY = (
+    ("v0.16.8", "2026/08/21", (
+        "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.",
+        "Fixed: Copy and move operations support Windows extended-length paths, including deeply nested non-ASCII file names.",
+    )),
     ("v0.16.7", "2026/08/17", (
         "Added: Text file comparisons support direct selection, editing, and side-specific Save buttons or Ctrl+S.",
         "Fixed: Saving aligned text comparison content excludes blank rows used only as difference placeholders.",
