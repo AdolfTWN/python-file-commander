@@ -118,6 +118,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.16.9", "2026/08/24", (
+        "Fixed: Dropped Windows executables use safe Shell type icons and guarded GDI resources so icon loading cannot close PFC.",
+        "Fixed: Ctrl+Up and other new-tab paths inherit the current UI scale so file icons match existing tabs.",
+    )),
     ("v0.16.8", "2026/08/21", (
         "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.",
         "Fixed: Copy and move operations support Windows extended-length paths, including deeply nested non-ASCII file names.",
@@ -1568,6 +1572,7 @@ class PaneTabs(ChamferNotebook):
         self.on_exit_archive = on_exit_archive
         self.on_close_archive = on_close_archive
         self.on_selection = on_selection
+        self.scale = 1.0
         super().__init__(master, on_color_changed=self._color_changed,
                          on_lock_changed=self._lock_changed,
                          on_tabs_reordered=self._tabs_reordered,
@@ -1588,12 +1593,18 @@ class PaneTabs(ChamferNotebook):
         pane.on_change = lambda source=pane: self._pane_changed(source)
         pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
         pane.navigate(path)
+        pane.apply_scale(self.scale)
         self.add(pane, text=path.name or str(path), color="default", position=position)
         self.select(pane)
         pane.tree.focus_set()
         if notify:
             self.on_change()
         return pane
+
+    def apply_scale(self, scale: float) -> None:
+        self.scale = scale
+        for pane in self.panes():
+            pane.apply_scale(scale)
 
     def _pane_changed(self, pane: FilePane) -> None:
         if not self.tabs():
@@ -4067,9 +4078,8 @@ class Commander(tk.Tk):
             self.clipboard_icons = ShellIconProvider(clipboard_icon_size)
             self._clipboard_visual_key = None
         if hasattr(self, "panel_tabs"):
-            for pane in self.all_panes():
-                pane.apply_scale(scale)
             for tabs in self.panel_tabs:
+                tabs.apply_scale(scale)
                 tabs.redraw()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)

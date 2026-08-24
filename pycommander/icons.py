@@ -19,6 +19,12 @@ VCS_BADGE_SPECS = {
     "conflict": ("#f2b705", "cross", "#171717"),
 }
 
+FILE_ATTRIBUTE_NORMAL = 0x80
+SHGFI_ICON = 0x100
+SHGFI_SMALLICON = 0x1
+SHGFI_USEFILEATTRIBUTES = 0x10
+HGDI_ERROR = ctypes.c_void_p(-1).value
+
 
 class _SHFILEINFO(ctypes.Structure):
     _fields_ = [("hIcon", ctypes.c_void_p), ("iIcon", ctypes.c_int),
@@ -56,6 +62,14 @@ def _png_from_bgra(raw: bytes, size: int) -> bytes:
             rgba.extend((red, green, blue, alpha))
     header = struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0)
     return b"\x89PNG\r\n\x1a\n" + _chunk(b"IHDR", header) + _chunk(b"IDAT", zlib.compress(bytes(rgba), 9)) + _chunk(b"IEND", b"")
+
+
+def _shell_icon_request(path: Path, is_dir: bool) -> tuple[str, int, int]:
+    """Build a Shell icon request without parsing untrusted executable resources."""
+    flags = SHGFI_ICON | SHGFI_SMALLICON
+    if not is_dir and path.suffix.casefold() == ".exe":
+        return ".exe", FILE_ATTRIBUTE_NORMAL, flags | SHGFI_USEFILEATTRIBUTES
+    return str(path), 0, flags
 
 
 def _inside_polygon(x: float, y: float, points) -> bool:
@@ -291,10 +305,10 @@ class ShellIconProvider:
         if os.name != "nt":
             return self.blank
         suffix = path.suffix.casefold()
-        base_key = "<folder>" if is_dir else (str(path) if suffix in {".exe", ".lnk", ".ico"} else suffix or "<file>")
+        base_key = "<folder>" if is_dir else (str(path) if suffix in {".lnk", ".ico"} else suffix or "<file>")
         key = f"{base_key}|{overlay or ''}"
         if key not in self.cache:
-            icon = self._load(path)
+            icon = self._load(path, is_dir)
             if icon is not None and overlay:
                 icon = self._with_overlay(icon, overlay)
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
@@ -317,7 +331,7 @@ class ShellIconProvider:
         padded.tk.call(str(padded), "copy", str(icon), "-to", 0, 0)
         return padded
 
-    def _load(self, path: Path) -> PhotoImage | None:
+    def _load(self, path: Path, is_dir: bool) -> PhotoImage | None:
         shell32, user32, gdi32 = ctypes.windll.shell32, ctypes.windll.user32, ctypes.windll.gdi32
         shell32.SHGetFileInfoW.restype = ctypes.c_size_t
         shell32.SHGetFileInfoW.argtypes = [ctypes.c_wchar_p, ctypes.c_uint32, ctypes.POINTER(_SHFILEINFO), ctypes.c_uint, ctypes.c_uint]
@@ -325,6 +339,7 @@ class ShellIconProvider:
         user32.GetDC.argtypes = [ctypes.c_void_p]
         user32.ReleaseDC.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
         user32.DestroyIcon.argtypes = [ctypes.c_void_p]
+        user32.DrawIconEx.restype = ctypes.c_int
         user32.DrawIconEx.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_void_p,
                                       ctypes.c_int, ctypes.c_int, ctypes.c_uint, ctypes.c_void_p, ctypes.c_uint]
         gdi32.CreateCompatibleDC.restype = ctypes.c_void_p
@@ -340,29 +355,54 @@ class ShellIconProvider:
         # The small Shell handle reliably contains alpha on all supported Windows
         # versions. DrawIconEx scales it to the selected UI profile; some large
         # handles render fully transparent when converted through a 32-bit DIB.
-        flags = 0x1 | 0x100
-        if not shell32.SHGetFileInfoW(str(path), 0, ctypes.byref(info), ctypes.sizeof(info), flags):
+        lookup, attributes, flags = _shell_icon_request(path, is_dir)
+        if not shell32.SHGetFileInfoW(
+                lookup, attributes, ctypes.byref(info), ctypes.sizeof(info), flags):
             return None
-        screen = user32.GetDC(None)
-        memory = gdi32.CreateCompatibleDC(screen)
-        bitmap_info = _BITMAPINFO()
-        bitmap_info.bmiHeader.biSize = ctypes.sizeof(_BITMAPINFOHEADER)
-        bitmap_info.bmiHeader.biWidth = self.size
-        bitmap_info.bmiHeader.biHeight = -self.size
-        bitmap_info.bmiHeader.biPlanes = 1
-        bitmap_info.bmiHeader.biBitCount = 32
-        bitmap_info.bmiHeader.biCompression = 0
-        bits = ctypes.c_void_p()
-        bitmap = gdi32.CreateDIBSection(memory, ctypes.byref(bitmap_info), 0, ctypes.byref(bits), None, 0)
-        old = gdi32.SelectObject(memory, bitmap)
-        ctypes.memset(bits.value, 0, self.size * self.size * 4)
-        user32.DrawIconEx(memory, 0, 0, info.hIcon, self.size, self.size, 0, None, 0x3)
-        raw = ctypes.string_at(bits.value, self.size * self.size * 4)
-        gdi32.SelectObject(memory, old)
-        gdi32.DeleteObject(bitmap)
-        gdi32.DeleteDC(memory)
-        user32.ReleaseDC(None, screen)
-        user32.DestroyIcon(info.hIcon)
+        if not info.hIcon:
+            return None
+        screen = memory = bitmap = old = None
+        raw = None
+        try:
+            screen = user32.GetDC(None)
+            if not screen:
+                return None
+            memory = gdi32.CreateCompatibleDC(screen)
+            if not memory:
+                return None
+            bitmap_info = _BITMAPINFO()
+            bitmap_info.bmiHeader.biSize = ctypes.sizeof(_BITMAPINFOHEADER)
+            bitmap_info.bmiHeader.biWidth = self.size
+            bitmap_info.bmiHeader.biHeight = -self.size
+            bitmap_info.bmiHeader.biPlanes = 1
+            bitmap_info.bmiHeader.biBitCount = 32
+            bitmap_info.bmiHeader.biCompression = 0
+            bits = ctypes.c_void_p()
+            bitmap = gdi32.CreateDIBSection(
+                memory, ctypes.byref(bitmap_info), 0, ctypes.byref(bits), None, 0)
+            if not bitmap or not bits.value:
+                return None
+            old = gdi32.SelectObject(memory, bitmap)
+            if not old or old == HGDI_ERROR:
+                old = None
+                return None
+            ctypes.memset(bits.value, 0, self.size * self.size * 4)
+            if not user32.DrawIconEx(
+                    memory, 0, 0, info.hIcon, self.size, self.size, 0, None, 0x3):
+                return None
+            raw = ctypes.string_at(bits.value, self.size * self.size * 4)
+        finally:
+            if old and memory:
+                gdi32.SelectObject(memory, old)
+            if bitmap:
+                gdi32.DeleteObject(bitmap)
+            if memory:
+                gdi32.DeleteDC(memory)
+            if screen:
+                user32.ReleaseDC(None, screen)
+            user32.DestroyIcon(info.hIcon)
+        if raw is None:
+            return None
         try:
             encoded = base64.b64encode(_png_from_bgra(raw, self.size)).decode("ascii")
             return PhotoImage(data=encoded, format="png")

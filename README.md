@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.16.8 — Windows Shell and Long Paths**
+Current version: **v0.16.9 — Safe EXE Drops and Scaled Tabs**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 

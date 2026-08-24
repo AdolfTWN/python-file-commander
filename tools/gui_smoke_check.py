@@ -412,7 +412,7 @@ def main() -> None:
             assert not source_pane.tree.cget("displaycolumns")
             assert len(source_pane.tree.get_children()) == 1
             tree_root_row = source_pane.tree.get_children()[0]
-            assert source_pane.tree.item(tree_root_row, "text") == tree_root.name
+            assert source_pane._full_item_name(tree_root_row) == tree_root.name
             assert source_pane.tree.item(tree_root_row, "open")
             assert source_pane.tree.item(tree_root_row, "tags")[0] == str(tree_root)
             folder_rows = source_pane.tree.get_children(tree_root_row)
@@ -667,6 +667,15 @@ def main() -> None:
             assert app.active.path == path_before and app.active.selected_paths() == selected_before
             app.ui_language_var.set("en"); app.apply_ui_language(); app.update()
             assert app.files_menu_button.cget("text") == "Files"
+            app.font_size_var.set("xxl"); app.apply_font_size(save=False)
+            xxl_source = app.active
+            xxl_tabs = app._tabs_for(xxl_source)
+            expected_icon_size = xxl_source.icons.size
+            app.new_tab(); app.update_idletasks()
+            xxl_clone = xxl_tabs.current()
+            assert xxl_clone is app.active
+            assert xxl_clone.icons.size == expected_icon_size, (
+                xxl_clone.icons.size, expected_icon_size)
             app.withdraw()
             print("GUI smoke check passed", flush=True)
         finally:

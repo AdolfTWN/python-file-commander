@@ -1,8 +1,13 @@
 import struct
 import unittest
 import zlib
+from pathlib import Path
 
-from pycommander.icons import VCS_BADGE_SPECS, _png_from_bgra, pfc_icon_png, vcs_badge_png
+from pycommander.icons import (FILE_ATTRIBUTE_NORMAL, SHGFI_ICON,
+                               SHGFI_SMALLICON, SHGFI_USEFILEATTRIBUTES,
+                               VCS_BADGE_SPECS, _png_from_bgra,
+                               _shell_icon_request, pfc_icon_png,
+                               vcs_badge_png)
 
 
 class IconTests(unittest.TestCase):
@@ -76,6 +81,25 @@ class IconTests(unittest.TestCase):
     def test_bgra_is_encoded_as_png(self):
         image = _png_from_bgra(bytes((0, 0, 255, 255)), 1)
         self.assertTrue(image.startswith(b"\x89PNG\r\n\x1a\n"))
+
+
+class ShellIconRequestTests(unittest.TestCase):
+    def test_executable_uses_safe_generic_type_icon(self):
+        lookup, attributes, flags = _shell_icon_request(
+            Path("C:/Downloads/untrusted-tool.EXE"), False)
+
+        self.assertEqual(lookup, ".exe")
+        self.assertEqual(attributes, FILE_ATTRIBUTE_NORMAL)
+        self.assertEqual(
+            flags, SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES)
+
+    def test_regular_file_keeps_live_path_lookup(self):
+        path = Path("C:/Downloads/report.txt")
+        lookup, attributes, flags = _shell_icon_request(path, False)
+
+        self.assertEqual(lookup, str(path))
+        self.assertEqual(attributes, 0)
+        self.assertEqual(flags, SHGFI_ICON | SHGFI_SMALLICON)
 
 
 if __name__ == "__main__":
