@@ -64,6 +64,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.": "重新設計：頂部選單改為檔案、前往、檢視、工具與說明，採用淺層且以工作為主的架構。",
+        "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.": "重新設計：檔案右鍵選單保留常用動作，並將分析、壓縮與進階動作整理在單層子選單中。",
+        "Fixed: Menu availability now follows selection, platform, and archive-workspace context, including Explorer Menu.": "修正：選單可用狀態現在會配合選取項目、作業平台與壓縮檔工作區情境，包括檔案總管選單。",
         "Fixed: Dropped Windows executables use safe Shell type icons and guarded GDI resources so icon loading cannot close PFC.": "修正：拖入的 Windows 可執行檔改用安全的 Shell 類型圖示及受保護的 GDI 資源，避免載入圖示時關閉 PFC。",
         "Fixed: Ctrl+Up and other new-tab paths inherit the current UI scale so file icons match existing tabs.": "修正：Ctrl+Up 及其他新分頁入口會繼承目前的介面縮放，讓檔案圖示與既有分頁一致。",
         "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.": "修正：Windows 可攜版拖放會隔離 COM 介面型別，現在可將檔案從 PFC 拖入檔案總管與 Teams。",
@@ -173,7 +176,7 @@ _TRANSLATIONS = {
         "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.": "新增：自動字型大小會依視窗尺寸與可見面板數量調整，並在「檢視」選單提供可儲存的開關。",
         "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.": "新增：可將 ZIP 與 7z 壓縮檔當作資料夾瀏覽，並以安全重寫方式複製、貼上、移動、重新命名、新增或刪除內容。",
         "Added: Ubuntu support for navigation, file operations, in-app clipboard transfers, native Trash, fonts, and file opening.": "新增：支援 Ubuntu 的導覽、檔案操作、應用程式內剪貼簿傳輸、原生垃圾桶、字型與檔案開啟。",
-        "Files": "檔案", "View": "檢視", "Versions": "版本", "UI Language": "介面語言", "Build": "建置",
+        "Files": "檔案", "Go": "前往", "View": "檢視", "Tools": "工具", "Help": "說明", "Versions": "版本", "UI Language": "介面語言", "Build": "建置", "Alt+F / Alt+G / Alt+V / Alt+T / Alt+H  Open Files / Go / View / Tools / Help menu": "Alt+F / Alt+G / Alt+V / Alt+T / Alt+H  開啟檔案／前往／檢視／工具／說明選單",
         "Color Scheme": "配色方案", "Extension Effect": "副檔名效果", "Light": "明亮", "Light Grey": "淺灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "複製到剪貼簿", "Cut to Clipboard": "剪下到剪貼簿", "Paste": "貼上",
@@ -181,7 +184,7 @@ _TRANSLATIONS = {
         "Copy to Target Panel": "複製到目標面板", "Move to Target Panel": "移動到目標面板",
         "Rename": "重新命名", "Multi-Rename": "批次重新命名", "New Folder": "新增資料夾",
         "Delete": "刪除", "Permanent Delete": "永久刪除", "Send Delete to Recycle Bin": "刪除時移至資源回收筒",
-        "Continue After File Errors": "發生檔案錯誤後繼續", "Favorites": "我的最愛", "Recent Folders": "最近使用的資料夾",
+        "Continue After File Errors": "發生檔案錯誤後繼續", "File Operation Settings": "檔案操作設定", "Favorites": "我的最愛", "Recent Folders": "最近使用的資料夾",
         "Preview": "預覽", "Search": "搜尋", "Compare": "比較", "Copy Path": "複製路徑",
         "Change Dir": "變更目錄", "Exit": "結束", "File Visibility": "檔案可見性",
         "Show Hidden": "顯示隱藏項目", "Show System": "顯示系統項目", "Show File Extension": "顯示副檔名",
@@ -196,7 +199,7 @@ _TRANSLATIONS = {
         "Name": "名稱", "Ext": "副檔名", "Size": "大小", "Date Modified": "修改日期", "Attr": "屬性", "Folder": "資料夾", "Modified": "修改日期",
         "Quick Filter:": "快速篩選：", "{count} items   {size}": "{count} 個項目   {size}", " — filter: {filter}": " — 篩選：{filter}",
         "Cannot open folder": "無法開啟資料夾", "Cannot read folder": "無法讀取資料夾", "Cannot open file": "無法開啟檔案",
-        "Open / Enter Folder": "開啟／進入資料夾", "Open Folder in New Tab": "在新分頁開啟資料夾",
+        "Open / Enter Folder": "開啟／進入資料夾", "Open Folder in New Tab": "在新分頁開啟資料夾", "Analyze & Archive": "分析與壓縮", "More Actions": "更多動作",
         "Paste into This Folder": "貼到此資料夾", "Paste into Current Folder": "貼到目前資料夾",
         "Add Current Folder": "加入目前資料夾", "Remove Current Folder": "移除目前資料夾", "Clear Recent Folders": "清除最近使用的資料夾", "No recent folders": "沒有最近使用的資料夾",
         "Keyboard Guide": "鍵盤操作指南", "Keyboard shortcuts not shown on the bottom action bar": "底部操作列未顯示的鍵盤快速鍵",
@@ -291,6 +294,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.": "重新设计：顶部菜单改为文件、转到、查看、工具和帮助，采用浅层且以任务为主的结构。",
+        "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.": "重新设计：文件右键菜单保留常用操作，并将分析、压缩和高级操作整理到单层子菜单中。",
+        "Fixed: Menu availability now follows selection, platform, and archive-workspace context, including Explorer Menu.": "修复：菜单可用状态现在会根据所选项目、操作平台和压缩包工作区情境调整，包括资源管理器菜单。",
         "Fixed: Dropped Windows executables use safe Shell type icons and guarded GDI resources so icon loading cannot close PFC.": "修复：拖入的 Windows 可执行文件改用安全的 Shell 类型图标及受保护的 GDI 资源，避免加载图标时关闭 PFC。",
         "Fixed: Ctrl+Up and other new-tab paths inherit the current UI scale so file icons match existing tabs.": "修复：Ctrl+Up 及其他新选项卡入口会继承当前界面缩放，使文件图标与现有选项卡一致。",
         "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.": "修复：Windows 便携版拖放会隔离 COM 接口类型，现在可将文件从 PFC 拖入文件资源管理器和 Teams。",
@@ -399,12 +405,12 @@ _TRANSLATIONS = {
         "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.": "新增：自动字体大小会根据窗口尺寸与可见面板数量调整，并在“查看”菜单提供可保存的开关。",
         "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.": "新增：可将 ZIP 与 7z 压缩文件作为文件夹浏览，并通过安全重写复制、粘贴、移动、重命名、新建或删除内容。",
         "Added: Ubuntu support for navigation, file operations, in-app clipboard transfers, native Trash, fonts, and file opening.": "新增：支持 Ubuntu 的导航、文件操作、应用内剪贴板传输、原生回收站、字体与文件打开。",
-        "Files": "文件", "View": "查看", "Versions": "版本", "UI Language": "界面语言", "Build": "构建",
+        "Files": "文件", "Go": "转到", "View": "查看", "Tools": "工具", "Help": "帮助", "Versions": "版本", "UI Language": "界面语言", "Build": "构建", "Alt+F / Alt+G / Alt+V / Alt+T / Alt+H  Open Files / Go / View / Tools / Help menu": "Alt+F / Alt+G / Alt+V / Alt+T / Alt+H  打开文件／转到／查看／工具／帮助菜单",
         "Color Scheme": "配色方案", "Extension Effect": "扩展名效果", "Light": "浅色", "Light Grey": "浅灰", "Dark": "深色",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "复制到剪贴板", "Cut to Clipboard": "剪切到剪贴板", "Paste": "粘贴",
         "Copy to Next Panel": "复制到下一面板", "Move to Next Panel": "移动到下一面板", "Copy to Target Panel": "复制到目标面板", "Move to Target Panel": "移动到目标面板", "Rename": "重命名", "Multi-Rename": "批量重命名", "New Folder": "新建文件夹",
-        "Delete": "删除", "Permanent Delete": "永久删除", "Send Delete to Recycle Bin": "删除时移至回收站", "Continue After File Errors": "发生文件错误后继续",
+        "Delete": "删除", "Permanent Delete": "永久删除", "Send Delete to Recycle Bin": "删除时移至回收站", "Continue After File Errors": "发生文件错误后继续", "File Operation Settings": "文件操作设置",
         "Favorites": "收藏夹", "Recent Folders": "最近使用的文件夹", "Preview": "预览", "Search": "搜索", "Compare": "比较", "Copy Path": "复制路径", "Change Dir": "更改目录", "Exit": "退出",
         "File Visibility": "文件可见性", "Show Hidden": "显示隐藏项目", "Show System": "显示系统项目", "Show File Extension": "显示文件扩展名", "Font Size": "字体大小", "Tab Style": "选项卡样式", "Panel Counts": "面板数量", "Quick Filter": "快速筛选",
         "100% Small": "100% 小", "125% Medium": "125% 中", "150% Large": "150% 大", "200% XL": "200% 特大", "250% XXL": "250% 超大", "Right Skirt": "右侧裙边", "Rounded": "圆角", "Squarish": "方形",
@@ -413,7 +419,7 @@ _TRANSLATIONS = {
         "and {count} more {kind}": "以及另外 {count} 个{kind}", "& other {count} {kind}": "及其他 {count} 个{kind}", "and {count} {kind}...": "以及 {count} 个{kind}…", "file": "文件", "files": "文件", "folder": "文件夹", "folders": "文件夹", "item": "项目", "items": "项目", "attachments": "附件",
         "Name": "名称", "Ext": "扩展名", "Size": "大小", "Date Modified": "修改日期", "Attr": "属性", "Folder": "文件夹", "Modified": "修改日期", "Quick Filter:": "快速筛选：",
         "Cannot open folder": "无法打开文件夹", "Cannot read folder": "无法读取文件夹", "Cannot open file": "无法打开文件",
-        "Open / Enter Folder": "打开／进入文件夹", "Open Folder in New Tab": "在新选项卡中打开文件夹", "Paste into This Folder": "粘贴到此文件夹", "Paste into Current Folder": "粘贴到当前文件夹",
+        "Open / Enter Folder": "打开／进入文件夹", "Open Folder in New Tab": "在新选项卡中打开文件夹", "Analyze & Archive": "分析与压缩", "More Actions": "更多操作", "Paste into This Folder": "粘贴到此文件夹", "Paste into Current Folder": "粘贴到当前文件夹",
         "Add Current Folder": "添加当前文件夹", "Remove Current Folder": "移除当前文件夹", "Clear Recent Folders": "清除最近使用的文件夹", "No recent folders": "没有最近使用的文件夹",
         "Keyboard Guide": "键盘操作指南", "Keyboard shortcuts not shown on the bottom action bar": "底部操作栏未显示的键盘快捷键",
         "OK": "确定", "Cancel": "取消", "Close": "关闭", "Apply": "应用", "Ready": "就绪", "Find": "查找", "Find:": "查找：", "Find Prev": "查找上一个", "Find Next": "查找下一个", "Case sensitive": "区分大小写", "Clear Filters": "清除筛选条件", "Filters:": "筛选条件：", "Filters cleared": "已清除筛选条件", "Settings could not be saved: {error}": "无法保存设置：{error}",
@@ -491,6 +497,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.": "재설계: 상단 메뉴를 파일, 이동, 보기, 도구, 도움말로 나누고 작업 중심의 얕은 구조를 적용했습니다.",
+        "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.": "재설계: 파일 상황에 맞는 메뉴는 자주 쓰는 작업을 표시하고 분석, 압축 및 고급 작업을 한 단계 하위 메뉴로 묶었습니다.",
+        "Fixed: Menu availability now follows selection, platform, and archive-workspace context, including Explorer Menu.": "수정: 탐색기 메뉴를 포함한 메뉴 사용 가능 상태가 선택 항목, 플랫폼 및 압축 파일 작업 공간 상황을 따릅니다.",
         "Fixed: Dropped Windows executables use safe Shell type icons and guarded GDI resources so icon loading cannot close PFC.": "수정: 끌어온 Windows 실행 파일에 안전한 Shell 형식 아이콘과 보호된 GDI 리소스를 사용하여 아이콘 로드 중 PFC가 종료되지 않도록 했습니다.",
         "Fixed: Ctrl+Up and other new-tab paths inherit the current UI scale so file icons match existing tabs.": "수정: Ctrl+Up 및 기타 새 탭 경로가 현재 UI 배율을 상속하여 파일 아이콘 크기가 기존 탭과 일치합니다.",
         "Fixed: Portable Windows drag-and-drop keeps its COM interface types isolated so files can be dragged from PFC into Explorer and Teams.": "수정: Windows 휴대용 버전의 드래그 앤 드롭 COM 인터페이스 형식을 분리하여 PFC에서 탐색기와 Teams로 파일을 끌 수 있습니다.",
@@ -599,12 +608,12 @@ _TRANSLATIONS = {
         "Added: Automatic font sizing adapts to window dimensions and visible panel count, with a saved View switch.": "추가: 자동 글꼴 크기가 창 크기와 표시 패널 수에 맞게 조정되며 보기 메뉴에서 설정을 저장할 수 있습니다.",
         "Added: Browse ZIP and 7z archives as folders and copy, paste, move, rename, create, or delete their contents with safe archive rewrites.": "추가: ZIP 및 7z 압축 파일을 폴더처럼 탐색하고 안전한 다시 쓰기로 내용을 복사, 붙여넣기, 이동, 이름 바꾸기, 만들기 또는 삭제할 수 있습니다.",
         "Added: Ubuntu support for navigation, file operations, in-app clipboard transfers, native Trash, fonts, and file opening.": "추가: Ubuntu에서 탐색, 파일 작업, 앱 내부 클립보드 전송, 기본 휴지통, 글꼴 및 파일 열기를 지원합니다.",
-        "Files": "파일", "View": "보기", "Versions": "버전", "UI Language": "UI 언어", "Build": "빌드",
+        "Files": "파일", "Go": "이동", "View": "보기", "Tools": "도구", "Help": "도움말", "Versions": "버전", "UI Language": "UI 언어", "Build": "빌드", "Alt+F / Alt+G / Alt+V / Alt+T / Alt+H  Open Files / Go / View / Tools / Help menu": "Alt+F / Alt+G / Alt+V / Alt+T / Alt+H  파일／이동／보기／도구／도움말 메뉴 열기",
         "Color Scheme": "색 구성표", "Extension Effect": "확장자 효과", "Light": "밝게", "Light Grey": "밝은 회색", "Dark": "어둡게",
         "English": "English", "Traditional Chinese": "繁體中文", "Simplified Chinese": "简体中文", "Korean": "한국어",
         "Copy to Clipboard": "클립보드에 복사", "Cut to Clipboard": "클립보드로 잘라내기", "Paste": "붙여넣기",
         "Copy to Next Panel": "다음 패널로 복사", "Move to Next Panel": "다음 패널로 이동", "Copy to Target Panel": "대상 패널로 복사", "Move to Target Panel": "대상 패널로 이동", "Rename": "이름 바꾸기", "Multi-Rename": "일괄 이름 바꾸기", "New Folder": "새 폴더",
-        "Delete": "삭제", "Permanent Delete": "완전히 삭제", "Send Delete to Recycle Bin": "삭제 시 휴지통으로 이동", "Continue After File Errors": "파일 오류 후 계속",
+        "Delete": "삭제", "Permanent Delete": "완전히 삭제", "Send Delete to Recycle Bin": "삭제 시 휴지통으로 이동", "Continue After File Errors": "파일 오류 후 계속", "File Operation Settings": "파일 작업 설정",
         "Favorites": "즐겨찾기", "Recent Folders": "최근 폴더", "Preview": "미리 보기", "Search": "검색", "Compare": "비교", "Copy Path": "경로 복사", "Change Dir": "디렉터리 변경", "Exit": "끝내기",
         "File Visibility": "파일 표시", "Show Hidden": "숨김 항목 표시", "Show System": "시스템 항목 표시", "Show File Extension": "파일 확장명 표시", "Font Size": "글꼴 크기", "Tab Style": "탭 스타일", "Panel Counts": "패널 수", "Quick Filter": "빠른 필터",
         "100% Small": "100% 작게", "125% Medium": "125% 보통", "150% Large": "150% 크게", "200% XL": "200% 매우 크게", "250% XXL": "250% 초대형", "Right Skirt": "오른쪽 스커트", "Rounded": "둥근 모서리", "Squarish": "사각형",
@@ -612,7 +621,7 @@ _TRANSLATIONS = {
         "Clipboard: checking…": "클립보드: 확인 중…", "Clipboard": "클립보드", "Clipboard (Cut)": "클립보드(잘라내기)", "Clipboard: Empty": "클립보드: 비어 있음", "Clipboard: OBJ": "클립보드: 개체", "Clipboard: String {size} Bytes": "클립보드: 텍스트 {size}바이트",
         "and {count} more {kind}": "외 {count}개 {kind}", "& other {count} {kind}": "외 {count}개 {kind}", "and {count} {kind}...": "외 {count}개 {kind}…", "file": "파일", "files": "파일", "folder": "폴더", "folders": "폴더", "item": "항목", "items": "항목", "attachments": "첨부 파일",
         "Name": "이름", "Ext": "확장명", "Size": "크기", "Date Modified": "수정한 날짜", "Attr": "특성", "Folder": "폴더", "Modified": "수정한 날짜", "Quick Filter:": "빠른 필터:",
-        "Cannot open folder": "폴더를 열 수 없음", "Cannot read folder": "폴더를 읽을 수 없음", "Cannot open file": "파일을 열 수 없음", "Open / Enter Folder": "열기 / 폴더로 이동", "Open Folder in New Tab": "새 탭에서 폴더 열기", "Paste into This Folder": "이 폴더에 붙여넣기", "Paste into Current Folder": "현재 폴더에 붙여넣기",
+        "Cannot open folder": "폴더를 열 수 없음", "Cannot read folder": "폴더를 읽을 수 없음", "Cannot open file": "파일을 열 수 없음", "Open / Enter Folder": "열기 / 폴더로 이동", "Open Folder in New Tab": "새 탭에서 폴더 열기", "Analyze & Archive": "분석 및 압축", "More Actions": "추가 작업", "Paste into This Folder": "이 폴더에 붙여넣기", "Paste into Current Folder": "현재 폴더에 붙여넣기",
         "Add Current Folder": "현재 폴더 추가", "Remove Current Folder": "현재 폴더 제거", "Clear Recent Folders": "최근 폴더 지우기", "No recent folders": "최근 폴더 없음", "Keyboard Guide": "키보드 사용 안내", "Keyboard shortcuts not shown on the bottom action bar": "아래 작업 표시줄에 없는 키보드 바로 가기",
         "OK": "확인", "Cancel": "취소", "Close": "닫기", "Apply": "적용", "Ready": "준비", "Find": "찾기", "Find:": "찾기:", "Find Prev": "이전 찾기", "Find Next": "다음 찾기", "Case sensitive": "대/소문자 구분", "Clear Filters": "필터 지우기", "Filters:": "필터:", "Filters cleared": "필터를 지웠습니다", "Settings could not be saved: {error}": "설정을 저장할 수 없습니다: {error}",
         "File <<": "파일 <<", "File >>": "파일 >>", "View:": "보기:", "Wrap": "자동 줄 바꿈", "Auto": "자동", "Text": "텍스트", "Hex": "16진수", "Folder view": "폴더", "No matches": "일치 항목 없음", "Match {current} of {total}": "{total}개 중 {current}번째",
@@ -7745,7 +7754,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.16.9"
+__version__ = "0.17.0"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -7826,8 +7835,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/24"
+BUILD_DATE = "2026/08/25"
 VERSION_HISTORY = (
+    ("v0.17.0", "2026/08/25", (
+        "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.",
+        "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.",
+        "Fixed: Menu availability now follows selection, platform, and archive-workspace context, including Explorer Menu.",
+    )),
     ("v0.16.9", "2026/08/24", (
         "Fixed: Dropped Windows executables use safe Shell type icons and guarded GDI resources so icon loading cannot close PFC.",
         "Fixed: Ctrl+Up and other new-tab paths inherit the current UI scale so file icons match existing tabs.",
@@ -9589,7 +9603,8 @@ class Commander(tk.Tk):
             "switch_panel": "<Tab>", "focus_path": "<Control-l>",
             "focus_files": "<Escape>", "help": "<F1>",
             "select_previous": "<Up>", "select_next": "<Down>",
-            "files_menu": "<Alt-f>", "view_menu": "<Alt-v>", "versions_menu": "<Alt-h>",
+            "files_menu": "<Alt-f>", "go_menu": "<Alt-g>", "view_menu": "<Alt-v>",
+            "tools_menu": "<Alt-t>", "versions_menu": "<Alt-h>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
             "explorer_menu": "<F8>",
             "compare": "<F9>",
@@ -9612,7 +9627,9 @@ class Commander(tk.Tk):
             "select_previous": lambda: self.move_selection(-1),
             "select_next": lambda: self.move_selection(1),
             "files_menu": lambda: self.show_header_menu("files"),
+            "go_menu": lambda: self.show_header_menu("go"),
             "view_menu": lambda: self.show_header_menu("view"),
+            "tools_menu": lambda: self.show_header_menu("tools"),
             "versions_menu": lambda: self.show_header_menu("versions"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
             "explorer_menu": self.show_explorer_menu,
@@ -9924,41 +9941,53 @@ class Commander(tk.Tk):
         files_button = tk.Button(header, text=tr("Files"),
                                  command=lambda: self.show_header_menu("files"), **button_style)
         files_button.pack(side="left")
-        files = tk.Menu(files_button, tearoff=False, font=menu_font)
-        files.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
-        files.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
-        files.add_command(label=tr("Paste"), accelerator="Ctrl+V", command=self.clipboard_paste)
+        files = tk.Menu(files_button, tearoff=False, font=menu_font,
+                        postcommand=self._update_header_menu_states)
+        files.add_command(label=tr("Open / Enter Folder"), accelerator="Enter",
+                          command=self.enter_folder)
+        files.add_command(label=tr("New Folder"), accelerator="F7", command=self.mkdir)
         files.add_separator()
+        clipboard_menu = tk.Menu(files, tearoff=False, font=menu_font)
+        clipboard_menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C",
+                                   command=self.clipboard_copy)
+        clipboard_menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X",
+                                   command=self.clipboard_cut)
+        clipboard_menu.add_command(label=tr("Paste"), accelerator="Ctrl+V",
+                                   command=self.clipboard_paste)
+        add_scaled_cascade(files, tr("Clipboard"), clipboard_menu)
         files.add_command(label=tr("Copy to Target Panel"), accelerator="F5", command=self.copy)
         files.add_command(label=tr("Move to Target Panel"), accelerator="F6", command=self.move)
+        files.add_separator()
         files.add_command(label=tr("Rename"), accelerator="F2", command=self.rename)
         files.add_command(label=tr("Multi-Rename"), command=self.multi_rename)
-        files.add_command(label=tr("New Folder"), accelerator="F7", command=self.mkdir)
         files.add_separator()
         files.add_command(label=tr("Delete"), accelerator="Del", command=self.delete)
         files.add_command(label=tr("Permanent Delete"), accelerator="Shift+Del", command=lambda: self.delete(permanent=True))
-        add_scaled_checkbutton(files, tr("Send Delete to Recycle Bin"), self.recycle_bin_var,
-                               self.save_config)
-        add_scaled_checkbutton(files, tr("Continue After File Errors"), self.continue_errors_var,
-                               self.save_config)
-        files.add_separator()
-        self.favorites_menu = tk.Menu(files, tearoff=False, font=menu_font,
-                                      postcommand=self._rebuild_favorites_menu)
-        self.recent_menu = tk.Menu(files, tearoff=False, font=menu_font,
-                                   postcommand=self._rebuild_recent_menu)
-        add_scaled_cascade(files, tr("Favorites"), self.favorites_menu)
-        add_scaled_cascade(files, tr("Recent Folders"), self.recent_menu)
-        files.add_separator()
-        files.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
-        files.add_command(label=tr("Search"), accelerator="F4", command=self.search)
-        files.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
-        files.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
-        files.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
-        files.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
-        files.add_command(label=tr("Change Path"), accelerator="F12", command=self.change_dir)
+        operation_settings = tk.Menu(files, tearoff=False, font=menu_font)
+        add_scaled_checkbutton(operation_settings, tr("Send Delete to Recycle Bin"),
+                               self.recycle_bin_var, self.save_config)
+        add_scaled_checkbutton(operation_settings, tr("Continue After File Errors"),
+                               self.continue_errors_var, self.save_config)
+        add_scaled_cascade(files, tr("File Operation Settings"), operation_settings)
         files.add_separator()
         files.add_command(label=tr("Exit"), command=self.close_app)
         align_scaled_cascade_arrows(files)
+
+        go_button = tk.Button(header, text=tr("Go"),
+                              command=lambda: self.show_header_menu("go"), **button_style)
+        go_button.pack(side="left")
+        go = tk.Menu(go_button, tearoff=False, font=menu_font)
+        self.favorites_menu = tk.Menu(go, tearoff=False, font=menu_font,
+                                      postcommand=self._rebuild_favorites_menu)
+        self.recent_menu = tk.Menu(go, tearoff=False, font=menu_font,
+                                   postcommand=self._rebuild_recent_menu)
+        add_scaled_cascade(go, tr("Favorites"), self.favorites_menu)
+        add_scaled_cascade(go, tr("Recent Folders"), self.recent_menu)
+        go.add_separator()
+        go.add_command(label=tr("Search"), accelerator="F4", command=self.search)
+        go.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
+        go.add_command(label=tr("Change Path"), accelerator="F12", command=self.change_dir)
+        align_scaled_cascade_arrows(go)
         view_button = tk.Button(header, text=tr("View"),
                                 command=lambda: self.show_header_menu("view"), **button_style)
         view_button.pack(side="left")
@@ -10009,7 +10038,19 @@ class Commander(tk.Tk):
                                    self.apply_ui_language)
         add_scaled_cascade(view, tr("UI Language"), language_menu)
         align_scaled_cascade_arrows(view)
-        versions_button = tk.Button(header, text=tr("Versions"),
+
+        tools_button = tk.Button(header, text=tr("Tools"),
+                                 command=lambda: self.show_header_menu("tools"), **button_style)
+        tools_button.pack(side="left")
+        tools = tk.Menu(tools_button, tearoff=False, font=menu_font,
+                        postcommand=self._update_header_menu_states)
+        tools.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
+        tools.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
+        tools.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
+        tools.add_separator()
+        tools.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
+
+        versions_button = tk.Button(header, text=tr("Help"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
         versions_button.pack(side="left")
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
@@ -10027,11 +10068,18 @@ class Commander(tk.Tk):
         versions.add_command(label=tr("Yoda — Portable App Advocate"),
                              command=self.show_yoda_note)
         self.files_menu_button = files_button
+        self.go_menu_button = go_button
         self.view_menu_button = view_button
+        self.tools_menu_button = tools_button
         self.versions_menu_button = versions_button
-        self.header_left_widgets = (title, version_label, files_button, view_button, versions_button)
+        self.header_left_widgets = (title, version_label, files_button, go_button, view_button,
+                                    tools_button, versions_button)
         self.files_menu = files
+        self.clipboard_menu = clipboard_menu
+        self.operation_settings_menu = operation_settings
+        self.go_menu = go
         self.view_menu = view
+        self.tools_menu = tools
         self.visibility_menu = visibility
         self.font_size_menu = font_size
         self.color_scheme_menu = color_scheme_menu
@@ -10040,6 +10088,10 @@ class Commander(tk.Tk):
         self.language_menu = language_menu
         self.versions_menu = versions
         self.version_series = tuple(version_series)
+        self._header_state_entries = {
+            "files": {"single": (0, 7), "selected": (4, 5, 7, 10, 11), "multiple": (8,)},
+            "clipboard": {"selected": (0, 1)},
+        }
         menu_help = {
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
@@ -10069,6 +10121,8 @@ class Commander(tk.Tk):
             "Auto Font Size": "Automatically choose a readable font size for the current window and panel widths.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the adjacent panel.",
+            "Clipboard": "Copy, cut, or paste files with PFC and File Explorer.",
+            "File Operation Settings": "Configure deletion and multi-item error handling.",
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
         version_help = {
@@ -10080,7 +10134,10 @@ class Commander(tk.Tk):
         }
         self.header_popup = HeaderPopupController(self, {**menu_help, **version_help})
         self._files_menu_tooltip = MenuToolTip(files, menu_help)
+        self._clipboard_menu_tooltip = MenuToolTip(clipboard_menu, menu_help)
+        self._go_menu_tooltip = MenuToolTip(go, menu_help)
         self._view_menu_tooltip = MenuToolTip(view, menu_help)
+        self._tools_menu_tooltip = MenuToolTip(tools, menu_help)
         self._versions_menu_tooltip = MenuToolTip(versions, version_help)
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
@@ -10092,6 +10149,27 @@ class Commander(tk.Tk):
         })
         self._panel_count_tooltip = MenuToolTip(panel_counts, menu_help)
         self.config(menu="")
+
+    def _update_header_menu_states(self) -> None:
+        """Keep menu affordances honest for the active selection."""
+        items = self.active.selected_paths() if getattr(self, "active", None) is not None else []
+        single = len(items) == 1
+        selected = bool(items)
+        single_file = single and items[0].is_file()
+        can_compare = len(items) in {1, 2} or self.compare_target is not None
+
+        for index in self._header_state_entries["files"]["selected"]:
+            self.files_menu.entryconfigure(index, state="normal" if selected else "disabled")
+        for index in self._header_state_entries["files"]["single"]:
+            self.files_menu.entryconfigure(index, state="normal" if single else "disabled")
+        for index in self._header_state_entries["files"]["multiple"]:
+            self.files_menu.entryconfigure(index, state="normal" if len(items) > 1 else "disabled")
+        for index in self._header_state_entries["clipboard"]["selected"]:
+            self.clipboard_menu.entryconfigure(index, state="normal" if selected else "disabled")
+        self.tools_menu.entryconfigure(0, state="normal" if single_file else "disabled")
+        self.tools_menu.entryconfigure(1, state="normal" if can_compare else "disabled")
+        can_explorer = (os.name == "nt" and selected and self.active.archive_session is None)
+        self.tools_menu.entryconfigure(4, state="normal" if can_explorer else "disabled")
 
     def _schedule_clipboard_summary(self, delay=2000) -> None:
         self._clipboard_job = self.after(delay, self._update_clipboard_summary)
@@ -10648,38 +10726,8 @@ class Commander(tk.Tk):
                          state=normal_if(single), command=pane.open_selected)
         menu.add_command(label=tr("Open Folder in New Tab"), state=normal_if(single and clicked_folder),
                          command=lambda: self._open_folder_in_new_tab(pane, clicked))
-        menu.add_command(label=tr("Run as Admin"),
-                         state=normal_if(single and self._can_run_as_admin(clicked)),
-                         command=lambda path=clicked: self.run_as_admin(path))
         menu.add_command(label=tr("Preview"), accelerator="F3",
                          state=normal_if(single and clicked.is_file()), command=self.preview)
-        menu.add_command(label=tr("Compare"), accelerator="F9",
-                         state=normal_if(can_compare), command=self.compare_selected)
-        menu.add_command(label=tr("Folder Space Analyzer"),
-                         command=lambda path=(clicked if clicked_folder else clicked.parent):
-                             self.show_space_analyzer(path))
-        compression = tk.Menu(menu, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
-        compression.add_command(label=tr("Compress to ZIP"),
-                                state=normal_if(bool(items)), command=self.compress_selected)
-        archive_selected = single and is_browsable_archive(clicked)
-        extract_label = (tr("Extract Here (counting…)") if archive_selected else tr("Extract Here"))
-        compression.add_command(label=extract_label, state=normal_if(archive_selected),
-                                command=lambda path=clicked: self.extract_archive(path, clicked.parent))
-        extract_here_index = compression.index("end")
-        compression.add_command(label=tr("Extract to Folder"), state=normal_if(archive_selected),
-                                command=lambda path=clicked:
-                                    self.extract_archive(path, clicked.parent / clicked.stem))
-        if archive_selected:
-            self._load_archive_menu_count(compression, extract_here_index, clicked)
-        menu.add_cascade(label=tr("Compression"), menu=compression)
-        menu.add_command(label=tr("Create Shortcut & Send to Clipboard"),
-                         state=normal_if(bool(items)), command=self.create_shortcuts_to_clipboard)
-        menu.add_command(label=tr("CMD"), state=normal_if(os.name == "nt"),
-                         command=lambda path=(clicked if clicked_folder else clicked.parent):
-                             self.open_terminal(path, "cmd"))
-        menu.add_command(label=tr("PowerShell"), state=normal_if(os.name == "nt"),
-                         command=lambda path=(clicked if clicked_folder else clicked.parent):
-                             self.open_terminal(path, "powershell"))
         menu.add_separator()
         menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
@@ -10695,7 +10743,47 @@ class Commander(tk.Tk):
                          state=normal_if(single), command=self.rename)
         menu.add_command(label=tr("Multi-Rename"),
                          state=normal_if(len(items) > 1), command=self.multi_rename)
-        menu.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
+
+        analyze = tk.Menu(menu, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        analyze.add_command(label=tr("Compare"), accelerator="F9",
+                            state=normal_if(can_compare), command=self.compare_selected)
+        analyze.add_command(label=tr("Folder Space Analyzer"),
+                            command=lambda path=(clicked if clicked_folder else clicked.parent):
+                                self.show_space_analyzer(path))
+        analyze.add_separator()
+        analyze.add_command(label=tr("Compress to ZIP"),
+                            state=normal_if(bool(items)), command=self.compress_selected)
+        archive_selected = single and is_browsable_archive(clicked)
+        extract_label = (tr("Extract Here (counting…)") if archive_selected else tr("Extract Here"))
+        analyze.add_command(label=extract_label, state=normal_if(archive_selected),
+                            command=lambda path=clicked: self.extract_archive(path, clicked.parent))
+        extract_here_index = analyze.index("end")
+        analyze.add_command(label=tr("Extract to Folder"), state=normal_if(archive_selected),
+                            command=lambda path=clicked:
+                                self.extract_archive(path, clicked.parent / clicked.stem))
+        if archive_selected:
+            self._load_archive_menu_count(analyze, extract_here_index, clicked)
+        menu.add_cascade(label=tr("Analyze & Archive"), menu=analyze)
+
+        more = tk.Menu(menu, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        more.add_command(label=tr("Run as Admin"),
+                         state=normal_if(single and self._can_run_as_admin(clicked)),
+                         command=lambda path=clicked: self.run_as_admin(path))
+        more.add_command(label=tr("Create Shortcut & Send to Clipboard"),
+                         state=normal_if(bool(items)), command=self.create_shortcuts_to_clipboard)
+        more.add_separator()
+        more.add_command(label=tr("CMD"), state=normal_if(os.name == "nt"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.open_terminal(path, "cmd"))
+        more.add_command(label=tr("PowerShell"), state=normal_if(os.name == "nt"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.open_terminal(path, "powershell"))
+        more.add_separator()
+        more.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
+        more.add_command(label=tr("Explorer Menu"), accelerator="F8",
+                         state=normal_if(os.name == "nt" and pane.archive_session is None),
+                         command=self.show_explorer_menu)
+        menu.add_cascade(label=tr("More Actions"), menu=more)
         menu.add_separator()
         menu.add_command(label=tr("Delete"), accelerator="Del", command=self.delete_hotkey)
         menu.add_command(label=tr("Permanent Delete"), accelerator="Shift+Del",
@@ -10707,7 +10795,8 @@ class Commander(tk.Tk):
             "Preview": "Open the selected file in PFC Preview.",
             "Compare": "Compare the active and next panel, or two selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
-            "Compression": "Compress selected items or extract a ZIP/7z archive.",
+            "Analyze & Archive": "Compare, inspect folder size, compress, or extract selected items.",
+            "More Actions": "Open administrative, terminal, shortcut, path, and Explorer actions.",
             "Create Shortcut & Send to Clipboard":
                 "Create shortcuts beside the selected items and cut them to the clipboard.",
             "CMD": "Open Command Prompt in this folder.",
@@ -10726,6 +10815,8 @@ class Commander(tk.Tk):
         }
         descriptions = {tr(label): tr(help_text) for label, help_text in descriptions.items()}
         self._file_context_tooltip = MenuToolTip(menu, descriptions)
+        self._file_analyze_tooltip = MenuToolTip(analyze, descriptions)
+        self._file_more_tooltip = MenuToolTip(more, descriptions)
         return menu
 
     def _load_archive_menu_count(self, menu: tk.Menu, index: int, archive_path: Path) -> None:
@@ -11095,7 +11186,10 @@ class Commander(tk.Tk):
         body.pack(fill="both", expand=True)
         ttk.Label(body, text=tr("Keyboard shortcuts not shown on the bottom action bar"),
                   font=tkfont.nametofont("TkHeadingFont")).pack(anchor="w", pady=(0, 12))
-        guide = tr("Keyboard guide body")
+        # The historical guide body ends with the old three-menu shortcut row.
+        # Replace that row here so every locale stays aligned with the current header.
+        guide = tr("Keyboard guide body").rsplit("\n", 1)[0] + "\n" + tr(
+            "Alt+F / Alt+G / Alt+V / Alt+T / Alt+H  Open Files / Go / View / Tools / Help menu")
         ttk.Label(body, text=guide, justify="left").pack(anchor="w")
         button = ttk.Button(body, text=tr("OK"), command=dialog.destroy)
         button.pack(anchor="e", pady=(16, 0))
@@ -11108,7 +11202,9 @@ class Commander(tk.Tk):
 
     def show_header_menu(self, which: str) -> str:
         button, menu = {"files": (self.files_menu_button, self.files_menu),
+                        "go": (self.go_menu_button, self.go_menu),
                         "view": (self.view_menu_button, self.view_menu),
+                        "tools": (self.tools_menu_button, self.tools_menu),
                         "versions": (self.versions_menu_button, self.versions_menu)}[which]
         self.header_popup.show(button, menu)
         return "break"
@@ -11228,13 +11324,13 @@ class Commander(tk.Tk):
 
     def _show_folder_menu(self, menu: tk.Menu, rebuild) -> str:
         rebuild()
-        menu.tk_popup(self.files_menu_button.winfo_rootx(),
-                      self.files_menu_button.winfo_rooty() + self.files_menu_button.winfo_height())
+        menu.tk_popup(self.go_menu_button.winfo_rootx(),
+                      self.go_menu_button.winfo_rooty() + self.go_menu_button.winfo_height())
         return "break"
 
     def _rebuild_favorites_menu(self) -> None:
         menu = self.favorites_menu; menu.delete(0, "end")
-        current = self.panes()[0].path
+        current = self.active.path
         normalized = os.path.normcase(str(current))
         existing = any(os.path.normcase(str(path)) == normalized for path in self.favorites)
         menu.add_command(label=tr("Remove Current Folder") if existing else tr("Add Current Folder"),
@@ -11255,7 +11351,7 @@ class Commander(tk.Tk):
             menu.add_command(label=tr("No recent folders"), state="disabled")
 
     def toggle_favorite(self) -> str:
-        current = self.panes()[0].path
+        current = self.active.path
         normalized = os.path.normcase(str(current))
         remaining = [path for path in self.favorites if os.path.normcase(str(path)) != normalized]
         self.favorites = remaining if len(remaining) != len(self.favorites) else [current, *self.favorites]
@@ -11268,7 +11364,7 @@ class Commander(tk.Tk):
         self.save_config(record_recent=False)
 
     def navigate_to_folder(self, path: Path) -> None:
-        source = self.panes()[0]
+        source = self.active
         if source.navigate(path):
             self._record_recent(source.path); source.focus_file_list(); self.save_config()
 

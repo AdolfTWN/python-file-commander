@@ -42,9 +42,26 @@ def main() -> None:
             assert app.header_left_widgets[0].cget("text") == "PFC"
             assert app.header_left_widgets[1].cget("text") == f"v{pfc.__version__}"
             assert all("Build" not in widget.cget("text") for widget in app.header_left_widgets)
-            for menu_button in (app.files_menu_button, app.view_menu_button, app.versions_menu_button):
+            for menu_button in (app.files_menu_button, app.go_menu_button, app.view_menu_button,
+                                app.tools_menu_button, app.versions_menu_button):
                 assert menu_button.cget("relief") == "raised"
                 assert isinstance(menu_button, pfc.tk.Button)
+            assert [widget.cget("text") for widget in app.header_left_widgets[2:]] == [
+                "Files", "Go", "View", "Tools", "Help"]
+            assert [app.files_menu.entrycget(index, "label")
+                    for index in range(app.files_menu.index("end") + 1)
+                    if app.files_menu.type(index) != "separator"] == [
+                "Open / Enter Folder", "New Folder", "Clipboard", "Copy to Target Panel",
+                "Move to Target Panel", "Rename", "Multi-Rename", "Delete",
+                "Permanent Delete", "File Operation Settings", "Exit"]
+            assert [app.go_menu.entrycget(index, "label")
+                    for index in range(app.go_menu.index("end") + 1)
+                    if app.go_menu.type(index) != "separator"] == [
+                "Favorites", "Recent Folders", "Search", "Copy Path", "Change Path"]
+            assert [app.tools_menu.entrycget(index, "label")
+                    for index in range(app.tools_menu.index("end") + 1)
+                    if app.tools_menu.type(index) != "separator"] == [
+                "Preview", "Compare", "Folder Space Analyzer", "Explorer Menu"]
             hierarchy_indexes = [index for index in range(app.view_menu.index("end") + 1)
                                  if app.view_menu.type(index) == "cascade"]
             assert len(hierarchy_indexes) == 6
@@ -82,6 +99,36 @@ def main() -> None:
             assert app.compare_target_label.place_info()
             assert "Compare Target" in app.compare_target_label.cget("text")
             app._set_compare_target(None)
+
+            def menu_state(menu, label):
+                index = next(index for index in range(menu.index("end") + 1)
+                             if menu.type(index) == "command" and
+                             menu.entrycget(index, "label") == label)
+                return menu.entrycget(index, "state")
+
+            click_pane.tree.selection_remove(click_pane.tree.selection())
+            app._update_header_menu_states()
+            assert menu_state(app.files_menu, "Open / Enter Folder") == "disabled"
+            assert menu_state(app.files_menu, "Rename") == "disabled"
+            assert menu_state(app.files_menu, "Multi-Rename") == "disabled"
+            assert menu_state(app.clipboard_menu, "Copy to Clipboard") == "disabled"
+            assert menu_state(app.tools_menu, "Preview") == "disabled"
+            click_pane.select_path(click_root / "activate-me.txt")
+            app._update_header_menu_states()
+            assert menu_state(app.files_menu, "Open / Enter Folder") == "normal"
+            assert menu_state(app.files_menu, "Rename") == "normal"
+            assert menu_state(app.files_menu, "Multi-Rename") == "disabled"
+            assert menu_state(app.tools_menu, "Preview") == "normal"
+            expected_explorer = "normal" if sys.platform == "win32" else "disabled"
+            assert menu_state(app.tools_menu, "Explorer Menu") == expected_explorer
+            second_file = click_root / "also-active.txt"
+            second_file.write_text("second", encoding="utf-8")
+            click_pane.refresh()
+            click_pane.tree.selection_set(click_pane.tree.get_children())
+            app._update_header_menu_states()
+            assert menu_state(app.files_menu, "Rename") == "disabled"
+            assert menu_state(app.files_menu, "Multi-Rename") == "normal"
+            click_pane.select_path(click_root / "activate-me.txt")
             click_pane.navigate(original_click_path)
             archive_path = Path(raw) / "menu-counts.zip"
             with zipfile.ZipFile(archive_path, "w") as archive:
@@ -89,20 +136,27 @@ def main() -> None:
                 archive.writestr("two/b.txt", "b")
             click_pane.navigate(Path(raw)); click_pane.select_path(archive_path)
             context_menu = app._build_file_context_menu(click_pane, archive_path)
-            compression_menu = next(widget for widget in context_menu.children.values()
-                                    if isinstance(widget, pfc.tk.Menu))
+            analyze_index = next(index for index in range(context_menu.index("end") + 1)
+                                 if context_menu.type(index) == "cascade" and
+                                 context_menu.entrycget(index, "label") == "Analyze & Archive")
+            analyze_menu = context_menu.nametowidget(
+                context_menu.entrycget(analyze_index, "menu"))
+            extract_index = next(index for index in range(analyze_menu.index("end") + 1)
+                                 if analyze_menu.type(index) == "command" and
+                                 analyze_menu.entrycget(index, "label").startswith("Extract Here"))
             deadline = time.monotonic() + 3
             extract_label = ""
             while time.monotonic() < deadline:
                 app.update()
-                extract_label = compression_menu.entrycget(1, "label")
+                extract_label = analyze_menu.entrycget(extract_index, "label")
                 if "folders" in extract_label:
                     break
                 time.sleep(.03)
             assert extract_label == "Extract Here (root: 2 folders, 0 files)", extract_label
-            assert str(compression_menu.entrycget(1, "foreground")) == "#c41414", (
-                compression_menu.entrycget(1, "foreground"), extract_label)
-            assert pfc.tkfont.Font(root=app, font=compression_menu.entrycget(1, "font")).actual("weight") == "bold"
+            assert str(analyze_menu.entrycget(extract_index, "foreground")) == "#c41414", (
+                analyze_menu.entrycget(extract_index, "foreground"), extract_label)
+            assert pfc.tkfont.Font(root=app, font=analyze_menu.entrycget(
+                extract_index, "font")).actual("weight") == "bold"
             context_menu.destroy(); click_pane.navigate(original_click_path)
             compare_left, compare_right = (Path(raw) / "text-equivalent-left",
                                            Path(raw) / "text-equivalent-right")
@@ -186,20 +240,25 @@ def main() -> None:
             labels = [app.files_menu.entrycget(index, "label")
                       for index in range(app.files_menu.index("end") + 1)
                       if app.files_menu.type(index) not in {"separator", "tearoff"}]
-            required = {"Copy to Clipboard", "Paste", "Delete", "Permanent Delete",
-                        "Send Delete to Recycle Bin",
-                        "Continue After File Errors", "Favorites", "Recent Folders", "Multi-Rename"}
+            required = {"Clipboard", "Delete", "Permanent Delete",
+                        "File Operation Settings", "Multi-Rename"}
             assert required.issubset(labels), required.difference(labels)
-            accelerators = {app.files_menu.entrycget(index, "label"):
-                            app.files_menu.entrycget(index, "accelerator")
-                            for index in range(app.files_menu.index("end") + 1)
-                            if app.files_menu.type(index) == "command"}
+            accelerators = {app.clipboard_menu.entrycget(index, "label"):
+                            app.clipboard_menu.entrycget(index, "accelerator")
+                            for index in range(app.clipboard_menu.index("end") + 1)
+                            if app.clipboard_menu.type(index) == "command"}
             assert accelerators["Copy to Clipboard"] == "Ctrl+C"
-            assert accelerators["Permanent Delete"] == "Shift+Del"
+            permanent_index = next(index for index in range(app.files_menu.index("end") + 1)
+                                   if app.files_menu.type(index) == "command" and
+                                   app.files_menu.entrycget(index, "label") == "Permanent Delete")
+            assert app.files_menu.entrycget(permanent_index, "accelerator") == "Shift+Del"
+            assert {app.operation_settings_menu.entrycget(index, "label")
+                    for index in range(app.operation_settings_menu.index("end") + 1)} == {
+                "Send Delete to Recycle Bin", "Continue After File Errors"}
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            expected_series = ("v0.16.x", "v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
+            expected_series = ("v0.17.x", "v0.16.x", "v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
                                "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
             assert version_labels == ([f"Current version: v{pfc.__version__}", "Check Update"] +
                                       [f"{series} Changes" for series in expected_series] +
@@ -505,18 +564,31 @@ def main() -> None:
             context_labels = [context_menu.entrycget(index, "label")
                               for index in range(context_menu.index("end") + 1)
                               if context_menu.type(index) == "command"]
-            required_context = {"Open / Enter Folder", "Preview", "Compare",
-                                "Run as Admin", "CMD", "PowerShell",
-                                "Create Shortcut & Send to Clipboard",
+            required_context = {"Open / Enter Folder", "Preview",
                                 "Copy to Clipboard", "Cut to Clipboard",
                                 "Paste into Current Folder", "Copy to Target Panel",
                                 "Move to Target Panel", "Rename", "Multi-Rename",
-                                "Copy Path", "Delete", "Permanent Delete"}
+                                "Delete", "Permanent Delete"}
             assert required_context.issubset(context_labels)
             context_cascades = [context_menu.entrycget(index, "label")
                                 for index in range(context_menu.index("end") + 1)
                                 if context_menu.type(index) == "cascade"]
-            assert "Compression" in context_cascades
+            assert context_cascades == ["Analyze & Archive", "More Actions"]
+            assert len(context_labels) == 12, context_labels
+            submenu_labels = {
+                context_menu.entrycget(index, "label"): {
+                    submenu.entrycget(child, "label")
+                    for child in range(submenu.index("end") + 1)
+                    if submenu.type(child) == "command"
+                }
+                for index in range(context_menu.index("end") + 1)
+                if context_menu.type(index) == "cascade"
+                for submenu in [context_menu.nametowidget(context_menu.entrycget(index, "menu"))]
+            }
+            assert {"Compare", "Folder Space Analyzer", "Compress to ZIP", "Extract Here",
+                    "Extract to Folder"}.issubset(submenu_labels["Analyze & Archive"])
+            assert {"Run as Admin", "CMD", "PowerShell", "Create Shortcut & Send to Clipboard",
+                    "Copy Path", "Explorer Menu"}.issubset(submenu_labels["More Actions"])
             rename_index = context_labels.index("Rename")
             rename_menu_index = next(index for index in range(context_menu.index("end") + 1)
                                      if context_menu.type(index) == "command" and
@@ -663,6 +735,9 @@ def main() -> None:
             path_before = app.active.path
             app.ui_language_var.set("zh_TW"); app.apply_ui_language(); app.update()
             assert app.files_menu_button.cget("text") == "檔案"
+            assert app.go_menu_button.cget("text") == "前往"
+            assert app.tools_menu_button.cget("text") == "工具"
+            assert app.versions_menu_button.cget("text") == "說明"
             assert app.active.tree.heading("#0", "text").startswith("名稱")
             assert app.active.path == path_before and app.active.selected_paths() == selected_before
             app.ui_language_var.set("en"); app.apply_ui_language(); app.update()
@@ -684,10 +759,10 @@ def main() -> None:
             pfc.Commander._find_ini_path = original
 
     localized = {
-        "en": ("Files", "View", "Name", "v0.11.x Changes", "• Added: Configurable"),
-        "zh_TW": ("檔案", "檢視", "名稱", "v0.11.x 變更內容", "• 新增：可設定"),
-        "zh_CN": ("文件", "查看", "名称", "v0.11.x 更新内容", "• 新增：可配置"),
-        "ko": ("파일", "보기", "이름", "v0.11.x 변경 내용", "• 추가: 패널 상태"),
+        "en": ("Files", "Go", "View", "Tools", "Help", "Name", "v0.11.x Changes", "• Added: Configurable"),
+        "zh_TW": ("檔案", "前往", "檢視", "工具", "說明", "名稱", "v0.11.x 變更內容", "• 新增：可設定"),
+        "zh_CN": ("文件", "转到", "查看", "工具", "帮助", "名称", "v0.11.x 更新内容", "• 新增：可配置"),
+        "ko": ("파일", "이동", "보기", "도구", "도움말", "이름", "v0.11.x 변경 내용", "• 추가: 패널 상태"),
     }
     original = pfc.Commander._find_ini_path
     with tempfile.TemporaryDirectory() as raw:
@@ -698,13 +773,16 @@ def main() -> None:
             app = pfc.Commander(); app.withdraw(); app.update_idletasks()
             try:
                 assert app.files_menu_button.cget("text") == expected[0]
-                assert app.view_menu_button.cget("text") == expected[1]
-                assert app.left_tabs.current().tree.heading("#0", "text").startswith(expected[2])
+                assert app.go_menu_button.cget("text") == expected[1]
+                assert app.view_menu_button.cget("text") == expected[2]
+                assert app.tools_menu_button.cget("text") == expected[3]
+                assert app.versions_menu_button.cget("text") == expected[4]
+                assert app.left_tabs.current().tree.heading("#0", "text").startswith(expected[5])
                 assert app.language_menu.entrycget(0, "label") == "English"
                 assert app.language_menu.entrycget(1, "label") == "繁體中文"
                 title, body = app.version_series_notes("v0.11.x")
-                assert expected[3] in title
-                assert expected[4] in body
+                assert expected[6] in title
+                assert expected[7] in body
                 missing_notes = app.version_series_notes("v9.9.x")[1]
                 assert (missing_notes == "No release notes available.") == (code == "en")
             finally:

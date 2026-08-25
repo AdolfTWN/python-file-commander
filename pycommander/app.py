@@ -118,6 +118,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.0", "2026/08/25", (
+        "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.",
+        "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.",
+        "Fixed: Menu availability now follows selection, platform, and archive-workspace context, including Explorer Menu.",
+    )),
     ("v0.16.9", "2026/08/24", (
         "Fixed: Dropped Windows executables use safe Shell type icons and guarded GDI resources so icon loading cannot close PFC.",
         "Fixed: Ctrl+Up and other new-tab paths inherit the current UI scale so file icons match existing tabs.",
@@ -1879,7 +1884,8 @@ class Commander(tk.Tk):
             "switch_panel": "<Tab>", "focus_path": "<Control-l>",
             "focus_files": "<Escape>", "help": "<F1>",
             "select_previous": "<Up>", "select_next": "<Down>",
-            "files_menu": "<Alt-f>", "view_menu": "<Alt-v>", "versions_menu": "<Alt-h>",
+            "files_menu": "<Alt-f>", "go_menu": "<Alt-g>", "view_menu": "<Alt-v>",
+            "tools_menu": "<Alt-t>", "versions_menu": "<Alt-h>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
             "explorer_menu": "<F8>",
             "compare": "<F9>",
@@ -1902,7 +1908,9 @@ class Commander(tk.Tk):
             "select_previous": lambda: self.move_selection(-1),
             "select_next": lambda: self.move_selection(1),
             "files_menu": lambda: self.show_header_menu("files"),
+            "go_menu": lambda: self.show_header_menu("go"),
             "view_menu": lambda: self.show_header_menu("view"),
+            "tools_menu": lambda: self.show_header_menu("tools"),
             "versions_menu": lambda: self.show_header_menu("versions"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
             "explorer_menu": self.show_explorer_menu,
@@ -2214,41 +2222,53 @@ class Commander(tk.Tk):
         files_button = tk.Button(header, text=tr("Files"),
                                  command=lambda: self.show_header_menu("files"), **button_style)
         files_button.pack(side="left")
-        files = tk.Menu(files_button, tearoff=False, font=menu_font)
-        files.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
-        files.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
-        files.add_command(label=tr("Paste"), accelerator="Ctrl+V", command=self.clipboard_paste)
+        files = tk.Menu(files_button, tearoff=False, font=menu_font,
+                        postcommand=self._update_header_menu_states)
+        files.add_command(label=tr("Open / Enter Folder"), accelerator="Enter",
+                          command=self.enter_folder)
+        files.add_command(label=tr("New Folder"), accelerator="F7", command=self.mkdir)
         files.add_separator()
+        clipboard_menu = tk.Menu(files, tearoff=False, font=menu_font)
+        clipboard_menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C",
+                                   command=self.clipboard_copy)
+        clipboard_menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X",
+                                   command=self.clipboard_cut)
+        clipboard_menu.add_command(label=tr("Paste"), accelerator="Ctrl+V",
+                                   command=self.clipboard_paste)
+        add_scaled_cascade(files, tr("Clipboard"), clipboard_menu)
         files.add_command(label=tr("Copy to Target Panel"), accelerator="F5", command=self.copy)
         files.add_command(label=tr("Move to Target Panel"), accelerator="F6", command=self.move)
+        files.add_separator()
         files.add_command(label=tr("Rename"), accelerator="F2", command=self.rename)
         files.add_command(label=tr("Multi-Rename"), command=self.multi_rename)
-        files.add_command(label=tr("New Folder"), accelerator="F7", command=self.mkdir)
         files.add_separator()
         files.add_command(label=tr("Delete"), accelerator="Del", command=self.delete)
         files.add_command(label=tr("Permanent Delete"), accelerator="Shift+Del", command=lambda: self.delete(permanent=True))
-        add_scaled_checkbutton(files, tr("Send Delete to Recycle Bin"), self.recycle_bin_var,
-                               self.save_config)
-        add_scaled_checkbutton(files, tr("Continue After File Errors"), self.continue_errors_var,
-                               self.save_config)
-        files.add_separator()
-        self.favorites_menu = tk.Menu(files, tearoff=False, font=menu_font,
-                                      postcommand=self._rebuild_favorites_menu)
-        self.recent_menu = tk.Menu(files, tearoff=False, font=menu_font,
-                                   postcommand=self._rebuild_recent_menu)
-        add_scaled_cascade(files, tr("Favorites"), self.favorites_menu)
-        add_scaled_cascade(files, tr("Recent Folders"), self.recent_menu)
-        files.add_separator()
-        files.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
-        files.add_command(label=tr("Search"), accelerator="F4", command=self.search)
-        files.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
-        files.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
-        files.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
-        files.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
-        files.add_command(label=tr("Change Path"), accelerator="F12", command=self.change_dir)
+        operation_settings = tk.Menu(files, tearoff=False, font=menu_font)
+        add_scaled_checkbutton(operation_settings, tr("Send Delete to Recycle Bin"),
+                               self.recycle_bin_var, self.save_config)
+        add_scaled_checkbutton(operation_settings, tr("Continue After File Errors"),
+                               self.continue_errors_var, self.save_config)
+        add_scaled_cascade(files, tr("File Operation Settings"), operation_settings)
         files.add_separator()
         files.add_command(label=tr("Exit"), command=self.close_app)
         align_scaled_cascade_arrows(files)
+
+        go_button = tk.Button(header, text=tr("Go"),
+                              command=lambda: self.show_header_menu("go"), **button_style)
+        go_button.pack(side="left")
+        go = tk.Menu(go_button, tearoff=False, font=menu_font)
+        self.favorites_menu = tk.Menu(go, tearoff=False, font=menu_font,
+                                      postcommand=self._rebuild_favorites_menu)
+        self.recent_menu = tk.Menu(go, tearoff=False, font=menu_font,
+                                   postcommand=self._rebuild_recent_menu)
+        add_scaled_cascade(go, tr("Favorites"), self.favorites_menu)
+        add_scaled_cascade(go, tr("Recent Folders"), self.recent_menu)
+        go.add_separator()
+        go.add_command(label=tr("Search"), accelerator="F4", command=self.search)
+        go.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
+        go.add_command(label=tr("Change Path"), accelerator="F12", command=self.change_dir)
+        align_scaled_cascade_arrows(go)
         view_button = tk.Button(header, text=tr("View"),
                                 command=lambda: self.show_header_menu("view"), **button_style)
         view_button.pack(side="left")
@@ -2299,7 +2319,19 @@ class Commander(tk.Tk):
                                    self.apply_ui_language)
         add_scaled_cascade(view, tr("UI Language"), language_menu)
         align_scaled_cascade_arrows(view)
-        versions_button = tk.Button(header, text=tr("Versions"),
+
+        tools_button = tk.Button(header, text=tr("Tools"),
+                                 command=lambda: self.show_header_menu("tools"), **button_style)
+        tools_button.pack(side="left")
+        tools = tk.Menu(tools_button, tearoff=False, font=menu_font,
+                        postcommand=self._update_header_menu_states)
+        tools.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
+        tools.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
+        tools.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
+        tools.add_separator()
+        tools.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
+
+        versions_button = tk.Button(header, text=tr("Help"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
         versions_button.pack(side="left")
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
@@ -2317,11 +2349,18 @@ class Commander(tk.Tk):
         versions.add_command(label=tr("Yoda — Portable App Advocate"),
                              command=self.show_yoda_note)
         self.files_menu_button = files_button
+        self.go_menu_button = go_button
         self.view_menu_button = view_button
+        self.tools_menu_button = tools_button
         self.versions_menu_button = versions_button
-        self.header_left_widgets = (title, version_label, files_button, view_button, versions_button)
+        self.header_left_widgets = (title, version_label, files_button, go_button, view_button,
+                                    tools_button, versions_button)
         self.files_menu = files
+        self.clipboard_menu = clipboard_menu
+        self.operation_settings_menu = operation_settings
+        self.go_menu = go
         self.view_menu = view
+        self.tools_menu = tools
         self.visibility_menu = visibility
         self.font_size_menu = font_size
         self.color_scheme_menu = color_scheme_menu
@@ -2330,6 +2369,10 @@ class Commander(tk.Tk):
         self.language_menu = language_menu
         self.versions_menu = versions
         self.version_series = tuple(version_series)
+        self._header_state_entries = {
+            "files": {"single": (0, 7), "selected": (4, 5, 7, 10, 11), "multiple": (8,)},
+            "clipboard": {"selected": (0, 1)},
+        }
         menu_help = {
             "Copy to Clipboard": "Copy selected items for PFC or File Explorer.",
             "Cut to Clipboard": "Cut selected items for PFC or File Explorer.",
@@ -2359,6 +2402,8 @@ class Commander(tk.Tk):
             "Auto Font Size": "Automatically choose a readable font size for the current window and panel widths.",
             "Tab Style": "Choose the shape used by main and Compare tabs.",
             "Panel Counts": "Show two, three, or four file panels; F5/F6 target the adjacent panel.",
+            "Clipboard": "Copy, cut, or paste files with PFC and File Explorer.",
+            "File Operation Settings": "Configure deletion and multi-item error handling.",
         }
         menu_help = {tr(label): tr(help_text) for label, help_text in menu_help.items()}
         version_help = {
@@ -2370,7 +2415,10 @@ class Commander(tk.Tk):
         }
         self.header_popup = HeaderPopupController(self, {**menu_help, **version_help})
         self._files_menu_tooltip = MenuToolTip(files, menu_help)
+        self._clipboard_menu_tooltip = MenuToolTip(clipboard_menu, menu_help)
+        self._go_menu_tooltip = MenuToolTip(go, menu_help)
         self._view_menu_tooltip = MenuToolTip(view, menu_help)
+        self._tools_menu_tooltip = MenuToolTip(tools, menu_help)
         self._versions_menu_tooltip = MenuToolTip(versions, version_help)
         self._visibility_menu_tooltip = MenuToolTip(visibility, menu_help)
         self._font_menu_tooltip = MenuToolTip(font_size, menu_help)
@@ -2382,6 +2430,27 @@ class Commander(tk.Tk):
         })
         self._panel_count_tooltip = MenuToolTip(panel_counts, menu_help)
         self.config(menu="")
+
+    def _update_header_menu_states(self) -> None:
+        """Keep menu affordances honest for the active selection."""
+        items = self.active.selected_paths() if getattr(self, "active", None) is not None else []
+        single = len(items) == 1
+        selected = bool(items)
+        single_file = single and items[0].is_file()
+        can_compare = len(items) in {1, 2} or self.compare_target is not None
+
+        for index in self._header_state_entries["files"]["selected"]:
+            self.files_menu.entryconfigure(index, state="normal" if selected else "disabled")
+        for index in self._header_state_entries["files"]["single"]:
+            self.files_menu.entryconfigure(index, state="normal" if single else "disabled")
+        for index in self._header_state_entries["files"]["multiple"]:
+            self.files_menu.entryconfigure(index, state="normal" if len(items) > 1 else "disabled")
+        for index in self._header_state_entries["clipboard"]["selected"]:
+            self.clipboard_menu.entryconfigure(index, state="normal" if selected else "disabled")
+        self.tools_menu.entryconfigure(0, state="normal" if single_file else "disabled")
+        self.tools_menu.entryconfigure(1, state="normal" if can_compare else "disabled")
+        can_explorer = (os.name == "nt" and selected and self.active.archive_session is None)
+        self.tools_menu.entryconfigure(4, state="normal" if can_explorer else "disabled")
 
     def _schedule_clipboard_summary(self, delay=2000) -> None:
         self._clipboard_job = self.after(delay, self._update_clipboard_summary)
@@ -2938,38 +3007,8 @@ class Commander(tk.Tk):
                          state=normal_if(single), command=pane.open_selected)
         menu.add_command(label=tr("Open Folder in New Tab"), state=normal_if(single and clicked_folder),
                          command=lambda: self._open_folder_in_new_tab(pane, clicked))
-        menu.add_command(label=tr("Run as Admin"),
-                         state=normal_if(single and self._can_run_as_admin(clicked)),
-                         command=lambda path=clicked: self.run_as_admin(path))
         menu.add_command(label=tr("Preview"), accelerator="F3",
                          state=normal_if(single and clicked.is_file()), command=self.preview)
-        menu.add_command(label=tr("Compare"), accelerator="F9",
-                         state=normal_if(can_compare), command=self.compare_selected)
-        menu.add_command(label=tr("Folder Space Analyzer"),
-                         command=lambda path=(clicked if clicked_folder else clicked.parent):
-                             self.show_space_analyzer(path))
-        compression = tk.Menu(menu, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
-        compression.add_command(label=tr("Compress to ZIP"),
-                                state=normal_if(bool(items)), command=self.compress_selected)
-        archive_selected = single and is_browsable_archive(clicked)
-        extract_label = (tr("Extract Here (counting…)") if archive_selected else tr("Extract Here"))
-        compression.add_command(label=extract_label, state=normal_if(archive_selected),
-                                command=lambda path=clicked: self.extract_archive(path, clicked.parent))
-        extract_here_index = compression.index("end")
-        compression.add_command(label=tr("Extract to Folder"), state=normal_if(archive_selected),
-                                command=lambda path=clicked:
-                                    self.extract_archive(path, clicked.parent / clicked.stem))
-        if archive_selected:
-            self._load_archive_menu_count(compression, extract_here_index, clicked)
-        menu.add_cascade(label=tr("Compression"), menu=compression)
-        menu.add_command(label=tr("Create Shortcut & Send to Clipboard"),
-                         state=normal_if(bool(items)), command=self.create_shortcuts_to_clipboard)
-        menu.add_command(label=tr("CMD"), state=normal_if(os.name == "nt"),
-                         command=lambda path=(clicked if clicked_folder else clicked.parent):
-                             self.open_terminal(path, "cmd"))
-        menu.add_command(label=tr("PowerShell"), state=normal_if(os.name == "nt"),
-                         command=lambda path=(clicked if clicked_folder else clicked.parent):
-                             self.open_terminal(path, "powershell"))
         menu.add_separator()
         menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
@@ -2985,7 +3024,47 @@ class Commander(tk.Tk):
                          state=normal_if(single), command=self.rename)
         menu.add_command(label=tr("Multi-Rename"),
                          state=normal_if(len(items) > 1), command=self.multi_rename)
-        menu.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
+
+        analyze = tk.Menu(menu, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        analyze.add_command(label=tr("Compare"), accelerator="F9",
+                            state=normal_if(can_compare), command=self.compare_selected)
+        analyze.add_command(label=tr("Folder Space Analyzer"),
+                            command=lambda path=(clicked if clicked_folder else clicked.parent):
+                                self.show_space_analyzer(path))
+        analyze.add_separator()
+        analyze.add_command(label=tr("Compress to ZIP"),
+                            state=normal_if(bool(items)), command=self.compress_selected)
+        archive_selected = single and is_browsable_archive(clicked)
+        extract_label = (tr("Extract Here (counting…)") if archive_selected else tr("Extract Here"))
+        analyze.add_command(label=extract_label, state=normal_if(archive_selected),
+                            command=lambda path=clicked: self.extract_archive(path, clicked.parent))
+        extract_here_index = analyze.index("end")
+        analyze.add_command(label=tr("Extract to Folder"), state=normal_if(archive_selected),
+                            command=lambda path=clicked:
+                                self.extract_archive(path, clicked.parent / clicked.stem))
+        if archive_selected:
+            self._load_archive_menu_count(analyze, extract_here_index, clicked)
+        menu.add_cascade(label=tr("Analyze & Archive"), menu=analyze)
+
+        more = tk.Menu(menu, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        more.add_command(label=tr("Run as Admin"),
+                         state=normal_if(single and self._can_run_as_admin(clicked)),
+                         command=lambda path=clicked: self.run_as_admin(path))
+        more.add_command(label=tr("Create Shortcut & Send to Clipboard"),
+                         state=normal_if(bool(items)), command=self.create_shortcuts_to_clipboard)
+        more.add_separator()
+        more.add_command(label=tr("CMD"), state=normal_if(os.name == "nt"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.open_terminal(path, "cmd"))
+        more.add_command(label=tr("PowerShell"), state=normal_if(os.name == "nt"),
+                         command=lambda path=(clicked if clicked_folder else clicked.parent):
+                             self.open_terminal(path, "powershell"))
+        more.add_separator()
+        more.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
+        more.add_command(label=tr("Explorer Menu"), accelerator="F8",
+                         state=normal_if(os.name == "nt" and pane.archive_session is None),
+                         command=self.show_explorer_menu)
+        menu.add_cascade(label=tr("More Actions"), menu=more)
         menu.add_separator()
         menu.add_command(label=tr("Delete"), accelerator="Del", command=self.delete_hotkey)
         menu.add_command(label=tr("Permanent Delete"), accelerator="Shift+Del",
@@ -2997,7 +3076,8 @@ class Commander(tk.Tk):
             "Preview": "Open the selected file in PFC Preview.",
             "Compare": "Compare the active and next panel, or two selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
-            "Compression": "Compress selected items or extract a ZIP/7z archive.",
+            "Analyze & Archive": "Compare, inspect folder size, compress, or extract selected items.",
+            "More Actions": "Open administrative, terminal, shortcut, path, and Explorer actions.",
             "Create Shortcut & Send to Clipboard":
                 "Create shortcuts beside the selected items and cut them to the clipboard.",
             "CMD": "Open Command Prompt in this folder.",
@@ -3016,6 +3096,8 @@ class Commander(tk.Tk):
         }
         descriptions = {tr(label): tr(help_text) for label, help_text in descriptions.items()}
         self._file_context_tooltip = MenuToolTip(menu, descriptions)
+        self._file_analyze_tooltip = MenuToolTip(analyze, descriptions)
+        self._file_more_tooltip = MenuToolTip(more, descriptions)
         return menu
 
     def _load_archive_menu_count(self, menu: tk.Menu, index: int, archive_path: Path) -> None:
@@ -3385,7 +3467,10 @@ class Commander(tk.Tk):
         body.pack(fill="both", expand=True)
         ttk.Label(body, text=tr("Keyboard shortcuts not shown on the bottom action bar"),
                   font=tkfont.nametofont("TkHeadingFont")).pack(anchor="w", pady=(0, 12))
-        guide = tr("Keyboard guide body")
+        # The historical guide body ends with the old three-menu shortcut row.
+        # Replace that row here so every locale stays aligned with the current header.
+        guide = tr("Keyboard guide body").rsplit("\n", 1)[0] + "\n" + tr(
+            "Alt+F / Alt+G / Alt+V / Alt+T / Alt+H  Open Files / Go / View / Tools / Help menu")
         ttk.Label(body, text=guide, justify="left").pack(anchor="w")
         button = ttk.Button(body, text=tr("OK"), command=dialog.destroy)
         button.pack(anchor="e", pady=(16, 0))
@@ -3398,7 +3483,9 @@ class Commander(tk.Tk):
 
     def show_header_menu(self, which: str) -> str:
         button, menu = {"files": (self.files_menu_button, self.files_menu),
+                        "go": (self.go_menu_button, self.go_menu),
                         "view": (self.view_menu_button, self.view_menu),
+                        "tools": (self.tools_menu_button, self.tools_menu),
                         "versions": (self.versions_menu_button, self.versions_menu)}[which]
         self.header_popup.show(button, menu)
         return "break"
@@ -3518,13 +3605,13 @@ class Commander(tk.Tk):
 
     def _show_folder_menu(self, menu: tk.Menu, rebuild) -> str:
         rebuild()
-        menu.tk_popup(self.files_menu_button.winfo_rootx(),
-                      self.files_menu_button.winfo_rooty() + self.files_menu_button.winfo_height())
+        menu.tk_popup(self.go_menu_button.winfo_rootx(),
+                      self.go_menu_button.winfo_rooty() + self.go_menu_button.winfo_height())
         return "break"
 
     def _rebuild_favorites_menu(self) -> None:
         menu = self.favorites_menu; menu.delete(0, "end")
-        current = self.panes()[0].path
+        current = self.active.path
         normalized = os.path.normcase(str(current))
         existing = any(os.path.normcase(str(path)) == normalized for path in self.favorites)
         menu.add_command(label=tr("Remove Current Folder") if existing else tr("Add Current Folder"),
@@ -3545,7 +3632,7 @@ class Commander(tk.Tk):
             menu.add_command(label=tr("No recent folders"), state="disabled")
 
     def toggle_favorite(self) -> str:
-        current = self.panes()[0].path
+        current = self.active.path
         normalized = os.path.normcase(str(current))
         remaining = [path for path in self.favorites if os.path.normcase(str(path)) != normalized]
         self.favorites = remaining if len(remaining) != len(self.favorites) else [current, *self.favorites]
@@ -3558,7 +3645,7 @@ class Commander(tk.Tk):
         self.save_config(record_recent=False)
 
     def navigate_to_folder(self, path: Path) -> None:
-        source = self.panes()[0]
+        source = self.active
         if source.navigate(path):
             self._record_recent(source.path); source.focus_file_list(); self.save_config()
 
