@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.0 — Task-Focused Menu UX**
+Current version: **v0.17.1 — Windows Auto Start & Tray**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -55,6 +55,8 @@ Tools > Folder Space Analyzer opens an interactive proportional treemap for the 
 Header and context menus use a dedicated accelerator column so actions remain left-aligned and hotkeys right-aligned at every font scale. The Help header menu (Alt+H) opens one concise, bulleted changes window per version series. Its separate `Yoda — Portable App Advocate` item identifies Yoda as the advocate who helped bring this portable app into being, asks users to report problems, and reminds them to use file operations carefully. Version bumps are reserved for meaningful feature milestones instead of individual visual refinements.
 
 View > Tab Style provides Right Skirt (default), Rounded, and Squarish. All three use the same height at every font scale. Right Skirt has a vertical left edge and steep curved bottom-right skirt; Rounded curves only the top corners and keeps a square bottom. The selection applies immediately to all main panels and Compare tabs and is saved in `pfc.ini`; legacy Compact settings migrate automatically to Right Skirt.
+
+On Windows, PFC enables **Tools > Auto Start when boot** the first time it runs. It registers only a per-user startup entry, so no administrator permission is required. While PFC is running, its icon is also available in the notification area with Open PFC, Auto Start when boot, and Exit PFC actions. Turning Auto Start off from either location removes the startup entry immediately and the choice stays off until it is enabled again.
 
 View > UI Language provides English (default), Traditional Chinese, Simplified Chinese, and Korean. Language names are shown in their native scripts, and file-management terms follow each platform language's familiar conventions. The selection is saved in `pfc.ini` and applies immediately—without restarting—to the main window and any open Preview, Search, Compare, or Multi-Rename window.
 

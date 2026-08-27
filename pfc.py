@@ -64,6 +64,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Auto Start when boot": "開機時自動啟動",
+        "Start PFC automatically after signing in to Windows.": "登入 Windows 後自動啟動 PFC。",
+        "Open PFC": "開啟 PFC", "Exit PFC": "結束 PFC",
+        "Auto Start failed": "自動啟動設定失敗",
         "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.": "重新設計：頂部選單改為檔案、前往、檢視、工具與說明，採用淺層且以工作為主的架構。",
         "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.": "重新設計：檔案右鍵選單保留常用動作，並將分析、壓縮與進階動作整理在單層子選單中。",
         "Fixed: Menu availability now follows selection, platform, and archive-workspace context, including Explorer Menu.": "修正：選單可用狀態現在會配合選取項目、作業平台與壓縮檔工作區情境，包括檔案總管選單。",
@@ -76,6 +80,9 @@ _TRANSLATIONS = {
         "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "調整：Git／SVN 狀態徽章改用實心狀態色、清晰深色外框及明確分離的小型符號，並移除白色圓環。",
         "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "新增：資料夾比較可將文字檔視為等同，並忽略 BOM、換行格式、行尾空白、Unicode 組合及控制字元等不可見的表示差異。",
         "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "調整：縮短檔名時優先保留版本與修訂識別資訊，讓名稱相近的版本仍可分辨。",
+        "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.": "新增：PFC 預設會在 Windows 登入後自動啟動，採用不需系統管理員權限的個人使用者設定。",
+        "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.": "新增：Windows 通知區圖示可開啟 PFC、啟用或停用自動啟動，或結束程式。",
+        "Fixed: Directly contained Git repositories keep their own status boundary even when viewed from inside another work tree.": "修正：即使從另一個工作樹內檢視，直接包含的 Git 儲存庫仍會保有自己的狀態邊界。",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "新增：壓縮檔解壓縮選單會顯示內含的資料夾與檔案數量，且不會延遲右鍵選單。",
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "調整：Git／SVN 覆蓋圖示採用較大徽章、更強的雙層外框及間距更清楚的狀態符號。",
         "Extract Here (counting…)": "解壓縮至此處（計算中…）",
@@ -294,6 +301,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Auto Start when boot": "开机时自动启动",
+        "Start PFC automatically after signing in to Windows.": "登录 Windows 后自动启动 PFC。",
+        "Open PFC": "打开 PFC", "Exit PFC": "退出 PFC",
+        "Auto Start failed": "自动启动设置失败",
         "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.": "重新设计：顶部菜单改为文件、转到、查看、工具和帮助，采用浅层且以任务为主的结构。",
         "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.": "重新设计：文件右键菜单保留常用操作，并将分析、压缩和高级操作整理到单层子菜单中。",
         "Fixed: Menu availability now follows selection, platform, and archive-workspace context, including Explorer Menu.": "修复：菜单可用状态现在会根据所选项目、操作平台和压缩包工作区情境调整，包括资源管理器菜单。",
@@ -306,6 +317,9 @@ _TRANSLATIONS = {
         "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "调整：Git／SVN 状态徽标改用实心状态色、清晰深色轮廓和明确分离的小型符号，并移除白色圆环。",
         "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "新增：文件夹比较可将文本文件视为等同，并忽略 BOM、换行格式、行尾空格、Unicode 组合及控制字符等不可见的表示差异。",
         "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "调整：缩短文件名时优先保留版本和修订标识信息，让名称相近的版本仍可区分。",
+        "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.": "新增：PFC 默认会在 Windows 登录后自动启动，使用无需管理员权限的个人用户设置。",
+        "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.": "新增：Windows 通知区域图标可打开 PFC、启用或停用自动启动，或退出程序。",
+        "Fixed: Directly contained Git repositories keep their own status boundary even when viewed from inside another work tree.": "修正：即使从另一个工作树内查看，直接包含的 Git 仓库仍会保留自己的状态边界。",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "新增：压缩包解压菜单会显示所含文件夹和文件数量，且不会延迟右键菜单。",
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "调整：Git／SVN 叠加图标采用更大徽标、更强的双层轮廓和间距更清晰的状态符号。",
         "Extract Here (counting…)": "解压到此处（计算中…）",
@@ -497,6 +511,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Auto Start when boot": "부팅 후 자동 시작",
+        "Start PFC automatically after signing in to Windows.": "Windows 로그인 후 PFC를 자동으로 시작합니다.",
+        "Open PFC": "PFC 열기", "Exit PFC": "PFC 종료",
+        "Auto Start failed": "자동 시작 설정 실패",
         "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.": "재설계: 상단 메뉴를 파일, 이동, 보기, 도구, 도움말로 나누고 작업 중심의 얕은 구조를 적용했습니다.",
         "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.": "재설계: 파일 상황에 맞는 메뉴는 자주 쓰는 작업을 표시하고 분석, 압축 및 고급 작업을 한 단계 하위 메뉴로 묶었습니다.",
         "Fixed: Menu availability now follows selection, platform, and archive-workspace context, including Explorer Menu.": "수정: 탐색기 메뉴를 포함한 메뉴 사용 가능 상태가 선택 항목, 플랫폼 및 압축 파일 작업 공간 상황을 따릅니다.",
@@ -509,6 +527,9 @@ _TRANSLATIONS = {
         "Adjusted: Git/SVN status badges use solid status-color faces, crisp dark outlines, and clearly separated small symbols without white rings.": "조정: Git/SVN 상태 배지에 단색 상태 면, 선명한 어두운 외곽선 및 명확히 분리된 작은 기호를 적용하고 흰색 고리를 제거했습니다.",
         "Added: Folder Compare can treat text files as equivalent while ignoring invisible representation differences such as BOMs, line endings, trailing spaces, Unicode composition, and control characters.": "추가: 폴더 비교에서 BOM, 줄 바꿈 형식, 줄 끝 공백, Unicode 조합 및 제어 문자 같은 보이지 않는 표현 차이를 무시하고 텍스트 파일을 동일하게 처리할 수 있습니다.",
         "Adjusted: Shortened file names preserve release and revision identifiers so similarly named versions remain distinguishable.": "조정: 파일 이름을 줄일 때 릴리스 및 리비전 식별자를 우선 보존하여 비슷한 버전을 구분할 수 있습니다.",
+        "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.": "추가: 관리자 권한이 필요 없는 사용자별 설정을 사용하여 Windows 로그인 후 PFC가 기본적으로 자동 시작됩니다.",
+        "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.": "추가: Windows 알림 영역 아이콘에서 PFC를 열고 자동 시작을 켜거나 끄며 앱을 종료할 수 있습니다.",
+        "Fixed: Directly contained Git repositories keep their own status boundary even when viewed from inside another work tree.": "수정: 다른 작업 트리 안에서 볼 때도 바로 포함된 Git 저장소가 자체 상태 경계를 유지합니다.",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "추가: 압축 풀기 메뉴에 포함된 폴더와 파일 수를 표시하며 오른쪽 클릭 메뉴를 지연시키지 않습니다.",
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "조정: Git/SVN 오버레이에 더 큰 배지, 강한 이중 외곽선 및 여유 있게 배치된 상태 기호를 적용했습니다.",
         "Extract Here (counting…)": "여기에 압축 풀기(계산 중…)",
@@ -1482,6 +1503,14 @@ def create_pfc_icon(size: int = 32) -> PhotoImage:
     return PhotoImage(data=encoded, format="png")
 
 
+def pfc_icon_ico(size: int = 32) -> bytes:
+    """Wrap the PNG app badge in a Windows ICO container for Shell_NotifyIcon."""
+    png = pfc_icon_png(size)
+    width = 0 if size >= 256 else size
+    entry = struct.pack("<BBBBHHII", width, width, 0, 0, 1, 32, len(png), 22)
+    return struct.pack("<HHH", 0, 1, 1) + entry + png
+
+
 def _rgba_png_downsample(pixels: bytearray, output_size: int, supersample: int) -> bytes:
     canvas_size = output_size * supersample
     rgba = bytearray()
@@ -1703,6 +1732,290 @@ class ShellIconProvider:
             return None
 
 
+import ctypes
+import os
+import queue
+import subprocess
+import sys
+import tempfile
+import threading
+from pathlib import Path, PureWindowsPath
+
+
+AUTOSTART_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+AUTOSTART_VALUE = "Python File Commander"
+
+
+def startup_command(executable: Path | str | None = None,
+                    script: Path | str | None = None,
+                    *, frozen: bool | None = None,
+                    pythonw_exists=None) -> str:
+    """Return the per-user Windows startup command for this PFC edition."""
+    def resolved(value):
+        raw = os.fspath(value)
+        windows_path = PureWindowsPath(raw)
+        return windows_path if windows_path.drive else Path(raw).resolve()
+
+    executable = resolved(executable or sys.executable)
+    frozen = bool(getattr(sys, "frozen", False)) if frozen is None else frozen
+    if frozen:
+        arguments = [str(executable), "--startup"]
+    else:
+        candidate = executable.with_name("pythonw.exe")
+        exists = Path(candidate).is_file() if pythonw_exists is None else pythonw_exists(candidate)
+        launcher = candidate if exists else executable
+        script = resolved(script or sys.argv[0])
+        arguments = [str(launcher), str(script), "--startup"]
+    return subprocess.list2cmdline(arguments)
+
+
+def set_windows_autostart(enabled: bool, command: str | None = None,
+                          registry=None) -> bool:
+    """Synchronize PFC's HKCU Run value. Return False off Windows."""
+    if registry is None:
+        if os.name != "nt":
+            return False
+        import winreg as registry
+    if enabled:
+        with registry.CreateKey(registry.HKEY_CURRENT_USER, AUTOSTART_KEY) as key:
+            registry.SetValueEx(key, AUTOSTART_VALUE, 0, registry.REG_SZ,
+                                command or startup_command())
+    else:
+        try:
+            with registry.OpenKey(registry.HKEY_CURRENT_USER, AUTOSTART_KEY, 0,
+                                  registry.KEY_SET_VALUE) as key:
+                registry.DeleteValue(key, AUTOSTART_VALUE)
+        except FileNotFoundError:
+            pass
+    return True
+
+
+class WindowsTrayIcon:
+    """Small native notification-area host that sends actions to Tk via a queue."""
+
+    def __init__(self, actions: queue.Queue, icon_bytes: bytes, *,
+                 open_label: str, auto_start_label: str, exit_label: str,
+                 auto_start_enabled: bool) -> None:
+        self.actions = actions
+        self.icon_bytes = icon_bytes
+        self.open_label = open_label
+        self.auto_start_label = auto_start_label
+        self.exit_label = exit_label
+        self.auto_start_enabled = auto_start_enabled
+        self._thread: threading.Thread | None = None
+        self._thread_id = 0
+        self._hwnd = 0
+        self._stop_requested = threading.Event()
+        self.error: Exception | None = None
+
+    def start(self) -> bool:
+        if os.name != "nt" or self._thread is not None:
+            return False
+        self._thread = threading.Thread(target=self._run, name="PFC-Tray", daemon=True)
+        self._thread.start()
+        return True
+
+    def update(self, *, auto_start_enabled: bool | None = None,
+               open_label: str | None = None, auto_start_label: str | None = None,
+               exit_label: str | None = None) -> None:
+        if auto_start_enabled is not None:
+            self.auto_start_enabled = auto_start_enabled
+        if open_label is not None:
+            self.open_label = open_label
+        if auto_start_label is not None:
+            self.auto_start_label = auto_start_label
+        if exit_label is not None:
+            self.exit_label = exit_label
+
+    def stop(self) -> None:
+        self._stop_requested.set()
+        if os.name == "nt" and self._hwnd:
+            ctypes.windll.user32.PostMessageW(self._hwnd, 0x0010, 0, 0)  # WM_CLOSE
+
+    def _run(self) -> None:
+        from ctypes import wintypes
+
+        WM_APP, WM_CLOSE, WM_DESTROY = 0x8000, 0x0010, 0x0002
+        WM_LBUTTONUP, WM_LBUTTONDBLCLK, WM_RBUTTONUP = 0x0202, 0x0203, 0x0205
+        WM_NULL, NIM_ADD, NIM_DELETE, NIM_SETVERSION = 0x0000, 0, 2, 4
+        NIF_MESSAGE, NIF_ICON, NIF_TIP, NOTIFYICON_VERSION_4 = 1, 2, 4, 4
+        MF_STRING, MF_SEPARATOR, MF_CHECKED = 0, 0x0800, 0x0008
+        TPM_RIGHTBUTTON, TPM_RETURNCMD = 0x0002, 0x0100
+        IMAGE_ICON, LR_LOADFROMFILE = 1, 0x0010
+        CALLBACK_MESSAGE = WM_APP + 23
+        OPEN_COMMAND, AUTOSTART_COMMAND, EXIT_COMMAND = 1001, 1002, 1003
+
+        class GUID(ctypes.Structure):
+            _fields_ = [("Data1", wintypes.DWORD), ("Data2", wintypes.WORD),
+                        ("Data3", wintypes.WORD), ("Data4", ctypes.c_ubyte * 8)]
+
+        class NOTIFYICONDATAW(ctypes.Structure):
+            _fields_ = [("cbSize", wintypes.DWORD), ("hWnd", wintypes.HWND),
+                        ("uID", wintypes.UINT), ("uFlags", wintypes.UINT),
+                        ("uCallbackMessage", wintypes.UINT), ("hIcon", wintypes.HICON),
+                        ("szTip", wintypes.WCHAR * 128), ("dwState", wintypes.DWORD),
+                        ("dwStateMask", wintypes.DWORD), ("szInfo", wintypes.WCHAR * 256),
+                        ("uVersion", wintypes.UINT), ("szInfoTitle", wintypes.WCHAR * 64),
+                        ("dwInfoFlags", wintypes.DWORD), ("guidItem", GUID),
+                        ("hBalloonIcon", wintypes.HICON)]
+
+        LRESULT = ctypes.c_ssize_t
+        WNDPROC = ctypes.WINFUNCTYPE(
+            LRESULT, wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM)
+
+        class WNDCLASSW(ctypes.Structure):
+            _fields_ = [("style", wintypes.UINT), ("lpfnWndProc", WNDPROC),
+                        ("cbClsExtra", ctypes.c_int), ("cbWndExtra", ctypes.c_int),
+                        ("hInstance", wintypes.HINSTANCE), ("hIcon", wintypes.HICON),
+                        ("hCursor", wintypes.HANDLE), ("hbrBackground", wintypes.HBRUSH),
+                        ("lpszMenuName", wintypes.LPCWSTR), ("lpszClassName", wintypes.LPCWSTR)]
+
+        user32, shell32, kernel32 = (
+            ctypes.windll.user32, ctypes.windll.shell32, ctypes.windll.kernel32)
+        user32.DefWindowProcW.restype = LRESULT
+        user32.DefWindowProcW.argtypes = [wintypes.HWND, wintypes.UINT,
+                                          wintypes.WPARAM, wintypes.LPARAM]
+        user32.RegisterClassW.restype = wintypes.ATOM
+        user32.RegisterClassW.argtypes = [ctypes.POINTER(WNDCLASSW)]
+        user32.CreateWindowExW.restype = wintypes.HWND
+        user32.CreateWindowExW.argtypes = [
+            wintypes.DWORD, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD,
+            ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, wintypes.HWND,
+            wintypes.HMENU, wintypes.HINSTANCE, wintypes.LPVOID]
+        user32.DestroyWindow.argtypes = [wintypes.HWND]
+        user32.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT,
+                                        wintypes.WPARAM, wintypes.LPARAM]
+        user32.CreatePopupMenu.restype = wintypes.HMENU
+        user32.AppendMenuW.argtypes = [wintypes.HMENU, wintypes.UINT,
+                                       ctypes.c_size_t, wintypes.LPCWSTR]
+        user32.TrackPopupMenu.restype = wintypes.UINT
+        user32.TrackPopupMenu.argtypes = [
+            wintypes.HMENU, wintypes.UINT, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+            wintypes.HWND, ctypes.c_void_p]
+        user32.DestroyMenu.argtypes = [wintypes.HMENU]
+        user32.GetCursorPos.argtypes = [ctypes.POINTER(wintypes.POINT)]
+        user32.SetForegroundWindow.argtypes = [wintypes.HWND]
+        user32.GetMessageW.argtypes = [ctypes.POINTER(wintypes.MSG), wintypes.HWND,
+                                       wintypes.UINT, wintypes.UINT]
+        user32.TranslateMessage.argtypes = [ctypes.POINTER(wintypes.MSG)]
+        user32.DispatchMessageW.argtypes = [ctypes.POINTER(wintypes.MSG)]
+        user32.LoadImageW.restype = wintypes.HANDLE
+        user32.LoadImageW.argtypes = [wintypes.HINSTANCE, wintypes.LPCWSTR,
+                                      wintypes.UINT, ctypes.c_int, ctypes.c_int,
+                                      wintypes.UINT]
+        kernel32.GetModuleHandleW.restype = wintypes.HMODULE
+        kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
+        kernel32.GetCurrentThreadId.restype = wintypes.DWORD
+        shell32.Shell_NotifyIconW.argtypes = [wintypes.DWORD,
+                                              ctypes.POINTER(NOTIFYICONDATAW)]
+        icon_path = Path(tempfile.gettempdir()) / "pfc-notification.ico"
+        notify = None
+        icon = 0
+
+        def add_icon() -> None:
+            if notify is None:
+                return
+            notify.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP
+            notify.uVersion = 0
+            shell32.Shell_NotifyIconW(NIM_ADD, ctypes.byref(notify))
+            notify.uVersion = NOTIFYICON_VERSION_4
+            shell32.Shell_NotifyIconW(NIM_SETVERSION, ctypes.byref(notify))
+
+        def show_menu(hwnd) -> None:
+            menu = user32.CreatePopupMenu()
+            if not menu:
+                return
+            user32.AppendMenuW(menu, MF_STRING, OPEN_COMMAND, self.open_label)
+            flags = MF_STRING | (MF_CHECKED if self.auto_start_enabled else 0)
+            user32.AppendMenuW(menu, flags, AUTOSTART_COMMAND, self.auto_start_label)
+            user32.AppendMenuW(menu, MF_SEPARATOR, 0, None)
+            user32.AppendMenuW(menu, MF_STRING, EXIT_COMMAND, self.exit_label)
+            point = wintypes.POINT()
+            user32.GetCursorPos(ctypes.byref(point))
+            user32.SetForegroundWindow(hwnd)
+            command = user32.TrackPopupMenu(
+                menu, TPM_RIGHTBUTTON | TPM_RETURNCMD, point.x, point.y, 0, hwnd, None)
+            user32.DestroyMenu(menu)
+            user32.PostMessageW(hwnd, WM_NULL, 0, 0)
+            if command == OPEN_COMMAND:
+                self.actions.put("show")
+            elif command == AUTOSTART_COMMAND:
+                self.actions.put("toggle_autostart")
+            elif command == EXIT_COMMAND:
+                self.actions.put("exit")
+
+        taskbar_created = user32.RegisterWindowMessageW("TaskbarCreated")
+
+        @WNDPROC
+        def window_proc(hwnd, message, wparam, lparam):
+            if message == CALLBACK_MESSAGE:
+                event = int(lparam) & 0xFFFF
+                if event in (WM_LBUTTONUP, WM_LBUTTONDBLCLK):
+                    self.actions.put("show")
+                elif event == WM_RBUTTONUP:
+                    show_menu(hwnd)
+                return 0
+            if message == taskbar_created:
+                add_icon()
+                return 0
+            if message == WM_CLOSE:
+                if notify is not None:
+                    shell32.Shell_NotifyIconW(NIM_DELETE, ctypes.byref(notify))
+                user32.DestroyWindow(hwnd)
+                return 0
+            if message == WM_DESTROY:
+                user32.PostQuitMessage(0)
+                return 0
+            return user32.DefWindowProcW(hwnd, message, wparam, lparam)
+
+        try:
+            icon_path.write_bytes(self.icon_bytes)
+            instance = kernel32.GetModuleHandleW(None)
+            class_name = f"PFCTrayWindow_{id(self)}"
+            window_class = WNDCLASSW()
+            window_class.lpfnWndProc = window_proc
+            window_class.hInstance = instance
+            window_class.lpszClassName = class_name
+            if not user32.RegisterClassW(ctypes.byref(window_class)):
+                raise ctypes.WinError()
+            hwnd = user32.CreateWindowExW(
+                0, class_name, "PFC Tray", 0, 0, 0, 0, 0, 0, 0, instance, None)
+            if not hwnd:
+                raise ctypes.WinError()
+            self._hwnd = hwnd
+            self._thread_id = kernel32.GetCurrentThreadId()
+            icon = user32.LoadImageW(None, str(icon_path), IMAGE_ICON, 32, 32,
+                                     LR_LOADFROMFILE)
+            if not icon:
+                raise ctypes.WinError()
+            notify = NOTIFYICONDATAW()
+            notify.cbSize = ctypes.sizeof(notify)
+            notify.hWnd = hwnd
+            notify.uID = 1
+            notify.uCallbackMessage = CALLBACK_MESSAGE
+            notify.hIcon = icon
+            notify.szTip = "PFC — Python File Commander"
+            add_icon()
+            if self._stop_requested.is_set():
+                user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+            message = wintypes.MSG()
+            while user32.GetMessageW(ctypes.byref(message), None, 0, 0) > 0:
+                user32.TranslateMessage(ctypes.byref(message))
+                user32.DispatchMessageW(ctypes.byref(message))
+        except Exception as exc:
+            self.error = exc
+        finally:
+            if notify is not None:
+                shell32.Shell_NotifyIconW(NIM_DELETE, ctypes.byref(notify))
+            if icon:
+                user32.DestroyIcon(icon)
+            try:
+                icon_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+            self._hwnd = 0
+
+
 import os
 import subprocess
 import time
@@ -1895,6 +2208,11 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         if statuses is None:
             statuses = _child_repository_statuses(folder)
         value = statuses or {}
+        # A directly contained repository remains its own status boundary even
+        # when the folder being viewed is itself inside another work tree.
+        # This also covers nested repositories that are not registered as Git
+        # submodules.
+        value.update(_child_repository_statuses(folder))
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
         value = {}
     _CACHE[key] = (now, value)
@@ -7754,7 +8072,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.0"
+__version__ = "0.17.1"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -7835,8 +8153,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/25"
+BUILD_DATE = "2026/08/28"
 VERSION_HISTORY = (
+    ("v0.17.1", "2026/08/28", (
+        "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.",
+        "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.",
+        "Fixed: Directly contained Git repositories keep their own status boundary even when viewed from inside another work tree.",
+    )),
     ("v0.17.0", "2026/08/25", (
         "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.",
         "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.",
@@ -8029,6 +8352,7 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
         "navigation": {"favorites": "[]", "recent_folders": "[]"},
+        "startup": {"auto_start": "true"},
     }
     for section, values in defaults.items():
         if not config.has_section(section):
@@ -9502,6 +9826,11 @@ class Commander(tk.Tk):
             value=self.config_data.getboolean("operations", "send_delete_to_recycle_bin", fallback=True))
         self.continue_errors_var = tk.BooleanVar(
             value=self.config_data.getboolean("operations", "continue_after_error", fallback=True))
+        self.auto_start_var = tk.BooleanVar(
+            value=self.config_data.getboolean("startup", "auto_start", fallback=True))
+        self._tray_actions: queue.Queue = queue.Queue()
+        self._tray_icon: WindowsTrayIcon | None = None
+        self._tray_poll_job = None
         self.favorites = self._load_navigation_paths("favorites")
         self.recent_folders = self._load_navigation_paths("recent_folders")
         self._font_scales = {"small": 1.0, "medium": 1.25, "large": 1.5,
@@ -9662,6 +9991,8 @@ class Commander(tk.Tk):
         self.bind("<Configure>", self._schedule_auto_font_size, add="+")
         self.set_active(self.active)
         self.save_config()
+        self._sync_auto_start(show_error=False)
+        self._start_windows_tray()
         self._schedule_auto_refresh(250)
         self._schedule_clipboard_summary(250)
         self._schedule_auto_font_size(delay=300)
@@ -9809,6 +10140,8 @@ class Commander(tk.Tk):
             self.config_data.add_section("refresh")
         if not self.config_data.has_section("tab_colors"):
             self.config_data.add_section("tab_colors")
+        if not self.config_data.has_section("startup"):
+            self.config_data.add_section("startup")
         self.config_data.set("window", "geometry", self.geometry())
         active_tabs = self._tabs_for(self.active) if self.active is not None else self.panel_tabs[0]
         self.config_data.set("state", "active_panel", PANEL_SECTIONS[self.panel_tabs.index(active_tabs)])
@@ -9823,6 +10156,7 @@ class Commander(tk.Tk):
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
+        self.config_data.set("startup", "auto_start", str(self.auto_start_var.get()).lower())
         self.config_data.set("navigation", "favorites", json.dumps([str(path) for path in self.favorites], ensure_ascii=False))
         self.config_data.set("navigation", "recent_folders", json.dumps([str(path) for path in self.recent_folders], ensure_ascii=False))
         try:
@@ -9854,6 +10188,11 @@ class Commander(tk.Tk):
             self.after_cancel(self._auto_font_job)
         if self._archive_open_poll_job is not None:
             self.after_cancel(self._archive_open_poll_job)
+        if self._tray_poll_job is not None:
+            self.after_cancel(self._tray_poll_job)
+            self._tray_poll_job = None
+        if self._tray_icon is not None:
+            self._tray_icon.stop()
         for job in self._archive_open_jobs.values():
             job["cancel"].set()
             try:
@@ -9868,6 +10207,57 @@ class Commander(tk.Tk):
             session.close()
         self._archive_sessions.clear()
         self.destroy()
+
+    def _sync_auto_start(self, show_error: bool = True) -> bool:
+        if os.name != "nt":
+            return False
+        try:
+            set_windows_autostart(self.auto_start_var.get())
+        except OSError as exc:
+            if show_error:
+                messagebox.showerror(tr("Auto Start failed"), str(exc), parent=self)
+            return False
+        if self._tray_icon is not None:
+            self._tray_icon.update(auto_start_enabled=self.auto_start_var.get())
+        return True
+
+    def toggle_auto_start(self) -> None:
+        desired = self.auto_start_var.get()
+        if not self._sync_auto_start():
+            self.auto_start_var.set(not desired)
+            return
+        self.save_config()
+
+    def _start_windows_tray(self) -> None:
+        if os.name != "nt":
+            return
+        self._tray_icon = WindowsTrayIcon(
+            self._tray_actions, pfc_icon_ico(32), open_label=tr("Open PFC"),
+            auto_start_label=tr("Auto Start when boot"), exit_label=tr("Exit PFC"),
+            auto_start_enabled=self.auto_start_var.get())
+        self._tray_icon.start()
+        self._tray_poll_job = self.after(100, self._poll_tray_actions)
+
+    def _poll_tray_actions(self) -> None:
+        self._tray_poll_job = None
+        try:
+            while True:
+                action = self._tray_actions.get_nowait()
+                if action == "show":
+                    self.deiconify()
+                    self.state("normal")
+                    self.lift()
+                    self.focus_force()
+                elif action == "toggle_autostart":
+                    self.auto_start_var.set(not self.auto_start_var.get())
+                    self.toggle_auto_start()
+                elif action == "exit":
+                    self.close_app()
+                    return
+        except queue.Empty:
+            pass
+        if self.winfo_exists():
+            self._tray_poll_job = self.after(100, self._poll_tray_actions)
 
     def _schedule_auto_refresh(self, delay=None) -> None:
         if not self.winfo_exists():
@@ -10049,6 +10439,10 @@ class Commander(tk.Tk):
         tools.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
         tools.add_separator()
         tools.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
+        if os.name == "nt":
+            tools.add_separator()
+            add_scaled_checkbutton(tools, tr("Auto Start when boot"), self.auto_start_var,
+                                   self.toggle_auto_start)
 
         versions_button = tk.Button(header, text=tr("Help"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
@@ -10109,6 +10503,7 @@ class Commander(tk.Tk):
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Explorer Menu": "Open the native Windows Explorer context menu for the selected local items.",
+            "Auto Start when boot": "Start PFC automatically after signing in to Windows.",
             "Copy Path": "Copy all selected full paths.",
             "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
@@ -10384,6 +10779,10 @@ class Commander(tk.Tk):
         focused = self.focus_get()
         set_language(language)
         self._build_menu()
+        if self._tray_icon is not None:
+            self._tray_icon.update(open_label=tr("Open PFC"),
+                                   auto_start_label=tr("Auto Start when boot"),
+                                   exit_label=tr("Exit PFC"))
         for button, hotkey, label in self.action_buttons:
             button.configure(text=f"{hotkey} {tr(label)}".rstrip())
         self.update_rename_action()

@@ -192,6 +192,11 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         if statuses is None:
             statuses = _child_repository_statuses(folder)
         value = statuses or {}
+        # A directly contained repository remains its own status boundary even
+        # when the folder being viewed is itself inside another work tree.
+        # This also covers nested repositories that are not registered as Git
+        # submodules.
+        value.update(_child_repository_statuses(folder))
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
         value = {}
     _CACHE[key] = (now, value)

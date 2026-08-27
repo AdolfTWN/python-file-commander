@@ -23,7 +23,7 @@ from tkinter import messagebox, ttk
 from . import __version__
 from .fileops import OperationFailure, OperationResult, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
 from .clipboard import clear_file_clipboard, extract_virtual_files, get_file_clipboard, get_virtual_file_descriptors, set_file_clipboard
-from .icons import ShellIconProvider, create_pfc_icon
+from .icons import ShellIconProvider, create_pfc_icon, pfc_icon_ico
 from .vcs import folder_statuses, status_for
 from .compare import CompareWindow, is_compare_container
 from .preview import PreviewWindow
@@ -36,6 +36,7 @@ from .shellmenu import show_shell_context_menu
 from .tooltip import MenuToolTip, ToolTip, TreeItemToolTip, install_button_tooltips
 from .tabs import COLOR_SCHEMES, ChamferNotebook, HeaderPopupController, TAB_STYLES, add_scaled_cascade, add_scaled_checkbutton, add_scaled_radiobutton, align_scaled_cascade_arrows, color_scheme, configure_ttk_theme
 from .i18n import LANGUAGES, get_language, set_language, tr
+from .startup import WindowsTrayIcon, set_windows_autostart
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -118,6 +119,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.1", "2026/08/28", (
+        "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.",
+        "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.",
+        "Fixed: Directly contained Git repositories keep their own status boundary even when viewed from inside another work tree.",
+    )),
     ("v0.17.0", "2026/08/25", (
         "Redesigned: Header menus now separate Files, Go, View, Tools, and Help with a shallow task-focused hierarchy.",
         "Redesigned: The file context menu keeps frequent actions visible and groups analysis, archive, and advanced actions one level deep.",
@@ -310,6 +316,7 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
         "navigation": {"favorites": "[]", "recent_folders": "[]"},
+        "startup": {"auto_start": "true"},
     }
     for section, values in defaults.items():
         if not config.has_section(section):
@@ -1783,6 +1790,11 @@ class Commander(tk.Tk):
             value=self.config_data.getboolean("operations", "send_delete_to_recycle_bin", fallback=True))
         self.continue_errors_var = tk.BooleanVar(
             value=self.config_data.getboolean("operations", "continue_after_error", fallback=True))
+        self.auto_start_var = tk.BooleanVar(
+            value=self.config_data.getboolean("startup", "auto_start", fallback=True))
+        self._tray_actions: queue.Queue = queue.Queue()
+        self._tray_icon: WindowsTrayIcon | None = None
+        self._tray_poll_job = None
         self.favorites = self._load_navigation_paths("favorites")
         self.recent_folders = self._load_navigation_paths("recent_folders")
         self._font_scales = {"small": 1.0, "medium": 1.25, "large": 1.5,
@@ -1943,6 +1955,8 @@ class Commander(tk.Tk):
         self.bind("<Configure>", self._schedule_auto_font_size, add="+")
         self.set_active(self.active)
         self.save_config()
+        self._sync_auto_start(show_error=False)
+        self._start_windows_tray()
         self._schedule_auto_refresh(250)
         self._schedule_clipboard_summary(250)
         self._schedule_auto_font_size(delay=300)
@@ -2090,6 +2104,8 @@ class Commander(tk.Tk):
             self.config_data.add_section("refresh")
         if not self.config_data.has_section("tab_colors"):
             self.config_data.add_section("tab_colors")
+        if not self.config_data.has_section("startup"):
+            self.config_data.add_section("startup")
         self.config_data.set("window", "geometry", self.geometry())
         active_tabs = self._tabs_for(self.active) if self.active is not None else self.panel_tabs[0]
         self.config_data.set("state", "active_panel", PANEL_SECTIONS[self.panel_tabs.index(active_tabs)])
@@ -2104,6 +2120,7 @@ class Commander(tk.Tk):
         self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
+        self.config_data.set("startup", "auto_start", str(self.auto_start_var.get()).lower())
         self.config_data.set("navigation", "favorites", json.dumps([str(path) for path in self.favorites], ensure_ascii=False))
         self.config_data.set("navigation", "recent_folders", json.dumps([str(path) for path in self.recent_folders], ensure_ascii=False))
         try:
@@ -2135,6 +2152,11 @@ class Commander(tk.Tk):
             self.after_cancel(self._auto_font_job)
         if self._archive_open_poll_job is not None:
             self.after_cancel(self._archive_open_poll_job)
+        if self._tray_poll_job is not None:
+            self.after_cancel(self._tray_poll_job)
+            self._tray_poll_job = None
+        if self._tray_icon is not None:
+            self._tray_icon.stop()
         for job in self._archive_open_jobs.values():
             job["cancel"].set()
             try:
@@ -2149,6 +2171,57 @@ class Commander(tk.Tk):
             session.close()
         self._archive_sessions.clear()
         self.destroy()
+
+    def _sync_auto_start(self, show_error: bool = True) -> bool:
+        if os.name != "nt":
+            return False
+        try:
+            set_windows_autostart(self.auto_start_var.get())
+        except OSError as exc:
+            if show_error:
+                messagebox.showerror(tr("Auto Start failed"), str(exc), parent=self)
+            return False
+        if self._tray_icon is not None:
+            self._tray_icon.update(auto_start_enabled=self.auto_start_var.get())
+        return True
+
+    def toggle_auto_start(self) -> None:
+        desired = self.auto_start_var.get()
+        if not self._sync_auto_start():
+            self.auto_start_var.set(not desired)
+            return
+        self.save_config()
+
+    def _start_windows_tray(self) -> None:
+        if os.name != "nt":
+            return
+        self._tray_icon = WindowsTrayIcon(
+            self._tray_actions, pfc_icon_ico(32), open_label=tr("Open PFC"),
+            auto_start_label=tr("Auto Start when boot"), exit_label=tr("Exit PFC"),
+            auto_start_enabled=self.auto_start_var.get())
+        self._tray_icon.start()
+        self._tray_poll_job = self.after(100, self._poll_tray_actions)
+
+    def _poll_tray_actions(self) -> None:
+        self._tray_poll_job = None
+        try:
+            while True:
+                action = self._tray_actions.get_nowait()
+                if action == "show":
+                    self.deiconify()
+                    self.state("normal")
+                    self.lift()
+                    self.focus_force()
+                elif action == "toggle_autostart":
+                    self.auto_start_var.set(not self.auto_start_var.get())
+                    self.toggle_auto_start()
+                elif action == "exit":
+                    self.close_app()
+                    return
+        except queue.Empty:
+            pass
+        if self.winfo_exists():
+            self._tray_poll_job = self.after(100, self._poll_tray_actions)
 
     def _schedule_auto_refresh(self, delay=None) -> None:
         if not self.winfo_exists():
@@ -2330,6 +2403,10 @@ class Commander(tk.Tk):
         tools.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
         tools.add_separator()
         tools.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
+        if os.name == "nt":
+            tools.add_separator()
+            add_scaled_checkbutton(tools, tr("Auto Start when boot"), self.auto_start_var,
+                                   self.toggle_auto_start)
 
         versions_button = tk.Button(header, text=tr("Help"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
@@ -2390,6 +2467,7 @@ class Commander(tk.Tk):
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Explorer Menu": "Open the native Windows Explorer context menu for the selected local items.",
+            "Auto Start when boot": "Start PFC automatically after signing in to Windows.",
             "Copy Path": "Copy all selected full paths.",
             "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
             "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
@@ -2665,6 +2743,10 @@ class Commander(tk.Tk):
         focused = self.focus_get()
         set_language(language)
         self._build_menu()
+        if self._tray_icon is not None:
+            self._tray_icon.update(open_label=tr("Open PFC"),
+                                   auto_start_label=tr("Auto Start when boot"),
+                                   exit_label=tr("Exit PFC"))
         for button, hotkey, label in self.action_buttons:
             button.configure(text=f"{hotkey} {tr(label)}".rstrip())
         self.update_rename_action()

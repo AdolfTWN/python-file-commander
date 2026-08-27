@@ -189,6 +189,14 @@ def create_pfc_icon(size: int = 32) -> PhotoImage:
     return PhotoImage(data=encoded, format="png")
 
 
+def pfc_icon_ico(size: int = 32) -> bytes:
+    """Wrap the PNG app badge in a Windows ICO container for Shell_NotifyIcon."""
+    png = pfc_icon_png(size)
+    width = 0 if size >= 256 else size
+    entry = struct.pack("<BBBBHHII", width, width, 0, 0, 1, 32, len(png), 22)
+    return struct.pack("<HHH", 0, 1, 1) + entry + png
+
+
 def _rgba_png_downsample(pixels: bytearray, output_size: int, supersample: int) -> bytes:
     canvas_size = output_size * supersample
     rgba = bytearray()
