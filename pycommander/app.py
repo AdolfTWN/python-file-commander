@@ -119,6 +119,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.2", "2026/08/28", (
+        "Fixed: Half-screen windows no longer select oversized automatic fonts, and Ext uses only four Latin-character widths so Name receives the remaining space.",
+    )),
     ("v0.17.1", "2026/08/28", (
         "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.",
         "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.",
@@ -579,14 +582,30 @@ def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
     return max(24, font_linespace + vertical_space)
 
 
-def automatic_font_size(window_width: int, window_height: int, panel_count: int) -> str:
+def automatic_font_size(window_width: int, window_height: int, panel_count: int,
+                        screen_width: int | None = None) -> str:
     """Choose the largest scale that keeps each visible file panel usable."""
     per_panel = max(1, window_width) / max(1, panel_count)
     height_level = (4 if window_height >= 1250 else 3 if window_height >= 1050
                     else 2 if window_height >= 850 else 1 if window_height >= 650 else 0)
     width_level = (4 if per_panel >= 1200 else 3 if per_panel >= 1000
                    else 2 if per_panel >= 750 else 1 if per_panel >= 500 else 0)
-    return ("small", "medium", "large", "xl", "xxl")[min(height_level, width_level)]
+    level = min(height_level, width_level)
+    if screen_width and screen_width > 0:
+        occupied_width = max(0.0, window_width / screen_width)
+        # Native DPI scaling already keeps text readable. A snapped half-screen
+        # window must not be mistaken for an XXL layout merely because the
+        # monitor has a very high physical pixel count.
+        if occupied_width <= .60:
+            level = 0
+        elif occupied_width <= .75:
+            level = min(level, 1)
+    return ("small", "medium", "large", "xl", "xxl")[level]
+
+
+def extension_column_width(measure) -> int:
+    """Keep Ext to four wide Latin characters and return the rest to Name."""
+    return max(32, measure("MMMM"))
 
 
 def ellipsize_middle(text: str, max_width: int, measure) -> str:
@@ -1332,7 +1351,7 @@ class FilePane(ttk.Frame):
             "size": (55, font.measure("0000.0 MB") + padding),
             "modified": (110, font.measure("0000-00-00 00:00") + padding),
         }
-        ext_width = max(40, font.measure("M" * 6) + padding)
+        ext_width = extension_column_width(font.measure)
         children = self.tree.get_children()
         fixed_total = 0
         for value_index, column in enumerate(self.columns):
@@ -4210,7 +4229,8 @@ class Commander(tk.Tk):
         self._auto_font_job = None
         if not self.auto_font_size_var.get() or not self.winfo_exists():
             return
-        size = (self.winfo_width(), self.winfo_height(), self.panel_count_var.get())
+        size = (self.winfo_width(), self.winfo_height(), self.panel_count_var.get(),
+                self.winfo_screenwidth())
         if size == self._last_auto_window_size:
             return
         self._last_auto_window_size = size

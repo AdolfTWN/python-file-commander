@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.1 — Windows Auto Start & Tray**
+Current version: **v0.17.2 — Half-Screen Layout Refinement**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -90,7 +90,7 @@ Visible folders auto-refresh adaptively: every 2 seconds while PFC is focused, e
 
 `View > File Visibility` independently shows or hides Hidden and Windows System files. Both are hidden by default.
 
-`View > Font Size > Auto Font Size` is enabled by default and selects Small, Medium, Large, or Huge from the current window height and available width per visible panel. Choosing a size manually turns Auto Font Size off. Fonts, the in-client application header and menus, tab geometry, path controls, row heights, native Shell icons, and the icon gutter scale and reflow together. Both the switch and current choice are saved in `pfc.ini`. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
+`View > Font Size > Auto Font Size` is enabled by default and selects Small, Medium, Large, or Huge from the current window height, screen-width share, and available width per visible panel. A half-screen window stays at the native 100% size even on a high-DPI 5K display. Choosing a size manually turns Auto Font Size off. Fonts, the in-client application header and menus, tab geometry, path controls, row heights, native Shell icons, and the icon gutter scale and reflow together. Both the switch and current choice are saved in `pfc.ini`. The Ext detail column occupies four wide Latin characters; Size and Date retain bounded detail widths, and Name receives all remaining panel space. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
 
 All persistent state is kept in the single `pfc.ini` beside `pfc.py`. If it is absent, PFC creates it with safe defaults on first launch. It is updated after navigation, tab, sorting, display, active-panel, hotkey, and window changes so tabs and paths survive an unexpected shutdown. Hotkeys can be changed in its `[hotkeys]` section.
 

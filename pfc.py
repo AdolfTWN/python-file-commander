@@ -83,6 +83,7 @@ _TRANSLATIONS = {
         "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.": "新增：PFC 預設會在 Windows 登入後自動啟動，採用不需系統管理員權限的個人使用者設定。",
         "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.": "新增：Windows 通知區圖示可開啟 PFC、啟用或停用自動啟動，或結束程式。",
         "Fixed: Directly contained Git repositories keep their own status boundary even when viewed from inside another work tree.": "修正：即使從另一個工作樹內檢視，直接包含的 Git 儲存庫仍會保有自己的狀態邊界。",
+        "Fixed: Half-screen windows no longer select oversized automatic fonts, and Ext uses only four Latin-character widths so Name receives the remaining space.": "修正：半螢幕視窗不再誤選過大的自動字型，Ext 欄位僅使用四個英文字元寬度，其餘空間全部留給檔名。",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "新增：壓縮檔解壓縮選單會顯示內含的資料夾與檔案數量，且不會延遲右鍵選單。",
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "調整：Git／SVN 覆蓋圖示採用較大徽章、更強的雙層外框及間距更清楚的狀態符號。",
         "Extract Here (counting…)": "解壓縮至此處（計算中…）",
@@ -320,6 +321,7 @@ _TRANSLATIONS = {
         "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.": "新增：PFC 默认会在 Windows 登录后自动启动，使用无需管理员权限的个人用户设置。",
         "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.": "新增：Windows 通知区域图标可打开 PFC、启用或停用自动启动，或退出程序。",
         "Fixed: Directly contained Git repositories keep their own status boundary even when viewed from inside another work tree.": "修正：即使从另一个工作树内查看，直接包含的 Git 仓库仍会保留自己的状态边界。",
+        "Fixed: Half-screen windows no longer select oversized automatic fonts, and Ext uses only four Latin-character widths so Name receives the remaining space.": "修复：半屏窗口不再误选过大的自动字体，Ext 栏仅使用四个英文字母宽度，其余空间全部留给文件名。",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "新增：压缩包解压菜单会显示所含文件夹和文件数量，且不会延迟右键菜单。",
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "调整：Git／SVN 叠加图标采用更大徽标、更强的双层轮廓和间距更清晰的状态符号。",
         "Extract Here (counting…)": "解压到此处（计算中…）",
@@ -530,6 +532,7 @@ _TRANSLATIONS = {
         "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.": "추가: 관리자 권한이 필요 없는 사용자별 설정을 사용하여 Windows 로그인 후 PFC가 기본적으로 자동 시작됩니다.",
         "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.": "추가: Windows 알림 영역 아이콘에서 PFC를 열고 자동 시작을 켜거나 끄며 앱을 종료할 수 있습니다.",
         "Fixed: Directly contained Git repositories keep their own status boundary even when viewed from inside another work tree.": "수정: 다른 작업 트리 안에서 볼 때도 바로 포함된 Git 저장소가 자체 상태 경계를 유지합니다.",
+        "Fixed: Half-screen windows no longer select oversized automatic fonts, and Ext uses only four Latin-character widths so Name receives the remaining space.": "수정: 반 화면 창에서 더 이상 지나치게 큰 자동 글꼴을 선택하지 않으며 Ext 열은 영문 네 글자 너비만 사용하고 나머지 공간은 파일 이름에 할당합니다.",
         "Added: Archive extraction menus show contained folder and file counts without delaying the context menu.": "추가: 압축 풀기 메뉴에 포함된 폴더와 파일 수를 표시하며 오른쪽 클릭 메뉴를 지연시키지 않습니다.",
         "Adjusted: Git/SVN overlays use larger badges, stronger dual outlines, and better-spaced status symbols.": "조정: Git/SVN 오버레이에 더 큰 배지, 강한 이중 외곽선 및 여유 있게 배치된 상태 기호를 적용했습니다.",
         "Extract Here (counting…)": "여기에 압축 풀기(계산 중…)",
@@ -8072,7 +8075,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.1"
+__version__ = "0.17.2"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8155,6 +8158,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/08/28"
 VERSION_HISTORY = (
+    ("v0.17.2", "2026/08/28", (
+        "Fixed: Half-screen windows no longer select oversized automatic fonts, and Ext uses only four Latin-character widths so Name receives the remaining space.",
+    )),
     ("v0.17.1", "2026/08/28", (
         "Added: PFC starts automatically after Windows sign-in by default using a per-user setting that requires no administrator permission.",
         "Added: The Windows notification-area icon can open PFC, enable or disable automatic startup, or exit the app.",
@@ -8615,14 +8621,30 @@ def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
     return max(24, font_linespace + vertical_space)
 
 
-def automatic_font_size(window_width: int, window_height: int, panel_count: int) -> str:
+def automatic_font_size(window_width: int, window_height: int, panel_count: int,
+                        screen_width: int | None = None) -> str:
     """Choose the largest scale that keeps each visible file panel usable."""
     per_panel = max(1, window_width) / max(1, panel_count)
     height_level = (4 if window_height >= 1250 else 3 if window_height >= 1050
                     else 2 if window_height >= 850 else 1 if window_height >= 650 else 0)
     width_level = (4 if per_panel >= 1200 else 3 if per_panel >= 1000
                    else 2 if per_panel >= 750 else 1 if per_panel >= 500 else 0)
-    return ("small", "medium", "large", "xl", "xxl")[min(height_level, width_level)]
+    level = min(height_level, width_level)
+    if screen_width and screen_width > 0:
+        occupied_width = max(0.0, window_width / screen_width)
+        # Native DPI scaling already keeps text readable. A snapped half-screen
+        # window must not be mistaken for an XXL layout merely because the
+        # monitor has a very high physical pixel count.
+        if occupied_width <= .60:
+            level = 0
+        elif occupied_width <= .75:
+            level = min(level, 1)
+    return ("small", "medium", "large", "xl", "xxl")[level]
+
+
+def extension_column_width(measure) -> int:
+    """Keep Ext to four wide Latin characters and return the rest to Name."""
+    return max(32, measure("MMMM"))
 
 
 def ellipsize_middle(text: str, max_width: int, measure) -> str:
@@ -9368,7 +9390,7 @@ class FilePane(ttk.Frame):
             "size": (55, font.measure("0000.0 MB") + padding),
             "modified": (110, font.measure("0000-00-00 00:00") + padding),
         }
-        ext_width = max(40, font.measure("M" * 6) + padding)
+        ext_width = extension_column_width(font.measure)
         children = self.tree.get_children()
         fixed_total = 0
         for value_index, column in enumerate(self.columns):
@@ -12246,7 +12268,8 @@ class Commander(tk.Tk):
         self._auto_font_job = None
         if not self.auto_font_size_var.get() or not self.winfo_exists():
             return
-        size = (self.winfo_width(), self.winfo_height(), self.panel_count_var.get())
+        size = (self.winfo_width(), self.winfo_height(), self.panel_count_var.get(),
+                self.winfo_screenwidth())
         if size == self._last_auto_window_size:
             return
         self._last_auto_window_size = size
