@@ -61,7 +61,12 @@ def main() -> None:
             assert [app.tools_menu.entrycget(index, "label")
                     for index in range(app.tools_menu.index("end") + 1)
                     if app.tools_menu.type(index) != "separator"] == [
-                "Preview", "Compare", "Folder Space Analyzer", "Explorer Menu"]
+                "Preview", "Compare", "Folder Space Analyzer"]
+            assert "F8" not in app.action_button_by_hotkey
+            assert not app.config_data.has_option("hotkeys", "explorer_menu")
+            assert not app.bind_all("<F8>")
+            assert app.left_tabs.current().tree.bind("<ButtonRelease-3>")
+            assert not app.left_tabs.current().tree.bind("<Button-3>")
             hierarchy_indexes = [index for index in range(app.view_menu.index("end") + 1)
                                  if app.view_menu.type(index) == "cascade"]
             assert len(hierarchy_indexes) == 6
@@ -119,8 +124,6 @@ def main() -> None:
             assert menu_state(app.files_menu, "Rename") == "normal"
             assert menu_state(app.files_menu, "Multi-Rename") == "disabled"
             assert menu_state(app.tools_menu, "Preview") == "normal"
-            expected_explorer = "normal" if sys.platform == "win32" else "disabled"
-            assert menu_state(app.tools_menu, "Explorer Menu") == expected_explorer
             second_file = click_root / "also-active.txt"
             second_file.write_text("second", encoding="utf-8")
             click_pane.refresh()
@@ -550,16 +553,35 @@ def main() -> None:
             selected_rows = source_pane.tree.get_children()
             source_pane.tree.selection_set(selected_rows)
             first_box = source_pane.tree.bbox(selected_rows[0])
-            context_calls = []
-            original_context = source_pane.on_context
-            source_pane.on_context = lambda *args: context_calls.append(args)
+            native_context_calls = []
+            original_native_context = source_pane.on_native_context
+            source_pane.on_native_context = lambda *args: native_context_calls.append(args)
             try:
                 source_pane._context_click(SimpleNamespace(
                     y=first_box[1] + max(1, first_box[3] // 2), x_root=50, y_root=50))
             finally:
-                source_pane.on_context = original_context
+                source_pane.on_native_context = original_native_context
             assert len(source_pane.tree.selection()) == 2, "Right-click must preserve multi-selection"
-            assert context_calls and source_pane.tree.bind("<Shift-F10>")
+            assert native_context_calls and source_pane.tree.bind("<Shift-F10>")
+
+            pfc_context_calls = []
+            original_context = source_pane.on_context
+            original_pointerxy = source_pane.tree.winfo_pointerxy
+            source_pane.on_context = lambda *args: pfc_context_calls.append(args)
+            source_pane.tree.winfo_pointerxy = lambda: (
+                source_pane.tree.winfo_rootx() + first_box[0] + 5,
+                source_pane.tree.winfo_rooty() + first_box[1] + 5)
+            try:
+                source_pane._context_dwell_release(SimpleNamespace(
+                    y=first_box[1] + 5, x_root=50, y_root=50))
+                assert source_pane._context_dwell_job is not None
+                source_pane.after_cancel(source_pane._context_dwell_job)
+                source_pane._context_dwell_job = None
+                source_pane._show_dwell_context()
+            finally:
+                source_pane.on_context = original_context
+                source_pane.tree.winfo_pointerxy = original_pointerxy
+            assert pfc_context_calls, "Two-second selected-row dwell must open the PFC menu"
             context_menu = app._build_file_context_menu(source_pane, source_pane.selected_paths()[0])
             context_labels = [context_menu.entrycget(index, "label")
                               for index in range(context_menu.index("end") + 1)
@@ -588,7 +610,8 @@ def main() -> None:
             assert {"Compare", "Folder Space Analyzer", "Compress to ZIP", "Extract Here",
                     "Extract to Folder"}.issubset(submenu_labels["Analyze & Archive"])
             assert {"Run as Admin", "CMD", "PowerShell", "Create Shortcut & Send to Clipboard",
-                    "Copy Path", "Explorer Menu"}.issubset(submenu_labels["More Actions"])
+                    "Copy Path"}.issubset(submenu_labels["More Actions"])
+            assert "Explorer Menu" not in submenu_labels["More Actions"]
             rename_index = context_labels.index("Rename")
             rename_menu_index = next(index for index in range(context_menu.index("end") + 1)
                                      if context_menu.type(index) == "command" and

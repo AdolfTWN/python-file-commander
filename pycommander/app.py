@@ -120,6 +120,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.4", "2026/08/28", (
+        "Adjusted: Right-click now opens the native Windows Explorer menu directly and releases F8 for future use.",
+        "Adjusted: The PFC actions menu opens after a selected item remains under the pointer for two seconds.",
+    )),
     ("v0.17.3", "2026/08/28", (
         "Fixed: Visible local folders now refresh immediately from Windows filesystem change events.",
         "Adjusted: Replaced two-second foreground scanning with event-driven refresh and a low-frequency safety check.",
@@ -677,6 +681,7 @@ class FilePane(ttk.Frame):
     def __init__(self, master: tk.Misc, on_activate, on_change=lambda: None,
                  on_drag=lambda _action, _pane, _event: None,
                  on_context=lambda _pane, _path, _x, _y: None,
+                 on_native_context=lambda _pane, _path, _x, _y: None,
                  on_open_file=lambda _pane, _path: False,
                  on_exit_archive=lambda _pane: False) -> None:
         super().__init__(master)
@@ -684,6 +689,7 @@ class FilePane(ttk.Frame):
         self.on_change = on_change
         self.on_drag = on_drag
         self.on_context = on_context
+        self.on_native_context = on_native_context
         self.on_open_file = on_open_file
         self.on_exit_archive = on_exit_archive
         self.archive_session: ArchiveSession | None = None
@@ -707,6 +713,9 @@ class FilePane(ttk.Frame):
         self._drag_press_item = None
         self._drag_press_xy = None
         self._dragging = False
+        self._context_dwell_job = None
+        self._context_dwell_item = None
+        self._context_dwell_xy = None
         self._column_resize_job = None
         self._inline_editor = None
         self._inline_item = None
@@ -765,7 +774,10 @@ class FilePane(ttk.Frame):
         self.tree.bind("<ButtonPress-1>", self._drag_press, add="+")
         self.tree.bind("<B1-Motion>", self._drag_motion, add="+")
         self.tree.bind("<ButtonRelease-1>", self._drag_release, add="+")
-        self.tree.bind("<Button-3>", self._context_click)
+        self.tree.bind("<ButtonRelease-1>", self._context_dwell_release, add="+")
+        self.tree.bind("<Motion>", self._context_dwell_motion, add="+")
+        self.tree.bind("<Leave>", lambda _event: self._cancel_context_dwell(), add="+")
+        self.tree.bind("<ButtonRelease-3>", self._context_click)
         self.tree.bind("<Shift-F10>", self._context_keyboard)
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
         self.tree.bind("<Prior>", lambda _event: self.page_selection(-1))
@@ -997,6 +1009,7 @@ class FilePane(ttk.Frame):
         })
 
     def _drag_press(self, event):
+        self._cancel_context_dwell()
         region = self.tree.identify_region(event.x, event.y)
         iid = self.tree.identify_row(event.y)
         if not iid and region not in {"heading", "separator"}:
@@ -1020,6 +1033,7 @@ class FilePane(ttk.Frame):
         return None
 
     def _drag_motion(self, event):
+        self._cancel_context_dwell()
         if not self._drag_press_item or self._drag_press_xy is None:
             return None
         if not self._dragging:
@@ -1040,7 +1054,61 @@ class FilePane(ttk.Frame):
         self._drag_press_item = None; self._drag_press_xy = None; self._dragging = False
         return "break" if was_dragging else None
 
+    def _cancel_context_dwell(self, disarm: bool = True) -> None:
+        if self._context_dwell_job is not None:
+            try: self.after_cancel(self._context_dwell_job)
+            except tk.TclError: pass
+            self._context_dwell_job = None
+        if disarm:
+            self._context_dwell_item = None
+            self._context_dwell_xy = None
+
+    def _schedule_context_dwell(self, iid: str, x_root: int, y_root: int) -> None:
+        self._cancel_context_dwell(disarm=False)
+        self._context_dwell_item = iid
+        self._context_dwell_xy = (int(x_root), int(y_root))
+        self._context_dwell_job = self.after(2000, self._show_dwell_context)
+
+    def _context_dwell_release(self, event):
+        iid = self.tree.identify_row(event.y)
+        if not iid or iid not in self.tree.selection():
+            self._cancel_context_dwell()
+            return None
+        tags = self.tree.item(iid, "tags")
+        if not tags or tags[0] == "PFC_INLINE_PLACEHOLDER":
+            self._cancel_context_dwell()
+            return None
+        self._schedule_context_dwell(iid, event.x_root, event.y_root)
+        return None
+
+    def _context_dwell_motion(self, event):
+        iid = self._context_dwell_item
+        if iid is None:
+            return None
+        if self.tree.identify_row(event.y) != iid:
+            self._cancel_context_dwell()
+            return None
+        self._schedule_context_dwell(iid, event.x_root, event.y_root)
+        return None
+
+    def _show_dwell_context(self) -> None:
+        self._context_dwell_job = None
+        iid = self._context_dwell_item
+        self._context_dwell_item = None
+        self._context_dwell_xy = None
+        if (not iid or self._dragging or self._inline_editor is not None or
+                not self.tree.exists(iid) or iid not in self.tree.selection()):
+            return
+        x_root, y_root = self.tree.winfo_pointerxy()
+        hovered = self.tree.identify_row(y_root - self.tree.winfo_rooty())
+        tags = self.tree.item(iid, "tags")
+        if hovered != iid or not tags or tags[0] == "PFC_INLINE_PLACEHOLDER":
+            return
+        self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
+        self.on_context(self, Path(tags[0]), x_root, y_root)
+
     def _context_click(self, event):
+        self._cancel_context_dwell()
         iid = self.tree.identify_row(event.y)
         if not iid:
             return None
@@ -1049,7 +1117,7 @@ class FilePane(ttk.Frame):
         self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
         tags = self.tree.item(iid, "tags")
         if tags:
-            self.on_context(self, Path(tags[0]), event.x_root, event.y_root)
+            self.on_native_context(self, Path(tags[0]), event.x_root, event.y_root)
         return "break"
 
     def _context_keyboard(self, _event=None):
@@ -1063,7 +1131,7 @@ class FilePane(ttk.Frame):
         if tags:
             x = self.tree.winfo_rootx() + (box[0] + 20 if box else 20)
             y = self.tree.winfo_rooty() + (box[1] + box[3] if box else 20)
-            self.on_context(self, Path(tags[0]), x, y)
+            self.on_native_context(self, Path(tags[0]), x, y)
         return "break"
 
     def page_selection(self, direction: int) -> str:
@@ -1251,6 +1319,7 @@ class FilePane(ttk.Frame):
     def refresh(self) -> None:
         if self._inline_editor is not None:
             return
+        self._cancel_context_dwell()
         if self.mode == "files" and self.view_mode != "list":
             self.tree.configure(show="tree", displaycolumns=())
         else:
@@ -1594,6 +1663,7 @@ class PaneTabs(ChamferNotebook):
                  color_for=lambda _path: "default", on_tab_color=lambda _path, _color: None,
                  on_drag=lambda _action, _pane, _event: None,
                  on_context=lambda _pane, _path, _x, _y: None,
+                 on_native_context=lambda _pane, _path, _x, _y: None,
                  on_open_file=lambda _pane, _path: False,
                  on_exit_archive=lambda _pane: False,
                  on_close_archive=lambda _pane: None,
@@ -1604,6 +1674,7 @@ class PaneTabs(ChamferNotebook):
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
         self.on_context = on_context
+        self.on_native_context = on_native_context
         self.on_open_file = on_open_file
         self.on_exit_archive = on_exit_archive
         self.on_close_archive = on_close_archive
@@ -1624,6 +1695,7 @@ class PaneTabs(ChamferNotebook):
             position = self.index(self.select()) + 1 if self.tabs() else 0
         pane = FilePane(self, self.on_activate, on_drag=self.on_drag,
                         on_context=self.on_context, on_open_file=self.on_open_file,
+                        on_native_context=self.on_native_context,
                         on_exit_archive=self.on_exit_archive)
         pane.tree.bind("<<TreeviewSelect>>", lambda _event: self.on_selection(), add="+")
         pane.on_change = lambda source=pane: self._pane_changed(source)
@@ -1864,6 +1936,7 @@ class Commander(tk.Tk):
                 split, self.set_active, self.save_config, self._saved_paths(section),
                 self.get_tab_color, self.set_tab_color, self._handle_internal_drag,
                 self._show_file_context_menu,
+                self._show_native_context_menu,
                 on_open_file=self._open_special_file,
                 on_exit_archive=self._exit_archive,
                 on_close_archive=self._discard_archive,
@@ -1894,7 +1967,6 @@ class Commander(tk.Tk):
         for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
                                        ("F4", "Search", self.search), ("F5", "Copy", self.copy),
                                        ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
-                                       ("F8", "Explorer Menu", self.show_explorer_menu),
                                        ("F9", "Compare", self.compare_selected),
                                        ("F11", "Copy Path", self.copy_paths),
                                        ("F12", "Change Path", self.change_dir)):
@@ -1923,7 +1995,6 @@ class Commander(tk.Tk):
             "files_menu": "<Alt-f>", "go_menu": "<Alt-g>", "view_menu": "<Alt-v>",
             "tools_menu": "<Alt-t>", "versions_menu": "<Alt-h>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
-            "explorer_menu": "<F8>",
             "compare": "<F9>",
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
@@ -1949,7 +2020,6 @@ class Commander(tk.Tk):
             "tools_menu": lambda: self.show_header_menu("tools"),
             "versions_menu": lambda: self.show_header_menu("versions"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
-            "explorer_menu": self.show_explorer_menu,
             "compare": self.compare_selected,
             "permanent_delete": lambda: self.delete_hotkey(permanent=True),
             "toggle_favorite": self.toggle_favorite,
@@ -1960,6 +2030,7 @@ class Commander(tk.Tk):
         if not self.config_data.has_section("hotkeys"):
             self.config_data.add_section("hotkeys")
         self.config_data.remove_option("hotkeys", "multi_rename")
+        self.config_data.remove_option("hotkeys", "explorer_menu")
         configured_hotkeys = {}
         for name, default in defaults.items():
             key = self.config_data.get("hotkeys", name, fallback=default)
@@ -2458,8 +2529,6 @@ class Commander(tk.Tk):
         tools.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
         tools.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
         tools.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
-        tools.add_separator()
-        tools.add_command(label=tr("Explorer Menu"), accelerator="F8", command=self.show_explorer_menu)
         if os.name == "nt":
             tools.add_separator()
             add_scaled_checkbutton(tools, tr("Auto Start when boot"), self.auto_start_var,
@@ -2523,7 +2592,6 @@ class Commander(tk.Tk):
             "Favorites": "Open or maintain favorite folders.", "Recent Folders": "Open recently visited folders.",
             "Search": "Search below the current folder.", "Compare": "Compare selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
-            "Explorer Menu": "Open the native Windows Explorer context menu for the selected local items.",
             "Auto Start when boot": "Start PFC automatically after signing in to Windows.",
             "Copy Path": "Copy all selected full paths.",
             "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
@@ -2584,8 +2652,6 @@ class Commander(tk.Tk):
             self.clipboard_menu.entryconfigure(index, state="normal" if selected else "disabled")
         self.tools_menu.entryconfigure(0, state="normal" if single_file else "disabled")
         self.tools_menu.entryconfigure(1, state="normal" if can_compare else "disabled")
-        can_explorer = (os.name == "nt" and selected and self.active.archive_session is None)
-        self.tools_menu.entryconfigure(4, state="normal" if can_explorer else "disabled")
 
     def _schedule_clipboard_summary(self, delay=2000) -> None:
         self._clipboard_job = self.after(delay, self._update_clipboard_summary)
@@ -3200,9 +3266,6 @@ class Commander(tk.Tk):
                              self.open_terminal(path, "powershell"))
         more.add_separator()
         more.add_command(label=tr("Copy Path"), accelerator="F11", command=self.copy_paths)
-        more.add_command(label=tr("Explorer Menu"), accelerator="F8",
-                         state=normal_if(os.name == "nt" and pane.archive_session is None),
-                         command=self.show_explorer_menu)
         menu.add_cascade(label=tr("More Actions"), menu=more)
         menu.add_separator()
         menu.add_command(label=tr("Delete"), accelerator="Del", command=self.delete_hotkey)
@@ -3216,7 +3279,7 @@ class Commander(tk.Tk):
             "Compare": "Compare the active and next panel, or two selected items.",
             "Folder Space Analyzer": "Visualize folder usage by size and locate items in PFC.",
             "Analyze & Archive": "Compare, inspect folder size, compress, or extract selected items.",
-            "More Actions": "Open administrative, terminal, shortcut, path, and Explorer actions.",
+            "More Actions": "Open administrative, terminal, shortcut, and path actions.",
             "Create Shortcut & Send to Clipboard":
                 "Create shortcuts beside the selected items and cut them to the clipboard.",
             "CMD": "Open Command Prompt in this folder.",
@@ -3440,8 +3503,24 @@ class Commander(tk.Tk):
         finally:
             menu.grab_release()
 
+    def _show_native_context_menu(self, pane: FilePane, clicked: Path,
+                                  x_root: int, y_root: int) -> None:
+        """Route right-click to Explorer; virtual archive items use PFC's menu."""
+        if os.name != "nt" or pane.archive_session is not None:
+            self._show_file_context_menu(pane, clicked, x_root, y_root)
+            return
+        items = pane.selected_paths()
+        if not items:
+            return
+        try:
+            show_shell_context_menu(self.winfo_id(), items, x_root, y_root)
+        except OSError as exc:
+            messagebox.showerror(tr("Explorer Menu"), str(exc), parent=self)
+        finally:
+            pane.focus_file_list()
+
     def show_explorer_menu(self) -> str:
-        """Show Explorer's own right-click menu for current local selections."""
+        """Compatibility entry point; F8 is intentionally no longer bound."""
         pane = self.panes()[0]
         if pane.archive_session is not None:
             messagebox.showinfo(
@@ -3462,12 +3541,7 @@ class Commander(tk.Tk):
             y_root = pane.tree.winfo_rooty() + y + height
         else:
             x_root, y_root = pane.tree.winfo_rootx() + 24, pane.tree.winfo_rooty() + 24
-        try:
-            show_shell_context_menu(pane.tree.winfo_id(), items, x_root, y_root)
-        except OSError as exc:
-            messagebox.showerror(tr("Explorer Menu"), str(exc), parent=self)
-        finally:
-            pane.focus_file_list()
+        self._show_native_context_menu(pane, items[0], x_root, y_root)
         return "break"
 
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
