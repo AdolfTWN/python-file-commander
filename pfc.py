@@ -64,6 +64,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Fixed: Visible local folders now refresh immediately from Windows filesystem change events.": "修正：可見的本機資料夾現在會在收到 Windows 檔案系統異動事件後立即刷新。",
+        "Adjusted: Replaced two-second foreground scanning with event-driven refresh and a low-frequency safety check.": "調整：以事件驅動刷新及低頻安全核對取代每兩秒一次的前景掃描。",
         "Auto Start when boot": "開機時自動啟動",
         "Start PFC automatically after signing in to Windows.": "登入 Windows 後自動啟動 PFC。",
         "Open PFC": "開啟 PFC", "Exit PFC": "結束 PFC",
@@ -302,6 +304,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Fixed: Visible local folders now refresh immediately from Windows filesystem change events.": "修复：可见的本地文件夹现在会在收到 Windows 文件系统变更事件后立即刷新。",
+        "Adjusted: Replaced two-second foreground scanning with event-driven refresh and a low-frequency safety check.": "调整：以事件驱动刷新和低频安全检查取代每两秒一次的前台扫描。",
         "Auto Start when boot": "开机时自动启动",
         "Start PFC automatically after signing in to Windows.": "登录 Windows 后自动启动 PFC。",
         "Open PFC": "打开 PFC", "Exit PFC": "退出 PFC",
@@ -513,6 +517,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Fixed: Visible local folders now refresh immediately from Windows filesystem change events.": "수정: 표시 중인 로컬 폴더가 Windows 파일 시스템 변경 이벤트를 받는 즉시 새로 고쳐집니다.",
+        "Adjusted: Replaced two-second foreground scanning with event-driven refresh and a low-frequency safety check.": "조정: 2초 간격의 포그라운드 검색을 이벤트 기반 새로 고침과 저빈도 안전 확인으로 교체했습니다.",
         "Auto Start when boot": "부팅 후 자동 시작",
         "Start PFC automatically after signing in to Windows.": "Windows 로그인 후 PFC를 자동으로 시작합니다.",
         "Open PFC": "PFC 열기", "Exit PFC": "PFC 종료",
@@ -2017,6 +2023,150 @@ class WindowsTrayIcon:
             except OSError:
                 pass
             self._hwnd = 0
+
+
+"""Event-driven directory change notifications with a portable fallback boundary."""
+
+import ctypes
+import os
+import queue
+import threading
+import time
+from ctypes import wintypes
+from pathlib import Path
+
+
+def directory_key(path: Path) -> str:
+    """Return a stable key for matching Windows paths across panes and events."""
+    return os.path.normcase(os.path.abspath(str(path)))
+
+
+def is_local_watch_path(path: Path) -> bool:
+    """Native change notifications are reserved for local filesystem paths."""
+    return os.name == "nt" and not str(path).startswith("\\\\")
+
+
+class _WindowsDirectoryWatcher:
+    _FILE_LIST_DIRECTORY = 0x0001
+    _SHARE_ALL = 0x00000001 | 0x00000002 | 0x00000004
+    _OPEN_EXISTING = 3
+    _BACKUP_SEMANTICS = 0x02000000
+    _NOTIFY_FILTER = (0x00000001 | 0x00000002 | 0x00000004 |
+                      0x00000008 | 0x00000010 | 0x00000020)
+
+    def __init__(self, path: Path, events: queue.Queue) -> None:
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        self._kernel32 = kernel32
+        kernel32.CreateFileW.argtypes = (
+            wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, wintypes.LPVOID,
+            wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE,
+        )
+        kernel32.CreateFileW.restype = wintypes.HANDLE
+        kernel32.ReadDirectoryChangesW.argtypes = (
+            wintypes.HANDLE, wintypes.LPVOID, wintypes.DWORD, wintypes.BOOL,
+            wintypes.DWORD, ctypes.POINTER(wintypes.DWORD), wintypes.LPVOID,
+            wintypes.LPVOID,
+        )
+        kernel32.ReadDirectoryChangesW.restype = wintypes.BOOL
+        kernel32.CancelIoEx.argtypes = (wintypes.HANDLE, wintypes.LPVOID)
+        kernel32.CancelIoEx.restype = wintypes.BOOL
+        kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+        kernel32.CloseHandle.restype = wintypes.BOOL
+        self.path = Path(path)
+        self._events = events
+        self._lock = threading.Lock()
+        self._stopping = threading.Event()
+        handle = kernel32.CreateFileW(
+            str(self.path), self._FILE_LIST_DIRECTORY, self._SHARE_ALL, None,
+            self._OPEN_EXISTING, self._BACKUP_SEMANTICS, None,
+        )
+        if handle == wintypes.HANDLE(-1).value:
+            raise ctypes.WinError(ctypes.get_last_error())
+        self._handle = handle
+        self._thread = threading.Thread(
+            target=self._run, name=f"PFC-Watch-{self.path.name}", daemon=True)
+
+    @property
+    def alive(self) -> bool:
+        return self._thread.is_alive() and not self._stopping.is_set()
+
+    def start(self) -> None:
+        self._thread.start()
+
+    def _run(self) -> None:
+        buffer = ctypes.create_string_buffer(64 * 1024)
+        returned = wintypes.DWORD()
+        while not self._stopping.is_set():
+            with self._lock:
+                handle = self._handle
+            if handle is None:
+                break
+            ok = self._kernel32.ReadDirectoryChangesW(
+                handle, buffer, len(buffer), False, self._NOTIFY_FILTER,
+                ctypes.byref(returned), None, None,
+            )
+            if not ok:
+                break
+            if returned.value:
+                self._events.put(self.path)
+
+    def stop(self) -> None:
+        self._stopping.set()
+        with self._lock:
+            handle, self._handle = self._handle, None
+        if handle is not None:
+            self._kernel32.CancelIoEx(handle, None)
+            self._kernel32.CloseHandle(handle)
+        if self._thread.is_alive():
+            self._thread.join(timeout=.2)
+
+
+class DirectoryWatchManager:
+    """Keep one native watcher per unique visible directory."""
+
+    def __init__(self, watcher_factory=None, supported: bool | None = None) -> None:
+        self.events: queue.Queue = queue.Queue()
+        self.supported = os.name == "nt" if supported is None else supported
+        self._factory = watcher_factory or _WindowsDirectoryWatcher
+        self._watchers = {}
+        self._retry_after = {}
+
+    def sync(self, paths) -> set[str]:
+        desired = {directory_key(path): Path(path) for path in paths}
+        for key in list(self._watchers):
+            watcher = self._watchers[key]
+            if key not in desired or not watcher.alive:
+                watcher.stop()
+                del self._watchers[key]
+                if key in desired:
+                    self._retry_after[key] = time.monotonic() + 5.0
+        if self.supported:
+            now = time.monotonic()
+            for key, path in desired.items():
+                if key in self._watchers or now < self._retry_after.get(key, 0):
+                    continue
+                try:
+                    watcher = self._factory(path, self.events)
+                    watcher.start()
+                    self._watchers[key] = watcher
+                    self._retry_after.pop(key, None)
+                except OSError:
+                    self._retry_after[key] = now + 5.0
+        return set(self._watchers)
+
+    def drain(self) -> set[str]:
+        changed = set()
+        try:
+            while True:
+                changed.add(directory_key(self.events.get_nowait()))
+        except queue.Empty:
+            return changed
+
+    def close(self) -> None:
+        for watcher in list(self._watchers.values()):
+            watcher.stop()
+        self._watchers.clear()
+
 
 
 import os
@@ -8075,7 +8225,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.2"
+__version__ = "0.17.3"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8158,6 +8308,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/08/28"
 VERSION_HISTORY = (
+    ("v0.17.3", "2026/08/28", (
+        "Fixed: Visible local folders now refresh immediately from Windows filesystem change events.",
+        "Adjusted: Replaced two-second foreground scanning with event-driven refresh and a low-frequency safety check.",
+    )),
     ("v0.17.2", "2026/08/28", (
         "Fixed: Half-screen windows no longer select oversized automatic fonts, and Ext uses only four Latin-character widths so Name receives the remaining space.",
     )),
@@ -10007,6 +10161,10 @@ class Commander(tk.Tk):
         self._ready = True
         self._save_job = None
         self._auto_refresh_job = None
+        self._directory_watches = DirectoryWatchManager()
+        self._pending_directory_changes: set[str] = set()
+        self._next_refresh_audit = time.monotonic() + 30.0
+        self._network_refresh_due = {}
         self._clipboard_job = None
         self.bind("<Configure>", self._schedule_save)
         self.bind("<Configure>", self._schedule_clipboard_layout, add="+")
@@ -10202,6 +10360,7 @@ class Commander(tk.Tk):
             self._handle_internal_drag("cancel", self._drag_state["source"], None)
         if self._auto_refresh_job is not None:
             self.after_cancel(self._auto_refresh_job)
+        self._directory_watches.close()
         if self._clipboard_job is not None:
             self.after_cancel(self._clipboard_job)
         if self._clipboard_resize_job is not None:
@@ -10281,23 +10440,51 @@ class Commander(tk.Tk):
         if self.winfo_exists():
             self._tray_poll_job = self.after(100, self._poll_tray_actions)
 
-    def _schedule_auto_refresh(self, delay=None) -> None:
+    def _schedule_auto_refresh(self, delay=100) -> None:
         if not self.winfo_exists():
             return
-        if delay is None:
-            focused = self.focus_displayof() is not None
-            paths = tuple(pane.path for pane in self.visible_panes())
-            network = any(str(path).startswith("\\\\") for path in paths)
-            key = "network_interval_ms" if network else ("active_interval_ms" if focused else "background_interval_ms")
-            delay = self.config_data.getint("refresh", key, fallback=5000)
-        self._auto_refresh_job = self.after(max(500, delay), self._auto_refresh_tick)
+        self._auto_refresh_job = self.after(max(50, delay), self._auto_refresh_tick)
 
     def _auto_refresh_tick(self) -> None:
         self._auto_refresh_job = None
-        if self.config_data.getboolean("refresh", "auto_refresh", fallback=True):
-            for pane in self.visible_panes():
-                pane.refresh_if_changed()
-        self._schedule_auto_refresh()
+        enabled = self.config_data.getboolean("refresh", "auto_refresh", fallback=True)
+        panes = self.visible_panes()
+        watch_paths = [pane.path for pane in panes
+                       if enabled and pane.mode == "files" and pane.archive_session is None
+                       and is_local_watch_path(pane.path)]
+        watched = self._directory_watches.sync(watch_paths)
+        if enabled:
+            self._pending_directory_changes.update(self._directory_watches.drain())
+            for key in tuple(self._pending_directory_changes):
+                matching = [pane for pane in panes if directory_key(pane.path) == key]
+                if any(pane._inline_editor is not None for pane in matching):
+                    continue
+                for pane in matching:
+                    pane.refresh_if_changed()
+                self._pending_directory_changes.discard(key)
+
+            now = time.monotonic()
+            # Network paths and failed/unsupported native watches keep their
+            # configured polling fallback; local watched folders only receive
+            # a low-frequency audit in case Windows overflowed an event buffer.
+            for pane in panes:
+                key = directory_key(pane.path)
+                if key in watched:
+                    continue
+                interval = self.config_data.getint(
+                    "refresh", "network_interval_ms" if str(pane.path).startswith("\\\\")
+                    else "background_interval_ms", fallback=10000) / 1000
+                if now >= self._network_refresh_due.get(key, 0):
+                    pane.refresh_if_changed()
+                    self._network_refresh_due[key] = now + max(1.0, interval)
+            if now >= self._next_refresh_audit:
+                for pane in panes:
+                    if directory_key(pane.path) in watched:
+                        pane.refresh_if_changed()
+                self._next_refresh_audit = now + 30.0
+        else:
+            self._pending_directory_changes.clear()
+        self._schedule_auto_refresh(100)
 
     def _build_menu(self) -> None:
         previous_popup = getattr(self, "header_popup", None)

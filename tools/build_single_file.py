@@ -14,6 +14,7 @@ def build() -> Path:
     clipboard = (ROOT / "pycommander" / "clipboard.py").read_text(encoding="utf-8")
     icons = (ROOT / "pycommander" / "icons.py").read_text(encoding="utf-8")
     startup = (ROOT / "pycommander" / "startup.py").read_text(encoding="utf-8")
+    dirwatch = (ROOT / "pycommander" / "dirwatch.py").read_text(encoding="utf-8")
     vcs = (ROOT / "pycommander" / "vcs.py").read_text(encoding="utf-8")
     tabs = (ROOT / "pycommander" / "tabs.py").read_text(encoding="utf-8")
     tooltip = (ROOT / "pycommander" / "tooltip.py").read_text(encoding="utf-8")
@@ -40,6 +41,7 @@ def build() -> Path:
     clipboard = clipboard.replace("from __future__ import annotations\n\n", "", 1)
     icons = icons.replace("from __future__ import annotations\n\n", "", 1)
     startup = startup.replace("from __future__ import annotations\n\n", "", 1)
+    dirwatch = dirwatch.replace("from __future__ import annotations\n\n", "", 1)
     vcs = vcs.replace("from __future__ import annotations\n\n", "", 1)
     tabs = tabs.replace("from __future__ import annotations\n\n", "", 1)
     tabs = "\n".join(line for line in tabs.splitlines() if not line.startswith("from .")) + "\n"
@@ -71,7 +73,7 @@ from __future__ import annotations
 
 '''
     output = ROOT / "pfc.py"
-    output.write_text(banner + i18n + "\n\n" + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + startup + "\n\n" + vcs + "\n\n" + tabs + "\n\n" + tooltip + "\n\n" + compare + "\n\n" + preview + "\n\n" + search + "\n\n" + multirename + "\n\n" + archivefs + "\n\n" + spaceanalyzer + "\n\n" + shelldnd + "\n\n" + shellmenu + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
+    output.write_text(banner + i18n + "\n\n" + fileops + "\n\n" + clipboard + "\n\n" + icons + "\n\n" + startup + "\n\n" + dirwatch + "\n\n" + vcs + "\n\n" + tabs + "\n\n" + tooltip + "\n\n" + compare + "\n\n" + preview + "\n\n" + search + "\n\n" + multirename + "\n\n" + archivefs + "\n\n" + spaceanalyzer + "\n\n" + shelldnd + "\n\n" + shellmenu + "\n\n" + app + "\n\nif __name__ == \"__main__\":\n    main()\n", encoding="utf-8")
     return output
 
 

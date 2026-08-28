@@ -37,6 +37,7 @@ from .tooltip import MenuToolTip, ToolTip, TreeItemToolTip, install_button_toolt
 from .tabs import COLOR_SCHEMES, ChamferNotebook, HeaderPopupController, TAB_STYLES, add_scaled_cascade, add_scaled_checkbutton, add_scaled_radiobutton, align_scaled_cascade_arrows, color_scheme, configure_ttk_theme
 from .i18n import LANGUAGES, get_language, set_language, tr
 from .startup import WindowsTrayIcon, set_windows_autostart
+from .dirwatch import DirectoryWatchManager, directory_key, is_local_watch_path
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -119,6 +120,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.3", "2026/08/28", (
+        "Fixed: Visible local folders now refresh immediately from Windows filesystem change events.",
+        "Adjusted: Replaced two-second foreground scanning with event-driven refresh and a low-frequency safety check.",
+    )),
     ("v0.17.2", "2026/08/28", (
         "Fixed: Half-screen windows no longer select oversized automatic fonts, and Ext uses only four Latin-character widths so Name receives the remaining space.",
     )),
@@ -1968,6 +1973,10 @@ class Commander(tk.Tk):
         self._ready = True
         self._save_job = None
         self._auto_refresh_job = None
+        self._directory_watches = DirectoryWatchManager()
+        self._pending_directory_changes: set[str] = set()
+        self._next_refresh_audit = time.monotonic() + 30.0
+        self._network_refresh_due = {}
         self._clipboard_job = None
         self.bind("<Configure>", self._schedule_save)
         self.bind("<Configure>", self._schedule_clipboard_layout, add="+")
@@ -2163,6 +2172,7 @@ class Commander(tk.Tk):
             self._handle_internal_drag("cancel", self._drag_state["source"], None)
         if self._auto_refresh_job is not None:
             self.after_cancel(self._auto_refresh_job)
+        self._directory_watches.close()
         if self._clipboard_job is not None:
             self.after_cancel(self._clipboard_job)
         if self._clipboard_resize_job is not None:
@@ -2242,23 +2252,51 @@ class Commander(tk.Tk):
         if self.winfo_exists():
             self._tray_poll_job = self.after(100, self._poll_tray_actions)
 
-    def _schedule_auto_refresh(self, delay=None) -> None:
+    def _schedule_auto_refresh(self, delay=100) -> None:
         if not self.winfo_exists():
             return
-        if delay is None:
-            focused = self.focus_displayof() is not None
-            paths = tuple(pane.path for pane in self.visible_panes())
-            network = any(str(path).startswith("\\\\") for path in paths)
-            key = "network_interval_ms" if network else ("active_interval_ms" if focused else "background_interval_ms")
-            delay = self.config_data.getint("refresh", key, fallback=5000)
-        self._auto_refresh_job = self.after(max(500, delay), self._auto_refresh_tick)
+        self._auto_refresh_job = self.after(max(50, delay), self._auto_refresh_tick)
 
     def _auto_refresh_tick(self) -> None:
         self._auto_refresh_job = None
-        if self.config_data.getboolean("refresh", "auto_refresh", fallback=True):
-            for pane in self.visible_panes():
-                pane.refresh_if_changed()
-        self._schedule_auto_refresh()
+        enabled = self.config_data.getboolean("refresh", "auto_refresh", fallback=True)
+        panes = self.visible_panes()
+        watch_paths = [pane.path for pane in panes
+                       if enabled and pane.mode == "files" and pane.archive_session is None
+                       and is_local_watch_path(pane.path)]
+        watched = self._directory_watches.sync(watch_paths)
+        if enabled:
+            self._pending_directory_changes.update(self._directory_watches.drain())
+            for key in tuple(self._pending_directory_changes):
+                matching = [pane for pane in panes if directory_key(pane.path) == key]
+                if any(pane._inline_editor is not None for pane in matching):
+                    continue
+                for pane in matching:
+                    pane.refresh_if_changed()
+                self._pending_directory_changes.discard(key)
+
+            now = time.monotonic()
+            # Network paths and failed/unsupported native watches keep their
+            # configured polling fallback; local watched folders only receive
+            # a low-frequency audit in case Windows overflowed an event buffer.
+            for pane in panes:
+                key = directory_key(pane.path)
+                if key in watched:
+                    continue
+                interval = self.config_data.getint(
+                    "refresh", "network_interval_ms" if str(pane.path).startswith("\\\\")
+                    else "background_interval_ms", fallback=10000) / 1000
+                if now >= self._network_refresh_due.get(key, 0):
+                    pane.refresh_if_changed()
+                    self._network_refresh_due[key] = now + max(1.0, interval)
+            if now >= self._next_refresh_audit:
+                for pane in panes:
+                    if directory_key(pane.path) in watched:
+                        pane.refresh_if_changed()
+                self._next_refresh_audit = now + 30.0
+        else:
+            self._pending_directory_changes.clear()
+        self._schedule_auto_refresh(100)
 
     def _build_menu(self) -> None:
         previous_popup = getattr(self, "header_popup", None)
