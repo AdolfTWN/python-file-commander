@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing PFC version tag to publish, such as v0.17.5
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -16,6 +22,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,9 +33,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes python3-tk
           python3 tools/build_single_file.py
           version="$(python3 -c 'from pycommander import __version__; print(__version__)')"
-          test "v${version}" = "${GITHUB_REF_NAME}"
+          test "v${version}" = "${RELEASE_TAG}"
           python3 -m compileall -q pycommander pfc.py
           python3 -m unittest discover -s tests
 
@@ -51,7 +61,7 @@ jobs:
           cd release-channel
           sha256sum pfc.py > pfc.py.sha256
           {
-            echo "# PFC ${GITHUB_REF_NAME}"
+            echo "# PFC ${RELEASE_TAG}"
             echo
             echo "Portable Python File Commander release."
             echo
@@ -60,6 +70,6 @@ jobs:
           git config user.name 'AdolfTWN'
           git config user.email 'fartice@gmail.com'
           git add pfc.py pfc.py.sha256 RELEASE_NOTES.md
-          git commit -m "Publish ${GITHUB_REF_NAME}"
-          git tag "${GITHUB_REF_NAME}"
-          git push origin main "${GITHUB_REF_NAME}"
+          git commit -m "Publish ${RELEASE_TAG}"
+          git tag "${RELEASE_TAG}"
+          git push origin main "${RELEASE_TAG}"
