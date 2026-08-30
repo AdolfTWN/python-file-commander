@@ -64,6 +64,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "變更：PFC 恢復使用單一公開 GitHub 儲存庫，統一提供開發內容、下載與更新。",
         "Changed: PFC updates now come from the public pfc-releases channel while development remains private.": "變更：PFC 更新改由公開的 pfc-releases 頻道提供，開發內容則維持私有。",
         "Added: Update downloads verify the release version and SHA-256 checksum before installation.": "新增：安裝更新前會驗證 Release 版本及 SHA-256 校驗碼。",
         "Adjusted: Right-click now opens the native Windows Explorer menu directly and releases F8 for future use.": "調整：右鍵現在會直接開啟 Windows 檔案總管原生選單，並釋放 F8 供未來使用。",
@@ -308,6 +309,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "变更：PFC 恢复使用单一公开 GitHub 仓库，统一提供开发内容、下载与更新。",
         "Changed: PFC updates now come from the public pfc-releases channel while development remains private.": "变更：PFC 更新改由公开的 pfc-releases 渠道提供，开发内容则保持私有。",
         "Added: Update downloads verify the release version and SHA-256 checksum before installation.": "新增：安装更新前会验证 Release 版本及 SHA-256 校验码。",
         "Adjusted: Right-click now opens the native Windows Explorer menu directly and releases F8 for future use.": "调整：右键现在会直接打开 Windows 文件资源管理器原生菜单，并释放 F8 供将来使用。",
@@ -525,6 +527,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "변경: PFC는 개발, 다운로드 및 업데이트를 하나의 공개 GitHub 저장소에서 다시 제공합니다.",
         "Changed: PFC updates now come from the public pfc-releases channel while development remains private.": "변경: PFC 업데이트는 공개 pfc-releases 채널에서 제공되고 개발 내용은 비공개로 유지됩니다.",
         "Added: Update downloads verify the release version and SHA-256 checksum before installation.": "추가: 업데이트 설치 전에 릴리스 버전과 SHA-256 체크섬을 확인합니다.",
         "Adjusted: Right-click now opens the native Windows Explorer menu directly and releases F8 for future use.": "조정: 이제 오른쪽 클릭하면 Windows 파일 탐색기 기본 메뉴가 바로 열리며 F8은 향후 사용을 위해 해제됩니다.",
@@ -8220,7 +8223,6 @@ def show_shell_context_menu(hwnd: int, paths, x_root: int, y_root: int) -> bool:
 import os
 import configparser
 import ctypes
-import hashlib
 import json
 import inspect
 import queue
@@ -8238,17 +8240,12 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.5"
+__version__ = "0.17.6"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
-UPDATE_URL = "https://api.github.com/repos/AdolfTWN/pfc-releases/releases/latest"
+UPDATE_URL = "https://raw.githubusercontent.com/AdolfTWN/python-file-commander/main/pfc.py"
 UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
-UPDATE_METADATA_LIMIT = 1024 * 1024
-UPDATE_CHECKSUM_LIMIT = 4096
-UPDATE_ASSET_NAME = "pfc.py"
-UPDATE_CHECKSUM_NAME = "pfc.py.sha256"
-UPDATE_ASSET_PREFIX = "https://github.com/AdolfTWN/pfc-releases/releases/download/"
 
 
 def middle_ellipsize(text: str, max_width: int, measure) -> str:
@@ -8326,6 +8323,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/08/30"
 VERSION_HISTORY = (
+    ("v0.17.6", "2026/08/30", (
+        "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.",
+    )),
     ("v0.17.5", "2026/08/30", (
         "Changed: PFC updates now come from the public pfc-releases channel while development remains private.",
         "Added: Update downloads verify the release version and SHA-256 checksum before installation.",
@@ -8746,49 +8746,10 @@ def downloaded_pfc_version(payload: bytes) -> str:
     return match.group(1)
 
 
-def release_update_assets(metadata: dict) -> tuple[str, str, str]:
-    """Return the declared version and required public release asset URLs."""
-    if not isinstance(metadata, dict):
-        raise ValueError("GitHub returned invalid release information.")
-    tag = metadata.get("tag_name")
-    if not isinstance(tag, str):
-        raise ValueError("The latest PFC release has no version tag.")
-    version = tag.strip().lstrip("vV")
-    version_key(version)
-    assets = metadata.get("assets")
-    if not isinstance(assets, list):
-        raise ValueError("The latest PFC release has no downloadable files.")
-    urls = {}
-    for asset in assets:
-        if not isinstance(asset, dict):
-            continue
-        name, asset_url = asset.get("name"), asset.get("browser_download_url")
-        if name in {UPDATE_ASSET_NAME, UPDATE_CHECKSUM_NAME} and isinstance(asset_url, str):
-            if not asset_url.startswith(UPDATE_ASSET_PREFIX):
-                raise ValueError("The latest PFC release contains an unsafe download URL.")
-            urls[name] = asset_url
-    if UPDATE_ASSET_NAME not in urls or UPDATE_CHECKSUM_NAME not in urls:
-        raise ValueError("The latest PFC release is missing its app or checksum file.")
-    return version, urls[UPDATE_ASSET_NAME], urls[UPDATE_CHECKSUM_NAME]
-
-
-def release_checksum(payload: bytes) -> str:
-    """Read the exact pfc.py SHA-256 entry published beside a release."""
-    try:
-        text = payload.decode("ascii")
-    except UnicodeDecodeError as exc:
-        raise ValueError("The PFC release checksum is invalid.") from exc
-    matches = re.findall(r"(?im)^([0-9a-f]{64})\s+\*?pfc\.py\s*$", text)
-    if len(matches) != 1:
-        raise ValueError("The PFC release checksum is invalid.")
-    return matches[0].lower()
-
-
 def _download_update_file(url: str, size_limit: int, progress=None,
-                          label: str = "") -> bytes:
+                          label: str = "pfc.py") -> bytes:
     request = urllib.request.Request(url, headers={
         "User-Agent": "Python-File-Commander-Updater",
-        "Accept": "application/vnd.github+json",
     })
     with urllib.request.urlopen(request, timeout=20) as response:
         declared = response.headers.get("Content-Length")
@@ -8812,25 +8773,8 @@ def _download_update_file(url: str, size_limit: int, progress=None,
 
 
 def fetch_pfc_update(url: str = UPDATE_URL, progress=None) -> tuple[str, bytes]:
-    metadata_payload = _download_update_file(url, UPDATE_METADATA_LIMIT,
-                                             label="release.json")
-    try:
-        metadata = json.loads(metadata_payload.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as exc:
-        raise ValueError("GitHub returned invalid release information.") from exc
-    release_version, app_url, checksum_url = release_update_assets(metadata)
-    checksum_payload = _download_update_file(checksum_url, UPDATE_CHECKSUM_LIMIT,
-                                              label=UPDATE_CHECKSUM_NAME)
-    payload = _download_update_file(app_url, UPDATE_SIZE_LIMIT, progress,
-                                    UPDATE_ASSET_NAME)
-    expected = release_checksum(checksum_payload)
-    actual = hashlib.sha256(payload).hexdigest()
-    if actual != expected:
-        raise ValueError("The downloaded PFC update failed SHA-256 verification.")
-    downloaded_version = downloaded_pfc_version(payload)
-    if downloaded_version != release_version:
-        raise ValueError("The downloaded PFC version does not match its GitHub Release tag.")
-    return downloaded_version, payload
+    payload = _download_update_file(url, UPDATE_SIZE_LIMIT, progress)
+    return downloaded_pfc_version(payload), payload
 
 
 def replace_portable_script(target: Path, payload: bytes) -> None:

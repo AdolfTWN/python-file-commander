@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.5 — Private Development / Public Releases**
+Current version: **v0.17.6**
 
 A dependency-free Python/Tk GUI inspired by Double Commander's familiar multi-panel workflow. It is intended for restricted office computers where Python is permitted but downloaded executables are not.
 
@@ -64,7 +64,7 @@ On Windows, PFC uses Segoe UI for the interface, Cascadia Mono or Consolas for f
 
 Help > v0.x.x Changes opens a large, resizable release-notes window. Its heading, description text, and controls follow the selected UI font size and update with live language changes.
 
-Help > Check Update reads the public `AdolfTWN/pfc-releases` Latest Release, downloads `pfc.py`, and verifies both its release version and SHA-256 checksum before replacing the portable script. Development history remains in the private source repository.
+Help > Check Update downloads and validates the latest portable `pfc.py` from this repository's public `main` branch before replacing the local script.
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. A live criteria summary and Clear Filters action make retained searches explicit. Results stream into sortable detail columns and support Enter/double-click Go to File, F3 Preview, multi-selection Copy Path, comparing two selected results, and sending the complete current result listing to a new panel tab. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 
