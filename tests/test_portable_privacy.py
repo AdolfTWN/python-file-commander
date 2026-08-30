@@ -9,7 +9,10 @@ class PortablePrivacyTests(unittest.TestCase):
         for marker in forbidden:
             with self.subTest(marker=marker):
                 self.assertNotIn(marker, portable)
-        self.assertEqual(portable.count("raw.githubusercontent.com/adolftwn/python-file-commander/main/pfc.py"), 1)
+        self.assertEqual(portable.count(
+            "api.github.com/repos/adolftwn/pfc-releases/releases/latest"), 1)
+        self.assertEqual(portable.count(
+            "github.com/adolftwn/pfc-releases/releases/download/"), 1)
 
 
 if __name__ == "__main__":

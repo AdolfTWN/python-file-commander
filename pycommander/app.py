@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import configparser
 import ctypes
+import hashlib
 import json
 import inspect
 import queue
@@ -41,8 +42,13 @@ from .dirwatch import DirectoryWatchManager, directory_key, is_local_watch_path
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
-UPDATE_URL = "https://raw.githubusercontent.com/AdolfTWN/python-file-commander/main/pfc.py"
+UPDATE_URL = "https://api.github.com/repos/AdolfTWN/pfc-releases/releases/latest"
 UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
+UPDATE_METADATA_LIMIT = 1024 * 1024
+UPDATE_CHECKSUM_LIMIT = 4096
+UPDATE_ASSET_NAME = "pfc.py"
+UPDATE_CHECKSUM_NAME = "pfc.py.sha256"
+UPDATE_ASSET_PREFIX = "https://github.com/AdolfTWN/pfc-releases/releases/download/"
 
 
 def middle_ellipsize(text: str, max_width: int, measure) -> str:
@@ -120,6 +126,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.5", "2026/08/30", (
+        "Changed: PFC updates now come from the public pfc-releases channel while development remains private.",
+        "Added: Update downloads verify the release version and SHA-256 checksum before installation.",
+    )),
     ("v0.17.4", "2026/08/28", (
         "Adjusted: Right-click now opens the native Windows Explorer menu directly and releases F8 for future use.",
         "Adjusted: The PFC actions menu opens after a selected item remains under the pointer for two seconds.",
@@ -536,12 +546,54 @@ def downloaded_pfc_version(payload: bytes) -> str:
     return match.group(1)
 
 
-def fetch_pfc_update(url: str = UPDATE_URL, progress=None) -> tuple[str, bytes]:
-    request = urllib.request.Request(url, headers={"User-Agent": "Python-File-Commander-Updater"})
+def release_update_assets(metadata: dict) -> tuple[str, str, str]:
+    """Return the declared version and required public release asset URLs."""
+    if not isinstance(metadata, dict):
+        raise ValueError("GitHub returned invalid release information.")
+    tag = metadata.get("tag_name")
+    if not isinstance(tag, str):
+        raise ValueError("The latest PFC release has no version tag.")
+    version = tag.strip().lstrip("vV")
+    version_key(version)
+    assets = metadata.get("assets")
+    if not isinstance(assets, list):
+        raise ValueError("The latest PFC release has no downloadable files.")
+    urls = {}
+    for asset in assets:
+        if not isinstance(asset, dict):
+            continue
+        name, asset_url = asset.get("name"), asset.get("browser_download_url")
+        if name in {UPDATE_ASSET_NAME, UPDATE_CHECKSUM_NAME} and isinstance(asset_url, str):
+            if not asset_url.startswith(UPDATE_ASSET_PREFIX):
+                raise ValueError("The latest PFC release contains an unsafe download URL.")
+            urls[name] = asset_url
+    if UPDATE_ASSET_NAME not in urls or UPDATE_CHECKSUM_NAME not in urls:
+        raise ValueError("The latest PFC release is missing its app or checksum file.")
+    return version, urls[UPDATE_ASSET_NAME], urls[UPDATE_CHECKSUM_NAME]
+
+
+def release_checksum(payload: bytes) -> str:
+    """Read the exact pfc.py SHA-256 entry published beside a release."""
+    try:
+        text = payload.decode("ascii")
+    except UnicodeDecodeError as exc:
+        raise ValueError("The PFC release checksum is invalid.") from exc
+    matches = re.findall(r"(?im)^([0-9a-f]{64})\s+\*?pfc\.py\s*$", text)
+    if len(matches) != 1:
+        raise ValueError("The PFC release checksum is invalid.")
+    return matches[0].lower()
+
+
+def _download_update_file(url: str, size_limit: int, progress=None,
+                          label: str = "") -> bytes:
+    request = urllib.request.Request(url, headers={
+        "User-Agent": "Python-File-Commander-Updater",
+        "Accept": "application/vnd.github+json",
+    })
     with urllib.request.urlopen(request, timeout=20) as response:
         declared = response.headers.get("Content-Length")
-        if declared and int(declared) > UPDATE_SIZE_LIMIT:
-            raise ValueError("Downloaded pfc.py is too large.")
+        if declared and int(declared) > size_limit:
+            raise ValueError(f"Downloaded {label or 'update data'} is too large.")
         total = int(declared) if declared else 0
         chunks, received = [], 0
         while True:
@@ -549,14 +601,36 @@ def fetch_pfc_update(url: str = UPDATE_URL, progress=None) -> tuple[str, bytes]:
             if not chunk:
                 break
             chunks.append(chunk); received += len(chunk)
-            if received > UPDATE_SIZE_LIMIT:
-                raise ValueError("Downloaded pfc.py is too large.")
+            if received > size_limit:
+                raise ValueError(f"Downloaded {label or 'update data'} is too large.")
             if progress:
-                progress(received, total or max(received + 1, UPDATE_SIZE_LIMIT), "pfc.py")
+                progress(received, total or max(received + 1, size_limit), label)
         payload = b"".join(chunks)
         if progress:
-            progress(total or received, total or received, "pfc.py")
-    return downloaded_pfc_version(payload), payload
+            progress(total or received, total or received, label)
+    return payload
+
+
+def fetch_pfc_update(url: str = UPDATE_URL, progress=None) -> tuple[str, bytes]:
+    metadata_payload = _download_update_file(url, UPDATE_METADATA_LIMIT,
+                                             label="release.json")
+    try:
+        metadata = json.loads(metadata_payload.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise ValueError("GitHub returned invalid release information.") from exc
+    release_version, app_url, checksum_url = release_update_assets(metadata)
+    checksum_payload = _download_update_file(checksum_url, UPDATE_CHECKSUM_LIMIT,
+                                              label=UPDATE_CHECKSUM_NAME)
+    payload = _download_update_file(app_url, UPDATE_SIZE_LIMIT, progress,
+                                    UPDATE_ASSET_NAME)
+    expected = release_checksum(checksum_payload)
+    actual = hashlib.sha256(payload).hexdigest()
+    if actual != expected:
+        raise ValueError("The downloaded PFC update failed SHA-256 verification.")
+    downloaded_version = downloaded_pfc_version(payload)
+    if downloaded_version != release_version:
+        raise ValueError("The downloaded PFC version does not match its GitHub Release tag.")
+    return downloaded_version, payload
 
 
 def replace_portable_script(target: Path, payload: bytes) -> None:

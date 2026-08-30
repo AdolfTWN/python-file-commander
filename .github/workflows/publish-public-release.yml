@@ -1,0 +1,65 @@
+name: Publish public PFC release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and validate portable release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/build_single_file.py
+          version="$(python3 -c 'from pycommander import __version__; print(__version__)')"
+          test "v${version}" = "${GITHUB_REF_NAME}"
+          python3 -m compileall -q pycommander pfc.py
+          python3 -m unittest discover -s tests
+
+      - name: Configure scoped release deploy key
+        env:
+          RELEASE_DEPLOY_KEY: ${{ secrets.PFC_RELEASES_DEPLOY_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$RELEASE_DEPLOY_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl' > "$HOME/.ssh/known_hosts"
+
+      - name: Publish files to public release channel
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone git@github.com:AdolfTWN/pfc-releases.git release-channel
+          cp pfc.py release-channel/pfc.py
+          cd release-channel
+          sha256sum pfc.py > pfc.py.sha256
+          {
+            echo "# PFC ${GITHUB_REF_NAME}"
+            echo
+            echo "Portable Python File Commander release."
+            echo
+            echo "The app verifies pfc.py against the attached SHA-256 checksum before updating."
+          } > RELEASE_NOTES.md
+          git config user.name 'AdolfTWN'
+          git config user.email 'fartice@gmail.com'
+          git add pfc.py pfc.py.sha256 RELEASE_NOTES.md
+          git commit -m "Publish ${GITHUB_REF_NAME}"
+          git tag "${GITHUB_REF_NAME}"
+          git push origin main "${GITHUB_REF_NAME}"
