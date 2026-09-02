@@ -120,6 +120,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.7", "2026/09/02", (
+        "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.",
+        "Added: Delete operations now show live activity, item progress, and estimated time remaining.",
+    )),
     ("v0.17.6", "2026/08/30", (
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.",
     )),
@@ -3360,15 +3364,17 @@ class Commander(tk.Tk):
         window.resizable(False, False); window.protocol("WM_DELETE_WINDOW", lambda: None)
         frame = ttk.Frame(window, padding=16); frame.pack(fill="both", expand=True)
         ttk.Label(frame, text=tr(title), anchor="w").pack(fill="x", pady=(0, 8))
-        progress = ttk.Progressbar(frame, mode="determinate", maximum=100, value=0, length=360)
+        progress = ttk.Progressbar(frame, mode="indeterminate", maximum=100, value=0, length=360)
         progress.pack(fill="x")
-        eta_label = ttk.Label(frame, text=tr("Estimated time remaining: calculating…"), anchor="w")
+        detail_label = ttk.Label(frame, text="", anchor="w")
+        detail_label.pack(fill="x", pady=(6, 0))
+        eta_label = ttk.Label(frame, text=tr("Preparing…"), anchor="w")
         eta_label.pack(fill="x", pady=(6, 0))
         window.update_idletasks()
         x = self.winfo_rootx() + max(0, (self.winfo_width() - window.winfo_reqwidth()) // 2)
         y = self.winfo_rooty() + max(0, (self.winfo_height() - window.winfo_reqheight()) // 3)
         window.geometry(f"+{x}+{y}"); window.lift(); window.focus_force()
-        results = queue.Queue(); started = time.monotonic()
+        results = queue.Queue(); started = time.monotonic(); progress.start(12)
 
         def report(completed: int, total: int, detail: str = "") -> None:
             results.put(("progress", max(0, completed), max(0, total), detail))
@@ -3405,9 +3411,13 @@ class Commander(tk.Tk):
                 if message[0] == "progress":
                     _kind, completed, total, detail = message
                     if total > 0:
+                        if str(progress.cget("mode")) == "indeterminate":
+                            progress.stop()
+                            progress.configure(mode="determinate", value=0)
+                            eta_label.configure(text=tr("Estimated time remaining: calculating…"))
                         target_percent = max(target_percent, min(99.0, completed * 100 / total))
                     if detail:
-                        eta_label.configure(text=detail)
+                        detail_label.configure(text=detail)
                 else:
                     result = message
             if displayed_percent < target_percent:
@@ -3622,15 +3632,12 @@ class Commander(tk.Tk):
     def _remove_from_analyzer(self, path: Path, permanent: bool) -> bool:
         if not path.exists():
             return False
-        operation, verb = (
-            (delete_items, "Permanent delete") if permanent
-            else (recycle_items, "Recycle"))
-        result = operation([path], self.continue_errors_var.get())
-        self.refresh()
-        self._show_operation_result(
-            verb, result,
-            retry=lambda failed: self._retry_delete(failed, permanent))
-        return bool(result.completed)
+        analyzer = self.space_analyzer_window
+        def rescan(success: bool) -> None:
+            if (success and analyzer is not None and analyzer.winfo_exists()):
+                analyzer.scan(Path(analyzer.path_var.get()), remember=False)
+        self._execute_delete([path], permanent, after=rescan)
+        return False
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
@@ -4569,6 +4576,29 @@ class Commander(tk.Tk):
     def move(self) -> None:
         self._run("Move", move_items)
 
+    def _execute_delete(self, items: list[Path], permanent: bool,
+                        verb: str | None = None, archive: bool = False,
+                        after=None) -> None:
+        operation = delete_items if permanent else recycle_items
+        operation_verb = verb or ("Permanent delete" if permanent else "Recycle")
+        title = "Deleting…" if permanent else "Moving to Recycle Bin…"
+        continue_on_error = self.continue_errors_var.get()
+
+        def work(report):
+            return operation(items, continue_on_error, report)
+
+        def finished(result: OperationResult) -> None:
+            if archive and result.completed:
+                self._commit_archive_changes(items)
+            self.refresh()
+            retry = None if archive else (
+                lambda failed: self._retry_delete(failed, permanent))
+            self._show_operation_result(operation_verb, result, retry=retry)
+            if after is not None:
+                after(bool(result.completed))
+
+        self._run_progress_operation(title, work, finished)
+
     def delete(self, permanent: bool = False) -> None:
         source, _ = self.panes()
         items = source.selected_paths()
@@ -4581,11 +4611,7 @@ class Commander(tk.Tk):
             if not messagebox.askyesno(tr("Delete from Archive"), prompt,
                                        icon="warning", parent=self):
                 return
-            result = delete_items(items, self.continue_errors_var.get())
-            if result.completed:
-                self._commit_archive_changes(items)
-            self.refresh()
-            self._show_operation_result("Delete from Archive", result)
+            self._execute_delete(items, True, verb="Delete from Archive", archive=True)
             return
         permanent = permanent or not self.recycle_bin_var.get()
         if permanent:
@@ -4593,25 +4619,18 @@ class Commander(tk.Tk):
                         count=len(items))
             if not messagebox.askyesno(tr("Permanent delete warning"), prompt, icon="warning", parent=self):
                 return
-            operation, verb = delete_items, "Permanent delete"
         else:
             if not messagebox.askyesno(tr("Recycle Bin"), tr("Move {count} selected item(s) to the Recycle Bin?", count=len(items)),
                                        parent=self):
                 return
-            operation, verb = recycle_items, "Recycle"
-        result = operation(items, self.continue_errors_var.get()); self.refresh()
-        self._show_operation_result(verb, result,
-                                    retry=lambda failed: self._retry_delete(failed, permanent))
+        self._execute_delete(items, permanent)
 
     def delete_hotkey(self, permanent: bool = False) -> None:
         if not self._clipboard_is_text_control():
             self.delete(permanent=permanent)
 
     def _retry_delete(self, items: list[Path], permanent: bool) -> None:
-        operation, verb = (delete_items, "Permanent delete") if permanent else (recycle_items, "Recycle")
-        result = operation(items, self.continue_errors_var.get()); self.refresh()
-        self._show_operation_result(verb, result,
-                                    retry=lambda failed: self._retry_delete(failed, permanent))
+        self._execute_delete(items, permanent)
 
     def mkdir(self) -> None:
         source, _ = self.panes()

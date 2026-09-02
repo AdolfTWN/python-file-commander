@@ -23,6 +23,39 @@ class FileOpsTests(unittest.TestCase):
             delete_items([moved / item.name])
             self.assertFalse((moved / item.name).exists())
 
+    def test_recursive_delete_reports_entry_progress(self):
+        with tempfile.TemporaryDirectory() as raw:
+            folder = Path(raw) / "large"
+            nested = folder / "nested"
+            nested.mkdir(parents=True)
+            (folder / "one.bin").write_bytes(b"1")
+            (nested / "two.bin").write_bytes(b"2")
+            updates = []
+
+            result = delete_items([folder], progress=lambda *values: updates.append(values))
+
+            self.assertTrue(result.successful)
+            self.assertFalse(folder.exists())
+            determinate = [update for update in updates if update[1] > 0]
+            self.assertTrue(determinate)
+            self.assertEqual(determinate[-1][:2], (4, 4))
+
+    def test_recycle_reports_activity_without_blocking_contract(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            home = root / "home"
+            home.mkdir()
+            item = root / "report.txt"
+            item.write_text("safe", encoding="utf-8")
+            updates = []
+            with mock.patch.object(fileops.os, "name", "posix"), \
+                    mock.patch.object(Path, "home", return_value=home):
+                result = recycle_items(
+                    [item], progress=lambda *values: updates.append(values))
+            self.assertTrue(result.successful)
+            self.assertEqual(updates[0][:2], (0, 0))
+            self.assertEqual(updates[-1][:2], (1, 1))
+
     def test_conflict_keep_both_and_skip(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw); source = root / "source"; target = root / "target"

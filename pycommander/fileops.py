@@ -11,6 +11,7 @@ from urllib.parse import quote
 
 
 ConflictResolver = Callable[[Path, Path], str]
+ProgressCallback = Callable[[int, int, str], None]
 
 
 def filesystem_path(path: Path) -> str:
@@ -56,6 +57,16 @@ def _remove_existing(path: Path) -> None:
         shutil.rmtree(path)
     else:
         path.unlink()
+
+
+def _is_junction(path: str) -> bool:
+    is_junction = getattr(os.path, "isjunction", None)
+    return bool(is_junction and is_junction(path))
+
+
+def _is_linklike(path: str) -> bool:
+    """Treat symlinks and Windows junctions as leaf entries."""
+    return os.path.islink(path) or _is_junction(path)
 
 
 def _copy_or_move(source: Path, target: Path, move: bool) -> None:
@@ -141,16 +152,66 @@ def move_items(items: list[Path], destination: Path,
                           continue_on_error=continue_on_error)
 
 
-def delete_items(items: list[Path], continue_on_error: bool = True) -> OperationResult:
+def _count_delete_entries(path: Path) -> int:
+    """Count a deletion tree without following links or Windows junctions."""
+    filesystem = filesystem_path(path)
+    if not os.path.isdir(filesystem) or _is_linklike(filesystem):
+        return 1
+    total = 1
+    with os.scandir(filesystem) as entries:
+        for entry in entries:
+            child = Path(entry.path)
+            if entry.is_dir(follow_symlinks=False):
+                total += _count_delete_entries(child)
+            else:
+                total += 1
+    return total
+
+
+def _remove_with_progress(path: Path, removed: Callable[[Path], None]) -> None:
+    """Delete a tree bottom-up and report each removed filesystem entry."""
+    filesystem = filesystem_path(path)
+    if os.path.isdir(filesystem) and not _is_linklike(filesystem):
+        with os.scandir(filesystem) as entries:
+            children = [Path(entry.path) for entry in entries]
+        for child in children:
+            _remove_with_progress(child, removed)
+        os.rmdir(filesystem)
+    elif _is_junction(filesystem):
+        os.rmdir(filesystem)
+    else:
+        os.unlink(filesystem)
+    removed(path)
+
+
+def delete_items(items: list[Path], continue_on_error: bool = True,
+                 progress: ProgressCallback | None = None) -> OperationResult:
     result = OperationResult()
-    for item in items:
+    total = 0
+    if progress:
+        for item in items:
+            progress(0, 0, item.name)
+            try:
+                total += _count_delete_entries(item)
+            except OSError:
+                total += 1
+        progress(0, total, "")
+    completed_entries = 0
+    for index, item in enumerate(items):
         try:
-            _remove_existing(item)
+            if progress:
+                def removed(path: Path) -> None:
+                    nonlocal completed_entries
+                    completed_entries += 1
+                    progress(completed_entries, total, path.name)
+                _remove_with_progress(item, removed)
+            else:
+                _remove_existing(item)
             result.completed.append(item)
         except OSError as exc:
             result.failures.append(OperationFailure(item, None, str(exc)))
             if not continue_on_error:
-                result.skipped.extend(items[len(result.completed) + len(result.failures):])
+                result.skipped.extend(items[index + 1:])
                 break
     return result
 
@@ -162,7 +223,8 @@ class _SHFILEOPSTRUCTW(ctypes.Structure):
                 ("hNameMappings", ctypes.c_void_p), ("lpszProgressTitle", ctypes.c_wchar_p)]
 
 
-def recycle_items(items: list[Path], continue_on_error: bool = True) -> OperationResult:
+def recycle_items(items: list[Path], continue_on_error: bool = True,
+                  progress: ProgressCallback | None = None) -> OperationResult:
     result = OperationResult()
     if os.name != "nt":
         trash_root = Path.home() / ".local" / "share" / "Trash"
@@ -172,6 +234,8 @@ def recycle_items(items: list[Path], continue_on_error: bool = True) -> Operatio
         for index, item in enumerate(items):
             target = None
             try:
+                if progress:
+                    progress(0, 0, item.name)
                 original = item.resolve()
                 target = unique_target(files_root / item.name)
                 shutil.move(str(item), str(target))
@@ -182,6 +246,8 @@ def recycle_items(items: list[Path], continue_on_error: bool = True) -> Operatio
                     f"DeletionDate={datetime.now():%Y-%m-%dT%H:%M:%S}\n",
                     encoding="utf-8")
                 result.completed.append(item)
+                if progress:
+                    progress(index + 1, len(items), item.name)
             except (OSError, shutil.Error) as exc:
                 if target is not None and target.exists() and not item.exists():
                     try:
@@ -199,12 +265,14 @@ def recycle_items(items: list[Path], continue_on_error: bool = True) -> Operatio
     kernel32.GetDriveTypeW.restype = ctypes.c_uint
     shell32.SHFileOperationW.argtypes = [ctypes.POINTER(_SHFILEOPSTRUCTW)]
     shell32.SHFileOperationW.restype = ctypes.c_int
-    for item in items:
+    for index, item in enumerate(items):
+        if progress:
+            progress(0, 0, item.name)
         if str(item).startswith("\\\\") or (item.anchor and kernel32.GetDriveTypeW(str(item.anchor)) == 4):
             result.failures.append(OperationFailure(
                 item, None, "Network locations do not provide a safe Windows Recycle Bin. Use Shift+Del explicitly."))
             if not continue_on_error:
-                result.skipped.extend(items[len(result.completed) + len(result.failures):])
+                result.skipped.extend(items[index + 1:])
                 break
             continue
         operation = _SHFILEOPSTRUCTW(None, 3, str(item.resolve()) + "\0\0", None,
@@ -212,11 +280,13 @@ def recycle_items(items: list[Path], continue_on_error: bool = True) -> Operatio
         code = shell32.SHFileOperationW(ctypes.byref(operation))
         if code == 0 and not operation.fAnyOperationsAborted:
             result.completed.append(item)
+            if progress:
+                progress(index + 1, len(items), item.name)
         else:
             message = "Recycle operation was cancelled." if operation.fAnyOperationsAborted else f"Windows error 0x{code:04X}"
             result.failures.append(OperationFailure(item, None, message))
             if not continue_on_error:
-                result.skipped.extend(items[len(result.completed) + len(result.failures):])
+                result.skipped.extend(items[index + 1:])
                 break
     return result
 

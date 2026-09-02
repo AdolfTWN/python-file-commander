@@ -64,6 +64,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Preparing…": "準備中…", "Deleting…": "刪除中…", "Moving to Recycle Bin…": "移至資源回收筒中…",
+        "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "修正：刪除大型資料夾及移至資源回收筒時，不再阻塞 PFC 介面或滑鼠操作。",
+        "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "新增：刪除作業現在會顯示即時活動、項目進度及預估剩餘時間。",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "變更：PFC 恢復使用單一公開 GitHub 儲存庫，統一提供開發內容、下載與更新。",
         "Changed: PFC updates now come from the public pfc-releases channel while development remains private.": "變更：PFC 更新改由公開的 pfc-releases 頻道提供，開發內容則維持私有。",
         "Added: Update downloads verify the release version and SHA-256 checksum before installation.": "新增：安裝更新前會驗證 Release 版本及 SHA-256 校驗碼。",
@@ -309,6 +312,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Preparing…": "准备中…", "Deleting…": "删除中…", "Moving to Recycle Bin…": "移至回收站中…",
+        "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "修复：删除大型文件夹及移至回收站时，不再阻塞 PFC 界面或鼠标操作。",
+        "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "新增：删除操作现在会显示实时活动、项目进度及预计剩余时间。",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "变更：PFC 恢复使用单一公开 GitHub 仓库，统一提供开发内容、下载与更新。",
         "Changed: PFC updates now come from the public pfc-releases channel while development remains private.": "变更：PFC 更新改由公开的 pfc-releases 渠道提供，开发内容则保持私有。",
         "Added: Update downloads verify the release version and SHA-256 checksum before installation.": "新增：安装更新前会验证 Release 版本及 SHA-256 校验码。",
@@ -527,6 +533,9 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Preparing…": "준비 중…", "Deleting…": "삭제 중…", "Moving to Recycle Bin…": "휴지통으로 이동 중…",
+        "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "수정: 큰 폴더 삭제 및 휴지통 이동 작업이 더 이상 PFC 인터페이스나 마우스 조작을 차단하지 않습니다.",
+        "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "추가: 삭제 작업에 실시간 활동, 항목 진행률 및 예상 남은 시간을 표시합니다.",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "변경: PFC는 개발, 다운로드 및 업데이트를 하나의 공개 GitHub 저장소에서 다시 제공합니다.",
         "Changed: PFC updates now come from the public pfc-releases channel while development remains private.": "변경: PFC 업데이트는 공개 pfc-releases 채널에서 제공되고 개발 내용은 비공개로 유지됩니다.",
         "Added: Update downloads verify the release version and SHA-256 checksum before installation.": "추가: 업데이트 설치 전에 릴리스 버전과 SHA-256 체크섬을 확인합니다.",
@@ -755,6 +764,7 @@ from urllib.parse import quote
 
 
 ConflictResolver = Callable[[Path, Path], str]
+ProgressCallback = Callable[[int, int, str], None]
 
 
 def filesystem_path(path: Path) -> str:
@@ -800,6 +810,16 @@ def _remove_existing(path: Path) -> None:
         shutil.rmtree(path)
     else:
         path.unlink()
+
+
+def _is_junction(path: str) -> bool:
+    is_junction = getattr(os.path, "isjunction", None)
+    return bool(is_junction and is_junction(path))
+
+
+def _is_linklike(path: str) -> bool:
+    """Treat symlinks and Windows junctions as leaf entries."""
+    return os.path.islink(path) or _is_junction(path)
 
 
 def _copy_or_move(source: Path, target: Path, move: bool) -> None:
@@ -885,16 +905,66 @@ def move_items(items: list[Path], destination: Path,
                           continue_on_error=continue_on_error)
 
 
-def delete_items(items: list[Path], continue_on_error: bool = True) -> OperationResult:
+def _count_delete_entries(path: Path) -> int:
+    """Count a deletion tree without following links or Windows junctions."""
+    filesystem = filesystem_path(path)
+    if not os.path.isdir(filesystem) or _is_linklike(filesystem):
+        return 1
+    total = 1
+    with os.scandir(filesystem) as entries:
+        for entry in entries:
+            child = Path(entry.path)
+            if entry.is_dir(follow_symlinks=False):
+                total += _count_delete_entries(child)
+            else:
+                total += 1
+    return total
+
+
+def _remove_with_progress(path: Path, removed: Callable[[Path], None]) -> None:
+    """Delete a tree bottom-up and report each removed filesystem entry."""
+    filesystem = filesystem_path(path)
+    if os.path.isdir(filesystem) and not _is_linklike(filesystem):
+        with os.scandir(filesystem) as entries:
+            children = [Path(entry.path) for entry in entries]
+        for child in children:
+            _remove_with_progress(child, removed)
+        os.rmdir(filesystem)
+    elif _is_junction(filesystem):
+        os.rmdir(filesystem)
+    else:
+        os.unlink(filesystem)
+    removed(path)
+
+
+def delete_items(items: list[Path], continue_on_error: bool = True,
+                 progress: ProgressCallback | None = None) -> OperationResult:
     result = OperationResult()
-    for item in items:
+    total = 0
+    if progress:
+        for item in items:
+            progress(0, 0, item.name)
+            try:
+                total += _count_delete_entries(item)
+            except OSError:
+                total += 1
+        progress(0, total, "")
+    completed_entries = 0
+    for index, item in enumerate(items):
         try:
-            _remove_existing(item)
+            if progress:
+                def removed(path: Path) -> None:
+                    nonlocal completed_entries
+                    completed_entries += 1
+                    progress(completed_entries, total, path.name)
+                _remove_with_progress(item, removed)
+            else:
+                _remove_existing(item)
             result.completed.append(item)
         except OSError as exc:
             result.failures.append(OperationFailure(item, None, str(exc)))
             if not continue_on_error:
-                result.skipped.extend(items[len(result.completed) + len(result.failures):])
+                result.skipped.extend(items[index + 1:])
                 break
     return result
 
@@ -906,7 +976,8 @@ class _SHFILEOPSTRUCTW(ctypes.Structure):
                 ("hNameMappings", ctypes.c_void_p), ("lpszProgressTitle", ctypes.c_wchar_p)]
 
 
-def recycle_items(items: list[Path], continue_on_error: bool = True) -> OperationResult:
+def recycle_items(items: list[Path], continue_on_error: bool = True,
+                  progress: ProgressCallback | None = None) -> OperationResult:
     result = OperationResult()
     if os.name != "nt":
         trash_root = Path.home() / ".local" / "share" / "Trash"
@@ -916,6 +987,8 @@ def recycle_items(items: list[Path], continue_on_error: bool = True) -> Operatio
         for index, item in enumerate(items):
             target = None
             try:
+                if progress:
+                    progress(0, 0, item.name)
                 original = item.resolve()
                 target = unique_target(files_root / item.name)
                 shutil.move(str(item), str(target))
@@ -926,6 +999,8 @@ def recycle_items(items: list[Path], continue_on_error: bool = True) -> Operatio
                     f"DeletionDate={datetime.now():%Y-%m-%dT%H:%M:%S}\n",
                     encoding="utf-8")
                 result.completed.append(item)
+                if progress:
+                    progress(index + 1, len(items), item.name)
             except (OSError, shutil.Error) as exc:
                 if target is not None and target.exists() and not item.exists():
                     try:
@@ -943,12 +1018,14 @@ def recycle_items(items: list[Path], continue_on_error: bool = True) -> Operatio
     kernel32.GetDriveTypeW.restype = ctypes.c_uint
     shell32.SHFileOperationW.argtypes = [ctypes.POINTER(_SHFILEOPSTRUCTW)]
     shell32.SHFileOperationW.restype = ctypes.c_int
-    for item in items:
+    for index, item in enumerate(items):
+        if progress:
+            progress(0, 0, item.name)
         if str(item).startswith("\\\\") or (item.anchor and kernel32.GetDriveTypeW(str(item.anchor)) == 4):
             result.failures.append(OperationFailure(
                 item, None, "Network locations do not provide a safe Windows Recycle Bin. Use Shift+Del explicitly."))
             if not continue_on_error:
-                result.skipped.extend(items[len(result.completed) + len(result.failures):])
+                result.skipped.extend(items[index + 1:])
                 break
             continue
         operation = _SHFILEOPSTRUCTW(None, 3, str(item.resolve()) + "\0\0", None,
@@ -956,11 +1033,13 @@ def recycle_items(items: list[Path], continue_on_error: bool = True) -> Operatio
         code = shell32.SHFileOperationW(ctypes.byref(operation))
         if code == 0 and not operation.fAnyOperationsAborted:
             result.completed.append(item)
+            if progress:
+                progress(index + 1, len(items), item.name)
         else:
             message = "Recycle operation was cancelled." if operation.fAnyOperationsAborted else f"Windows error 0x{code:04X}"
             result.failures.append(OperationFailure(item, None, message))
             if not continue_on_error:
-                result.skipped.extend(items[len(result.completed) + len(result.failures):])
+                result.skipped.extend(items[index + 1:])
                 break
     return result
 
@@ -8240,7 +8319,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.6"
+__version__ = "0.17.7"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8321,8 +8400,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/08/30"
+BUILD_DATE = "2026/09/02"
 VERSION_HISTORY = (
+    ("v0.17.7", "2026/09/02", (
+        "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.",
+        "Added: Delete operations now show live activity, item progress, and estimated time remaining.",
+    )),
     ("v0.17.6", "2026/08/30", (
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.",
     )),
@@ -11563,15 +11646,17 @@ class Commander(tk.Tk):
         window.resizable(False, False); window.protocol("WM_DELETE_WINDOW", lambda: None)
         frame = ttk.Frame(window, padding=16); frame.pack(fill="both", expand=True)
         ttk.Label(frame, text=tr(title), anchor="w").pack(fill="x", pady=(0, 8))
-        progress = ttk.Progressbar(frame, mode="determinate", maximum=100, value=0, length=360)
+        progress = ttk.Progressbar(frame, mode="indeterminate", maximum=100, value=0, length=360)
         progress.pack(fill="x")
-        eta_label = ttk.Label(frame, text=tr("Estimated time remaining: calculating…"), anchor="w")
+        detail_label = ttk.Label(frame, text="", anchor="w")
+        detail_label.pack(fill="x", pady=(6, 0))
+        eta_label = ttk.Label(frame, text=tr("Preparing…"), anchor="w")
         eta_label.pack(fill="x", pady=(6, 0))
         window.update_idletasks()
         x = self.winfo_rootx() + max(0, (self.winfo_width() - window.winfo_reqwidth()) // 2)
         y = self.winfo_rooty() + max(0, (self.winfo_height() - window.winfo_reqheight()) // 3)
         window.geometry(f"+{x}+{y}"); window.lift(); window.focus_force()
-        results = queue.Queue(); started = time.monotonic()
+        results = queue.Queue(); started = time.monotonic(); progress.start(12)
 
         def report(completed: int, total: int, detail: str = "") -> None:
             results.put(("progress", max(0, completed), max(0, total), detail))
@@ -11608,9 +11693,13 @@ class Commander(tk.Tk):
                 if message[0] == "progress":
                     _kind, completed, total, detail = message
                     if total > 0:
+                        if str(progress.cget("mode")) == "indeterminate":
+                            progress.stop()
+                            progress.configure(mode="determinate", value=0)
+                            eta_label.configure(text=tr("Estimated time remaining: calculating…"))
                         target_percent = max(target_percent, min(99.0, completed * 100 / total))
                     if detail:
-                        eta_label.configure(text=detail)
+                        detail_label.configure(text=detail)
                 else:
                     result = message
             if displayed_percent < target_percent:
@@ -11825,15 +11914,12 @@ class Commander(tk.Tk):
     def _remove_from_analyzer(self, path: Path, permanent: bool) -> bool:
         if not path.exists():
             return False
-        operation, verb = (
-            (delete_items, "Permanent delete") if permanent
-            else (recycle_items, "Recycle"))
-        result = operation([path], self.continue_errors_var.get())
-        self.refresh()
-        self._show_operation_result(
-            verb, result,
-            retry=lambda failed: self._retry_delete(failed, permanent))
-        return bool(result.completed)
+        analyzer = self.space_analyzer_window
+        def rescan(success: bool) -> None:
+            if (success and analyzer is not None and analyzer.winfo_exists()):
+                analyzer.scan(Path(analyzer.path_var.get()), remember=False)
+        self._execute_delete([path], permanent, after=rescan)
+        return False
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
@@ -12772,6 +12858,29 @@ class Commander(tk.Tk):
     def move(self) -> None:
         self._run("Move", move_items)
 
+    def _execute_delete(self, items: list[Path], permanent: bool,
+                        verb: str | None = None, archive: bool = False,
+                        after=None) -> None:
+        operation = delete_items if permanent else recycle_items
+        operation_verb = verb or ("Permanent delete" if permanent else "Recycle")
+        title = "Deleting…" if permanent else "Moving to Recycle Bin…"
+        continue_on_error = self.continue_errors_var.get()
+
+        def work(report):
+            return operation(items, continue_on_error, report)
+
+        def finished(result: OperationResult) -> None:
+            if archive and result.completed:
+                self._commit_archive_changes(items)
+            self.refresh()
+            retry = None if archive else (
+                lambda failed: self._retry_delete(failed, permanent))
+            self._show_operation_result(operation_verb, result, retry=retry)
+            if after is not None:
+                after(bool(result.completed))
+
+        self._run_progress_operation(title, work, finished)
+
     def delete(self, permanent: bool = False) -> None:
         source, _ = self.panes()
         items = source.selected_paths()
@@ -12784,11 +12893,7 @@ class Commander(tk.Tk):
             if not messagebox.askyesno(tr("Delete from Archive"), prompt,
                                        icon="warning", parent=self):
                 return
-            result = delete_items(items, self.continue_errors_var.get())
-            if result.completed:
-                self._commit_archive_changes(items)
-            self.refresh()
-            self._show_operation_result("Delete from Archive", result)
+            self._execute_delete(items, True, verb="Delete from Archive", archive=True)
             return
         permanent = permanent or not self.recycle_bin_var.get()
         if permanent:
@@ -12796,25 +12901,18 @@ class Commander(tk.Tk):
                         count=len(items))
             if not messagebox.askyesno(tr("Permanent delete warning"), prompt, icon="warning", parent=self):
                 return
-            operation, verb = delete_items, "Permanent delete"
         else:
             if not messagebox.askyesno(tr("Recycle Bin"), tr("Move {count} selected item(s) to the Recycle Bin?", count=len(items)),
                                        parent=self):
                 return
-            operation, verb = recycle_items, "Recycle"
-        result = operation(items, self.continue_errors_var.get()); self.refresh()
-        self._show_operation_result(verb, result,
-                                    retry=lambda failed: self._retry_delete(failed, permanent))
+        self._execute_delete(items, permanent)
 
     def delete_hotkey(self, permanent: bool = False) -> None:
         if not self._clipboard_is_text_control():
             self.delete(permanent=permanent)
 
     def _retry_delete(self, items: list[Path], permanent: bool) -> None:
-        operation, verb = (delete_items, "Permanent delete") if permanent else (recycle_items, "Recycle")
-        result = operation(items, self.continue_errors_var.get()); self.refresh()
-        self._show_operation_result(verb, result,
-                                    retry=lambda failed: self._retry_delete(failed, permanent))
+        self._execute_delete(items, permanent)
 
     def mkdir(self) -> None:
         source, _ = self.panes()
