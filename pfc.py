@@ -65,6 +65,8 @@ _TRANSLATIONS = {
     },
     "zh_TW": {
         "Preparing…": "準備中…", "Deleting…": "刪除中…", "Moving to Recycle Bin…": "移至資源回收筒中…",
+        "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "修正：拖曳檔案時刷新資料夾會保留選取列，包含 Git 工作資料夾。",
+        "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "修正：放下或取消拖曳後，會補上待處理的資料夾刷新。",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "修正：刪除大型資料夾及移至資源回收筒時，不再阻塞 PFC 介面或滑鼠操作。",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "新增：刪除作業現在會顯示即時活動、項目進度及預估剩餘時間。",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "變更：PFC 恢復使用單一公開 GitHub 儲存庫，統一提供開發內容、下載與更新。",
@@ -313,6 +315,8 @@ _TRANSLATIONS = {
     },
     "zh_CN": {
         "Preparing…": "准备中…", "Deleting…": "删除中…", "Moving to Recycle Bin…": "移至回收站中…",
+        "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "修复：拖动文件时刷新文件夹会保留所选行，包括 Git 工作文件夹。",
+        "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "修复：放下或取消拖动后，会补上待处理的文件夹刷新。",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "修复：删除大型文件夹及移至回收站时，不再阻塞 PFC 界面或鼠标操作。",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "新增：删除操作现在会显示实时活动、项目进度及预计剩余时间。",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "变更：PFC 恢复使用单一公开 GitHub 仓库，统一提供开发内容、下载与更新。",
@@ -534,6 +538,8 @@ _TRANSLATIONS = {
     },
     "ko": {
         "Preparing…": "준비 중…", "Deleting…": "삭제 중…", "Moving to Recycle Bin…": "휴지통으로 이동 중…",
+        "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "수정: Git 작업 폴더를 포함하여 파일을 끄는 동안 폴더를 새로 고쳐도 선택한 행이 유지됩니다.",
+        "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "수정: 파일을 놓거나 끌기를 취소하면 대기 중인 폴더 변경 사항이 새로 고쳐집니다.",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "수정: 큰 폴더 삭제 및 휴지통 이동 작업이 더 이상 PFC 인터페이스나 마우스 조작을 차단하지 않습니다.",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "추가: 삭제 작업에 실시간 활동, 항목 진행률 및 예상 남은 시간을 표시합니다.",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "변경: PFC는 개발, 다운로드 및 업데이트를 하나의 공개 GitHub 저장소에서 다시 제공합니다.",
@@ -8319,7 +8325,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.7"
+__version__ = "0.17.8"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8400,8 +8406,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/02"
+BUILD_DATE = "2026/09/10"
 VERSION_HISTORY = (
+    ("v0.17.8", "2026/09/10", (
+        "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.",
+        "Fixed: Pending folder changes refresh after dropping or cancelling a drag.",
+    )),
     ("v0.17.7", "2026/09/02", (
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.",
@@ -9014,6 +9024,7 @@ class FilePane(ttk.Frame):
         self._drag_press_item = None
         self._drag_press_xy = None
         self._dragging = False
+        self._refresh_after_drag = False
         self._context_dwell_job = None
         self._context_dwell_item = None
         self._context_dwell_xy = None
@@ -9350,9 +9361,14 @@ class FilePane(ttk.Frame):
 
     def _drag_release(self, event):
         was_dragging = self._dragging
-        if was_dragging:
-            self.on_drag("drop", self, event)
         self._drag_press_item = None; self._drag_press_xy = None; self._dragging = False
+        try:
+            if was_dragging:
+                self.on_drag("drop", self, event)
+        finally:
+            if self._refresh_after_drag:
+                self._refresh_after_drag = False
+                self.after_idle(self.refresh)
         return "break" if was_dragging else None
 
     def _cancel_context_dwell(self, disarm: bool = True) -> None:
@@ -9620,6 +9636,13 @@ class FilePane(ttk.Frame):
     def refresh(self) -> None:
         if self._inline_editor is not None:
             return
+        # Preserve Treeview IDs from mouse-down through drop. A filesystem
+        # notification (including a Git working-tree change) can arrive before
+        # the first motion, while _dragging is still False.
+        if self._drag_press_item is not None:
+            self._refresh_after_drag = True
+            return
+        self._refresh_after_drag = False
         self._cancel_context_dwell()
         if self.mode == "files" and self.view_mode != "list":
             self.tree.configure(show="tree", displaycolumns=())
@@ -11472,10 +11495,16 @@ class Commander(tk.Tk):
                         self.after(250, self.refresh)
                 except OSError as exc:
                     messagebox.showerror(tr("Explorer drag failed"), str(exc), parent=self)
+                finally:
+                    # The native Shell loop consumes mouse-up (or Escape), so
+                    # Tk may never deliver ButtonRelease to the source pane.
+                    pane._drag_release(event)
                 return
             self._update_internal_drag(event); return
         if action == "cancel":
-            self._finish_internal_drag(); self._drag_state = None; return
+            self._finish_internal_drag(); self._drag_state = None
+            pane._drag_release(event)
+            return
         if action != "drop" or self._drag_state is None:
             return
         self._update_internal_drag(event)

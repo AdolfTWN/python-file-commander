@@ -95,6 +95,7 @@ def main() -> None:
                 x=box[0] + 4, y=box[1] + 4,
                 x_root=click_pane.tree.winfo_rootx() + box[0] + 4,
                 y_root=click_pane.tree.winfo_rooty() + box[1] + 4))
+            click_pane._drag_release(SimpleNamespace())
             assert app.active is click_pane, "A clicked inactive-panel row must activate its panel"
             assert click_pane.active_indicator.cget("background") == app.palette["selection"]
             assert app.right_tabs.current().active_indicator.cget("background") == app.palette["border"]

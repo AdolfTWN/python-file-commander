@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.7**
+Current version: **v0.17.8**
 
 Large deletions run outside the UI thread and report live item progress plus an estimated remaining time.
 

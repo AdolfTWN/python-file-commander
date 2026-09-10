@@ -120,6 +120,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.8", "2026/09/10", (
+        "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.",
+        "Fixed: Pending folder changes refresh after dropping or cancelling a drag.",
+    )),
     ("v0.17.7", "2026/09/02", (
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.",
@@ -732,6 +736,7 @@ class FilePane(ttk.Frame):
         self._drag_press_item = None
         self._drag_press_xy = None
         self._dragging = False
+        self._refresh_after_drag = False
         self._context_dwell_job = None
         self._context_dwell_item = None
         self._context_dwell_xy = None
@@ -1068,9 +1073,14 @@ class FilePane(ttk.Frame):
 
     def _drag_release(self, event):
         was_dragging = self._dragging
-        if was_dragging:
-            self.on_drag("drop", self, event)
         self._drag_press_item = None; self._drag_press_xy = None; self._dragging = False
+        try:
+            if was_dragging:
+                self.on_drag("drop", self, event)
+        finally:
+            if self._refresh_after_drag:
+                self._refresh_after_drag = False
+                self.after_idle(self.refresh)
         return "break" if was_dragging else None
 
     def _cancel_context_dwell(self, disarm: bool = True) -> None:
@@ -1338,6 +1348,13 @@ class FilePane(ttk.Frame):
     def refresh(self) -> None:
         if self._inline_editor is not None:
             return
+        # Preserve Treeview IDs from mouse-down through drop. A filesystem
+        # notification (including a Git working-tree change) can arrive before
+        # the first motion, while _dragging is still False.
+        if self._drag_press_item is not None:
+            self._refresh_after_drag = True
+            return
+        self._refresh_after_drag = False
         self._cancel_context_dwell()
         if self.mode == "files" and self.view_mode != "list":
             self.tree.configure(show="tree", displaycolumns=())
@@ -3190,10 +3207,16 @@ class Commander(tk.Tk):
                         self.after(250, self.refresh)
                 except OSError as exc:
                     messagebox.showerror(tr("Explorer drag failed"), str(exc), parent=self)
+                finally:
+                    # The native Shell loop consumes mouse-up (or Escape), so
+                    # Tk may never deliver ButtonRelease to the source pane.
+                    pane._drag_release(event)
                 return
             self._update_internal_drag(event); return
         if action == "cancel":
-            self._finish_internal_drag(); self._drag_state = None; return
+            self._finish_internal_drag(); self._drag_state = None
+            pane._drag_release(event)
+            return
         if action != "drop" or self._drag_state is None:
             return
         self._update_internal_drag(event)
