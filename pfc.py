@@ -68,6 +68,7 @@ _TRANSLATIONS = {
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "修正：拖曳檔案時刷新資料夾會保留選取列，包含 Git 工作資料夾。",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "修正：放下或取消拖曳後，會補上待處理的資料夾刷新。",
         "Changed: Opening Search clears previous name/mask, content, filters and results.": "調整：開啟搜尋時清除先前的名稱／遮罩、內容、篩選條件及結果。",
+        "Fixed: Leaving an archive returns to its original folder even when temporary files are locked; failed cleanup is retried without losing navigation state.": "修正：即使暫存檔被占用，離開壓縮檔仍會返回原資料夾；清理失敗會重試，不再遺失導覽狀態。",
         "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.": "修正：路徑框中的檔案路徑只定位並選取檔案，不會執行，包含篩選及壓縮檔檢視。",
         "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.": "調整：進入資料夾時選取第一列並捲到頂端；刷新目前資料夾時保留位置。",
         "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "修正：在新分頁或鎖定分頁開啟壓縮檔內資料夾後，返回原壓縮檔所在資料夾而非暫存目錄。",
@@ -322,6 +323,7 @@ _TRANSLATIONS = {
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "修复：拖动文件时刷新文件夹会保留所选行，包括 Git 工作文件夹。",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "修复：放下或取消拖动后，会补上待处理的文件夹刷新。",
         "Changed: Opening Search clears previous name/mask, content, filters and results.": "调整：打开搜索时清除之前的名称／掩码、内容、筛选条件及结果。",
+        "Fixed: Leaving an archive returns to its original folder even when temporary files are locked; failed cleanup is retried without losing navigation state.": "修复：即使临时文件被占用，离开压缩包仍会返回原文件夹；清理失败会重试，不再丢失导航状态。",
         "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.": "修复：路径框中的文件路径只定位并选中文件，不会执行，包括筛选和压缩包视图。",
         "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.": "调整：进入文件夹时选中第一行并滚动到顶部；刷新当前文件夹时保留位置。",
         "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "修复：在新标签页或锁定标签页打开压缩包内文件夹后，返回原压缩包所在文件夹而非临时目录。",
@@ -549,6 +551,7 @@ _TRANSLATIONS = {
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "수정: Git 작업 폴더를 포함하여 파일을 끄는 동안 폴더를 새로 고쳐도 선택한 행이 유지됩니다.",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "수정: 파일을 놓거나 끌기를 취소하면 대기 중인 폴더 변경 사항이 새로 고쳐집니다.",
         "Changed: Opening Search clears previous name/mask, content, filters and results.": "변경: 검색을 열면 이전 이름/마스크, 내용, 필터 및 결과가 지워집니다.",
+        "Fixed: Leaving an archive returns to its original folder even when temporary files are locked; failed cleanup is retried without losing navigation state.": "수정: 임시 파일이 잠겨 있어도 압축 파일에서 나가면 원래 폴더로 돌아가며, 탐색 상태를 유지한 채 정리를 다시 시도합니다.",
         "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.": "수정: 경로 표시줄의 파일 경로는 필터 및 압축 파일 보기에서도 파일을 실행하지 않고 찾아 선택합니다.",
         "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.": "변경: 폴더에 들어가면 첫 행을 선택하고 맨 위로 이동하며, 현재 폴더를 새로 고칠 때는 위치를 유지합니다.",
         "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "수정: 새 탭이나 잠긴 탭에서 연 압축 파일 내부 폴더는 임시 작업 폴더가 아닌 원래 압축 파일이 있는 폴더로 돌아갑니다.",
@@ -8360,6 +8363,7 @@ import configparser
 import ctypes
 import json
 import inspect
+import logging
 import queue
 import re
 import shutil
@@ -8375,7 +8379,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.10"
+__version__ = "0.17.11"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8458,6 +8462,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/14"
 VERSION_HISTORY = (
+    ("v0.17.11", "2026/09/14", (
+        "Fixed: Leaving an archive returns to its original folder even when temporary files are locked; failed cleanup is retried without losing navigation state.",
+    )),
     ("v0.17.10", "2026/09/14", (
         "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.",
         "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.",
@@ -10666,8 +10673,8 @@ class Commander(tk.Tk):
         if self.space_analyzer_window is not None and self.space_analyzer_window.winfo_exists():
             self.space_analyzer_window.close()
         self.save_config()
-        for session in self._archive_sessions:
-            session.close()
+        for session in list(self._archive_sessions):
+            self._close_archive_session(session, retries=0)
         self._archive_sessions.clear()
         self.destroy()
 
@@ -12412,10 +12419,19 @@ class Commander(tk.Tk):
                         minutes=remaining // 60, seconds=remaining % 60))
             self._archive_open_poll_job = self.after(80, self._poll_archive_open)
 
-    def _close_archive_session(self, session: ArchiveSession) -> None:
+    def _close_archive_session(self, session: ArchiveSession, retries: int = 3) -> None:
+        try:
+            session.close()
+        except OSError as exc:
+            # Windows previewers/scanners can temporarily hold extracted files.
+            # Keep ownership until cleanup succeeds; never interrupt navigation.
+            if retries:
+                self.after(1000, lambda: self._close_archive_session(session, retries - 1))
+            else:
+                logging.warning("Archive temporary cleanup deferred until exit: %s", exc)
+            return
         if session in self._archive_sessions:
             self._archive_sessions.remove(session)
-        session.close()
 
     def _discard_archive(self, pane: FilePane) -> None:
         job = self._archive_open_jobs.get(pane)
@@ -12432,12 +12448,19 @@ class Commander(tk.Tk):
         if session is None:
             return False
         archive_path = session.archive_path
-        pane.archive_session = None
-        self._close_archive_session(session)
         destination = nearest_accessible_folder(archive_path.parent)
-        if pane.navigate(destination, bypass_lock=True):
-            pane.select_path(archive_path)
-            pane.focus_file_list()
+        pane.archive_session = None
+        try:
+            navigated = pane.navigate(destination, bypass_lock=True)
+        except Exception:
+            pane.archive_session = session
+            raise
+        if not navigated:
+            pane.archive_session = session
+            return True  # Consume Up: never fall through into the temp parent.
+        pane.select_path(archive_path)
+        pane.focus_file_list()
+        self._close_archive_session(session)
         return True
 
     def _archive_sessions_for_paths(self, paths) -> list[ArchiveSession]:

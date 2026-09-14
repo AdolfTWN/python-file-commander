@@ -5,6 +5,7 @@ import configparser
 import ctypes
 import json
 import inspect
+import logging
 import queue
 import re
 import shutil
@@ -120,6 +121,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.11", "2026/09/14", (
+        "Fixed: Leaving an archive returns to its original folder even when temporary files are locked; failed cleanup is retried without losing navigation state.",
+    )),
     ("v0.17.10", "2026/09/14", (
         "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.",
         "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.",
@@ -2328,8 +2332,8 @@ class Commander(tk.Tk):
         if self.space_analyzer_window is not None and self.space_analyzer_window.winfo_exists():
             self.space_analyzer_window.close()
         self.save_config()
-        for session in self._archive_sessions:
-            session.close()
+        for session in list(self._archive_sessions):
+            self._close_archive_session(session, retries=0)
         self._archive_sessions.clear()
         self.destroy()
 
@@ -4074,10 +4078,19 @@ class Commander(tk.Tk):
                         minutes=remaining // 60, seconds=remaining % 60))
             self._archive_open_poll_job = self.after(80, self._poll_archive_open)
 
-    def _close_archive_session(self, session: ArchiveSession) -> None:
+    def _close_archive_session(self, session: ArchiveSession, retries: int = 3) -> None:
+        try:
+            session.close()
+        except OSError as exc:
+            # Windows previewers/scanners can temporarily hold extracted files.
+            # Keep ownership until cleanup succeeds; never interrupt navigation.
+            if retries:
+                self.after(1000, lambda: self._close_archive_session(session, retries - 1))
+            else:
+                logging.warning("Archive temporary cleanup deferred until exit: %s", exc)
+            return
         if session in self._archive_sessions:
             self._archive_sessions.remove(session)
-        session.close()
 
     def _discard_archive(self, pane: FilePane) -> None:
         job = self._archive_open_jobs.get(pane)
@@ -4094,12 +4107,19 @@ class Commander(tk.Tk):
         if session is None:
             return False
         archive_path = session.archive_path
-        pane.archive_session = None
-        self._close_archive_session(session)
         destination = nearest_accessible_folder(archive_path.parent)
-        if pane.navigate(destination, bypass_lock=True):
-            pane.select_path(archive_path)
-            pane.focus_file_list()
+        pane.archive_session = None
+        try:
+            navigated = pane.navigate(destination, bypass_lock=True)
+        except Exception:
+            pane.archive_session = session
+            raise
+        if not navigated:
+            pane.archive_session = session
+            return True  # Consume Up: never fall through into the temp parent.
+        pane.select_path(archive_path)
+        pane.focus_file_list()
+        self._close_archive_session(session)
         return True
 
     def _archive_sessions_for_paths(self, paths) -> list[ArchiveSession]:
