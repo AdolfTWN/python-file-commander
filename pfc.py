@@ -68,6 +68,8 @@ _TRANSLATIONS = {
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "修正：拖曳檔案時刷新資料夾會保留選取列，包含 Git 工作資料夾。",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "修正：放下或取消拖曳後，會補上待處理的資料夾刷新。",
         "Changed: Opening Search clears previous name/mask, content, filters and results.": "調整：開啟搜尋時清除先前的名稱／遮罩、內容、篩選條件及結果。",
+        "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.": "修正：路徑框中的檔案路徑只定位並選取檔案，不會執行，包含篩選及壓縮檔檢視。",
+        "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.": "調整：進入資料夾時選取第一列並捲到頂端；刷新目前資料夾時保留位置。",
         "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "修正：在新分頁或鎖定分頁開啟壓縮檔內資料夾後，返回原壓縮檔所在資料夾而非暫存目錄。",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "修正：刪除大型資料夾及移至資源回收筒時，不再阻塞 PFC 介面或滑鼠操作。",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "新增：刪除作業現在會顯示即時活動、項目進度及預估剩餘時間。",
@@ -320,6 +322,8 @@ _TRANSLATIONS = {
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "修复：拖动文件时刷新文件夹会保留所选行，包括 Git 工作文件夹。",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "修复：放下或取消拖动后，会补上待处理的文件夹刷新。",
         "Changed: Opening Search clears previous name/mask, content, filters and results.": "调整：打开搜索时清除之前的名称／掩码、内容、筛选条件及结果。",
+        "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.": "修复：路径框中的文件路径只定位并选中文件，不会执行，包括筛选和压缩包视图。",
+        "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.": "调整：进入文件夹时选中第一行并滚动到顶部；刷新当前文件夹时保留位置。",
         "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "修复：在新标签页或锁定标签页打开压缩包内文件夹后，返回原压缩包所在文件夹而非临时目录。",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "修复：删除大型文件夹及移至回收站时，不再阻塞 PFC 界面或鼠标操作。",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "新增：删除操作现在会显示实时活动、项目进度及预计剩余时间。",
@@ -545,6 +549,8 @@ _TRANSLATIONS = {
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "수정: Git 작업 폴더를 포함하여 파일을 끄는 동안 폴더를 새로 고쳐도 선택한 행이 유지됩니다.",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "수정: 파일을 놓거나 끌기를 취소하면 대기 중인 폴더 변경 사항이 새로 고쳐집니다.",
         "Changed: Opening Search clears previous name/mask, content, filters and results.": "변경: 검색을 열면 이전 이름/마스크, 내용, 필터 및 결과가 지워집니다.",
+        "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.": "수정: 경로 표시줄의 파일 경로는 필터 및 압축 파일 보기에서도 파일을 실행하지 않고 찾아 선택합니다.",
+        "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.": "변경: 폴더에 들어가면 첫 행을 선택하고 맨 위로 이동하며, 현재 폴더를 새로 고칠 때는 위치를 유지합니다.",
         "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "수정: 새 탭이나 잠긴 탭에서 연 압축 파일 내부 폴더는 임시 작업 폴더가 아닌 원래 압축 파일이 있는 폴더로 돌아갑니다.",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "수정: 큰 폴더 삭제 및 휴지통 이동 작업이 더 이상 PFC 인터페이스나 마우스 조작을 차단하지 않습니다.",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "추가: 삭제 작업에 실시간 활동, 항목 진행률 및 예상 남은 시간을 표시합니다.",
@@ -8369,7 +8375,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.9"
+__version__ = "0.17.10"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8452,6 +8458,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/14"
 VERSION_HISTORY = (
+    ("v0.17.10", "2026/09/14", (
+        "Fixed: File paths in the path bar locate and select the file without executing it, including filtered and archive views.",
+        "Changed: Entering a folder selects the first row and scrolls to the top; refreshing the current folder preserves position.",
+    )),
     ("v0.17.9", "2026/09/14", (
         "Changed: Opening Search clears previous name/mask, content, filters and results.",
         "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.",
@@ -9603,9 +9613,9 @@ class FilePane(ttk.Frame):
                     selected = Path(tags[0])
                     if selected.parent == previous:
                         self.folder_selections[previous] = selected
-            restore_selection = folder_history_selection(previous, path, self.folder_selections)
             if path != self.path:
                 self.history.append(self.path)
+                self._reset_view_on_refresh = True
             self.path = path
             self.mode = "files"
             if self.archive_session is not None and self.archive_session.contains(path):
@@ -9617,8 +9627,6 @@ class FilePane(ttk.Frame):
             self.path_var.set(self.display_path())
             self.drive.set(path.anchor or os.sep)
             self.refresh()
-            if restore_selection is not None:
-                self.select_path(restore_selection)
             self.on_change()
             return True
         except OSError as exc:
@@ -9659,17 +9667,27 @@ class FilePane(ttk.Frame):
             if raw == archive_text or raw.startswith(archive_text + os.sep):
                 relative = raw[len(archive_text):].lstrip("\\/")
                 target = self.archive_session.root / relative
-                if self.navigate(target):
-                    self.focus_file_list()
+                self.locate_from_path(target)
                 return "break"
             self.on_exit_archive(self)
-        typed = Path(raw)
+        self.locate_from_path(Path(raw))
+        return "break"
+
+    def locate_from_path(self, typed: Path) -> None:
+        """A path-bar file is a location request, never an open/run request."""
         folder, selected_file = navigation_destination(typed)
+        if self.lock_mode == "locked" and folder != self.path:
+            self.on_locked_navigation(typed)
+            return
+        if selected_file is not None:
+            # An explicit location takes precedence over a filter hiding it.
+            self.quick_filter_var.set("")
+            self.view_mode = "list"
+            self._update_view_mode_button()
         if self.navigate(folder):
             if selected_file is not None:
                 self.select_path(selected_file)
             self.focus_file_list()
-        return "break"
 
     def change_sort(self, column: str) -> None:
         self.reverse = not self.reverse if self.sort_column == column else False
@@ -9692,6 +9710,8 @@ class FilePane(ttk.Frame):
             return
         self._refresh_after_drag = False
         self._cancel_context_dwell()
+        reset_view = getattr(self, "_reset_view_on_refresh", False)
+        self._reset_view_on_refresh = False
         if self.mode == "files" and self.view_mode != "list":
             self.tree.configure(show="tree", displaycolumns=())
         else:
@@ -9699,6 +9719,8 @@ class FilePane(ttk.Frame):
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
         expanded = self._expanded_tree_paths() if self.view_mode != "list" else set()
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
+        if reset_view:
+            selected, expanded, scroll_position = set(), set(), 0.0
         self.tree.delete(*self.tree.get_children())
         try:
             self._request_vcs_statuses()
@@ -9728,6 +9750,7 @@ class FilePane(ttk.Frame):
                 restore_selection()
                 target_iids = selected_iids or [root_iid]
                 self.tree.selection_set(target_iids); self.tree.focus(target_iids[0])
+                self.tree.yview_moveto(scroll_position)
                 self._schedule_column_autosize()
                 return
             entries = [p for p in self.path.iterdir()
@@ -9772,6 +9795,7 @@ class FilePane(ttk.Frame):
                 self.tree.selection_set(children[0])
                 self.tree.focus(children[0])
                 self.tree.see(children[0])
+                self.tree.yview_moveto(0)
             elif children:
                 self.tree.yview_moveto(scroll_position)
             self._schedule_column_autosize()
@@ -11932,20 +11956,27 @@ class Commander(tk.Tk):
         return "break"
 
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
+        path, selected_file = navigation_destination(path)
         if path.is_dir():
             session = pane.archive_session
             if session is None or not session.contains(path):
                 self.active = self._tabs_for(pane).add_tab(path)
+                if selected_file is not None:
+                    self.active.select_path(selected_file)
+                    self.active.focus_file_list()
                 return
             # A bare temp path loses the archive's logical parent. Each tab
             # needs its own session so closing one cannot invalidate another.
             relative = session.relative_path(path)
+            selected_relative = session.relative_path(selected_file) if selected_file is not None else None
             target = self._tabs_for(pane).add_tab(session.archive_path.parent)
             self.active = target
 
             def restore_relative(opened: ArchiveSession) -> None:
                 if relative.parts and target.winfo_exists():
                     target.navigate(opened.root / relative, bypass_lock=True)
+                if selected_relative is not None and target.winfo_exists():
+                    target.select_path(opened.root / selected_relative)
 
             self._open_special_file(target, session.archive_path, on_ready=restore_relative)
 

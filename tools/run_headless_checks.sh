@@ -18,6 +18,8 @@ xvfb-run -a python3 tools/drag_refresh_check.py
 xvfb-run -a python3 tools/drag_refresh_check.py pfc
 xvfb-run -a python3 tools/search_archive_check.py
 xvfb-run -a python3 tools/search_archive_check.py pfc
+xvfb-run -a python3 tools/path_navigation_check.py
+xvfb-run -a python3 tools/path_navigation_check.py pfc
 xvfb-run -a python3 tools/vcs_gui_check.py "$project_root"
 
 echo "All headless checks passed."

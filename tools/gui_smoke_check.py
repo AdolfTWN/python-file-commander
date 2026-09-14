@@ -229,7 +229,7 @@ def main() -> None:
             assert history_pane.selected_paths() == [history_root / "1" / "a"]
             history_pane.up()
             assert history_pane.path == history_root
-            assert history_pane.selected_paths() == [history_root / "1"]
+            assert history_pane.selected_paths() == [history_root / "0"]
             history_pane.navigate(original_history_path)
             source_tabs.add_tab(source_tabs.current().path)
             app.update_idletasks(); source_tabs.redraw()
