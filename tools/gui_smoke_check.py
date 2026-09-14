@@ -193,7 +193,7 @@ def main() -> None:
             xxl_rowheight = int(pfc.ttk.Style(app).lookup("Active.Treeview", "rowheight"))
             assert abs(xxl_pane.icons.size - round(xxl_rowheight * .9)) <= 1
             app.search(); app.update_idletasks(); app.update()
-            assert "Estimated time remaining" in app.search_window.progress_eta.cget("text")
+            assert app.search_window.progress_eta.cget("text") == ""
             app.search_window.mask_var.set("*.log")
             app.search_window.content_var.set("error")
             app.update_idletasks()

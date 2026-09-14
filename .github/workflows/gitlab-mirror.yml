@@ -33,3 +33,9 @@ jobs:
             "git@gitlab.com:adolftwn-backup/${GITHUB_REPOSITORY#*/}.git" \
             'refs/heads/*:refs/heads/*' \
             'refs/tags/*:refs/tags/*'
+          git -C mirror.git ls-remote --heads --tags origin | sort > github-refs.txt
+          git ls-remote --heads --tags \
+            "git@gitlab.com:adolftwn-backup/${GITHUB_REPOSITORY#*/}.git" \
+            | sort > gitlab-refs.txt
+          diff -u github-refs.txt gitlab-refs.txt
+          echo "Verified: GitHub and GitLab branch/tag references match."

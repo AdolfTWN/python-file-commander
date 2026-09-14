@@ -98,8 +98,8 @@ class SearchWindow(tk.Toplevel):
         self._progress_target = 0.0
         self._progress_displayed = 0.0
         self.path_var = tk.StringVar(value=str(start_path))
-        self.mask_var = tk.StringVar(value=config.get("search", "mask", fallback="*"))
-        self.content_var = tk.StringVar(value=config.get("search", "content", fallback=""))
+        self.mask_var = tk.StringVar(value="")
+        self.content_var = tk.StringVar(value="")
         self.case_var = tk.BooleanVar(value=config.getboolean("search", "case_sensitive", fallback=False))
         saved_depth = config.get("search", "depth", fallback="All")
         self.depth_values = {tr("Current"): "Current", "1": "1", "2": "2", "3": "3", "5": "5", tr("All"): "All"}
@@ -246,10 +246,43 @@ class SearchWindow(tk.Toplevel):
             self.status.configure(text=tr("{count} found", count=len(self.results)))
 
     def activate(self):
+        self.reset_for_open()
         self.deiconify(); self.lift(); self.focus_force()
         self._update_criteria_summary()
         if self.mask_entry is not None:
             self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end"); self.mask_entry.icursor("end")
+
+    def reset_for_open(self):
+        """Start a fresh query; never let a previous worker refill old results."""
+        self.cancel_event.set()
+        if self.poll_job is not None:
+            self.after_cancel(self.poll_job)
+            self.poll_job = None
+        reset_job = getattr(self, '_reset_job', None)
+        if reset_job is not None:
+            self.after_cancel(reset_job)
+        self.clear_filters()
+        self.mask_var.set('')
+        self.tree.delete(*self.tree.get_children())
+        self.results = []
+        self.item_data.clear()
+        self.status.configure(text='')
+        self.progress.stop(); self.progress.configure(value=0)
+        self.progress_eta.configure(text='')
+        self.find_button.configure(state='disabled')
+        self.cancel_button.configure(state='disabled')
+        self._finish_reset()
+
+    def _finish_reset(self):
+        self._reset_job = None
+        if self.worker and self.worker.is_alive():
+            self._reset_job = self.after(50, self._finish_reset)
+            return
+        while True:
+            try: self.messages.get_nowait()
+            except queue.Empty: break
+        self.worker = None
+        self.find_button.configure(state='normal')
 
     def _update_criteria_summary(self, *_args) -> None:
         if not hasattr(self, "criteria_label"):
@@ -313,6 +346,7 @@ class SearchWindow(tk.Toplevel):
                     since=datetime.now() - timedelta(days=days) if days is not None else None)
 
     def start(self):
+        if getattr(self, '_reset_job', None) is not None: return
         if self.worker and self.worker.is_alive(): return
         criteria = self.criteria()
         if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
@@ -437,6 +471,8 @@ class SearchWindow(tk.Toplevel):
     def escape(self): self.cancel() if self.worker and self.worker.is_alive() else self.close()
     def close(self):
         self.cancel_event.set()
+        if getattr(self, '_reset_job', None) is not None:
+            self.after_cancel(self._reset_job)
         if self.poll_job is not None:
             try: self.after_cancel(self.poll_job)
             except tk.TclError: pass
@@ -444,7 +480,9 @@ class SearchWindow(tk.Toplevel):
             try: self.after_cancel(self._column_resize_job)
             except tk.TclError: pass
         if not self.config_data.has_section("search"): self.config_data.add_section("search")
-        for key, value in (("geometry", self.geometry()), ("mask", self.mask_var.get()), ("content", self.content_var.get()),
+        for key in ("mask", "content"):
+            self.config_data.remove_option("search", key)
+        for key, value in (("geometry", self.geometry()),
                            ("case_sensitive", str(self.case_var.get()).lower()),
                            ("depth", self.depth_values.get(self.depth_var.get(), self.depth_var.get())),
                            ("files", str(self.files_var.get()).lower()), ("folders", str(self.folders_var.get()).lower()),

@@ -67,6 +67,8 @@ _TRANSLATIONS = {
         "Preparing…": "準備中…", "Deleting…": "刪除中…", "Moving to Recycle Bin…": "移至資源回收筒中…",
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "修正：拖曳檔案時刷新資料夾會保留選取列，包含 Git 工作資料夾。",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "修正：放下或取消拖曳後，會補上待處理的資料夾刷新。",
+        "Changed: Opening Search clears previous name/mask, content, filters and results.": "調整：開啟搜尋時清除先前的名稱／遮罩、內容、篩選條件及結果。",
+        "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "修正：在新分頁或鎖定分頁開啟壓縮檔內資料夾後，返回原壓縮檔所在資料夾而非暫存目錄。",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "修正：刪除大型資料夾及移至資源回收筒時，不再阻塞 PFC 介面或滑鼠操作。",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "新增：刪除作業現在會顯示即時活動、項目進度及預估剩餘時間。",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "變更：PFC 恢復使用單一公開 GitHub 儲存庫，統一提供開發內容、下載與更新。",
@@ -317,6 +319,8 @@ _TRANSLATIONS = {
         "Preparing…": "准备中…", "Deleting…": "删除中…", "Moving to Recycle Bin…": "移至回收站中…",
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "修复：拖动文件时刷新文件夹会保留所选行，包括 Git 工作文件夹。",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "修复：放下或取消拖动后，会补上待处理的文件夹刷新。",
+        "Changed: Opening Search clears previous name/mask, content, filters and results.": "调整：打开搜索时清除之前的名称／掩码、内容、筛选条件及结果。",
+        "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "修复：在新标签页或锁定标签页打开压缩包内文件夹后，返回原压缩包所在文件夹而非临时目录。",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "修复：删除大型文件夹及移至回收站时，不再阻塞 PFC 界面或鼠标操作。",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "新增：删除操作现在会显示实时活动、项目进度及预计剩余时间。",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "变更：PFC 恢复使用单一公开 GitHub 仓库，统一提供开发内容、下载与更新。",
@@ -540,6 +544,8 @@ _TRANSLATIONS = {
         "Preparing…": "준비 중…", "Deleting…": "삭제 중…", "Moving to Recycle Bin…": "휴지통으로 이동 중…",
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.": "수정: Git 작업 폴더를 포함하여 파일을 끄는 동안 폴더를 새로 고쳐도 선택한 행이 유지됩니다.",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.": "수정: 파일을 놓거나 끌기를 취소하면 대기 중인 폴더 변경 사항이 새로 고쳐집니다.",
+        "Changed: Opening Search clears previous name/mask, content, filters and results.": "변경: 검색을 열면 이전 이름/마스크, 내용, 필터 및 결과가 지워집니다.",
+        "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.": "수정: 새 탭이나 잠긴 탭에서 연 압축 파일 내부 폴더는 임시 작업 폴더가 아닌 원래 압축 파일이 있는 폴더로 돌아갑니다.",
         "Fixed: Large folder deletion and Recycle Bin operations no longer block the PFC interface or mouse interaction.": "수정: 큰 폴더 삭제 및 휴지통 이동 작업이 더 이상 PFC 인터페이스나 마우스 조작을 차단하지 않습니다.",
         "Added: Delete operations now show live activity, item progress, and estimated time remaining.": "추가: 삭제 작업에 실시간 활동, 항목 진행률 및 예상 남은 시간을 표시합니다.",
         "Changed: PFC returned to one public GitHub repository for development, downloads, and updates.": "변경: PFC는 개발, 다운로드 및 업데이트를 하나의 공개 GitHub 저장소에서 다시 제공합니다.",
@@ -6255,8 +6261,8 @@ class SearchWindow(tk.Toplevel):
         self._progress_target = 0.0
         self._progress_displayed = 0.0
         self.path_var = tk.StringVar(value=str(start_path))
-        self.mask_var = tk.StringVar(value=config.get("search", "mask", fallback="*"))
-        self.content_var = tk.StringVar(value=config.get("search", "content", fallback=""))
+        self.mask_var = tk.StringVar(value="")
+        self.content_var = tk.StringVar(value="")
         self.case_var = tk.BooleanVar(value=config.getboolean("search", "case_sensitive", fallback=False))
         saved_depth = config.get("search", "depth", fallback="All")
         self.depth_values = {tr("Current"): "Current", "1": "1", "2": "2", "3": "3", "5": "5", tr("All"): "All"}
@@ -6403,10 +6409,43 @@ class SearchWindow(tk.Toplevel):
             self.status.configure(text=tr("{count} found", count=len(self.results)))
 
     def activate(self):
+        self.reset_for_open()
         self.deiconify(); self.lift(); self.focus_force()
         self._update_criteria_summary()
         if self.mask_entry is not None:
             self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end"); self.mask_entry.icursor("end")
+
+    def reset_for_open(self):
+        """Start a fresh query; never let a previous worker refill old results."""
+        self.cancel_event.set()
+        if self.poll_job is not None:
+            self.after_cancel(self.poll_job)
+            self.poll_job = None
+        reset_job = getattr(self, '_reset_job', None)
+        if reset_job is not None:
+            self.after_cancel(reset_job)
+        self.clear_filters()
+        self.mask_var.set('')
+        self.tree.delete(*self.tree.get_children())
+        self.results = []
+        self.item_data.clear()
+        self.status.configure(text='')
+        self.progress.stop(); self.progress.configure(value=0)
+        self.progress_eta.configure(text='')
+        self.find_button.configure(state='disabled')
+        self.cancel_button.configure(state='disabled')
+        self._finish_reset()
+
+    def _finish_reset(self):
+        self._reset_job = None
+        if self.worker and self.worker.is_alive():
+            self._reset_job = self.after(50, self._finish_reset)
+            return
+        while True:
+            try: self.messages.get_nowait()
+            except queue.Empty: break
+        self.worker = None
+        self.find_button.configure(state='normal')
 
     def _update_criteria_summary(self, *_args) -> None:
         if not hasattr(self, "criteria_label"):
@@ -6470,6 +6509,7 @@ class SearchWindow(tk.Toplevel):
                     since=datetime.now() - timedelta(days=days) if days is not None else None)
 
     def start(self):
+        if getattr(self, '_reset_job', None) is not None: return
         if self.worker and self.worker.is_alive(): return
         criteria = self.criteria()
         if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
@@ -6594,6 +6634,8 @@ class SearchWindow(tk.Toplevel):
     def escape(self): self.cancel() if self.worker and self.worker.is_alive() else self.close()
     def close(self):
         self.cancel_event.set()
+        if getattr(self, '_reset_job', None) is not None:
+            self.after_cancel(self._reset_job)
         if self.poll_job is not None:
             try: self.after_cancel(self.poll_job)
             except tk.TclError: pass
@@ -6601,7 +6643,9 @@ class SearchWindow(tk.Toplevel):
             try: self.after_cancel(self._column_resize_job)
             except tk.TclError: pass
         if not self.config_data.has_section("search"): self.config_data.add_section("search")
-        for key, value in (("geometry", self.geometry()), ("mask", self.mask_var.get()), ("content", self.content_var.get()),
+        for key in ("mask", "content"):
+            self.config_data.remove_option("search", key)
+        for key, value in (("geometry", self.geometry()),
                            ("case_sensitive", str(self.case_var.get()).lower()),
                            ("depth", self.depth_values.get(self.depth_var.get(), self.depth_var.get())),
                            ("files", str(self.files_var.get()).lower()), ("folders", str(self.folders_var.get()).lower()),
@@ -8325,7 +8369,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.8"
+__version__ = "0.17.9"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8406,8 +8450,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/10"
+BUILD_DATE = "2026/09/14"
 VERSION_HISTORY = (
+    ("v0.17.9", "2026/09/14", (
+        "Changed: Opening Search clears previous name/mask, content, filters and results.",
+        "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.",
+    )),
     ("v0.17.8", "2026/09/10", (
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.",
@@ -9993,7 +10041,8 @@ class PaneTabs(ChamferNotebook):
                  on_close_archive=lambda _pane: None,
                  on_selection=lambda: None,
                  on_tab_drag=lambda _action, _tabs, _pane, _event: False,
-                 tab_style="right_skirt") -> None:
+                 tab_style="right_skirt", on_open_folder=None) -> None:
+        self.on_open_folder = on_open_folder
         self.color_for = color_for
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
@@ -10023,7 +10072,8 @@ class PaneTabs(ChamferNotebook):
                         on_exit_archive=self.on_exit_archive)
         pane.tree.bind("<<TreeviewSelect>>", lambda _event: self.on_selection(), add="+")
         pane.on_change = lambda source=pane: self._pane_changed(source)
-        pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
+        pane.on_locked_navigation = lambda target, source=pane: (
+            self.on_open_folder(source, target) if self.on_open_folder else self.add_tab(target))
         pane.navigate(path)
         pane.apply_scale(self.scale)
         self.add(pane, text=path.name or str(path), color="default", position=position)
@@ -10266,7 +10316,8 @@ class Commander(tk.Tk):
                 on_close_archive=self._discard_archive,
                 on_selection=self.update_rename_action,
                 on_tab_drag=self._handle_tab_drag,
-                tab_style=self.tab_style_var.get())
+                tab_style=self.tab_style_var.get(),
+                on_open_folder=self._open_folder_in_new_tab)
             self.panel_tabs.append(tabs)
         self.left_tabs, self.right_tabs = self.panel_tabs[:2]
         self.left = self.left_tabs.current()
@@ -11882,7 +11933,21 @@ class Commander(tk.Tk):
 
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
         if path.is_dir():
-            self.active = self._tabs_for(pane).add_tab(path)
+            session = pane.archive_session
+            if session is None or not session.contains(path):
+                self.active = self._tabs_for(pane).add_tab(path)
+                return
+            # A bare temp path loses the archive's logical parent. Each tab
+            # needs its own session so closing one cannot invalidate another.
+            relative = session.relative_path(path)
+            target = self._tabs_for(pane).add_tab(session.archive_path.parent)
+            self.active = target
+
+            def restore_relative(opened: ArchiveSession) -> None:
+                if relative.parts and target.winfo_exists():
+                    target.navigate(opened.root / relative, bypass_lock=True)
+
+            self._open_special_file(target, session.archive_path, on_ready=restore_relative)
 
     @staticmethod
     def _can_run_as_admin(path: Path) -> bool:
@@ -12438,20 +12503,7 @@ class Commander(tk.Tk):
 
     def new_tab(self) -> None:
         source, _ = self.panes()
-        tabs = self._tabs_for(source)
-        if source.archive_session is None:
-            self.active = tabs.add_tab(source.path)
-            return
-        session = source.archive_session
-        relative = session.relative_path(source.path)
-        self.active = tabs.add_tab(session.archive_path.parent)
-        target = self.active
-
-        def restore_relative(opened: ArchiveSession) -> None:
-            if relative.parts and target.winfo_exists():
-                target.navigate(opened.root / relative, bypass_lock=True)
-
-        self._open_special_file(target, session.archive_path, on_ready=restore_relative)
+        self._open_folder_in_new_tab(source, source.path)
 
     def close_tab(self) -> None:
         source, _ = self.panes()

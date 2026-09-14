@@ -120,6 +120,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.9", "2026/09/14", (
+        "Changed: Opening Search clears previous name/mask, content, filters and results.",
+        "Fixed: Archive folders opened in new or locked tabs return to the original archive folder instead of the temporary workspace.",
+    )),
     ("v0.17.8", "2026/09/10", (
         "Fixed: Folder refresh during a file drag preserves the selected rows, including in Git working folders.",
         "Fixed: Pending folder changes refresh after dropping or cancelling a drag.",
@@ -1705,7 +1709,8 @@ class PaneTabs(ChamferNotebook):
                  on_close_archive=lambda _pane: None,
                  on_selection=lambda: None,
                  on_tab_drag=lambda _action, _tabs, _pane, _event: False,
-                 tab_style="right_skirt") -> None:
+                 tab_style="right_skirt", on_open_folder=None) -> None:
+        self.on_open_folder = on_open_folder
         self.color_for = color_for
         self.on_tab_color = on_tab_color
         self.on_drag = on_drag
@@ -1735,7 +1740,8 @@ class PaneTabs(ChamferNotebook):
                         on_exit_archive=self.on_exit_archive)
         pane.tree.bind("<<TreeviewSelect>>", lambda _event: self.on_selection(), add="+")
         pane.on_change = lambda source=pane: self._pane_changed(source)
-        pane.on_locked_navigation = lambda target, source=pane: self.add_tab(target)
+        pane.on_locked_navigation = lambda target, source=pane: (
+            self.on_open_folder(source, target) if self.on_open_folder else self.add_tab(target))
         pane.navigate(path)
         pane.apply_scale(self.scale)
         self.add(pane, text=path.name or str(path), color="default", position=position)
@@ -1978,7 +1984,8 @@ class Commander(tk.Tk):
                 on_close_archive=self._discard_archive,
                 on_selection=self.update_rename_action,
                 on_tab_drag=self._handle_tab_drag,
-                tab_style=self.tab_style_var.get())
+                tab_style=self.tab_style_var.get(),
+                on_open_folder=self._open_folder_in_new_tab)
             self.panel_tabs.append(tabs)
         self.left_tabs, self.right_tabs = self.panel_tabs[:2]
         self.left = self.left_tabs.current()
@@ -3594,7 +3601,21 @@ class Commander(tk.Tk):
 
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
         if path.is_dir():
-            self.active = self._tabs_for(pane).add_tab(path)
+            session = pane.archive_session
+            if session is None or not session.contains(path):
+                self.active = self._tabs_for(pane).add_tab(path)
+                return
+            # A bare temp path loses the archive's logical parent. Each tab
+            # needs its own session so closing one cannot invalidate another.
+            relative = session.relative_path(path)
+            target = self._tabs_for(pane).add_tab(session.archive_path.parent)
+            self.active = target
+
+            def restore_relative(opened: ArchiveSession) -> None:
+                if relative.parts and target.winfo_exists():
+                    target.navigate(opened.root / relative, bypass_lock=True)
+
+            self._open_special_file(target, session.archive_path, on_ready=restore_relative)
 
     @staticmethod
     def _can_run_as_admin(path: Path) -> bool:
@@ -4150,20 +4171,7 @@ class Commander(tk.Tk):
 
     def new_tab(self) -> None:
         source, _ = self.panes()
-        tabs = self._tabs_for(source)
-        if source.archive_session is None:
-            self.active = tabs.add_tab(source.path)
-            return
-        session = source.archive_session
-        relative = session.relative_path(source.path)
-        self.active = tabs.add_tab(session.archive_path.parent)
-        target = self.active
-
-        def restore_relative(opened: ArchiveSession) -> None:
-            if relative.parts and target.winfo_exists():
-                target.navigate(opened.root / relative, bypass_lock=True)
-
-        self._open_special_file(target, session.archive_path, on_ready=restore_relative)
+        self._open_folder_in_new_tab(source, source.path)
 
     def close_tab(self) -> None:
         source, _ = self.panes()
