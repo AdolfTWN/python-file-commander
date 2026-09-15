@@ -468,9 +468,9 @@ def main() -> None:
             branch = tree_root / "branch"; branch.mkdir(); (branch / "leaf").mkdir()
             (tree_root / "root-file.txt").write_text("tree", encoding="utf-8")
             source_pane.navigate(tree_root); app.update()
-            assert source_pane.view_mode == "list" and source_pane.view_mode_button.cget("text") == "List"
+            assert source_pane.view_mode == "list" and source_pane.view_mode_button.cget("text").endswith(" ▾")
             source_pane.cycle_view_mode(); app.update()
-            assert source_pane.view_mode == "folder" and source_pane.view_mode_button.cget("text") == "Folder"
+            assert source_pane.view_mode == "folder" and source_pane.view_mode_button.cget("text").endswith(" ▾")
             assert "headings" not in str(source_pane.tree.cget("show"))
             assert not source_pane.tree.cget("displaycolumns")
             assert len(source_pane.tree.get_children()) == 1
@@ -485,7 +485,7 @@ def main() -> None:
             source_pane.tree.focus(folder_row); source_pane.tree.item(folder_row, open=True)
             source_pane._tree_open(); assert source_pane.tree.get_children(folder_row)
             source_pane.cycle_view_mode(); app.update()
-            assert source_pane.view_mode == "file" and source_pane.view_mode_button.cget("text") == "File"
+            assert source_pane.view_mode == "file" and source_pane.view_mode_button.cget("text").endswith(" ▾")
             tree_root_row = source_pane.tree.get_children()[0]
             assert len(source_pane.tree.get_children(tree_root_row)) == 2
             source_pane.cycle_view_mode(); source_pane.navigate(quick_root); app.update()

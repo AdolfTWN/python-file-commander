@@ -52,7 +52,7 @@ def main() -> None:
             app.update_idletasks(); app.update()
             child = app.header_popup.popups[1]
             medium_index = next(index for index, _kind, label, _accelerator, _state in child.items
-                                if label == "125% Medium")
+                                if label == "125%")
             child._click(SimpleNamespace(y=sum(child.row_bounds[medium_index]) // 2))
             app.update_idletasks(); app.update()
             assert app.font_size_var.get() == "medium"

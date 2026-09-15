@@ -18,6 +18,7 @@ def build() -> Path:
     vcs = (ROOT / "pycommander" / "vcs.py").read_text(encoding="utf-8")
     tabs = (ROOT / "pycommander" / "tabs.py").read_text(encoding="utf-8")
     tooltip = (ROOT / "pycommander" / "tooltip.py").read_text(encoding="utf-8")
+    pathbar = (ROOT / "pycommander" / "pathbar.py").read_text(encoding="utf-8")
     compare = (ROOT / "pycommander" / "compare.py").read_text(encoding="utf-8")
     preview = (ROOT / "pycommander" / "preview.py").read_text(encoding="utf-8")
     search = (ROOT / "pycommander" / "search.py").read_text(encoding="utf-8")
@@ -46,6 +47,9 @@ def build() -> Path:
     tabs = tabs.replace("from __future__ import annotations\n\n", "", 1)
     tabs = "\n".join(line for line in tabs.splitlines() if not line.startswith("from .")) + "\n"
     tooltip = tooltip.replace("from __future__ import annotations\n\n", "", 1)
+    pathbar = pathbar.replace("from __future__ import annotations\n", "", 1)
+    pathbar = "\n".join(line for line in pathbar.splitlines() if not line.startswith("from .")) + "\n"
+    tooltip += "\n\n" + pathbar
     compare = compare.replace("from __future__ import annotations\n\n", "", 1)
     compare = "\n".join(line for line in compare.splitlines() if not line.startswith("from .")) + "\n"
     preview = preview.replace("from __future__ import annotations\n\n", "", 1)

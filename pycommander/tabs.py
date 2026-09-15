@@ -26,12 +26,12 @@ def clamp_popup_position(x: int, y: int, width: int, height: int,
 
 
 TAB_COLORS = {
-    "default": ("Default", "#c7d3dd"),
-    "red": ("Red", "#ef6b6b"),
-    "light_blue": ("Light Blue", "#73bfe2"),
-    "orange": ("Orange", "#f2a654"),
-    "green": ("Green", "#70c58a"),
-    "purple": ("Purple", "#a483df"),
+    "default": ("Default", "#e4edf3"),
+    "red": ("Red", "#f59b9b"),
+    "light_blue": ("Light Blue", "#a3d6ed"),
+    "orange": ("Orange", "#f6c18a"),
+    "green": ("Green", "#9ed8af"),
+    "purple": ("Purple", "#c0a6e9"),
 }
 
 # Preserve tabs saved by releases before v0.12.7 while presenting only the
@@ -61,7 +61,7 @@ COLOR_SCHEMES = {
         "header_button": "#31536e", "header_active": "#3d6888",
         "button": "#e7ecef", "button_active": "#d4e2eb", "entry": "#ffffff",
         "selection": "#1683e2", "inactive_selection": "#91a9bd",
-        "tab_bar": "#9eafbd", "tab_default": "#c7d3dd", "tab_text": "#10202c",
+        "tab_bar": "#9eafbd", "tab_default": "#e4edf3", "tab_text": "#10202c",
         "menu": "#f0f0f0", "menu_text": "#101010", "menu_disabled": "#777777",
         "menu_active": "#087bdc", "menu_active_text": "#ffffff", "separator": "#b8b8b8",
         "gutter": "#e5ebef", "gutter_text": "#526575", "content": "#ffffff",
@@ -76,7 +76,7 @@ COLOR_SCHEMES = {
         "header_button": "#3b5c74", "header_active": "#4a708b",
         "button": "#d4dbe0", "button_active": "#c4d2dc", "entry": "#f8f9fa",
         "selection": "#187ecb", "inactive_selection": "#829bab",
-        "tab_bar": "#899ca9", "tab_default": "#b9c6cf", "tab_text": "#14232d",
+        "tab_bar": "#899ca9", "tab_default": "#dce5eb", "tab_text": "#14232d",
         "menu": "#e1e5e8", "menu_text": "#15212a", "menu_disabled": "#727b82",
         "menu_active": "#147fc7", "menu_active_text": "#ffffff", "separator": "#a1abb2",
         "gutter": "#d5dde2", "gutter_text": "#52616c", "content": "#f4f6f7",
@@ -91,7 +91,7 @@ COLOR_SCHEMES = {
         "header_button": "#294b64", "header_active": "#376985",
         "button": "#354049", "button_active": "#465865", "entry": "#242b31",
         "selection": "#1976bd", "inactive_selection": "#526b7b",
-        "tab_bar": "#354754", "tab_default": "#4c606e", "tab_text": "#f0f5f8",
+        "tab_bar": "#354754", "tab_default": "#657887", "tab_text": "#ffffff",
         "menu": "#2b3238", "menu_text": "#edf2f6", "menu_disabled": "#87939c",
         "menu_active": "#176fa8", "menu_active_text": "#ffffff", "separator": "#53616b",
         "gutter": "#242c32", "gutter_text": "#a8bac7", "content": "#1f252a",

@@ -47,6 +47,7 @@ def main():
             assert pane.tree.yview() == before
             pane.set_quick_filter('000'); settle(app)
             target = folders[1] / '149.txt'
+            pane.path_bar.begin_edit()
             pane.path_var.set('"' + str(target) + '"')
             pane.path_entry.focus_force(); settle(app)
             pane.path_entry.event_generate('<Return>'); settle(app)
@@ -56,6 +57,7 @@ def main():
             assert not opened, 'Path entry must never execute a file'
             pane.lock_mode = 'locked'
             locked_path = pane.path
+            pane.path_bar.begin_edit()
             pane.path_var.set(str(folders[0] / '149.txt'))
             pane.path_entry.focus_force(); settle(app)
             pane.path_entry.event_generate('<Return>'); settle(app)
@@ -73,6 +75,7 @@ def main():
             while pane in app._archive_open_jobs and time.monotonic() < deadline:
                 settle(app)
             assert pane.archive_session is not None
+            pane.path_bar.begin_edit()
             pane.path_var.set(str(archive / 'folder' / 'file.txt'))
             pane.path_entry.focus_force(); settle(app)
             pane.path_entry.event_generate('<Return>'); settle(app)

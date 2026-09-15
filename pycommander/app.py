@@ -39,9 +39,12 @@ from .tabs import COLOR_SCHEMES, ChamferNotebook, HeaderPopupController, TAB_STY
 from .i18n import LANGUAGES, get_language, set_language, tr
 from .startup import WindowsTrayIcon, set_windows_autostart
 from .dirwatch import DirectoryWatchManager, directory_key, is_local_watch_path
+from .pathbar import PathBar, path_ancestors
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
+FONT_SCALES = {"small": 1.0, "medium": 1.25, "large": 1.5, "175": 1.75,
+               "xl": 2.0, "225": 2.25, "xxl": 2.5, "275": 2.75, "300": 3.0}
 UPDATE_URL = "https://raw.githubusercontent.com/AdolfTWN/python-file-commander/main/pfc.py"
 UPDATE_SIZE_LIMIT = 8 * 1024 * 1024
 
@@ -121,6 +124,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.12", "2026/09/15", (
+        "Added: Ctrl+mouse wheel adjusts global font size in 25% steps; compact zoom controls keep Auto inside the percentage menu.",
+        "Changed: Clickable breadcrumbs prioritize the current folder, with full-path editing and direct per-tab view selection.",
+        "Changed: Lighter tab backgrounds improve contrast.",
+        "Fixed: Path editing preserves invalid input and stays synchronized when navigating; archive breadcrumbs retain the original location.",
+    )),
     ("v0.17.11", "2026/09/14", (
         "Fixed: Leaving an archive returns to its original folder even when temporary files are locked; failed cleanup is retried without losing navigation state.",
     )),
@@ -777,15 +786,22 @@ class FilePane(ttk.Frame):
         self.drive.pack(side="left")
         self.drive.bind("<<ComboboxSelected>>",
                         lambda _e: self.navigate_external(Path(self.drive.get())))
-        ttk.Button(bar, text="↑", width=3, command=self.up).pack(side="left", padx=2)
-        ttk.Button(bar, text="⌂", width=3,
-                   command=lambda: self.navigate_external(Path.home())).pack(side="left")
+        self.up_button = ttk.Button(bar, text="↑", width=2, command=self.up)
+        self.up_button.pack(side="left", padx=2)
+        self.home_button = ttk.Button(bar, text="⌂", width=2,
+                   command=lambda: self.navigate_external(Path.home()))
+        self.home_button.pack(side="left")
         self.path_var = tk.StringVar()
-        self.view_mode_button = ttk.Button(bar, width=7, command=self.cycle_view_mode)
+        self.view_mode_button = ttk.Button(bar, width=0, command=self.show_view_modes)
         self.view_mode_button.pack(side="right", padx=(4, 0))
-        self.path_entry = ttk.Entry(bar, textvariable=self.path_var)
-        self.path_entry.pack(side="left", fill="x", expand=True, padx=(4, 0))
-        self.path_entry.bind("<Return>", self.navigate_from_entry)
+        self.path_bar = PathBar(bar, self.path_var, self._breadcrumb_parts,
+                                self._navigate_crumb, self._submit_path, self.focus_file_list)
+        self.path_bar.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        self.path_entry = self.path_bar.entry
+        self.path_entry.bind("<FocusIn>", lambda _e: self.on_activate(self), add="+")
+        bar.bind("<Configure>", lambda _e: self._update_view_mode_button())
+        ToolTip(self.view_mode_button, lambda: tr({"list": "List", "folder": "Folder tree",
+                "file": "File tree"}[self.view_mode]), delay=700)
         self._update_view_mode_button()
 
         frame = ttk.Frame(self)
@@ -853,19 +869,91 @@ class FilePane(ttk.Frame):
                 child.configure(text=tr("Quick Filter:"))
                 break
         self._update_view_mode_button()
+        self.path_bar.redraw()
         self.refresh()
 
     def _update_view_mode_button(self) -> None:
-        labels = {"list": "List", "folder": "Folder", "file": "File"}
-        self.view_mode_button.configure(text=tr(labels[self.view_mode]))
+        labels = {"list": "List", "folder": "Folder tree", "file": "File tree"}
+        icons = {"list": "≡", "folder": "▸", "file": "☷"}
+        compact = self.winfo_width() < tkfont.nametofont("TkDefaultFont").measure("M" * 55)
+        em = tkfont.nametofont("TkDefaultFont").measure("M")
+        self.drive.configure(width=3 if compact else 8)
+        if self.winfo_width() < em * 30:
+            self.drive.pack_forget()
+        elif not self.drive.winfo_manager():
+            self.drive.pack(side="left", before=self.up_button)
+        if self.winfo_width() < em * 22:
+            self.home_button.pack_forget()
+        elif not self.home_button.winfo_manager():
+            self.home_button.pack(side="left", after=self.up_button)
+        self.view_mode_button.configure(text=(icons[self.view_mode] if compact else tr(labels[self.view_mode])) + " ▾")
+
+    def show_view_modes(self) -> None:
+        self.on_activate(self)
+        if getattr(self, "_view_mode_menu", None) is not None:
+            self._view_mode_menu.destroy()
+        menu = tk.Menu(self, tearoff=False, font="TkMenuFont")
+        self._view_mode_menu = menu
+        palette = getattr(self.winfo_toplevel(), "palette", {})
+        if palette:
+            menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                           activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
+        self._view_mode_selection = selected = tk.StringVar(value=self.view_mode)
+        for mode, label in (("list", "List"), ("folder", "Folder tree"), ("file", "File tree")):
+            menu.add_radiobutton(label=tr(label), value=mode, variable=selected,
+                                 command=lambda m=mode: self.set_view_mode(m))
+        try:
+            menu.tk_popup(self.view_mode_button.winfo_rootx(),
+                          self.view_mode_button.winfo_rooty() + self.view_mode_button.winfo_height())
+        finally:
+            menu.grab_release()
+
+    def set_view_mode(self, mode: str) -> None:
+        if mode not in ("list", "folder", "file") or mode == self.view_mode:
+            return
+        selected = self.selected_paths()
+        self.view_mode = mode
+        self._update_view_mode_button()
+        self.refresh()
+        retained = []
+        def collect(parent=""):
+            for iid in self.tree.get_children(parent):
+                tags = self.tree.item(iid, "tags")
+                if tags and Path(tags[0]) in selected:
+                    retained.append(iid)
+                collect(iid)
+        collect()
+        if retained:
+            self.tree.selection_set(retained)
+            self.tree.focus(retained[0])
+            self.tree.see(retained[0])
+        self.focus_file_list()
+        self.on_change()
 
     def cycle_view_mode(self) -> None:
         order = ("list", "folder", "file")
-        self.view_mode = order[(order.index(self.view_mode) + 1) % len(order)]
-        self._update_view_mode_button()
-        self.refresh()
+        self.set_view_mode(order[(order.index(self.view_mode) + 1) % len(order)])
+
+    def _breadcrumb_parts(self):
+        session = self.archive_session
+        if session is not None and session.contains(self.path):
+            parts = path_ancestors(session.archive_path.parent)
+            parts.append((session.archive_path.name, session.root))
+            relative = session.relative_path(self.path)
+            target = session.root
+            for name in relative.parts:
+                target = target / name
+                parts.append((name, target))
+            return parts
+        return path_ancestors(self.path)
+
+    def _navigate_crumb(self, target):
+        self.on_activate(self)
+        if self.archive_session is not None and self.archive_session.contains(target):
+            self.navigate(target)
+        else:
+            self.navigate_external(target)
         self.focus_file_list()
-        self.on_change()
 
     def _tree_values(self, path: Path, is_dir: bool, stat) -> tuple[str, str, str]:
         return ("" if is_dir else path.suffix[1:].upper(),
@@ -1290,7 +1378,7 @@ class FilePane(ttk.Frame):
                                       else self.archive_session.archive_path.name)
             else:
                 self.display_title = path.name or str(path)
-            self.path_var.set(self.display_path())
+            self.path_bar.set_location(self.display_path())
             self.drive.set(path.anchor or os.sep)
             self.refresh()
             self.on_change()
@@ -1307,8 +1395,13 @@ class FilePane(ttk.Frame):
         self.navigate(self.path.parent)
 
     def navigate_external(self, path: Path) -> bool:
+        if self.lock_mode == "locked" and path != self.path:
+            self.on_locked_navigation(path)
+            return False
         if self.archive_session is not None:
             self.on_exit_archive(self)
+            if self.archive_session is not None:
+                return False
         return self.navigate(path)
 
     def display_path(self) -> str:
@@ -1327,24 +1420,44 @@ class FilePane(ttk.Frame):
         return self.path
 
     def navigate_from_entry(self, _event=None) -> str:
-        raw = self.path_var.get().strip().strip('"')
-        if self.archive_session is not None:
-            archive_text = str(self.archive_session.archive_path)
-            if raw == archive_text or raw.startswith(archive_text + os.sep):
-                relative = raw[len(archive_text):].lstrip("\\/")
-                target = self.archive_session.root / relative
-                self.locate_from_path(target)
-                return "break"
-            self.on_exit_archive(self)
-        self.locate_from_path(Path(raw))
+        self._submit_path()
         return "break"
 
-    def locate_from_path(self, typed: Path) -> None:
+    def _submit_path(self) -> bool:
+        raw = self.path_var.get().strip().strip('"')
+        if not raw:
+            return False
+        if self.archive_session is not None:
+            archive_text = str(self.archive_session.archive_path)
+            normalized = os.path.normcase(raw)
+            if normalized == os.path.normcase(archive_text) or normalized.startswith(os.path.normcase(archive_text + os.sep)):
+                relative = raw[len(archive_text):].lstrip("\\/")
+                target = (self.archive_session.root / relative).resolve()
+                if not self.archive_session.contains(target):
+                    messagebox.showerror(tr("Cannot open folder"), raw)
+                    return False
+                return self.locate_from_path(target)
+        target = Path(raw).expanduser()
+        if not target.exists():
+            messagebox.showerror(tr("Cannot open folder"), str(target))
+            return False
+        if self.lock_mode == "locked" and navigation_destination(target)[0] != self.path:
+            self.on_locked_navigation(target)
+            self.path_var.set(self.display_path())
+            return True
+        if self.archive_session is not None:
+            self.on_exit_archive(self)
+            if self.archive_session is not None:
+                return False
+        return self.locate_from_path(target)
+
+    def locate_from_path(self, typed: Path) -> bool:
         """A path-bar file is a location request, never an open/run request."""
         folder, selected_file = navigation_destination(typed)
         if self.lock_mode == "locked" and folder != self.path:
             self.on_locked_navigation(typed)
-            return
+            self.path_var.set(self.display_path())
+            return True
         if selected_file is not None:
             # An explicit location takes precedence over a filter hiding it.
             self.quick_filter_var.set("")
@@ -1354,6 +1467,8 @@ class FilePane(ttk.Frame):
             if selected_file is not None:
                 self.select_path(selected_file)
             self.focus_file_list()
+            return True
+        return False
 
     def change_sort(self, column: str) -> None:
         self.reverse = not self.reverse if self.sort_column == column else False
@@ -1574,7 +1689,7 @@ class FilePane(ttk.Frame):
 
     def toggle_quick_filter(self) -> str:
         if self.mode != "files":
-            self.mode = "files"; self.path_var.set(self.display_path()); self.refresh()
+            self.mode = "files"; self.path_bar.set_location(self.display_path()); self.refresh()
         self.quick_filter_entry.focus_set()
         self.quick_filter_entry.selection_range(0, "end")
         return "break"
@@ -1611,7 +1726,7 @@ class FilePane(ttk.Frame):
         self.mode = "preview"
         self.display_title = item.name
         self.tree.delete(*self.tree.get_children())
-        self.path_var.set(f"[Preview] {item}")
+        self.path_bar.set_location(f"[Preview] {item}")
         try:
             stat = item.stat()
             details = [
@@ -1639,7 +1754,7 @@ class FilePane(ttk.Frame):
         self.mode = "search"
         self.display_title = f"Search: {query}"
         self.tree.delete(*self.tree.get_children())
-        self.path_var.set(f"[Search] {query} in {self.path}")
+        self.path_bar.set_location(f"[Search] {query} in {self.path}")
         query = query.casefold()
         count = 0
         try:
@@ -1670,7 +1785,7 @@ class FilePane(ttk.Frame):
         """Show arbitrary search results as an actionable temporary panel tab."""
         self.mode = "search_results"
         self.display_title = title
-        self.path_var.set(f"[{title}]")
+        self.path_bar.set_location(f"[{title}]")
         self.tree.delete(*self.tree.get_children())
         total = 0
         for item in paths:
@@ -1923,7 +2038,7 @@ class Commander(tk.Tk):
         saved_font_size = self.config_data.get("view", "font_size", fallback="small")
         if saved_font_size == "huge":
             saved_font_size = "xxl"
-        if saved_font_size not in {"small", "medium", "large", "xl", "xxl"}:
+        if saved_font_size not in FONT_SCALES:
             saved_font_size = "small"
         self.font_size_var = tk.StringVar(value=saved_font_size)
         self.auto_font_size_var = tk.BooleanVar(
@@ -1957,8 +2072,7 @@ class Commander(tk.Tk):
         self._tray_poll_job = None
         self.favorites = self._load_navigation_paths("favorites")
         self.recent_folders = self._load_navigation_paths("recent_folders")
-        self._font_scales = {"small": 1.0, "medium": 1.25, "large": 1.5,
-                             "xl": 2.0, "xxl": 2.5}
+        self._font_scales = dict(FONT_SCALES)
         self._base_tk_scaling = float(self.tk.call("tk", "scaling"))
         self._base_font_sizes = {}
         for name in ("TkDefaultFont", "TkTextFont", "TkFixedFont", "TkMenuFont", "TkHeadingFont",
@@ -2027,6 +2141,9 @@ class Commander(tk.Tk):
         self.apply_tab_style(save=False)
         actions = ttk.Frame(self); self.actions_frame = actions
         actions.pack(fill="x", padx=5, pady=(0, 5))
+        self._build_zoom_controls(actions)
+        action_commands = ttk.Frame(actions)
+        action_commands.pack(side="left", fill="x", expand=True)
         self.action_buttons = []
         self.action_button_by_hotkey = {}
         for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
@@ -2036,7 +2153,7 @@ class Commander(tk.Tk):
                                        ("F11", "Copy Path", self.copy_paths),
                                        ("F12", "Change Path", self.change_dir)):
             text = f"{hotkey} {tr(label)}".rstrip()
-            button = ttk.Button(actions, text=text, command=command)
+            button = ttk.Button(action_commands, text=text, command=command, width=1)
             if command is None:
                 button.state(["disabled"])
             button.pack(side="left", fill="x", expand=True, padx=1)
@@ -2045,6 +2162,11 @@ class Commander(tk.Tk):
         self.update_rename_action()
         self.update_transfer_actions()
         install_button_tooltips(self)
+        self._zoom_tag = f"PFCZoom{id(self)}"
+        for event_name in ("<Control-MouseWheel>", "<Control-Button-4>", "<Control-Button-5>"):
+            self.bind_class(self._zoom_tag, event_name, self._zoom_wheel)
+        self._install_zoom_bindtag()
+        self.bind_all("<Map>", self._install_zoom_bindtag, add="+")
         defaults = {
             "rename": "<F2>", "preview": "<F3>", "search": "<F4>", "copy": "<F5>",
             "move": "<F6>", "new_folder": "<F7>", "delete": "<Delete>", "refresh": "<Control-r>",
@@ -2553,10 +2675,8 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(view, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
                                self.set_mix_sorting)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
-        for label, value in (("100% Small", "small"), ("125% Medium", "medium"),
-                             ("150% Large", "large"), ("200% XL", "xl"),
-                             ("250% XXL", "xxl")):
-            add_scaled_radiobutton(font_size, tr(label), value, self.font_size_var,
+        for value, scale in FONT_SCALES.items():
+            add_scaled_radiobutton(font_size, f"{round(scale * 100)}%", value, self.font_size_var,
                                    self.select_manual_font_size)
         font_size.add_separator()
         add_scaled_checkbutton(font_size, tr("Auto Font Size"), self.auto_font_size_var,
@@ -2931,6 +3051,7 @@ class Commander(tk.Tk):
         focused = self.focus_get()
         set_language(language)
         self._build_menu()
+        self._rebuild_zoom_menu()
         if self._tray_icon is not None:
             self._tray_icon.update(open_label=tr("Open PFC"),
                                    auto_start_label=tr("Auto Start when boot"),
@@ -3730,8 +3851,7 @@ class Commander(tk.Tk):
 
     def focus_path(self) -> str:
         source = self.panes()[0]
-        source.path_entry.focus_set()
-        source.path_entry.selection_range(0, "end")
+        source.path_bar.begin_edit()
         return "break"
 
     def focus_files(self) -> str:
@@ -4420,8 +4540,76 @@ class Commander(tk.Tk):
         self.auto_font_size_var.set(False)
         self.apply_font_size()
 
+    def _build_zoom_controls(self, parent) -> None:
+        self.zoom_frame = ttk.Frame(parent)
+        self.zoom_frame.pack(side="right", padx=(2, 0))
+        # A small fixed-size status control must not consume the action bar at 300%.
+        self._zoom_font = tkfont.Font(family=tkfont.nametofont("TkDefaultFont").actual("family"),
+                                     size=-max(11, round(self._base_tk_scaling * 8)))
+        style = ttk.Style(self)
+        for name in ("Zoom.TButton", "Zoom.TMenubutton"):
+            style.configure(name, font=self._zoom_font, padding=1)
+        self.zoom_percent_var = tk.StringVar()
+        self.zoom_minus = ttk.Button(self.zoom_frame, text="−", width=1, style="Zoom.TButton",
+                                     command=lambda: self.adjust_zoom(-1))
+        self.zoom_minus.pack(side="left")
+        self.zoom_combo = ttk.Menubutton(self.zoom_frame, width=5,
+                                      textvariable=self.zoom_percent_var, style="Zoom.TMenubutton")
+        self.zoom_combo.pack(side="left", padx=1)
+        self.zoom_menu = tk.Menu(self.zoom_combo, tearoff=False, font="TkMenuFont")
+        self.zoom_combo.configure(menu=self.zoom_menu)
+        self._rebuild_zoom_menu()
+        self.zoom_plus = ttk.Button(self.zoom_frame, text="+", width=1, style="Zoom.TButton",
+                                    command=lambda: self.adjust_zoom(1))
+        self.zoom_plus.pack(side="left")
+        ToolTip(self.zoom_combo, lambda: tr("Auto Font Size") + (" ✓" if self.auto_font_size_var.get() else " —"), delay=700)
+        self._sync_zoom_controls()
+
+    def _rebuild_zoom_menu(self) -> None:
+        self.zoom_menu.delete(0, "end")
+        self.zoom_menu.add_checkbutton(label=tr("Auto Font Size"), variable=self.auto_font_size_var,
+                                       command=self.set_auto_font_size)
+        self.zoom_menu.add_separator()
+        for key, scale in FONT_SCALES.items():
+            self.zoom_menu.add_radiobutton(label=f"{round(scale * 100)}%", value=key,
+                                           variable=self.font_size_var, command=self.select_manual_font_size)
+
+    def _sync_zoom_controls(self) -> None:
+        if not hasattr(self, "zoom_percent_var"):
+            return
+        scale = self._font_scales.get(self.font_size_var.get(), 1.0)
+        self.zoom_percent_var.set(f"{round(scale * 100)}%")
+        self.zoom_minus.state(["disabled"] if scale <= 1.0 else ["!disabled"])
+        self.zoom_plus.state(["disabled"] if scale >= 3.0 else ["!disabled"])
+
+    def adjust_zoom(self, steps: int) -> None:
+        keys = list(self._font_scales)
+        index = keys.index(self.font_size_var.get()) if self.font_size_var.get() in keys else 0
+        self.font_size_var.set(keys[max(0, min(len(keys) - 1, index + steps))])
+        self.select_manual_font_size()
+
+    def _install_zoom_bindtag(self, event=None, widget=None) -> None:
+        widget = widget if widget is not None else (event.widget if event is not None else self)
+        if not isinstance(widget, tk.Misc):
+            return
+        tags = widget.bindtags()
+        if self._zoom_tag not in tags:
+            widget.bindtags((self._zoom_tag, *tags))
+        for child in widget.winfo_children():
+            self._install_zoom_bindtag(widget=child)
+
+    def _zoom_wheel(self, event) -> str:
+        number = getattr(event, "num", None)
+        delta = getattr(event, "delta", 0)
+        if number in (4, 5):
+            self.adjust_zoom(1 if number == 4 else -1)
+        elif delta:
+            self.adjust_zoom((1 if delta > 0 else -1) * max(1, int(abs(delta) / 120)))
+        return "break"  # Do not scroll the underlying file list as well.
+
     def set_auto_font_size(self) -> None:
         if self.auto_font_size_var.get():
+            self._last_auto_window_size = None
             self._schedule_auto_font_size(delay=0)
         self.save_config()
 
@@ -4454,6 +4642,7 @@ class Commander(tk.Tk):
         scale = self._font_scales.get(self.font_size_var.get(), 1.0)
         if self.font_size_var.get() not in self._font_scales:
             self.font_size_var.set("small")
+        self._sync_zoom_controls()
         self.tk.call("tk", "scaling", self._base_tk_scaling * scale)
         for name, base in self._base_font_sizes.items():
             # Positive Tk font sizes are points and therefore follow tk scaling.
@@ -4464,6 +4653,7 @@ class Commander(tk.Tk):
         default_font = tkfont.nametofont("TkDefaultFont")
         row_height = scaled_tree_row_height(default_font.metrics("linespace"), scale)
         style = ttk.Style(self)
+        style.configure("Treeview", rowheight=row_height)
         style.configure("Active.Treeview", rowheight=row_height)
         style.configure("Inactive.Treeview", rowheight=row_height)
         control_padding = max(1, round(3 * scale))
@@ -4480,6 +4670,9 @@ class Commander(tk.Tk):
             for tabs in self.panel_tabs:
                 tabs.apply_scale(scale)
                 tabs.redraw()
+            for pane in self.all_panes():
+                pane.path_bar.redraw()
+                pane._update_view_mode_button()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
         if self.search_window is not None and self.search_window.winfo_exists():
@@ -4504,6 +4697,9 @@ class Commander(tk.Tk):
         palette = self.palette
         self.configure(background=palette["window"])
         configure_ttk_theme(self, palette)
+        if hasattr(self, "zoom_menu"):
+            self.zoom_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                                     activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
         style = ttk.Style(self)
         style.configure("PFC.TNotebook", background=palette["tab_bar"])
         style.configure("PFC.TNotebook.Tab", background=palette["tab_default"],
@@ -4540,6 +4736,7 @@ class Commander(tk.Tk):
                 tabs.set_theme(palette)
             for pane in self.all_panes():
                 pane.set_active_appearance(pane is self.active, palette)
+                pane.path_bar.redraw()
         for window_name in ("preview_window", "search_window", "compare_window",
                             "multi_rename_window", "space_analyzer_window"):
             window = getattr(self, window_name, None)
