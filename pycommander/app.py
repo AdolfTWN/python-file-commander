@@ -17,12 +17,13 @@ import time
 import tkinter as tk
 import tkinter.font as tkfont
 import urllib.request
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
 from . import __version__
-from .fileops import OperationFailure, OperationResult, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
+from .fileops import OperationFailure, OperationResult, compact_file_size, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
 from .clipboard import clear_file_clipboard, extract_virtual_files, get_file_clipboard, get_virtual_file_descriptors, set_file_clipboard
 from .icons import ShellIconProvider, create_pfc_icon, pfc_icon_ico
 from .vcs import folder_statuses, status_for
@@ -41,6 +42,8 @@ from .startup import WindowsTrayIcon, set_windows_autostart
 from .dirwatch import DirectoryWatchManager, directory_key, is_local_watch_path
 from .pathbar import PathBar, path_ancestors
 from .homeprefix import PREFIX_ICONS, PrefixPreferences, discover_home_prefixes, load_custom_prefixes, match_home_prefix, prefix_icon, prefix_icon_size, save_custom_prefixes
+from .marquee import NameMarquee
+from .detailcells import SizeUnitCells
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -125,6 +128,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.15", "2026/09/16", (
+        "Improved: Compact file sizes use whole-number rounding with kB/MB, bold GB and bold red TB units; modified dates align right and Name receives the saved space.",
+        "Added: Long Filename Scrolling reads the focused name without middle ellipses; View controls scrolling and Explorer/PFC right-click preferences.",
+        "Changed: Removed the two-second dwell popup; leaving predefined folder prefixes restores the ROOT icon and full path, with vivid prefix icons inside matching folders.",
+        "Fixed: Refresh preserves the focused file; corrupt ZIP files no longer raise an archive-menu counting thread exception.",
+    )),
     ("v0.17.14", "2026/09/16", (
         "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.",
         "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.",
@@ -369,7 +378,8 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
         "view": {"font_size": "small", "auto_font_size": "true",
                  "tab_style": "right_skirt", "panel_count": "2",
                  "ui_language": "en", "color_scheme": "light", "extension_effect": "true",
-                 "mix_sorting": "true"},
+                 "mix_sorting": "true", "right_click_menu": "explorer",
+                 "long_name_scrolling": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -773,9 +783,6 @@ class FilePane(ttk.Frame):
         self._drag_press_xy = None
         self._dragging = False
         self._refresh_after_drag = False
-        self._context_dwell_job = None
-        self._context_dwell_item = None
-        self._context_dwell_xy = None
         self._column_resize_job = None
         self._inline_editor = None
         self._inline_item = None
@@ -834,10 +841,16 @@ class FilePane(ttk.Frame):
         for col in self.columns:
             marker = ""
             self.tree.heading(col, text=self.heading_labels[col] + marker, command=lambda c=col: self.change_sort(c))
-            self.tree.column(col, width=self.base_widths[col], stretch=False, anchor="e" if col == "size" else "w")
+            self.tree.column(col, width=self.base_widths[col], stretch=False, anchor="e" if col in ("size", "modified") else "w")
         scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
         horizontal = ttk.Scrollbar(frame, orient="horizontal", command=self.tree.xview)
-        self.tree.configure(yscrollcommand=scroll.set, xscrollcommand=horizontal.set)
+        def scrolled(bar, *args):
+            bar.set(*args)
+            if hasattr(self, "name_marquee"):
+                self.name_marquee.request()
+                self.size_units.request()
+        self.tree.configure(yscrollcommand=lambda *args: scrolled(scroll, *args),
+                            xscrollcommand=lambda *args: scrolled(horizontal, *args))
         self.tree.bind("<Configure>", lambda _event: self._schedule_column_autosize())
         horizontal.pack(side="bottom", fill="x")
         self.tree.pack(side="left", fill="both", expand=True)
@@ -848,9 +861,6 @@ class FilePane(ttk.Frame):
         self.tree.bind("<ButtonPress-1>", self._drag_press, add="+")
         self.tree.bind("<B1-Motion>", self._drag_motion, add="+")
         self.tree.bind("<ButtonRelease-1>", self._drag_release, add="+")
-        self.tree.bind("<ButtonRelease-1>", self._context_dwell_release, add="+")
-        self.tree.bind("<Motion>", self._context_dwell_motion, add="+")
-        self.tree.bind("<Leave>", lambda _event: self._cancel_context_dwell(), add="+")
         self.tree.bind("<ButtonRelease-3>", self._context_click)
         self.tree.bind("<Shift-F10>", self._context_keyboard)
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
@@ -858,6 +868,8 @@ class FilePane(ttk.Frame):
         self.tree.bind("<Next>", lambda _event: self.page_selection(1))
         self.tree.bind("<<TreeviewOpen>>", self._tree_open)
         self._name_tooltip = TreeItemToolTip(self.tree, self._tooltip_name, delay=3000)
+        self.name_marquee = NameMarquee(self)
+        self.size_units = SizeUnitCells(self)
         self.tree.tag_configure("PFC_DROP_TARGET", background="#8ec8f0", foreground="#102b3c")
         self.quick_filter_bar = ttk.Frame(self)
         ttk.Label(self.quick_filter_bar, text=tr("Quick Filter:")).pack(side="left")
@@ -957,7 +969,8 @@ class FilePane(ttk.Frame):
 
     def _breadcrumb_parts(self):
         session = self.archive_session
-        if session is not None and session.contains(self.path):
+        in_archive = session is not None and session.contains(self.path)
+        if in_archive:
             parts = path_ancestors(session.archive_path.parent)
             parts.append((session.archive_path.name, session.root))
             relative = session.relative_path(self.path)
@@ -968,10 +981,10 @@ class FilePane(ttk.Frame):
         else:
             parts = path_ancestors(self.path)
         owner = self.winfo_toplevel()
-        prefix_location = session.archive_path.parent if session is not None else self.path
+        prefix_location = session.archive_path.parent if in_archive else self.path
         self._home_match = match_home_prefix(prefix_location, self._automatic_home_prefixes,
                                              getattr(owner, "custom_home_prefixes", []))
-        icon = self._home_match[1] if self._home_match else "home"
+        icon = self._home_match[1] if self._home_match else "root"
         size = prefix_icon_size(self)
         key = (icon, size)
         if key not in self._home_images:
@@ -990,12 +1003,19 @@ class FilePane(ttk.Frame):
         return parts
 
     def _home_tooltip(self):
-        prefix, icon = self._home_match or (Path.home(), "home")
-        return f"{tr(PREFIX_ICONS[icon])}\n{prefix}\n{tr('Right-click to configure folder prefixes.')}"
+        prefix, icon = self._home_match or (self._home_root(), "root")
+        label = tr(PREFIX_ICONS[icon]) if icon != "root" else tr("Root folder")
+        return f"{label}\n{prefix}\n{tr('Right-click to configure folder prefixes.')}"
+
+    def _home_root(self):
+        # ZIPs retain the root of their real location, never the temp drive.
+        session = self.archive_session
+        location = session.archive_path if session is not None and session.contains(self.path) else self.path
+        return Path(location.anchor)
 
     def go_home_prefix(self):
         self.on_activate(self)
-        self.navigate_external(self._home_match[0] if self._home_match else Path.home())
+        self.navigate_external(self._home_match[0] if self._home_match else self._home_root())
         self.focus_file_list()
 
     def show_home_prefixes(self, event=None):
@@ -1037,7 +1057,7 @@ class FilePane(ttk.Frame):
 
     def _tree_values(self, path: Path, is_dir: bool, stat) -> tuple[str, str, str]:
         return ("" if is_dir else path.suffix[1:].upper(),
-                "<DIR>" if is_dir else format_size(stat.st_size),
+                "<DIR>" if is_dir else compact_file_size(stat.st_size),
                  datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
 
     def _icon(self, path: Path, is_dir: bool):
@@ -1056,20 +1076,21 @@ class FilePane(ttk.Frame):
         return prefix + visible
 
     def _tooltip_name(self, iid: str) -> str:
+        if self.name_marquee.item == iid:
+            return ""
         full = self._full_item_name(iid)
-        return full if full and str(self.tree.item(iid, "text")) != full else ""
+        return full if full and self.name_marquee.clipped(iid) else ""
 
     def _fit_visible_names(self) -> None:
-        font = tkfont.nametofont("TkDefaultFont")
-        width = max(24, int(self.tree.column("#0", "width")) - self.icons.size -
-                    self.icons.text_gap - font.measure("MM"))
         def fit(parent=""):
             for iid in self.tree.get_children(parent):
                 full = self._full_item_name(iid)
                 if full:
-                    self.tree.item(iid, text=middle_ellipsize(full, width, font.measure))
+                    self.tree.item(iid, text=full)
                 fit(iid)
         fit()
+        self.name_marquee.request()
+        self.size_units.request()
 
     def _request_vcs_statuses(self) -> None:
         if self.archive_session is not None:
@@ -1213,7 +1234,7 @@ class FilePane(ttk.Frame):
         })
 
     def _drag_press(self, event):
-        self._cancel_context_dwell()
+        self.name_marquee.stop()
         region = self.tree.identify_region(event.x, event.y)
         iid = self.tree.identify_row(event.y)
         if not iid and region not in {"heading", "separator"}:
@@ -1237,7 +1258,7 @@ class FilePane(ttk.Frame):
         return None
 
     def _drag_motion(self, event):
-        self._cancel_context_dwell()
+        self.name_marquee.stop()
         if not self._drag_press_item or self._drag_press_xy is None:
             return None
         if not self._dragging:
@@ -1261,63 +1282,22 @@ class FilePane(ttk.Frame):
             if self._refresh_after_drag:
                 self._refresh_after_drag = False
                 self.after_idle(self.refresh)
+            self.name_marquee.request()
         return "break" if was_dragging else None
 
-    def _cancel_context_dwell(self, disarm: bool = True) -> None:
-        if self._context_dwell_job is not None:
-            try: self.after_cancel(self._context_dwell_job)
-            except tk.TclError: pass
-            self._context_dwell_job = None
-        if disarm:
-            self._context_dwell_item = None
-            self._context_dwell_xy = None
-
-    def _schedule_context_dwell(self, iid: str, x_root: int, y_root: int) -> None:
-        self._cancel_context_dwell(disarm=False)
-        self._context_dwell_item = iid
-        self._context_dwell_xy = (int(x_root), int(y_root))
-        self._context_dwell_job = self.after(2000, self._show_dwell_context)
-
-    def _context_dwell_release(self, event):
-        iid = self.tree.identify_row(event.y)
-        if not iid or iid not in self.tree.selection():
-            self._cancel_context_dwell()
-            return None
-        tags = self.tree.item(iid, "tags")
-        if not tags or tags[0] == "PFC_INLINE_PLACEHOLDER":
-            self._cancel_context_dwell()
-            return None
-        self._schedule_context_dwell(iid, event.x_root, event.y_root)
-        return None
-
-    def _context_dwell_motion(self, event):
-        iid = self._context_dwell_item
-        if iid is None:
-            return None
-        if self.tree.identify_row(event.y) != iid:
-            self._cancel_context_dwell()
-            return None
-        self._schedule_context_dwell(iid, event.x_root, event.y_root)
-        return None
-
-    def _show_dwell_context(self) -> None:
-        self._context_dwell_job = None
-        iid = self._context_dwell_item
-        self._context_dwell_item = None
-        self._context_dwell_xy = None
-        if (not iid or self._dragging or self._inline_editor is not None or
-                not self.tree.exists(iid) or iid not in self.tree.selection()):
-            return
-        x_root, y_root = self.tree.winfo_pointerxy()
-        hovered = self.tree.identify_row(y_root - self.tree.winfo_rooty())
-        tags = self.tree.item(iid, "tags")
-        if hovered != iid or not tags or tags[0] == "PFC_INLINE_PLACEHOLDER":
-            return
-        self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
-        self.on_context(self, Path(tags[0]), x_root, y_root)
+    def _dispatch_context(self, path, x_root, y_root):
+        self.name_marquee.suspended = True
+        self.name_marquee.stop()
+        preference = getattr(self.winfo_toplevel(), "right_click_menu_var", None)
+        handler = self.on_context if preference is not None and preference.get() == "pfc" else self.on_native_context
+        try:
+            handler(self, path, x_root, y_root)
+        finally:
+            self.name_marquee.suspended = False
+            self.name_marquee.request()
 
     def _context_click(self, event):
-        self._cancel_context_dwell()
+        self.name_marquee.stop()
         iid = self.tree.identify_row(event.y)
         if not iid:
             return None
@@ -1326,7 +1306,7 @@ class FilePane(ttk.Frame):
         self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
         tags = self.tree.item(iid, "tags")
         if tags:
-            self.on_native_context(self, Path(tags[0]), event.x_root, event.y_root)
+            self._dispatch_context(Path(tags[0]), event.x_root, event.y_root)
         return "break"
 
     def _context_keyboard(self, _event=None):
@@ -1340,7 +1320,7 @@ class FilePane(ttk.Frame):
         if tags:
             x = self.tree.winfo_rootx() + (box[0] + 20 if box else 20)
             y = self.tree.winfo_rooty() + (box[1] + box[3] if box else 20)
-            self.on_native_context(self, Path(tags[0]), x, y)
+            self._dispatch_context(Path(tags[0]), x, y)
         return "break"
 
     def page_selection(self, direction: int) -> str:
@@ -1570,7 +1550,8 @@ class FilePane(ttk.Frame):
             self._refresh_after_drag = True
             return
         self._refresh_after_drag = False
-        self._cancel_context_dwell()
+        self.name_marquee.stop()
+        self.size_units.hide()
         reset_view = getattr(self, "_reset_view_on_refresh", False)
         self._reset_view_on_refresh = False
         if self.mode == "files" and self.view_mode != "list":
@@ -1578,6 +1559,8 @@ class FilePane(ttk.Frame):
         else:
             self.tree.configure(show="tree headings", displaycolumns=self.columns)
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
+        focused_tags = self.tree.item(self.tree.focus(), "tags") if self.tree.focus() else ()
+        focused_path = focused_tags[0] if focused_tags and not reset_view else None
         expanded = self._expanded_tree_paths() if self.view_mode != "list" else set()
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         if reset_view:
@@ -1611,6 +1594,10 @@ class FilePane(ttk.Frame):
                 restore_selection()
                 target_iids = selected_iids or [root_iid]
                 self.tree.selection_set(target_iids); self.tree.focus(target_iids[0])
+                for target in target_iids:
+                    if self.tree.item(target, "tags")[0] == focused_path:
+                        self.tree.focus(target)
+                        break
                 self.tree.yview_moveto(scroll_position)
                 self._schedule_column_autosize()
                 return
@@ -1640,11 +1627,13 @@ class FilePane(ttk.Frame):
                     visible_name = p.name if is_dir or self.show_extensions else p.stem
                     name = f"[{visible_name}]" if is_dir else visible_name
                     values = ("" if is_dir else p.suffix[1:].upper(),
-                              "<DIR>" if is_dir else format_size(stat.st_size),
+                              "<DIR>" if is_dir else compact_file_size(stat.st_size),
                               datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
                     iid = self.tree.insert("", "end", text=name, image=self._icon(p, is_dir), values=values, tags=(str(p),))
                     if str(p) in selected:
                         self.tree.selection_add(iid)
+                        if str(p) == focused_path:
+                            self.tree.focus(iid)
                 except OSError:
                     continue
             filter_status = tr(" — filter: {filter}", filter=self.quick_filter_var.get().strip()) if needle else ""
@@ -1658,6 +1647,8 @@ class FilePane(ttk.Frame):
                 self.tree.see(children[0])
                 self.tree.yview_moveto(0)
             elif children:
+                if not self.tree.focus() and current:
+                    self.tree.focus(current[0])
                 self.tree.yview_moveto(scroll_position)
             self._schedule_column_autosize()
         except OSError as exc:
@@ -1678,8 +1669,8 @@ class FilePane(ttk.Frame):
             return
         font = tkfont.nametofont("TkDefaultFont")
         padding = max(18, font.measure("MM"))
+        self.size_units.sync_font()
         limits = {
-            "size": (55, font.measure("0000.0 MB") + padding),
             "modified": (110, font.measure("0000-00-00 00:00") + padding),
         }
         ext_width = extension_column_width(font.measure)
@@ -1690,13 +1681,15 @@ class FilePane(ttk.Frame):
                 self.tree.column(column, width=ext_width, minwidth=ext_width, stretch=False)
                 fixed_total += ext_width
                 continue
-            heading_width = font.measure(str(self.tree.heading(column, "text"))) + padding
+            cell_padding = max(8, font.measure(" ") * 2) if column == "size" else padding
+            measure = self.size_units.measure if column == "size" else font.measure
+            heading_width = font.measure(str(self.tree.heading(column, "text"))) + cell_padding
             measured = heading_width
             for iid in children:
                 values = self.tree.item(iid, "values")
                 if value_index < len(values):
-                    measured = max(measured, font.measure(str(values[value_index])) + padding)
-            minimum, maximum = limits[column]
+                    measured = max(measured, measure(str(values[value_index])) + cell_padding)
+            minimum, maximum = (heading_width, measured) if column == "size" else limits[column]
             maximum = max(maximum, heading_width)
             width = max(minimum, min(measured, maximum))
             self.tree.column(column, width=width, minwidth=minimum, stretch=False)
@@ -1848,7 +1841,7 @@ class FilePane(ttk.Frame):
                     display = str(relative if is_dir or self.show_extensions else relative.with_name(item.stem))
                     self.tree.insert("", "end", text=display, image=self._icon(item, is_dir), values=(
                         "" if is_dir else item.suffix[1:].upper(),
-                        "<DIR>" if is_dir else format_size(stat.st_size),
+                        "<DIR>" if is_dir else compact_file_size(stat.st_size),
                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
                         tags=(str(item),))
                     count += 1
@@ -1876,7 +1869,7 @@ class FilePane(ttk.Frame):
                 self.tree.insert("", "end", text=f"[{path.name}]" if is_dir else path.name,
                                  image=self._icon(path, is_dir),
                                  values=("" if is_dir else path.suffix[1:].upper(),
-                                         "<DIR>" if is_dir else format_size(stat.st_size),
+                                         "<DIR>" if is_dir else compact_file_size(stat.st_size),
                                          datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
                                  tags=(str(path),))
             except OSError:
@@ -1904,6 +1897,8 @@ class FilePane(ttk.Frame):
         self.active_indicator.configure(
             background=colors.get("selection", "#0078d4") if active
             else colors.get("border", "#9aa7b3"))
+        self.name_marquee.request()
+        self.size_units.request()
 
     def apply_scale(self, scale: float) -> None:
         self.active_indicator.configure(height=max(2, round(3 * scale)))
@@ -2125,6 +2120,13 @@ class Commander(tk.Tk):
         self.font_size_var = tk.StringVar(value=saved_font_size)
         self.auto_font_size_var = tk.BooleanVar(
             value=self.config_data.getboolean("view", "auto_font_size", fallback=True))
+        context_mode = self.config_data.get("view", "right_click_menu", fallback="explorer")
+        self.right_click_menu_var = tk.StringVar(value=context_mode if context_mode in ("explorer", "pfc") else "explorer")
+        try:
+            scrolling = self.config_data.getboolean("view", "long_name_scrolling", fallback=True)
+        except ValueError:
+            scrolling = True
+        self.long_name_scrolling_var = tk.BooleanVar(value=scrolling)
         self._auto_font_job = None
         self._last_auto_window_size = None
         saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
@@ -2493,6 +2495,8 @@ class Commander(tk.Tk):
         self.config_data.set("state", "active_panel", PANEL_SECTIONS[self.panel_tabs.index(active_tabs)])
         self.config_data.set("view", "font_size", self.font_size_var.get())
         self.config_data.set("view", "auto_font_size", str(self.auto_font_size_var.get()).lower())
+        self.config_data.set("view", "right_click_menu", self.right_click_menu_var.get())
+        self.config_data.set("view", "long_name_scrolling", str(self.long_name_scrolling_var.get()).lower())
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
@@ -2778,6 +2782,13 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(font_size, tr("Auto Font Size"), self.auto_font_size_var,
                                self.set_auto_font_size)
         add_scaled_cascade(view, tr("Font Size"), font_size)
+        add_scaled_checkbutton(view, tr("Long Filename Scrolling"), self.long_name_scrolling_var,
+                               self.set_long_name_scrolling)
+        self.right_click_menu = tk.Menu(view, tearoff=False, font=menu_font)
+        for label, value in (("File Explorer", "explorer"), ("PFC", "pfc")):
+            add_scaled_radiobutton(self.right_click_menu, tr(label), value,
+                                   self.right_click_menu_var, self.save_config)
+        add_scaled_cascade(view, tr("Right Click Menu"), self.right_click_menu)
         color_scheme_menu = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("Light", "light"), ("Light Grey", "light_grey"), ("Dark", "dark")):
             add_scaled_radiobutton(color_scheme_menu, tr(label), value, self.color_scheme_var,
@@ -3495,6 +3506,7 @@ class Commander(tk.Tk):
             except tk.TclError: pass
         menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
         self.file_context_menu = menu
+        menu.bind("<Unmap>", pane.name_marquee.request, add="+")
         normal_if = lambda condition: "normal" if condition else "disabled"
         menu.add_command(label=tr("Open / Enter Folder"), accelerator="Enter",
                          state=normal_if(single), command=pane.open_selected)
@@ -3597,7 +3609,7 @@ class Commander(tk.Tk):
         def worker():
             try:
                 results.put(archive_item_counts(archive_path))
-            except (OSError, ValueError):
+            except (OSError, ValueError, zipfile.BadZipFile):
                 results.put(None)
 
         def poll():
@@ -4636,6 +4648,11 @@ class Commander(tk.Tk):
         self.auto_font_size_var.set(False)
         self.apply_font_size()
 
+    def set_long_name_scrolling(self) -> None:
+        for pane in self.all_panes():
+            pane.name_marquee.request()
+        self.save_config()
+
     def _build_zoom_controls(self, parent) -> None:
         self.zoom_frame = ttk.Frame(parent)
         self.zoom_frame.pack(side="right", padx=(2, 0))
@@ -4824,6 +4841,7 @@ class Commander(tk.Tk):
                                  activebackground=palette["header_active"],
                                  activeforeground="#ffffff")
             for menu in (self.files_menu, self.view_menu, self.visibility_menu,
+                         self.right_click_menu,
                          self.font_size_menu, self.color_scheme_menu, self.tab_style_menu,
                          self.panel_counts_menu, self.language_menu, self.favorites_menu,
                          self.recent_menu, self.versions_menu):

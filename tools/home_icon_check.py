@@ -57,11 +57,11 @@ def main():
             dialog.destroy()
             if '--screenshot' in sys.argv:
                 gallery = module.tk.Toplevel(app); gallery.title('PFC icon rendering — native sizes')
-                gallery.geometry('900x390+20+20'); gallery.configure(background='#f0f2f4')
+                gallery.geometry('1000x390+20+20'); gallery.configure(background='#f0f2f4')
                 images = []
                 for row, size in enumerate((24, 40, 64)):
                     module.tk.Label(gallery, text=f'{size}px', background='#f0f2f4').grid(row=row,column=0,padx=12,pady=8)
-                    for col, kind in enumerate(('parent',*module.PREFIX_ICONS),1):
+                    for col, kind in enumerate(('parent','root',*module.PREFIX_ICONS),1):
                         img = module.prefix_icon(gallery,kind,size); images.append(img)
                         module.tk.Label(gallery,image=img,text=kind,compound='top',background='#f0f2f4').grid(row=row,column=col,padx=12,pady=8)
                 settle(app)

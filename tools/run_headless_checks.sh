@@ -30,6 +30,10 @@ xvfb-run -a python3 tools/homeprefix_check.py
 xvfb-run -a python3 tools/homeprefix_check.py pfc
 xvfb-run -a python3 tools/home_icon_check.py
 xvfb-run -a python3 tools/home_icon_check.py pfc
+xvfb-run -a python3 tools/marquee_check.py
+xvfb-run -a python3 tools/marquee_check.py pfc
+xvfb-run -a python3 tools/size_column_check.py
+xvfb-run -a python3 tools/size_column_check.py pfc
 xvfb-run -a python3 tools/vcs_gui_check.py "$project_root"
 
 echo "All headless checks passed."

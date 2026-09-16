@@ -4,6 +4,7 @@ from pathlib import Path, PureWindowsPath as W, PurePosixPath as P
 import unittest
 import struct
 import zlib
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from pycommander.homeprefix import load_custom_prefixes, save_custom_prefixes, match_home_prefix, discover_home_prefixes, prefix_icon_png, PREFIX_ICONS
@@ -13,7 +14,7 @@ class HomePrefixTests(unittest.TestCase):
     def test_icons_are_distinct_native_size_and_antialiased(self):
         for size in (16, 32, 64):
             rendered = []
-            for kind in ('parent', *PREFIX_ICONS):
+            for kind in ('parent', 'root', *PREFIX_ICONS):
                 png = prefix_icon_png(kind, size)
                 self.assertEqual(struct.unpack('>II', png[16:24]), (size,size))
                 offset, compressed = 8, bytearray()
@@ -26,7 +27,19 @@ class HomePrefixTests(unittest.TestCase):
                 self.assertIn(0, alphas); self.assertIn(255, alphas)
                 self.assertTrue(any(0<a<255 for a in alphas), kind)
                 rendered.append(png)
-            self.assertEqual(len(set(rendered)), 7)
+            self.assertEqual(len(set(rendered)), 8)
+
+    def test_root_target_uses_current_drive_or_share_and_logical_archive(self):
+        from pycommander.app import FilePane
+        for location in ('D:/Other/sub', '//server/share/Other/sub'):
+            pane = SimpleNamespace(path=W(location), archive_session=None)
+            self.assertEqual(str(FilePane._home_root(pane)), W(location).anchor)
+            pane.path = W('C:/Temp/extraction/inside')
+            pane.archive_session = SimpleNamespace(archive_path=W(location)/'a.zip', contains=lambda path: True)
+            self.assertEqual(str(FilePane._home_root(pane)), W(location).anchor)
+            pane.path = W('E:/Elsewhere')
+            pane.archive_session.contains = lambda path: False
+            self.assertEqual(str(FilePane._home_root(pane)), pane.path.anchor)
 
     def test_longest_and_component_boundary(self):
         auto = [(W('C:/Users/A'), 'home'), (W('C:/Users/A/OneDrive - Work'), 'cloud'),

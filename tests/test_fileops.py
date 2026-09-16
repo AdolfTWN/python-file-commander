@@ -6,10 +6,20 @@ from pathlib import Path
 from unittest import mock
 
 import pycommander.fileops as fileops
-from pycommander.fileops import copy_items, delete_items, format_size, move_items, recycle_items
+from pycommander.fileops import compact_file_size, copy_items, delete_items, format_size, move_items, recycle_items
 
 
 class FileOpsTests(unittest.TestCase):
+    def test_compact_file_size_rounding_and_units(self):
+        for size, expected in ((0, "0 B"), (1023, "1023 B"), (1024, "1 kB"),
+                               (1535, "1 kB"), (1536, "2 kB"),
+                               (int(2.5 * 1024**2), "3 MB"),
+                               (1024**2 - 512, "1 MB"),
+                               (1024**3, "1 GB"), (1024**4, "1 TB"),
+                               (1024**4 * 12345, "12345 TB")):
+            with self.subTest(size=size):
+                self.assertEqual(compact_file_size(size), expected)
+
     def test_copy_move_delete(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)

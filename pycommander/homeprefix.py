@@ -109,8 +109,10 @@ def prefix_icon_png(kind, size, foreground="#34465a"):
     extent = size * supersample
     pixels = bytearray(extent * extent * 4)
     unit = extent / 32
-    colors = {"home": "#ba7911", "cloud": "#1671ba", "download": "#18785c",
-              "code": "#7150ac", "documents": "#286b9e", "photos": "#a44f79"}
+    # Distinct, saturated hues identify the hidden prefix at a glance. Root is
+    # deliberately neutral and has a different silhouette from every prefix.
+    colors = {"home": "#ef9000", "cloud": "#0085f5", "download": "#00a653",
+              "code": "#8836ef", "documents": "#009fac", "photos": "#ed297e"}
     face = _hex_rgba(colors.get(kind, colors["home"]))
     white = (255, 255, 255, 255)
     def paint(bounds, inside, color):
@@ -137,6 +139,16 @@ def prefix_icon_png(kind, size, foreground="#34465a"):
     if kind == "parent":
         ink = _hex_rgba(foreground)
         line(16,27,16,5,2.4,ink); line(7,14,16,5,2.4,ink); line(16,5,25,14,2.4,ink)
+        return _rgba_png_downsample(pixels, size, supersample)
+    if kind == "root":
+        rounded(2,3,30,29,3,_hex_rgba("#52687e"))
+        rounded(3,4,29,21,2,_hex_rgba("#71879c"))
+        # A directory-tree badge on a drive, rather than the user-folder badge.
+        rounded(13,7,19,11,1,white)
+        line(16,11,16,14,1.4); line(9,14,23,14,1.4)
+        for x in (9,23):
+            line(x,14,x,16,1.4); rounded(x-3,16,x+3,19,1,white)
+        line(7,25,20,25,1.6); circle(25,25,1.2)
         return _rgba_png_downsample(pixels, size, supersample)
     rear = tuple(round(c*.79) for c in face[:3]) + (255,)
     rounded(2,3,14,12,2,rear); rounded(2,6,30,29,2.5,rear)

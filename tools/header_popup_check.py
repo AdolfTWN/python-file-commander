@@ -32,7 +32,7 @@ def main() -> None:
             root_arrows = [item for item in root.canvas.find_all()
                            if root.canvas.type(item) == "text" and
                            root.canvas.itemcget(item, "text") == "▶"]
-            assert len(root_arrows) == 6
+            assert len(root_arrows) == 7
             child_ticks = [item for item in child.canvas.find_all()
                            if child.canvas.type(item) == "text" and
                            child.canvas.itemcget(item, "text") == "✓"]
@@ -68,7 +68,7 @@ def main() -> None:
             huge_arrows = [item for item in huge_root.canvas.find_all()
                            if huge_root.canvas.type(item) == "text" and
                            huge_root.canvas.itemcget(item, "text") == "▶"]
-            assert len(huge_arrows) == 6
+            assert len(huge_arrows) == 7
             app.header_popup.close_all()
             app.header_popup.show(app.view_menu_button, app.view_menu)
             root = app.header_popup.popups[0]

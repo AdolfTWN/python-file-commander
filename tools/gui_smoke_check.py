@@ -69,7 +69,9 @@ def main() -> None:
             assert not app.left_tabs.current().tree.bind("<Button-3>")
             hierarchy_indexes = [index for index in range(app.view_menu.index("end") + 1)
                                  if app.view_menu.type(index) == "cascade"]
-            assert len(hierarchy_indexes) == 6
+            assert len(hierarchy_indexes) == 7
+            assert app.right_click_menu_var.get() == "explorer"
+            assert app.long_name_scrolling_var.get()
             assert app.color_scheme_var.get() == "light"
             assert app.mix_sorting_var.get()
             assert any(app.versions_menu.entrycget(index, "label") == "Check Update"
@@ -567,22 +569,16 @@ def main() -> None:
 
             pfc_context_calls = []
             original_context = source_pane.on_context
-            original_pointerxy = source_pane.tree.winfo_pointerxy
             source_pane.on_context = lambda *args: pfc_context_calls.append(args)
-            source_pane.tree.winfo_pointerxy = lambda: (
-                source_pane.tree.winfo_rootx() + first_box[0] + 5,
-                source_pane.tree.winfo_rooty() + first_box[1] + 5)
             try:
-                source_pane._context_dwell_release(SimpleNamespace(
+                app.right_click_menu_var.set("pfc")
+                source_pane._context_click(SimpleNamespace(
                     y=first_box[1] + 5, x_root=50, y_root=50))
-                assert source_pane._context_dwell_job is not None
-                source_pane.after_cancel(source_pane._context_dwell_job)
-                source_pane._context_dwell_job = None
-                source_pane._show_dwell_context()
             finally:
                 source_pane.on_context = original_context
-                source_pane.tree.winfo_pointerxy = original_pointerxy
-            assert pfc_context_calls, "Two-second selected-row dwell must open the PFC menu"
+                app.right_click_menu_var.set("explorer")
+            assert pfc_context_calls, "PFC right-click preference must route to the PFC menu"
+            assert not hasattr(source_pane, "_context_dwell_job")
             context_menu = app._build_file_context_menu(source_pane, source_pane.selected_paths()[0])
             context_labels = [context_menu.entrycget(index, "label")
                               for index in range(context_menu.index("end") + 1)

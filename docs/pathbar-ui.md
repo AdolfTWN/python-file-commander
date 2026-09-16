@@ -32,6 +32,16 @@ by complete path components, not raw string prefix. More specific roots win;
 custom roots override an identical built-in root. The Home icon remains visible
 even in narrow panels because it now represents hidden path text.
 
+Outside every configured prefix, the button displays a neutral ROOT drive icon
+and opens the current drive or UNC share root. Breadcrumbs retain every ancestor
+(normal narrow-layout overflow still applies); no prefix is stripped. Entering
+a matching tree immediately restores that tree's colorful icon and shortened
+breadcrumbs. Leaving a nested prefix uses any still-matching outer prefix, or
+ROOT if none matches. Archive locations use the original ZIP's drive and path,
+not its temporary extraction folder. F12 always edits the full logical path.
+The six prefix badges use distinct vivid orange, blue, green, purple, cyan and
+pink colors, in addition to their different symbols.
+
 Parent and Home use equally sized antialiased icons and matching button bounds.
 Folder icons are rendered at the current default font's line height, including
 the Home menu and custom-prefix previews. An open preferences dialog updates

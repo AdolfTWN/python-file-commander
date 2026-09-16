@@ -26,6 +26,7 @@ def main():
         home = root / 'User'; cloud = home / 'OneDrive - Work'; downloads = home / 'Downloads'
         code = cloud / 'Code 100%'; target = code / 'Project' / 'Source'
         target.mkdir(parents=True); downloads.mkdir()
+        unrelated = root / 'User-other'; unrelated.mkdir()
         file = target / 'test.txt'; file.write_text('test')
         module.Commander._find_ini_path = staticmethod(lambda: root / 'pfc.ini')
         module.Commander._sync_auto_start = lambda self, **kw: True
@@ -69,6 +70,44 @@ def main():
             assert pane._home_match == (downloads, 'download')
             pane.navigate(root); settle(app)
             assert pane._home_match is None
+            def assert_prefix(location, expected):
+                pane.navigate_external(location)
+                # The icon and crumbs must update together during navigation,
+                # without waiting for a resize or the next redraw event.
+                assert pane._home_match == expected, (location, pane._home_match)
+                icon = expected[1] if expected else 'root'
+                image = pane._home_images[(icon, module.prefix_icon_size(pane))]
+                assert str(pane.home_button.cget('image')[0]) == str(image)
+                assert pane.path_bar.committed == str(location)
+                if expected is None:
+                    assert pane.path_bar._parts == module.path_ancestors(location)
+                    assert str(pane._home_root()) in pane._home_tooltip()
+                else:
+                    assert expected[0] not in [p for _, p in pane.path_bar._parts] or location == expected[0]
+                pane.path_bar.begin_edit()
+                assert pane.path_entry.get() == str(location)
+                pane.path_bar.cancel()
+                settle(app)
+            for location, expected in ((unrelated,None), (target,(code,'code')),
+                                       (cloud,(cloud,'cloud')), (home,(home,'home')),
+                                       (root,None), (downloads,(downloads,'download')),
+                                       (unrelated,None), (code,(code,'code')), (root,None)):
+                assert_prefix(location, expected)
+            pane.home_button.invoke(); settle(app)
+            assert pane.path == Path(root.anchor) and pane._home_match is None
+            assert pane.path_bar._parts == module.path_ancestors(pane.path)
+            # An archive outside configured prefixes must also show ROOT and its
+            # original full path, not inherit a previous prefix or the temp path.
+            plain_zip = unrelated / 'outside.zip'
+            with zipfile.ZipFile(plain_zip, 'w') as z: z.writestr('inside/file.txt', 'test')
+            app._open_special_file(pane, plain_zip)
+            deadline = time.monotonic()+15
+            while pane in app._archive_open_jobs and time.monotonic() < deadline: settle(app)
+            assert pane.archive_session is not None and pane._home_match is None
+            assert pane.path_bar._parts[:-1] == module.path_ancestors(unrelated)
+            assert pane._home_root() == Path(plain_zip.anchor)
+            pane.home_button.invoke(); settle(app)
+            assert pane.path == Path(plain_zip.anchor) and pane.archive_session is None
             archive = code / 'sample.zip'
             with zipfile.ZipFile(archive, 'w') as z: z.writestr('inside/file.txt', 'test')
             app._open_special_file(pane, archive)
@@ -98,7 +137,7 @@ def main():
                 from PIL import ImageGrab
                 ImageGrab.grab().save('/tmp/pfc-homeprefix.png')
             assert not errors, errors
-            print('PASS: automatic/custom prefix icons, longest match, F12 full path/file selection, INI, cancellation, Home, ZIP, locked tab, zoom')
+            print('PASS: prefix/ROOT transitions, matching icons and full paths, root navigation, F12, INI, Home, ZIP, locked tab, zoom')
         finally:
             app.close_app()
 

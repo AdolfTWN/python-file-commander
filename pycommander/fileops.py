@@ -300,6 +300,16 @@ def format_size(size: int) -> str:
     return str(size)
 
 
+def compact_file_size(size: int) -> str:
+    """File-list size: integer half-up rounding, retaining 1024-based units."""
+    divisor = 1
+    for unit in ("B", "kB", "MB", "GB", "TB"):
+        rounded = (int(size) * 2 + divisor) // (2 * divisor)
+        if rounded < 1024 or unit == "TB":
+            return f"{rounded} {unit}"
+        divisor *= 1024
+
+
 def roots() -> list[Path]:
     if os.name != "nt":
         return [Path("/")]

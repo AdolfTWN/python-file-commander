@@ -54,6 +54,9 @@ def build() -> Path:
     pathbar = "\n".join(line for line in pathbar.splitlines() if not line.startswith("from .")) + "\n"
     tooltip += "\n\n" + pathbar
     tooltip += "\n\n" + homeprefix
+    tooltip += "\n\n" + (ROOT / "pycommander" / "marquee.py").read_text(encoding="utf-8")
+    detailcells = (ROOT / "pycommander" / "detailcells.py").read_text(encoding="utf-8")
+    tooltip += "\n\n" + "\n".join(line for line in detailcells.splitlines() if not line.startswith("from ."))
     compare = compare.replace("from __future__ import annotations\n\n", "", 1)
     compare = "\n".join(line for line in compare.splitlines() if not line.startswith("from .")) + "\n"
     preview = preview.replace("from __future__ import annotations\n\n", "", 1)

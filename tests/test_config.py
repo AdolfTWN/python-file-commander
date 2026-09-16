@@ -23,6 +23,8 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(restored.get("view", "color_scheme"), "light")
             self.assertTrue(restored.getboolean("view", "auto_font_size"))
             self.assertTrue(restored.getboolean("view", "mix_sorting"))
+            self.assertTrue(restored.getboolean("view", "long_name_scrolling"))
+            self.assertEqual(restored.get("view", "right_click_menu"), "explorer")
             self.assertTrue(restored.getboolean("startup", "auto_start"))
 
     def test_existing_preferences_are_not_overwritten(self):
