@@ -6,8 +6,12 @@ import configparser
 import os
 from pathlib import Path
 import tkinter as tk
+import tkinter.font as tkfont
+from functools import lru_cache
+import math
 from tkinter import ttk, filedialog, messagebox
 from .i18n import tr
+from .icons import _rgba_png_downsample, _hex_rgba, _distance_to_segment
 
 
 PREFIX_ICONS = {"home": "User folder", "cloud": "OneDrive", "download": "Downloads",
@@ -93,37 +97,79 @@ def match_home_prefix(path, automatic, custom):
     return match
 
 
-def prefix_icon(master, kind, size=24):
-    """Draw recognizable folder badges without platform-dependent emoji fonts."""
-    image = tk.PhotoImage(master=master, width=size, height=size)
-    scale = size / 24
-    colors = {"home": "#d99613", "cloud": "#2475c7", "download": "#23826a",
-              "code": "#7157b5", "documents": "#3976a1", "photos": "#a95d82"}
-    def rect(x1, y1, x2, y2, color):
-        image.put(color, to=(round(x1*scale), round(y1*scale), max(round(x1*scale)+1, round(x2*scale)),
-                             max(round(y1*scale)+1, round(y2*scale))))
-    def line(x1, y1, x2, y2, color="#ffffff"):
-        steps = max(abs(x2-x1), abs(y2-y1), 1)
-        for step in range(steps + 1):
-            x, y = x1+(x2-x1)*step/steps, y1+(y2-y1)*step/steps
-            rect(x, y, x+1, y+1, color)
-    color = colors.get(kind, colors["home"])
-    rect(1, 3, 10, 7, color); rect(1, 6, 23, 22, color)
+def prefix_icon_size(widget):
+    """One physical-pixel size for toolbar, popup and preferences at any DPI."""
+    return max(12, tkfont.nametofont("TkDefaultFont", root=widget).metrics("linespace"))
+
+
+@lru_cache(maxsize=128)
+def prefix_icon_png(kind, size, foreground="#34465a"):
+    """Rasterize vector geometry at 4x, then alpha-aware downsample to native size."""
+    supersample = 4
+    extent = size * supersample
+    pixels = bytearray(extent * extent * 4)
+    unit = extent / 32
+    colors = {"home": "#ba7911", "cloud": "#1671ba", "download": "#18785c",
+              "code": "#7150ac", "documents": "#286b9e", "photos": "#a44f79"}
+    face = _hex_rgba(colors.get(kind, colors["home"]))
+    white = (255, 255, 255, 255)
+    def paint(bounds, inside, color):
+        x1, y1, x2, y2 = bounds
+        for y in range(max(0, math.floor(y1*unit)), min(extent, math.ceil(y2*unit))):
+            py = (y+.5)/unit
+            for x in range(max(0, math.floor(x1*unit)), min(extent, math.ceil(x2*unit))):
+                px = (x+.5)/unit
+                if inside(px, py):
+                    index = (y*extent+x)*4
+                    pixels[index:index+4] = bytes(color(px, py) if callable(color) else color)
+    def rounded(x1, y1, x2, y2, radius, color):
+        def inside(x, y):
+            cx = max(x1+radius, min(x, x2-radius))
+            cy = max(y1+radius, min(y, y2-radius))
+            return (x-cx)**2 + (y-cy)**2 <= radius**2
+        paint((x1,y1,x2,y2), inside, color)
+    def circle(x, y, radius, color=white):
+        paint((x-radius,y-radius,x+radius,y+radius), lambda px,py: (px-x)**2+(py-y)**2 <= radius**2, color)
+    def line(x1,y1,x2,y2,width=1.8,color=white):
+        r = width/2
+        paint((min(x1,x2)-r,min(y1,y2)-r,max(x1,x2)+r,max(y1,y2)+r),
+              lambda x,y: _distance_to_segment(x,y,x1,y1,x2,y2) <= r, color)
+    if kind == "parent":
+        ink = _hex_rgba(foreground)
+        line(16,27,16,5,2.4,ink); line(7,14,16,5,2.4,ink); line(16,5,25,14,2.4,ink)
+        return _rgba_png_downsample(pixels, size, supersample)
+    rear = tuple(round(c*.79) for c in face[:3]) + (255,)
+    rounded(2,3,14,12,2,rear); rounded(2,6,30,29,2.5,rear)
+    # A restrained highlight separates the front flap from the rear tab.
+    def gradient(x,y):
+        light = max(0, .19*(28-y)/19)
+        return tuple(round(c+(255-c)*light) for c in face[:3])+(255,)
+    rounded(2,9,30,29,2.5,gradient)
+    line(5,10,27,10,.65,tuple(round(c+(255-c)*.28) for c in face[:3])+(255,))
     if kind == "home":
-        rect(10, 8, 15, 12, "#ffffff"); rect(8, 14, 17, 19, "#ffffff")
+        circle(16,15,3.1); rounded(10,19.5,22,25.5,3,white)
     elif kind == "cloud":
-        rect(6, 13, 19, 17, "#ffffff"); rect(9, 10, 15, 16, "#ffffff")
+        circle(11,21,3.3); circle(16,18.2,4.3); circle(21.5,21,3.1)
+        rounded(10,20,23,24.1,1.7,white)
     elif kind == "download":
-        line(12, 8, 12, 16); line(8, 12, 12, 16); line(16, 12, 12, 16); line(7, 19, 17, 19)
+        line(16,13,16,22,2.1); line(12,18.5,16,22,2.1); line(20,18.5,16,22,2.1)
+        line(10,25,22,25,1.8)
     elif kind == "code":
-        line(9, 10, 5, 14); line(5, 14, 9, 18); line(16, 10, 20, 14); line(20, 14, 16, 18); line(14, 9, 11, 19)
+        line(11,14,7,19); line(7,19,11,24)
+        line(21,14,25,19); line(25,19,21,24); line(18,13,14,25)
     elif kind == "documents":
-        rect(7, 8, 18, 20, "#ffffff")
-        for y in (11, 14, 17): line(9, y, 15, y, color)
+        rounded(10,12,22,26,1.4,white)
+        for y in (16,19,22): line(13,y,19,y,1.2,face)
     else:
-        rect(5, 8, 20, 20, "#ffffff"); rect(7, 10, 10, 12, color)
-        line(6, 18, 11, 13, color); line(11, 13, 16, 18, color); line(15, 16, 18, 13, color)
-    return image
+        rounded(7,12,25,26,1.5,white); rounded(8.5,13.5,23.5,24.5,.5,face)
+        circle(12,17,1.6); line(9.5,23,15,18.5,1.5); line(15,18.5,19,23,1.5)
+        line(18,22,21,19.5,1.5); line(21,19.5,23,22,1.5)
+    return _rgba_png_downsample(pixels, size, supersample)
+
+
+def prefix_icon(master, kind, size=None, foreground="#34465a"):
+    size = prefix_icon_size(master) if size is None else size
+    return tk.PhotoImage(master=master, data=prefix_icon_png(kind, size, foreground), format="png")
 
 
 class PrefixPreferences(tk.Toplevel):
@@ -134,6 +180,7 @@ class PrefixPreferences(tk.Toplevel):
         self.resizable(True, False)
         self.columnconfigure(2, weight=1)
         self.rows = []
+        self.previews = []
         self.images = {key: prefix_icon(self, key) for key in PREFIX_ICONS}
         self.keys = list(PREFIX_ICONS)
         ttk.Label(self, text=tr("Choose up to three prefixes. Empty paths disable a slot.")).grid(
@@ -141,6 +188,7 @@ class PrefixPreferences(tk.Toplevel):
         for index, item in enumerate(items):
             preview = ttk.Label(self, image=self.images[item["icon"]])
             preview.grid(row=index+1, column=0, padx=(12, 4))
+            self.previews.append(preview)
             icon = ttk.Combobox(self, state="readonly", width=14,
                                values=[tr(PREFIX_ICONS[key]) for key in self.keys])
             icon.current(self.keys.index(item["icon"]))
@@ -171,3 +219,8 @@ class PrefixPreferences(tk.Toplevel):
         self.save_button.grid(row=4, column=2, sticky="e", padx=4, pady=10)
         ttk.Button(self, text=tr("Cancel"), command=self.destroy).grid(row=4, column=3, padx=12, pady=10)
         self.bind("<Escape>", lambda _e: self.destroy())
+
+    def apply_scale(self):
+        self.images = {key: prefix_icon(self, key) for key in PREFIX_ICONS}
+        for preview, (combo, _path) in zip(self.previews, self.rows):
+            preview.configure(image=self.images[self.keys[combo.current()]])

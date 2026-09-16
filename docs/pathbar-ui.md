@@ -32,6 +32,13 @@ by complete path components, not raw string prefix. More specific roots win;
 custom roots override an identical built-in root. The Home icon remains visible
 even in narrow panels because it now represents hidden path text.
 
+Parent and Home use equally sized antialiased icons and matching button bounds.
+Folder icons are rendered at the current default font's line height, including
+the Home menu and custom-prefix previews. An open preferences dialog updates
+its previews when zoom changes without losing unsaved selections. Rendering
+uses supersampled geometry and transparent PNGs, with no extra image dependency.
+`tools/home_icon_check.py` checks size parity at every 100–300% zoom step.
+
 Windows Downloads detection reads the redirected path from the current user's
 [User Shell Folders setting](https://learn.microsoft.com/en-us/troubleshoot/windows-client/shell-experience/change-personal-folder-location-fails).
 OneDrive discovery reads local environment/account configuration only: no cloud

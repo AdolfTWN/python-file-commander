@@ -2,12 +2,32 @@ import configparser
 import io
 from pathlib import Path, PureWindowsPath as W, PurePosixPath as P
 import unittest
+import struct
+import zlib
 from unittest.mock import patch
 
-from pycommander.homeprefix import load_custom_prefixes, save_custom_prefixes, match_home_prefix, discover_home_prefixes
+from pycommander.homeprefix import load_custom_prefixes, save_custom_prefixes, match_home_prefix, discover_home_prefixes, prefix_icon_png, PREFIX_ICONS
 
 
 class HomePrefixTests(unittest.TestCase):
+    def test_icons_are_distinct_native_size_and_antialiased(self):
+        for size in (16, 32, 64):
+            rendered = []
+            for kind in ('parent', *PREFIX_ICONS):
+                png = prefix_icon_png(kind, size)
+                self.assertEqual(struct.unpack('>II', png[16:24]), (size,size))
+                offset, compressed = 8, bytearray()
+                while offset < len(png):
+                    length = struct.unpack('>I', png[offset:offset+4])[0]
+                    if png[offset+4:offset+8] == b'IDAT': compressed.extend(png[offset+8:offset+8+length])
+                    offset += length+12
+                raw = zlib.decompress(compressed); stride = size*4+1
+                alphas = [raw[y*stride+1+x*4+3] for y in range(size) for x in range(size)]
+                self.assertIn(0, alphas); self.assertIn(255, alphas)
+                self.assertTrue(any(0<a<255 for a in alphas), kind)
+                rendered.append(png)
+            self.assertEqual(len(set(rendered)), 7)
+
     def test_longest_and_component_boundary(self):
         auto = [(W('C:/Users/A'), 'home'), (W('C:/Users/A/OneDrive - Work'), 'cloud'),
                 (W('D:/Downloads'), 'download')]

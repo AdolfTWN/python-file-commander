@@ -40,7 +40,7 @@ from .i18n import LANGUAGES, get_language, set_language, tr
 from .startup import WindowsTrayIcon, set_windows_autostart
 from .dirwatch import DirectoryWatchManager, directory_key, is_local_watch_path
 from .pathbar import PathBar, path_ancestors
-from .homeprefix import PREFIX_ICONS, PrefixPreferences, discover_home_prefixes, load_custom_prefixes, match_home_prefix, prefix_icon, save_custom_prefixes
+from .homeprefix import PREFIX_ICONS, PrefixPreferences, discover_home_prefixes, load_custom_prefixes, match_home_prefix, prefix_icon, prefix_icon_size, save_custom_prefixes
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -125,6 +125,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.14", "2026/09/16", (
+        "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.",
+        "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.",
+    )),
     ("v0.17.13", "2026/09/16", (
         "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.",
         "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.",
@@ -968,11 +972,16 @@ class FilePane(ttk.Frame):
         self._home_match = match_home_prefix(prefix_location, self._automatic_home_prefixes,
                                              getattr(owner, "custom_home_prefixes", []))
         icon = self._home_match[1] if self._home_match else "home"
-        size = max(20, min(48, tkfont.nametofont("TkDefaultFont").metrics("linespace")))
+        size = prefix_icon_size(self)
         key = (icon, size)
         if key not in self._home_images:
             self._home_images[key] = prefix_icon(self, icon, size)
         self.home_button.configure(image=self._home_images[key])
+        ink = getattr(owner, "palette", {}).get("text", "#34465a")
+        parent_key = ("parent", size, ink)
+        if parent_key not in self._home_images:
+            self._home_images[parent_key] = prefix_icon(self, "parent", size, ink)
+        self.up_button.configure(image=self._home_images[parent_key])
         if self._home_match:
             prefix = self._home_match[0]
             for index, (_label, target) in enumerate(parts):
@@ -999,7 +1008,7 @@ class FilePane(ttk.Frame):
         if palette:
             menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                            activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
-        self._home_menu_images = {key: prefix_icon(self, key, 20) for key in PREFIX_ICONS}
+        self._home_menu_images = {key: prefix_icon(self, key) for key in PREFIX_ICONS}
         for path, icon in self._automatic_home_prefixes:
             menu.add_command(label=f"{tr(PREFIX_ICONS[icon])} — {path}", image=self._home_menu_images[icon],
                              compound="left", command=lambda p=path: self._navigate_crumb(p))
@@ -4762,6 +4771,9 @@ class Commander(tk.Tk):
                 pane._update_view_mode_button()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
+        preferences = getattr(self, "_prefix_preferences", None)
+        if preferences is not None and preferences.winfo_exists():
+            preferences.apply_scale()
         if self.search_window is not None and self.search_window.winfo_exists():
             self.search_window.apply_scale(scale)
         if self.preview_window is not None and self.preview_window.winfo_exists():

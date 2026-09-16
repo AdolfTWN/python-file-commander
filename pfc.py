@@ -64,6 +64,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.": "改善：資料夾前綴圖示採用抗鋸齒繪製，在各種字型大小下都有清晰的邊緣。",
+        "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.": "修正：Parent 與 Home 按鈕尺寸一致；工具列、選單及偏好設定的圖示統一隨字型縮放。",
         "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "新增：Home 自動辨識常用資料夾前綴、切換圖示並縮短階層路徑，F12 仍保留完整路徑。",
         "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "新增：右鍵點擊 Home 可設定三組自訂資料夾前綴與圖示，並儲存至 INI 偏好設定。",
         "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "修正：包含百分號的資料夾路徑不再導致導覽設定儲存失敗。",
@@ -333,6 +335,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.": "改善：文件夹前缀图标采用抗锯齿绘制，在各种字体大小下都有清晰的边缘。",
+        "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.": "修正：Parent 与 Home 按钮尺寸一致；工具栏、菜单及偏好设置的图标统一随字体缩放。",
         "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "新增：Home 自动识别常用文件夹前缀、切换图标并缩短层级路径，F12 仍保留完整路径。",
         "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "新增：右键点击 Home 可设置三组自定义文件夹前缀与图标，并保存至 INI 偏好设置。",
         "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "修复：包含百分号的文件夹路径不再导致导航设置保存失败。",
@@ -575,6 +579,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.": "개선: 폴더 접두 경로 아이콘에 안티앨리어싱을 적용하여 모든 글꼴 크기에서 가장자리가 선명하게 표시됩니다.",
+        "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.": "수정: Parent와 Home 버튼의 크기를 통일하고 도구 모음, 메뉴 및 환경설정 아이콘이 글꼴 크기에 맞춰 동일하게 조절되도록 했습니다.",
         "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "추가: Home이 자주 사용하는 폴더 접두 경로를 감지하여 아이콘을 변경하고 계층 경로를 줄입니다. F12에서는 전체 경로를 유지합니다.",
         "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "추가: Home을 오른쪽 클릭하여 사용자 지정 폴더 접두 경로와 아이콘 세 개를 설정하고 INI 환경설정에 저장합니다.",
         "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "수정: 퍼센트 기호가 포함된 폴더 경로도 탐색 설정을 정상적으로 저장합니다.",
@@ -3710,6 +3716,9 @@ import configparser
 import os
 from pathlib import Path
 import tkinter as tk
+import tkinter.font as tkfont
+from functools import lru_cache
+import math
 from tkinter import ttk, filedialog, messagebox
 
 
@@ -3796,37 +3805,79 @@ def match_home_prefix(path, automatic, custom):
     return match
 
 
-def prefix_icon(master, kind, size=24):
-    """Draw recognizable folder badges without platform-dependent emoji fonts."""
-    image = tk.PhotoImage(master=master, width=size, height=size)
-    scale = size / 24
-    colors = {"home": "#d99613", "cloud": "#2475c7", "download": "#23826a",
-              "code": "#7157b5", "documents": "#3976a1", "photos": "#a95d82"}
-    def rect(x1, y1, x2, y2, color):
-        image.put(color, to=(round(x1*scale), round(y1*scale), max(round(x1*scale)+1, round(x2*scale)),
-                             max(round(y1*scale)+1, round(y2*scale))))
-    def line(x1, y1, x2, y2, color="#ffffff"):
-        steps = max(abs(x2-x1), abs(y2-y1), 1)
-        for step in range(steps + 1):
-            x, y = x1+(x2-x1)*step/steps, y1+(y2-y1)*step/steps
-            rect(x, y, x+1, y+1, color)
-    color = colors.get(kind, colors["home"])
-    rect(1, 3, 10, 7, color); rect(1, 6, 23, 22, color)
+def prefix_icon_size(widget):
+    """One physical-pixel size for toolbar, popup and preferences at any DPI."""
+    return max(12, tkfont.nametofont("TkDefaultFont", root=widget).metrics("linespace"))
+
+
+@lru_cache(maxsize=128)
+def prefix_icon_png(kind, size, foreground="#34465a"):
+    """Rasterize vector geometry at 4x, then alpha-aware downsample to native size."""
+    supersample = 4
+    extent = size * supersample
+    pixels = bytearray(extent * extent * 4)
+    unit = extent / 32
+    colors = {"home": "#ba7911", "cloud": "#1671ba", "download": "#18785c",
+              "code": "#7150ac", "documents": "#286b9e", "photos": "#a44f79"}
+    face = _hex_rgba(colors.get(kind, colors["home"]))
+    white = (255, 255, 255, 255)
+    def paint(bounds, inside, color):
+        x1, y1, x2, y2 = bounds
+        for y in range(max(0, math.floor(y1*unit)), min(extent, math.ceil(y2*unit))):
+            py = (y+.5)/unit
+            for x in range(max(0, math.floor(x1*unit)), min(extent, math.ceil(x2*unit))):
+                px = (x+.5)/unit
+                if inside(px, py):
+                    index = (y*extent+x)*4
+                    pixels[index:index+4] = bytes(color(px, py) if callable(color) else color)
+    def rounded(x1, y1, x2, y2, radius, color):
+        def inside(x, y):
+            cx = max(x1+radius, min(x, x2-radius))
+            cy = max(y1+radius, min(y, y2-radius))
+            return (x-cx)**2 + (y-cy)**2 <= radius**2
+        paint((x1,y1,x2,y2), inside, color)
+    def circle(x, y, radius, color=white):
+        paint((x-radius,y-radius,x+radius,y+radius), lambda px,py: (px-x)**2+(py-y)**2 <= radius**2, color)
+    def line(x1,y1,x2,y2,width=1.8,color=white):
+        r = width/2
+        paint((min(x1,x2)-r,min(y1,y2)-r,max(x1,x2)+r,max(y1,y2)+r),
+              lambda x,y: _distance_to_segment(x,y,x1,y1,x2,y2) <= r, color)
+    if kind == "parent":
+        ink = _hex_rgba(foreground)
+        line(16,27,16,5,2.4,ink); line(7,14,16,5,2.4,ink); line(16,5,25,14,2.4,ink)
+        return _rgba_png_downsample(pixels, size, supersample)
+    rear = tuple(round(c*.79) for c in face[:3]) + (255,)
+    rounded(2,3,14,12,2,rear); rounded(2,6,30,29,2.5,rear)
+    # A restrained highlight separates the front flap from the rear tab.
+    def gradient(x,y):
+        light = max(0, .19*(28-y)/19)
+        return tuple(round(c+(255-c)*light) for c in face[:3])+(255,)
+    rounded(2,9,30,29,2.5,gradient)
+    line(5,10,27,10,.65,tuple(round(c+(255-c)*.28) for c in face[:3])+(255,))
     if kind == "home":
-        rect(10, 8, 15, 12, "#ffffff"); rect(8, 14, 17, 19, "#ffffff")
+        circle(16,15,3.1); rounded(10,19.5,22,25.5,3,white)
     elif kind == "cloud":
-        rect(6, 13, 19, 17, "#ffffff"); rect(9, 10, 15, 16, "#ffffff")
+        circle(11,21,3.3); circle(16,18.2,4.3); circle(21.5,21,3.1)
+        rounded(10,20,23,24.1,1.7,white)
     elif kind == "download":
-        line(12, 8, 12, 16); line(8, 12, 12, 16); line(16, 12, 12, 16); line(7, 19, 17, 19)
+        line(16,13,16,22,2.1); line(12,18.5,16,22,2.1); line(20,18.5,16,22,2.1)
+        line(10,25,22,25,1.8)
     elif kind == "code":
-        line(9, 10, 5, 14); line(5, 14, 9, 18); line(16, 10, 20, 14); line(20, 14, 16, 18); line(14, 9, 11, 19)
+        line(11,14,7,19); line(7,19,11,24)
+        line(21,14,25,19); line(25,19,21,24); line(18,13,14,25)
     elif kind == "documents":
-        rect(7, 8, 18, 20, "#ffffff")
-        for y in (11, 14, 17): line(9, y, 15, y, color)
+        rounded(10,12,22,26,1.4,white)
+        for y in (16,19,22): line(13,y,19,y,1.2,face)
     else:
-        rect(5, 8, 20, 20, "#ffffff"); rect(7, 10, 10, 12, color)
-        line(6, 18, 11, 13, color); line(11, 13, 16, 18, color); line(15, 16, 18, 13, color)
-    return image
+        rounded(7,12,25,26,1.5,white); rounded(8.5,13.5,23.5,24.5,.5,face)
+        circle(12,17,1.6); line(9.5,23,15,18.5,1.5); line(15,18.5,19,23,1.5)
+        line(18,22,21,19.5,1.5); line(21,19.5,23,22,1.5)
+    return _rgba_png_downsample(pixels, size, supersample)
+
+
+def prefix_icon(master, kind, size=None, foreground="#34465a"):
+    size = prefix_icon_size(master) if size is None else size
+    return tk.PhotoImage(master=master, data=prefix_icon_png(kind, size, foreground), format="png")
 
 
 class PrefixPreferences(tk.Toplevel):
@@ -3837,6 +3888,7 @@ class PrefixPreferences(tk.Toplevel):
         self.resizable(True, False)
         self.columnconfigure(2, weight=1)
         self.rows = []
+        self.previews = []
         self.images = {key: prefix_icon(self, key) for key in PREFIX_ICONS}
         self.keys = list(PREFIX_ICONS)
         ttk.Label(self, text=tr("Choose up to three prefixes. Empty paths disable a slot.")).grid(
@@ -3844,6 +3896,7 @@ class PrefixPreferences(tk.Toplevel):
         for index, item in enumerate(items):
             preview = ttk.Label(self, image=self.images[item["icon"]])
             preview.grid(row=index+1, column=0, padx=(12, 4))
+            self.previews.append(preview)
             icon = ttk.Combobox(self, state="readonly", width=14,
                                values=[tr(PREFIX_ICONS[key]) for key in self.keys])
             icon.current(self.keys.index(item["icon"]))
@@ -3874,6 +3927,11 @@ class PrefixPreferences(tk.Toplevel):
         self.save_button.grid(row=4, column=2, sticky="e", padx=4, pady=10)
         ttk.Button(self, text=tr("Cancel"), command=self.destroy).grid(row=4, column=3, padx=12, pady=10)
         self.bind("<Escape>", lambda _e: self.destroy())
+
+    def apply_scale(self):
+        self.images = {key: prefix_icon(self, key) for key in PREFIX_ICONS}
+        for preview, (combo, _path) in zip(self.previews, self.rows):
+            preview.configure(image=self.images[self.keys[combo.current()]])
 
 
 import csv
@@ -8768,7 +8826,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.13"
+__version__ = "0.17.14"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8853,6 +8911,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/16"
 VERSION_HISTORY = (
+    ("v0.17.14", "2026/09/16", (
+        "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.",
+        "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.",
+    )),
     ("v0.17.13", "2026/09/16", (
         "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.",
         "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.",
@@ -9696,11 +9758,16 @@ class FilePane(ttk.Frame):
         self._home_match = match_home_prefix(prefix_location, self._automatic_home_prefixes,
                                              getattr(owner, "custom_home_prefixes", []))
         icon = self._home_match[1] if self._home_match else "home"
-        size = max(20, min(48, tkfont.nametofont("TkDefaultFont").metrics("linespace")))
+        size = prefix_icon_size(self)
         key = (icon, size)
         if key not in self._home_images:
             self._home_images[key] = prefix_icon(self, icon, size)
         self.home_button.configure(image=self._home_images[key])
+        ink = getattr(owner, "palette", {}).get("text", "#34465a")
+        parent_key = ("parent", size, ink)
+        if parent_key not in self._home_images:
+            self._home_images[parent_key] = prefix_icon(self, "parent", size, ink)
+        self.up_button.configure(image=self._home_images[parent_key])
         if self._home_match:
             prefix = self._home_match[0]
             for index, (_label, target) in enumerate(parts):
@@ -9727,7 +9794,7 @@ class FilePane(ttk.Frame):
         if palette:
             menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                            activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
-        self._home_menu_images = {key: prefix_icon(self, key, 20) for key in PREFIX_ICONS}
+        self._home_menu_images = {key: prefix_icon(self, key) for key in PREFIX_ICONS}
         for path, icon in self._automatic_home_prefixes:
             menu.add_command(label=f"{tr(PREFIX_ICONS[icon])} — {path}", image=self._home_menu_images[icon],
                              compound="left", command=lambda p=path: self._navigate_crumb(p))
@@ -13490,6 +13557,9 @@ class Commander(tk.Tk):
                 pane._update_view_mode_button()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
+        preferences = getattr(self, "_prefix_preferences", None)
+        if preferences is not None and preferences.winfo_exists():
+            preferences.apply_scale()
         if self.search_window is not None and self.search_window.winfo_exists():
             self.search_window.apply_scale(scale)
         if self.preview_window is not None and self.preview_window.winfo_exists():

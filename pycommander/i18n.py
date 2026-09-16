@@ -58,6 +58,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.": "改善：資料夾前綴圖示採用抗鋸齒繪製，在各種字型大小下都有清晰的邊緣。",
+        "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.": "修正：Parent 與 Home 按鈕尺寸一致；工具列、選單及偏好設定的圖示統一隨字型縮放。",
         "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "新增：Home 自動辨識常用資料夾前綴、切換圖示並縮短階層路徑，F12 仍保留完整路徑。",
         "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "新增：右鍵點擊 Home 可設定三組自訂資料夾前綴與圖示，並儲存至 INI 偏好設定。",
         "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "修正：包含百分號的資料夾路徑不再導致導覽設定儲存失敗。",
@@ -327,6 +329,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.": "改善：文件夹前缀图标采用抗锯齿绘制，在各种字体大小下都有清晰的边缘。",
+        "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.": "修正：Parent 与 Home 按钮尺寸一致；工具栏、菜单及偏好设置的图标统一随字体缩放。",
         "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "新增：Home 自动识别常用文件夹前缀、切换图标并缩短层级路径，F12 仍保留完整路径。",
         "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "新增：右键点击 Home 可设置三组自定义文件夹前缀与图标，并保存至 INI 偏好设置。",
         "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "修复：包含百分号的文件夹路径不再导致导航设置保存失败。",
@@ -569,6 +573,8 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Improved: Folder-prefix icons use antialiased rendering for sharper edges at every font size.": "개선: 폴더 접두 경로 아이콘에 안티앨리어싱을 적용하여 모든 글꼴 크기에서 가장자리가 선명하게 표시됩니다.",
+        "Fixed: Parent and Home buttons match in size; toolbar, menu and preference icons scale consistently with the font.": "수정: Parent와 Home 버튼의 크기를 통일하고 도구 모음, 메뉴 및 환경설정 아이콘이 글꼴 크기에 맞춰 동일하게 조절되도록 했습니다.",
         "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "추가: Home이 자주 사용하는 폴더 접두 경로를 감지하여 아이콘을 변경하고 계층 경로를 줄입니다. F12에서는 전체 경로를 유지합니다.",
         "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "추가: Home을 오른쪽 클릭하여 사용자 지정 폴더 접두 경로와 아이콘 세 개를 설정하고 INI 환경설정에 저장합니다.",
         "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "수정: 퍼센트 기호가 포함된 폴더 경로도 탐색 설정을 정상적으로 저장합니다.",
