@@ -26,6 +26,8 @@ xvfb-run -a python3 tools/zoom_check.py
 xvfb-run -a python3 tools/zoom_check.py pfc
 xvfb-run -a python3 tools/pathbar_check.py
 xvfb-run -a python3 tools/pathbar_check.py pfc
+xvfb-run -a python3 tools/homeprefix_check.py
+xvfb-run -a python3 tools/homeprefix_check.py pfc
 xvfb-run -a python3 tools/vcs_gui_check.py "$project_root"
 
 echo "All headless checks passed."

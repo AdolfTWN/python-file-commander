@@ -40,6 +40,7 @@ from .i18n import LANGUAGES, get_language, set_language, tr
 from .startup import WindowsTrayIcon, set_windows_autostart
 from .dirwatch import DirectoryWatchManager, directory_key, is_local_watch_path
 from .pathbar import PathBar, path_ancestors
+from .homeprefix import PREFIX_ICONS, PrefixPreferences, discover_home_prefixes, load_custom_prefixes, match_home_prefix, prefix_icon, save_custom_prefixes
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -124,6 +125,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.13", "2026/09/16", (
+        "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.",
+        "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.",
+        "Fixed: Folder paths containing percent signs no longer break saved navigation settings.",
+    )),
     ("v0.17.12", "2026/09/15", (
         "Added: Ctrl+mouse wheel adjusts global font size in 25% steps; compact zoom controls keep Auto inside the percentage menu.",
         "Changed: Clickable breadcrumbs prioritize the current folder, with full-path editing and direct per-tab view selection.",
@@ -384,6 +390,11 @@ def write_config_atomic(config: configparser.ConfigParser, path: Path) -> None:
         try: temporary.unlink(missing_ok=True)
         except OSError: pass
         raise
+
+
+def config_json(value, **kwargs) -> str:
+    """Escape literal percent signs only at the ConfigParser storage boundary."""
+    return json.dumps(value, **kwargs).replace("%", "%%")
 
 
 def hide_private_console() -> bool:
@@ -788,9 +799,16 @@ class FilePane(ttk.Frame):
                         lambda _e: self.navigate_external(Path(self.drive.get())))
         self.up_button = ttk.Button(bar, text="↑", width=2, command=self.up)
         self.up_button.pack(side="left", padx=2)
-        self.home_button = ttk.Button(bar, text="⌂", width=2,
-                   command=lambda: self.navigate_external(Path.home()))
+        self._home_match = None
+        self._home_images = {}
+        self._automatic_home_prefixes = getattr(self.winfo_toplevel(), "home_prefixes", None)
+        if self._automatic_home_prefixes is None:
+            self._automatic_home_prefixes = discover_home_prefixes()
+        self.home_button = ttk.Button(bar, width=2, command=self.go_home_prefix)
         self.home_button.pack(side="left")
+        self.home_button.bind("<Button-3>", self.show_home_prefixes)
+        self.home_button.bind("<Shift-F10>", self.show_home_prefixes)
+        self.home_button._pfc_tooltip = ToolTip(self.home_button, self._home_tooltip, delay=700)
         self.path_var = tk.StringVar()
         self.view_mode_button = ttk.Button(bar, width=0, command=self.show_view_modes)
         self.view_mode_button.pack(side="right", padx=(4, 0))
@@ -882,9 +900,8 @@ class FilePane(ttk.Frame):
             self.drive.pack_forget()
         elif not self.drive.winfo_manager():
             self.drive.pack(side="left", before=self.up_button)
-        if self.winfo_width() < em * 22:
-            self.home_button.pack_forget()
-        elif not self.home_button.winfo_manager():
+        # The icon represents hidden path text and must stay visible.
+        if not self.home_button.winfo_manager():
             self.home_button.pack(side="left", after=self.up_button)
         self.view_mode_button.configure(text=(icons[self.view_mode] if compact else tr(labels[self.view_mode])) + " ▾")
 
@@ -944,8 +961,62 @@ class FilePane(ttk.Frame):
             for name in relative.parts:
                 target = target / name
                 parts.append((name, target))
-            return parts
-        return path_ancestors(self.path)
+        else:
+            parts = path_ancestors(self.path)
+        owner = self.winfo_toplevel()
+        prefix_location = session.archive_path.parent if session is not None else self.path
+        self._home_match = match_home_prefix(prefix_location, self._automatic_home_prefixes,
+                                             getattr(owner, "custom_home_prefixes", []))
+        icon = self._home_match[1] if self._home_match else "home"
+        size = max(20, min(48, tkfont.nametofont("TkDefaultFont").metrics("linespace")))
+        key = (icon, size)
+        if key not in self._home_images:
+            self._home_images[key] = prefix_icon(self, icon, size)
+        self.home_button.configure(image=self._home_images[key])
+        if self._home_match:
+            prefix = self._home_match[0]
+            for index, (_label, target) in enumerate(parts):
+                if target == prefix:
+                    return parts[index+1:] or [(tr(PREFIX_ICONS[icon]), prefix)]
+        return parts
+
+    def _home_tooltip(self):
+        prefix, icon = self._home_match or (Path.home(), "home")
+        return f"{tr(PREFIX_ICONS[icon])}\n{prefix}\n{tr('Right-click to configure folder prefixes.')}"
+
+    def go_home_prefix(self):
+        self.on_activate(self)
+        self.navigate_external(self._home_match[0] if self._home_match else Path.home())
+        self.focus_file_list()
+
+    def show_home_prefixes(self, event=None):
+        self.on_activate(self)
+        owner = self.winfo_toplevel()
+        if getattr(self, "_home_menu", None) is not None:
+            self._home_menu.destroy()
+        menu = self._home_menu = tk.Menu(self, tearoff=False, font="TkMenuFont")
+        palette = getattr(owner, "palette", {})
+        if palette:
+            menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                           activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
+        self._home_menu_images = {key: prefix_icon(self, key, 20) for key in PREFIX_ICONS}
+        for path, icon in self._automatic_home_prefixes:
+            menu.add_command(label=f"{tr(PREFIX_ICONS[icon])} — {path}", image=self._home_menu_images[icon],
+                             compound="left", command=lambda p=path: self._navigate_crumb(p))
+        menu.add_separator()
+        for index, item in enumerate(getattr(owner, "custom_home_prefixes", [])):
+            path, icon = item["path"], item["icon"]
+            menu.add_command(label=f"{index+1}. {tr(PREFIX_ICONS[icon])} — {path or tr('Not set')}",
+                             image=self._home_menu_images[icon], compound="left",
+                             command=(lambda p=path: self._navigate_crumb(Path(p))) if path else owner.edit_home_prefixes)
+        if hasattr(owner, "edit_home_prefixes"):
+            menu.add_separator()
+            menu.add_command(label=tr("Custom folder prefixes") + "…", command=owner.edit_home_prefixes)
+        try:
+            menu.tk_popup(self.home_button.winfo_rootx(), self.home_button.winfo_rooty()+self.home_button.winfo_height())
+        finally:
+            menu.grab_release()
+        return "break"
 
     def _navigate_crumb(self, target):
         self.on_activate(self)
@@ -1999,6 +2070,8 @@ class Commander(tk.Tk):
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
+        self.home_prefixes = discover_home_prefixes()
+        self.custom_home_prefixes = load_custom_prefixes(self.config_data)
         saved_language = self.config_data.get("view", "ui_language", fallback="en")
         set_language(saved_language)
         try:
@@ -2350,6 +2423,20 @@ class Commander(tk.Tk):
             self.after_cancel(self._save_job)
         self._save_job = self.after(250, self.save_config)
 
+    def edit_home_prefixes(self):
+        existing = getattr(self, "_prefix_preferences", None)
+        if existing is not None and existing.winfo_exists():
+            existing.lift()
+            return
+        self._prefix_preferences = PrefixPreferences(self, self.custom_home_prefixes, self.set_home_prefixes)
+
+    def set_home_prefixes(self, items):
+        self.custom_home_prefixes = items
+        save_custom_prefixes(self.config_data, items)
+        for pane in self.all_panes():
+            pane.path_bar.redraw()
+        self.save_config()
+
     def save_config(self, record_recent: bool = True) -> None:
         if not self._ready:
             return
@@ -2364,14 +2451,14 @@ class Commander(tk.Tk):
                 p.persistent_path() if p.archive_session is not None
                 else p.locked_path if p.lock_mode == "reset" and p.locked_path
                 else p.persistent_path() for p in panes]
-            self.config_data.set(side, "tabs", json.dumps([str(path) for path in saved_paths]))
+            self.config_data.set(side, "tabs", config_json([str(path) for path in saved_paths]))
             self.config_data.set(side, "tab_colors", json.dumps([
                 tabs._colors.get(p, "default") for p in panes]))
             self.config_data.set(side, "tab_locks", json.dumps([p.lock_mode for p in panes]))
-            self.config_data.set(side, "locked_paths", json.dumps([
+            self.config_data.set(side, "locked_paths", config_json([
                 str(p.persistent_path() if p.archive_session is not None
                     else p.locked_path or p.persistent_path()) for p in panes]))
-            self.config_data.set(side, "tab_filters", json.dumps([
+            self.config_data.set(side, "tab_filters", config_json([
                 p.quick_filter_var.get() for p in panes], ensure_ascii=False))
             self.config_data.set(side, "selected", str(tabs.index(tabs.select())))
             current = tabs.current()
@@ -2403,12 +2490,12 @@ class Commander(tk.Tk):
         self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
         self.config_data.set("view", "extension_effect", str(self.extension_effect_var.get()).lower())
         self.config_data.set("view", "mix_sorting", str(self.mix_sorting_var.get()).lower())
-        self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
+        self.config_data.set("tab_colors", "colors", config_json(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
         self.config_data.set("startup", "auto_start", str(self.auto_start_var.get()).lower())
-        self.config_data.set("navigation", "favorites", json.dumps([str(path) for path in self.favorites], ensure_ascii=False))
-        self.config_data.set("navigation", "recent_folders", json.dumps([str(path) for path in self.recent_folders], ensure_ascii=False))
+        self.config_data.set("navigation", "favorites", config_json([str(path) for path in self.favorites], ensure_ascii=False))
+        self.config_data.set("navigation", "recent_folders", config_json([str(path) for path in self.recent_folders], ensure_ascii=False))
         try:
             write_config_atomic(self.config_data, self.ini_path)
         except OSError as exc:

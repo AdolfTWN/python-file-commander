@@ -64,6 +64,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "新增：Home 自動辨識常用資料夾前綴、切換圖示並縮短階層路徑，F12 仍保留完整路徑。",
+        "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "新增：右鍵點擊 Home 可設定三組自訂資料夾前綴與圖示，並儲存至 INI 偏好設定。",
+        "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "修正：包含百分號的資料夾路徑不再導致導覽設定儲存失敗。",
+        "User folder": "使用者目錄", "Downloads": "下載", "Code": "程式碼", "Documents": "文件", "Photos": "照片",
+        "Custom folder prefixes": "自訂資料夾前綴", "Not set": "尚未設定",
+        "Right-click to configure folder prefixes.": "右鍵可設定資料夾前綴。",
+        "Choose up to three prefixes. Empty paths disable a slot.": "可設定三組前綴，清空路徑即可停用該組。",
+        "Enter an absolute folder path.": "請輸入完整的絕對資料夾路徑。",
         "Added: Ctrl+mouse wheel adjusts global font size in 25% steps; compact zoom controls keep Auto inside the percentage menu.": "新增：Ctrl＋滑鼠滾輪以 25% 刻度調整全域字型；精簡縮放控制將 Auto 收進百分比選單。",
         "Changed: Clickable breadcrumbs prioritize the current folder, with full-path editing and direct per-tab view selection.": "調整：可點擊的階層路徑優先顯示目前資料夾，支援完整路徑編輯及直接選擇分頁檢視模式。",
         "Changed: Lighter tab backgrounds improve contrast.": "調整：分頁底色調淺，提高對比度。",
@@ -325,6 +333,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "新增：Home 自动识别常用文件夹前缀、切换图标并缩短层级路径，F12 仍保留完整路径。",
+        "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "新增：右键点击 Home 可设置三组自定义文件夹前缀与图标，并保存至 INI 偏好设置。",
+        "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "修复：包含百分号的文件夹路径不再导致导航设置保存失败。",
+        "User folder": "用户目录", "Downloads": "下载", "Code": "代码", "Documents": "文档", "Photos": "照片",
+        "Custom folder prefixes": "自定义文件夹前缀", "Not set": "尚未设置",
+        "Right-click to configure folder prefixes.": "右键可设置文件夹前缀。",
+        "Choose up to three prefixes. Empty paths disable a slot.": "可设置三组前缀，清空路径即可停用该组。",
+        "Enter an absolute folder path.": "请输入完整的绝对文件夹路径。",
         "Added: Ctrl+mouse wheel adjusts global font size in 25% steps; compact zoom controls keep Auto inside the percentage menu.": "新增：Ctrl＋鼠标滚轮以 25% 刻度调整全局字体；精简缩放控件将 Auto 收进百分比菜单。",
         "Changed: Clickable breadcrumbs prioritize the current folder, with full-path editing and direct per-tab view selection.": "调整：可点击的层级路径优先显示当前文件夹，支持完整路径编辑及直接选择标签页视图模式。",
         "Changed: Lighter tab backgrounds improve contrast.": "调整：标签页底色调浅，提高对比度。",
@@ -559,6 +575,14 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.": "추가: Home이 자주 사용하는 폴더 접두 경로를 감지하여 아이콘을 변경하고 계층 경로를 줄입니다. F12에서는 전체 경로를 유지합니다.",
+        "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.": "추가: Home을 오른쪽 클릭하여 사용자 지정 폴더 접두 경로와 아이콘 세 개를 설정하고 INI 환경설정에 저장합니다.",
+        "Fixed: Folder paths containing percent signs no longer break saved navigation settings.": "수정: 퍼센트 기호가 포함된 폴더 경로도 탐색 설정을 정상적으로 저장합니다.",
+        "User folder": "사용자 폴더", "Downloads": "다운로드", "Code": "코드", "Documents": "문서", "Photos": "사진",
+        "Custom folder prefixes": "사용자 지정 폴더 접두 경로", "Not set": "설정 안 됨",
+        "Right-click to configure folder prefixes.": "오른쪽 클릭으로 폴더 접두 경로를 설정합니다.",
+        "Choose up to three prefixes. Empty paths disable a slot.": "최대 세 경로를 설정합니다. 빈 경로는 사용하지 않습니다.",
+        "Enter an absolute folder path.": "절대 폴더 경로를 입력하세요.",
         "Added: Ctrl+mouse wheel adjusts global font size in 25% steps; compact zoom controls keep Auto inside the percentage menu.": "추가: Ctrl+마우스 휠로 전체 글꼴 크기를 25%씩 조절하고, 간결한 확대/축소 컨트롤의 백분율 메뉴에서 자동 크기를 설정합니다.",
         "Changed: Clickable breadcrumbs prioritize the current folder, with full-path editing and direct per-tab view selection.": "변경: 클릭 가능한 계층 경로가 현재 폴더를 우선 표시하며, 전체 경로 편집과 탭별 보기 직접 선택을 지원합니다.",
         "Changed: Lighter tab backgrounds improve contrast.": "변경: 더 밝은 탭 배경으로 대비를 높였습니다.",
@@ -3677,6 +3701,179 @@ class PathBar(ttk.Frame):
                 elif self._parts[index][1] is not None:
                     self.activate(self._parts[index][1])
                 return "break"
+
+
+"""Local-only common-folder discovery, preferences, matching and small icons."""
+
+import json
+import configparser
+import os
+from pathlib import Path
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+
+
+PREFIX_ICONS = {"home": "User folder", "cloud": "OneDrive", "download": "Downloads",
+                "code": "Code", "documents": "Documents", "photos": "Photos"}
+CUSTOM_ICONS = ("code", "documents", "photos")
+
+
+def load_custom_prefixes(config):
+    try:
+        saved = json.loads(config.get("home_prefixes", "custom", fallback="[]"))
+    except (ValueError, TypeError, configparser.Error):
+        saved = []
+    if not isinstance(saved, list):
+        saved = []
+    result = []
+    for index, default in enumerate(CUSTOM_ICONS):
+        item = saved[index] if index < len(saved) and isinstance(saved[index], dict) else {}
+        icon = item.get("icon", default)
+        path = item.get("path", "")
+        result.append({"icon": icon if isinstance(icon, str) and icon in PREFIX_ICONS else default,
+                       "path": path if isinstance(path, str) else ""})
+    return result
+
+
+def save_custom_prefixes(config, items):
+    if not config.has_section("home_prefixes"):
+        config.add_section("home_prefixes")
+    # ConfigParser uses % interpolation; preserve literal percent in folder names.
+    config.set("home_prefixes", "custom", json.dumps(items, ensure_ascii=False).replace("%", "%%"))
+
+
+def discover_home_prefixes():
+    home = Path.home()
+    downloads = home / "Downloads"
+    clouds = [os.environ.get(key, "") for key in ("OneDrive", "OneDriveConsumer", "OneDriveCommercial")]
+    if os.name == "nt":
+        import winreg
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                    r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") as key:
+                value, _ = winreg.QueryValueEx(key, "{374DE290-123F-4565-9164-39C4925E467B}")
+                downloads = Path(os.path.expandvars(value))
+        except OSError:
+            pass
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\OneDrive\Accounts") as accounts:
+                for index in range(winreg.QueryInfoKey(accounts)[0]):
+                    try:
+                        with winreg.OpenKey(accounts, winreg.EnumKey(accounts, index)) as account:
+                            clouds.append(winreg.QueryValueEx(account, "UserFolder")[0])
+                    except OSError:
+                        continue
+        except OSError:
+            pass
+    elif (home / "OneDrive").is_dir():
+        clouds.append(str(home / "OneDrive"))
+    result = [(home, "home"), (downloads, "download")]
+    for value in clouds:
+        if isinstance(value, str) and value:
+            path = Path(os.path.normpath(os.path.expandvars(value))).expanduser()
+            if path.is_absolute() and (path, "cloud") not in result:
+                result.append((path, "cloud"))
+    return result
+
+
+def match_home_prefix(path, automatic, custom):
+    """Path-component match; deepest wins, a custom slot wins equal depth."""
+    candidates = list(automatic)
+    for item in reversed(custom):
+        if item["path"]:
+            # Use the same path flavour, also allowing pure Windows-path tests.
+            prefix = type(path)(os.path.normpath(item["path"]))
+            if prefix.is_absolute():
+                candidates.append((prefix, item["icon"]))
+    match = None
+    for prefix, icon in candidates:
+        try:
+            path.relative_to(prefix)
+        except ValueError:
+            continue
+        if match is None or len(prefix.parts) >= len(match[0].parts):
+            match = (prefix, icon)
+    return match
+
+
+def prefix_icon(master, kind, size=24):
+    """Draw recognizable folder badges without platform-dependent emoji fonts."""
+    image = tk.PhotoImage(master=master, width=size, height=size)
+    scale = size / 24
+    colors = {"home": "#d99613", "cloud": "#2475c7", "download": "#23826a",
+              "code": "#7157b5", "documents": "#3976a1", "photos": "#a95d82"}
+    def rect(x1, y1, x2, y2, color):
+        image.put(color, to=(round(x1*scale), round(y1*scale), max(round(x1*scale)+1, round(x2*scale)),
+                             max(round(y1*scale)+1, round(y2*scale))))
+    def line(x1, y1, x2, y2, color="#ffffff"):
+        steps = max(abs(x2-x1), abs(y2-y1), 1)
+        for step in range(steps + 1):
+            x, y = x1+(x2-x1)*step/steps, y1+(y2-y1)*step/steps
+            rect(x, y, x+1, y+1, color)
+    color = colors.get(kind, colors["home"])
+    rect(1, 3, 10, 7, color); rect(1, 6, 23, 22, color)
+    if kind == "home":
+        rect(10, 8, 15, 12, "#ffffff"); rect(8, 14, 17, 19, "#ffffff")
+    elif kind == "cloud":
+        rect(6, 13, 19, 17, "#ffffff"); rect(9, 10, 15, 16, "#ffffff")
+    elif kind == "download":
+        line(12, 8, 12, 16); line(8, 12, 12, 16); line(16, 12, 12, 16); line(7, 19, 17, 19)
+    elif kind == "code":
+        line(9, 10, 5, 14); line(5, 14, 9, 18); line(16, 10, 20, 14); line(20, 14, 16, 18); line(14, 9, 11, 19)
+    elif kind == "documents":
+        rect(7, 8, 18, 20, "#ffffff")
+        for y in (11, 14, 17): line(9, y, 15, y, color)
+    else:
+        rect(5, 8, 20, 20, "#ffffff"); rect(7, 10, 10, 12, color)
+        line(6, 18, 11, 13, color); line(11, 13, 16, 18, color); line(15, 16, 18, 13, color)
+    return image
+
+
+class PrefixPreferences(tk.Toplevel):
+    def __init__(self, owner, items, save):
+        super().__init__(owner)
+        self.title(tr("Custom folder prefixes"))
+        self.transient(owner)
+        self.resizable(True, False)
+        self.columnconfigure(2, weight=1)
+        self.rows = []
+        self.images = {key: prefix_icon(self, key) for key in PREFIX_ICONS}
+        self.keys = list(PREFIX_ICONS)
+        ttk.Label(self, text=tr("Choose up to three prefixes. Empty paths disable a slot.")).grid(
+            row=0, column=0, columnspan=4, padx=12, pady=10, sticky="w")
+        for index, item in enumerate(items):
+            preview = ttk.Label(self, image=self.images[item["icon"]])
+            preview.grid(row=index+1, column=0, padx=(12, 4))
+            icon = ttk.Combobox(self, state="readonly", width=14,
+                               values=[tr(PREFIX_ICONS[key]) for key in self.keys])
+            icon.current(self.keys.index(item["icon"]))
+            icon.grid(row=index+1, column=1, padx=4, pady=6)
+            icon.bind("<<ComboboxSelected>>", lambda _e, c=icon, p=preview:
+                      p.configure(image=self.images[self.keys[c.current()]]))
+            path = tk.StringVar(value=item["path"])
+            ttk.Entry(self, width=48, textvariable=path).grid(row=index+1, column=2, padx=4, sticky="ew")
+            def browse(variable=path):
+                chosen = filedialog.askdirectory(parent=self)
+                if chosen: variable.set(chosen)
+            ttk.Button(self, text="…", width=3, command=browse).grid(row=index+1, column=3, padx=(4, 12))
+            self.rows.append((icon, path))
+        def commit():
+            result = []
+            for icon, variable in self.rows:
+                value = variable.get().strip().strip('"')
+                if value:
+                    path = Path(os.path.normpath(os.path.expandvars(value))).expanduser()
+                    if not path.is_absolute():
+                        messagebox.showerror(tr("Custom folder prefixes"), tr("Enter an absolute folder path."), parent=self)
+                        return
+                    value = str(path)
+                result.append({"icon": self.keys[icon.current()], "path": value})
+            save(result)
+            self.destroy()
+        self.save_button = ttk.Button(self, text=tr("Save"), command=commit)
+        self.save_button.grid(row=4, column=2, sticky="e", padx=4, pady=10)
+        ttk.Button(self, text=tr("Cancel"), command=self.destroy).grid(row=4, column=3, padx=12, pady=10)
+        self.bind("<Escape>", lambda _e: self.destroy())
 
 
 import csv
@@ -8571,7 +8768,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.12"
+__version__ = "0.17.13"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -8654,8 +8851,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/15"
+BUILD_DATE = "2026/09/16"
 VERSION_HISTORY = (
+    ("v0.17.13", "2026/09/16", (
+        "Added: Home detects common folder prefixes, changes its icon, and shortens breadcrumbs while F12 retains the full path.",
+        "Added: Right-click Home to configure three custom folder prefixes and icons saved in INI preferences.",
+        "Fixed: Folder paths containing percent signs no longer break saved navigation settings.",
+    )),
     ("v0.17.12", "2026/09/15", (
         "Added: Ctrl+mouse wheel adjusts global font size in 25% steps; compact zoom controls keep Auto inside the percentage menu.",
         "Changed: Clickable breadcrumbs prioritize the current folder, with full-path editing and direct per-tab view selection.",
@@ -8916,6 +9118,11 @@ def write_config_atomic(config: configparser.ConfigParser, path: Path) -> None:
         try: temporary.unlink(missing_ok=True)
         except OSError: pass
         raise
+
+
+def config_json(value, **kwargs) -> str:
+    """Escape literal percent signs only at the ConfigParser storage boundary."""
+    return json.dumps(value, **kwargs).replace("%", "%%")
 
 
 def hide_private_console() -> bool:
@@ -9320,9 +9527,16 @@ class FilePane(ttk.Frame):
                         lambda _e: self.navigate_external(Path(self.drive.get())))
         self.up_button = ttk.Button(bar, text="↑", width=2, command=self.up)
         self.up_button.pack(side="left", padx=2)
-        self.home_button = ttk.Button(bar, text="⌂", width=2,
-                   command=lambda: self.navigate_external(Path.home()))
+        self._home_match = None
+        self._home_images = {}
+        self._automatic_home_prefixes = getattr(self.winfo_toplevel(), "home_prefixes", None)
+        if self._automatic_home_prefixes is None:
+            self._automatic_home_prefixes = discover_home_prefixes()
+        self.home_button = ttk.Button(bar, width=2, command=self.go_home_prefix)
         self.home_button.pack(side="left")
+        self.home_button.bind("<Button-3>", self.show_home_prefixes)
+        self.home_button.bind("<Shift-F10>", self.show_home_prefixes)
+        self.home_button._pfc_tooltip = ToolTip(self.home_button, self._home_tooltip, delay=700)
         self.path_var = tk.StringVar()
         self.view_mode_button = ttk.Button(bar, width=0, command=self.show_view_modes)
         self.view_mode_button.pack(side="right", padx=(4, 0))
@@ -9414,9 +9628,8 @@ class FilePane(ttk.Frame):
             self.drive.pack_forget()
         elif not self.drive.winfo_manager():
             self.drive.pack(side="left", before=self.up_button)
-        if self.winfo_width() < em * 22:
-            self.home_button.pack_forget()
-        elif not self.home_button.winfo_manager():
+        # The icon represents hidden path text and must stay visible.
+        if not self.home_button.winfo_manager():
             self.home_button.pack(side="left", after=self.up_button)
         self.view_mode_button.configure(text=(icons[self.view_mode] if compact else tr(labels[self.view_mode])) + " ▾")
 
@@ -9476,8 +9689,62 @@ class FilePane(ttk.Frame):
             for name in relative.parts:
                 target = target / name
                 parts.append((name, target))
-            return parts
-        return path_ancestors(self.path)
+        else:
+            parts = path_ancestors(self.path)
+        owner = self.winfo_toplevel()
+        prefix_location = session.archive_path.parent if session is not None else self.path
+        self._home_match = match_home_prefix(prefix_location, self._automatic_home_prefixes,
+                                             getattr(owner, "custom_home_prefixes", []))
+        icon = self._home_match[1] if self._home_match else "home"
+        size = max(20, min(48, tkfont.nametofont("TkDefaultFont").metrics("linespace")))
+        key = (icon, size)
+        if key not in self._home_images:
+            self._home_images[key] = prefix_icon(self, icon, size)
+        self.home_button.configure(image=self._home_images[key])
+        if self._home_match:
+            prefix = self._home_match[0]
+            for index, (_label, target) in enumerate(parts):
+                if target == prefix:
+                    return parts[index+1:] or [(tr(PREFIX_ICONS[icon]), prefix)]
+        return parts
+
+    def _home_tooltip(self):
+        prefix, icon = self._home_match or (Path.home(), "home")
+        return f"{tr(PREFIX_ICONS[icon])}\n{prefix}\n{tr('Right-click to configure folder prefixes.')}"
+
+    def go_home_prefix(self):
+        self.on_activate(self)
+        self.navigate_external(self._home_match[0] if self._home_match else Path.home())
+        self.focus_file_list()
+
+    def show_home_prefixes(self, event=None):
+        self.on_activate(self)
+        owner = self.winfo_toplevel()
+        if getattr(self, "_home_menu", None) is not None:
+            self._home_menu.destroy()
+        menu = self._home_menu = tk.Menu(self, tearoff=False, font="TkMenuFont")
+        palette = getattr(owner, "palette", {})
+        if palette:
+            menu.configure(background=palette["menu"], foreground=palette["menu_text"],
+                           activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
+        self._home_menu_images = {key: prefix_icon(self, key, 20) for key in PREFIX_ICONS}
+        for path, icon in self._automatic_home_prefixes:
+            menu.add_command(label=f"{tr(PREFIX_ICONS[icon])} — {path}", image=self._home_menu_images[icon],
+                             compound="left", command=lambda p=path: self._navigate_crumb(p))
+        menu.add_separator()
+        for index, item in enumerate(getattr(owner, "custom_home_prefixes", [])):
+            path, icon = item["path"], item["icon"]
+            menu.add_command(label=f"{index+1}. {tr(PREFIX_ICONS[icon])} — {path or tr('Not set')}",
+                             image=self._home_menu_images[icon], compound="left",
+                             command=(lambda p=path: self._navigate_crumb(Path(p))) if path else owner.edit_home_prefixes)
+        if hasattr(owner, "edit_home_prefixes"):
+            menu.add_separator()
+            menu.add_command(label=tr("Custom folder prefixes") + "…", command=owner.edit_home_prefixes)
+        try:
+            menu.tk_popup(self.home_button.winfo_rootx(), self.home_button.winfo_rooty()+self.home_button.winfo_height())
+        finally:
+            menu.grab_release()
+        return "break"
 
     def _navigate_crumb(self, target):
         self.on_activate(self)
@@ -10531,6 +10798,8 @@ class Commander(tk.Tk):
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
+        self.home_prefixes = discover_home_prefixes()
+        self.custom_home_prefixes = load_custom_prefixes(self.config_data)
         saved_language = self.config_data.get("view", "ui_language", fallback="en")
         set_language(saved_language)
         try:
@@ -10882,6 +11151,20 @@ class Commander(tk.Tk):
             self.after_cancel(self._save_job)
         self._save_job = self.after(250, self.save_config)
 
+    def edit_home_prefixes(self):
+        existing = getattr(self, "_prefix_preferences", None)
+        if existing is not None and existing.winfo_exists():
+            existing.lift()
+            return
+        self._prefix_preferences = PrefixPreferences(self, self.custom_home_prefixes, self.set_home_prefixes)
+
+    def set_home_prefixes(self, items):
+        self.custom_home_prefixes = items
+        save_custom_prefixes(self.config_data, items)
+        for pane in self.all_panes():
+            pane.path_bar.redraw()
+        self.save_config()
+
     def save_config(self, record_recent: bool = True) -> None:
         if not self._ready:
             return
@@ -10896,14 +11179,14 @@ class Commander(tk.Tk):
                 p.persistent_path() if p.archive_session is not None
                 else p.locked_path if p.lock_mode == "reset" and p.locked_path
                 else p.persistent_path() for p in panes]
-            self.config_data.set(side, "tabs", json.dumps([str(path) for path in saved_paths]))
+            self.config_data.set(side, "tabs", config_json([str(path) for path in saved_paths]))
             self.config_data.set(side, "tab_colors", json.dumps([
                 tabs._colors.get(p, "default") for p in panes]))
             self.config_data.set(side, "tab_locks", json.dumps([p.lock_mode for p in panes]))
-            self.config_data.set(side, "locked_paths", json.dumps([
+            self.config_data.set(side, "locked_paths", config_json([
                 str(p.persistent_path() if p.archive_session is not None
                     else p.locked_path or p.persistent_path()) for p in panes]))
-            self.config_data.set(side, "tab_filters", json.dumps([
+            self.config_data.set(side, "tab_filters", config_json([
                 p.quick_filter_var.get() for p in panes], ensure_ascii=False))
             self.config_data.set(side, "selected", str(tabs.index(tabs.select())))
             current = tabs.current()
@@ -10935,12 +11218,12 @@ class Commander(tk.Tk):
         self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
         self.config_data.set("view", "extension_effect", str(self.extension_effect_var.get()).lower())
         self.config_data.set("view", "mix_sorting", str(self.mix_sorting_var.get()).lower())
-        self.config_data.set("tab_colors", "colors", json.dumps(self._tab_colors, ensure_ascii=False))
+        self.config_data.set("tab_colors", "colors", config_json(self._tab_colors, ensure_ascii=False))
         self.config_data.set("operations", "send_delete_to_recycle_bin", str(self.recycle_bin_var.get()).lower())
         self.config_data.set("operations", "continue_after_error", str(self.continue_errors_var.get()).lower())
         self.config_data.set("startup", "auto_start", str(self.auto_start_var.get()).lower())
-        self.config_data.set("navigation", "favorites", json.dumps([str(path) for path in self.favorites], ensure_ascii=False))
-        self.config_data.set("navigation", "recent_folders", json.dumps([str(path) for path in self.recent_folders], ensure_ascii=False))
+        self.config_data.set("navigation", "favorites", config_json([str(path) for path in self.favorites], ensure_ascii=False))
+        self.config_data.set("navigation", "recent_folders", config_json([str(path) for path in self.recent_folders], ensure_ascii=False))
         try:
             write_config_atomic(self.config_data, self.ini_path)
         except OSError as exc:
