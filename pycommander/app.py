@@ -128,6 +128,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.16", "2026/09/17", (
+        "Fixed: Breadcrumb fonts and positions resynchronize after unlock, restore and focus changes, preventing overlapping path text at 150% zoom.",
+        "Improved: Folder names in the path bar are underlined; the current folder remains bold and F12 still edits the full path.",
+    )),
     ("v0.17.15", "2026/09/16", (
         "Improved: Compact file sizes use whole-number rounding with kB/MB, bold GB and bold red TB units; modified dates align right and Name receives the saved space.",
         "Added: Long Filename Scrolling reads the focused name without middle ellipses; View controls scrolling and Explorer/PFC right-click preferences.",

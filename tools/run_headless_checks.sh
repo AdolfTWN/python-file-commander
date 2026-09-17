@@ -26,6 +26,8 @@ xvfb-run -a python3 tools/zoom_check.py
 xvfb-run -a python3 tools/zoom_check.py pfc
 xvfb-run -a python3 tools/pathbar_check.py
 xvfb-run -a python3 tools/pathbar_check.py pfc
+xvfb-run -a python3 tools/pathbar_resume_check.py
+xvfb-run -a python3 tools/pathbar_resume_check.py pfc
 xvfb-run -a python3 tools/homeprefix_check.py
 xvfb-run -a python3 tools/homeprefix_check.py pfc
 xvfb-run -a python3 tools/home_icon_check.py

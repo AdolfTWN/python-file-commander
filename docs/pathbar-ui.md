@@ -5,6 +5,16 @@ ellipsis menu when space is limited; the current folder has priority and bold
 text. Hovering shows the full path. ZIP locations use the original archive name,
 never the extraction directory.
 
+Folder names are underlined, with the current folder also bold. Drive/UNC roots,
+separators and overflow markers remain plain. PathBar keeps persistent normal,
+underlined and bold fonts synchronized from a single font snapshot, so a system
+named-font refresh cannot resize only some labels against stale coordinates.
+Expose, visibility, map, theme and window-focus events coalesce into one idle
+relayout; closing a tab cancels it and removes the focus binding. Repainting does
+not navigate or replace an in-progress path edit. The targeted regression in
+`tools/pathbar_resume_check.py` covers shared-font changes, 100–300% zoom,
+window restore, underline styles and optional real Windows lock/unlock at 150%.
+
 Use the pencil button, Ctrl+L, or F12 to edit the full path. Enter navigates;
 Escape or leaving the editor discards unsubmitted input. Invalid input remains
 editable. A full file path selects that file in its containing folder without

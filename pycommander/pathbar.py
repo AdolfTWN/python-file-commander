@@ -49,6 +49,14 @@ class PathBar(ttk.Frame):
         self.variable, self.parts = variable, parts
         self.activate, self.submit, self.focus_files = activate, submit, focus_files
         self.editing = self.submitting = False
+        self._closed = False
+        self._redraw_job = None
+        self._owner = self.winfo_toplevel()
+        # Never mix a live system named font with a copied bold font. Windows
+        # can refresh named fonts after unlock without resizing this Canvas.
+        self.normal = tkfont.Font(root=self, font="TkDefaultFont")
+        self.link = tkfont.Font(root=self, font="TkDefaultFont")
+        self.bold = tkfont.Font(root=self, font="TkDefaultFont")
         self.committed = variable.get()
         self.columnconfigure(0, weight=1)
         self.canvas = tk.Canvas(self, width=1, highlightthickness=0, takefocus=1)
@@ -58,7 +66,9 @@ class PathBar(ttk.Frame):
         self.edit_button.grid(row=0, column=1, sticky="ns")
         self.tooltip = ToolTip(self.canvas, lambda: self.committed, delay=700)
         ToolTip(self.edit_button, lambda: tr("Edit path (Ctrl+L / F12)"), delay=700)
-        self.canvas.bind("<Configure>", self.redraw)
+        for sequence in ("<Configure>", "<Expose>", "<Map>", "<Visibility>", "<<ThemeChanged>>"):
+            self.canvas.bind(sequence, self.request_redraw)
+        self._focus_binding = self._owner.bind("<FocusIn>", self.request_redraw, add="+")
         self.canvas.bind("<Button-1>", self._click)
         self.canvas.bind("<Return>", self.begin_edit)
         self.canvas.bind("<space>", self.begin_edit)
@@ -73,6 +83,11 @@ class PathBar(ttk.Frame):
 
     def _destroy(self, event):
         if event.widget is self:
+            self._closed = True
+            if self._redraw_job is not None:
+                self.after_cancel(self._redraw_job)
+                self._redraw_job = None
+            self._owner.unbind("<FocusIn>", self._focus_binding)
             self.variable.trace_remove("write", self._trace)
             self.tooltip.hide()
 
@@ -129,11 +144,22 @@ class PathBar(ttk.Frame):
             self.entry.focus_set()
         return "break"
 
+    def request_redraw(self, _event=None):
+        if not self._closed and self._redraw_job is None:
+            self._redraw_job = self.after_idle(self.redraw)
+
     def redraw(self, _event=None):
+        if self._closed:
+            return
+        if self._redraw_job is not None:
+            self.after_cancel(self._redraw_job)
+            self._redraw_job = None
         palette = getattr(self.winfo_toplevel(), "palette", {})
         font = tkfont.nametofont("TkDefaultFont")
-        self.bold = tkfont.Font(font=font)
-        self.bold.configure(weight="bold")
+        attributes = font.actual()
+        self.normal.configure(**dict(attributes, underline=0))
+        self.link.configure(**dict(attributes, underline=1))
+        self.bold.configure(**dict(attributes, weight="bold", underline=1))
         bg, fg = palette.get("entry", "#ffffff"), palette.get("text", "#18232c")
         self.canvas.configure(background=bg, height=font.metrics("linespace") + 10)
         self.canvas.delete("all")
@@ -144,10 +170,15 @@ class PathBar(ttk.Frame):
         self._regions = []
         x, height = 0, max(self.canvas.winfo_height(), font.metrics("linespace") + 10)
         for label, index, width in fit_crumbs(parts, self.canvas.winfo_width(), self.bold.measure):
+            target = parts[index][1] if index is not None else None
+            is_folder = target is not None and target.parent != target
+            label_font = self.bold if index == len(parts) - 1 else self.link
+            if not is_folder:
+                label_font = self.normal
             self.canvas.create_text(x + 4, height / 2, text=label, anchor="w",
-                                    fill=fg, font=self.bold if index == len(parts) - 1 else font)
+                                    fill=fg, font=label_font, tags=("folder" if is_folder else "root",))
             if index is not None and index < len(parts) - 1:
-                self.canvas.create_text(x + width - 8, height / 2, text="›", fill=fg, font=font)
+                self.canvas.create_text(x + width - 8, height / 2, text="›", fill=fg, font=self.normal)
             self._regions.append((x, x + width, index))
             x += width
 
