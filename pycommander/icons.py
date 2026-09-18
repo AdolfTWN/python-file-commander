@@ -300,6 +300,51 @@ def vcs_badge_png(size: int, status: str) -> bytes:
     return _rgba_png_downsample(pixels, size, supersample)
 
 
+def cloud_badge_png(size: int, status: str) -> bytes:
+    """Square OneDrive badges: separate shape/location from round Git badges."""
+    colors = {'online': '#0078d4', 'available': '#16853c', 'pinned': '#16853c',
+              'syncing': '#0078d4', 'error': '#da2020', 'paused': '#b56b00', 'warning': '#b56b00'}
+    if status not in colors or size < 8:
+        raise ValueError('Unsupported cloud badge')
+    factor = 6
+    side = size * factor
+    pixels = bytearray(side * side * 4)
+    outline = status in ('online', 'available')
+    face, ink = ((_hex_rgba('#ffffff'), _hex_rgba(colors[status])) if outline else
+                 (_hex_rgba(colors[status]), _hex_rgba('#ffffff')))
+    segments = []
+    if status in ('available', 'pinned'):
+        segments = [(0.2,0.50,0.43,0.73),(0.43,0.73,0.80,0.25)]
+    elif status == 'syncing':
+        segments = [(0.22,0.32,0.78,0.32),(0.78,0.32,0.62,0.18),
+                    (0.78,0.32,0.62,0.46),(0.78,0.69,0.22,0.69),
+                    (0.22,0.69,0.38,0.55),(0.22,0.69,0.38,0.83)]
+    elif status == 'paused':
+        segments = [(0.35,0.25,0.35,0.75),(0.65,0.25,0.65,0.75)]
+    elif status == 'error':
+        segments = [(0.28,0.28,0.72,0.72),(0.72,0.28,0.28,0.72)]
+    elif status == 'warning':
+        segments = [(0.5,0.2,0.5,0.55),(0.5,0.75,0.5,0.76)]
+    for y in range(side):
+        for x in range(side):
+            nx, ny = (x+.5)/side, (y+.5)/side
+            if not (.025 < nx < .975 and .025 < ny < .975):
+                continue
+            color = face
+            if min(nx, ny, 1-nx, 1-ny) < .08:
+                color = _hex_rgba(colors[status])
+            painted = any(_distance_to_segment(nx, ny, *line) < .05 for line in segments)
+            if status == 'online':
+                painted = ((nx-.40)**2+(ny-.46)**2 < .18**2 or
+                           (nx-.61)**2+(ny-.53)**2 < .18**2 or
+                           (.23 < nx < .77 and .49 < ny < .69))
+            if painted:
+                color = ink
+            pos = (y*side+x)*4
+            pixels[pos:pos+4] = bytes(color)
+    return _rgba_png_downsample(pixels, size, factor)
+
+
 class ShellIconProvider:
     """Caches native Windows Shell icons as Tk images."""
 
@@ -309,24 +354,31 @@ class ShellIconProvider:
         self.cache: dict[str, PhotoImage] = {}
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
-    def get(self, path: Path, is_dir: bool, overlay: str | None = None) -> PhotoImage:
+    def get(self, path: Path, is_dir: bool, overlay: str | None = None, cloud: str | None = None) -> PhotoImage:
         if os.name != "nt":
             return self.blank
         suffix = path.suffix.casefold()
         base_key = "<folder>" if is_dir else (str(path) if suffix in {".lnk", ".ico"} else suffix or "<file>")
-        key = f"{base_key}|{overlay or ''}"
+        key = f"{base_key}|{overlay or ''}|{cloud or ''}"
         if key not in self.cache:
             icon = self._load(path, is_dir)
             if icon is not None and overlay:
-                icon = self._with_overlay(icon, overlay)
+                icon = self._with_overlay(icon, overlay, compact=bool(cloud))
+            if icon is not None and cloud:
+                result = PhotoImage(width=self.size, height=self.size)
+                result.tk.call(str(result), 'copy', str(icon), '-to', 0, 0)
+                diameter = min(self.size, max(8, round(self.size * .55)))
+                badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
+                result.tk.call(str(result), 'copy', str(badge), '-to', 0, 0, '-compositingrule', 'overlay')
+                icon = result
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
         return self.cache[key]
 
-    def _with_overlay(self, icon: PhotoImage, overlay: str) -> PhotoImage:
+    def _with_overlay(self, icon: PhotoImage, overlay: str, compact=False) -> PhotoImage:
         result = PhotoImage(width=self.size, height=self.size)
         result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
         if overlay in VCS_BADGE_SPECS:
-            diameter = min(self.size, max(12, round(self.size * .70)))
+            diameter = min(self.size, max(8 if compact else 12, round(self.size * (.50 if compact else .70))))
             encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
             badge = PhotoImage(data=encoded, format="png")
             result.tk.call(str(result), "copy", str(badge),

@@ -561,7 +561,7 @@ def main() -> None:
             source_pane.on_native_context = lambda *args: native_context_calls.append(args)
             try:
                 source_pane._context_click(SimpleNamespace(
-                    y=first_box[1] + max(1, first_box[3] // 2), x_root=50, y_root=50))
+                    x=first_box[0]+5, y=first_box[1] + max(1, first_box[3] // 2), x_root=50, y_root=50))
             finally:
                 source_pane.on_native_context = original_native_context
             assert len(source_pane.tree.selection()) == 2, "Right-click must preserve multi-selection"
@@ -573,7 +573,7 @@ def main() -> None:
             try:
                 app.right_click_menu_var.set("pfc")
                 source_pane._context_click(SimpleNamespace(
-                    y=first_box[1] + 5, x_root=50, y_root=50))
+                    x=first_box[0]+5, y=first_box[1] + 5, x_root=50, y_root=50))
             finally:
                 source_pane.on_context = original_context
                 app.right_click_menu_var.set("explorer")

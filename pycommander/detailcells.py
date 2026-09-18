@@ -4,6 +4,7 @@ import tkinter.font as tkfont
 from tkinter import ttk
 
 from .marquee import forward_tree_event
+from .columnsettings import font_snapshot
 
 
 class SizeUnitCells:
@@ -13,7 +14,7 @@ class SizeUnitCells:
         self.closed = False
         self.cells = []
         self.font = tkfont.nametofont("TkDefaultFont")
-        self.bold = tkfont.Font(self.tree, **self.font.actual())
+        self.bold = tkfont.Font(self.tree, **font_snapshot(self.font))
         self.bold.configure(weight="bold")
         for event in ("<<TreeviewSelect>>", "<FocusIn>", "<FocusOut>",
                       "<Configure>", "<Map>", "<ButtonRelease-1>",
@@ -33,13 +34,12 @@ class SizeUnitCells:
                 pass  # Child canvases may already be destroyed with their tree.
 
     def request(self, _event=None):
-        if self.closed:
+        if self.closed or self.pending is not None:
             return
-        self.hide()
         self.pending = self.tree.after_idle(self.draw)
 
     def sync_font(self):
-        self.bold.configure(**self.font.actual())
+        self.bold.configure(**font_snapshot(self.font))
         self.bold.configure(weight="bold")
 
     def measure(self, text):
@@ -52,6 +52,8 @@ class SizeUnitCells:
         if index == len(self.cells):
             cell = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0,
                              takefocus=0, cursor="arrow")
+            cell.create_text(0, 0, anchor="e", tags="unit")
+            cell.create_text(0, 0, anchor="e", tags="number")
             for sequence in ("<ButtonPress-1>", "<ButtonRelease-1>",
                              "<ButtonPress-2>", "<ButtonRelease-2>",
                              "<ButtonPress-3>", "<ButtonRelease-3>",
@@ -63,7 +65,11 @@ class SizeUnitCells:
 
     def draw(self):
         self.pending = None
-        if self.closed or not self.tree.winfo_ismapped():
+        if self.closed:
+            return
+        if (not self.tree.winfo_ismapped() or 'size' not in self.tree.cget('displaycolumns')
+                or not self.pane.winfo_toplevel().size_emphasis_var.get()):
+            self.hide()
             return
         font = self.font
         self.sync_font()
@@ -99,12 +105,11 @@ class SizeUnitCells:
             red = "#ff8585" if luminance < .5 else "#b00020"
             cell = self._cell(used); used += 1
             cell.configure(background=bg)
-            cell.delete("all")
             right = cell_width-4
-            cell.create_text(right, (row_height-2)/2, text=unit,
-                             anchor="e", font=self.bold, fill=red if unit == "TB" else fg)
-            cell.create_text(right-self.bold.measure(unit), (row_height-2)/2,
-                             text=number+" ", anchor="e", font=font, fill=fg)
+            cell.coords('unit', right, (row_height-2)/2)
+            cell.itemconfigure('unit', text=unit, font=self.bold, fill=red if unit == "TB" else fg)
+            cell.coords('number', right-self.bold.measure(unit), (row_height-2)/2)
+            cell.itemconfigure('number', text=number+" ", font=font, fill=fg)
             cell.place(x=x+1, y=top+1, width=max(1, cell_width-2), height=max(1, row_height-2))
             cell.tk.call("raise", cell._w)
         for cell in self.cells[used:]:

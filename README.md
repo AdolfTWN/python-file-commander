@@ -1,6 +1,18 @@
 # Python File Commander
 
-Current version: **v0.17.16**
+Current version: **v0.17.17**
+
+Right-click a file column header for its display and sorting options. All column
+settings, including restoration of hidden Ext/Size/Date Modified columns, are in
+**View → File Columns**. Dates support YYYY/MM/DD or MM/DD/YYYY with 24-hour,
+compact 12-hour (1136a / 0515p), or date-only display; preferences persist in INI.
+Name controls Hidden/System, filename extensions, mixed sorting, scrolling and
+OneDrive badges. Windows HIDDEN attributes are recognized as well as dot files.
+
+OneDrive status is queried asynchronously from fast local Windows properties,
+without reading file contents or intentionally hydrating placeholders. Square
+top-left cloud badges remain distinct from round bottom-right Git badges. Missing
+provider metadata stays unknown. See [column and overlay details](docs/file-columns.md).
 
 Large deletions run outside the UI thread and report live item progress plus an estimated remaining time.
 
@@ -42,7 +54,7 @@ Current core: two resizable panels by default, optionally three or four through 
 
 Right-click a local file or folder to open the native Windows File Explorer menu by default. **View > Right Click Menu** switches between File Explorer and PFC; Shift+F10 and the Menu key follow the same saved preference. There is no delayed hover menu. PFC's compact task menu keeps open/preview, clipboard, target-panel transfer, rename, and both delete modes directly visible. Compare, Folder Space Analyzer, compression, and extraction live under **Analyze & Archive**; Windows administrative, terminal, shortcut, and path actions live under **More Actions**. Archive workspaces and non-Windows platforms use the PFC menu because native Explorer is unavailable. F8 remains unbound.
 
-Long names in file panels are clipped without rewriting their middle or shrinking the font. **View > Long Filename Scrolling** (on by default) scrolls only the focused selected row in the active file list. It holds the beginning for one second, moves left at 36 pixels/second at 100% font size (scaled with zoom), holds the ending for 1.5 seconds, and repeats. Icons, row height and other columns stay still. Editing, dragging, menus and leaving the list pause animation; offscreen or inactive rows do not animate. Turning scrolling off leaves names statically clipped with full-name hover help. Both new preferences are saved in the INI.
+Long names in file panels are clipped without rewriting their middle or shrinking the font. **View > File Columns > Name > Long Filename Scrolling** (on by default) scrolls only the focused selected row in the active file list. It holds the beginning for one second, moves left at 36 pixels/second at 100% font size (scaled with zoom), holds the ending for 1.5 seconds, and repeats. Icons, row height and other columns stay still. Editing, dragging, menus and leaving the list pause animation; offscreen or inactive rows do not animate. Turning scrolling off leaves names statically clipped with full-name hover help. Both new preferences are saved in the INI.
 
 Copy, move, and clipboard paste detect name conflicts and offer Replace, Skip, Keep Both, Cancel, and Apply to All. Multi-item operations open a copyable result window listing exact failed paths with Retry Failed. The file context menu includes Run as Admin for supported Windows executables/scripts, ZIP compression, ZIP/7z extraction with asynchronously calculated folder/file counts, CMD/PowerShell shortcuts opened at the clicked location, and creation of native shortcuts placed on the clipboard as a cut operation. Search, compression, extraction, update download, and archive opening show smooth progress with an estimated remaining time; archive work runs outside the UI thread. ZIP/7z extraction writes directly to its checked destination to avoid Windows long-path failures caused by a second temporary copy. **Files > File Operation Settings > Continue After File Errors** controls whether remaining items continue after a failure and defaults on. The header follows five predictable areas: **Files** for file operations, **Go** for navigation and paths, **View** for presentation, **Tools** for preview/compare/analyze/native integration, and **Help** for updates and release information.
 
@@ -80,7 +92,7 @@ Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copi
 
 Every panel keeps an always-visible Quick Filter at its bottom. Ctrl+Y focuses the active panel's filter for immediate typing. The active panel instantly hides non-matching names; Enter returns to the file list and Esc or the × button clears the filter without hiding it. Filter text is stored with each tab in `pfc.ini`.
 
-`View > File/Folder Mix Sorting` is enabled by default so files and folders share the selected column order. Disable it to keep folders grouped before files.
+`View > File Columns > Name > File/Folder Mix Sorting` is enabled by default so files and folders share the selected column order. Disable it to keep folders grouped before files.
 
 F2 opens Multi-Rename when two or more items are selected. `[N]`, `[C]`, and `[E]` masks, find/replace, case matching, counter start/digits, and extension preservation update a live Old/New/Status preview. Invalid names, duplicates, and existing targets block execution. Batch renames use temporary names so swaps are safe, roll back on failure, and Ctrl+Z restores the last successful batch in the current session.
 
@@ -88,7 +100,7 @@ Keyboard navigation is end-to-end: Tab switches panels, Ctrl+Tab and Ctrl+Shift+
 
 The dark application header keeps the PFC window visually distinct. Its right side shows a compact two-second clipboard preview: up to three overlapping native file/folder icons, the first item's shortened name, and the remaining file/folder count. Outlook attachments use overlapping document icons; text shows only its UTF-8 byte size, while unsupported formats show `OBJ`. Busy clipboards keep the last useful summary instead of interrupting work.
 
-View > File Visibility > Show File Extension is enabled by default. Turning it off hides only the final suffix in the Name column (for example, `archive.tar.gz` becomes `archive.tar`) while the Ext column remains unchanged. The setting is saved per panel. Buttons and menu items throughout the main, Preview and Compare windows show concise help after a five-second hover.
+View > File Columns > Name > Show File Extension is enabled by default. Turning it off hides only the final suffix in the Name column (for example, `archive.tar.gz` becomes `archive.tar`) while the Ext column remains unchanged. The setting is saved per panel. Buttons and menu items throughout the main, Preview and Compare windows show concise help after a five-second hover.
 
 Ctrl+C, Ctrl+X, and Ctrl+V use the native Windows file clipboard, so files and folders can be copied or moved between PFC, its panels and tabs, and Windows File Explorer. Ctrl+V also accepts Outlook's virtual attachment clipboard (`FileGroupDescriptorW`/indexed `FileContents`) and materializes one or multiple attachments into the active folder before applying PFC's normal conflict policy. The header identifies the first attachment and any remaining attachment count instead of the generic `OBJ`.
 
@@ -96,7 +108,7 @@ F9 stages one selected file or folder as a visible Compare Target; selecting a s
 
 Visible local folders refresh immediately from native Windows filesystem change events. A low-frequency signature audit recovers from rare missed or overflowed events, while UNC network paths use a five-second polling fallback. Ctrl+R remains available as a manual fallback.
 
-`View > File Visibility` independently shows or hides Hidden and Windows System files. Both are hidden by default.
+`View > File Columns > Name` independently shows or hides Hidden and Windows System files. Both are hidden by default.
 
 `View > Font Size > Auto Font Size` is enabled by default and selects Small, Medium, Large, or Huge from the current window height, screen-width share, and available width per visible panel. A half-screen window stays at the native 100% size even on a high-DPI 5K display. Choosing a size manually turns Auto Font Size off. Fonts, the in-client application header and menus, tab geometry, path controls, row heights, native Shell icons, and the icon gutter scale and reflow together. Both the switch and current choice are saved in `pfc.ini`. The Ext detail column occupies four wide Latin characters; Size and Date retain bounded detail widths, and Name receives all remaining panel space. The Windows-controlled native title-bar font follows the operating system DPI setting rather than an individual Tk application setting, so PFC keeps native window controls and provides its scalable title/menu header immediately below them.
 

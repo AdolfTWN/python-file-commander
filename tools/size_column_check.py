@@ -45,6 +45,7 @@ with tempfile.TemporaryDirectory() as raw:
                 old_width = font.measure('0000.0 MB') + max(18, font.measure('MM'))
                 assert tree.column('size', 'width') < old_width
                 assert units.bold.actual('weight') == 'bold'
+                assert units.bold.cget('size') == font.cget('size')
                 mapped = [c for c in units.cells if c.winfo_ismapped()]
                 assert mapped, (theme, scale)
                 for cell in mapped:
@@ -57,6 +58,12 @@ with tempfile.TemporaryDirectory() as raw:
                     bbox = cell.bbox('all')
                     assert bbox[0] >= 0 and bbox[2] <= cell.winfo_width()+1, bbox
                 cell = mapped[0]
+                permanent_ids = cell.find_all()
+                for _ in range(3):
+                    units.request()
+                    assert cell.winfo_ismapped(), 'Redraw request must not unmap visible size cells'
+                    settle(app)
+                    assert cell.find_all() == permanent_ids, 'Reuse text instead of recreating it'
                 expected = tree.identify_row(cell.winfo_y()+3)
                 cell.event_generate('<ButtonPress-1>', x=5, y=3)
                 cell.event_generate('<ButtonRelease-1>', x=5, y=3)

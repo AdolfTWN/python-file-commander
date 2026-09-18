@@ -13,6 +13,10 @@ command -v xvfb-run >/dev/null 2>&1 || {
 python3 -m unittest discover -s tests -v
 xvfb-run -a python3 tools/gui_smoke_check.py
 xvfb-run -a python3 tools/header_popup_check.py
+xvfb-run -a python3 tools/column_menu_check.py
+xvfb-run -a python3 tools/column_menu_check.py pfc
+xvfb-run -a python3 tools/cloud_overlay_check.py
+xvfb-run -a python3 tools/cloud_overlay_check.py pfc
 xvfb-run -a python3 tools/tab_panel_drag_check.py
 xvfb-run -a python3 tools/drag_refresh_check.py
 xvfb-run -a python3 tools/drag_refresh_check.py pfc

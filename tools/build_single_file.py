@@ -52,8 +52,10 @@ def build() -> Path:
     tooltip = tooltip.replace("from __future__ import annotations\n\n", "", 1)
     pathbar = pathbar.replace("from __future__ import annotations\n", "", 1)
     pathbar = "\n".join(line for line in pathbar.splitlines() if not line.startswith("from .")) + "\n"
+    tooltip += "\n\n" + (ROOT / "pycommander" / "columnsettings.py").read_text(encoding="utf-8")
     tooltip += "\n\n" + pathbar
     tooltip += "\n\n" + homeprefix
+    tooltip += "\n\n" + (ROOT / "pycommander" / "cloudstatus.py").read_text(encoding="utf-8")
     tooltip += "\n\n" + (ROOT / "pycommander" / "marquee.py").read_text(encoding="utf-8")
     detailcells = (ROOT / "pycommander" / "detailcells.py").read_text(encoding="utf-8")
     tooltip += "\n\n" + "\n".join(line for line in detailcells.splitlines() if not line.startswith("from ."))

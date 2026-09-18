@@ -64,6 +64,26 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：欄位標題右鍵選單與「檢視 > 檔案欄位」統整顯示、排序及日期時間格式，並儲存偏好。",
+        "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 維持一般字體大小並重用繪製元件以避免閃爍；辨識 Windows 隱藏屬性。",
+        "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "改善：以像素固定字體大小，保護鎖定／恢復及 Tk 縮放變動後的倍率。",
+        "Added: Background OneDrive status badges from fast local metadata, distinct from Git overlays; unknown states are not labeled synced.": "新增：背景讀取本機中繼資料顯示 OneDrive 狀態，與 Git 圖示分開；未知狀態不標為已同步。",
+        "File Columns": "檔案欄位",
+        "Show this column": "顯示此欄位",
+        "Emphasize GB / TB": "強調 GB／TB 單位",
+        "24-hour (hh:mm)": "24 小時制（hh:mm）",
+        "12-hour (1136a / 0515p)": "12 小時制（1136a／0515p）",
+        "Date only": "只顯示日期",
+        "Sort ascending": "遞增排序",
+        "Sort descending": "遞減排序",
+        "OneDrive Sync Overlay": "OneDrive 同步狀態圖示",
+        "Online only": "僅線上可用",
+        "Locally available": "本機可用",
+        "Always available offline": "永遠保留在此裝置",
+        "Syncing / pending": "同步中／等待同步",
+        "Sync error": "同步錯誤",
+        "Sync paused": "同步已暫停",
+        "Sync warning": "同步警告",
         "Fixed: Breadcrumb fonts and positions resynchronize after unlock, restore and focus changes, preventing overlapping path text at 150% zoom.": "修正：解鎖、還原視窗與焦點切換後重新同步路徑字型及排列，避免 150% 字型下路徑文字重疊。",
         "Improved: Folder names in the path bar are underlined; the current folder remains bold and F12 still edits the full path.": "改善：路徑列的各層資料夾名稱加上底線；目前資料夾保留粗體，F12 仍可編輯完整路徑。",
         "Improved: Compact file sizes use whole-number rounding with kB/MB, bold GB and bold red TB units; modified dates align right and Name receives the saved space.": "改善：檔案大小四捨五入為整數，顯示 kB／MB、粗體 GB 與紅色粗體 TB；修改日期靠右對齊，節省空間留給檔名。",
@@ -344,6 +364,26 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：列标题右键菜单与“视图 > 文件列”整合显示、排序及日期时间格式，并保存偏好。",
+        "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 保持普通字体大小并复用绘制组件以避免闪烁；识别 Windows 隐藏属性。",
+        "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "改善：以像素固定字体大小，保持锁定／恢复及 Tk 缩放变化后的倍率。",
+        "Added: Background OneDrive status badges from fast local metadata, distinct from Git overlays; unknown states are not labeled synced.": "新增：后台读取本地元数据显示 OneDrive 状态，与 Git 图标区分；未知状态不标为已同步。",
+        "File Columns": "文件列",
+        "Show this column": "显示此列",
+        "Emphasize GB / TB": "强调 GB／TB 单位",
+        "24-hour (hh:mm)": "24 小时制（hh:mm）",
+        "12-hour (1136a / 0515p)": "12 小时制（1136a／0515p）",
+        "Date only": "只显示日期",
+        "Sort ascending": "升序排序",
+        "Sort descending": "降序排序",
+        "OneDrive Sync Overlay": "OneDrive 同步状态图标",
+        "Online only": "仅联机可用",
+        "Locally available": "本地可用",
+        "Always available offline": "始终保留在此设备",
+        "Syncing / pending": "正在同步／等待同步",
+        "Sync error": "同步错误",
+        "Sync paused": "同步已暂停",
+        "Sync warning": "同步警告",
         "Fixed: Breadcrumb fonts and positions resynchronize after unlock, restore and focus changes, preventing overlapping path text at 150% zoom.": "修复：解锁、还原窗口与焦点切换后重新同步路径字体及排列，避免 150% 字体下路径文字重叠。",
         "Improved: Folder names in the path bar are underlined; the current folder remains bold and F12 still edits the full path.": "改善：路径栏的各层文件夹名称加上下划线；当前文件夹保留粗体，F12 仍可编辑完整路径。",
         "Improved: Compact file sizes use whole-number rounding with kB/MB, bold GB and bold red TB units; modified dates align right and Name receives the saved space.": "改善：文件大小四舍五入为整数，显示 kB／MB、粗体 GB 与红色粗体 TB；修改日期靠右对齐，节省空间留给文件名。",
@@ -597,6 +637,26 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "추가: 열 머리글 메뉴와 보기 > 파일 열에서 표시, 정렬, 날짜/시간 형식을 설정하고 저장합니다.",
+        "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "수정: GB/TB 글꼴 크기를 유지하고 셀을 재사용해 깜박임을 방지하며 Windows 숨김 속성을 인식합니다.",
+        "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "개선: 픽셀 글꼴 크기로 잠금/복귀 및 Tk 배율 변경 후 선택한 확대 비율을 유지합니다.",
+        "Added: Background OneDrive status badges from fast local metadata, distinct from Git overlays; unknown states are not labeled synced.": "추가: 빠른 로컬 메타데이터로 OneDrive 상태를 백그라운드 표시하며 Git과 구분하고 알 수 없는 상태는 동기화 완료로 표시하지 않습니다.",
+        "File Columns": "파일 열",
+        "Show this column": "이 열 표시",
+        "Emphasize GB / TB": "GB / TB 강조",
+        "24-hour (hh:mm)": "24시간제 (hh:mm)",
+        "12-hour (1136a / 0515p)": "12시간제 (1136a / 0515p)",
+        "Date only": "날짜만",
+        "Sort ascending": "오름차순 정렬",
+        "Sort descending": "내림차순 정렬",
+        "OneDrive Sync Overlay": "OneDrive 동기화 상태 아이콘",
+        "Online only": "온라인 전용",
+        "Locally available": "로컬에서 사용 가능",
+        "Always available offline": "항상 오프라인 사용 가능",
+        "Syncing / pending": "동기화 중 / 대기",
+        "Sync error": "동기화 오류",
+        "Sync paused": "동기화 일시 중지",
+        "Sync warning": "동기화 경고",
         "Fixed: Breadcrumb fonts and positions resynchronize after unlock, restore and focus changes, preventing overlapping path text at 150% zoom.": "수정: 잠금 해제, 창 복원 및 포커스 변경 후 경로 글꼴과 배치를 다시 동기화하여 150% 확대에서 텍스트가 겹치지 않도록 했습니다.",
         "Improved: Folder names in the path bar are underlined; the current folder remains bold and F12 still edits the full path.": "개선: 경로 표시줄의 폴더 이름에 밑줄을 표시합니다. 현재 폴더는 굵게 유지하며 F12로 전체 경로를 편집할 수 있습니다.",
         "Improved: Compact file sizes use whole-number rounding with kB/MB, bold GB and bold red TB units; modified dates align right and Name receives the saved space.": "개선: 파일 크기를 정수로 반올림하고 kB/MB, 굵은 GB, 빨간 굵은 TB로 표시합니다. 수정 날짜는 오른쪽 정렬하며 절약한 공간을 파일 이름에 할당합니다.",
@@ -1170,7 +1230,17 @@ def is_system(path: Path) -> bool:
     if os.name != "nt":
         return False
     attributes = ctypes.windll.kernel32.GetFileAttributesW(str(path))
-    return attributes != 0xFFFFFFFF and bool(attributes & 0x4)
+    return attributes not in (-1, 0xFFFFFFFF) and bool(attributes & 0x4)
+
+
+def is_hidden(path: Path) -> bool:
+    """Include Windows HIDDEN attributes as well as portable dot-file names."""
+    if path.name.startswith('.'):
+        return True
+    if os.name != 'nt':
+        return False
+    attributes = ctypes.windll.kernel32.GetFileAttributesW(str(path))
+    return attributes not in (-1, 0xffffffff) and bool(attributes & 2)
 
 
 import ctypes
@@ -1823,6 +1893,51 @@ def vcs_badge_png(size: int, status: str) -> bytes:
     return _rgba_png_downsample(pixels, size, supersample)
 
 
+def cloud_badge_png(size: int, status: str) -> bytes:
+    """Square OneDrive badges: separate shape/location from round Git badges."""
+    colors = {'online': '#0078d4', 'available': '#16853c', 'pinned': '#16853c',
+              'syncing': '#0078d4', 'error': '#da2020', 'paused': '#b56b00', 'warning': '#b56b00'}
+    if status not in colors or size < 8:
+        raise ValueError('Unsupported cloud badge')
+    factor = 6
+    side = size * factor
+    pixels = bytearray(side * side * 4)
+    outline = status in ('online', 'available')
+    face, ink = ((_hex_rgba('#ffffff'), _hex_rgba(colors[status])) if outline else
+                 (_hex_rgba(colors[status]), _hex_rgba('#ffffff')))
+    segments = []
+    if status in ('available', 'pinned'):
+        segments = [(0.2,0.50,0.43,0.73),(0.43,0.73,0.80,0.25)]
+    elif status == 'syncing':
+        segments = [(0.22,0.32,0.78,0.32),(0.78,0.32,0.62,0.18),
+                    (0.78,0.32,0.62,0.46),(0.78,0.69,0.22,0.69),
+                    (0.22,0.69,0.38,0.55),(0.22,0.69,0.38,0.83)]
+    elif status == 'paused':
+        segments = [(0.35,0.25,0.35,0.75),(0.65,0.25,0.65,0.75)]
+    elif status == 'error':
+        segments = [(0.28,0.28,0.72,0.72),(0.72,0.28,0.28,0.72)]
+    elif status == 'warning':
+        segments = [(0.5,0.2,0.5,0.55),(0.5,0.75,0.5,0.76)]
+    for y in range(side):
+        for x in range(side):
+            nx, ny = (x+.5)/side, (y+.5)/side
+            if not (.025 < nx < .975 and .025 < ny < .975):
+                continue
+            color = face
+            if min(nx, ny, 1-nx, 1-ny) < .08:
+                color = _hex_rgba(colors[status])
+            painted = any(_distance_to_segment(nx, ny, *line) < .05 for line in segments)
+            if status == 'online':
+                painted = ((nx-.40)**2+(ny-.46)**2 < .18**2 or
+                           (nx-.61)**2+(ny-.53)**2 < .18**2 or
+                           (.23 < nx < .77 and .49 < ny < .69))
+            if painted:
+                color = ink
+            pos = (y*side+x)*4
+            pixels[pos:pos+4] = bytes(color)
+    return _rgba_png_downsample(pixels, size, factor)
+
+
 class ShellIconProvider:
     """Caches native Windows Shell icons as Tk images."""
 
@@ -1832,24 +1947,31 @@ class ShellIconProvider:
         self.cache: dict[str, PhotoImage] = {}
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
-    def get(self, path: Path, is_dir: bool, overlay: str | None = None) -> PhotoImage:
+    def get(self, path: Path, is_dir: bool, overlay: str | None = None, cloud: str | None = None) -> PhotoImage:
         if os.name != "nt":
             return self.blank
         suffix = path.suffix.casefold()
         base_key = "<folder>" if is_dir else (str(path) if suffix in {".lnk", ".ico"} else suffix or "<file>")
-        key = f"{base_key}|{overlay or ''}"
+        key = f"{base_key}|{overlay or ''}|{cloud or ''}"
         if key not in self.cache:
             icon = self._load(path, is_dir)
             if icon is not None and overlay:
-                icon = self._with_overlay(icon, overlay)
+                icon = self._with_overlay(icon, overlay, compact=bool(cloud))
+            if icon is not None and cloud:
+                result = PhotoImage(width=self.size, height=self.size)
+                result.tk.call(str(result), 'copy', str(icon), '-to', 0, 0)
+                diameter = min(self.size, max(8, round(self.size * .55)))
+                badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
+                result.tk.call(str(result), 'copy', str(badge), '-to', 0, 0, '-compositingrule', 'overlay')
+                icon = result
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
         return self.cache[key]
 
-    def _with_overlay(self, icon: PhotoImage, overlay: str) -> PhotoImage:
+    def _with_overlay(self, icon: PhotoImage, overlay: str, compact=False) -> PhotoImage:
         result = PhotoImage(width=self.size, height=self.size)
         result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
         if overlay in VCS_BADGE_SPECS:
-            diameter = min(self.size, max(12, round(self.size * .70)))
+            diameter = min(self.size, max(8 if compact else 12, round(self.size * (.50 if compact else .70))))
             encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
             badge = PhotoImage(data=encoded, format="png")
             result.tk.call(str(result), "copy", str(badge),
@@ -3572,6 +3694,28 @@ def install_button_tooltips(root) -> None:
         install_button_tooltips(widget)
 
 
+"""Display-only column settings; sorting always uses underlying metadata."""
+from datetime import datetime
+
+
+def modified_text(timestamp, date_order="ymd", time_style="24"):
+    value = datetime.fromtimestamp(timestamp)
+    date = value.strftime("%m/%d/%Y" if date_order == "mdy" else "%Y/%m/%d")
+    if time_style == "none":
+        return date
+    clock = (f"{value.hour % 12 or 12:02}{value.minute:02}{'a' if value.hour < 12 else 'p'}"
+             if time_style == "12" else value.strftime("%H:%M"))
+    return date + " " + clock
+
+
+def font_snapshot(font, **changes):
+    """Preserve negative pixel sizes: Font.actual() converts them to points."""
+    attributes = font.actual()
+    attributes['size'] = font.cget('size')
+    attributes.update(changes)
+    return attributes
+
+
 """Single-line logical breadcrumbs with an explicit full-path editor."""
 
 import tkinter as tk
@@ -3726,8 +3870,11 @@ class PathBar(ttk.Frame):
             self.after_cancel(self._redraw_job)
             self._redraw_job = None
         palette = getattr(self.winfo_toplevel(), "palette", {})
+        restore = getattr(self._owner, "_ensure_font_scale", None)
+        if restore is not None:
+            restore()
         font = tkfont.nametofont("TkDefaultFont")
-        attributes = font.actual()
+        attributes = font_snapshot(font)
         self.normal.configure(**dict(attributes, underline=0))
         self.link.configure(**dict(attributes, underline=1))
         self.bold.configure(**dict(attributes, weight="bold", underline=1))
@@ -4014,6 +4161,164 @@ class PrefixPreferences(tk.Toplevel):
             preview.configure(image=self.images[self.keys[combo.current()]])
 
 
+"""Non-hydrating, best-effort Windows OneDrive metadata and bounded async cache.
+
+Only registered OneDrive roots are queried. FASTPROPERTIESONLY deliberately
+omits slow provider values; missing metadata is unknown, never 'synced'.
+"""
+import ctypes
+import os
+from pathlib import Path
+import queue
+import threading
+import time
+import uuid
+
+
+CLOUD_LABELS = {'online': 'Online only', 'available': 'Locally available',
+                'pinned': 'Always available offline', 'syncing': 'Syncing / pending',
+                'error': 'Sync error', 'paused': 'Sync paused', 'warning': 'Sync warning'}
+
+
+def cloud_state(attributes, transfer=None, placeholder=None):
+    if attributes is None or attributes == 0xffffffff:
+        return None
+    if transfer is not None:
+        if transfer & 0x10:
+            return 'error'
+        if transfer & 8:
+            return 'paused'
+        if transfer & (0x80 | 0x100 | 0x200):
+            return 'warning'
+        if transfer & (1 | 2 | 4 | 0x20 | 0x40):
+            return 'syncing'
+    if attributes & (0x1000 | 0x40000 | 0x400000):
+        return 'online'
+    # PINNED is intent; require a complete local primary stream as evidence.
+    if placeholder is not None and placeholder & 8 and placeholder & 2:
+        return 'pinned' if attributes & 0x80000 else 'available'
+    return None
+
+
+class _CloudGUID(ctypes.Structure):
+    _fields_ = [('data', ctypes.c_ubyte * 16)]
+
+    @classmethod
+    def parse(cls, text):
+        return cls((ctypes.c_ubyte * 16).from_buffer_copy(uuid.UUID(text).bytes_le))
+
+
+class _CloudPropertyKey(ctypes.Structure):
+    _fields_ = [('fmtid', _CloudGUID), ('pid', ctypes.c_uint32)]
+
+
+class _CloudVariant(ctypes.Structure):
+    # PROPVARIANT header followed by the largest pointer-sized union (16B x64).
+    _fields_ = [('vt', ctypes.c_uint16), ('reserved', ctypes.c_uint16 * 3),
+                ('value', ctypes.c_uint64 * 2)]
+
+
+def read_cloud_status(path):
+    """Called only by the metadata worker; never opens file contents."""
+    if os.name != 'nt':
+        return None
+    kernel = ctypes.windll.kernel32
+    kernel.GetFileAttributesW.argtypes = [ctypes.c_wchar_p]
+    kernel.GetFileAttributesW.restype = ctypes.c_uint32
+    attributes = kernel.GetFileAttributesW(str(path))
+    if attributes == 0xffffffff:
+        return None
+    store = ctypes.c_void_p()
+    shell = ctypes.windll.shell32
+    shell.SHGetPropertyStoreFromParsingName.argtypes = [ctypes.c_wchar_p, ctypes.c_void_p,
+        ctypes.c_uint32, ctypes.POINTER(_CloudGUID), ctypes.POINTER(ctypes.c_void_p)]
+    shell.SHGetPropertyStoreFromParsingName.restype = ctypes.c_long
+    iid = _CloudGUID.parse('886d8eeb-8cf2-4446-8d02-cdba1dbdcf99')
+    hr = shell.SHGetPropertyStoreFromParsingName(str(path), None, 0x48, ctypes.byref(iid), ctypes.byref(store))
+    values = [None, None]
+    if hr >= 0 and store:
+        vtable = ctypes.cast(store, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
+        get_value = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p,
+            ctypes.POINTER(_CloudPropertyKey), ctypes.POINTER(_CloudVariant))(vtable[5])
+        release = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)(vtable[2])
+        clear = ctypes.windll.ole32.PropVariantClear
+        clear.argtypes = [ctypes.POINTER(_CloudVariant)]
+        try:
+            for index, (guid, pid) in enumerate((
+                ('fceff153-e839-4cf3-a9e7-ea22832094b8', 103),
+                ('b2f9b9d6-fec4-4dd5-94d7-8957488c807b', 2))):
+                key = _CloudPropertyKey(_CloudGUID.parse(guid), pid)
+                value = _CloudVariant()
+                try:
+                    if get_value(store, ctypes.byref(key), ctypes.byref(value)) >= 0 and value.vt == 19:
+                        values[index] = int(value.value[0] & 0xffffffff)
+                finally:
+                    clear(ctypes.byref(value))
+        finally:
+            release(store)
+    return cloud_state(attributes, *values)
+
+
+class CloudStatusCache:
+    """One daemon worker, at most 128 visible items/batch; no Tk calls off-thread."""
+    def __init__(self, roots, reader=read_cloud_status):
+        self.roots = tuple(Path(p) for p in roots)
+        self.reader = reader
+        self.values = {}
+        self.results = queue.Queue(maxsize=1)
+        self.busy = False
+        self.due = 0
+        self.cursor = 0
+
+    def eligible(self, path):
+        path = Path(path)
+        return any(path == root or root in path.parents for root in self.roots)
+
+    def get(self, path):
+        return self.values.get(str(path))
+
+    def poll(self, paths):
+        changed = False
+        try:
+            updates = self.results.get_nowait()
+            self.busy = False
+            changed = any(self.values.get(key) != value for key, value in updates.items())
+            if len(self.values) > 512:
+                self.values.clear()
+                changed = True
+            self.values.update(updates)
+        except queue.Empty:
+            pass
+        now = time.monotonic()
+        if self.busy or now < self.due:
+            return changed
+        candidates = list(dict.fromkeys(str(p) for p in paths if self.eligible(p)))
+        start = self.cursor % len(candidates) if candidates else 0
+        selected = (candidates[start:] + candidates[:start])[:128]
+        self.cursor = start+len(selected)
+        self.due = now+2
+        if not selected:
+            return changed
+        self.busy = True
+        def work():
+            initialized = False
+            updates = {}
+            try:
+                if os.name == 'nt':
+                    initialized = ctypes.windll.ole32.CoInitializeEx(None, 2) >= 0
+                for path in selected:
+                    try:
+                        updates[path] = self.reader(path)
+                    except (OSError, ValueError, AttributeError):
+                        updates[path] = None
+            finally:
+                if initialized:
+                    ctypes.windll.ole32.CoUninitialize()
+                self.results.put(updates)
+        threading.Thread(target=work, name='PFC-OneDrive-metadata', daemon=True).start()
+        return changed
+
+
 """A single clipped, font-sized moving name; file identities never change."""
 import time
 import tkinter as tk
@@ -4186,7 +4491,7 @@ class SizeUnitCells:
         self.closed = False
         self.cells = []
         self.font = tkfont.nametofont("TkDefaultFont")
-        self.bold = tkfont.Font(self.tree, **self.font.actual())
+        self.bold = tkfont.Font(self.tree, **font_snapshot(self.font))
         self.bold.configure(weight="bold")
         for event in ("<<TreeviewSelect>>", "<FocusIn>", "<FocusOut>",
                       "<Configure>", "<Map>", "<ButtonRelease-1>",
@@ -4206,13 +4511,12 @@ class SizeUnitCells:
                 pass  # Child canvases may already be destroyed with their tree.
 
     def request(self, _event=None):
-        if self.closed:
+        if self.closed or self.pending is not None:
             return
-        self.hide()
         self.pending = self.tree.after_idle(self.draw)
 
     def sync_font(self):
-        self.bold.configure(**self.font.actual())
+        self.bold.configure(**font_snapshot(self.font))
         self.bold.configure(weight="bold")
 
     def measure(self, text):
@@ -4225,6 +4529,8 @@ class SizeUnitCells:
         if index == len(self.cells):
             cell = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0,
                              takefocus=0, cursor="arrow")
+            cell.create_text(0, 0, anchor="e", tags="unit")
+            cell.create_text(0, 0, anchor="e", tags="number")
             for sequence in ("<ButtonPress-1>", "<ButtonRelease-1>",
                              "<ButtonPress-2>", "<ButtonRelease-2>",
                              "<ButtonPress-3>", "<ButtonRelease-3>",
@@ -4236,7 +4542,11 @@ class SizeUnitCells:
 
     def draw(self):
         self.pending = None
-        if self.closed or not self.tree.winfo_ismapped():
+        if self.closed:
+            return
+        if (not self.tree.winfo_ismapped() or 'size' not in self.tree.cget('displaycolumns')
+                or not self.pane.winfo_toplevel().size_emphasis_var.get()):
+            self.hide()
             return
         font = self.font
         self.sync_font()
@@ -4272,12 +4582,11 @@ class SizeUnitCells:
             red = "#ff8585" if luminance < .5 else "#b00020"
             cell = self._cell(used); used += 1
             cell.configure(background=bg)
-            cell.delete("all")
             right = cell_width-4
-            cell.create_text(right, (row_height-2)/2, text=unit,
-                             anchor="e", font=self.bold, fill=red if unit == "TB" else fg)
-            cell.create_text(right-self.bold.measure(unit), (row_height-2)/2,
-                             text=number+" ", anchor="e", font=font, fill=fg)
+            cell.coords('unit', right, (row_height-2)/2)
+            cell.itemconfigure('unit', text=unit, font=self.bold, fill=red if unit == "TB" else fg)
+            cell.coords('number', right-self.bold.measure(unit), (row_height-2)/2)
+            cell.itemconfigure('number', text=number+" ", font=font, fill=fg)
             cell.place(x=x+1, y=top+1, width=max(1, cell_width-2), height=max(1, row_height-2))
             cell.tk.call("raise", cell._w)
         for cell in self.cells[used:]:
@@ -9181,7 +9490,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.16"
+__version__ = "0.17.17"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -9264,8 +9573,14 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/17"
+BUILD_DATE = "2026/09/19"
 VERSION_HISTORY = (
+    ("v0.17.17", "2026/09/19", (
+        "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.",
+        "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.",
+        "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.",
+        "Added: Background OneDrive status badges from fast local metadata, distinct from Git overlays; unknown states are not labeled synced.",
+    )),
     ("v0.17.16", "2026/09/17", (
         "Fixed: Breadcrumb fonts and positions resynchronize after unlock, restore and focus changes, preventing overlapping path text at 150% zoom.",
         "Improved: Folder names in the path bar are underlined; the current folder remains bold and F12 still edits the full path.",
@@ -9521,7 +9836,10 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
                  "tab_style": "right_skirt", "panel_count": "2",
                  "ui_language": "en", "color_scheme": "light", "extension_effect": "true",
                  "mix_sorting": "true", "right_click_menu": "explorer",
-                 "long_name_scrolling": "true"},
+                 "long_name_scrolling": "true", "column_ext": "true",
+                 "column_size": "true", "column_modified": "true",
+                 "date_order": "ymd", "time_style": "24", "size_emphasis": "true",
+                 "onedrive_overlay": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -9913,6 +10231,7 @@ class FilePane(ttk.Frame):
         self.show_hidden = False
         self.show_system = False
         self.show_extensions = True
+        self._date_values = {}
         self.mode = "files"
         self.view_mode = "list"
         self.display_title = self.path.name or str(self.path)
@@ -9987,8 +10306,9 @@ class FilePane(ttk.Frame):
         scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
         horizontal = ttk.Scrollbar(frame, orient="horizontal", command=self.tree.xview)
         def scrolled(bar, *args):
+            changed = tuple(bar.get()) != tuple(float(value) for value in args)
             bar.set(*args)
-            if hasattr(self, "name_marquee"):
+            if changed and hasattr(self, "name_marquee"):
                 self.name_marquee.request()
                 self.size_units.request()
         self.tree.configure(yscrollcommand=lambda *args: scrolled(scroll, *args),
@@ -10200,10 +10520,32 @@ class FilePane(ttk.Frame):
     def _tree_values(self, path: Path, is_dir: bool, stat) -> tuple[str, str, str]:
         return ("" if is_dir else path.suffix[1:].upper(),
                 "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                 datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
+                 self.format_modified(stat.st_mtime, path))
+
+    def format_modified(self, timestamp, path):
+        owner = self.winfo_toplevel()
+        text = modified_text(timestamp, owner.date_order_var.get(), owner.time_style_var.get())
+        self._date_values[str(path)] = timestamp
+        return text
+
+    def apply_column_settings(self):
+        owner = self.winfo_toplevel()
+        if self.mode != 'files' or self.view_mode == 'list':
+            self.tree.configure(displaycolumns=tuple(c for c in self.columns if owner.column_visible_vars[c].get()))
+        def update(parent=''):
+            for iid in self.tree.get_children(parent):
+                tags = self.tree.item(iid, 'tags')
+                path = tags[0] if tags else ''
+                if path in self._date_values:
+                    self.tree.set(iid, 'modified', self.format_modified(self._date_values[path], path))
+                update(iid)
+        update()
+        self._schedule_column_autosize()
 
     def _icon(self, path: Path, is_dir: bool):
-        return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path))
+        owner = self.winfo_toplevel()
+        cloud = owner.cloud_status.get(path) if owner.onedrive_overlay_var.get() else None
+        return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path), cloud)
 
     def _full_item_name(self, iid: str) -> str:
         tags = self.tree.item(iid, "tags")
@@ -10218,6 +10560,11 @@ class FilePane(ttk.Frame):
         return prefix + visible
 
     def _tooltip_name(self, iid: str) -> str:
+        tags = self.tree.item(iid, 'tags')
+        owner = self.winfo_toplevel()
+        cloud = owner.cloud_status.get(tags[0]) if tags and owner.onedrive_overlay_var.get() else None
+        if cloud:
+            return self._full_item_name(iid) + '\nOneDrive: ' + tr(CLOUD_LABELS[cloud])
         if self.name_marquee.item == iid:
             return ""
         full = self._full_item_name(iid)
@@ -10290,7 +10637,7 @@ class FilePane(ttk.Frame):
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
             entries = [path for path in folder.iterdir()
-                       if (self.show_hidden or not path.name.startswith(".")) and
+                       if (self.show_hidden or not is_hidden(path)) and
                        (self.show_system or not is_system(path))]
         except OSError:
             return 0
@@ -10440,6 +10787,13 @@ class FilePane(ttk.Frame):
 
     def _context_click(self, event):
         self.name_marquee.stop()
+        if self.tree.identify_region(event.x, event.y) == 'heading':
+            self.on_activate(self)
+            number = int(self.tree.identify_column(event.x)[1:])
+            visible = self.tree.cget('displaycolumns')
+            column = 'name' if number == 0 else visible[number-1]
+            self.winfo_toplevel().show_column_menu(column, event)
+            return 'break'
         iid = self.tree.identify_row(event.y)
         if not iid:
             return None
@@ -10699,7 +11053,9 @@ class FilePane(ttk.Frame):
         if self.mode == "files" and self.view_mode != "list":
             self.tree.configure(show="tree", displaycolumns=())
         else:
-            self.tree.configure(show="tree headings", displaycolumns=self.columns)
+            owner = self.winfo_toplevel()
+            self.tree.configure(show="tree headings", displaycolumns=tuple(
+                c for c in self.columns if owner.column_visible_vars[c].get()))
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
         focused_tags = self.tree.item(self.tree.focus(), "tags") if self.tree.focus() else ()
         focused_path = focused_tags[0] if focused_tags and not reset_view else None
@@ -10708,11 +11064,12 @@ class FilePane(ttk.Frame):
         if reset_view:
             selected, expanded, scroll_position = set(), set(), 0.0
         self.tree.delete(*self.tree.get_children())
+        self._date_values.clear()
         try:
             self._request_vcs_statuses()
             if self.mode == "files" and self.view_mode != "list":
                 visible_entries = [p for p in self.path.iterdir()
-                                   if (self.show_hidden or not p.name.startswith(".")) and
+                                   if (self.show_hidden or not is_hidden(p)) and
                                    (self.show_system or not is_system(p))]
                 self._signature = self.signature_for(visible_entries)
                 root_stat = self.path.stat()
@@ -10744,7 +11101,7 @@ class FilePane(ttk.Frame):
                 self._schedule_column_autosize()
                 return
             entries = [p for p in self.path.iterdir()
-                       if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
+                       if (self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p))]
             self._signature = self.signature_for(entries)
             needle = self.quick_filter_var.get().strip().casefold()
             if needle:
@@ -10770,7 +11127,7 @@ class FilePane(ttk.Frame):
                     name = f"[{visible_name}]" if is_dir else visible_name
                     values = ("" if is_dir else p.suffix[1:].upper(),
                               "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                              datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
+                              self.format_modified(stat.st_mtime, p))
                     iid = self.tree.insert("", "end", text=name, image=self._icon(p, is_dir), values=values, tags=(str(p),))
                     if str(p) in selected:
                         self.tree.selection_add(iid)
@@ -10812,13 +11169,12 @@ class FilePane(ttk.Frame):
         font = tkfont.nametofont("TkDefaultFont")
         padding = max(18, font.measure("MM"))
         self.size_units.sync_font()
-        limits = {
-            "modified": (110, font.measure("0000-00-00 00:00") + padding),
-        }
         ext_width = extension_column_width(font.measure)
         children = self.tree.get_children()
         fixed_total = 0
         for value_index, column in enumerate(self.columns):
+            if column not in self.tree.cget('displaycolumns'):
+                continue
             if column == "ext":
                 self.tree.column(column, width=ext_width, minwidth=ext_width, stretch=False)
                 fixed_total += ext_width
@@ -10831,7 +11187,7 @@ class FilePane(ttk.Frame):
                 values = self.tree.item(iid, "values")
                 if value_index < len(values):
                     measured = max(measured, measure(str(values[value_index])) + cell_padding)
-            minimum, maximum = (heading_width, measured) if column == "size" else limits[column]
+            minimum, maximum = (heading_width, measured)
             maximum = max(maximum, heading_width)
             width = max(minimum, min(measured, maximum))
             self.tree.column(column, width=width, minwidth=minimum, stretch=False)
@@ -10858,7 +11214,7 @@ class FilePane(ttk.Frame):
         self._request_vcs_statuses()
         try:
             entries = [p for p in self.path.iterdir()
-                       if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
+                       if (self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p))]
             signature = self.signature_for(entries)
         except OSError:
             return False
@@ -10969,6 +11325,7 @@ class FilePane(ttk.Frame):
         self.mode = "search"
         self.display_title = f"Search: {query}"
         self.tree.delete(*self.tree.get_children())
+        self._date_values.clear()
         self.path_bar.set_location(f"[Search] {query} in {self.path}")
         query = query.casefold()
         count = 0
@@ -10984,7 +11341,7 @@ class FilePane(ttk.Frame):
                     self.tree.insert("", "end", text=display, image=self._icon(item, is_dir), values=(
                         "" if is_dir else item.suffix[1:].upper(),
                         "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                        datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
+                        self.format_modified(stat.st_mtime, item)),
                         tags=(str(item),))
                     count += 1
                     if count >= 2000:
@@ -11002,6 +11359,7 @@ class FilePane(ttk.Frame):
         self.display_title = title
         self.path_bar.set_location(f"[{title}]")
         self.tree.delete(*self.tree.get_children())
+        self._date_values.clear()
         total = 0
         for item in paths:
             path = Path(item)
@@ -11012,7 +11370,7 @@ class FilePane(ttk.Frame):
                                  image=self._icon(path, is_dir),
                                  values=("" if is_dir else path.suffix[1:].upper(),
                                          "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
+                                         self.format_modified(stat.st_mtime, path)),
                                  tags=(str(path),))
             except OSError:
                 continue
@@ -11217,6 +11575,8 @@ class Commander(tk.Tk):
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
         self.home_prefixes = discover_home_prefixes()
+        self.cloud_status = CloudStatusCache([p for p, kind in self.home_prefixes if kind == 'cloud']
+                                            if os.name == 'nt' else [])
         self.custom_home_prefixes = load_custom_prefixes(self.config_data)
         saved_language = self.config_data.get("view", "ui_language", fallback="en")
         set_language(saved_language)
@@ -11269,6 +11629,14 @@ class Commander(tk.Tk):
         except ValueError:
             scrolling = True
         self.long_name_scrolling_var = tk.BooleanVar(value=scrolling)
+        self.column_visible_vars = {c: tk.BooleanVar(value=self.config_data.getboolean(
+            'view', 'column_' + c, fallback=True)) for c in FilePane.columns}
+        date_order = self.config_data.get('view', 'date_order', fallback='ymd')
+        time_style = self.config_data.get('view', 'time_style', fallback='24')
+        self.date_order_var = tk.StringVar(value=date_order if date_order in ('ymd','mdy') else 'ymd')
+        self.time_style_var = tk.StringVar(value=time_style if time_style in ('12','24','none') else '24')
+        self.size_emphasis_var = tk.BooleanVar(value=self.config_data.getboolean('view','size_emphasis',fallback=True))
+        self.onedrive_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','onedrive_overlay',fallback=True))
         self._auto_font_job = None
         self._last_auto_window_size = None
         saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
@@ -11639,6 +12007,11 @@ class Commander(tk.Tk):
         self.config_data.set("view", "auto_font_size", str(self.auto_font_size_var.get()).lower())
         self.config_data.set("view", "right_click_menu", self.right_click_menu_var.get())
         self.config_data.set("view", "long_name_scrolling", str(self.long_name_scrolling_var.get()).lower())
+        for c, variable in self.column_visible_vars.items():
+            self.config_data.set('view', 'column_' + c, str(variable.get()).lower())
+        for key, variable in (('date_order', self.date_order_var), ('time_style', self.time_style_var),
+                              ('size_emphasis', self.size_emphasis_var), ('onedrive_overlay', self.onedrive_overlay_var)):
+            self.config_data.set('view', key, str(variable.get()))
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
@@ -11761,6 +12134,11 @@ class Commander(tk.Tk):
         self._auto_refresh_job = None
         enabled = self.config_data.getboolean("refresh", "auto_refresh", fallback=True)
         panes = self.visible_panes()
+        if self.cloud_status.roots:
+            rows = self._visible_cloud_rows(panes)
+            if self.onedrive_overlay_var.get():
+                self.cloud_status.poll(path for pane, iid, path in rows)
+            self._update_cloud_icons(rows)
         watch_paths = [pane.path for pane in panes
                        if enabled and pane.mode == "files" and pane.archive_session is None
                        and is_local_watch_path(pane.path)]
@@ -11797,6 +12175,29 @@ class Commander(tk.Tk):
         else:
             self._pending_directory_changes.clear()
         self._schedule_auto_refresh(100)
+
+    def _visible_cloud_rows(self, panes):
+        rows = []
+        for pane in panes:
+            if pane.archive_session is not None or pane._drag_press_item is not None:
+                continue
+            seen = set()
+            for y in range(1, pane.tree.winfo_height(), 8):
+                iid = pane.tree.identify_row(y)
+                if not iid or iid in seen:
+                    continue
+                seen.add(iid)
+                tags = pane.tree.item(iid, 'tags')
+                if tags and tags[0] != 'PFC_INLINE_PLACEHOLDER':
+                    rows.append((pane, iid, Path(tags[0])))
+        return rows
+
+    def _update_cloud_icons(self, rows):
+        for pane, iid, path in rows:
+            if pane._drag_press_item is None:
+                icon = pane._icon(path, pane.tree.set(iid, 'size') == '<DIR>')
+                if pane.tree.item(iid, 'image') != (str(icon),):
+                    pane.tree.item(iid, image=icon)
 
     def _build_menu(self) -> None:
         previous_popup = getattr(self, "header_popup", None)
@@ -11913,9 +12314,33 @@ class Commander(tk.Tk):
                                self.set_system_visibility)
         add_scaled_checkbutton(visibility, tr("Show File Extension"), self.show_extensions_var,
                                self.set_extension_visibility)
-        add_scaled_cascade(view, tr("File Visibility"), visibility)
-        add_scaled_checkbutton(view, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
+        self.column_menus = {'name': visibility}
+        self.columns_menu = tk.Menu(view, tearoff=False, font=menu_font)
+        add_scaled_cascade(view, tr('File Columns'), self.columns_menu)
+        add_scaled_checkbutton(visibility, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
                                self.set_mix_sorting)
+        add_scaled_checkbutton(visibility, tr("Long Filename Scrolling"), self.long_name_scrolling_var,
+                               self.set_long_name_scrolling)
+        add_scaled_checkbutton(visibility, tr('OneDrive Sync Overlay'), self.onedrive_overlay_var,
+                               self.apply_column_settings)
+        for column, label in (('name','Name'), ('ext','Ext'), ('size','Size'), ('modified','Date Modified')):
+            menu = visibility if column == 'name' else tk.Menu(self.columns_menu, tearoff=False, font=menu_font)
+            self.column_menus[column] = menu
+            if column != 'name':
+                add_scaled_checkbutton(menu, tr('Show this column'), self.column_visible_vars[column], self.apply_column_settings)
+            if column == 'size':
+                add_scaled_checkbutton(menu, tr('Emphasize GB / TB'), self.size_emphasis_var, self.apply_column_settings)
+            if column == 'modified':
+                menu.add_separator()
+                for label2, value in (('YYYY/MM/DD','ymd'), ('MM/DD/YYYY','mdy')):
+                    add_scaled_radiobutton(menu, label2, value, self.date_order_var, self.apply_column_settings)
+                menu.add_separator()
+                for label2, value in (('24-hour (hh:mm)','24'), ('12-hour (1136a / 0515p)','12'), ('Date only','none')):
+                    add_scaled_radiobutton(menu, tr(label2), value, self.time_style_var, self.apply_column_settings)
+            menu.add_separator()
+            menu.add_command(label=tr('Sort ascending'), command=lambda c=column: self.sort_column(c, False))
+            menu.add_command(label=tr('Sort descending'), command=lambda c=column: self.sort_column(c, True))
+            add_scaled_cascade(self.columns_menu, tr(label), menu)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for value, scale in FONT_SCALES.items():
             add_scaled_radiobutton(font_size, f"{round(scale * 100)}%", value, self.font_size_var,
@@ -11924,8 +12349,6 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(font_size, tr("Auto Font Size"), self.auto_font_size_var,
                                self.set_auto_font_size)
         add_scaled_cascade(view, tr("Font Size"), font_size)
-        add_scaled_checkbutton(view, tr("Long Filename Scrolling"), self.long_name_scrolling_var,
-                               self.set_long_name_scrolling)
         self.right_click_menu = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("File Explorer", "explorer"), ("PFC", "pfc")):
             add_scaled_radiobutton(self.right_click_menu, tr(label), value,
@@ -12029,9 +12452,9 @@ class Commander(tk.Tk):
             "Auto Start when boot": "Start PFC automatically after signing in to Windows.",
             "Copy Path": "Copy all selected full paths.",
             "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
-            "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
-            "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
-            "File Visibility": "Choose which file names and attributes are visible.",
+            "Show Hidden": "Show or hide dot files and Windows hidden files.", "Show System": "Show or hide Windows system files.",
+            "Show File Extension": "Show or hide the final extension in Name, independently of the Ext column.",
+            "File Columns": "Configure each file column; restore hidden columns here.",
             "File/Folder Mix Sorting": "Sort files and folders together; disable to keep folders first.",
             "Color Scheme": "Choose the overall application contrast and colors.",
             "Extension Effect": "Apply syntax colors and Markdown rendering in F3 Preview.",
@@ -13684,6 +14107,24 @@ class Commander(tk.Tk):
         source.show_hidden = self.show_hidden_var.get()
         source.refresh(); source.on_change()
 
+    def sort_column(self, column, reverse):
+        pane = self.panes()[0]
+        pane.sort_column, pane.reverse = column, not reverse
+        pane.change_sort(column)
+
+    def show_column_menu(self, column, event):
+        menu = self.column_menus[column]
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def apply_column_settings(self):
+        for pane in self.all_panes():
+            pane.apply_column_settings()
+        self._update_cloud_icons(self._visible_cloud_rows(self.visible_panes()))
+        self.save_config()
+
     def set_system_visibility(self) -> None:
         source = self.panes()[0]
         source.show_system = self.show_system_var.get()
@@ -13900,11 +14341,10 @@ class Commander(tk.Tk):
         self._sync_zoom_controls()
         self.tk.call("tk", "scaling", self._base_tk_scaling * scale)
         for name, base in self._base_font_sizes.items():
-            # Positive Tk font sizes are points and therefore follow tk scaling.
-            # Keep their point size stable so text retains the existing visual
-            # size while native menu arrows and indicators scale with the UI.
-            size = max(1, round(abs(base) * scale)) if base < 0 else max(1, abs(base))
-            tkfont.nametofont(name).configure(size=-size if base < 0 else size)
+            # Pin text to the selected zoom in pixels. OS/Tk point scaling may
+            # change after lock/resume; menu indicators still use tk scaling.
+            size = max(1, round(abs(base) * scale * (1 if base < 0 else self._base_tk_scaling)))
+            tkfont.nametofont(name).configure(size=-size)
         default_font = tkfont.nametofont("TkDefaultFont")
         row_height = scaled_tree_row_height(default_font.metrics("linespace"), scale)
         style = ttk.Style(self)
@@ -13946,6 +14386,17 @@ class Commander(tk.Tk):
         if save:
             self.save_config()
 
+    def _ensure_font_scale(self):
+        """Restore configured pixel sizes after OS/Tk display-metric changes."""
+        if not hasattr(self, '_base_font_sizes'):
+            return
+        scale = self._font_scales.get(self.font_size_var.get(), 1.0)
+        for name, base in self._base_font_sizes.items():
+            size = -max(1, round(abs(base) * scale * (1 if base < 0 else self._base_tk_scaling)))
+            font = tkfont.nametofont(name)
+            if font.cget('size') != size:
+                font.configure(size=size)
+
     def apply_color_scheme(self, save: bool = True) -> None:
         scheme = self.color_scheme_var.get()
         if scheme not in COLOR_SCHEMES:
@@ -13983,6 +14434,7 @@ class Commander(tk.Tk):
                                  activebackground=palette["header_active"],
                                  activeforeground="#ffffff")
             for menu in (self.files_menu, self.view_menu, self.visibility_menu,
+                         self.columns_menu, *self.column_menus.values(),
                          self.right_click_menu,
                          self.font_size_menu, self.color_scheme_menu, self.tab_style_menu,
                          self.panel_counts_menu, self.language_menu, self.favorites_menu,

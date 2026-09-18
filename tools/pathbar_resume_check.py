@@ -60,6 +60,13 @@ with tempfile.TemporaryDirectory() as raw:
             assert bar.canvas.find_withtag('folder')
             assert bar.link.metrics('linespace') == bar.bold.metrics('linespace')
         app.font_size_var.set('large'); app.apply_font_size(save=False); settle(app)
+        expected = bar.link.cget('size')
+        original_scaling = float(app.tk.call('tk', 'scaling'))
+        app.tk.call('tk', 'scaling', original_scaling*.6)
+        bar.canvas.event_generate('<Expose>'); settle(app)
+        assert bar.link.cget('size') == expected, 'OS scaling changed selected zoom pixels'
+        assert_layout()
+        app.tk.call('tk', 'scaling', original_scaling)
         before = bar.committed
         bar.begin_edit(); pane.path_var.set('draft path')
         bar.canvas.event_generate('<Expose>'); settle(app)
@@ -74,14 +81,20 @@ with tempfile.TemporaryDirectory() as raw:
             print('READY: locking Windows at 150%; unlock PFC-Test to continue', flush=True)
             assert ctypes.windll.user32.LockWorkStation()
             # Host operator unlocks; continue on a task-owned marker, not a password.
-            deadline = time.monotonic()+240
+            locked_at = time.monotonic()
+            expected_pixels = bar.link.cget('size')
+            deadline = locked_at+1200
             while not marker.exists() and time.monotonic() < deadline:
                 settle(app)
             assert marker.exists(), 'Timed out waiting for operator unlock validation'
             # QGA may still hold the marker open; the host cleans it up later.
             settle(app); assert_layout()
             assert app.font_size_var.get() == 'large'
-            print('PASS: real Windows lock/unlock at 150%', flush=True)
+            assert bar.link.cget('size') == expected_pixels
+            elapsed = time.monotonic()-locked_at
+            if '--long-lock' in sys.argv:
+                assert elapsed >= 600, elapsed
+            print(f'PASS: real Windows lock/unlock at 150%, {elapsed:.1f}s, pixels={expected_pixels}', flush=True)
         assert not errors, errors
         print('PASS: font-change isolation, resume repaint, underlined folders, all zoom steps, editing and restore', flush=True)
     finally:

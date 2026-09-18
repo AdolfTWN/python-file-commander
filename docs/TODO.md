@@ -1,0 +1,6 @@
+# PFC follow-ups
+
+- [x] **OneDrive sync status overlay — implementation (v0.17.17)**: background, bounded visible-row queries of fast local Windows properties; online/local/pinned/pending/error/paused/warning badges, separate from Git overlays, with a preference and status tooltip. No content reads or hydration request. Missing metadata remains unknown.
+- [ ] **OneDrive live-provider acceptance**: verify actual transitions (online-only → local, pin/unpin, pending/error/recovery) on an authorized signed-in Windows OneDrive installation. Offline fixtures and native ordinary-file checks do not establish this. Do not enable VM networking or sign in without authorization.
+
+- [x] **Path bar long-lock font protection (v0.17.17)**: pin named and derived fonts to the selected zoom's pixel sizes, preserve negative sizes instead of copying point-converted `Font.actual()`, and restore intended sizes on breadcrumb redraw. Windows 11 test locked for **667.1 seconds** at 150%; after unlocking the font remained **-18 pixels**, layout assertions and underline checks passed. Injected shared-font and Tk-scaling changes also pass. This is a validated mitigation; the original machine's exact DPI/lock trigger was not reproduced in the offline VM.

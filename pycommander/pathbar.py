@@ -7,6 +7,7 @@ from tkinter import ttk
 
 from .i18n import tr
 from .tooltip import ToolTip
+from .columnsettings import font_snapshot
 
 
 def path_ancestors(path):
@@ -155,8 +156,11 @@ class PathBar(ttk.Frame):
             self.after_cancel(self._redraw_job)
             self._redraw_job = None
         palette = getattr(self.winfo_toplevel(), "palette", {})
+        restore = getattr(self._owner, "_ensure_font_scale", None)
+        if restore is not None:
+            restore()
         font = tkfont.nametofont("TkDefaultFont")
-        attributes = font.actual()
+        attributes = font_snapshot(font)
         self.normal.configure(**dict(attributes, underline=0))
         self.link.configure(**dict(attributes, underline=1))
         self.bold.configure(**dict(attributes, weight="bold", underline=1))

@@ -23,7 +23,7 @@ from pathlib import Path
 from tkinter import messagebox, ttk
 
 from . import __version__
-from .fileops import OperationFailure, OperationResult, compact_file_size, copy_items, delete_items, format_size, is_system, move_items, recycle_items, roots
+from .fileops import OperationFailure, OperationResult, compact_file_size, copy_items, delete_items, format_size, is_hidden, is_system, move_items, recycle_items, roots
 from .clipboard import clear_file_clipboard, extract_virtual_files, get_file_clipboard, get_virtual_file_descriptors, set_file_clipboard
 from .icons import ShellIconProvider, create_pfc_icon, pfc_icon_ico
 from .vcs import folder_statuses, status_for
@@ -42,8 +42,10 @@ from .startup import WindowsTrayIcon, set_windows_autostart
 from .dirwatch import DirectoryWatchManager, directory_key, is_local_watch_path
 from .pathbar import PathBar, path_ancestors
 from .homeprefix import PREFIX_ICONS, PrefixPreferences, discover_home_prefixes, load_custom_prefixes, match_home_prefix, prefix_icon, prefix_icon_size, save_custom_prefixes
+from .cloudstatus import CLOUD_LABELS, CloudStatusCache
 from .marquee import NameMarquee
 from .detailcells import SizeUnitCells
+from .columnsettings import modified_text
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -128,6 +130,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.17", "2026/09/19", (
+        "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.",
+        "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.",
+        "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.",
+        "Added: Background OneDrive status badges from fast local metadata, distinct from Git overlays; unknown states are not labeled synced.",
+    )),
     ("v0.17.16", "2026/09/17", (
         "Fixed: Breadcrumb fonts and positions resynchronize after unlock, restore and focus changes, preventing overlapping path text at 150% zoom.",
         "Improved: Folder names in the path bar are underlined; the current folder remains bold and F12 still edits the full path.",
@@ -383,7 +391,10 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
                  "tab_style": "right_skirt", "panel_count": "2",
                  "ui_language": "en", "color_scheme": "light", "extension_effect": "true",
                  "mix_sorting": "true", "right_click_menu": "explorer",
-                 "long_name_scrolling": "true"},
+                 "long_name_scrolling": "true", "column_ext": "true",
+                 "column_size": "true", "column_modified": "true",
+                 "date_order": "ymd", "time_style": "24", "size_emphasis": "true",
+                 "onedrive_overlay": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -775,6 +786,7 @@ class FilePane(ttk.Frame):
         self.show_hidden = False
         self.show_system = False
         self.show_extensions = True
+        self._date_values = {}
         self.mode = "files"
         self.view_mode = "list"
         self.display_title = self.path.name or str(self.path)
@@ -849,8 +861,9 @@ class FilePane(ttk.Frame):
         scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
         horizontal = ttk.Scrollbar(frame, orient="horizontal", command=self.tree.xview)
         def scrolled(bar, *args):
+            changed = tuple(bar.get()) != tuple(float(value) for value in args)
             bar.set(*args)
-            if hasattr(self, "name_marquee"):
+            if changed and hasattr(self, "name_marquee"):
                 self.name_marquee.request()
                 self.size_units.request()
         self.tree.configure(yscrollcommand=lambda *args: scrolled(scroll, *args),
@@ -1062,10 +1075,32 @@ class FilePane(ttk.Frame):
     def _tree_values(self, path: Path, is_dir: bool, stat) -> tuple[str, str, str]:
         return ("" if is_dir else path.suffix[1:].upper(),
                 "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                 datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
+                 self.format_modified(stat.st_mtime, path))
+
+    def format_modified(self, timestamp, path):
+        owner = self.winfo_toplevel()
+        text = modified_text(timestamp, owner.date_order_var.get(), owner.time_style_var.get())
+        self._date_values[str(path)] = timestamp
+        return text
+
+    def apply_column_settings(self):
+        owner = self.winfo_toplevel()
+        if self.mode != 'files' or self.view_mode == 'list':
+            self.tree.configure(displaycolumns=tuple(c for c in self.columns if owner.column_visible_vars[c].get()))
+        def update(parent=''):
+            for iid in self.tree.get_children(parent):
+                tags = self.tree.item(iid, 'tags')
+                path = tags[0] if tags else ''
+                if path in self._date_values:
+                    self.tree.set(iid, 'modified', self.format_modified(self._date_values[path], path))
+                update(iid)
+        update()
+        self._schedule_column_autosize()
 
     def _icon(self, path: Path, is_dir: bool):
-        return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path))
+        owner = self.winfo_toplevel()
+        cloud = owner.cloud_status.get(path) if owner.onedrive_overlay_var.get() else None
+        return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path), cloud)
 
     def _full_item_name(self, iid: str) -> str:
         tags = self.tree.item(iid, "tags")
@@ -1080,6 +1115,11 @@ class FilePane(ttk.Frame):
         return prefix + visible
 
     def _tooltip_name(self, iid: str) -> str:
+        tags = self.tree.item(iid, 'tags')
+        owner = self.winfo_toplevel()
+        cloud = owner.cloud_status.get(tags[0]) if tags and owner.onedrive_overlay_var.get() else None
+        if cloud:
+            return self._full_item_name(iid) + '\nOneDrive: ' + tr(CLOUD_LABELS[cloud])
         if self.name_marquee.item == iid:
             return ""
         full = self._full_item_name(iid)
@@ -1152,7 +1192,7 @@ class FilePane(ttk.Frame):
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
             entries = [path for path in folder.iterdir()
-                       if (self.show_hidden or not path.name.startswith(".")) and
+                       if (self.show_hidden or not is_hidden(path)) and
                        (self.show_system or not is_system(path))]
         except OSError:
             return 0
@@ -1302,6 +1342,13 @@ class FilePane(ttk.Frame):
 
     def _context_click(self, event):
         self.name_marquee.stop()
+        if self.tree.identify_region(event.x, event.y) == 'heading':
+            self.on_activate(self)
+            number = int(self.tree.identify_column(event.x)[1:])
+            visible = self.tree.cget('displaycolumns')
+            column = 'name' if number == 0 else visible[number-1]
+            self.winfo_toplevel().show_column_menu(column, event)
+            return 'break'
         iid = self.tree.identify_row(event.y)
         if not iid:
             return None
@@ -1561,7 +1608,9 @@ class FilePane(ttk.Frame):
         if self.mode == "files" and self.view_mode != "list":
             self.tree.configure(show="tree", displaycolumns=())
         else:
-            self.tree.configure(show="tree headings", displaycolumns=self.columns)
+            owner = self.winfo_toplevel()
+            self.tree.configure(show="tree headings", displaycolumns=tuple(
+                c for c in self.columns if owner.column_visible_vars[c].get()))
         selected = {self.tree.item(i, "tags")[0] for i in self.tree.selection() if self.tree.item(i, "tags")}
         focused_tags = self.tree.item(self.tree.focus(), "tags") if self.tree.focus() else ()
         focused_path = focused_tags[0] if focused_tags and not reset_view else None
@@ -1570,11 +1619,12 @@ class FilePane(ttk.Frame):
         if reset_view:
             selected, expanded, scroll_position = set(), set(), 0.0
         self.tree.delete(*self.tree.get_children())
+        self._date_values.clear()
         try:
             self._request_vcs_statuses()
             if self.mode == "files" and self.view_mode != "list":
                 visible_entries = [p for p in self.path.iterdir()
-                                   if (self.show_hidden or not p.name.startswith(".")) and
+                                   if (self.show_hidden or not is_hidden(p)) and
                                    (self.show_system or not is_system(p))]
                 self._signature = self.signature_for(visible_entries)
                 root_stat = self.path.stat()
@@ -1606,7 +1656,7 @@ class FilePane(ttk.Frame):
                 self._schedule_column_autosize()
                 return
             entries = [p for p in self.path.iterdir()
-                       if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
+                       if (self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p))]
             self._signature = self.signature_for(entries)
             needle = self.quick_filter_var.get().strip().casefold()
             if needle:
@@ -1632,7 +1682,7 @@ class FilePane(ttk.Frame):
                     name = f"[{visible_name}]" if is_dir else visible_name
                     values = ("" if is_dir else p.suffix[1:].upper(),
                               "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                              datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"))
+                              self.format_modified(stat.st_mtime, p))
                     iid = self.tree.insert("", "end", text=name, image=self._icon(p, is_dir), values=values, tags=(str(p),))
                     if str(p) in selected:
                         self.tree.selection_add(iid)
@@ -1674,13 +1724,12 @@ class FilePane(ttk.Frame):
         font = tkfont.nametofont("TkDefaultFont")
         padding = max(18, font.measure("MM"))
         self.size_units.sync_font()
-        limits = {
-            "modified": (110, font.measure("0000-00-00 00:00") + padding),
-        }
         ext_width = extension_column_width(font.measure)
         children = self.tree.get_children()
         fixed_total = 0
         for value_index, column in enumerate(self.columns):
+            if column not in self.tree.cget('displaycolumns'):
+                continue
             if column == "ext":
                 self.tree.column(column, width=ext_width, minwidth=ext_width, stretch=False)
                 fixed_total += ext_width
@@ -1693,7 +1742,7 @@ class FilePane(ttk.Frame):
                 values = self.tree.item(iid, "values")
                 if value_index < len(values):
                     measured = max(measured, measure(str(values[value_index])) + cell_padding)
-            minimum, maximum = (heading_width, measured) if column == "size" else limits[column]
+            minimum, maximum = (heading_width, measured)
             maximum = max(maximum, heading_width)
             width = max(minimum, min(measured, maximum))
             self.tree.column(column, width=width, minwidth=minimum, stretch=False)
@@ -1720,7 +1769,7 @@ class FilePane(ttk.Frame):
         self._request_vcs_statuses()
         try:
             entries = [p for p in self.path.iterdir()
-                       if (self.show_hidden or not p.name.startswith(".")) and (self.show_system or not is_system(p))]
+                       if (self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p))]
             signature = self.signature_for(entries)
         except OSError:
             return False
@@ -1831,6 +1880,7 @@ class FilePane(ttk.Frame):
         self.mode = "search"
         self.display_title = f"Search: {query}"
         self.tree.delete(*self.tree.get_children())
+        self._date_values.clear()
         self.path_bar.set_location(f"[Search] {query} in {self.path}")
         query = query.casefold()
         count = 0
@@ -1846,7 +1896,7 @@ class FilePane(ttk.Frame):
                     self.tree.insert("", "end", text=display, image=self._icon(item, is_dir), values=(
                         "" if is_dir else item.suffix[1:].upper(),
                         "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                        datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
+                        self.format_modified(stat.st_mtime, item)),
                         tags=(str(item),))
                     count += 1
                     if count >= 2000:
@@ -1864,6 +1914,7 @@ class FilePane(ttk.Frame):
         self.display_title = title
         self.path_bar.set_location(f"[{title}]")
         self.tree.delete(*self.tree.get_children())
+        self._date_values.clear()
         total = 0
         for item in paths:
             path = Path(item)
@@ -1874,7 +1925,7 @@ class FilePane(ttk.Frame):
                                  image=self._icon(path, is_dir),
                                  values=("" if is_dir else path.suffix[1:].upper(),
                                          "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                                         datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")),
+                                         self.format_modified(stat.st_mtime, path)),
                                  tags=(str(path),))
             except OSError:
                 continue
@@ -2079,6 +2130,8 @@ class Commander(tk.Tk):
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
         self.home_prefixes = discover_home_prefixes()
+        self.cloud_status = CloudStatusCache([p for p, kind in self.home_prefixes if kind == 'cloud']
+                                            if os.name == 'nt' else [])
         self.custom_home_prefixes = load_custom_prefixes(self.config_data)
         saved_language = self.config_data.get("view", "ui_language", fallback="en")
         set_language(saved_language)
@@ -2131,6 +2184,14 @@ class Commander(tk.Tk):
         except ValueError:
             scrolling = True
         self.long_name_scrolling_var = tk.BooleanVar(value=scrolling)
+        self.column_visible_vars = {c: tk.BooleanVar(value=self.config_data.getboolean(
+            'view', 'column_' + c, fallback=True)) for c in FilePane.columns}
+        date_order = self.config_data.get('view', 'date_order', fallback='ymd')
+        time_style = self.config_data.get('view', 'time_style', fallback='24')
+        self.date_order_var = tk.StringVar(value=date_order if date_order in ('ymd','mdy') else 'ymd')
+        self.time_style_var = tk.StringVar(value=time_style if time_style in ('12','24','none') else '24')
+        self.size_emphasis_var = tk.BooleanVar(value=self.config_data.getboolean('view','size_emphasis',fallback=True))
+        self.onedrive_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','onedrive_overlay',fallback=True))
         self._auto_font_job = None
         self._last_auto_window_size = None
         saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
@@ -2501,6 +2562,11 @@ class Commander(tk.Tk):
         self.config_data.set("view", "auto_font_size", str(self.auto_font_size_var.get()).lower())
         self.config_data.set("view", "right_click_menu", self.right_click_menu_var.get())
         self.config_data.set("view", "long_name_scrolling", str(self.long_name_scrolling_var.get()).lower())
+        for c, variable in self.column_visible_vars.items():
+            self.config_data.set('view', 'column_' + c, str(variable.get()).lower())
+        for key, variable in (('date_order', self.date_order_var), ('time_style', self.time_style_var),
+                              ('size_emphasis', self.size_emphasis_var), ('onedrive_overlay', self.onedrive_overlay_var)):
+            self.config_data.set('view', key, str(variable.get()))
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
@@ -2623,6 +2689,11 @@ class Commander(tk.Tk):
         self._auto_refresh_job = None
         enabled = self.config_data.getboolean("refresh", "auto_refresh", fallback=True)
         panes = self.visible_panes()
+        if self.cloud_status.roots:
+            rows = self._visible_cloud_rows(panes)
+            if self.onedrive_overlay_var.get():
+                self.cloud_status.poll(path for pane, iid, path in rows)
+            self._update_cloud_icons(rows)
         watch_paths = [pane.path for pane in panes
                        if enabled and pane.mode == "files" and pane.archive_session is None
                        and is_local_watch_path(pane.path)]
@@ -2659,6 +2730,29 @@ class Commander(tk.Tk):
         else:
             self._pending_directory_changes.clear()
         self._schedule_auto_refresh(100)
+
+    def _visible_cloud_rows(self, panes):
+        rows = []
+        for pane in panes:
+            if pane.archive_session is not None or pane._drag_press_item is not None:
+                continue
+            seen = set()
+            for y in range(1, pane.tree.winfo_height(), 8):
+                iid = pane.tree.identify_row(y)
+                if not iid or iid in seen:
+                    continue
+                seen.add(iid)
+                tags = pane.tree.item(iid, 'tags')
+                if tags and tags[0] != 'PFC_INLINE_PLACEHOLDER':
+                    rows.append((pane, iid, Path(tags[0])))
+        return rows
+
+    def _update_cloud_icons(self, rows):
+        for pane, iid, path in rows:
+            if pane._drag_press_item is None:
+                icon = pane._icon(path, pane.tree.set(iid, 'size') == '<DIR>')
+                if pane.tree.item(iid, 'image') != (str(icon),):
+                    pane.tree.item(iid, image=icon)
 
     def _build_menu(self) -> None:
         previous_popup = getattr(self, "header_popup", None)
@@ -2775,9 +2869,33 @@ class Commander(tk.Tk):
                                self.set_system_visibility)
         add_scaled_checkbutton(visibility, tr("Show File Extension"), self.show_extensions_var,
                                self.set_extension_visibility)
-        add_scaled_cascade(view, tr("File Visibility"), visibility)
-        add_scaled_checkbutton(view, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
+        self.column_menus = {'name': visibility}
+        self.columns_menu = tk.Menu(view, tearoff=False, font=menu_font)
+        add_scaled_cascade(view, tr('File Columns'), self.columns_menu)
+        add_scaled_checkbutton(visibility, tr("File/Folder Mix Sorting"), self.mix_sorting_var,
                                self.set_mix_sorting)
+        add_scaled_checkbutton(visibility, tr("Long Filename Scrolling"), self.long_name_scrolling_var,
+                               self.set_long_name_scrolling)
+        add_scaled_checkbutton(visibility, tr('OneDrive Sync Overlay'), self.onedrive_overlay_var,
+                               self.apply_column_settings)
+        for column, label in (('name','Name'), ('ext','Ext'), ('size','Size'), ('modified','Date Modified')):
+            menu = visibility if column == 'name' else tk.Menu(self.columns_menu, tearoff=False, font=menu_font)
+            self.column_menus[column] = menu
+            if column != 'name':
+                add_scaled_checkbutton(menu, tr('Show this column'), self.column_visible_vars[column], self.apply_column_settings)
+            if column == 'size':
+                add_scaled_checkbutton(menu, tr('Emphasize GB / TB'), self.size_emphasis_var, self.apply_column_settings)
+            if column == 'modified':
+                menu.add_separator()
+                for label2, value in (('YYYY/MM/DD','ymd'), ('MM/DD/YYYY','mdy')):
+                    add_scaled_radiobutton(menu, label2, value, self.date_order_var, self.apply_column_settings)
+                menu.add_separator()
+                for label2, value in (('24-hour (hh:mm)','24'), ('12-hour (1136a / 0515p)','12'), ('Date only','none')):
+                    add_scaled_radiobutton(menu, tr(label2), value, self.time_style_var, self.apply_column_settings)
+            menu.add_separator()
+            menu.add_command(label=tr('Sort ascending'), command=lambda c=column: self.sort_column(c, False))
+            menu.add_command(label=tr('Sort descending'), command=lambda c=column: self.sort_column(c, True))
+            add_scaled_cascade(self.columns_menu, tr(label), menu)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for value, scale in FONT_SCALES.items():
             add_scaled_radiobutton(font_size, f"{round(scale * 100)}%", value, self.font_size_var,
@@ -2786,8 +2904,6 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(font_size, tr("Auto Font Size"), self.auto_font_size_var,
                                self.set_auto_font_size)
         add_scaled_cascade(view, tr("Font Size"), font_size)
-        add_scaled_checkbutton(view, tr("Long Filename Scrolling"), self.long_name_scrolling_var,
-                               self.set_long_name_scrolling)
         self.right_click_menu = tk.Menu(view, tearoff=False, font=menu_font)
         for label, value in (("File Explorer", "explorer"), ("PFC", "pfc")):
             add_scaled_radiobutton(self.right_click_menu, tr(label), value,
@@ -2891,9 +3007,9 @@ class Commander(tk.Tk):
             "Auto Start when boot": "Start PFC automatically after signing in to Windows.",
             "Copy Path": "Copy all selected full paths.",
             "Change Path": "Focus the path bar for direct paste.", "Exit": "Save settings and close PFC.",
-            "Show Hidden": "Show or hide dot-prefixed files.", "Show System": "Show or hide Windows system files.",
-            "Show File Extension": "Show or hide the final extension in Name; Ext remains visible.",
-            "File Visibility": "Choose which file names and attributes are visible.",
+            "Show Hidden": "Show or hide dot files and Windows hidden files.", "Show System": "Show or hide Windows system files.",
+            "Show File Extension": "Show or hide the final extension in Name, independently of the Ext column.",
+            "File Columns": "Configure each file column; restore hidden columns here.",
             "File/Folder Mix Sorting": "Sort files and folders together; disable to keep folders first.",
             "Color Scheme": "Choose the overall application contrast and colors.",
             "Extension Effect": "Apply syntax colors and Markdown rendering in F3 Preview.",
@@ -4546,6 +4662,24 @@ class Commander(tk.Tk):
         source.show_hidden = self.show_hidden_var.get()
         source.refresh(); source.on_change()
 
+    def sort_column(self, column, reverse):
+        pane = self.panes()[0]
+        pane.sort_column, pane.reverse = column, not reverse
+        pane.change_sort(column)
+
+    def show_column_menu(self, column, event):
+        menu = self.column_menus[column]
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def apply_column_settings(self):
+        for pane in self.all_panes():
+            pane.apply_column_settings()
+        self._update_cloud_icons(self._visible_cloud_rows(self.visible_panes()))
+        self.save_config()
+
     def set_system_visibility(self) -> None:
         source = self.panes()[0]
         source.show_system = self.show_system_var.get()
@@ -4762,11 +4896,10 @@ class Commander(tk.Tk):
         self._sync_zoom_controls()
         self.tk.call("tk", "scaling", self._base_tk_scaling * scale)
         for name, base in self._base_font_sizes.items():
-            # Positive Tk font sizes are points and therefore follow tk scaling.
-            # Keep their point size stable so text retains the existing visual
-            # size while native menu arrows and indicators scale with the UI.
-            size = max(1, round(abs(base) * scale)) if base < 0 else max(1, abs(base))
-            tkfont.nametofont(name).configure(size=-size if base < 0 else size)
+            # Pin text to the selected zoom in pixels. OS/Tk point scaling may
+            # change after lock/resume; menu indicators still use tk scaling.
+            size = max(1, round(abs(base) * scale * (1 if base < 0 else self._base_tk_scaling)))
+            tkfont.nametofont(name).configure(size=-size)
         default_font = tkfont.nametofont("TkDefaultFont")
         row_height = scaled_tree_row_height(default_font.metrics("linespace"), scale)
         style = ttk.Style(self)
@@ -4808,6 +4941,17 @@ class Commander(tk.Tk):
         if save:
             self.save_config()
 
+    def _ensure_font_scale(self):
+        """Restore configured pixel sizes after OS/Tk display-metric changes."""
+        if not hasattr(self, '_base_font_sizes'):
+            return
+        scale = self._font_scales.get(self.font_size_var.get(), 1.0)
+        for name, base in self._base_font_sizes.items():
+            size = -max(1, round(abs(base) * scale * (1 if base < 0 else self._base_tk_scaling)))
+            font = tkfont.nametofont(name)
+            if font.cget('size') != size:
+                font.configure(size=size)
+
     def apply_color_scheme(self, save: bool = True) -> None:
         scheme = self.color_scheme_var.get()
         if scheme not in COLOR_SCHEMES:
@@ -4845,6 +4989,7 @@ class Commander(tk.Tk):
                                  activebackground=palette["header_active"],
                                  activeforeground="#ffffff")
             for menu in (self.files_menu, self.view_menu, self.visibility_menu,
+                         self.columns_menu, *self.column_menus.values(),
                          self.right_click_menu,
                          self.font_size_menu, self.color_scheme_menu, self.tab_style_menu,
                          self.panel_counts_menu, self.language_menu, self.favorites_menu,

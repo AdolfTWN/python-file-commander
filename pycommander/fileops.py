@@ -321,4 +321,14 @@ def is_system(path: Path) -> bool:
     if os.name != "nt":
         return False
     attributes = ctypes.windll.kernel32.GetFileAttributesW(str(path))
-    return attributes != 0xFFFFFFFF and bool(attributes & 0x4)
+    return attributes not in (-1, 0xFFFFFFFF) and bool(attributes & 0x4)
+
+
+def is_hidden(path: Path) -> bool:
+    """Include Windows HIDDEN attributes as well as portable dot-file names."""
+    if path.name.startswith('.'):
+        return True
+    if os.name != 'nt':
+        return False
+    attributes = ctypes.windll.kernel32.GetFileAttributesW(str(path))
+    return attributes not in (-1, 0xffffffff) and bool(attributes & 2)

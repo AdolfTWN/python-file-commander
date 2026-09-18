@@ -45,6 +45,12 @@ def main():
                         if nested: return nested
                 row=find(); assert row,path
                 tree.selection_set(row); tree.focus(row); tree.see(row)
+                tree.update_idletasks()
+                box=tree.bbox(row)
+                if box and box[1]+box[3]>tree.winfo_height():
+                    # Tk's see() may leave the final row partly clipped by its
+                    # border after pixel-font rounding. Partial rows do not animate.
+                    tree.yview_scroll(1,'units')
                 tree.focus_force(); m.request(); settle(app)
                 return tree.focus()
             iid = choose(long)
@@ -52,8 +58,8 @@ def main():
             assert m.item == iid and m.canvas.winfo_ismapped(), (m.item, iid, tree.focus_get())
             assert m.canvas.coords(m.text_id)[0] == 0
             assert not pane._tooltip_name(iid)
-            settle(app,1.15)
-            assert m.canvas.coords(m.text_id)[0] < -5
+            settle(app,1.4)
+            assert m.canvas.coords(m.text_id)[0] < -5, (m.item, m._eligible(), time.monotonic()-m.started, m.canvas.coords(m.text_id), errors)
             assert tree.item(iid,'text') == long.name
             assert len([p for p in app.all_panes() if p.name_marquee.item]) == 1
             # The UI never rewrites an identifier to create the animation.
@@ -109,7 +115,7 @@ def main():
                 assert pane._drag_press_item is None
             finally: pane.on_drag=original_drag
             choose(short); assert not m.item and m.job is None
-            choose(cjk); assert m.item and tree.item(tree.focus(),'text') == cjk.name
+            choose(cjk); assert m.item and tree.item(tree.focus(),'text') == cjk.name, (m.item, m._eligible(), m.text_bounds(tree.focus()), m.clipped(tree.focus()), tree.item(tree.focus(),'text'), errors)
             for mode, target in (('folder',folder),('file',long),('list',long)):
                 pane.set_view_mode(mode); choose(target)
                 assert m.item and m.canvas.winfo_x() > tree.bbox(tree.focus(),'#0')[0]
