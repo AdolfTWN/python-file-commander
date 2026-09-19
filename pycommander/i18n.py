@@ -10,6 +10,55 @@ LANGUAGES = (
 
 _language = "en"
 
+_MARKDOWN_READING_TRANSLATIONS = {
+    "Added: Read-only Markdown tasks, labeled callouts, section navigation and folding with complete search/copy.": ("新增：Markdown 唯讀待辦、標示提示框、章節導覽及折疊；搜尋與複製仍包含折疊內容。", "新增：Markdown 只读待办、带标签提示框、章节导航及折叠；搜索和复制仍包含折叠内容。", "추가: 읽기 전용 Markdown 작업, 레이블 콜아웃, 섹션 탐색/접기. 접힌 내용도 검색/복사에 포함."),
+    "Added: Exact local Markdown links and Back within a fixed folder boundary, without indexing or wider searches.": ("新增：固定資料夾範圍內的明確 Markdown 連結及返回，不建立索引或擴大搜尋。", "新增：固定文件夹范围内的明确 Markdown 链接及返回，不建立索引或扩大搜索。", "추가: 고정 폴더 범위의 정확한 로컬 Markdown 링크 및 뒤로. 인덱싱/확대 검색 없음."),
+    "Improved: Markdown reads and parsing use a cancellable, memory-limited worker with timeout and explicit source fallback.": ("改善：Markdown 讀取與解析改用可取消、限制記憶體的背景程序，支援逾時及明確原始文字備援。", "改进：Markdown 读取和解析使用可取消、限制内存的后台进程，支持超时和明确源码回退。", "개선: 취소 가능하고 메모리 제한이 있는 Markdown 작업 프로세스. 시간 초과 및 명시적 소스 대체 지원."),
+    "Fixed: Folded Unicode search crashes, link offset drift and clicks ignored during background refresh.": ("修正：折疊 Unicode 搜尋崩潰、連結位置偏移及背景更新時點擊被忽略。", "修复：折叠 Unicode 搜索崩溃、链接位置偏移及后台刷新时点击被忽略。", "수정: 접힌 Unicode 검색 충돌, 링크 위치 오차, 백그라운드 새로 고침 중 클릭 무시."),
+    "Fold": ("收合", "折叠", "접기"),
+    "Expand": ("展開", "展开", "펼치기"),
+    "Reading": ("閱讀", "阅读", "읽기"),
+    "Sections": ("章節", "章节", "섹션"),
+    "Expand all": ("全部展開", "全部展开", "모두 펼치기"),
+    "Choose a section first": ("請先選擇章節", "请先选择章节", "먼저 섹션을 선택하세요"),
+    "Loading Markdown…": ("正在讀取 Markdown…", "正在读取 Markdown…", "Markdown 읽는 중…"),
+    "Rendering Markdown…": ("正在繪製 Markdown…", "正在绘制 Markdown…", "Markdown 표시 중…"),
+    "Preview canceled; press F5 to retry": ("已取消預覽；按 F5 重試", "已取消预览；按 F5 重试", "미리 보기 취소됨. F5로 재시도"),
+    "Preview timed out; press F5 to retry": ("預覽逾時；按 F5 重試", "预览超时；按 F5 重试", "미리 보기 시간 초과. F5로 재시도"),
+    "Rendering limit reached; showing source text": ("已達轉譯限制，改顯示原始文字", "已达渲染限制，改为显示原始文本", "렌더링 한도 초과. 소스 텍스트 표시"),
+    "Memory protection unavailable; showing source text": ("無法啟用記憶體保護，改顯示原始文字", "无法启用内存保护，改为显示原始文本", "메모리 보호 불가. 소스 텍스트 표시"),
+    "Loaded portion only": ("僅涵蓋已載入部分", "仅涵盖已加载部分", "불러온 부분만 해당"),
+    "Showing the first 5,000 search matches": ("僅顯示前 5,000 個搜尋結果", "仅显示前 5,000 个搜索结果", "처음 5,000개 검색 결과만 표시"),
+    "More links: use Ctrl+click in text": ("其他連結：在內文按 Ctrl＋點擊", "其他链接：在正文按 Ctrl＋点击", "추가 링크: 본문에서 Ctrl+클릭"),
+    "Ctrl+click: ": ("Ctrl＋點擊：", "Ctrl＋点击：", "Ctrl+클릭: "),
+    "Link boundary: ": ("連結範圍：", "链接范围：", "링크 범위: "),
+    "Back to the previous Markdown document (Alt+Left)": ("返回上一份 Markdown 文件（Alt＋左鍵）", "返回上一份 Markdown 文档（Alt＋左键）", "이전 Markdown 문서로 돌아가기 (Alt+Left)"),
+    "Sections in this document only; no folder scan": ("僅列出本文件章節，不掃描資料夾", "仅列出本文档章节，不扫描文件夹", "현재 문서 섹션만 표시. 폴더 검사 없음"),
+    "Fold or expand the selected section; search and copy include its text": ("收合／展開選取章節；搜尋與複製仍包含隱藏文字", "折叠／展开所选章节；搜索和复制仍包含隐藏文本", "선택 섹션 접기/펼치기. 검색과 복사는 숨긴 텍스트 포함"),
+    "Completed / total tasks; read-only": ("已完成／全部待辦；唯讀，不會修改文件", "已完成／全部待办；只读，不会修改文档", "완료/전체 작업. 읽기 전용"),
+    "Multiple matching headings; choose a section": ("有多個相同標題，請在章節清單選擇", "有多个相同标题，请在章节列表选择", "일치하는 제목이 여러 개입니다. 섹션을 선택하세요"),
+    "Heading not found in loaded content": ("已載入內容中找不到標題", "已加载内容中找不到标题", "불러온 내용에서 제목을 찾을 수 없음"),
+    "Cross-document links are disabled inside archives": ("壓縮檔預覽不開放跨文件連結", "压缩文件预览不开放跨文档链接", "압축 파일에서는 문서 간 링크 사용 불가"),
+    "Archive preview: same-document anchors only": ("壓縮檔預覽：僅支援同文件章節連結", "压缩文件预览：仅支持同文档章节链接", "압축 미리 보기: 현재 문서 앵커만 지원"),
+    "Link leaves the preview folder boundary": ("連結超出預覽資料夾範圍", "链接超出预览文件夹范围", "링크가 미리 보기 폴더 범위를 벗어남"),
+    "Only local Markdown links are supported": ("僅支援本機 Markdown 連結", "仅支持本地 Markdown 链接", "로컬 Markdown 링크만 지원"),
+    "Only Markdown documents can be followed": ("只能開啟 Markdown 文件連結", "只能打开 Markdown 文档链接", "Markdown 문서 링크만 열 수 있음"),
+    "Absolute, network and device paths are not supported": ("不支援絕對、網路或裝置路徑", "不支持绝对、网络或设备路径", "절대/네트워크/장치 경로 미지원"),
+    "Device paths are not supported": ("不支援裝置路徑", "不支持设备路径", "장치 경로 미지원"),
+    "Invalid link destination": ("連結目的地無效", "链接目标无效", "잘못된 링크 대상"),
+    "Invalid link encoding": ("連結編碼無效", "链接编码无效", "잘못된 링크 인코딩"),
+    "Ambiguous path spelling": ("路徑拼寫有歧義", "路径拼写有歧义", "모호한 경로 표기"),
+    "Target is not a regular file": ("目的地不是一般檔案", "目标不是普通文件", "일반 파일이 아닌 대상"),
+    "Only fixed local drives are supported for linked preview": ("連結預覽僅支援本機固定磁碟", "链接预览仅支持本地固定磁盘", "링크 미리 보기는 로컬 고정 드라이브만 지원"),
+    "Cloud-only, linked or unknown reparse paths cannot be followed": ("無法跟隨雲端、捷徑或未支援的重新解析路徑；請手動選取文件預覽", "无法跟随云端、链接或未支持的重解析路径；请手动选择文档预览", "클라우드/연결/미지원 재분석 경로를 따를 수 없음. 문서를 직접 선택하세요"),
+    "Cannot verify the link target": ("無法驗證連結目的地", "无法验证链接目标", "링크 대상을 확인할 수 없음"),
+    "Link target changed during validation": ("驗證時連結目的地發生變更", "验证时链接目标发生变化", "확인 중 링크 대상이 변경됨"),
+    "Mounted paths are not supported for linked preview": ("連結預覽不支援跨掛載路徑", "链接预览不支持跨挂载路径", "링크 미리 보기에서 마운트 경계 통과 미지원"),
+    "Preview worker stopped": ("預覽背景程序已停止", "预览后台进程已停止", "미리 보기 작업 프로세스 중지됨"),
+    "Automatic refresh paused; use F5": ("自動更新已暫停；可按 F5 手動更新", "自动刷新已暂停；可按 F5 手动刷新", "자동 새로 고침 일시 중지. F5로 직접 새로 고침"),
+    "Preview worker could not accept the request": ("預覽背景程序無法接受要求", "预览后台进程无法接受请求", "미리 보기 작업 요청 실패"),
+}
+
 
 def set_language(code: str) -> None:
     global _language
@@ -58,6 +107,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        **{key: labels[0] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：欄位標題右鍵選單與「檢視 > 檔案欄位」統整顯示、排序及日期時間格式，並儲存偏好。",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 維持一般字體大小並重用繪製元件以避免閃爍；辨識 Windows 隱藏屬性。",
         "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "改善：以像素固定字體大小，保護鎖定／恢復及 Tk 縮放變動後的倍率。",
@@ -371,6 +421,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        **{key: labels[1] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：列标题右键菜单与“视图 > 文件列”整合显示、排序及日期时间格式，并保存偏好。",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 保持普通字体大小并复用绘制组件以避免闪烁；识别 Windows 隐藏属性。",
         "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "改善：以像素固定字体大小，保持锁定／恢复及 Tk 缩放变化后的倍率。",
@@ -657,6 +708,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        **{key: labels[2] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "추가: 열 머리글 메뉴와 보기 > 파일 열에서 표시, 정렬, 날짜/시간 형식을 설정하고 저장합니다.",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "수정: GB/TB 글꼴 크기를 유지하고 셀을 재사용해 깜박임을 방지하며 Windows 숨김 속성을 인식합니다.",
         "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "개선: 픽셀 글꼴 크기로 잠금/복귀 및 Tk 배율 변경 후 선택한 확대 비율을 유지합니다.",

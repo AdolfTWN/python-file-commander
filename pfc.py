@@ -16,6 +16,55 @@ LANGUAGES = (
 
 _language = "en"
 
+_MARKDOWN_READING_TRANSLATIONS = {
+    "Added: Read-only Markdown tasks, labeled callouts, section navigation and folding with complete search/copy.": ("新增：Markdown 唯讀待辦、標示提示框、章節導覽及折疊；搜尋與複製仍包含折疊內容。", "新增：Markdown 只读待办、带标签提示框、章节导航及折叠；搜索和复制仍包含折叠内容。", "추가: 읽기 전용 Markdown 작업, 레이블 콜아웃, 섹션 탐색/접기. 접힌 내용도 검색/복사에 포함."),
+    "Added: Exact local Markdown links and Back within a fixed folder boundary, without indexing or wider searches.": ("新增：固定資料夾範圍內的明確 Markdown 連結及返回，不建立索引或擴大搜尋。", "新增：固定文件夹范围内的明确 Markdown 链接及返回，不建立索引或扩大搜索。", "추가: 고정 폴더 범위의 정확한 로컬 Markdown 링크 및 뒤로. 인덱싱/확대 검색 없음."),
+    "Improved: Markdown reads and parsing use a cancellable, memory-limited worker with timeout and explicit source fallback.": ("改善：Markdown 讀取與解析改用可取消、限制記憶體的背景程序，支援逾時及明確原始文字備援。", "改进：Markdown 读取和解析使用可取消、限制内存的后台进程，支持超时和明确源码回退。", "개선: 취소 가능하고 메모리 제한이 있는 Markdown 작업 프로세스. 시간 초과 및 명시적 소스 대체 지원."),
+    "Fixed: Folded Unicode search crashes, link offset drift and clicks ignored during background refresh.": ("修正：折疊 Unicode 搜尋崩潰、連結位置偏移及背景更新時點擊被忽略。", "修复：折叠 Unicode 搜索崩溃、链接位置偏移及后台刷新时点击被忽略。", "수정: 접힌 Unicode 검색 충돌, 링크 위치 오차, 백그라운드 새로 고침 중 클릭 무시."),
+    "Fold": ("收合", "折叠", "접기"),
+    "Expand": ("展開", "展开", "펼치기"),
+    "Reading": ("閱讀", "阅读", "읽기"),
+    "Sections": ("章節", "章节", "섹션"),
+    "Expand all": ("全部展開", "全部展开", "모두 펼치기"),
+    "Choose a section first": ("請先選擇章節", "请先选择章节", "먼저 섹션을 선택하세요"),
+    "Loading Markdown…": ("正在讀取 Markdown…", "正在读取 Markdown…", "Markdown 읽는 중…"),
+    "Rendering Markdown…": ("正在繪製 Markdown…", "正在绘制 Markdown…", "Markdown 표시 중…"),
+    "Preview canceled; press F5 to retry": ("已取消預覽；按 F5 重試", "已取消预览；按 F5 重试", "미리 보기 취소됨. F5로 재시도"),
+    "Preview timed out; press F5 to retry": ("預覽逾時；按 F5 重試", "预览超时；按 F5 重试", "미리 보기 시간 초과. F5로 재시도"),
+    "Rendering limit reached; showing source text": ("已達轉譯限制，改顯示原始文字", "已达渲染限制，改为显示原始文本", "렌더링 한도 초과. 소스 텍스트 표시"),
+    "Memory protection unavailable; showing source text": ("無法啟用記憶體保護，改顯示原始文字", "无法启用内存保护，改为显示原始文本", "메모리 보호 불가. 소스 텍스트 표시"),
+    "Loaded portion only": ("僅涵蓋已載入部分", "仅涵盖已加载部分", "불러온 부분만 해당"),
+    "Showing the first 5,000 search matches": ("僅顯示前 5,000 個搜尋結果", "仅显示前 5,000 个搜索结果", "처음 5,000개 검색 결과만 표시"),
+    "More links: use Ctrl+click in text": ("其他連結：在內文按 Ctrl＋點擊", "其他链接：在正文按 Ctrl＋点击", "추가 링크: 본문에서 Ctrl+클릭"),
+    "Ctrl+click: ": ("Ctrl＋點擊：", "Ctrl＋点击：", "Ctrl+클릭: "),
+    "Link boundary: ": ("連結範圍：", "链接范围：", "링크 범위: "),
+    "Back to the previous Markdown document (Alt+Left)": ("返回上一份 Markdown 文件（Alt＋左鍵）", "返回上一份 Markdown 文档（Alt＋左键）", "이전 Markdown 문서로 돌아가기 (Alt+Left)"),
+    "Sections in this document only; no folder scan": ("僅列出本文件章節，不掃描資料夾", "仅列出本文档章节，不扫描文件夹", "현재 문서 섹션만 표시. 폴더 검사 없음"),
+    "Fold or expand the selected section; search and copy include its text": ("收合／展開選取章節；搜尋與複製仍包含隱藏文字", "折叠／展开所选章节；搜索和复制仍包含隐藏文本", "선택 섹션 접기/펼치기. 검색과 복사는 숨긴 텍스트 포함"),
+    "Completed / total tasks; read-only": ("已完成／全部待辦；唯讀，不會修改文件", "已完成／全部待办；只读，不会修改文档", "완료/전체 작업. 읽기 전용"),
+    "Multiple matching headings; choose a section": ("有多個相同標題，請在章節清單選擇", "有多个相同标题，请在章节列表选择", "일치하는 제목이 여러 개입니다. 섹션을 선택하세요"),
+    "Heading not found in loaded content": ("已載入內容中找不到標題", "已加载内容中找不到标题", "불러온 내용에서 제목을 찾을 수 없음"),
+    "Cross-document links are disabled inside archives": ("壓縮檔預覽不開放跨文件連結", "压缩文件预览不开放跨文档链接", "압축 파일에서는 문서 간 링크 사용 불가"),
+    "Archive preview: same-document anchors only": ("壓縮檔預覽：僅支援同文件章節連結", "压缩文件预览：仅支持同文档章节链接", "압축 미리 보기: 현재 문서 앵커만 지원"),
+    "Link leaves the preview folder boundary": ("連結超出預覽資料夾範圍", "链接超出预览文件夹范围", "링크가 미리 보기 폴더 범위를 벗어남"),
+    "Only local Markdown links are supported": ("僅支援本機 Markdown 連結", "仅支持本地 Markdown 链接", "로컬 Markdown 링크만 지원"),
+    "Only Markdown documents can be followed": ("只能開啟 Markdown 文件連結", "只能打开 Markdown 文档链接", "Markdown 문서 링크만 열 수 있음"),
+    "Absolute, network and device paths are not supported": ("不支援絕對、網路或裝置路徑", "不支持绝对、网络或设备路径", "절대/네트워크/장치 경로 미지원"),
+    "Device paths are not supported": ("不支援裝置路徑", "不支持设备路径", "장치 경로 미지원"),
+    "Invalid link destination": ("連結目的地無效", "链接目标无效", "잘못된 링크 대상"),
+    "Invalid link encoding": ("連結編碼無效", "链接编码无效", "잘못된 링크 인코딩"),
+    "Ambiguous path spelling": ("路徑拼寫有歧義", "路径拼写有歧义", "모호한 경로 표기"),
+    "Target is not a regular file": ("目的地不是一般檔案", "目标不是普通文件", "일반 파일이 아닌 대상"),
+    "Only fixed local drives are supported for linked preview": ("連結預覽僅支援本機固定磁碟", "链接预览仅支持本地固定磁盘", "링크 미리 보기는 로컬 고정 드라이브만 지원"),
+    "Cloud-only, linked or unknown reparse paths cannot be followed": ("無法跟隨雲端、捷徑或未支援的重新解析路徑；請手動選取文件預覽", "无法跟随云端、链接或未支持的重解析路径；请手动选择文档预览", "클라우드/연결/미지원 재분석 경로를 따를 수 없음. 문서를 직접 선택하세요"),
+    "Cannot verify the link target": ("無法驗證連結目的地", "无法验证链接目标", "링크 대상을 확인할 수 없음"),
+    "Link target changed during validation": ("驗證時連結目的地發生變更", "验证时链接目标发生变化", "확인 중 링크 대상이 변경됨"),
+    "Mounted paths are not supported for linked preview": ("連結預覽不支援跨掛載路徑", "链接预览不支持跨挂载路径", "링크 미리 보기에서 마운트 경계 통과 미지원"),
+    "Preview worker stopped": ("預覽背景程序已停止", "预览后台进程已停止", "미리 보기 작업 프로세스 중지됨"),
+    "Automatic refresh paused; use F5": ("自動更新已暫停；可按 F5 手動更新", "自动刷新已暂停；可按 F5 手动刷新", "자동 새로 고침 일시 중지. F5로 직접 새로 고침"),
+    "Preview worker could not accept the request": ("預覽背景程序無法接受要求", "预览后台进程无法接受请求", "미리 보기 작업 요청 실패"),
+}
+
 
 def set_language(code: str) -> None:
     global _language
@@ -64,6 +113,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        **{key: labels[0] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：欄位標題右鍵選單與「檢視 > 檔案欄位」統整顯示、排序及日期時間格式，並儲存偏好。",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 維持一般字體大小並重用繪製元件以避免閃爍；辨識 Windows 隱藏屬性。",
         "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "改善：以像素固定字體大小，保護鎖定／恢復及 Tk 縮放變動後的倍率。",
@@ -377,6 +427,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        **{key: labels[1] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：列标题右键菜单与“视图 > 文件列”整合显示、排序及日期时间格式，并保存偏好。",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 保持普通字体大小并复用绘制组件以避免闪烁；识别 Windows 隐藏属性。",
         "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "改善：以像素固定字体大小，保持锁定／恢复及 Tk 缩放变化后的倍率。",
@@ -663,6 +714,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        **{key: labels[2] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "추가: 열 머리글 메뉴와 보기 > 파일 열에서 표시, 정렬, 날짜/시간 형식을 설정하고 저장합니다.",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "수정: GB/TB 글꼴 크기를 유지하고 셀을 재사용해 깜박임을 방지하며 Windows 숨김 속성을 인식합니다.",
         "Improved: Pixel-sized fonts preserve selected zoom across lock/resume and changes in Tk scaling.": "개선: 픽셀 글꼴 크기로 잠금/복귀 및 Tk 배율 변경 후 선택한 확대 비율을 유지합니다.",
@@ -6900,6 +6952,292 @@ class CompareWindow(tk.Toplevel):
         widget.destroy()
 
 
+"""Exact Markdown destinations and conservative, non-searching local reads."""
+import os
+import re
+import stat
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
+
+
+def markdown_destination(document, boundary, href):
+    """Lexical only: never stat, enumerate, resolve symlinks or access a target."""
+    if len(href)>4096 or re.search(r'[\x00-\x20\x7f]', href):
+        raise ValueError('Invalid link destination')
+    if re.search(r'%(?![0-9a-fA-F]{2})',href):
+        raise ValueError('Invalid link encoding')
+    parsed=urlsplit(href)
+    if parsed.scheme or parsed.netloc or parsed.query:
+        raise ValueError('Only local Markdown links are supported')
+    name=unquote(parsed.path,errors='strict')
+    fragment=unquote(parsed.fragment,errors='strict')
+    if any(ord(c)<32 or ord(c)==127 for c in name+fragment):
+        raise ValueError('Invalid link destination')
+    if not name:
+        return Path(document),fragment
+    # Reject Windows forms on every platform, not just the developer's OS.
+    if name.startswith(('/', '\\')) or ':' in name or '\\' in name:
+        raise ValueError('Absolute, network and device paths are not supported')
+    if any(part.endswith((' ','.')) and part not in ('.','..') for part in name.split('/')):
+        raise ValueError('Ambiguous path spelling')
+    if any(re.match(r'(?i)^(con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)',part)
+           for part in name.split('/')):
+        raise ValueError('Device paths are not supported')
+    if Path(name).suffix.casefold()!='.md':
+        raise ValueError('Only Markdown documents can be followed')
+    root=Path(os.path.abspath(boundary))
+    target=Path(os.path.abspath(Path(document).parent/name))
+    try: target.relative_to(root)
+    except ValueError: raise ValueError('Link leaves the preview folder boundary') from None
+    return target,fragment
+
+
+def read_linked_markdown(path, boundary, limit):
+    """Read a regular file without following directory links or cloud recalls.
+
+    Unknown Windows reparse points are deliberately refused (including cloud
+    cases not yet proven safe). No Shell operations or directory enumeration.
+    Run only in an isolated preview worker, never on Tk's thread.
+    """
+    target=Path(os.path.abspath(path));root=Path(os.path.abspath(boundary))
+    try: target.relative_to(root)
+    except ValueError: raise ValueError('Link leaves the preview folder boundary') from None
+    if target.suffix.casefold()!='.md': raise ValueError('Only Markdown documents can be followed')
+    if os.name=='nt': return _read_windows_markdown(target,root,limit)
+    # Open each component relative to an already opened directory handle.
+    # Renaming/replacing a parent cannot redirect the subsequent open.
+    handles=[]
+    try:
+        fd=os.open(target.anchor,os.O_RDONLY|os.O_DIRECTORY);handles.append(fd)
+        device=os.fstat(fd).st_dev
+        for part in target.parts[1:-1]:
+            fd=os.open(part,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=fd)
+            handles.append(fd)
+            if os.fstat(fd).st_dev!=device:
+                raise ValueError('Mounted paths are not supported for linked preview')
+        fd=os.open(target.name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=fd)
+        handles.append(fd);info=os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode): raise ValueError('Target is not a regular file')
+        if info.st_dev!=device: raise ValueError('Mounted paths are not supported for linked preview')
+        chunks=[];remaining=limit+1
+        while remaining:
+            chunk=os.read(fd,min(remaining,65536))
+            if not chunk: break
+            chunks.append(chunk);remaining-=len(chunk)
+        return b''.join(chunks),(info.st_mtime_ns,info.st_size)
+    finally:
+        for fd in reversed(handles): os.close(fd)
+
+
+def _read_windows_markdown(target, root, limit):
+    import ctypes
+    import msvcrt
+    from ctypes import wintypes
+    kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+    kernel.GetDriveTypeW.argtypes=[wintypes.LPCWSTR]
+    if not target.drive or str(target).startswith('\\\\') or kernel.GetDriveTypeW(target.anchor)!=3:
+        raise ValueError('Only fixed local drives are supported for linked preview')
+    kernel.CreateFileW.argtypes=[wintypes.LPCWSTR,wintypes.DWORD,wintypes.DWORD,
+        ctypes.c_void_p,wintypes.DWORD,wintypes.DWORD,wintypes.HANDLE]
+    kernel.CreateFileW.restype=wintypes.HANDLE
+    kernel.CloseHandle.argtypes=[wintypes.HANDLE]
+    kernel.GetFileInformationByHandleEx.argtypes=[wintypes.HANDLE,ctypes.c_int,ctypes.c_void_p,wintypes.DWORD]
+    kernel.GetFinalPathNameByHandleW.argtypes=[wintypes.HANDLE,wintypes.LPWSTR,wintypes.DWORD,wintypes.DWORD]
+    class FileIdentity(ctypes.Structure):
+        _fields_=[('Attributes',wintypes.DWORD),('Created',wintypes.FILETIME),
+            ('Accessed',wintypes.FILETIME),('Written',wintypes.FILETIME),
+            ('Volume',wintypes.DWORD),('SizeHigh',wintypes.DWORD),('SizeLow',wintypes.DWORD),
+            ('Links',wintypes.DWORD),('IndexHigh',wintypes.DWORD),('IndexLow',wintypes.DWORD)]
+    kernel.GetFileInformationByHandle.argtypes=[wintypes.HANDLE,ctypes.POINTER(FileIdentity)]
+    def identity(handle):
+        info=FileIdentity()
+        if not kernel.GetFileInformationByHandle(handle,ctypes.byref(info)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        return info.Volume,info.IndexHigh,info.IndexLow
+    handles=[]
+    try:
+        for part in [*reversed(target.parents),target]:
+            final=part==target
+            # Deny delete sharing: each checked component stays in place until
+            # the read ends. OPEN_REPARSE_POINT + OPEN_NO_RECALL avoids following.
+            handle=kernel.CreateFileW(str(part),0x80,
+                1,None,3,0x02000000|0x00200000|0x00100000,None)
+            if handle==ctypes.c_void_p(-1).value: raise ctypes.WinError(ctypes.get_last_error())
+            handles.append(handle)
+            attrs=(wintypes.DWORD*2)()
+            if not kernel.GetFileInformationByHandleEx(handle,9,ctypes.byref(attrs),ctypes.sizeof(attrs)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            if attrs[0] & (0x400|0x1000|0x40000|0x400000):
+                raise ValueError('Cloud-only, linked or unknown reparse paths cannot be followed')
+            if final and attrs[0]&0x10: raise ValueError('Target is not a regular file')
+        buffer=ctypes.create_unicode_buffer(32768)
+        count=kernel.GetFinalPathNameByHandleW(handles[-1],buffer,len(buffer),0)
+        if not count or count>=len(buffer): raise ValueError('Cannot verify the link target')
+        actual=buffer.value
+        if actual.startswith('\\\\?\\'): actual=actual[4:]
+        if os.path.normcase(actual)!=os.path.normcase(str(target)):
+            raise ValueError('Link target changed during validation')
+        # Request data access only after every locked component passed metadata
+        # checks. Existing handles deny write/delete until this read finishes.
+        handle=kernel.CreateFileW(str(target),0x80000000,1,None,3,0x00200000|0x00100000,None)
+        if handle==ctypes.c_void_p(-1).value: raise ctypes.WinError(ctypes.get_last_error())
+        handles.append(handle)
+        # Validate the actual data handle as well, before reading any content.
+        attrs=(wintypes.DWORD*2)()
+        if not kernel.GetFileInformationByHandleEx(handle,9,ctypes.byref(attrs),ctypes.sizeof(attrs)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        if attrs[0] & (0x10|0x400|0x1000|0x40000|0x400000):
+            raise ValueError('Cloud-only, linked or unknown reparse paths cannot be followed')
+        count=kernel.GetFinalPathNameByHandleW(handle,buffer,len(buffer),0)
+        actual=buffer.value
+        if actual.startswith('\\\\?\\'): actual=actual[4:]
+        if not count or count>=len(buffer) or os.path.normcase(actual)!=os.path.normcase(str(target)):
+            raise ValueError('Link target changed during validation')
+        if identity(handles[-2])!=identity(handle):
+            raise ValueError('Link target changed during validation')
+        fd=msvcrt.open_osfhandle(handles[-1],os.O_RDONLY|os.O_BINARY);handles.pop()
+        with os.fdopen(fd,'rb') as stream:
+            info=os.fstat(stream.fileno())
+            return stream.read(limit+1),(info.st_mtime_ns,info.st_size)
+    finally:
+        for handle in reversed(handles): kernel.CloseHandle(handle)
+
+
+"""One isolated, persistent Markdown worker; no Tk calls in its reader thread."""
+import json
+import os
+from pathlib import Path
+import queue
+import subprocess
+import sys
+import threading
+import time
+
+
+def limit_markdown_worker_memory():
+    """Apply a 512 MiB OS limit to this private worker, never the GUI process.
+
+    If the platform/policy cannot enforce it, the caller uses bounded plain
+    source instead of the richer renderer. Not a general-purpose OS sandbox.
+    """
+    limit=512*1024*1024
+    try:
+        if os.name!='nt':
+            import resource
+            resource.setrlimit(resource.RLIMIT_AS,(limit,limit))
+            return True
+        import ctypes
+        from ctypes import wintypes
+        class Basic(ctypes.Structure):
+            _fields_=[('ProcessTime',ctypes.c_int64),('JobTime',ctypes.c_int64),
+                ('Flags',wintypes.DWORD),('MinWorking',ctypes.c_size_t),('MaxWorking',ctypes.c_size_t),
+                ('Active',wintypes.DWORD),('Affinity',ctypes.c_size_t),
+                ('Priority',wintypes.DWORD),('Scheduling',wintypes.DWORD)]
+        class Extended(ctypes.Structure):
+            _fields_=[('Basic',Basic),('IO',ctypes.c_uint64*6),('ProcessMemory',ctypes.c_size_t),
+                ('JobMemory',ctypes.c_size_t),('PeakProcess',ctypes.c_size_t),('PeakJob',ctypes.c_size_t)]
+        kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+        kernel.CreateJobObjectW.argtypes=[ctypes.c_void_p,wintypes.LPCWSTR]
+        kernel.CreateJobObjectW.restype=wintypes.HANDLE
+        kernel.SetInformationJobObject.argtypes=[wintypes.HANDLE,ctypes.c_int,ctypes.c_void_p,wintypes.DWORD]
+        kernel.AssignProcessToJobObject.argtypes=[wintypes.HANDLE,wintypes.HANDLE]
+        kernel.GetCurrentProcess.restype=wintypes.HANDLE
+        kernel.CloseHandle.argtypes=[wintypes.HANDLE]
+        job=kernel.CreateJobObjectW(None,None)
+        if not job:return False
+        info=Extended();info.Basic.Flags=0x100;info.ProcessMemory=limit
+        if not kernel.SetInformationJobObject(job,9,ctypes.byref(info),ctypes.sizeof(info)) or not kernel.AssignProcessToJobObject(job,kernel.GetCurrentProcess()):
+            kernel.CloseHandle(job);return False
+        # Retain the job handle until worker exit, when Windows closes it.
+        return True
+    except (OSError,ValueError,ImportError):
+        return False
+
+
+class MarkdownJobs:
+    def __init__(self, module_file, packaged):
+        self.module_file=module_file;self.packaged=packaged
+        self.process=None;self.results=queue.Queue();self.pending=None
+        self.serial=0;self.started=0;self.retiring=[]
+        self.outgoing=None
+
+    def _start(self):
+        if self.packaged:
+            code='from pycommander.preview import markdown_worker_main; markdown_worker_main()'
+            cwd=str(Path(self.module_file).parent.parent)
+            args=[sys.executable,'-c',code]
+        else:
+            code="import runpy,sys; n=runpy.run_path(sys.argv[1],run_name='pfc_md_worker'); n['markdown_worker_main']()"
+            cwd=str(Path(self.module_file).parent)
+            args=[sys.executable,'-c',code,str(self.module_file)]
+        self.process=subprocess.Popen(args,cwd=cwd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,creationflags=0x08000000 if os.name=='nt' else 0)
+        process=self.process;results=self.results
+        outgoing=queue.Queue(maxsize=1);self.outgoing=outgoing
+        def send():
+            try:
+                while True:
+                    request=outgoing.get()
+                    if request is None or process.poll() is not None: break
+                    process.stdin.write((json.dumps(request)+'\n').encode('utf-8'))
+                    process.stdin.flush()
+            except (OSError,ValueError):
+                results.put((process,{'error':'Preview worker could not accept the request'}))
+            finally:
+                process.stdin.close()
+        def receive():
+            try:
+                while True:
+                    raw=process.stdout.readline(64*1024*1024)
+                    if not raw: break
+                    if not raw.endswith(b'\n'): raise ValueError('Worker result too large')
+                    results.put((process,json.loads(raw)))
+            except (OSError,ValueError): pass
+            finally:
+                results.put((process,{'error':'Preview worker stopped'}))
+                process.stdout.close()
+                if process.poll() is None: process.kill()
+                try: outgoing.put_nowait(None)
+                except queue.Full: pass
+                process.wait()
+        threading.Thread(target=send,name='PFC-Markdown-requests',daemon=True).start()
+        threading.Thread(target=receive,name='PFC-Markdown-results',daemon=True).start()
+
+    def submit(self, request):
+        self.reap()
+        if self.pending or self.retiring: return False
+        if self.process is None or self.process.poll() is not None: self._start()
+        self.serial+=1;self.pending=self.serial;self.started=time.monotonic()
+        request=dict(request,id=self.serial)
+        self.outgoing.put_nowait(request)
+        return True
+
+    def poll(self):
+        self.reap()
+        while True:
+            try: process,result=self.results.get_nowait()
+            except queue.Empty: return None
+            if process is self.process and self.pending and result.get('id',self.pending)==self.pending:
+                self.pending=None
+                return result
+
+    def cancel(self):
+        self.pending=None
+        if self.process is not None:
+            process=self.process;self.process=None
+            if process.poll() is None: process.kill()
+            try: self.outgoing.put_nowait(None)
+            except queue.Full: pass
+            self.retiring.append(process)
+        self.reap()
+
+    def reap(self):
+        self.retiring[:]=[p for p in self.retiring if p.poll() is None]
+
+    def close(self):
+        self.cancel()
+
+
 """Lossless, dependency-free Markdown table/frontmatter structure for preview.
 
 This is a reader, not a YAML interpreter: property values (including nested or
@@ -7038,13 +7376,17 @@ def render_grid(rows, aligns=()):
 
 
 import io
+import json
 import keyword
+import os
 import re
+import time
 import tokenize
 import tkinter as tk
 import tkinter.font as tkfont
 from pathlib import Path
 from tkinter import ttk
+from urllib.parse import quote
 
 
 TEXT_EXTENSIONS = {
@@ -7140,17 +7482,21 @@ def syntax_spans(text: str, suffix: str) -> list[tuple[int, int, str]]:
     return spans
 
 
-def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
-    """Render common Markdown structure into readable Tk text and style spans."""
+def markdown_document(text: str):
+    """Render a bounded, read-only document model; no filesystem/link lookups."""
     output, spans, length = [], [], 0
+    headings, links, tasks = [], [], [0,0]
+    callout = None
 
     def append(value: str, tag: str | None = None) -> None:
         nonlocal length
         start = length; output.append(value); length += len(value)
         if tag and value: spans.append((start, start + len(value), tag))
+        if length>2*1024*1024 or len(spans)>20000:
+            raise ValueError('Markdown rendering limit reached')
 
     def inline(value: str) -> None:
-        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[[^\]]+\]\([^)]+\)|(?<!\*)\*[^*]+\*)")
+        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[\[#[^\]\n]+\]\]|\[[^\]\n]+\]\([^\n)]+\)|(?<!\*)\*[^*]+\*)")
         cursor = 0
         for match in pattern.finditer(value):
             append(value[cursor:match.start()])
@@ -7160,17 +7506,31 @@ def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
             elif token.startswith("`"):
                 append(token[1:-1], "markdown_code")
             elif token.startswith("["):
-                label, url = re.match(r"\[([^\]]+)\]\(([^)]+)\)", token).groups()
-                append(label, "markdown_link"); append(f" ({url})", "markdown_url")
+                if token.startswith('[['):
+                    label=token[3:-2];url='#'+quote(label,safe='')
+                else:
+                    label, url = re.match(r"\[([^\]]+)\]\(([^)]+)\)", token).groups()
+                start=length
+                append(label, "markdown_link")
+                # Images remain literal text, never embeds or clickable includes.
+                if not (match.start()>0 and value[match.start()-1]=='!'):
+                    if len(links)>=2000: raise ValueError('Markdown rendering limit reached')
+                    links.append({'start':start,'end':length,'href':url,'label':label})
+                append(f" ({url})", "markdown_url")
             else:
                 append(token[1:-1], "markdown_italic")
             cursor = match.end()
         append(value[cursor:])
 
     for kind, raw in markdown_blocks(text):
+        if length>2*1024*1024 or len(spans)>20000:
+            raise ValueError('Markdown rendering limit reached')
         if kind == 'properties':
+            start=length
             append(tr('Properties (read-only)')+'\n', 'markdown_h3')
+            body=length
             append(render_grid([[tr('Property'),tr('Value')]]+property_rows(raw)), 'markdown_table')
+            headings.append({'title':tr('Properties (read-only)'),'level':0,'start':start,'body':body,'end':length})
             continue
         if kind == 'table':
             rows, aligns = raw
@@ -7180,30 +7540,111 @@ def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
             for row in rows:
                 plain=[]
                 for value in row:
-                    start, old_length, old_spans = len(output), length, len(spans)
+                    start, old_length, old_spans, old_links = len(output), length, len(spans),len(links)
                     inline(re.sub(r'<br\s*/?>', '\n', value, flags=re.I))
                     plain.append(''.join(output[start:]))
-                    del output[start:]; del spans[old_spans:]; length=old_length
+                    del output[start:]; del spans[old_spans:];del links[old_links:]; length=old_length
                 plain_rows.append(plain)
             append(render_grid(plain_rows, aligns), 'markdown_table')
             continue
         if kind == 'code':
+            callout=None
             append(raw + "\n", "markdown_code")
             continue
         heading = re.match(r"^(#{1,6})\s+(.*)$", raw)
         if heading:
+            callout=None
             start = length; inline(heading.group(2)); append("\n")
             spans.append((start, length - 1,
                           f"markdown_h{min(3, len(heading.group(1)))}"))
+            if len(headings)>=2000: raise ValueError('Markdown rendering limit reached')
+            headings.append({'title':heading.group(2),'level':len(heading.group(1)),
+                             'start':start,'body':length})
+        elif re.match(r'^\s*[-*+]\s+\[([ xX])\]\s+',raw):
+            callout=None
+            match=re.match(r'^(\s*)[-*+]\s+\[([ xX])\]\s+(.*)',raw)
+            done=match.group(2).lower()=='x';tasks[0]+=int(done);tasks[1]+=1
+            start=length;append(match.group(1)+('☑ ' if done else '☐ '));inline(match.group(3));append('\n')
+            spans.append((start,length,'markdown_task_done' if done else 'markdown_task'))
         elif re.match(r"^\s*[-*+]\s+", raw):
+            callout=None
             append("• ", "markdown_bullet"); inline(re.sub(r"^\s*[-*+]\s+", "", raw)); append("\n")
         elif raw.startswith(">"):
-            append("│ ", "markdown_quote"); inline(raw[1:].lstrip()); append("\n")
+            value=raw[1:].lstrip();match=re.match(r'^\[!([\w-]+)\][+-]?(?:\s+(.*))?$',value)
+            start=length
+            if match:
+                name=match.group(1).lower();title=match.group(2) or name.title()
+                callout='warning' if name in ('warning','danger','error','failure','bug') else 'tip' if name in ('tip','success','done') else 'note'
+                append({'warning':'⚠ ','tip':'✓ ','note':'ℹ '}[callout]+name.upper()+' — ')
+                inline(title);append('\n')
+            else:
+                append('│ ');inline(value);append('\n')
+            spans.append((start,length,'markdown_callout_'+callout if callout else 'markdown_quote'))
         elif re.match(r"^\s*(?:---+|\*\*\*+)\s*$", raw):
             append("────────────────────────\n", "markdown_rule")
         else:
+            callout=None
             inline(raw); append("\n")
-    return "".join(output), spans
+    for index,item in enumerate(headings):
+        if 'end' not in item:
+            item['end']=next((h['start'] for h in headings[index+1:] if h['level']<=item['level']),length)
+    if length>2*1024*1024 or len(spans)>20000: raise ValueError('Markdown rendering limit reached')
+    return {'content':''.join(output),'spans':spans,'headings':headings,'links':links,'tasks':tasks}
+
+
+def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
+    model=markdown_document(text)
+    return model['content'],model['spans']
+
+
+def markdown_worker_main():
+    """Private JSON protocol; invoked in a dedicated, non-GUI subprocess."""
+    import sys
+    from_locale=globals().get('set_language')
+    if from_locale is None:
+        from .i18n import set_language as from_locale
+    memory_limited=limit_markdown_worker_memory()
+    for raw in sys.stdin.buffer:
+        request={}
+        try:
+            request=json.loads(raw);path=Path(request['path'])
+            from_locale(request.get('language','en'))
+            if request.get('action')=='stat':
+                if request.get('boundary'):
+                    _,signature=read_linked_markdown(path,request['boundary'],-1)
+                else:
+                    info=path.stat();signature=[info.st_mtime_ns,info.st_size]
+                result={'signature':signature}
+            else:
+                if request.get('boundary'):
+                    data,signature=read_linked_markdown(path,request['boundary'],TEXT_LIMIT)
+                else:
+                    with path.open('rb') as stream:
+                        info=os.fstat(stream.fileno())
+                        if not __import__('stat').S_ISREG(info.st_mode): raise ValueError('Target is not a regular file')
+                        signature=(info.st_mtime_ns,info.st_size);data=stream.read(TEXT_LIMIT+1)
+                truncated=len(data)>TEXT_LIMIT
+                source,encoding=decode_text(data[:TEXT_LIMIT]);notice=''
+                rendered=bool(request.get('rendered'))
+                if rendered:
+                    try:
+                        if not memory_limited: raise ValueError('Memory protection unavailable')
+                        if len(source)>512*1024: raise ValueError('Markdown rendering limit reached')
+                        result=markdown_document(source)
+                    except (ValueError,RecursionError,MemoryError):
+                        result={'content':source[:512*1024],'spans':[]};rendered=False
+                        truncated=truncated or len(source)>512*1024
+                        notice='Rendering limit reached; showing source text' if memory_limited else 'Memory protection unavailable; showing source text'
+                else:
+                    result={'content':source,'spans':syntax_spans(source,'.md')
+                            if request.get('highlight') and memory_limited and len(source)<=512*1024 else []}
+                result.update(signature=signature,encoding=encoding,truncated=truncated,
+                              rendered=rendered,notice=notice,size=signature[1])
+            result['id']=request['id']
+        except Exception as exc:
+            result={'id':request.get('id'),'error':str(exc),'error_type':type(exc).__name__}
+        sys.stdout.buffer.write((json.dumps(result,ensure_ascii=True)+'\n').encode('utf-8'))
+        sys.stdout.buffer.flush()
 
 
 def looks_text(path: Path, sample: bytes) -> bool:
@@ -7256,13 +7697,21 @@ class PreviewWindow(tk.Toplevel):
         self._refresh_job = None
         self._span_job = None
         self._pending_spans = []
+        self._md_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__))
+        self._md_request=None;self._md_queued=None;self._md_insert=None
+        self._md_model={};self._md_history=[];self._linked_path=None
+        self._md_boundary=Path(os.path.abspath(selected)).parent
+        self._md_folded=set();self._md_poll_job=None;self._md_last_probe=0
+        self._md_display_path=None;self._md_signature=None
+        self._md_auto_suspended=False
+        self.bind('<Destroy>',lambda e:self._md_jobs.close() if e.widget is self else None,add='+')
         self.title(tr("PFC Preview"))
         self.geometry(config.get("preview", "geometry", fallback="1100x720"))
         self.minsize(640, 400)
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.bind("<Escape>", lambda _event: self.close())
         self.bind("<Control-f>", lambda _event: self.focus_search())
-        self.bind("<Alt-Left>", lambda _event: self.previous_file())
+        self.bind("<Alt-Left>", lambda _event: self.markdown_back() if self._md_history else self.previous_file())
         self.bind("<Alt-Right>", lambda _event: self.next_file())
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
@@ -7294,6 +7743,25 @@ class PreviewWindow(tk.Toplevel):
         ttk.Button(find_actions, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
         ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
                         command=self.find_all).pack(side="left", padx=(8, 0))
+        self.md_tools=ttk.Frame(toolbar)
+        self.md_back=ttk.Button(self.md_tools,text='←',width=2,command=self.markdown_back)
+        self.md_outline=ttk.Combobox(self.md_tools,width=1,state='readonly')
+        self.md_outline.bind('<<ComboboxSelected>>',lambda e:self.markdown_heading())
+        self.md_fold=ttk.Button(self.md_tools,text=tr('Fold'),width=5,command=self.markdown_fold)
+        self.md_more=ttk.Menubutton(self.md_tools,text=tr('Reading'),width=7)
+        self.md_menu=tk.Menu(self.md_more,tearoff=False,font='TkMenuFont')
+        self.md_more.configure(menu=self.md_menu)
+        self.md_task_label=ttk.Label(self.md_tools)
+        self.md_cancel=ttk.Button(self.md_tools,text=tr('Cancel'),width=7,command=self.cancel_markdown)
+        self._md_tools_narrow=None
+        self.md_tools.columnconfigure(1,weight=1)
+        self.md_tools.bind('<Configure>',lambda e:self._layout_markdown_tools())
+        self._layout_markdown_tools()
+        ToolTip(self.md_back,lambda:tr('Back to the previous Markdown document (Alt+Left)'),delay=700)
+        ToolTip(self.md_outline,lambda:tr('Sections in this document only; no folder scan'),delay=700)
+        ToolTip(self.md_fold,lambda:tr('Fold or expand the selected section; search and copy include its text'),delay=700)
+        ToolTip(self.md_task_label,lambda:tr('Completed / total tasks; read-only'),delay=700)
+        ToolTip(self.md_more,self._markdown_boundary_label,delay=700)
 
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
         self.text = tk.Text(frame, wrap="word" if self.wrap_var.get() else "none", undo=False,
@@ -7305,13 +7773,273 @@ class PreviewWindow(tk.Toplevel):
         self.text.pack(side="left", fill="both", expand=True); vertical.pack(side="right", fill="y")
         self.text.tag_configure("match", background="#fff0a6")
         self.text.tag_configure("current_match", background="#ffb347")
+        self.text.bind('<Control-a>',self._copy_select_all)
+        self.text.bind('<<Copy>>',self._copy_preview)
+        self.text.bind('<Control-c>',self._copy_preview)
+        self.bind('<F5>',lambda e:self.load())
         self._configure_effect_fonts()
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self)
         self.load()
         self._schedule_refresh()
+        self._md_poll_job=self.after(40,self._poll_markdown)
         self.after_idle(self.activate)
+
+    def _markdown_mode(self):
+        return self.path.suffix.casefold()=='.md' and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
+
+    def _layout_markdown_tools(self):
+        fixed=(self.md_back,self.md_fold,self.md_more,self.md_task_label,self.md_cancel)
+        narrow=self.md_tools.winfo_width()<sum(w.winfo_reqwidth()+6 for w in fixed)+100
+        if narrow==self._md_tools_narrow:return
+        self._md_tools_narrow=narrow
+        self.md_back.grid(row=0,column=0,sticky='w')
+        self.md_outline.grid(row=0,column=1,sticky='ew',padx=3)
+        self.md_fold.grid(row=0,column=2,sticky='e')
+        self.md_more.grid(row=1 if narrow else 0,column=0 if narrow else 3,
+                          columnspan=2 if narrow else 1,sticky='w',padx=3)
+        self.md_task_label.grid(row=1 if narrow else 0,column=2 if narrow else 4,sticky='w',padx=4)
+        self.md_cancel.grid(row=1 if narrow else 0,column=3 if narrow else 5,sticky='e')
+
+    def _archive_markdown(self):
+        # Use the archive session already owned by Commander. No target lookup.
+        for session in getattr(self.master,'_archive_sessions',[]):
+            root=getattr(session,'root',None)
+            if root is not None:
+                try: Path(os.path.abspath(self.path)).relative_to(Path(os.path.abspath(root)));return True
+                except ValueError: pass
+        return any(part.startswith('pfc-archive-') for part in self.path.parts)
+
+    def _markdown_boundary_label(self):
+        if self._archive_markdown():return tr('Archive preview: same-document anchors only')
+        return tr('Link boundary: ')+str(self._md_boundary)
+
+    def _queue_markdown(self,path=None,*,navigation=False,fragment='',restore=None,probe=False,guarded=False):
+        if self._md_jobs.pending:
+            self._md_jobs.cancel()
+        self._md_insert=None
+        if self._span_job is not None:
+            self.after_cancel(self._span_job);self._span_job=None
+        path=Path(path or self.path)
+        request={'path':str(path),'action':'stat' if probe else 'load','language':get_language(),
+                 'highlight':self.extension_effect,
+                 'rendered':self.extension_effect and self.markdown_values.get(self.markdown_var.get())=='rendered'}
+        if navigation or probe or guarded or self._linked_path is not None:
+            request['boundary']=str(self._md_boundary)
+        context={'request':request,'navigation':navigation,'fragment':fragment,'restore':restore,
+                 'probe':probe,'view':self.text.yview()[0]}
+        self._md_request=None;self._md_queued=context
+        self._md_auto_suspended=False
+        self.md_tools.pack(fill='x',pady=(3,0))
+        self.markdown_frame.pack(side='left',padx=(4,0))
+        self.md_cancel.state(['!disabled'])
+        if not probe: self.status.configure(text=tr('Loading Markdown…'))
+
+    def cancel_markdown(self):
+        if self._md_insert:
+            self._md_model={};self._md_display_path=None
+            self.text.configure(state='normal');self.text.delete('1.0','end');self.text.configure(state='disabled')
+            self.md_outline.configure(values=[]);self.md_task_label.configure(text='')
+        self._md_jobs.cancel();self._md_request=None;self._md_queued=None;self._md_insert=None
+        self.md_cancel.state(['disabled'])
+        self.text.configure(state='disabled')
+        self.status.configure(text=tr('Preview canceled; press F5 to retry'))
+        self._md_last_probe=time.monotonic()
+        self._md_auto_suspended=True
+
+    def _poll_markdown(self):
+        self._md_poll_job=None
+        try:
+            self._md_jobs.reap()
+            if self._md_queued and not self._md_jobs.pending and not self._md_jobs.retiring:
+                context=self._md_queued
+                if self._md_jobs.submit(context['request']):
+                    self._md_request=context;self._md_queued=None
+            result=self._md_jobs.poll()
+            if result is not None and self._md_request is not None:
+                context=self._md_request;self._md_request=None
+                self.md_cancel.state(['disabled'])
+                if 'error' in result:
+                    self.status.configure(text=(tr('Automatic refresh paused; use F5') if context['probe']
+                        else tr('Cannot preview file'))+': '+tr(result['error']))
+                    self._md_last_probe=time.monotonic()
+                    self._md_auto_suspended=True
+                elif context['probe']:
+                    if result['signature']!=self._md_signature:
+                        self._queue_markdown(restore=self.text.yview()[0],guarded=True)
+                else:
+                    self._begin_markdown_result(result,context)
+            if self._md_jobs.pending and time.monotonic()-self._md_jobs.started>5:
+                self.cancel_markdown()
+                self.status.configure(text=tr('Preview timed out; press F5 to retry'))
+            if self._md_insert: self._insert_markdown_chunk()
+        except (OSError,ValueError) as exc:
+            self.cancel_markdown();self.status.configure(text=str(exc))
+        if self.winfo_exists(): self._md_poll_job=self.after(40,self._poll_markdown)
+
+    def _begin_markdown_result(self,result,context):
+        # Do not replace the old document until the worker has succeeded.
+        if context['navigation']:
+            self._md_history.append((str(self.path),context['view'],bool(self._linked_path)))
+            self._md_history=self._md_history[-20:]
+            self._linked_path=Path(context['request']['path'])
+        elif context.get('back'):
+            self._linked_path=Path(context['request']['path']) if context['back'][2] else None
+            self._md_history.pop()
+        self._md_display_path=Path(context['request']['path'])
+        self._md_signature=result['signature'];self._md_model=result;self._md_folded.clear()
+        self.text.configure(state='normal');self.text.delete('1.0','end')
+        for tag in self.text.tag_names():
+            if tag.startswith(('md_link_','md_fold_')): self.text.tag_delete(tag)
+        self.text.configure(state='disabled')
+        self._md_insert={'result':result,'context':context,'offset':0}
+        self.md_cancel.state(['!disabled'])
+        self.title(tr('PFC Preview')+' — '+self._md_display_path.name)
+        self.status.configure(text=tr('Rendering Markdown…'))
+
+    def _insert_markdown_chunk(self):
+        job=self._md_insert;result=job['result'];content=result['content'];offset=job['offset']
+        self.text.configure(state='normal')
+        self.text.insert('end',content[offset:offset+65536])
+        self.text.configure(state='disabled');job['offset']+=65536
+        if job['offset']<len(content): return
+        self._md_insert=None
+        self.md_cancel.state(['disabled'])
+        # Text's '+Nc' modifier counts Unicode characters, unlike Tcl string
+        # length / Text.count, which can count UTF-16 units. Keep Python offsets.
+        self._apply_spans(result['spans'])
+        for number,item in enumerate(result.get('links',[])):
+            tag=f'md_link_{number}'
+            self.text.tag_add(tag,f"1.0+{item['start']}c",f"1.0+{item['end']}c")
+            self.text.tag_bind(tag,'<Control-ButtonRelease-1>',lambda e,n=number:self.follow_markdown_link(n))
+            self.text.tag_bind(tag,'<Enter>',lambda e,v=item:self._describe_markdown_link(v))
+        headings=result.get('headings',[])
+        self.md_outline.configure(values=[('  '*max(0,h['level']-1))+h['title']+f'  [{i+1}]' for i,h in enumerate(headings)])
+        self.md_outline.set(tr('Sections')+(' *' if result.get('truncated') else ''))
+        self.md_outline.state(['!disabled'] if headings else ['disabled'])
+        self.md_fold.state(['!disabled'] if headings else ['disabled'])
+        self.md_back.state(['!disabled'] if self._md_history else ['disabled'])
+        self.md_menu.delete(0,'end')
+        self.md_menu.add_command(label=tr('Expand all'),command=self.markdown_expand_all)
+        self.md_menu.add_command(label=tr('Markdown Source') if result.get('rendered') else tr('Rendered'),
+                                 command=self.toggle_markdown_source,state='normal' if self.extension_effect else 'disabled')
+        self.md_menu.add_command(label=tr('Refresh')+'  F5',command=self.load)
+        self.md_menu.add_command(label=self._markdown_boundary_label(),state='disabled')
+        self.md_menu.add_separator()
+        for number,item in enumerate(result.get('links',[])[:100]):
+            self.md_menu.add_command(label=item['label'][:50]+' → '+item['href'][:70],
+                                     command=lambda n=number:self.follow_markdown_link(n))
+        if len(result.get('links',[]))>100:
+            self.md_menu.add_command(label=tr('More links: use Ctrl+click in text'),state='disabled')
+        done,total=result.get('tasks',(0,0))
+        self.md_task_label.configure(text=f'☑ {done}/{total}'+(' *' if result.get('truncated') else '') if total else '')
+        mode=tr('Markdown rendered') if result.get('rendered') else tr('Markdown Source')
+        detail=f"{mode}   {result['size']:,} bytes   {result['encoding']}"
+        if result.get('truncated'): detail+='   '+tr('Loaded portion only')
+        if result.get('notice'): detail+='   '+tr(result['notice'])
+        self.status.configure(text=detail)
+        self.find_all()
+        context=job['context']
+        if context['restore'] is not None: self.text.yview_moveto(context['restore'])
+        else: self.text.yview_moveto(0)
+        if context['fragment']: self._jump_markdown_fragment(context['fragment'])
+
+    def markdown_heading(self):
+        index=self.md_outline.current();headings=self._md_model.get('headings',[])
+        if 0<=index<len(headings):
+            self._expand_markdown_at(headings[index]['start'])
+            self.text.see(f"1.0+{headings[index]['start']}c")
+
+    def toggle_markdown_source(self):
+        target='source' if self._md_model.get('rendered') else 'rendered'
+        self.markdown_var.set(next(label for label,value in self.markdown_values.items() if value==target))
+        self.load()
+
+    def markdown_fold(self):
+        index=self.md_outline.current();headings=self._md_model.get('headings',[])
+        if not 0<=index<len(headings):
+            self.status.configure(text=tr('Choose a section first'));return
+        item=headings[index]
+        if index in self._md_folded: self._md_folded.remove(index)
+        else: self._md_folded.add(index)
+        self._update_markdown_folds()
+        self.text.see(f"1.0+{item['start']}c")
+
+    def markdown_expand_all(self):
+        self._md_folded.clear()
+        self._update_markdown_folds()
+
+    def _update_markdown_folds(self):
+        self.text.tag_remove('md_fold_hidden','1.0','end')
+        for index in self._md_folded:
+            item=self._md_model['headings'][index]
+            self.text.tag_add('md_fold_hidden',f"1.0+{item['body']}c",f"1.0+{item['end']}c")
+        self.text.tag_configure('md_fold_hidden',elide=True)
+        self.md_fold.configure(text=tr('Expand') if self.md_outline.current() in self._md_folded else tr('Fold'))
+
+    def _expand_markdown_at(self,offset):
+        for index in list(self._md_folded):
+            item=self._md_model['headings'][index]
+            if item['body']<=offset<item['end']:
+                self._md_folded.remove(index)
+        self._update_markdown_folds()
+
+    def _jump_markdown_fragment(self,fragment):
+        def slug(value): return re.sub(r'[^\w\s-]','',value.casefold()).strip().replace(' ','-')
+        matches=[i for i,h in enumerate(self._md_model.get('headings',[]))
+                 if h['title']==fragment or slug(h['title'])==fragment.casefold()]
+        if len(matches)==1:
+            self.md_outline.current(matches[0]);self.markdown_heading()
+        elif matches:
+            self.status.configure(text=tr('Multiple matching headings; choose a section'))
+            self.md_outline.focus_set()
+        else: self.status.configure(text=tr('Heading not found in loaded content'))
+
+    def follow_markdown_link(self,number):
+        loading=(self._md_request and not self._md_request['probe']) or (self._md_queued and not self._md_queued['probe'])
+        if (loading or self._md_insert
+                or self._md_display_path!=self.path): return 'break'
+        item=self._md_model.get('links',[])[number]
+        try: target,fragment=markdown_destination(self.path,self._md_boundary,item['href'])
+        except (ValueError,UnicodeError) as exc:
+            self.status.configure(text=tr(str(exc)));return 'break'
+        if target==self.path:
+            if fragment: self._jump_markdown_fragment(fragment)
+            else: self.text.yview_moveto(0)
+            return 'break'
+        if self._archive_markdown():
+            self.status.configure(text=tr('Cross-document links are disabled inside archives'));return 'break'
+        self._queue_markdown(target,navigation=True,fragment=fragment)
+        return 'break'
+
+    def _describe_markdown_link(self,item):
+        try:
+            target,fragment=markdown_destination(self.path,self._md_boundary,item['href'])
+            if self._archive_markdown():
+                if target!=self.path:
+                    self.status.configure(text=tr('Cross-document links are disabled inside archives'));return
+                label=target.name
+            else:label=str(target)
+            label+=('#'+fragment if fragment else '')
+            self.status.configure(text=tr('Ctrl+click: ')+label)
+        except (ValueError,UnicodeError) as exc:
+            self.status.configure(text=tr(str(exc))+': '+item['href'])
+
+    def markdown_back(self):
+        if not self._md_history: return 'break'
+        entry=self._md_history[-1]
+        self._queue_markdown(Path(entry[0]),restore=entry[1])
+        self._md_queued['back']=entry
+        return 'break'
+
+    def _copy_select_all(self,event=None):
+        self.text.tag_add('sel','1.0','end-1c');return 'break'
+
+    def _copy_preview(self,event=None):
+        try: value=self.text.get('sel.first','sel.last')
+        except tk.TclError: return 'break'
+        self.clipboard_clear();self.clipboard_append(value);return 'break'
 
     def apply_language(self, old_language: str) -> None:
         mode = self.mode_values.get(self.mode_var.get(), self.mode_var.get())
@@ -7343,6 +8071,7 @@ class PreviewWindow(tk.Toplevel):
     def apply_scale(self, _scale: float) -> None:
         self._configure_effect_fonts()
         self.apply_color_scheme(self.palette)
+        self.after_idle(self._layout_markdown_tools)
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -7373,6 +8102,11 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("markdown_quote", foreground=palette["muted"])
         self.text.tag_configure("markdown_bullet", foreground=colors["syntax_keyword"])
         self.text.tag_configure("markdown_rule", foreground=palette["border"])
+        self.text.tag_configure('markdown_task',foreground=palette['text'])
+        self.text.tag_configure('markdown_task_done',foreground=palette['muted'])
+        for kind,light,dark_color in (('note','#e6f1fc','#243d54'),('tip','#e5f4e8','#213e30'),('warning','#fff0d5','#544025')):
+            self.text.tag_configure('markdown_callout_'+kind,background=dark_color if dark else light,
+                                    foreground=palette['text'],lmargin1=8,lmargin2=8,spacing1=3,spacing3=3)
         self.text.tag_configure('markdown_table', font=tkfont.nametofont('TkFixedFont'),
                                 background=palette['surface_alt'], wrap='none', spacing1=0, spacing3=0)
         for level in (1, 2, 3):
@@ -7381,9 +8115,12 @@ class PreviewWindow(tk.Toplevel):
 
     @property
     def path(self) -> Path:
-        return self.files[self.index]
+        return self._linked_path if self._linked_path is not None else self.files[self.index]
 
     def show(self, files, selected) -> None:
+        self.cancel_markdown()
+        self._linked_path=None;self._md_history=[]
+        self._md_boundary=Path(os.path.abspath(selected)).parent
         self.files = list(files)
         self.index = self.files.index(selected) if selected in self.files else 0
         self.load(); self.activate()
@@ -7427,6 +8164,15 @@ class PreviewWindow(tk.Toplevel):
 
     def _auto_refresh(self) -> None:
         self._refresh_job = None
+        if self._markdown_mode():
+            if (not self._md_auto_suspended and not self._md_jobs.pending and not self._md_queued
+                    and not self._md_insert and self._md_display_path==self.path
+                    and time.monotonic()-self._md_last_probe>5 and self.focus_displayof() is not None
+                    and self.focus_displayof().winfo_toplevel() is self
+                    and not self.text.tag_ranges('sel')):
+                self._md_last_probe=time.monotonic();self._queue_markdown(probe=True)
+            if self.winfo_exists(): self._schedule_refresh()
+            return
         signature = self._path_signature()
         if signature != self._signature:
             self.load()
@@ -7434,6 +8180,12 @@ class PreviewWindow(tk.Toplevel):
 
     def load(self) -> None:
         path = self.path
+        if self._markdown_mode():
+            self._queue_markdown();return
+        if self._md_jobs.pending or self._md_queued: self.cancel_markdown()
+        self._md_model={};self._md_insert=None;self.md_tools.pack_forget()
+        for tag in self.text.tag_names():
+            if tag.startswith(('md_fold_','md_link_')): self.text.tag_delete(tag)
         if self._span_job is not None:
             self.after_cancel(self._span_job); self._span_job = None
         self._pending_spans = []
@@ -7500,35 +8252,63 @@ class PreviewWindow(tk.Toplevel):
         self.matches, self.match_index = [], -1
         needle = self.search_var.get()
         if not needle: return
-        start = "1.0"
-        while True:
-            found = self.text.search(needle, start, stopindex="end", nocase=not self.case_var.get())
-            if not found: break
-            end = f"{found}+{len(needle)}c"; self.matches.append((found, end))
-            self.text.tag_add("match", found, end); start = end
+        # Tk 8.6 Text.search can crash on folded text containing astral Unicode.
+        # Search the complete visible document model (including folded content)
+        # in Python, then use Text's Unicode-character index modifiers.
+        content=self.text.get('1.0','end-1c')
+        from bisect import bisect_right
+        lines=_line_offsets(content)
+        def text_index(offset):
+            line=bisect_right(lines,offset)-1
+            return self.text.index(f'{line+1}.0+{offset-lines[line]}c')
+        flags=0 if self.case_var.get() else re.IGNORECASE
+        for match in re.finditer(re.escape(needle),content,flags):
+            a,b=match.span()
+            found,end=text_index(a),text_index(b)
+            self.matches.append((found,end));self.text.tag_add('match',found,end)
+            if len(self.matches)>=5000:
+                self.status.configure(text=tr('Showing the first 5,000 search matches'));break
 
     def _find(self, direction: int) -> str:
         previous_index = self.match_index
         self.find_all()
         if not self.matches:
-            self.status.configure(text=f"{tr('No matches')}   {self.path}"); return "break"
+            detail=f"{tr('No matches')}   {self.path}"
+            if self._md_model.get('truncated'):detail+='   '+tr('Loaded portion only')
+            self.status.configure(text=detail); return "break"
         self.match_index = (previous_index + direction) % len(self.matches)
         start, end = self.matches[self.match_index]
+        offset=len(self.text.get('1.0',start))
+        self._expand_markdown_at(offset)
         self.text.tag_remove("current_match", "1.0", "end")
         self.text.tag_add("current_match", start, end); self.text.see(start)
         self.status.configure(text=f"{tr('Match {current} of {total}', current=self.match_index + 1, total=len(self.matches))}   {self.path}")
+        if len(self.matches)>=5000 or self._md_model.get('truncated'):
+            notices=[]
+            if len(self.matches)>=5000:notices.append(tr('Showing the first 5,000 search matches'))
+            if self._md_model.get('truncated'):notices.append(tr('Loaded portion only'))
+            self.status.configure(text=self.status.cget('text')+'   '+'; '.join(notices))
         return "break"
 
     def find_next(self) -> str: return self._find(1)
     def find_previous(self) -> str: return self._find(-1)
 
     def previous_file(self) -> None:
-        if self.files: self.index = (self.index - 1) % len(self.files); self.load()
+        if self.files:
+            self._linked_path=None;self._md_history=[]
+            self.index = (self.index - 1) % len(self.files)
+            self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
 
     def next_file(self) -> None:
-        if self.files: self.index = (self.index + 1) % len(self.files); self.load()
+        if self.files:
+            self._linked_path=None;self._md_history=[]
+            self.index = (self.index + 1) % len(self.files)
+            self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
 
     def close(self) -> None:
+        self._md_jobs.close()
+        if self._md_poll_job is not None:
+            self.after_cancel(self._md_poll_job);self._md_poll_job=None
         if self._refresh_job is not None:
             self.after_cancel(self._refresh_job); self._refresh_job = None
         if self._span_job is not None:
@@ -9744,7 +10524,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.18"
+__version__ = "0.17.19"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -9829,6 +10609,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/19"
 VERSION_HISTORY = (
+    ("v0.17.19", "2026/09/19", (
+        "Added: Read-only Markdown tasks, labeled callouts, section navigation and folding with complete search/copy.",
+        "Added: Exact local Markdown links and Back within a fixed folder boundary, without indexing or wider searches.",
+        "Improved: Markdown reads and parsing use a cancellable, memory-limited worker with timeout and explicit source fallback.",
+        "Fixed: Folded Unicode search crashes, link offset drift and clicks ignored during background refresh.",
+    )),
     ("v0.17.18", "2026/09/19", (
         "Fixed: Nested column menus reopen reliably and support one-level-at-a-time keyboard navigation.",
         "Improved: Simpler column menus, a saved Git/SVN overlay switch and clearer OneDrive availability explanations.",

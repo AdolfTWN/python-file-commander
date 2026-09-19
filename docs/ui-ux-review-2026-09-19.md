@@ -82,6 +82,11 @@ glyphs, no extra heavy top/left bars. This is a proposal, not a selected design.
 
 ### Obsidian candidates — research only
 
+Update: the user subsequently authorized Markdown-only implementation. Tasks,
+callouts, bounded exact-path/heading links and folding now ship in v0.17.19;
+see [the reading guide](markdown-preview-guide.md) for the narrower implemented
+scope. The table below records the original research recommendation.
+
 | Priority | Candidate | Value and boundary |
 | --- | --- | --- |
 | Next | Read-only task lists and callouts | Useful scanning without an editor or background index |

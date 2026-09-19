@@ -1,5 +1,25 @@
 # PFC follow-ups
 
+## Markdown reading expansion — v0.17.19
+
+- [x] Document risks and scope in [the safety plan](markdown-preview-safety-plan.md).
+- [x] User subsequently authorized implementation within a two-hour work window.
+- [x] Move Markdown read/parse/probe to one isolated worker: cancel, five-second
+  deadline, stale-result rejection, 512 MiB OS memory limit, bounded output and
+  chunked insertion. Rich rendering falls back to labeled source when limited.
+- [x] Exact local Markdown paths within a fixed boundary; zero link indexing,
+  search, hover I/O or prefetch. In-memory Back, no source writes.
+- [x] Read-only tasks and expanded labeled callouts; heading/property navigation
+  and folding. Search and Copy include folded content. Unicode offsets tested.
+- [x] Linux source/portable and Windows portable GUI checks; Windows pythonw,
+  junction/offline-attribute rejection, cancellation/timeout and ZIP boundaries.
+- [ ] **Cloud links** — Intentionally refuse all Windows reparse-linked paths,
+  including resident OneDrive cases, until a provider-specific no-recall path is
+  authorized and validated. This does not prevent explicit manual F3 preview.
+- [ ] **Deferred, not automatic fallbacks** — Vault/basename wikilinks, backlink
+  graphs, scoped search, embedded media, Mermaid/math, plugins and executable
+  queries. No whole-drive index is introduced.
+
 ## Requested UI / UX backlog — 2026-09-19
 
 Implementation and research authorized by “進行Todo 項目”. Results and boundaries

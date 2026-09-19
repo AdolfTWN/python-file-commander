@@ -1,17 +1,23 @@
 from __future__ import annotations
 
 import io
+import json
 import keyword
+import os
 import re
+import time
 import tokenize
 import tkinter as tk
 import tkinter.font as tkfont
 from pathlib import Path
 from tkinter import ttk
-from .tooltip import install_button_tooltips
-from .i18n import retranslate_widgets, tr
+from urllib.parse import quote
+from .tooltip import install_button_tooltips, ToolTip
+from .i18n import retranslate_widgets, tr, get_language
 from .tabs import color_scheme
 from .markdownblocks import markdown_blocks, property_rows, render_grid
+from .mdlinks import markdown_destination, read_linked_markdown
+from .mdjobs import MarkdownJobs, limit_markdown_worker_memory
 
 
 TEXT_EXTENSIONS = {
@@ -107,17 +113,21 @@ def syntax_spans(text: str, suffix: str) -> list[tuple[int, int, str]]:
     return spans
 
 
-def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
-    """Render common Markdown structure into readable Tk text and style spans."""
+def markdown_document(text: str):
+    """Render a bounded, read-only document model; no filesystem/link lookups."""
     output, spans, length = [], [], 0
+    headings, links, tasks = [], [], [0,0]
+    callout = None
 
     def append(value: str, tag: str | None = None) -> None:
         nonlocal length
         start = length; output.append(value); length += len(value)
         if tag and value: spans.append((start, start + len(value), tag))
+        if length>2*1024*1024 or len(spans)>20000:
+            raise ValueError('Markdown rendering limit reached')
 
     def inline(value: str) -> None:
-        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[[^\]]+\]\([^)]+\)|(?<!\*)\*[^*]+\*)")
+        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[\[#[^\]\n]+\]\]|\[[^\]\n]+\]\([^\n)]+\)|(?<!\*)\*[^*]+\*)")
         cursor = 0
         for match in pattern.finditer(value):
             append(value[cursor:match.start()])
@@ -127,17 +137,31 @@ def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
             elif token.startswith("`"):
                 append(token[1:-1], "markdown_code")
             elif token.startswith("["):
-                label, url = re.match(r"\[([^\]]+)\]\(([^)]+)\)", token).groups()
-                append(label, "markdown_link"); append(f" ({url})", "markdown_url")
+                if token.startswith('[['):
+                    label=token[3:-2];url='#'+quote(label,safe='')
+                else:
+                    label, url = re.match(r"\[([^\]]+)\]\(([^)]+)\)", token).groups()
+                start=length
+                append(label, "markdown_link")
+                # Images remain literal text, never embeds or clickable includes.
+                if not (match.start()>0 and value[match.start()-1]=='!'):
+                    if len(links)>=2000: raise ValueError('Markdown rendering limit reached')
+                    links.append({'start':start,'end':length,'href':url,'label':label})
+                append(f" ({url})", "markdown_url")
             else:
                 append(token[1:-1], "markdown_italic")
             cursor = match.end()
         append(value[cursor:])
 
     for kind, raw in markdown_blocks(text):
+        if length>2*1024*1024 or len(spans)>20000:
+            raise ValueError('Markdown rendering limit reached')
         if kind == 'properties':
+            start=length
             append(tr('Properties (read-only)')+'\n', 'markdown_h3')
+            body=length
             append(render_grid([[tr('Property'),tr('Value')]]+property_rows(raw)), 'markdown_table')
+            headings.append({'title':tr('Properties (read-only)'),'level':0,'start':start,'body':body,'end':length})
             continue
         if kind == 'table':
             rows, aligns = raw
@@ -147,30 +171,111 @@ def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
             for row in rows:
                 plain=[]
                 for value in row:
-                    start, old_length, old_spans = len(output), length, len(spans)
+                    start, old_length, old_spans, old_links = len(output), length, len(spans),len(links)
                     inline(re.sub(r'<br\s*/?>', '\n', value, flags=re.I))
                     plain.append(''.join(output[start:]))
-                    del output[start:]; del spans[old_spans:]; length=old_length
+                    del output[start:]; del spans[old_spans:];del links[old_links:]; length=old_length
                 plain_rows.append(plain)
             append(render_grid(plain_rows, aligns), 'markdown_table')
             continue
         if kind == 'code':
+            callout=None
             append(raw + "\n", "markdown_code")
             continue
         heading = re.match(r"^(#{1,6})\s+(.*)$", raw)
         if heading:
+            callout=None
             start = length; inline(heading.group(2)); append("\n")
             spans.append((start, length - 1,
                           f"markdown_h{min(3, len(heading.group(1)))}"))
+            if len(headings)>=2000: raise ValueError('Markdown rendering limit reached')
+            headings.append({'title':heading.group(2),'level':len(heading.group(1)),
+                             'start':start,'body':length})
+        elif re.match(r'^\s*[-*+]\s+\[([ xX])\]\s+',raw):
+            callout=None
+            match=re.match(r'^(\s*)[-*+]\s+\[([ xX])\]\s+(.*)',raw)
+            done=match.group(2).lower()=='x';tasks[0]+=int(done);tasks[1]+=1
+            start=length;append(match.group(1)+('☑ ' if done else '☐ '));inline(match.group(3));append('\n')
+            spans.append((start,length,'markdown_task_done' if done else 'markdown_task'))
         elif re.match(r"^\s*[-*+]\s+", raw):
+            callout=None
             append("• ", "markdown_bullet"); inline(re.sub(r"^\s*[-*+]\s+", "", raw)); append("\n")
         elif raw.startswith(">"):
-            append("│ ", "markdown_quote"); inline(raw[1:].lstrip()); append("\n")
+            value=raw[1:].lstrip();match=re.match(r'^\[!([\w-]+)\][+-]?(?:\s+(.*))?$',value)
+            start=length
+            if match:
+                name=match.group(1).lower();title=match.group(2) or name.title()
+                callout='warning' if name in ('warning','danger','error','failure','bug') else 'tip' if name in ('tip','success','done') else 'note'
+                append({'warning':'⚠ ','tip':'✓ ','note':'ℹ '}[callout]+name.upper()+' — ')
+                inline(title);append('\n')
+            else:
+                append('│ ');inline(value);append('\n')
+            spans.append((start,length,'markdown_callout_'+callout if callout else 'markdown_quote'))
         elif re.match(r"^\s*(?:---+|\*\*\*+)\s*$", raw):
             append("────────────────────────\n", "markdown_rule")
         else:
+            callout=None
             inline(raw); append("\n")
-    return "".join(output), spans
+    for index,item in enumerate(headings):
+        if 'end' not in item:
+            item['end']=next((h['start'] for h in headings[index+1:] if h['level']<=item['level']),length)
+    if length>2*1024*1024 or len(spans)>20000: raise ValueError('Markdown rendering limit reached')
+    return {'content':''.join(output),'spans':spans,'headings':headings,'links':links,'tasks':tasks}
+
+
+def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
+    model=markdown_document(text)
+    return model['content'],model['spans']
+
+
+def markdown_worker_main():
+    """Private JSON protocol; invoked in a dedicated, non-GUI subprocess."""
+    import sys
+    from_locale=globals().get('set_language')
+    if from_locale is None:
+        from .i18n import set_language as from_locale
+    memory_limited=limit_markdown_worker_memory()
+    for raw in sys.stdin.buffer:
+        request={}
+        try:
+            request=json.loads(raw);path=Path(request['path'])
+            from_locale(request.get('language','en'))
+            if request.get('action')=='stat':
+                if request.get('boundary'):
+                    _,signature=read_linked_markdown(path,request['boundary'],-1)
+                else:
+                    info=path.stat();signature=[info.st_mtime_ns,info.st_size]
+                result={'signature':signature}
+            else:
+                if request.get('boundary'):
+                    data,signature=read_linked_markdown(path,request['boundary'],TEXT_LIMIT)
+                else:
+                    with path.open('rb') as stream:
+                        info=os.fstat(stream.fileno())
+                        if not __import__('stat').S_ISREG(info.st_mode): raise ValueError('Target is not a regular file')
+                        signature=(info.st_mtime_ns,info.st_size);data=stream.read(TEXT_LIMIT+1)
+                truncated=len(data)>TEXT_LIMIT
+                source,encoding=decode_text(data[:TEXT_LIMIT]);notice=''
+                rendered=bool(request.get('rendered'))
+                if rendered:
+                    try:
+                        if not memory_limited: raise ValueError('Memory protection unavailable')
+                        if len(source)>512*1024: raise ValueError('Markdown rendering limit reached')
+                        result=markdown_document(source)
+                    except (ValueError,RecursionError,MemoryError):
+                        result={'content':source[:512*1024],'spans':[]};rendered=False
+                        truncated=truncated or len(source)>512*1024
+                        notice='Rendering limit reached; showing source text' if memory_limited else 'Memory protection unavailable; showing source text'
+                else:
+                    result={'content':source,'spans':syntax_spans(source,'.md')
+                            if request.get('highlight') and memory_limited and len(source)<=512*1024 else []}
+                result.update(signature=signature,encoding=encoding,truncated=truncated,
+                              rendered=rendered,notice=notice,size=signature[1])
+            result['id']=request['id']
+        except Exception as exc:
+            result={'id':request.get('id'),'error':str(exc),'error_type':type(exc).__name__}
+        sys.stdout.buffer.write((json.dumps(result,ensure_ascii=True)+'\n').encode('utf-8'))
+        sys.stdout.buffer.flush()
 
 
 def looks_text(path: Path, sample: bytes) -> bool:
@@ -223,13 +328,21 @@ class PreviewWindow(tk.Toplevel):
         self._refresh_job = None
         self._span_job = None
         self._pending_spans = []
+        self._md_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__))
+        self._md_request=None;self._md_queued=None;self._md_insert=None
+        self._md_model={};self._md_history=[];self._linked_path=None
+        self._md_boundary=Path(os.path.abspath(selected)).parent
+        self._md_folded=set();self._md_poll_job=None;self._md_last_probe=0
+        self._md_display_path=None;self._md_signature=None
+        self._md_auto_suspended=False
+        self.bind('<Destroy>',lambda e:self._md_jobs.close() if e.widget is self else None,add='+')
         self.title(tr("PFC Preview"))
         self.geometry(config.get("preview", "geometry", fallback="1100x720"))
         self.minsize(640, 400)
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.bind("<Escape>", lambda _event: self.close())
         self.bind("<Control-f>", lambda _event: self.focus_search())
-        self.bind("<Alt-Left>", lambda _event: self.previous_file())
+        self.bind("<Alt-Left>", lambda _event: self.markdown_back() if self._md_history else self.previous_file())
         self.bind("<Alt-Right>", lambda _event: self.next_file())
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
@@ -261,6 +374,25 @@ class PreviewWindow(tk.Toplevel):
         ttk.Button(find_actions, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
         ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
                         command=self.find_all).pack(side="left", padx=(8, 0))
+        self.md_tools=ttk.Frame(toolbar)
+        self.md_back=ttk.Button(self.md_tools,text='←',width=2,command=self.markdown_back)
+        self.md_outline=ttk.Combobox(self.md_tools,width=1,state='readonly')
+        self.md_outline.bind('<<ComboboxSelected>>',lambda e:self.markdown_heading())
+        self.md_fold=ttk.Button(self.md_tools,text=tr('Fold'),width=5,command=self.markdown_fold)
+        self.md_more=ttk.Menubutton(self.md_tools,text=tr('Reading'),width=7)
+        self.md_menu=tk.Menu(self.md_more,tearoff=False,font='TkMenuFont')
+        self.md_more.configure(menu=self.md_menu)
+        self.md_task_label=ttk.Label(self.md_tools)
+        self.md_cancel=ttk.Button(self.md_tools,text=tr('Cancel'),width=7,command=self.cancel_markdown)
+        self._md_tools_narrow=None
+        self.md_tools.columnconfigure(1,weight=1)
+        self.md_tools.bind('<Configure>',lambda e:self._layout_markdown_tools())
+        self._layout_markdown_tools()
+        ToolTip(self.md_back,lambda:tr('Back to the previous Markdown document (Alt+Left)'),delay=700)
+        ToolTip(self.md_outline,lambda:tr('Sections in this document only; no folder scan'),delay=700)
+        ToolTip(self.md_fold,lambda:tr('Fold or expand the selected section; search and copy include its text'),delay=700)
+        ToolTip(self.md_task_label,lambda:tr('Completed / total tasks; read-only'),delay=700)
+        ToolTip(self.md_more,self._markdown_boundary_label,delay=700)
 
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
         self.text = tk.Text(frame, wrap="word" if self.wrap_var.get() else "none", undo=False,
@@ -272,13 +404,273 @@ class PreviewWindow(tk.Toplevel):
         self.text.pack(side="left", fill="both", expand=True); vertical.pack(side="right", fill="y")
         self.text.tag_configure("match", background="#fff0a6")
         self.text.tag_configure("current_match", background="#ffb347")
+        self.text.bind('<Control-a>',self._copy_select_all)
+        self.text.bind('<<Copy>>',self._copy_preview)
+        self.text.bind('<Control-c>',self._copy_preview)
+        self.bind('<F5>',lambda e:self.load())
         self._configure_effect_fonts()
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self)
         self.load()
         self._schedule_refresh()
+        self._md_poll_job=self.after(40,self._poll_markdown)
         self.after_idle(self.activate)
+
+    def _markdown_mode(self):
+        return self.path.suffix.casefold()=='.md' and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
+
+    def _layout_markdown_tools(self):
+        fixed=(self.md_back,self.md_fold,self.md_more,self.md_task_label,self.md_cancel)
+        narrow=self.md_tools.winfo_width()<sum(w.winfo_reqwidth()+6 for w in fixed)+100
+        if narrow==self._md_tools_narrow:return
+        self._md_tools_narrow=narrow
+        self.md_back.grid(row=0,column=0,sticky='w')
+        self.md_outline.grid(row=0,column=1,sticky='ew',padx=3)
+        self.md_fold.grid(row=0,column=2,sticky='e')
+        self.md_more.grid(row=1 if narrow else 0,column=0 if narrow else 3,
+                          columnspan=2 if narrow else 1,sticky='w',padx=3)
+        self.md_task_label.grid(row=1 if narrow else 0,column=2 if narrow else 4,sticky='w',padx=4)
+        self.md_cancel.grid(row=1 if narrow else 0,column=3 if narrow else 5,sticky='e')
+
+    def _archive_markdown(self):
+        # Use the archive session already owned by Commander. No target lookup.
+        for session in getattr(self.master,'_archive_sessions',[]):
+            root=getattr(session,'root',None)
+            if root is not None:
+                try: Path(os.path.abspath(self.path)).relative_to(Path(os.path.abspath(root)));return True
+                except ValueError: pass
+        return any(part.startswith('pfc-archive-') for part in self.path.parts)
+
+    def _markdown_boundary_label(self):
+        if self._archive_markdown():return tr('Archive preview: same-document anchors only')
+        return tr('Link boundary: ')+str(self._md_boundary)
+
+    def _queue_markdown(self,path=None,*,navigation=False,fragment='',restore=None,probe=False,guarded=False):
+        if self._md_jobs.pending:
+            self._md_jobs.cancel()
+        self._md_insert=None
+        if self._span_job is not None:
+            self.after_cancel(self._span_job);self._span_job=None
+        path=Path(path or self.path)
+        request={'path':str(path),'action':'stat' if probe else 'load','language':get_language(),
+                 'highlight':self.extension_effect,
+                 'rendered':self.extension_effect and self.markdown_values.get(self.markdown_var.get())=='rendered'}
+        if navigation or probe or guarded or self._linked_path is not None:
+            request['boundary']=str(self._md_boundary)
+        context={'request':request,'navigation':navigation,'fragment':fragment,'restore':restore,
+                 'probe':probe,'view':self.text.yview()[0]}
+        self._md_request=None;self._md_queued=context
+        self._md_auto_suspended=False
+        self.md_tools.pack(fill='x',pady=(3,0))
+        self.markdown_frame.pack(side='left',padx=(4,0))
+        self.md_cancel.state(['!disabled'])
+        if not probe: self.status.configure(text=tr('Loading Markdown…'))
+
+    def cancel_markdown(self):
+        if self._md_insert:
+            self._md_model={};self._md_display_path=None
+            self.text.configure(state='normal');self.text.delete('1.0','end');self.text.configure(state='disabled')
+            self.md_outline.configure(values=[]);self.md_task_label.configure(text='')
+        self._md_jobs.cancel();self._md_request=None;self._md_queued=None;self._md_insert=None
+        self.md_cancel.state(['disabled'])
+        self.text.configure(state='disabled')
+        self.status.configure(text=tr('Preview canceled; press F5 to retry'))
+        self._md_last_probe=time.monotonic()
+        self._md_auto_suspended=True
+
+    def _poll_markdown(self):
+        self._md_poll_job=None
+        try:
+            self._md_jobs.reap()
+            if self._md_queued and not self._md_jobs.pending and not self._md_jobs.retiring:
+                context=self._md_queued
+                if self._md_jobs.submit(context['request']):
+                    self._md_request=context;self._md_queued=None
+            result=self._md_jobs.poll()
+            if result is not None and self._md_request is not None:
+                context=self._md_request;self._md_request=None
+                self.md_cancel.state(['disabled'])
+                if 'error' in result:
+                    self.status.configure(text=(tr('Automatic refresh paused; use F5') if context['probe']
+                        else tr('Cannot preview file'))+': '+tr(result['error']))
+                    self._md_last_probe=time.monotonic()
+                    self._md_auto_suspended=True
+                elif context['probe']:
+                    if result['signature']!=self._md_signature:
+                        self._queue_markdown(restore=self.text.yview()[0],guarded=True)
+                else:
+                    self._begin_markdown_result(result,context)
+            if self._md_jobs.pending and time.monotonic()-self._md_jobs.started>5:
+                self.cancel_markdown()
+                self.status.configure(text=tr('Preview timed out; press F5 to retry'))
+            if self._md_insert: self._insert_markdown_chunk()
+        except (OSError,ValueError) as exc:
+            self.cancel_markdown();self.status.configure(text=str(exc))
+        if self.winfo_exists(): self._md_poll_job=self.after(40,self._poll_markdown)
+
+    def _begin_markdown_result(self,result,context):
+        # Do not replace the old document until the worker has succeeded.
+        if context['navigation']:
+            self._md_history.append((str(self.path),context['view'],bool(self._linked_path)))
+            self._md_history=self._md_history[-20:]
+            self._linked_path=Path(context['request']['path'])
+        elif context.get('back'):
+            self._linked_path=Path(context['request']['path']) if context['back'][2] else None
+            self._md_history.pop()
+        self._md_display_path=Path(context['request']['path'])
+        self._md_signature=result['signature'];self._md_model=result;self._md_folded.clear()
+        self.text.configure(state='normal');self.text.delete('1.0','end')
+        for tag in self.text.tag_names():
+            if tag.startswith(('md_link_','md_fold_')): self.text.tag_delete(tag)
+        self.text.configure(state='disabled')
+        self._md_insert={'result':result,'context':context,'offset':0}
+        self.md_cancel.state(['!disabled'])
+        self.title(tr('PFC Preview')+' — '+self._md_display_path.name)
+        self.status.configure(text=tr('Rendering Markdown…'))
+
+    def _insert_markdown_chunk(self):
+        job=self._md_insert;result=job['result'];content=result['content'];offset=job['offset']
+        self.text.configure(state='normal')
+        self.text.insert('end',content[offset:offset+65536])
+        self.text.configure(state='disabled');job['offset']+=65536
+        if job['offset']<len(content): return
+        self._md_insert=None
+        self.md_cancel.state(['disabled'])
+        # Text's '+Nc' modifier counts Unicode characters, unlike Tcl string
+        # length / Text.count, which can count UTF-16 units. Keep Python offsets.
+        self._apply_spans(result['spans'])
+        for number,item in enumerate(result.get('links',[])):
+            tag=f'md_link_{number}'
+            self.text.tag_add(tag,f"1.0+{item['start']}c",f"1.0+{item['end']}c")
+            self.text.tag_bind(tag,'<Control-ButtonRelease-1>',lambda e,n=number:self.follow_markdown_link(n))
+            self.text.tag_bind(tag,'<Enter>',lambda e,v=item:self._describe_markdown_link(v))
+        headings=result.get('headings',[])
+        self.md_outline.configure(values=[('  '*max(0,h['level']-1))+h['title']+f'  [{i+1}]' for i,h in enumerate(headings)])
+        self.md_outline.set(tr('Sections')+(' *' if result.get('truncated') else ''))
+        self.md_outline.state(['!disabled'] if headings else ['disabled'])
+        self.md_fold.state(['!disabled'] if headings else ['disabled'])
+        self.md_back.state(['!disabled'] if self._md_history else ['disabled'])
+        self.md_menu.delete(0,'end')
+        self.md_menu.add_command(label=tr('Expand all'),command=self.markdown_expand_all)
+        self.md_menu.add_command(label=tr('Markdown Source') if result.get('rendered') else tr('Rendered'),
+                                 command=self.toggle_markdown_source,state='normal' if self.extension_effect else 'disabled')
+        self.md_menu.add_command(label=tr('Refresh')+'  F5',command=self.load)
+        self.md_menu.add_command(label=self._markdown_boundary_label(),state='disabled')
+        self.md_menu.add_separator()
+        for number,item in enumerate(result.get('links',[])[:100]):
+            self.md_menu.add_command(label=item['label'][:50]+' → '+item['href'][:70],
+                                     command=lambda n=number:self.follow_markdown_link(n))
+        if len(result.get('links',[]))>100:
+            self.md_menu.add_command(label=tr('More links: use Ctrl+click in text'),state='disabled')
+        done,total=result.get('tasks',(0,0))
+        self.md_task_label.configure(text=f'☑ {done}/{total}'+(' *' if result.get('truncated') else '') if total else '')
+        mode=tr('Markdown rendered') if result.get('rendered') else tr('Markdown Source')
+        detail=f"{mode}   {result['size']:,} bytes   {result['encoding']}"
+        if result.get('truncated'): detail+='   '+tr('Loaded portion only')
+        if result.get('notice'): detail+='   '+tr(result['notice'])
+        self.status.configure(text=detail)
+        self.find_all()
+        context=job['context']
+        if context['restore'] is not None: self.text.yview_moveto(context['restore'])
+        else: self.text.yview_moveto(0)
+        if context['fragment']: self._jump_markdown_fragment(context['fragment'])
+
+    def markdown_heading(self):
+        index=self.md_outline.current();headings=self._md_model.get('headings',[])
+        if 0<=index<len(headings):
+            self._expand_markdown_at(headings[index]['start'])
+            self.text.see(f"1.0+{headings[index]['start']}c")
+
+    def toggle_markdown_source(self):
+        target='source' if self._md_model.get('rendered') else 'rendered'
+        self.markdown_var.set(next(label for label,value in self.markdown_values.items() if value==target))
+        self.load()
+
+    def markdown_fold(self):
+        index=self.md_outline.current();headings=self._md_model.get('headings',[])
+        if not 0<=index<len(headings):
+            self.status.configure(text=tr('Choose a section first'));return
+        item=headings[index]
+        if index in self._md_folded: self._md_folded.remove(index)
+        else: self._md_folded.add(index)
+        self._update_markdown_folds()
+        self.text.see(f"1.0+{item['start']}c")
+
+    def markdown_expand_all(self):
+        self._md_folded.clear()
+        self._update_markdown_folds()
+
+    def _update_markdown_folds(self):
+        self.text.tag_remove('md_fold_hidden','1.0','end')
+        for index in self._md_folded:
+            item=self._md_model['headings'][index]
+            self.text.tag_add('md_fold_hidden',f"1.0+{item['body']}c",f"1.0+{item['end']}c")
+        self.text.tag_configure('md_fold_hidden',elide=True)
+        self.md_fold.configure(text=tr('Expand') if self.md_outline.current() in self._md_folded else tr('Fold'))
+
+    def _expand_markdown_at(self,offset):
+        for index in list(self._md_folded):
+            item=self._md_model['headings'][index]
+            if item['body']<=offset<item['end']:
+                self._md_folded.remove(index)
+        self._update_markdown_folds()
+
+    def _jump_markdown_fragment(self,fragment):
+        def slug(value): return re.sub(r'[^\w\s-]','',value.casefold()).strip().replace(' ','-')
+        matches=[i for i,h in enumerate(self._md_model.get('headings',[]))
+                 if h['title']==fragment or slug(h['title'])==fragment.casefold()]
+        if len(matches)==1:
+            self.md_outline.current(matches[0]);self.markdown_heading()
+        elif matches:
+            self.status.configure(text=tr('Multiple matching headings; choose a section'))
+            self.md_outline.focus_set()
+        else: self.status.configure(text=tr('Heading not found in loaded content'))
+
+    def follow_markdown_link(self,number):
+        loading=(self._md_request and not self._md_request['probe']) or (self._md_queued and not self._md_queued['probe'])
+        if (loading or self._md_insert
+                or self._md_display_path!=self.path): return 'break'
+        item=self._md_model.get('links',[])[number]
+        try: target,fragment=markdown_destination(self.path,self._md_boundary,item['href'])
+        except (ValueError,UnicodeError) as exc:
+            self.status.configure(text=tr(str(exc)));return 'break'
+        if target==self.path:
+            if fragment: self._jump_markdown_fragment(fragment)
+            else: self.text.yview_moveto(0)
+            return 'break'
+        if self._archive_markdown():
+            self.status.configure(text=tr('Cross-document links are disabled inside archives'));return 'break'
+        self._queue_markdown(target,navigation=True,fragment=fragment)
+        return 'break'
+
+    def _describe_markdown_link(self,item):
+        try:
+            target,fragment=markdown_destination(self.path,self._md_boundary,item['href'])
+            if self._archive_markdown():
+                if target!=self.path:
+                    self.status.configure(text=tr('Cross-document links are disabled inside archives'));return
+                label=target.name
+            else:label=str(target)
+            label+=('#'+fragment if fragment else '')
+            self.status.configure(text=tr('Ctrl+click: ')+label)
+        except (ValueError,UnicodeError) as exc:
+            self.status.configure(text=tr(str(exc))+': '+item['href'])
+
+    def markdown_back(self):
+        if not self._md_history: return 'break'
+        entry=self._md_history[-1]
+        self._queue_markdown(Path(entry[0]),restore=entry[1])
+        self._md_queued['back']=entry
+        return 'break'
+
+    def _copy_select_all(self,event=None):
+        self.text.tag_add('sel','1.0','end-1c');return 'break'
+
+    def _copy_preview(self,event=None):
+        try: value=self.text.get('sel.first','sel.last')
+        except tk.TclError: return 'break'
+        self.clipboard_clear();self.clipboard_append(value);return 'break'
 
     def apply_language(self, old_language: str) -> None:
         mode = self.mode_values.get(self.mode_var.get(), self.mode_var.get())
@@ -310,6 +702,7 @@ class PreviewWindow(tk.Toplevel):
     def apply_scale(self, _scale: float) -> None:
         self._configure_effect_fonts()
         self.apply_color_scheme(self.palette)
+        self.after_idle(self._layout_markdown_tools)
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -340,6 +733,11 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("markdown_quote", foreground=palette["muted"])
         self.text.tag_configure("markdown_bullet", foreground=colors["syntax_keyword"])
         self.text.tag_configure("markdown_rule", foreground=palette["border"])
+        self.text.tag_configure('markdown_task',foreground=palette['text'])
+        self.text.tag_configure('markdown_task_done',foreground=palette['muted'])
+        for kind,light,dark_color in (('note','#e6f1fc','#243d54'),('tip','#e5f4e8','#213e30'),('warning','#fff0d5','#544025')):
+            self.text.tag_configure('markdown_callout_'+kind,background=dark_color if dark else light,
+                                    foreground=palette['text'],lmargin1=8,lmargin2=8,spacing1=3,spacing3=3)
         self.text.tag_configure('markdown_table', font=tkfont.nametofont('TkFixedFont'),
                                 background=palette['surface_alt'], wrap='none', spacing1=0, spacing3=0)
         for level in (1, 2, 3):
@@ -348,9 +746,12 @@ class PreviewWindow(tk.Toplevel):
 
     @property
     def path(self) -> Path:
-        return self.files[self.index]
+        return self._linked_path if self._linked_path is not None else self.files[self.index]
 
     def show(self, files, selected) -> None:
+        self.cancel_markdown()
+        self._linked_path=None;self._md_history=[]
+        self._md_boundary=Path(os.path.abspath(selected)).parent
         self.files = list(files)
         self.index = self.files.index(selected) if selected in self.files else 0
         self.load(); self.activate()
@@ -394,6 +795,15 @@ class PreviewWindow(tk.Toplevel):
 
     def _auto_refresh(self) -> None:
         self._refresh_job = None
+        if self._markdown_mode():
+            if (not self._md_auto_suspended and not self._md_jobs.pending and not self._md_queued
+                    and not self._md_insert and self._md_display_path==self.path
+                    and time.monotonic()-self._md_last_probe>5 and self.focus_displayof() is not None
+                    and self.focus_displayof().winfo_toplevel() is self
+                    and not self.text.tag_ranges('sel')):
+                self._md_last_probe=time.monotonic();self._queue_markdown(probe=True)
+            if self.winfo_exists(): self._schedule_refresh()
+            return
         signature = self._path_signature()
         if signature != self._signature:
             self.load()
@@ -401,6 +811,12 @@ class PreviewWindow(tk.Toplevel):
 
     def load(self) -> None:
         path = self.path
+        if self._markdown_mode():
+            self._queue_markdown();return
+        if self._md_jobs.pending or self._md_queued: self.cancel_markdown()
+        self._md_model={};self._md_insert=None;self.md_tools.pack_forget()
+        for tag in self.text.tag_names():
+            if tag.startswith(('md_fold_','md_link_')): self.text.tag_delete(tag)
         if self._span_job is not None:
             self.after_cancel(self._span_job); self._span_job = None
         self._pending_spans = []
@@ -467,35 +883,63 @@ class PreviewWindow(tk.Toplevel):
         self.matches, self.match_index = [], -1
         needle = self.search_var.get()
         if not needle: return
-        start = "1.0"
-        while True:
-            found = self.text.search(needle, start, stopindex="end", nocase=not self.case_var.get())
-            if not found: break
-            end = f"{found}+{len(needle)}c"; self.matches.append((found, end))
-            self.text.tag_add("match", found, end); start = end
+        # Tk 8.6 Text.search can crash on folded text containing astral Unicode.
+        # Search the complete visible document model (including folded content)
+        # in Python, then use Text's Unicode-character index modifiers.
+        content=self.text.get('1.0','end-1c')
+        from bisect import bisect_right
+        lines=_line_offsets(content)
+        def text_index(offset):
+            line=bisect_right(lines,offset)-1
+            return self.text.index(f'{line+1}.0+{offset-lines[line]}c')
+        flags=0 if self.case_var.get() else re.IGNORECASE
+        for match in re.finditer(re.escape(needle),content,flags):
+            a,b=match.span()
+            found,end=text_index(a),text_index(b)
+            self.matches.append((found,end));self.text.tag_add('match',found,end)
+            if len(self.matches)>=5000:
+                self.status.configure(text=tr('Showing the first 5,000 search matches'));break
 
     def _find(self, direction: int) -> str:
         previous_index = self.match_index
         self.find_all()
         if not self.matches:
-            self.status.configure(text=f"{tr('No matches')}   {self.path}"); return "break"
+            detail=f"{tr('No matches')}   {self.path}"
+            if self._md_model.get('truncated'):detail+='   '+tr('Loaded portion only')
+            self.status.configure(text=detail); return "break"
         self.match_index = (previous_index + direction) % len(self.matches)
         start, end = self.matches[self.match_index]
+        offset=len(self.text.get('1.0',start))
+        self._expand_markdown_at(offset)
         self.text.tag_remove("current_match", "1.0", "end")
         self.text.tag_add("current_match", start, end); self.text.see(start)
         self.status.configure(text=f"{tr('Match {current} of {total}', current=self.match_index + 1, total=len(self.matches))}   {self.path}")
+        if len(self.matches)>=5000 or self._md_model.get('truncated'):
+            notices=[]
+            if len(self.matches)>=5000:notices.append(tr('Showing the first 5,000 search matches'))
+            if self._md_model.get('truncated'):notices.append(tr('Loaded portion only'))
+            self.status.configure(text=self.status.cget('text')+'   '+'; '.join(notices))
         return "break"
 
     def find_next(self) -> str: return self._find(1)
     def find_previous(self) -> str: return self._find(-1)
 
     def previous_file(self) -> None:
-        if self.files: self.index = (self.index - 1) % len(self.files); self.load()
+        if self.files:
+            self._linked_path=None;self._md_history=[]
+            self.index = (self.index - 1) % len(self.files)
+            self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
 
     def next_file(self) -> None:
-        if self.files: self.index = (self.index + 1) % len(self.files); self.load()
+        if self.files:
+            self._linked_path=None;self._md_history=[]
+            self.index = (self.index + 1) % len(self.files)
+            self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
 
     def close(self) -> None:
+        self._md_jobs.close()
+        if self._md_poll_job is not None:
+            self.after_cancel(self._md_poll_job);self._md_poll_job=None
         if self._refresh_job is not None:
             self.after_cancel(self._refresh_job); self._refresh_job = None
         if self._span_job is not None:

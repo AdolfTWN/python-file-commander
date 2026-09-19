@@ -130,6 +130,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.19", "2026/09/19", (
+        "Added: Read-only Markdown tasks, labeled callouts, section navigation and folding with complete search/copy.",
+        "Added: Exact local Markdown links and Back within a fixed folder boundary, without indexing or wider searches.",
+        "Improved: Markdown reads and parsing use a cancellable, memory-limited worker with timeout and explicit source fallback.",
+        "Fixed: Folded Unicode search crashes, link offset drift and clicks ignored during background refresh.",
+    )),
     ("v0.17.18", "2026/09/19", (
         "Fixed: Nested column menus reopen reliably and support one-level-at-a-time keyboard navigation.",
         "Improved: Simpler column menus, a saved Git/SVN overlay switch and clearer OneDrive availability explanations.",

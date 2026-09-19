@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.18**
+Current version: **v0.17.19**
 
 Right-click a file column header for its display options; click the heading to
 change sorting. All column
@@ -16,9 +16,16 @@ without reading file contents or intentionally hydrating placeholders. Square
 top-left cloud badges remain distinct from round bottom-right Git badges. Missing
 provider metadata stays unknown. See [column and overlay details](docs/file-columns.md).
 
-Markdown rendered preview now displays complete pipe tables and read-only
-frontmatter properties, with wrapped cells, horizontal scrolling for wide tables,
-search/copy and unchanged source view. The compact zoom control keeps its menu
+Markdown preview includes read-only tasks, labeled callouts, a section menu and
+folding, alongside pipe tables and literal frontmatter properties. Search reveals
+folded matches; Select All/Copy includes their text. Ctrl+click follows **exact
+local Markdown paths within the original document's folder**, with Back and no
+index, recursive search or missing-link fallback. Reading/parsing runs in one
+cancellable worker with timeout, memory limits and explicit source fallback.
+See the [reading guide and restrictions](docs/markdown-preview-guide.md) and
+[sample document](docs/markdown-preview-example.md). Cloud/reparse-linked targets
+are conservatively refused; manually opening a cloud document may download it.
+The compact zoom control keeps its menu
 on the percentage without a down arrow. See the [TODO implementation and design
 review](docs/ui-ux-review-2026-09-19.md) for boundaries and proposed tab/header improvements.
 
@@ -94,7 +101,7 @@ File-list sizes use compact whole numbers rounded half up, with the existing 102
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. A live criteria summary and Clear Filters action make retained searches explicit. Results stream into sortable detail columns and support Enter/double-click Go to File, F3 Preview, multi-selection Copy Path, comparing two selected results, and sending the complete current result listing to a new panel tab. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 
-F3 opens a reusable popup viewer with Esc close, Auto/Text/Hex modes, text wrapping, two-second auto-refresh, File <</>> navigation, case-sensitive content search, Find Prev/Next navigation, encoding and truncation details, and a full-path status bar. With View > Extension Effect enabled (the default), Python and popular code/config formats receive syntax colors, while Markdown supports both highlighted source and a readable rendered mode. Its responsive three-row toolbar remains usable at narrow widths. Preview geometry and wrapping preference are saved in `pfc.ini`.
+F3 opens a reusable popup viewer with Esc close, Auto/Text/Hex modes, text wrapping, File <</>> navigation, case-sensitive content search, Find Prev/Next navigation, encoding and truncation details. With View > Extension Effect enabled (the default), Python and popular code/config formats receive syntax colors, while Markdown supports highlighted source (up to 512 Ki characters) and rendered reading. Markdown has a compact additional reading row, background metadata refresh no more frequently than every five seconds while focused and without a text selection, and F5 manual refresh. Other preview formats retain their two-second refresh. Preview geometry and wrapping preference are saved in `pfc.ini`.
 
 Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the first selected path or current folder, F11 copies every selected full path as newline-separated text, and Ctrl+H toggles hidden files. F12 focuses and selects the current path for direct paste-and-Enter navigation; a pasted file path opens its parent folder and places the selection bar on that file.
 

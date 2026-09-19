@@ -9,8 +9,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 pfc = importlib.import_module(sys.argv[1] if len(sys.argv)>1 else 'pycommander.app')
 
 def pump(app):
-    until=time.monotonic()+.25
-    while time.monotonic()<until: app.update(); time.sleep(.01)
+    started=time.monotonic()
+    while time.monotonic()-started<8:
+        app.update();time.sleep(.01)
+        previews=[w for w in app.winfo_children() if isinstance(w,pfc.PreviewWindow)]
+        if time.monotonic()-started>.25 and not any(
+                w._md_jobs.pending or w._md_queued or w._md_insert or w._span_job for w in previews):return
+    raise AssertionError('Markdown preview did not settle')
 
 with tempfile.TemporaryDirectory() as raw:
     root=Path(raw)
