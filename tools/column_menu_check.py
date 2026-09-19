@@ -33,6 +33,17 @@ with tempfile.TemporaryDirectory() as raw:
         original_ids=pane.tree.get_children()
         for column in ('name','ext','size','modified'):
             assert column in app.column_menus
+            menu=app.column_menus[column]
+            labels=[menu.entrycget(i,'label') for i in range(menu.index('end')+1)
+                    if menu.type(i)!='separator']
+            assert not any(label.lower().startswith('sort ') for label in labels), labels
+        app.vcs_overlay_var.set(False); app.set_vcs_overlay(); settle(app)
+        assert pane.tree.get_children()==original_ids
+        assert not app.config_data.getboolean('view','vcs_overlay')
+        cloud_pref=app.onedrive_overlay_var.get()
+        app.vcs_overlay_var.set(True); app.set_vcs_overlay(); settle(app)
+        assert app.onedrive_overlay_var.get()==cloud_pref
+        assert pane.tree.get_children()==original_ids
         # Right-click the actual on-screen header: choose correct logical column.
         captured=[]; show=app.show_column_menu
         app.show_column_menu=lambda column,event:captured.append(column)

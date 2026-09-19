@@ -77,6 +77,19 @@ _TRANSLATIONS = {
         "Sort ascending": "遞增排序",
         "Sort descending": "遞減排序",
         "OneDrive Sync Overlay": "OneDrive 同步狀態圖示",
+        "Git / SVN Overlay": "Git／SVN 狀態圖示",
+        "Fixed: Nested column menus reopen reliably and support one-level-at-a-time keyboard navigation.": "修正：多層欄位選單可重新開啟，鍵盤導覽可逐層進入與返回。",
+        "Improved: Simpler column menus, a saved Git/SVN overlay switch and clearer OneDrive availability explanations.": "改善：精簡欄位選單，新增可儲存的 Git／SVN 圖示開關及更清楚的 OneDrive 可用狀態說明。",
+        "Added: Read-only Markdown tables and properties with complete cell text, search and source view; corrected heading sizes.": "新增：Markdown 唯讀表格與屬性，完整顯示儲存格內容並支援搜尋及原始碼檢視；修正標題字級。",
+        "Improved: Compact zoom keeps the percentage menu and plus/minus controls without a down arrow.": "改善：精簡縮放控制，移除下箭頭，保留百分比選單及加減按鈕。",
+        "Properties (read-only)": "屬性（唯讀）", "Property": "屬性", "Value": "值",
+        "Blue cloud: opening requires a download and network access.": "藍色雲朵：開啟時需要網路下載。",
+        "Outlined check: usable offline now; storage cleanup may remove the local copy.": "空心勾號：目前可離線使用；儲存空間清理可能移除本機副本。",
+        "Filled check: marked to stay on this device for offline use.": "實心勾號：已設定保留在此裝置，供離線使用。",
+        "Pending changes are not yet confirmed synchronized.": "尚有待同步的變更，未確認同步完成。",
+        "Check OneDrive for the error and recovery actions.": "請開啟 OneDrive 查看錯誤與修復方式。",
+        "Check OneDrive to resume synchronization.": "請開啟 OneDrive 恢復同步。",
+        "Check OneDrive for more information.": "請開啟 OneDrive 查看詳細資訊。",
         "Online only": "僅線上可用",
         "Locally available": "本機可用",
         "Always available offline": "永遠保留在此裝置",
@@ -377,6 +390,19 @@ _TRANSLATIONS = {
         "Sort ascending": "升序排序",
         "Sort descending": "降序排序",
         "OneDrive Sync Overlay": "OneDrive 同步状态图标",
+        "Git / SVN Overlay": "Git／SVN 状态图标",
+        "Fixed: Nested column menus reopen reliably and support one-level-at-a-time keyboard navigation.": "修复：多层列菜单可重新打开，键盘导航可逐层进入和返回。",
+        "Improved: Simpler column menus, a saved Git/SVN overlay switch and clearer OneDrive availability explanations.": "改进：精简列菜单，新增可保存的 Git／SVN 图标开关及更清楚的 OneDrive 可用状态说明。",
+        "Added: Read-only Markdown tables and properties with complete cell text, search and source view; corrected heading sizes.": "新增：Markdown 只读表格与属性，完整显示单元格内容并支持搜索及源码视图；修复标题字号。",
+        "Improved: Compact zoom keeps the percentage menu and plus/minus controls without a down arrow.": "改进：精简缩放控件，移除下箭头，保留百分比菜单及加减按钮。",
+        "Properties (read-only)": "属性（只读）", "Property": "属性", "Value": "值",
+        "Blue cloud: opening requires a download and network access.": "蓝色云朵：打开时需要网络下载。",
+        "Outlined check: usable offline now; storage cleanup may remove the local copy.": "空心勾号：目前可离线使用；存储空间清理可能移除本地副本。",
+        "Filled check: marked to stay on this device for offline use.": "实心勾号：已设置保留在此设备，供离线使用。",
+        "Pending changes are not yet confirmed synchronized.": "仍有待同步的更改，尚未确认同步完成。",
+        "Check OneDrive for the error and recovery actions.": "请打开 OneDrive 查看错误与修复方式。",
+        "Check OneDrive to resume synchronization.": "请打开 OneDrive 恢复同步。",
+        "Check OneDrive for more information.": "请打开 OneDrive 查看详细信息。",
         "Online only": "仅联机可用",
         "Locally available": "本地可用",
         "Always available offline": "始终保留在此设备",
@@ -650,6 +676,19 @@ _TRANSLATIONS = {
         "Sort ascending": "오름차순 정렬",
         "Sort descending": "내림차순 정렬",
         "OneDrive Sync Overlay": "OneDrive 동기화 상태 아이콘",
+        "Git / SVN Overlay": "Git / SVN 상태 아이콘",
+        "Fixed: Nested column menus reopen reliably and support one-level-at-a-time keyboard navigation.": "수정: 중첩 열 메뉴가 다시 열리고 키보드로 한 단계씩 이동할 수 있습니다.",
+        "Improved: Simpler column menus, a saved Git/SVN overlay switch and clearer OneDrive availability explanations.": "개선: 열 메뉴 간소화, Git/SVN 오버레이 설정 저장 및 명확한 OneDrive 가용성 설명.",
+        "Added: Read-only Markdown tables and properties with complete cell text, search and source view; corrected heading sizes.": "추가: 전체 셀 텍스트, 검색 및 소스 보기를 지원하는 읽기 전용 Markdown 표와 속성. 제목 크기를 수정했습니다.",
+        "Improved: Compact zoom keeps the percentage menu and plus/minus controls without a down arrow.": "개선: 아래 화살표 없이 백분율 메뉴와 확대/축소 버튼을 유지하는 간결한 컨트롤.",
+        "Properties (read-only)": "속성 (읽기 전용)", "Property": "속성", "Value": "값",
+        "Blue cloud: opening requires a download and network access.": "파란 구름: 열려면 네트워크에서 다운로드해야 합니다.",
+        "Outlined check: usable offline now; storage cleanup may remove the local copy.": "윤곽 체크: 현재 오프라인에서 사용 가능하며 저장소 정리 시 로컬 사본이 제거될 수 있습니다.",
+        "Filled check: marked to stay on this device for offline use.": "채워진 체크: 오프라인 사용을 위해 이 장치에 유지하도록 설정되었습니다.",
+        "Pending changes are not yet confirmed synchronized.": "대기 중인 변경 사항의 동기화가 아직 확인되지 않았습니다.",
+        "Check OneDrive for the error and recovery actions.": "OneDrive에서 오류와 복구 방법을 확인하세요.",
+        "Check OneDrive to resume synchronization.": "OneDrive에서 동기화를 재개하세요.",
+        "Check OneDrive for more information.": "OneDrive에서 자세한 정보를 확인하세요.",
         "Online only": "온라인 전용",
         "Locally available": "로컬에서 사용 가능",
         "Always available offline": "항상 오프라인 사용 가능",
@@ -2921,9 +2960,11 @@ class HeaderPopupController:
         self.popups = []
         self.tooltip = None
         self.tooltip_job = None
+        self.keyboard_pointer = None
 
     def show(self, button, menu) -> None:
         self.close_all()
+        self.keyboard_pointer = None
         popup = _HeaderPopup(self, menu, None)
         self.popups = [popup]
         popup.show(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
@@ -2932,11 +2973,15 @@ class HeaderPopupController:
 
     def open_child(self, parent, index) -> None:
         depth = self.popups.index(parent)
-        self._close_from(depth + 1)
         submenu_name = parent.menu.entrycget(index, "menu")
         if not submenu_name:
             return
         submenu = parent.menu.nametowidget(submenu_name)
+        # Reuse a visible cascade. Recreating it during pointer/focus events
+        # can lose the next level and leave the parent highlighted but closed.
+        if len(self.popups) > depth + 1 and self.popups[depth + 1].menu is submenu:
+            return
+        self._close_from(depth + 1)
         child = _HeaderPopup(self, submenu, parent)
         self.popups.append(child)
         row_top = parent.row_bounds[index][0]
@@ -2946,7 +2991,15 @@ class HeaderPopupController:
         if x + child.width > left + width:
             x = parent.top.winfo_rootx() - child.width + 1
         child.show(x, y)
-        child.canvas.focus_force()
+
+    def popup_at(self, x, y):
+        # A global grab can deliver another popup's event to the root window.
+        # Hit-test screen coordinates, including cascades flipped to the left.
+        for popup in reversed(self.popups):
+            if (popup.top.winfo_rootx() <= x < popup.top.winfo_rootx()+popup.width
+                    and popup.top.winfo_rooty() <= y < popup.top.winfo_rooty()+popup.height):
+                return popup
+        return None
 
     def close_child(self, popup) -> None:
         depth = self.popups.index(popup)
@@ -3040,6 +3093,9 @@ class _HeaderPopup:
                                 highlightthickness=1, highlightbackground=self.BORDER, takefocus=True)
         self.canvas.pack()
         self.canvas.bind("<Motion>", self._motion)
+        self.canvas.bind("<Enter>", self._motion)
+        self.top.bind("<Motion>", self._motion)
+        self.top.bind("<ButtonRelease-1>", self._click)
         self.canvas.bind("<Leave>", lambda _event: self.controller._hide_tooltip())
         self.canvas.bind("<ButtonRelease-1>", self._click)
         self.canvas.bind("<ButtonPress-1>", self._outside_click)
@@ -3131,20 +3187,40 @@ class _HeaderPopup:
                 return index
         return None
 
-    def _select(self, index) -> None:
+    def _select(self, index, open_cascade=True) -> None:
         if index == self.selected:
+            if (open_cascade and index is not None and self.menu.type(index) == 'cascade'
+                    and self.menu.entrycget(index, 'state') != 'disabled'):
+                self.controller.open_child(self, index)
             return
         self.selected = index
         self._draw()
         if index is not None:
             self.controller.schedule_tooltip(self, index)
             if self.menu.type(index) == "cascade" and self.menu.entrycget(index, "state") != "disabled":
-                self.controller.open_child(self, index)
+                if open_cascade:
+                    self.controller.open_child(self, index)
+                else:
+                    self.controller._close_from(self.controller.popups.index(self) + 1)
             else:
                 self.controller._close_from(self.controller.popups.index(self) + 1)
 
-    def _motion(self, event) -> None:
-        self._select(self._index_at(event.y))
+    def _event_target(self, event):
+        if hasattr(event, 'x_root') and hasattr(event, 'y_root'):
+            target = self.controller.popup_at(event.x_root, event.y_root)
+            return target, event.y_root-target.top.winfo_rooty() if target else 0
+        return self, event.y
+
+    def _motion(self, event) -> str:
+        if hasattr(event, 'x_root') and hasattr(event, 'y_root'):
+            point = (event.x_root, event.y_root)
+            if point == self.controller.keyboard_pointer:
+                return 'break'
+            self.controller.keyboard_pointer = None
+        target, y = self._event_target(event)
+        if target is not None:
+            target._select(target._index_at(y))
+        return 'break'
 
     def _outside_click(self, event) -> str | None:
         if not self.controller.pointer_inside(event.x_root, event.y_root):
@@ -3153,10 +3229,14 @@ class _HeaderPopup:
         return None
 
     def _click(self, event) -> str:
-        index = self._index_at(event.y)
+        target, y = self._event_target(event)
+        if target is None:
+            self.controller.close_all()
+            return 'break'
+        index = target._index_at(y)
         if index is not None:
-            self._select(index)
-            self._invoke(index)
+            target._select(index)
+            target._invoke(index)
         return "break"
 
     def _enabled_indexes(self):
@@ -3164,6 +3244,7 @@ class _HeaderPopup:
                 if kind != "separator" and state != "disabled"]
 
     def _move(self, direction: int) -> str:
+        self.controller.keyboard_pointer = self.controller.owner.winfo_pointerxy()
         indexes = self._enabled_indexes()
         if not indexes:
             return "break"
@@ -3171,13 +3252,17 @@ class _HeaderPopup:
             target = indexes[0 if direction > 0 else -1]
         else:
             target = indexes[(indexes.index(self.selected) + direction) % len(indexes)]
-        self._select(target)
+        self._select(target, open_cascade=False)
         return "break"
 
     def _open_selected(self) -> str:
+        self.controller.keyboard_pointer = self.controller.owner.winfo_pointerxy()
         if self.selected is not None and self.menu.type(self.selected) == "cascade":
             self.controller.open_child(self, self.selected)
-            self.controller.popups[-1]._move(1)
+            child = self.controller.popups[self.controller.popups.index(self)+1]
+            child.canvas.focus_force()
+            if child.selected is None:
+                child._move(1)
         return "break"
 
     def _invoke_selected(self) -> str:
@@ -3197,11 +3282,13 @@ class _HeaderPopup:
         menu.invoke(index)
 
     def _left(self) -> str:
+        self.controller.keyboard_pointer = self.controller.owner.winfo_pointerxy()
         if self.parent is not None:
             self.controller.close_child(self)
         return "break"
 
     def _escape(self) -> str:
+        self.controller.keyboard_pointer = self.controller.owner.winfo_pointerxy()
         if self.parent is not None:
             self.controller.close_child(self)
         else:
@@ -4178,6 +4265,15 @@ import uuid
 CLOUD_LABELS = {'online': 'Online only', 'available': 'Locally available',
                 'pinned': 'Always available offline', 'syncing': 'Syncing / pending',
                 'error': 'Sync error', 'paused': 'Sync paused', 'warning': 'Sync warning'}
+CLOUD_DETAILS = {
+    'online': 'Blue cloud: opening requires a download and network access.',
+    'available': 'Outlined check: usable offline now; storage cleanup may remove the local copy.',
+    'pinned': 'Filled check: marked to stay on this device for offline use.',
+    'syncing': 'Pending changes are not yet confirmed synchronized.',
+    'error': 'Check OneDrive for the error and recovery actions.',
+    'paused': 'Check OneDrive to resume synchronization.',
+    'warning': 'Check OneDrive for more information.',
+}
 
 
 def cloud_state(attributes, transfer=None, placeholder=None):
@@ -6804,6 +6900,143 @@ class CompareWindow(tk.Toplevel):
         widget.destroy()
 
 
+"""Lossless, dependency-free Markdown table/frontmatter structure for preview.
+
+This is a reader, not a YAML interpreter: property values (including nested or
+unrecognized syntax) stay literal. No constructors, plugins or links execute.
+"""
+import re
+import unicodedata
+
+
+def table_cells(line):
+    """Split pipe tables, retaining escaped pipes and pipes in code spans."""
+    value = line.strip()
+    cells, cell, fence, index = [], [], 0, 0
+    while index < len(value):
+        char = value[index]
+        if char == '\\' and index+1 < len(value) and value[index+1] in '|\\':
+            cell.append(value[index+1]); index += 2; continue
+        if char == '`':
+            end = index
+            while end < len(value) and value[end] == '`': end += 1
+            count = end-index
+            if fence == count: fence = 0
+            elif not fence: fence = count
+            cell.append(value[index:end]); index = end; continue
+        if char == '|' and not fence:
+            cells.append(''.join(cell).strip()); cell = []
+        else:
+            cell.append(char)
+        index += 1
+    cells.append(''.join(cell).strip())
+    if value.startswith('|'): cells.pop(0)
+    if value.endswith('|') and cells and cells[-1] == '': cells.pop()
+    return cells
+
+
+def markdown_blocks(text):
+    """Yield text, fenced-code lines, tables and a complete frontmatter block."""
+    lines = text.lstrip('\ufeff').splitlines()
+    index, fence_char, fence_size = 0, '', 0
+    if lines and lines[0].strip() == '---':
+        end = next((i for i in range(1,len(lines)) if lines[i].strip() in ('---','...')), None)
+        if end is not None:
+            yield 'properties', lines[1:end]
+            index = end+1
+    while index < len(lines):
+        raw = lines[index]
+        fence = re.match(r'^\s{0,3}(`{3,}|~{3,})(.*)$',raw)
+        if fence_char:
+            if fence and fence.group(1)[0] == fence_char and len(fence.group(1)) >= fence_size and not fence.group(2).strip():
+                fence_char = ''
+            else:
+                yield 'code', raw
+            index += 1; continue
+        if fence:
+            fence_char, fence_size = fence.group(1)[0], len(fence.group(1))
+            index += 1; continue
+        if index+1 < len(lines) and '|' in raw:
+            header, delimiter = table_cells(raw), table_cells(lines[index+1])
+            if header and len(header) == len(delimiter) and all(re.fullmatch(r':?-{2,}:?',c) for c in delimiter):
+                aligns = ['center' if c.startswith(':') and c.endswith(':') else
+                          'right' if c.endswith(':') else 'left' for c in delimiter]
+                rows = [header]; index += 2
+                while index < len(lines) and lines[index].strip() and '|' in lines[index]:
+                    if re.match(r'^\s*(`{3,}|~{3,})',lines[index]): break
+                    rows.append(table_cells(lines[index])); index += 1
+                # Extra cells are retained rather than silently discarded.
+                yield 'table', (rows, aligns)
+                continue
+        yield 'text', raw
+        index += 1
+
+
+def property_rows(lines):
+    rows = []
+    for line in lines:
+        match = re.match(r'^([^\s#][^:]*):[ \t]*(.*)$',line)
+        if match:
+            rows.append([match.group(1), match.group(2)])
+        elif rows:
+            rows[-1][1] += '\n' + line
+        else:
+            rows.append(['', line])
+    return rows or [['', '']]
+
+
+def display_width(text):
+    return sum(0 if unicodedata.combining(c) else 2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in text)
+
+
+def wrap_cell(text, width):
+    """Wrap without dropping whitespace/content; CJK cells count as two columns."""
+    result = []
+    for line in text.expandtabs(4).split('\n'):
+        chunk, used = [], 0
+        for char in line:
+            size = display_width(char)
+            if used+size > width and chunk:
+                result.append(''.join(chunk)); chunk, used = [], 0
+            chunk.append(char); used += size
+        result.append(''.join(chunk))
+    return result
+
+
+def render_grid(rows, aligns=()):
+    """Readable/selectable grid, wrapping wide cells without truncation.
+
+    A bounded expansion guard falls back to complete tab-separated text for
+    pathologically sparse/wide tables; it never silently drops rows or cells.
+    """
+    count = max(map(len, rows), default=0)
+    if count*len(rows) > 500000:
+        return ''.join('\t'.join(row)+'\n' for row in rows)
+    rows = [row+['']*(count-len(row)) for row in rows]
+    widths = [max(3,min(60,max(display_width(part) for row in rows for part in row[c].split('\n')))) for c in range(count)]
+    wrapped = [[wrap_cell(value,widths[c]) for c,value in enumerate(row)] for row in rows]
+    estimated = (sum(max(map(len,row),default=1) for row in wrapped)+len(rows)+1)*(sum(widths)+3*count+1)
+    if estimated > 16*1024*1024:
+        return ''.join('\t'.join(row)+'\n' for row in rows)
+    output = []
+    def border(left, middle, right):
+        output.append(left+middle.join('─'*(width+2) for width in widths)+right+'\n')
+    border('┌','┬','┐')
+    for row_index,row in enumerate(wrapped):
+        for line in range(max(map(len,row),default=1)):
+            values=[]
+            for col,cell in enumerate(row):
+                value = cell[line] if line < len(cell) else ''
+                padding = widths[col]-display_width(value)
+                align = aligns[col] if col < len(aligns) else 'left'
+                left = padding if align == 'right' else padding//2 if align == 'center' else 0
+                values.append(' '+(' '*left)+value+(' '*(padding-left))+' ')
+            output.append('│'+'│'.join(values)+'│\n')
+        if row_index < len(wrapped)-1: border('├','┼','┤')
+    border('└','┴','┘')
+    return ''.join(output)
+
+
 import io
 import keyword
 import re
@@ -6909,7 +7142,7 @@ def syntax_spans(text: str, suffix: str) -> list[tuple[int, int, str]]:
 
 def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
     """Render common Markdown structure into readable Tk text and style spans."""
-    output, spans, in_code, length = [], [], False, 0
+    output, spans, length = [], [], 0
 
     def append(value: str, tag: str | None = None) -> None:
         nonlocal length
@@ -6934,11 +7167,27 @@ def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
             cursor = match.end()
         append(value[cursor:])
 
-    for raw in text.splitlines():
-        if raw.strip().startswith("```"):
-            in_code = not in_code
+    for kind, raw in markdown_blocks(text):
+        if kind == 'properties':
+            append(tr('Properties (read-only)')+'\n', 'markdown_h3')
+            append(render_grid([[tr('Property'),tr('Value')]]+property_rows(raw)), 'markdown_table')
             continue
-        if in_code:
+        if kind == 'table':
+            rows, aligns = raw
+            # Flatten inline presentation inside a grid, preserving all words,
+            # URLs and line breaks. Keep a uniform fixed font for alignment.
+            plain_rows=[]
+            for row in rows:
+                plain=[]
+                for value in row:
+                    start, old_length, old_spans = len(output), length, len(spans)
+                    inline(re.sub(r'<br\s*/?>', '\n', value, flags=re.I))
+                    plain.append(''.join(output[start:]))
+                    del output[start:]; del spans[old_spans:]; length=old_length
+                plain_rows.append(plain)
+            append(render_grid(plain_rows, aligns), 'markdown_table')
+            continue
+        if kind == 'code':
             append(raw + "\n", "markdown_code")
             continue
         heading = re.match(r"^(#{1,6})\s+(.*)$", raw)
@@ -7080,12 +7329,15 @@ class PreviewWindow(tk.Toplevel):
     def _configure_effect_fonts(self) -> None:
         base = tkfont.nametofont("TkFixedFont")
         family, size = base.cget("family"), base.cget("size")
+        def heading_size(factor, extra):
+            scaled = max(abs(size)+extra, round(abs(size)*factor))
+            return -scaled if size < 0 else scaled
         self.effect_fonts = {
             "bold": tkfont.Font(self, family=family, size=size, weight="bold"),
             "italic": tkfont.Font(self, family=family, size=size, slant="italic"),
-            "h1": tkfont.Font(self, family=family, size=max(size + 6, round(size * 1.55)), weight="bold"),
-            "h2": tkfont.Font(self, family=family, size=max(size + 4, round(size * 1.35)), weight="bold"),
-            "h3": tkfont.Font(self, family=family, size=max(size + 2, round(size * 1.18)), weight="bold"),
+            "h1": tkfont.Font(self, family=family, size=heading_size(1.55,6), weight="bold"),
+            "h2": tkfont.Font(self, family=family, size=heading_size(1.35,4), weight="bold"),
+            "h3": tkfont.Font(self, family=family, size=heading_size(1.18,2), weight="bold"),
         }
 
     def apply_scale(self, _scale: float) -> None:
@@ -7121,6 +7373,8 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("markdown_quote", foreground=palette["muted"])
         self.text.tag_configure("markdown_bullet", foreground=colors["syntax_keyword"])
         self.text.tag_configure("markdown_rule", foreground=palette["border"])
+        self.text.tag_configure('markdown_table', font=tkfont.nametofont('TkFixedFont'),
+                                background=palette['surface_alt'], wrap='none', spacing1=0, spacing3=0)
         for level in (1, 2, 3):
             self.text.tag_configure(f"markdown_h{level}", font=self.effect_fonts[f"h{level}"],
                                     foreground=colors["syntax_heading"], spacing1=8, spacing3=4)
@@ -9490,7 +9744,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.17"
+__version__ = "0.17.18"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -9575,6 +9829,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/19"
 VERSION_HISTORY = (
+    ("v0.17.18", "2026/09/19", (
+        "Fixed: Nested column menus reopen reliably and support one-level-at-a-time keyboard navigation.",
+        "Improved: Simpler column menus, a saved Git/SVN overlay switch and clearer OneDrive availability explanations.",
+        "Added: Read-only Markdown tables and properties with complete cell text, search and source view; corrected heading sizes.",
+        "Improved: Compact zoom keeps the percentage menu and plus/minus controls without a down arrow.",
+    )),
     ("v0.17.17", "2026/09/19", (
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.",
@@ -9839,7 +10099,7 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
                  "long_name_scrolling": "true", "column_ext": "true",
                  "column_size": "true", "column_modified": "true",
                  "date_order": "ymd", "time_style": "24", "size_emphasis": "true",
-                 "onedrive_overlay": "true"},
+                 "onedrive_overlay": "true", "vcs_overlay": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -10545,7 +10805,8 @@ class FilePane(ttk.Frame):
     def _icon(self, path: Path, is_dir: bool):
         owner = self.winfo_toplevel()
         cloud = owner.cloud_status.get(path) if owner.onedrive_overlay_var.get() else None
-        return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path), cloud)
+        vcs = status_for(self._vcs_statuses, path) if owner.vcs_overlay_var.get() else None
+        return self.icons.get(path, is_dir, vcs, cloud)
 
     def _full_item_name(self, iid: str) -> str:
         tags = self.tree.item(iid, "tags")
@@ -10564,7 +10825,8 @@ class FilePane(ttk.Frame):
         owner = self.winfo_toplevel()
         cloud = owner.cloud_status.get(tags[0]) if tags and owner.onedrive_overlay_var.get() else None
         if cloud:
-            return self._full_item_name(iid) + '\nOneDrive: ' + tr(CLOUD_LABELS[cloud])
+            return (self._full_item_name(iid) + '\nOneDrive: ' + tr(CLOUD_LABELS[cloud])
+                    + '\n' + tr(CLOUD_DETAILS[cloud]))
         if self.name_marquee.item == iid:
             return ""
         full = self._full_item_name(iid)
@@ -10582,6 +10844,8 @@ class FilePane(ttk.Frame):
         self.size_units.request()
 
     def _request_vcs_statuses(self) -> None:
+        if not self.winfo_toplevel().vcs_overlay_var.get():
+            return
         if self.archive_session is not None:
             self._vcs_path = None; self._vcs_statuses = {}
             return
@@ -11637,6 +11901,7 @@ class Commander(tk.Tk):
         self.time_style_var = tk.StringVar(value=time_style if time_style in ('12','24','none') else '24')
         self.size_emphasis_var = tk.BooleanVar(value=self.config_data.getboolean('view','size_emphasis',fallback=True))
         self.onedrive_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','onedrive_overlay',fallback=True))
+        self.vcs_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','vcs_overlay',fallback=True))
         self._auto_font_job = None
         self._last_auto_window_size = None
         saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
@@ -12010,7 +12275,8 @@ class Commander(tk.Tk):
         for c, variable in self.column_visible_vars.items():
             self.config_data.set('view', 'column_' + c, str(variable.get()).lower())
         for key, variable in (('date_order', self.date_order_var), ('time_style', self.time_style_var),
-                              ('size_emphasis', self.size_emphasis_var), ('onedrive_overlay', self.onedrive_overlay_var)):
+                              ('size_emphasis', self.size_emphasis_var), ('onedrive_overlay', self.onedrive_overlay_var),
+                              ('vcs_overlay', self.vcs_overlay_var)):
             self.config_data.set('view', key, str(variable.get()))
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
@@ -12323,6 +12589,8 @@ class Commander(tk.Tk):
                                self.set_long_name_scrolling)
         add_scaled_checkbutton(visibility, tr('OneDrive Sync Overlay'), self.onedrive_overlay_var,
                                self.apply_column_settings)
+        add_scaled_checkbutton(visibility, tr('Git / SVN Overlay'), self.vcs_overlay_var,
+                               self.set_vcs_overlay)
         for column, label in (('name','Name'), ('ext','Ext'), ('size','Size'), ('modified','Date Modified')):
             menu = visibility if column == 'name' else tk.Menu(self.columns_menu, tearoff=False, font=menu_font)
             self.column_menus[column] = menu
@@ -12337,9 +12605,6 @@ class Commander(tk.Tk):
                 menu.add_separator()
                 for label2, value in (('24-hour (hh:mm)','24'), ('12-hour (1136a / 0515p)','12'), ('Date only','none')):
                     add_scaled_radiobutton(menu, tr(label2), value, self.time_style_var, self.apply_column_settings)
-            menu.add_separator()
-            menu.add_command(label=tr('Sort ascending'), command=lambda c=column: self.sort_column(c, False))
-            menu.add_command(label=tr('Sort descending'), command=lambda c=column: self.sort_column(c, True))
             add_scaled_cascade(self.columns_menu, tr(label), menu)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for value, scale in FONT_SCALES.items():
@@ -14125,6 +14390,23 @@ class Commander(tk.Tk):
         self._update_cloud_icons(self._visible_cloud_rows(self.visible_panes()))
         self.save_config()
 
+    def set_vcs_overlay(self):
+        for pane in self.all_panes():
+            # Invalidate in-flight results and refresh icons, not rows/selection.
+            pane._vcs_generation += 1
+            pane._vcs_loading = False
+            pane._vcs_requested_at = 0
+            if self.vcs_overlay_var.get():
+                pane._request_vcs_statuses()
+            def redraw(parent='', pane=pane):
+                for iid in pane.tree.get_children(parent):
+                    tags = pane.tree.item(iid, 'tags')
+                    if tags and tags[0] != 'PFC_INLINE_PLACEHOLDER':
+                        pane.tree.item(iid, image=pane._icon(Path(tags[0]), pane.tree.set(iid, 'size') == '<DIR>'))
+                    redraw(iid, pane)
+            redraw()
+        self.save_config()
+
     def set_system_visibility(self) -> None:
         source = self.panes()[0]
         source.show_system = self.show_system_var.get()
@@ -14245,11 +14527,16 @@ class Commander(tk.Tk):
         style = ttk.Style(self)
         for name in ("Zoom.TButton", "Zoom.TMenubutton"):
             style.configure(name, font=self._zoom_font, padding=1)
+        # Keep native Menubutton mouse/keyboard behavior, omit only its arrow.
+        style.layout('Zoom.TMenubutton', [('Menubutton.border', {'sticky': 'nswe', 'children': [
+            ('Menubutton.focus', {'sticky': 'nswe', 'children': [
+                ('Menubutton.padding', {'sticky': 'nswe', 'children': [
+                    ('Menubutton.label', {'sticky': 'nswe'})]})]})]})])
         self.zoom_percent_var = tk.StringVar()
         self.zoom_minus = ttk.Button(self.zoom_frame, text="−", width=1, style="Zoom.TButton",
                                      command=lambda: self.adjust_zoom(-1))
         self.zoom_minus.pack(side="left")
-        self.zoom_combo = ttk.Menubutton(self.zoom_frame, width=5,
+        self.zoom_combo = ttk.Menubutton(self.zoom_frame, width=4,
                                       textvariable=self.zoom_percent_var, style="Zoom.TMenubutton")
         self.zoom_combo.pack(side="left", padx=1)
         self.zoom_menu = tk.Menu(self.zoom_combo, tearoff=False, font="TkMenuFont")

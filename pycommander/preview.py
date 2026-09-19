@@ -11,6 +11,7 @@ from tkinter import ttk
 from .tooltip import install_button_tooltips
 from .i18n import retranslate_widgets, tr
 from .tabs import color_scheme
+from .markdownblocks import markdown_blocks, property_rows, render_grid
 
 
 TEXT_EXTENSIONS = {
@@ -108,7 +109,7 @@ def syntax_spans(text: str, suffix: str) -> list[tuple[int, int, str]]:
 
 def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
     """Render common Markdown structure into readable Tk text and style spans."""
-    output, spans, in_code, length = [], [], False, 0
+    output, spans, length = [], [], 0
 
     def append(value: str, tag: str | None = None) -> None:
         nonlocal length
@@ -133,11 +134,27 @@ def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
             cursor = match.end()
         append(value[cursor:])
 
-    for raw in text.splitlines():
-        if raw.strip().startswith("```"):
-            in_code = not in_code
+    for kind, raw in markdown_blocks(text):
+        if kind == 'properties':
+            append(tr('Properties (read-only)')+'\n', 'markdown_h3')
+            append(render_grid([[tr('Property'),tr('Value')]]+property_rows(raw)), 'markdown_table')
             continue
-        if in_code:
+        if kind == 'table':
+            rows, aligns = raw
+            # Flatten inline presentation inside a grid, preserving all words,
+            # URLs and line breaks. Keep a uniform fixed font for alignment.
+            plain_rows=[]
+            for row in rows:
+                plain=[]
+                for value in row:
+                    start, old_length, old_spans = len(output), length, len(spans)
+                    inline(re.sub(r'<br\s*/?>', '\n', value, flags=re.I))
+                    plain.append(''.join(output[start:]))
+                    del output[start:]; del spans[old_spans:]; length=old_length
+                plain_rows.append(plain)
+            append(render_grid(plain_rows, aligns), 'markdown_table')
+            continue
+        if kind == 'code':
             append(raw + "\n", "markdown_code")
             continue
         heading = re.match(r"^(#{1,6})\s+(.*)$", raw)
@@ -279,12 +296,15 @@ class PreviewWindow(tk.Toplevel):
     def _configure_effect_fonts(self) -> None:
         base = tkfont.nametofont("TkFixedFont")
         family, size = base.cget("family"), base.cget("size")
+        def heading_size(factor, extra):
+            scaled = max(abs(size)+extra, round(abs(size)*factor))
+            return -scaled if size < 0 else scaled
         self.effect_fonts = {
             "bold": tkfont.Font(self, family=family, size=size, weight="bold"),
             "italic": tkfont.Font(self, family=family, size=size, slant="italic"),
-            "h1": tkfont.Font(self, family=family, size=max(size + 6, round(size * 1.55)), weight="bold"),
-            "h2": tkfont.Font(self, family=family, size=max(size + 4, round(size * 1.35)), weight="bold"),
-            "h3": tkfont.Font(self, family=family, size=max(size + 2, round(size * 1.18)), weight="bold"),
+            "h1": tkfont.Font(self, family=family, size=heading_size(1.55,6), weight="bold"),
+            "h2": tkfont.Font(self, family=family, size=heading_size(1.35,4), weight="bold"),
+            "h3": tkfont.Font(self, family=family, size=heading_size(1.18,2), weight="bold"),
         }
 
     def apply_scale(self, _scale: float) -> None:
@@ -320,6 +340,8 @@ class PreviewWindow(tk.Toplevel):
         self.text.tag_configure("markdown_quote", foreground=palette["muted"])
         self.text.tag_configure("markdown_bullet", foreground=colors["syntax_keyword"])
         self.text.tag_configure("markdown_rule", foreground=palette["border"])
+        self.text.tag_configure('markdown_table', font=tkfont.nametofont('TkFixedFont'),
+                                background=palette['surface_alt'], wrap='none', spacing1=0, spacing3=0)
         for level in (1, 2, 3):
             self.text.tag_configure(f"markdown_h{level}", font=self.effect_fonts[f"h{level}"],
                                     foreground=colors["syntax_heading"], spacing1=8, spacing3=4)

@@ -42,7 +42,7 @@ from .startup import WindowsTrayIcon, set_windows_autostart
 from .dirwatch import DirectoryWatchManager, directory_key, is_local_watch_path
 from .pathbar import PathBar, path_ancestors
 from .homeprefix import PREFIX_ICONS, PrefixPreferences, discover_home_prefixes, load_custom_prefixes, match_home_prefix, prefix_icon, prefix_icon_size, save_custom_prefixes
-from .cloudstatus import CLOUD_LABELS, CloudStatusCache
+from .cloudstatus import CLOUD_LABELS, CLOUD_DETAILS, CloudStatusCache
 from .marquee import NameMarquee
 from .detailcells import SizeUnitCells
 from .columnsettings import modified_text
@@ -130,6 +130,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.18", "2026/09/19", (
+        "Fixed: Nested column menus reopen reliably and support one-level-at-a-time keyboard navigation.",
+        "Improved: Simpler column menus, a saved Git/SVN overlay switch and clearer OneDrive availability explanations.",
+        "Added: Read-only Markdown tables and properties with complete cell text, search and source view; corrected heading sizes.",
+        "Improved: Compact zoom keeps the percentage menu and plus/minus controls without a down arrow.",
+    )),
     ("v0.17.17", "2026/09/19", (
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.",
@@ -394,7 +400,7 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
                  "long_name_scrolling": "true", "column_ext": "true",
                  "column_size": "true", "column_modified": "true",
                  "date_order": "ymd", "time_style": "24", "size_emphasis": "true",
-                 "onedrive_overlay": "true"},
+                 "onedrive_overlay": "true", "vcs_overlay": "true"},
         "refresh": {"auto_refresh": "true", "active_interval_ms": "2000",
                     "background_interval_ms": "10000", "network_interval_ms": "5000"},
         "operations": {"send_delete_to_recycle_bin": "true", "continue_after_error": "true"},
@@ -1100,7 +1106,8 @@ class FilePane(ttk.Frame):
     def _icon(self, path: Path, is_dir: bool):
         owner = self.winfo_toplevel()
         cloud = owner.cloud_status.get(path) if owner.onedrive_overlay_var.get() else None
-        return self.icons.get(path, is_dir, status_for(self._vcs_statuses, path), cloud)
+        vcs = status_for(self._vcs_statuses, path) if owner.vcs_overlay_var.get() else None
+        return self.icons.get(path, is_dir, vcs, cloud)
 
     def _full_item_name(self, iid: str) -> str:
         tags = self.tree.item(iid, "tags")
@@ -1119,7 +1126,8 @@ class FilePane(ttk.Frame):
         owner = self.winfo_toplevel()
         cloud = owner.cloud_status.get(tags[0]) if tags and owner.onedrive_overlay_var.get() else None
         if cloud:
-            return self._full_item_name(iid) + '\nOneDrive: ' + tr(CLOUD_LABELS[cloud])
+            return (self._full_item_name(iid) + '\nOneDrive: ' + tr(CLOUD_LABELS[cloud])
+                    + '\n' + tr(CLOUD_DETAILS[cloud]))
         if self.name_marquee.item == iid:
             return ""
         full = self._full_item_name(iid)
@@ -1137,6 +1145,8 @@ class FilePane(ttk.Frame):
         self.size_units.request()
 
     def _request_vcs_statuses(self) -> None:
+        if not self.winfo_toplevel().vcs_overlay_var.get():
+            return
         if self.archive_session is not None:
             self._vcs_path = None; self._vcs_statuses = {}
             return
@@ -2192,6 +2202,7 @@ class Commander(tk.Tk):
         self.time_style_var = tk.StringVar(value=time_style if time_style in ('12','24','none') else '24')
         self.size_emphasis_var = tk.BooleanVar(value=self.config_data.getboolean('view','size_emphasis',fallback=True))
         self.onedrive_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','onedrive_overlay',fallback=True))
+        self.vcs_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','vcs_overlay',fallback=True))
         self._auto_font_job = None
         self._last_auto_window_size = None
         saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
@@ -2565,7 +2576,8 @@ class Commander(tk.Tk):
         for c, variable in self.column_visible_vars.items():
             self.config_data.set('view', 'column_' + c, str(variable.get()).lower())
         for key, variable in (('date_order', self.date_order_var), ('time_style', self.time_style_var),
-                              ('size_emphasis', self.size_emphasis_var), ('onedrive_overlay', self.onedrive_overlay_var)):
+                              ('size_emphasis', self.size_emphasis_var), ('onedrive_overlay', self.onedrive_overlay_var),
+                              ('vcs_overlay', self.vcs_overlay_var)):
             self.config_data.set('view', key, str(variable.get()))
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
@@ -2878,6 +2890,8 @@ class Commander(tk.Tk):
                                self.set_long_name_scrolling)
         add_scaled_checkbutton(visibility, tr('OneDrive Sync Overlay'), self.onedrive_overlay_var,
                                self.apply_column_settings)
+        add_scaled_checkbutton(visibility, tr('Git / SVN Overlay'), self.vcs_overlay_var,
+                               self.set_vcs_overlay)
         for column, label in (('name','Name'), ('ext','Ext'), ('size','Size'), ('modified','Date Modified')):
             menu = visibility if column == 'name' else tk.Menu(self.columns_menu, tearoff=False, font=menu_font)
             self.column_menus[column] = menu
@@ -2892,9 +2906,6 @@ class Commander(tk.Tk):
                 menu.add_separator()
                 for label2, value in (('24-hour (hh:mm)','24'), ('12-hour (1136a / 0515p)','12'), ('Date only','none')):
                     add_scaled_radiobutton(menu, tr(label2), value, self.time_style_var, self.apply_column_settings)
-            menu.add_separator()
-            menu.add_command(label=tr('Sort ascending'), command=lambda c=column: self.sort_column(c, False))
-            menu.add_command(label=tr('Sort descending'), command=lambda c=column: self.sort_column(c, True))
             add_scaled_cascade(self.columns_menu, tr(label), menu)
         font_size = tk.Menu(view, tearoff=False, font=menu_font)
         for value, scale in FONT_SCALES.items():
@@ -4680,6 +4691,23 @@ class Commander(tk.Tk):
         self._update_cloud_icons(self._visible_cloud_rows(self.visible_panes()))
         self.save_config()
 
+    def set_vcs_overlay(self):
+        for pane in self.all_panes():
+            # Invalidate in-flight results and refresh icons, not rows/selection.
+            pane._vcs_generation += 1
+            pane._vcs_loading = False
+            pane._vcs_requested_at = 0
+            if self.vcs_overlay_var.get():
+                pane._request_vcs_statuses()
+            def redraw(parent='', pane=pane):
+                for iid in pane.tree.get_children(parent):
+                    tags = pane.tree.item(iid, 'tags')
+                    if tags and tags[0] != 'PFC_INLINE_PLACEHOLDER':
+                        pane.tree.item(iid, image=pane._icon(Path(tags[0]), pane.tree.set(iid, 'size') == '<DIR>'))
+                    redraw(iid, pane)
+            redraw()
+        self.save_config()
+
     def set_system_visibility(self) -> None:
         source = self.panes()[0]
         source.show_system = self.show_system_var.get()
@@ -4800,11 +4828,16 @@ class Commander(tk.Tk):
         style = ttk.Style(self)
         for name in ("Zoom.TButton", "Zoom.TMenubutton"):
             style.configure(name, font=self._zoom_font, padding=1)
+        # Keep native Menubutton mouse/keyboard behavior, omit only its arrow.
+        style.layout('Zoom.TMenubutton', [('Menubutton.border', {'sticky': 'nswe', 'children': [
+            ('Menubutton.focus', {'sticky': 'nswe', 'children': [
+                ('Menubutton.padding', {'sticky': 'nswe', 'children': [
+                    ('Menubutton.label', {'sticky': 'nswe'})]})]})]})])
         self.zoom_percent_var = tk.StringVar()
         self.zoom_minus = ttk.Button(self.zoom_frame, text="−", width=1, style="Zoom.TButton",
                                      command=lambda: self.adjust_zoom(-1))
         self.zoom_minus.pack(side="left")
-        self.zoom_combo = ttk.Menubutton(self.zoom_frame, width=5,
+        self.zoom_combo = ttk.Menubutton(self.zoom_frame, width=4,
                                       textvariable=self.zoom_percent_var, style="Zoom.TMenubutton")
         self.zoom_combo.pack(side="left", padx=1)
         self.zoom_menu = tk.Menu(self.zoom_combo, tearoff=False, font="TkMenuFont")

@@ -220,9 +220,11 @@ class HeaderPopupController:
         self.popups = []
         self.tooltip = None
         self.tooltip_job = None
+        self.keyboard_pointer = None
 
     def show(self, button, menu) -> None:
         self.close_all()
+        self.keyboard_pointer = None
         popup = _HeaderPopup(self, menu, None)
         self.popups = [popup]
         popup.show(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
@@ -231,11 +233,15 @@ class HeaderPopupController:
 
     def open_child(self, parent, index) -> None:
         depth = self.popups.index(parent)
-        self._close_from(depth + 1)
         submenu_name = parent.menu.entrycget(index, "menu")
         if not submenu_name:
             return
         submenu = parent.menu.nametowidget(submenu_name)
+        # Reuse a visible cascade. Recreating it during pointer/focus events
+        # can lose the next level and leave the parent highlighted but closed.
+        if len(self.popups) > depth + 1 and self.popups[depth + 1].menu is submenu:
+            return
+        self._close_from(depth + 1)
         child = _HeaderPopup(self, submenu, parent)
         self.popups.append(child)
         row_top = parent.row_bounds[index][0]
@@ -245,7 +251,15 @@ class HeaderPopupController:
         if x + child.width > left + width:
             x = parent.top.winfo_rootx() - child.width + 1
         child.show(x, y)
-        child.canvas.focus_force()
+
+    def popup_at(self, x, y):
+        # A global grab can deliver another popup's event to the root window.
+        # Hit-test screen coordinates, including cascades flipped to the left.
+        for popup in reversed(self.popups):
+            if (popup.top.winfo_rootx() <= x < popup.top.winfo_rootx()+popup.width
+                    and popup.top.winfo_rooty() <= y < popup.top.winfo_rooty()+popup.height):
+                return popup
+        return None
 
     def close_child(self, popup) -> None:
         depth = self.popups.index(popup)
@@ -339,6 +353,9 @@ class _HeaderPopup:
                                 highlightthickness=1, highlightbackground=self.BORDER, takefocus=True)
         self.canvas.pack()
         self.canvas.bind("<Motion>", self._motion)
+        self.canvas.bind("<Enter>", self._motion)
+        self.top.bind("<Motion>", self._motion)
+        self.top.bind("<ButtonRelease-1>", self._click)
         self.canvas.bind("<Leave>", lambda _event: self.controller._hide_tooltip())
         self.canvas.bind("<ButtonRelease-1>", self._click)
         self.canvas.bind("<ButtonPress-1>", self._outside_click)
@@ -430,20 +447,40 @@ class _HeaderPopup:
                 return index
         return None
 
-    def _select(self, index) -> None:
+    def _select(self, index, open_cascade=True) -> None:
         if index == self.selected:
+            if (open_cascade and index is not None and self.menu.type(index) == 'cascade'
+                    and self.menu.entrycget(index, 'state') != 'disabled'):
+                self.controller.open_child(self, index)
             return
         self.selected = index
         self._draw()
         if index is not None:
             self.controller.schedule_tooltip(self, index)
             if self.menu.type(index) == "cascade" and self.menu.entrycget(index, "state") != "disabled":
-                self.controller.open_child(self, index)
+                if open_cascade:
+                    self.controller.open_child(self, index)
+                else:
+                    self.controller._close_from(self.controller.popups.index(self) + 1)
             else:
                 self.controller._close_from(self.controller.popups.index(self) + 1)
 
-    def _motion(self, event) -> None:
-        self._select(self._index_at(event.y))
+    def _event_target(self, event):
+        if hasattr(event, 'x_root') and hasattr(event, 'y_root'):
+            target = self.controller.popup_at(event.x_root, event.y_root)
+            return target, event.y_root-target.top.winfo_rooty() if target else 0
+        return self, event.y
+
+    def _motion(self, event) -> str:
+        if hasattr(event, 'x_root') and hasattr(event, 'y_root'):
+            point = (event.x_root, event.y_root)
+            if point == self.controller.keyboard_pointer:
+                return 'break'
+            self.controller.keyboard_pointer = None
+        target, y = self._event_target(event)
+        if target is not None:
+            target._select(target._index_at(y))
+        return 'break'
 
     def _outside_click(self, event) -> str | None:
         if not self.controller.pointer_inside(event.x_root, event.y_root):
@@ -452,10 +489,14 @@ class _HeaderPopup:
         return None
 
     def _click(self, event) -> str:
-        index = self._index_at(event.y)
+        target, y = self._event_target(event)
+        if target is None:
+            self.controller.close_all()
+            return 'break'
+        index = target._index_at(y)
         if index is not None:
-            self._select(index)
-            self._invoke(index)
+            target._select(index)
+            target._invoke(index)
         return "break"
 
     def _enabled_indexes(self):
@@ -463,6 +504,7 @@ class _HeaderPopup:
                 if kind != "separator" and state != "disabled"]
 
     def _move(self, direction: int) -> str:
+        self.controller.keyboard_pointer = self.controller.owner.winfo_pointerxy()
         indexes = self._enabled_indexes()
         if not indexes:
             return "break"
@@ -470,13 +512,17 @@ class _HeaderPopup:
             target = indexes[0 if direction > 0 else -1]
         else:
             target = indexes[(indexes.index(self.selected) + direction) % len(indexes)]
-        self._select(target)
+        self._select(target, open_cascade=False)
         return "break"
 
     def _open_selected(self) -> str:
+        self.controller.keyboard_pointer = self.controller.owner.winfo_pointerxy()
         if self.selected is not None and self.menu.type(self.selected) == "cascade":
             self.controller.open_child(self, self.selected)
-            self.controller.popups[-1]._move(1)
+            child = self.controller.popups[self.controller.popups.index(self)+1]
+            child.canvas.focus_force()
+            if child.selected is None:
+                child._move(1)
         return "break"
 
     def _invoke_selected(self) -> str:
@@ -496,11 +542,13 @@ class _HeaderPopup:
         menu.invoke(index)
 
     def _left(self) -> str:
+        self.controller.keyboard_pointer = self.controller.owner.winfo_pointerxy()
         if self.parent is not None:
             self.controller.close_child(self)
         return "break"
 
     def _escape(self) -> str:
+        self.controller.keyboard_pointer = self.controller.owner.winfo_pointerxy()
         if self.parent is not None:
             self.controller.close_child(self)
         else:

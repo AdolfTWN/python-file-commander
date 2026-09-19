@@ -52,6 +52,7 @@ with tempfile.TemporaryDirectory() as raw:
             path=Path(pane.tree.item(iid,'tags')[0])
             assert 'OneDrive:' in pane._tooltip_name(iid)
             assert cloud.CLOUD_LABELS[path.stem] in pane._tooltip_name(iid)
+            assert cloud.CLOUD_DETAILS[path.stem] in pane._tooltip_name(iid)
         images=[]
         display=tk.Toplevel(app); display.title('OneDrive badge regression fixture (not live sync)')
         for column,state in enumerate(cloud.CLOUD_LABELS):

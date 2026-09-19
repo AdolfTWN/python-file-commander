@@ -1,18 +1,26 @@
 # Python File Commander
 
-Current version: **v0.17.17**
+Current version: **v0.17.18**
 
-Right-click a file column header for its display and sorting options. All column
+Right-click a file column header for its display options; click the heading to
+change sorting. All column
 settings, including restoration of hidden Ext/Size/Date Modified columns, are in
 **View → File Columns**. Dates support YYYY/MM/DD or MM/DD/YYYY with 24-hour,
 compact 12-hour (1136a / 0515p), or date-only display; preferences persist in INI.
 Name controls Hidden/System, filename extensions, mixed sorting, scrolling and
-OneDrive badges. Windows HIDDEN attributes are recognized as well as dot files.
+OneDrive badges and a separate Git/SVN overlay switch. Windows HIDDEN attributes
+are recognized as well as dot files.
 
 OneDrive status is queried asynchronously from fast local Windows properties,
 without reading file contents or intentionally hydrating placeholders. Square
 top-left cloud badges remain distinct from round bottom-right Git badges. Missing
 provider metadata stays unknown. See [column and overlay details](docs/file-columns.md).
+
+Markdown rendered preview now displays complete pipe tables and read-only
+frontmatter properties, with wrapped cells, horizontal scrolling for wide tables,
+search/copy and unchanged source view. The compact zoom control keeps its menu
+on the percentage without a down arrow. See the [TODO implementation and design
+review](docs/ui-ux-review-2026-09-19.md) for boundaries and proposed tab/header improvements.
 
 Large deletions run outside the UI thread and report live item progress plus an estimated remaining time.
 

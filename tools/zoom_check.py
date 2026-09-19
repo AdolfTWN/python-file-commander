@@ -61,6 +61,18 @@ def main():
             assert app.zoom_frame.winfo_x() > app.action_button_by_hotkey['F12'].winfo_rootx() - app.actions_frame.winfo_rootx()
             assert app.zoom_frame.winfo_width() <= 110, app.zoom_frame.winfo_width()
             assert len(app.zoom_frame.winfo_children()) == 3
+            assert 'arrow' not in str(pfc.ttk.Style(app).layout('Zoom.TMenubutton')).lower()
+            # Windows native menu tracking blocks Tcl timers until external input.
+            # Validate keyboard post/Escape manually there; automate it on X11.
+            if sys.platform!='win32':
+                app.zoom_combo.focus_force();pump(app)
+                observed=[]
+                def dismiss_zoom_menu():
+                    observed.append(bool(app.zoom_menu.winfo_ismapped()))
+                    app.tk.call('tk::MenuUnpost',str(app.zoom_menu))
+                app.after(200,dismiss_zoom_menu)
+                app.zoom_combo.event_generate('<space>');pump(app)
+                assert observed==[True], 'Percentage menu must remain keyboard accessible'
             app.search(); pump(app)
             app.search_window.mask_entry.event_generate('<Control-MouseWheel>', delta=120); pump(app)
             assert app.zoom_percent_var.get() == '125%'
