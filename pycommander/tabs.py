@@ -223,11 +223,15 @@ class HeaderPopupController:
         self.keyboard_pointer = None
 
     def show(self, button, menu) -> None:
+        self.show_at(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height(), menu)
+
+    def show_at(self, x, y, menu) -> None:
+        """Use the same scalable cascade model for header and context menus."""
         self.close_all()
         self.keyboard_pointer = None
         popup = _HeaderPopup(self, menu, None)
         self.popups = [popup]
-        popup.show(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
+        popup.show(x, y)
         popup.top.grab_set_global()
         popup.canvas.focus_force()
 
@@ -591,6 +595,8 @@ class ChamferNotebook(ttk.Frame):
         self.bar.bind("<B1-Motion>", self._tab_motion)
         self.bar.bind("<ButtonRelease-1>", self._tab_release)
         self.bar.bind("<Button-3>", self._popup)
+        self.bar.bind("<Shift-F10>", self._popup_keyboard)
+        self.bar.bind("<KeyPress-Menu>", self._popup_keyboard)
         self.bar.bind("<Configure>", lambda _e: self._draw())
         self.palette = COLOR_SCHEMES["light"]
 
@@ -867,19 +873,54 @@ class ChamferNotebook(ttk.Frame):
             self.on_tabs_reordered()
             self.event_generate("<<NotebookTabsReordered>>")
 
-    def _popup(self, event):
-        child = self._at(event.x)
-        if child is None:
-            return
-        self.select(child)
+    def _build_context_menu(self, child=None):
+        old=getattr(self,'_context_menu',None)
+        if old is not None: old.destroy()
         menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
-        for key, (label, _color) in TAB_COLORS.items():
-            menu.add_command(label=tr(label), command=lambda value=key: self.set_color(child, value))
-        menu.add_separator()
-        lock_mode = tk.StringVar(value=self._locks.get(child, "unlocked"))
-        for label, value in (("Unlocked", "unlocked"),
-                             ("Lock (open folder in new tab)", "locked"),
-                             ("Lock (open folder is allowed)", "reset")):
-            add_scaled_radiobutton(menu, tr(label), value, lock_mode,
-                                   command=lambda mode=value: self.set_lock(child, mode))
-        menu.tk_popup(event.x_root, event.y_root)
+        self._context_menu=menu
+        if child is not None:
+            colors=tk.Menu(menu,tearoff=False,font='TkMenuFont')
+            menu._color_var=color=tk.StringVar(self,value=self._colors.get(child,'default'))
+            for key, (label, _color) in TAB_COLORS.items():
+                add_scaled_radiobutton(colors,tr(label),key,color,
+                                       command=lambda value=key:self.set_color(child,value))
+            add_scaled_cascade(menu,tr('Tab Color'),colors)
+            menu.add_separator()
+            menu._lock_var=lock_mode=tk.StringVar(self,value=self._locks.get(child,'unlocked'))
+            for label, value in (("Unlocked", "unlocked"),
+                                 ("Lock (open folder in new tab)", "locked"),
+                                 ("Lock (open folder is allowed)", "reset")):
+                add_scaled_radiobutton(menu, tr(label), value, lock_mode,
+                                       command=lambda mode=value: self.set_lock(child, mode))
+            menu.add_separator()
+        owner=self._root()
+        style_menu=getattr(owner,'tab_style_menu',None)
+        if style_menu is not None:
+            add_scaled_cascade(menu,tr('Tab Style'),style_menu)
+        else:
+            style_menu=tk.Menu(menu,tearoff=False,font='TkMenuFont')
+            menu._style_var=selected=tk.StringVar(self,value=self._tab_style)
+            for value,label in TAB_STYLES.items():
+                add_scaled_radiobutton(style_menu,tr(label),value,selected,
+                                       command=lambda value=value:self.set_style(value))
+            add_scaled_cascade(menu,tr('Tab Style'),style_menu)
+        return menu
+
+    def _show_context_menu(self,child,x,y):
+        if child is not None:self.select(child)
+        owner=self._root()
+        controller=getattr(owner,'header_popup',None)
+        if controller is not None:controller.close_all()
+        menu=self._build_context_menu(child)
+        if controller is not None:controller.show_at(x,y,menu)
+        else:
+            try:menu.tk_popup(x,y)
+            finally:menu.grab_release()
+        return 'break'
+
+    def _popup(self,event):
+        return self._show_context_menu(self._at(event.x),event.x_root,event.y_root)
+
+    def _popup_keyboard(self,event=None):
+        return self._show_context_menu(self._selected,self.bar.winfo_rootx()+12,
+                                       self.bar.winfo_rooty()+self.bar.winfo_height())

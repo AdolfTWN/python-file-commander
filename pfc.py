@@ -113,6 +113,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Tab Color": "分頁顏色", "Panel View": "面板檢視",
+        "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "新增：面板空白區右鍵可設定面板數量、右鍵模式、檢視、欄位、字型及配色。",
+        "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "新增：分頁右鍵提供共用分頁樣式及分類的分頁顏色；分頁列空白處也可設定樣式。",
+        "Improved: View-mode and zoom controls support context menus; keyboard access and settings stay consistent with the main menu.": "改善：檢視與縮放控制支援右鍵選單及鍵盤操作；設定與主選單同步。",
         **{key: labels[0] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：欄位標題右鍵選單與「檢視 > 檔案欄位」統整顯示、排序及日期時間格式，並儲存偏好。",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 維持一般字體大小並重用繪製元件以避免閃爍；辨識 Windows 隱藏屬性。",
@@ -427,6 +431,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Tab Color": "标签页颜色", "Panel View": "面板视图",
+        "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "新增：面板空白处右键可设置面板数量、右键模式、视图、列、字体及配色。",
+        "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "新增：标签页右键提供共用标签样式及分组颜色；标签栏空白处也可设置样式。",
+        "Improved: View-mode and zoom controls support context menus; keyboard access and settings stay consistent with the main menu.": "改进：视图和缩放控件支持右键菜单和键盘操作；设置与主菜单同步。",
         **{key: labels[1] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：列标题右键菜单与“视图 > 文件列”整合显示、排序及日期时间格式，并保存偏好。",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 保持普通字体大小并复用绘制组件以避免闪烁；识别 Windows 隐藏属性。",
@@ -714,6 +722,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Tab Color": "탭 색상", "Panel View": "패널 보기",
+        "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "추가: 패널 빈 공간 우클릭으로 패널 수, 메뉴 모드, 보기, 열, 글꼴 및 색상 설정.",
+        "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "추가: 탭 메뉴에 공통 탭 스타일 및 색상 그룹 제공. 빈 탭 표시줄에서도 스타일 설정 가능.",
+        "Improved: View-mode and zoom controls support context menus; keyboard access and settings stay consistent with the main menu.": "개선: 보기/확대 컨트롤의 우클릭 및 키보드 지원. 기본 메뉴와 설정 동기화.",
         **{key: labels[2] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "추가: 열 머리글 메뉴와 보기 > 파일 열에서 표시, 정렬, 날짜/시간 형식을 설정하고 저장합니다.",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "수정: GB/TB 글꼴 크기를 유지하고 셀을 재사용해 깜박임을 방지하며 Windows 숨김 속성을 인식합니다.",
@@ -3015,11 +3027,15 @@ class HeaderPopupController:
         self.keyboard_pointer = None
 
     def show(self, button, menu) -> None:
+        self.show_at(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height(), menu)
+
+    def show_at(self, x, y, menu) -> None:
+        """Use the same scalable cascade model for header and context menus."""
         self.close_all()
         self.keyboard_pointer = None
         popup = _HeaderPopup(self, menu, None)
         self.popups = [popup]
-        popup.show(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height())
+        popup.show(x, y)
         popup.top.grab_set_global()
         popup.canvas.focus_force()
 
@@ -3383,6 +3399,8 @@ class ChamferNotebook(ttk.Frame):
         self.bar.bind("<B1-Motion>", self._tab_motion)
         self.bar.bind("<ButtonRelease-1>", self._tab_release)
         self.bar.bind("<Button-3>", self._popup)
+        self.bar.bind("<Shift-F10>", self._popup_keyboard)
+        self.bar.bind("<KeyPress-Menu>", self._popup_keyboard)
         self.bar.bind("<Configure>", lambda _e: self._draw())
         self.palette = COLOR_SCHEMES["light"]
 
@@ -3659,22 +3677,57 @@ class ChamferNotebook(ttk.Frame):
             self.on_tabs_reordered()
             self.event_generate("<<NotebookTabsReordered>>")
 
-    def _popup(self, event):
-        child = self._at(event.x)
-        if child is None:
-            return
-        self.select(child)
+    def _build_context_menu(self, child=None):
+        old=getattr(self,'_context_menu',None)
+        if old is not None: old.destroy()
         menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
-        for key, (label, _color) in TAB_COLORS.items():
-            menu.add_command(label=tr(label), command=lambda value=key: self.set_color(child, value))
-        menu.add_separator()
-        lock_mode = tk.StringVar(value=self._locks.get(child, "unlocked"))
-        for label, value in (("Unlocked", "unlocked"),
-                             ("Lock (open folder in new tab)", "locked"),
-                             ("Lock (open folder is allowed)", "reset")):
-            add_scaled_radiobutton(menu, tr(label), value, lock_mode,
-                                   command=lambda mode=value: self.set_lock(child, mode))
-        menu.tk_popup(event.x_root, event.y_root)
+        self._context_menu=menu
+        if child is not None:
+            colors=tk.Menu(menu,tearoff=False,font='TkMenuFont')
+            menu._color_var=color=tk.StringVar(self,value=self._colors.get(child,'default'))
+            for key, (label, _color) in TAB_COLORS.items():
+                add_scaled_radiobutton(colors,tr(label),key,color,
+                                       command=lambda value=key:self.set_color(child,value))
+            add_scaled_cascade(menu,tr('Tab Color'),colors)
+            menu.add_separator()
+            menu._lock_var=lock_mode=tk.StringVar(self,value=self._locks.get(child,'unlocked'))
+            for label, value in (("Unlocked", "unlocked"),
+                                 ("Lock (open folder in new tab)", "locked"),
+                                 ("Lock (open folder is allowed)", "reset")):
+                add_scaled_radiobutton(menu, tr(label), value, lock_mode,
+                                       command=lambda mode=value: self.set_lock(child, mode))
+            menu.add_separator()
+        owner=self._root()
+        style_menu=getattr(owner,'tab_style_menu',None)
+        if style_menu is not None:
+            add_scaled_cascade(menu,tr('Tab Style'),style_menu)
+        else:
+            style_menu=tk.Menu(menu,tearoff=False,font='TkMenuFont')
+            menu._style_var=selected=tk.StringVar(self,value=self._tab_style)
+            for value,label in TAB_STYLES.items():
+                add_scaled_radiobutton(style_menu,tr(label),value,selected,
+                                       command=lambda value=value:self.set_style(value))
+            add_scaled_cascade(menu,tr('Tab Style'),style_menu)
+        return menu
+
+    def _show_context_menu(self,child,x,y):
+        if child is not None:self.select(child)
+        owner=self._root()
+        controller=getattr(owner,'header_popup',None)
+        if controller is not None:controller.close_all()
+        menu=self._build_context_menu(child)
+        if controller is not None:controller.show_at(x,y,menu)
+        else:
+            try:menu.tk_popup(x,y)
+            finally:menu.grab_release()
+        return 'break'
+
+    def _popup(self,event):
+        return self._show_context_menu(self._at(event.x),event.x_root,event.y_root)
+
+    def _popup_keyboard(self,event=None):
+        return self._show_context_menu(self._selected,self.bar.winfo_rootx()+12,
+                                       self.bar.winfo_rooty()+self.bar.winfo_height())
 
 
 import tkinter as tk
@@ -10524,7 +10577,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-__version__ = "0.17.19"
+__version__ = "0.17.20"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -10607,8 +10660,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/19"
+BUILD_DATE = "2026/09/20"
 VERSION_HISTORY = (
+    ("v0.17.20", "2026/09/20", (
+        "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.",
+        "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.",
+        "Improved: View-mode and zoom controls support context menus; keyboard access and settings stay consistent with the main menu.",
+    )),
     ("v0.17.19", "2026/09/19", (
         "Added: Read-only Markdown tasks, labeled callouts, section navigation and folding with complete search/copy.",
         "Added: Exact local Markdown links and Back within a fixed folder boundary, without indexing or wider searches.",
@@ -11330,6 +11388,9 @@ class FilePane(ttk.Frame):
         self.path_var = tk.StringVar()
         self.view_mode_button = ttk.Button(bar, width=0, command=self.show_view_modes)
         self.view_mode_button.pack(side="right", padx=(4, 0))
+        self.view_mode_button.bind('<Button-3>',lambda e:self.show_view_modes())
+        self.view_mode_button.bind('<Shift-F10>',lambda e:self.show_view_modes())
+        self.view_mode_button.bind('<KeyPress-Menu>',lambda e:self.show_view_modes())
         self.path_bar = PathBar(bar, self.path_var, self._breadcrumb_parts,
                                 self._navigate_crumb, self._submit_path, self.focus_file_list)
         self.path_bar.pack(side="left", fill="x", expand=True, padx=(4, 0))
@@ -11429,7 +11490,7 @@ class FilePane(ttk.Frame):
             self.home_button.pack(side="left", after=self.up_button)
         self.view_mode_button.configure(text=(icons[self.view_mode] if compact else tr(labels[self.view_mode])) + " ▾")
 
-    def show_view_modes(self) -> None:
+    def show_view_modes(self) -> str:
         self.on_activate(self)
         if getattr(self, "_view_mode_menu", None) is not None:
             self._view_mode_menu.destroy()
@@ -11448,6 +11509,7 @@ class FilePane(ttk.Frame):
                           self.view_mode_button.winfo_rooty() + self.view_mode_button.winfo_height())
         finally:
             menu.grab_release()
+        return 'break'
 
     def set_view_mode(self, mode: str) -> None:
         if mode not in ("list", "folder", "file") or mode == self.view_mode:
@@ -11846,7 +11908,10 @@ class FilePane(ttk.Frame):
             return 'break'
         iid = self.tree.identify_row(event.y)
         if not iid:
-            return None
+            if self.tree.identify_region(event.x,event.y)=='separator':return 'break'
+            self.tree.focus_set();self.on_activate(self)
+            self.winfo_toplevel().show_panel_context_menu(self,event.x_root,event.y_root)
+            return 'break'
         if iid not in self.tree.selection():
             self.tree.selection_set(iid)
         self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
@@ -11858,6 +11923,9 @@ class FilePane(ttk.Frame):
     def _context_keyboard(self, _event=None):
         iid = self.tree.focus() or (self.tree.selection()[0] if self.tree.selection() else "")
         if not iid:
+            self.tree.focus_set();self.on_activate(self)
+            self.winfo_toplevel().show_panel_context_menu(self,self.tree.winfo_rootx()+20,
+                                                        self.tree.winfo_rooty()+35)
             return "break"
         if iid not in self.tree.selection():
             self.tree.selection_set(iid)
@@ -14107,6 +14175,34 @@ class Commander(tk.Tk):
                                state["items"], destination, confirm=False)
         self.set_active(target_pane); target_pane.focus_file_list()
 
+    def _build_panel_context_menu(self,pane: FilePane) -> tk.Menu:
+        """Background settings, never operations on an old file selection."""
+        self.set_active(pane)
+        old=getattr(self,'panel_context_menu',None)
+        if old is not None:old.destroy()
+        menu=tk.Menu(self,tearoff=False,font='TkMenuFont')
+        self.panel_context_menu=menu
+        modes=tk.Menu(menu,tearoff=False,font='TkMenuFont')
+        menu._mode_var=selected=tk.StringVar(self,value=pane.view_mode)
+        for value,label in (('list','List'),('folder','Folder tree'),('file','File tree')):
+            add_scaled_radiobutton(modes,tr(label),value,selected,
+                                   command=lambda value=value:pane.set_view_mode(value))
+        add_scaled_cascade(menu,tr('Panel View'),modes)
+        add_scaled_cascade(menu,tr('File Columns'),self.columns_menu)
+        menu.add_command(label=tr('Refresh'),accelerator='Ctrl+R',command=pane.refresh)
+        menu.add_separator()
+        for label,submenu in (('Panel Counts',self.panel_counts_menu),
+                              ('Right Click Menu',self.right_click_menu),
+                              ('Font Size',self.font_size_menu),('Color Scheme',self.color_scheme_menu)):
+            add_scaled_cascade(menu,tr(label),submenu)
+        return menu
+
+    def show_panel_context_menu(self,pane,x,y):
+        self.header_popup.close_all()
+        menu=self._build_panel_context_menu(pane)
+        self.header_popup.show_at(x,y,menu)
+        return 'break'
+
     def _build_file_context_menu(self, pane: FilePane, clicked: Path) -> tk.Menu:
         self.set_active(pane)
         items = pane.selected_paths()
@@ -15331,8 +15427,16 @@ class Commander(tk.Tk):
         self.zoom_plus = ttk.Button(self.zoom_frame, text="+", width=1, style="Zoom.TButton",
                                     command=lambda: self.adjust_zoom(1))
         self.zoom_plus.pack(side="left")
+        for widget in (self.zoom_frame,self.zoom_minus,self.zoom_combo,self.zoom_plus):
+            widget.bind('<Button-3>',lambda e:self._show_zoom_context(e))
+            widget.bind('<Shift-F10>',lambda e:self._show_zoom_context(e))
+            widget.bind('<KeyPress-Menu>',lambda e:self._show_zoom_context(e))
         ToolTip(self.zoom_combo, lambda: tr("Auto Font Size") + (" ✓" if self.auto_font_size_var.get() else " —"), delay=700)
         self._sync_zoom_controls()
+
+    def _show_zoom_context(self,event):
+        self.header_popup.show_at(event.widget.winfo_rootx(),event.widget.winfo_rooty(),self.font_size_menu)
+        return 'break'
 
     def _rebuild_zoom_menu(self) -> None:
         self.zoom_menu.delete(0, "end")

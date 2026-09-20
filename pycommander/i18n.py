@@ -107,6 +107,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        "Tab Color": "分頁顏色", "Panel View": "面板檢視",
+        "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "新增：面板空白區右鍵可設定面板數量、右鍵模式、檢視、欄位、字型及配色。",
+        "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "新增：分頁右鍵提供共用分頁樣式及分類的分頁顏色；分頁列空白處也可設定樣式。",
+        "Improved: View-mode and zoom controls support context menus; keyboard access and settings stay consistent with the main menu.": "改善：檢視與縮放控制支援右鍵選單及鍵盤操作；設定與主選單同步。",
         **{key: labels[0] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：欄位標題右鍵選單與「檢視 > 檔案欄位」統整顯示、排序及日期時間格式，並儲存偏好。",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 維持一般字體大小並重用繪製元件以避免閃爍；辨識 Windows 隱藏屬性。",
@@ -421,6 +425,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        "Tab Color": "标签页颜色", "Panel View": "面板视图",
+        "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "新增：面板空白处右键可设置面板数量、右键模式、视图、列、字体及配色。",
+        "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "新增：标签页右键提供共用标签样式及分组颜色；标签栏空白处也可设置样式。",
+        "Improved: View-mode and zoom controls support context menus; keyboard access and settings stay consistent with the main menu.": "改进：视图和缩放控件支持右键菜单和键盘操作；设置与主菜单同步。",
         **{key: labels[1] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "新增：列标题右键菜单与“视图 > 文件列”整合显示、排序及日期时间格式，并保存偏好。",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "修正：GB／TB 保持普通字体大小并复用绘制组件以避免闪烁；识别 Windows 隐藏属性。",
@@ -708,6 +716,10 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        "Tab Color": "탭 색상", "Panel View": "패널 보기",
+        "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "추가: 패널 빈 공간 우클릭으로 패널 수, 메뉴 모드, 보기, 열, 글꼴 및 색상 설정.",
+        "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "추가: 탭 메뉴에 공통 탭 스타일 및 색상 그룹 제공. 빈 탭 표시줄에서도 스타일 설정 가능.",
+        "Improved: View-mode and zoom controls support context menus; keyboard access and settings stay consistent with the main menu.": "개선: 보기/확대 컨트롤의 우클릭 및 키보드 지원. 기본 메뉴와 설정 동기화.",
         **{key: labels[2] for key, labels in _MARKDOWN_READING_TRANSLATIONS.items()},
         "Added: Per-column header menus and View > File Columns organize visibility, sorting and date/time formats with saved preferences.": "추가: 열 머리글 메뉴와 보기 > 파일 열에서 표시, 정렬, 날짜/시간 형식을 설정하고 저장합니다.",
         "Fixed: GB/TB text keeps the normal font size and reuses rendered cells to avoid redraw flicker; Windows hidden attributes are recognized.": "수정: GB/TB 글꼴 크기를 유지하고 셀을 재사용해 깜박임을 방지하며 Windows 숨김 속성을 인식합니다.",

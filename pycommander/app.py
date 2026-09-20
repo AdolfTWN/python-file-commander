@@ -130,6 +130,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.20", "2026/09/20", (
+        "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.",
+        "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.",
+        "Improved: View-mode and zoom controls support context menus; keyboard access and settings stay consistent with the main menu.",
+    )),
     ("v0.17.19", "2026/09/19", (
         "Added: Read-only Markdown tasks, labeled callouts, section navigation and folding with complete search/copy.",
         "Added: Exact local Markdown links and Back within a fixed folder boundary, without indexing or wider searches.",
@@ -851,6 +856,9 @@ class FilePane(ttk.Frame):
         self.path_var = tk.StringVar()
         self.view_mode_button = ttk.Button(bar, width=0, command=self.show_view_modes)
         self.view_mode_button.pack(side="right", padx=(4, 0))
+        self.view_mode_button.bind('<Button-3>',lambda e:self.show_view_modes())
+        self.view_mode_button.bind('<Shift-F10>',lambda e:self.show_view_modes())
+        self.view_mode_button.bind('<KeyPress-Menu>',lambda e:self.show_view_modes())
         self.path_bar = PathBar(bar, self.path_var, self._breadcrumb_parts,
                                 self._navigate_crumb, self._submit_path, self.focus_file_list)
         self.path_bar.pack(side="left", fill="x", expand=True, padx=(4, 0))
@@ -950,7 +958,7 @@ class FilePane(ttk.Frame):
             self.home_button.pack(side="left", after=self.up_button)
         self.view_mode_button.configure(text=(icons[self.view_mode] if compact else tr(labels[self.view_mode])) + " ▾")
 
-    def show_view_modes(self) -> None:
+    def show_view_modes(self) -> str:
         self.on_activate(self)
         if getattr(self, "_view_mode_menu", None) is not None:
             self._view_mode_menu.destroy()
@@ -969,6 +977,7 @@ class FilePane(ttk.Frame):
                           self.view_mode_button.winfo_rooty() + self.view_mode_button.winfo_height())
         finally:
             menu.grab_release()
+        return 'break'
 
     def set_view_mode(self, mode: str) -> None:
         if mode not in ("list", "folder", "file") or mode == self.view_mode:
@@ -1367,7 +1376,10 @@ class FilePane(ttk.Frame):
             return 'break'
         iid = self.tree.identify_row(event.y)
         if not iid:
-            return None
+            if self.tree.identify_region(event.x,event.y)=='separator':return 'break'
+            self.tree.focus_set();self.on_activate(self)
+            self.winfo_toplevel().show_panel_context_menu(self,event.x_root,event.y_root)
+            return 'break'
         if iid not in self.tree.selection():
             self.tree.selection_set(iid)
         self.tree.focus(iid); self.tree.focus_set(); self.on_activate(self)
@@ -1379,6 +1391,9 @@ class FilePane(ttk.Frame):
     def _context_keyboard(self, _event=None):
         iid = self.tree.focus() or (self.tree.selection()[0] if self.tree.selection() else "")
         if not iid:
+            self.tree.focus_set();self.on_activate(self)
+            self.winfo_toplevel().show_panel_context_menu(self,self.tree.winfo_rootx()+20,
+                                                        self.tree.winfo_rooty()+35)
             return "break"
         if iid not in self.tree.selection():
             self.tree.selection_set(iid)
@@ -3628,6 +3643,34 @@ class Commander(tk.Tk):
                                state["items"], destination, confirm=False)
         self.set_active(target_pane); target_pane.focus_file_list()
 
+    def _build_panel_context_menu(self,pane: FilePane) -> tk.Menu:
+        """Background settings, never operations on an old file selection."""
+        self.set_active(pane)
+        old=getattr(self,'panel_context_menu',None)
+        if old is not None:old.destroy()
+        menu=tk.Menu(self,tearoff=False,font='TkMenuFont')
+        self.panel_context_menu=menu
+        modes=tk.Menu(menu,tearoff=False,font='TkMenuFont')
+        menu._mode_var=selected=tk.StringVar(self,value=pane.view_mode)
+        for value,label in (('list','List'),('folder','Folder tree'),('file','File tree')):
+            add_scaled_radiobutton(modes,tr(label),value,selected,
+                                   command=lambda value=value:pane.set_view_mode(value))
+        add_scaled_cascade(menu,tr('Panel View'),modes)
+        add_scaled_cascade(menu,tr('File Columns'),self.columns_menu)
+        menu.add_command(label=tr('Refresh'),accelerator='Ctrl+R',command=pane.refresh)
+        menu.add_separator()
+        for label,submenu in (('Panel Counts',self.panel_counts_menu),
+                              ('Right Click Menu',self.right_click_menu),
+                              ('Font Size',self.font_size_menu),('Color Scheme',self.color_scheme_menu)):
+            add_scaled_cascade(menu,tr(label),submenu)
+        return menu
+
+    def show_panel_context_menu(self,pane,x,y):
+        self.header_popup.close_all()
+        menu=self._build_panel_context_menu(pane)
+        self.header_popup.show_at(x,y,menu)
+        return 'break'
+
     def _build_file_context_menu(self, pane: FilePane, clicked: Path) -> tk.Menu:
         self.set_active(pane)
         items = pane.selected_paths()
@@ -4852,8 +4895,16 @@ class Commander(tk.Tk):
         self.zoom_plus = ttk.Button(self.zoom_frame, text="+", width=1, style="Zoom.TButton",
                                     command=lambda: self.adjust_zoom(1))
         self.zoom_plus.pack(side="left")
+        for widget in (self.zoom_frame,self.zoom_minus,self.zoom_combo,self.zoom_plus):
+            widget.bind('<Button-3>',lambda e:self._show_zoom_context(e))
+            widget.bind('<Shift-F10>',lambda e:self._show_zoom_context(e))
+            widget.bind('<KeyPress-Menu>',lambda e:self._show_zoom_context(e))
         ToolTip(self.zoom_combo, lambda: tr("Auto Font Size") + (" ✓" if self.auto_font_size_var.get() else " —"), delay=700)
         self._sync_zoom_controls()
+
+    def _show_zoom_context(self,event):
+        self.header_popup.show_at(event.widget.winfo_rootx(),event.widget.winfo_rooty(),self.font_size_menu)
+        return 'break'
 
     def _rebuild_zoom_menu(self) -> None:
         self.zoom_menu.delete(0, "end")

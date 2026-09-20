@@ -17,6 +17,8 @@ xvfb-run -a python3 tools/nested_menu_check.py
 xvfb-run -a python3 tools/nested_menu_check.py pfc
 xvfb-run -a python3 tools/column_menu_check.py
 xvfb-run -a python3 tools/column_menu_check.py pfc
+xvfb-run -a python3 tools/context_settings_check.py
+xvfb-run -a python3 tools/context_settings_check.py pfc
 xvfb-run -a python3 tools/markdown_preview_check.py
 xvfb-run -a python3 tools/markdown_preview_check.py pfc
 xvfb-run -a python3 tools/markdown_reading_check.py

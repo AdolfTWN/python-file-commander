@@ -1,6 +1,16 @@
 # Python File Commander
 
-Current version: **v0.17.19**
+Current version: **v0.17.20**
+
+Right-click **blank file-panel space** for Panel Counts, Right Click Menu,
+List/Folder/File view, File Columns (including restoring hidden columns), Font
+Size and Color Scheme. File-row right-click still follows Explorer/PFC preference.
+Right-click a **tab** for Tab Color, lock behavior and shared Tab Style; blank tab
+bar space offers style only. View-mode and zoom controls also accept right-click.
+Shift+F10/Menu works on the focused tab bar and controls, or an empty file list.
+These are shortcuts to existing main-menu settings, not separate preferences;
+Tab Style, panel count, font and scheme remain application-wide. See
+[context-menu details](docs/context-settings.md).
 
 Right-click a file column header for its display options; click the heading to
 change sorting. All column

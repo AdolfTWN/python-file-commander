@@ -1,5 +1,14 @@
 # PFC follow-ups
 
+## Contextual settings — v0.17.20
+
+- [x] Blank file-list area: Panel Counts and Right Click Menu, plus relevant view,
+  column, refresh, font and color settings; no destructive file operations.
+- [x] Tab and empty tab bar: shared Tab Style; group Tab Color, preserve locks.
+- [x] View-mode and zoom controls: mouse/keyboard context access to their settings.
+- [x] Shared main-menu preferences and persistence; Linux/Windows regression and
+  scaled cascade validation. See [context settings](context-settings.md).
+
 ## Markdown reading expansion — v0.17.19
 
 - [x] Document risks and scope in [the safety plan](markdown-preview-safety-plan.md).
