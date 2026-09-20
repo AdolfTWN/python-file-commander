@@ -49,6 +49,8 @@ def build() -> Path:
     vcs = vcs.replace("from __future__ import annotations\n\n", "", 1)
     tabs = tabs.replace("from __future__ import annotations\n\n", "", 1)
     tabs = "\n".join(line for line in tabs.splitlines() if not line.startswith("from .")) + "\n"
+    tabicons = (ROOT / "pycommander" / "tabicons.py").read_text(encoding="utf-8")
+    tabs = "\n".join(line for line in tabicons.splitlines() if not line.startswith("from .")) + "\n\n" + tabs
     tooltip = tooltip.replace("from __future__ import annotations\n\n", "", 1)
     pathbar = pathbar.replace("from __future__ import annotations\n", "", 1)
     pathbar = "\n".join(line for line in pathbar.splitlines() if not line.startswith("from .")) + "\n"
@@ -59,6 +61,8 @@ def build() -> Path:
     tooltip += "\n\n" + (ROOT / "pycommander" / "marquee.py").read_text(encoding="utf-8")
     detailcells = (ROOT / "pycommander" / "detailcells.py").read_text(encoding="utf-8")
     tooltip += "\n\n" + "\n".join(line for line in detailcells.splitlines() if not line.startswith("from ."))
+    singlepanel = (ROOT / 'pycommander' / 'singlepanel.py').read_text(encoding='utf-8')
+    tooltip += '\n\n' + '\n'.join(line for line in singlepanel.splitlines() if not line.startswith('from .'))
     compare = compare.replace("from __future__ import annotations\n\n", "", 1)
     compare = "\n".join(line for line in compare.splitlines() if not line.startswith("from .")) + "\n"
     preview = preview.replace("from __future__ import annotations\n\n", "", 1)

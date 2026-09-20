@@ -355,7 +355,7 @@ def main() -> None:
             assert app.panel_count_var.get() == 2 and len(app.split.panes()) == 2
             panel_labels = [app.panel_counts_menu.entrycget(index, "label")
                             for index in range(app.panel_counts_menu.index("end") + 1)]
-            assert panel_labels == ["2 Panels", "3 Panels", "4 Panels"]
+            assert panel_labels == ["1 Panel", "2 Panels", "3 Panels", "4 Panels"]
             language_labels = [app.language_menu.entrycget(index, "label")
                                for index in range(app.language_menu.index("end") + 1)]
             assert language_labels == ["English", "繁體中文", "简体中文", "한국어"]

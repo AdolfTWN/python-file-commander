@@ -1,8 +1,7 @@
 import unittest
 
 from pycommander.tabs import (COLOR_SCHEMES, TAB_COLORS, TAB_STYLES, color_scheme,
-                              clamp_popup_position, contrasting_edge_color, lock_indicator_segment,
-                              normalize_tab_color)
+                              clamp_popup_position, tab_lock_metrics, normalize_tab_color)
 
 
 class TabPaletteTests(unittest.TestCase):
@@ -26,14 +25,26 @@ class TabPaletteTests(unittest.TestCase):
         self.assertNotEqual(color_scheme("light")["surface"], color_scheme("dark")["surface"])
         self.assertIs(color_scheme("unknown"), COLOR_SCHEMES["light"])
 
-    def test_lock_modes_use_distinct_solid_edges_without_extra_width(self):
-        top = lock_indicator_segment("locked", 10, 100, 4, 34, 6, "right_skirt")
-        left = lock_indicator_segment("reset", 10, 100, 4, 34, 6, "right_skirt")
-        self.assertEqual(top[1], top[3], "Full lock should be a horizontal top edge")
-        self.assertEqual(left[0], left[2], "Folder-change lock should be a vertical left edge")
-        self.assertIsNone(lock_indicator_segment("unlocked", 10, 100, 4, 34, 6, "rounded"))
-        self.assertEqual(contrasting_edge_color("#f2c14e"), "#17232c")
-        self.assertEqual(contrasting_edge_color("#4c606e"), "#f7fbff")
+    def test_lock_badges_are_compact_and_theme_neutral(self):
+        for style in TAB_STYLES:
+            sizes = []
+            for line in (16, 20, 24, 28, 32, 40, 48, 56):
+                size, inset, gap = tab_lock_metrics(line, style)
+                self.assertLessEqual(inset, 5)
+                self.assertEqual(gap, 3)
+                self.assertLessEqual(size, line)
+                height = max(30, line + 13)
+                self.assertLessEqual(size, height-max(4, round(height*.22))-3)
+                sizes.append(size)
+            self.assertEqual(sizes, sorted(sizes))
+        for theme in COLOR_SCHEMES.values():
+            # A single background/foreground pair, never a per-mode color.
+            for key in ('tab_lock_bg', 'tab_lock_fg'):
+                rgb = theme[key].lstrip('#')
+                self.assertEqual(rgb[:2], rgb[2:4])
+                self.assertEqual(rgb[2:4], rgb[4:])
+        self.assertGreater(int(COLOR_SCHEMES['dark']['tab_lock_bg'][1:3], 16), 200)
+        self.assertLess(int(COLOR_SCHEMES['light']['tab_lock_bg'][1:3], 16), 80)
 
     def test_popup_clamps_inside_multi_monitor_virtual_desktop(self):
         bounds = (0, 0, 3840, 1080)

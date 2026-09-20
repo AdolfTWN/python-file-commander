@@ -10,6 +10,26 @@ LANGUAGES = (
 
 _language = "en"
 
+_SINGLE_PANEL_TRANSLATIONS = {
+    'Added: One-panel workspace with shared tabs, a lazy folder tree and explicit copy/move/compare destinations.': ('新增：單面板工作區，共用分頁、按需讀取的資料夾樹，以及明確的複製／移動／比較目的地。', '新增：单面板工作区，共用分页、按需读取的文件夹树，以及明确的复制／移动／比较目标。', '추가: 공유 탭, 지연 로딩 폴더 트리 및 명시적인 복사/이동/비교 대상을 갖춘 단일 패널 작업 공간.'),
+    'Improved: Solid folder-tree hierarchy lines stay aligned across scrolling, zoom and color themes.': ('改善：資料夾樹的實線階層連接線，捲動、縮放及切換主題時保持對齊。', '改进：文件夹树的实线层级连接线，滚动、缩放及切换主题时保持对齐。', '개선: 스크롤, 확대/축소 및 색상 테마에서 정렬을 유지하는 폴더 트리 실선 연결선.'),
+    'Improved: Compact, high-resolution tab-lock badges distinguish locked and return-to-folder modes.': ('改善：精巧高解析度分頁鎖定圖示，清楚區分鎖定與返回資料夾模式。', '改进：紧凑高清分页锁定图标，清楚区分锁定与返回文件夹模式。', '개선: 잠금 및 폴더 복귀 모드를 구분하는 작고 선명한 탭 잠금 배지.'),
+    '1 Panel': ('1 個面板', '1 个面板', '패널 1개'),
+    'Folders': ('資料夾', '文件夹', '폴더'),
+    'This PC': ('這台電腦', '此电脑', '내 PC'),
+    'Copy to…': ('複製到…', '复制到…', '복사 대상…'),
+    'Move to…': ('移動到…', '移动到…', '이동 대상…'),
+    'Choose destination folder': ('選擇目的資料夾', '选择目标文件夹', '대상 폴더 선택'),
+    'Choose comparison folder': ('選擇要比較的資料夾', '选择要比较的文件夹', '비교할 폴더 선택'),
+    'Choose comparison file': ('選擇要比較的檔案', '选择要比较的文件', '비교할 파일 선택'),
+    'Select at most two items.': ('請最多選取兩個項目。', '请最多选择两个项目。', '항목을 최대 두 개 선택하세요.'),
+    'Loading folders…': ('正在讀取資料夾…', '正在读取文件夹…', '폴더를 불러오는 중…'),
+    'Folder tree limit reached. Refresh to reload.': ('目錄樹已達上限，請重新整理。', '目录树已达上限，请刷新。', '폴더 트리 한도에 도달했습니다. 새로 고치세요.'),
+    'Folder scan busy. Try expanding again.': ('資料夾讀取忙碌中，請稍後再展開。', '文件夹读取忙碌中，请稍后再展开。', '폴더 검색 중입니다. 다시 펼쳐 보세요.'),
+    'Folder scan timed out. Try expanding again.': ('資料夾讀取逾時，請再次展開。', '文件夹读取超时，请再次展开。', '폴더 검색 시간이 초과되었습니다. 다시 펼쳐 보세요.'),
+    'Folder list limited. Use the file list or Refresh.': ('僅顯示部分資料夾，請使用檔案清單或重新整理。', '仅显示部分文件夹，请使用文件列表或刷新。', '폴더 목록이 제한되었습니다. 파일 목록이나 새로 고침을 사용하세요.'),
+}
+
 _MARKDOWN_READING_TRANSLATIONS = {
     "Added: Read-only Markdown tasks, labeled callouts, section navigation and folding with complete search/copy.": ("新增：Markdown 唯讀待辦、標示提示框、章節導覽及折疊；搜尋與複製仍包含折疊內容。", "新增：Markdown 只读待办、带标签提示框、章节导航及折叠；搜索和复制仍包含折叠内容。", "추가: 읽기 전용 Markdown 작업, 레이블 콜아웃, 섹션 탐색/접기. 접힌 내용도 검색/복사에 포함."),
     "Added: Exact local Markdown links and Back within a fixed folder boundary, without indexing or wider searches.": ("新增：固定資料夾範圍內的明確 Markdown 連結及返回，不建立索引或擴大搜尋。", "新增：固定文件夹范围内的明确 Markdown 链接及返回，不建立索引或扩大搜索。", "추가: 고정 폴더 범위의 정확한 로컬 Markdown 링크 및 뒤로. 인덱싱/확대 검색 없음."),
@@ -107,6 +127,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        **{key: labels[0] for key, labels in _SINGLE_PANEL_TRANSLATIONS.items()},
         "Tab Color": "分頁顏色", "Panel View": "面板檢視",
         "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "新增：面板空白區右鍵可設定面板數量、右鍵模式、檢視、欄位、字型及配色。",
         "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "新增：分頁右鍵提供共用分頁樣式及分類的分頁顏色；分頁列空白處也可設定樣式。",
@@ -425,6 +446,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        **{key: labels[1] for key, labels in _SINGLE_PANEL_TRANSLATIONS.items()},
         "Tab Color": "标签页颜色", "Panel View": "面板视图",
         "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "新增：面板空白处右键可设置面板数量、右键模式、视图、列、字体及配色。",
         "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "新增：标签页右键提供共用标签样式及分组颜色；标签栏空白处也可设置样式。",
@@ -716,6 +738,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        **{key: labels[2] for key, labels in _SINGLE_PANEL_TRANSLATIONS.items()},
         "Tab Color": "탭 색상", "Panel View": "패널 보기",
         "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "추가: 패널 빈 공간 우클릭으로 패널 수, 메뉴 모드, 보기, 열, 글꼴 및 색상 설정.",
         "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "추가: 탭 메뉴에 공통 탭 스타일 및 색상 그룹 제공. 빈 탭 표시줄에서도 스타일 설정 가능.",

@@ -6,6 +6,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
 from .i18n import tr
+from .tabicons import tab_lock_icon_png
 
 
 def virtual_screen_bounds(widget) -> tuple[int, int, int, int]:
@@ -62,6 +63,7 @@ COLOR_SCHEMES = {
         "button": "#e7ecef", "button_active": "#d4e2eb", "entry": "#ffffff",
         "selection": "#1683e2", "inactive_selection": "#91a9bd",
         "tab_bar": "#9eafbd", "tab_default": "#e4edf3", "tab_text": "#10202c",
+        "tab_lock_bg": "#414141", "tab_lock_fg": "#fafafa",
         "menu": "#f0f0f0", "menu_text": "#101010", "menu_disabled": "#777777",
         "menu_active": "#087bdc", "menu_active_text": "#ffffff", "separator": "#b8b8b8",
         "gutter": "#e5ebef", "gutter_text": "#526575", "content": "#ffffff",
@@ -77,6 +79,7 @@ COLOR_SCHEMES = {
         "button": "#d4dbe0", "button_active": "#c4d2dc", "entry": "#f8f9fa",
         "selection": "#187ecb", "inactive_selection": "#829bab",
         "tab_bar": "#899ca9", "tab_default": "#dce5eb", "tab_text": "#14232d",
+        "tab_lock_bg": "#414141", "tab_lock_fg": "#fafafa",
         "menu": "#e1e5e8", "menu_text": "#15212a", "menu_disabled": "#727b82",
         "menu_active": "#147fc7", "menu_active_text": "#ffffff", "separator": "#a1abb2",
         "gutter": "#d5dde2", "gutter_text": "#52616c", "content": "#f4f6f7",
@@ -92,6 +95,7 @@ COLOR_SCHEMES = {
         "button": "#354049", "button_active": "#465865", "entry": "#242b31",
         "selection": "#1976bd", "inactive_selection": "#526b7b",
         "tab_bar": "#354754", "tab_default": "#657887", "tab_text": "#ffffff",
+        "tab_lock_bg": "#dedede", "tab_lock_fg": "#252525",
         "menu": "#2b3238", "menu_text": "#edf2f6", "menu_disabled": "#87939c",
         "menu_active": "#176fa8", "menu_active_text": "#ffffff", "separator": "#53616b",
         "gutter": "#242c32", "gutter_text": "#a8bac7", "content": "#1f252a",
@@ -106,26 +110,11 @@ def color_scheme(name: str) -> dict[str, str]:
     return COLOR_SCHEMES.get(name, COLOR_SCHEMES["light"])
 
 
-def lock_indicator_segment(mode: str, left: float, width: float, top: float,
-                           height: float, inset: float, tab_style: str):
-    """Return one solid, space-free edge marker for a tab lock mode."""
-    if mode == "locked":
-        return (left + max(2, inset / 2), top + 4,
-                left + width - max(2, inset / 2), top + 4)
-    if mode == "reset":
-        start_y = top + (max(4, inset / 2) if tab_style == "rounded" else 3)
-        return (left + 4, start_y, left + 4, height - 2)
-    return None
-
-
-def contrasting_edge_color(background: str) -> str:
-    """Choose a crisp lock marker for both theme and custom tab colours."""
-    value = background.lstrip("#")
-    if len(value) != 6:
-        return "#17232c"
-    red, green, blue = (int(value[index:index + 2], 16) for index in (0, 2, 4))
-    luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255
-    return "#17232c" if luminance >= 0.52 else "#f7fbff"
+def tab_lock_metrics(linespace: int, style: str) -> tuple[int, int, int]:
+    """Same badge size in active/inactive tabs; reuse existing title padding."""
+    height = max(30, linespace + 13)
+    size = max(16, min(linespace, height - max(4, round(height*.22)) - 7))
+    return min(size, 128), (5 if style == 'rounded' else 4), 3
 
 
 def configure_ttk_theme(root, palette: dict[str, str]) -> None:
@@ -575,6 +564,8 @@ class ChamferNotebook(ttk.Frame):
         self._texts = {}
         self._colors = {}
         self._locks = {}
+        self._lock_images = {}
+        self._lock_image_spec = None
         self._selected = None
         if tab_style == "compact":
             tab_style = "right_skirt"
@@ -727,6 +718,11 @@ class ChamferNotebook(ttk.Frame):
         font = tkfont.nametofont("TkDefaultFont")
         right_skirt = self._tab_style == "right_skirt"
         height = max(30, font.metrics("linespace") + 13)
+        icon_size, icon_inset, icon_gap = tab_lock_metrics(font.metrics('linespace'), self._tab_style)
+        image_spec = (icon_size, self.palette['tab_lock_bg'], self.palette['tab_lock_fg'])
+        if image_spec != self._lock_image_spec:
+            self._lock_images.clear()
+            self._lock_image_spec = image_spec
         self.bar.configure(height=height)
         overlap = {"right_skirt": -2, "rounded": 2, "squarish": 0}[self._tab_style]
         x = 3
@@ -737,6 +733,8 @@ class ChamferNotebook(ttk.Frame):
             selected = child is self._selected
             padding = 20 if right_skirt else 28
             width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
+            if lock in {'locked', 'reset'}:
+                width = max(width, font.measure(text) + icon_inset + icon_size + icon_gap + 6)
             key = normalize_tab_color(self._colors.get(child, "default"))
             color = self.palette["tab_default"] if key == "default" else TAB_COLORS[key][1]
             top = 0 if selected else max(4, round(height * 0.22))
@@ -780,16 +778,22 @@ class ChamferNotebook(ttk.Frame):
             self.bar.create_polygon(points, fill=color,
                                     outline=self.palette["text"] if selected else self.palette["border"],
                                     width=3 if selected else 1, smooth=smooth, splinesteps=18)
-            lock_segment = lock_indicator_segment(lock, left, width, top, height,
-                                                  tab_inset, self._tab_style)
-            if lock_segment is not None:
-                self.bar.create_line(*lock_segment, fill=contrasting_edge_color(color),
-                                     width=max(5, round(height * 0.15)), capstyle="round")
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
-            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
-                                 fill=text_color)
+            if lock in {'locked', 'reset'}:
+                if lock not in self._lock_images:
+                    self._lock_images[lock] = tk.PhotoImage(master=self.bar,
+                        data=tab_lock_icon_png(lock, *image_spec), format='png')
+                center_y = (top + (height if selected else height - 3)) / 2
+                self.bar.create_image(left + icon_inset, center_y, anchor='w',
+                    image=self._lock_images[lock], tags=('tab-lock-icon', 'lock:' + str(id(child))))
+                self.bar.create_text(left + icon_inset + icon_size + icon_gap, center_y,
+                    anchor='w', text=text, font=font, fill=text_color,
+                    tags=('tab-title', 'title:' + str(id(child))))
+            else:
+                self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
+                    fill=text_color, tags=('tab-title', 'title:' + str(id(child))))
         if self._drop_position is not None:
             if not self._hitboxes or self._drop_position <= 0:
                 marker_x = self._hitboxes[0][0] if self._hitboxes else 3

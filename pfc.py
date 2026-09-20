@@ -16,6 +16,26 @@ LANGUAGES = (
 
 _language = "en"
 
+_SINGLE_PANEL_TRANSLATIONS = {
+    'Added: One-panel workspace with shared tabs, a lazy folder tree and explicit copy/move/compare destinations.': ('新增：單面板工作區，共用分頁、按需讀取的資料夾樹，以及明確的複製／移動／比較目的地。', '新增：单面板工作区，共用分页、按需读取的文件夹树，以及明确的复制／移动／比较目标。', '추가: 공유 탭, 지연 로딩 폴더 트리 및 명시적인 복사/이동/비교 대상을 갖춘 단일 패널 작업 공간.'),
+    'Improved: Solid folder-tree hierarchy lines stay aligned across scrolling, zoom and color themes.': ('改善：資料夾樹的實線階層連接線，捲動、縮放及切換主題時保持對齊。', '改进：文件夹树的实线层级连接线，滚动、缩放及切换主题时保持对齐。', '개선: 스크롤, 확대/축소 및 색상 테마에서 정렬을 유지하는 폴더 트리 실선 연결선.'),
+    'Improved: Compact, high-resolution tab-lock badges distinguish locked and return-to-folder modes.': ('改善：精巧高解析度分頁鎖定圖示，清楚區分鎖定與返回資料夾模式。', '改进：紧凑高清分页锁定图标，清楚区分锁定与返回文件夹模式。', '개선: 잠금 및 폴더 복귀 모드를 구분하는 작고 선명한 탭 잠금 배지.'),
+    '1 Panel': ('1 個面板', '1 个面板', '패널 1개'),
+    'Folders': ('資料夾', '文件夹', '폴더'),
+    'This PC': ('這台電腦', '此电脑', '내 PC'),
+    'Copy to…': ('複製到…', '复制到…', '복사 대상…'),
+    'Move to…': ('移動到…', '移动到…', '이동 대상…'),
+    'Choose destination folder': ('選擇目的資料夾', '选择目标文件夹', '대상 폴더 선택'),
+    'Choose comparison folder': ('選擇要比較的資料夾', '选择要比较的文件夹', '비교할 폴더 선택'),
+    'Choose comparison file': ('選擇要比較的檔案', '选择要比较的文件', '비교할 파일 선택'),
+    'Select at most two items.': ('請最多選取兩個項目。', '请最多选择两个项目。', '항목을 최대 두 개 선택하세요.'),
+    'Loading folders…': ('正在讀取資料夾…', '正在读取文件夹…', '폴더를 불러오는 중…'),
+    'Folder tree limit reached. Refresh to reload.': ('目錄樹已達上限，請重新整理。', '目录树已达上限，请刷新。', '폴더 트리 한도에 도달했습니다. 새로 고치세요.'),
+    'Folder scan busy. Try expanding again.': ('資料夾讀取忙碌中，請稍後再展開。', '文件夹读取忙碌中，请稍后再展开。', '폴더 검색 중입니다. 다시 펼쳐 보세요.'),
+    'Folder scan timed out. Try expanding again.': ('資料夾讀取逾時，請再次展開。', '文件夹读取超时，请再次展开。', '폴더 검색 시간이 초과되었습니다. 다시 펼쳐 보세요.'),
+    'Folder list limited. Use the file list or Refresh.': ('僅顯示部分資料夾，請使用檔案清單或重新整理。', '仅显示部分文件夹，请使用文件列表或刷新。', '폴더 목록이 제한되었습니다. 파일 목록이나 새로 고침을 사용하세요.'),
+}
+
 _MARKDOWN_READING_TRANSLATIONS = {
     "Added: Read-only Markdown tasks, labeled callouts, section navigation and folding with complete search/copy.": ("新增：Markdown 唯讀待辦、標示提示框、章節導覽及折疊；搜尋與複製仍包含折疊內容。", "新增：Markdown 只读待办、带标签提示框、章节导航及折叠；搜索和复制仍包含折叠内容。", "추가: 읽기 전용 Markdown 작업, 레이블 콜아웃, 섹션 탐색/접기. 접힌 내용도 검색/복사에 포함."),
     "Added: Exact local Markdown links and Back within a fixed folder boundary, without indexing or wider searches.": ("新增：固定資料夾範圍內的明確 Markdown 連結及返回，不建立索引或擴大搜尋。", "新增：固定文件夹范围内的明确 Markdown 链接及返回，不建立索引或扩大搜索。", "추가: 고정 폴더 범위의 정확한 로컬 Markdown 링크 및 뒤로. 인덱싱/확대 검색 없음."),
@@ -113,6 +133,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "Navigation\n↑ / ↓  Select item\nRight / Left  Enter folder / return to parent\nTab  Switch panel\nCtrl+Tab / Ctrl+Shift+Tab  Next / previous tab\nCtrl+Up  Clone current folder in a new tab\nCtrl+W  Close current tab\nCtrl+L  Focus and select the path\nEsc  Return focus to the file list\n\nFavorite and recent folders\nCtrl+D  Add/remove current folder as a favorite\nCtrl+B  Open Favorites    Ctrl+Shift+R  Open Recent Folders\n\nMouse drag inside PFC\nDrag to a panel or folder row to Copy    Hold Shift to Move\n\nSelection and clipboard\nCtrl+C / Ctrl+X / Ctrl+V  Copy / cut / paste with File Explorer\nCtrl+A  Select all    Shift+Del  Permanent delete with warning\nCtrl+Shift+C  Copy selected or current path\nCtrl+H  Toggle hidden files\nCtrl+Y  Quick Filter current panel\nAlt+F / Alt+V / Alt+H  Open Files / View / Versions menu",
     },
     "zh_TW": {
+        **{key: labels[0] for key, labels in _SINGLE_PANEL_TRANSLATIONS.items()},
         "Tab Color": "分頁顏色", "Panel View": "面板檢視",
         "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "新增：面板空白區右鍵可設定面板數量、右鍵模式、檢視、欄位、字型及配色。",
         "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "新增：分頁右鍵提供共用分頁樣式及分類的分頁顏色；分頁列空白處也可設定樣式。",
@@ -431,6 +452,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "導覽\n↑ / ↓  選取項目\nRight / Left  進入資料夾／回到上層\nTab  切換面板\nCtrl+Tab / Ctrl+Shift+Tab  下一個／上一個分頁\nCtrl+Up  在新分頁複製目前資料夾\nCtrl+W  關閉目前分頁\nCtrl+L  聚焦並選取路徑\nEsc  將焦點移回檔案清單\n\n我的最愛與最近使用的資料夾\nCtrl+D  加入／移除目前資料夾\nCtrl+B  開啟我的最愛    Ctrl+Shift+R  開啟最近使用的資料夾\n\nPFC 內拖放\n拖到面板或資料夾列以複製    按住 Shift 則移動\n\n選取與剪貼簿\nCtrl+C / Ctrl+X / Ctrl+V  與檔案總管互相複製／剪下／貼上\nCtrl+A  全選    Shift+Del  顯示警告後永久刪除\nCtrl+Shift+C  複製選取項目或目前路徑\nCtrl+H  切換隱藏檔案\nCtrl+Y  快速篩選目前面板\nAlt+F / Alt+V / Alt+H  開啟檔案／檢視／版本選單",
     },
     "zh_CN": {
+        **{key: labels[1] for key, labels in _SINGLE_PANEL_TRANSLATIONS.items()},
         "Tab Color": "标签页颜色", "Panel View": "面板视图",
         "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "新增：面板空白处右键可设置面板数量、右键模式、视图、列、字体及配色。",
         "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "新增：标签页右键提供共用标签样式及分组颜色；标签栏空白处也可设置样式。",
@@ -722,6 +744,7 @@ _TRANSLATIONS = {
         "Keyboard guide body": "导航\n↑ / ↓  选择项目\nRight / Left  进入文件夹／返回上一级\nTab  切换面板\nCtrl+Tab / Ctrl+Shift+Tab  下一个／上一个选项卡\nCtrl+Up  在新选项卡中复制当前文件夹\nCtrl+W  关闭当前选项卡\nCtrl+L  聚焦并选择路径\nEsc  将焦点返回文件列表\n\n收藏夹与最近使用的文件夹\nCtrl+D  添加／移除当前文件夹\nCtrl+B  打开收藏夹    Ctrl+Shift+R  打开最近使用的文件夹\n\nPFC 内拖放\n拖到面板或文件夹行以复制    按住 Shift 则移动\n\n选择与剪贴板\nCtrl+C / Ctrl+X / Ctrl+V  与文件资源管理器互相复制／剪切／粘贴\nCtrl+A  全选    Shift+Del  显示警告后永久删除\nCtrl+Shift+C  复制所选项目或当前路径\nCtrl+H  切换隐藏文件\nCtrl+Y  快速筛选当前面板\nAlt+F / Alt+V / Alt+H  打开文件／查看／版本菜单",
     },
     "ko": {
+        **{key: labels[2] for key, labels in _SINGLE_PANEL_TRANSLATIONS.items()},
         "Tab Color": "탭 색상", "Panel View": "패널 보기",
         "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.": "추가: 패널 빈 공간 우클릭으로 패널 수, 메뉴 모드, 보기, 열, 글꼴 및 색상 설정.",
         "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.": "추가: 탭 메뉴에 공통 탭 스타일 및 색상 그룹 제공. 빈 탭 표시줄에서도 스타일 설정 가능.",
@@ -2805,6 +2828,70 @@ def status_for(statuses: dict[str, str], path: Path) -> str | None:
     return statuses.get(key)
 
 
+"""Compact lock badges rendered from geometry, without fonts or image dependencies."""
+from functools import lru_cache
+import math
+
+
+
+@lru_cache(maxsize=48)
+def tab_lock_icon_png(mode: str, size: int, background: str, foreground: str) -> bytes:
+    """Render at 4x resolution; cache bytes, never Tk images across interpreters."""
+    if mode not in {'locked', 'reset'}:
+        raise ValueError('A badge requires a locked or reset tab')
+    if not 16 <= size <= 128:
+        raise ValueError('Tab badge size must be between 16 and 128 pixels')
+    supersample = 4
+    extent = size * supersample
+    unit = extent / 32
+    pixels = bytearray(extent * extent * 4)
+    face, ink = _hex_rgba(background), _hex_rgba(foreground)
+
+    def paint(bounds, inside, color):
+        x1, y1, x2, y2 = bounds
+        for y in range(max(0, math.floor(y1*unit)), min(extent, math.ceil(y2*unit))):
+            py = (y+.5)/unit
+            for x in range(max(0, math.floor(x1*unit)), min(extent, math.ceil(x2*unit))):
+                if inside((x+.5)/unit, py):
+                    index = (y*extent+x)*4
+                    pixels[index:index+4] = bytes(color)
+
+    def rounded(x1, y1, x2, y2, radius, color):
+        def inside(x, y):
+            cx = max(x1+radius, min(x, x2-radius))
+            cy = max(y1+radius, min(y, y2-radius))
+            return (x-cx)**2 + (y-cy)**2 <= radius**2
+        paint((x1, y1, x2, y2), inside, color)
+
+    def line(x1, y1, x2, y2, width, color):
+        r = width/2
+        paint((min(x1,x2)-r, min(y1,y2)-r, max(x1,x2)+r, max(y1,y2)+r),
+              lambda x,y: _distance_to_segment(x,y,x1,y1,x2,y2) <= r, color)
+
+    # Identical neutral tile for BOTH modes. A fine contrasting edge keeps the
+    # light tile legible on a custom pastel tab in the dark application theme.
+    rounded(.5, .5, 31.5, 31.5, 5, ink)
+    rounded(1.3, 1.3, 30.7, 30.7, 4.2, face)
+    if mode == 'locked':
+        rounded(9, 5, 23, 21, 7, ink)
+        rounded(12, 8, 20, 20, 4, face)
+        rounded(6.5, 14, 25.5, 27, 2, ink)
+        rounded(14.6, 17.5, 17.4, 23.5, 1.4, face)
+    else:
+        # Small closed lock at upper right; a large hooked arrow dominates the
+        # lower/left silhouette. Distinguishable even with identical tile colors.
+        rounded(18, 4, 27, 15, 4.5, ink)
+        rounded(20.5, 6.5, 24.5, 15, 2, face)
+        rounded(16, 10, 29, 18, 1.5, ink)
+        line(11, 15, 5, 21, 3, ink)
+        line(5, 21, 11, 27, 3, ink)
+        line(5, 21, 22, 21, 3, ink)
+        # Right semicircle connects the top return stroke to its lower tail.
+        paint((20, 19.5, 29, 29.5),
+              lambda x,y: x >= 22 and 1 <= (x-22)**2+(y-24.5)**2 <= 25, ink)
+        line(16, 28, 22, 28, 3, ink)
+    return _rgba_png_downsample(pixels, size, supersample)
+
 import ctypes
 import os
 import tkinter as tk
@@ -2866,6 +2953,7 @@ COLOR_SCHEMES = {
         "button": "#e7ecef", "button_active": "#d4e2eb", "entry": "#ffffff",
         "selection": "#1683e2", "inactive_selection": "#91a9bd",
         "tab_bar": "#9eafbd", "tab_default": "#e4edf3", "tab_text": "#10202c",
+        "tab_lock_bg": "#414141", "tab_lock_fg": "#fafafa",
         "menu": "#f0f0f0", "menu_text": "#101010", "menu_disabled": "#777777",
         "menu_active": "#087bdc", "menu_active_text": "#ffffff", "separator": "#b8b8b8",
         "gutter": "#e5ebef", "gutter_text": "#526575", "content": "#ffffff",
@@ -2881,6 +2969,7 @@ COLOR_SCHEMES = {
         "button": "#d4dbe0", "button_active": "#c4d2dc", "entry": "#f8f9fa",
         "selection": "#187ecb", "inactive_selection": "#829bab",
         "tab_bar": "#899ca9", "tab_default": "#dce5eb", "tab_text": "#14232d",
+        "tab_lock_bg": "#414141", "tab_lock_fg": "#fafafa",
         "menu": "#e1e5e8", "menu_text": "#15212a", "menu_disabled": "#727b82",
         "menu_active": "#147fc7", "menu_active_text": "#ffffff", "separator": "#a1abb2",
         "gutter": "#d5dde2", "gutter_text": "#52616c", "content": "#f4f6f7",
@@ -2896,6 +2985,7 @@ COLOR_SCHEMES = {
         "button": "#354049", "button_active": "#465865", "entry": "#242b31",
         "selection": "#1976bd", "inactive_selection": "#526b7b",
         "tab_bar": "#354754", "tab_default": "#657887", "tab_text": "#ffffff",
+        "tab_lock_bg": "#dedede", "tab_lock_fg": "#252525",
         "menu": "#2b3238", "menu_text": "#edf2f6", "menu_disabled": "#87939c",
         "menu_active": "#176fa8", "menu_active_text": "#ffffff", "separator": "#53616b",
         "gutter": "#242c32", "gutter_text": "#a8bac7", "content": "#1f252a",
@@ -2910,26 +3000,11 @@ def color_scheme(name: str) -> dict[str, str]:
     return COLOR_SCHEMES.get(name, COLOR_SCHEMES["light"])
 
 
-def lock_indicator_segment(mode: str, left: float, width: float, top: float,
-                           height: float, inset: float, tab_style: str):
-    """Return one solid, space-free edge marker for a tab lock mode."""
-    if mode == "locked":
-        return (left + max(2, inset / 2), top + 4,
-                left + width - max(2, inset / 2), top + 4)
-    if mode == "reset":
-        start_y = top + (max(4, inset / 2) if tab_style == "rounded" else 3)
-        return (left + 4, start_y, left + 4, height - 2)
-    return None
-
-
-def contrasting_edge_color(background: str) -> str:
-    """Choose a crisp lock marker for both theme and custom tab colours."""
-    value = background.lstrip("#")
-    if len(value) != 6:
-        return "#17232c"
-    red, green, blue = (int(value[index:index + 2], 16) for index in (0, 2, 4))
-    luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255
-    return "#17232c" if luminance >= 0.52 else "#f7fbff"
+def tab_lock_metrics(linespace: int, style: str) -> tuple[int, int, int]:
+    """Same badge size in active/inactive tabs; reuse existing title padding."""
+    height = max(30, linespace + 13)
+    size = max(16, min(linespace, height - max(4, round(height*.22)) - 7))
+    return min(size, 128), (5 if style == 'rounded' else 4), 3
 
 
 def configure_ttk_theme(root, palette: dict[str, str]) -> None:
@@ -3379,6 +3454,8 @@ class ChamferNotebook(ttk.Frame):
         self._texts = {}
         self._colors = {}
         self._locks = {}
+        self._lock_images = {}
+        self._lock_image_spec = None
         self._selected = None
         if tab_style == "compact":
             tab_style = "right_skirt"
@@ -3531,6 +3608,11 @@ class ChamferNotebook(ttk.Frame):
         font = tkfont.nametofont("TkDefaultFont")
         right_skirt = self._tab_style == "right_skirt"
         height = max(30, font.metrics("linespace") + 13)
+        icon_size, icon_inset, icon_gap = tab_lock_metrics(font.metrics('linespace'), self._tab_style)
+        image_spec = (icon_size, self.palette['tab_lock_bg'], self.palette['tab_lock_fg'])
+        if image_spec != self._lock_image_spec:
+            self._lock_images.clear()
+            self._lock_image_spec = image_spec
         self.bar.configure(height=height)
         overlap = {"right_skirt": -2, "rounded": 2, "squarish": 0}[self._tab_style]
         x = 3
@@ -3541,6 +3623,8 @@ class ChamferNotebook(ttk.Frame):
             selected = child is self._selected
             padding = 20 if right_skirt else 28
             width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
+            if lock in {'locked', 'reset'}:
+                width = max(width, font.measure(text) + icon_inset + icon_size + icon_gap + 6)
             key = normalize_tab_color(self._colors.get(child, "default"))
             color = self.palette["tab_default"] if key == "default" else TAB_COLORS[key][1]
             top = 0 if selected else max(4, round(height * 0.22))
@@ -3584,16 +3668,22 @@ class ChamferNotebook(ttk.Frame):
             self.bar.create_polygon(points, fill=color,
                                     outline=self.palette["text"] if selected else self.palette["border"],
                                     width=3 if selected else 1, smooth=smooth, splinesteps=18)
-            lock_segment = lock_indicator_segment(lock, left, width, top, height,
-                                                  tab_inset, self._tab_style)
-            if lock_segment is not None:
-                self.bar.create_line(*lock_segment, fill=contrasting_edge_color(color),
-                                     width=max(5, round(height * 0.15)), capstyle="round")
             if selected:
                 self.bar.create_line(left + 2, height - 2, left + width - 2, height - 2,
                                      fill=color, width=4)
-            self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
-                                 fill=text_color)
+            if lock in {'locked', 'reset'}:
+                if lock not in self._lock_images:
+                    self._lock_images[lock] = tk.PhotoImage(master=self.bar,
+                        data=tab_lock_icon_png(lock, *image_spec), format='png')
+                center_y = (top + (height if selected else height - 3)) / 2
+                self.bar.create_image(left + icon_inset, center_y, anchor='w',
+                    image=self._lock_images[lock], tags=('tab-lock-icon', 'lock:' + str(id(child))))
+                self.bar.create_text(left + icon_inset + icon_size + icon_gap, center_y,
+                    anchor='w', text=text, font=font, fill=text_color,
+                    tags=('tab-title', 'title:' + str(id(child))))
+            else:
+                self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
+                    fill=text_color, tags=('tab-title', 'title:' + str(id(child))))
         if self._drop_position is not None:
             if not self._hitboxes or self._drop_position <= 0:
                 marker_x = self._hitboxes[0][0] if self._hitboxes else 3
@@ -4797,6 +4887,340 @@ class SizeUnitCells:
         if event.widget is self.tree:
             self.closed = True
             self.hide()
+
+"""Shared tab strip and bounded, on-demand folder navigation for one-panel mode."""
+import ctypes
+import os
+from pathlib import Path
+import queue
+import threading
+import time
+import tkinter as tk
+from tkinter import ttk
+import tkinter.font as tkfont
+
+
+
+def root_folders():
+    # Enumerate drive letters, never probe every drive/share for availability.
+    if os.name == 'nt':
+        mask = ctypes.windll.kernel32.GetLogicalDrives()
+        return [Path(f'{chr(65+i)}:/') for i in range(26) if mask & (1 << i)]
+    return [Path('/')]
+
+
+def child_folders(path, stop, limit=2000, seconds=3):
+    """One directory only, no recursive walk and no file-content reads."""
+    found, seen, partial = [], 0, False
+    deadline = time.monotonic()+seconds
+    with os.scandir(path) as entries:
+        for entry in entries:
+            if stop.is_set() or seen >= limit or time.monotonic() > deadline:
+                partial = True
+                break
+            seen += 1
+            try:
+                if entry.is_dir(follow_symlinks=False):
+                    found.append(Path(entry.path))
+            except OSError:
+                continue
+    return sorted(found, key=lambda p:p.name.casefold()), partial
+
+
+def branch_segments(following, expanded, indent, height):
+    """Solid connector geometry; flags run from the root through this row."""
+    depth, mid = len(following)-1, height/2
+    lines = []
+    for level in range(1, depth):
+        if following[level]:
+            x = (level-.5)*indent
+            lines.append((x, 0, x, height))
+    if depth:
+        x = (depth-.5)*indent
+        lines.extend(((x, 0, x, height if following[-1] else mid),
+                      (x, mid, (depth+.5)*indent, mid)))
+    if expanded:
+        x = (depth+.5)*indent
+        lines.append((x, mid, x, height))
+    return lines
+
+
+class RootFolderTree(ttk.Frame):
+    def __init__(self, master, on_navigate, on_context):
+        super().__init__(master)
+        self.on_navigate = on_navigate
+        self.on_context = on_context
+        self.caption = ttk.Label(self, text=tr('Folders'))
+        self.caption.pack(anchor='w', padx=6, pady=4)
+        body = ttk.Frame(self); body.pack(fill='both', expand=True)
+        self.tree = ttk.Treeview(body, show='tree', selectmode='browse', style='FolderNav.Treeview')
+        self._line_rows = []
+        self._line_signature = None
+        self._line_indent = None
+        self._line_job = None
+        scroll = ttk.Scrollbar(body, command=self.tree.yview)
+        scroll.pack(side='right', fill='y'); self.tree.pack(fill='both', expand=True)
+        self.tree.configure(yscrollcommand=lambda *args:(scroll.set(*args), self._schedule_lines()))
+        horizontal = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
+        horizontal.pack(fill='x')
+        self.tree.configure(xscrollcommand=lambda *args:(horizontal.set(*args), self._schedule_lines()))
+        self.status = ttk.Label(self, text='', wraplength=280)
+        self.status.pack(fill='x', padx=4)
+        self.paths, self.nodes, self.loaded, self.pending = {}, {}, set(), {}
+        self.results = queue.Queue(); self.slots = threading.BoundedSemaphore(2)
+        self.stop = threading.Event(); self.serial = 0; self.program_selection = None
+        self.pc = self.tree.insert('', 'end', text=tr('This PC'), open=True)
+        for path in root_folders(): self._node(path, self.pc)
+        self.tree.bind('<<TreeviewOpen>>', self._expand)
+        self.tree.bind('<<TreeviewSelect>>', self._select)
+        self.tree.bind('<Button-3>', on_context)
+        self.tree.bind('<Shift-F10>', on_context)
+        self.tree.bind('<KeyPress-Menu>', on_context)
+        for event in ('<Configure>', '<Expose>', '<<TreeviewOpen>>', '<<TreeviewClose>>', '<<TreeviewSelect>>'):
+            self.tree.bind(event, self._schedule_lines, add='+')
+        # These belong to the file list, never silently operate on its old row
+        # while the navigation tree has focus. Arrow keys keep native tree use.
+        for key in ('<Delete>', '<Shift-Delete>', '<F2>', '<Control-c>', '<Control-x>'):
+            self.tree.bind(key, lambda _e:'break')
+        self._poll_job = self.after(80, self._poll)
+
+    def _schedule_lines(self, _event=None):
+        if self._line_job is None:
+            self._line_job = self.after_idle(self._redraw_lines)
+
+    def _redraw_lines(self):
+        self._line_job = None
+        self._draw_lines()
+
+    def _line_click(self, canvas, event):
+        iid = canvas.row_id
+        if not self.tree.exists(iid): return 'break'
+        self.tree.focus_set(); self.tree.focus(iid)
+        if abs(event.x-canvas.arrow_x) <= canvas.arrow_radius+3 and self.tree.get_children(iid):
+            opening = not self.tree.item(iid, 'open')
+            self.tree.item(iid, open=opening)
+            if opening: self.load(iid)
+        else:
+            self.tree.selection_set(iid)
+        self._draw_lines()
+        return 'break'
+
+    def _line_wheel(self, event):
+        if getattr(event, 'num', None) in (4, 5):
+            self.tree.yview_scroll(-3 if event.num == 4 else 3, 'units')
+        else:
+            self.tree.event_generate('<MouseWheel>', delta=event.delta, state=event.state)
+        self._draw_lines()
+        return 'break'
+
+    def _draw_lines(self):
+        """Paint only visible indentation cells, leaving native text/keys intact.
+
+        Tk Treeview has no portable solid-connector option. Small row canvases
+        provide actual solid strokes, not Unicode line characters or dotted
+        theme glyphs. Rendering reads only cached tree items, never the disk.
+        """
+        if not self.tree.winfo_viewable(): return
+        style = ttk.Style(self)
+        font = tkfont.nametofont('TkDefaultFont')
+        indent = max(20, round(font.metrics('linespace')*1.1))
+        if indent != self._line_indent:
+            self._line_indent = indent
+            style.configure('FolderNav.Treeview', indent=indent)
+            style.configure('FolderNav.Treeview.Item', indicatorsize=indent, indicatormargins=0)
+            self._line_signature = None
+        height, width = self.tree.winfo_height(), self.tree.winfo_width()
+        selected = self.tree.selection()
+        bg = style.lookup('FolderNav.Treeview', 'background') or '#ffffff'
+        fg = style.lookup('FolderNav.Treeview', 'foreground') or '#303030'
+        selbg = style.lookup('FolderNav.Treeview', 'background', ('selected',)) or '#3478bb'
+        selfg = style.lookup('FolderNav.Treeview', 'foreground', ('selected',)) or '#ffffff'
+        rows, seen = [], set()
+        # Probe screen rows, not every expanded node in the cached directory tree.
+        y = 1
+        while y < height:
+            iid = self.tree.identify_row(y)
+            if not iid or iid in seen:
+                y += 1; continue
+            seen.add(iid)
+            bbox = self.tree.bbox(iid)
+            if not bbox: y += 1; continue
+            x, top, _w, h = bbox
+            chain, item = [], iid
+            while item:
+                chain.append(item); item = self.tree.parent(item)
+            chain.reverse()
+            flags = tuple(bool(self.tree.next(item)) for item in chain)
+            children = bool(self.tree.get_children(iid))
+            opened = bool(self.tree.item(iid, 'open')) and children
+            rows.append((iid, x, top, h, flags, children, opened, iid in selected))
+            y = max(y+1, top+h)
+        signature = (tuple(rows), width, height, indent, bg, fg, selbg, selfg)
+        if signature == self._line_signature: return
+        self._line_signature = signature
+        for index, (iid, x, top, h, flags, children, opened, active) in enumerate(rows):
+            if index == len(self._line_rows):
+                canvas = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0, takefocus=False)
+                canvas.bind('<Button-1>', lambda e, c=canvas:self._line_click(c, e))
+                canvas.bind('<Button-3>', self.on_context)
+                for event in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
+                    canvas.bind(event, self._line_wheel)
+                self._line_rows.append(canvas)
+            canvas = self._line_rows[index]
+            depth = len(flags)-1
+            # Keep native text fully visible; reserve exactly its indentation.
+            prefix = (depth+1)*indent
+            left, right = max(1, x), min(width-1, x+prefix)
+            if right <= left:
+                canvas.place_forget(); continue
+            offset = x-left
+            canvas.configure(background=selbg if active else bg)
+            canvas.place(x=left, y=top, width=right-left, height=h)
+            canvas.delete('all')
+            color = selfg if active else fg
+            stroke = max(1, round(font.metrics('linespace')/18))
+            for x1,y1,x2,y2 in branch_segments(flags, opened, indent, h):
+                canvas.create_line(x1+offset,y1,x2+offset,y2, fill=color, width=stroke, tags='branch')
+            center, radius = (depth+.5)*indent+offset, max(3, round(indent*.16))
+            canvas.row_id, canvas.arrow_x, canvas.arrow_radius = iid, center, radius
+            if children:
+                canvas.create_rectangle(center-radius-2,h/2-radius-2,center+radius+2,h/2+radius+2,
+                                        fill=selbg if active else bg, outline='')
+                points = ((center-radius,h/2-radius/2, center+radius,h/2-radius/2, center,h/2+radius)
+                          if opened else (center-radius/2,h/2-radius, center-radius/2,h/2+radius, center+radius,h/2))
+                canvas.create_polygon(*points, fill=color, tags='indicator')
+        for canvas in self._line_rows[len(rows):]: canvas.place_forget()
+
+    def _node(self, path, parent):
+        key = os.path.normcase(str(path))
+        if key in self.nodes: return self.nodes[key]
+        iid = self.tree.insert(parent, 'end', text=path.name or str(path))
+        self.paths[iid] = path; self.nodes[key] = iid
+        self.tree.insert(iid, 'end', text='…')
+        return iid
+
+    def sync(self, path):
+        path = Path(path)
+        if not path.is_absolute(): return
+        existing = self.nodes.get(os.path.normcase(str(path)))
+        if existing and self.tree.selection() == (existing,): return
+        chain = list(reversed(path.parents))+[path]
+        parent = self.pc
+        for part in chain:
+            parent = self._node(part, parent)
+            if part != path:
+                # Ancestors shown for a known path do not need visible dummy
+                # rows. They remain unscanned and can load on manual expansion.
+                for child in self.tree.get_children(parent):
+                    if child not in self.paths: self.tree.delete(child)
+                self.tree.item(parent, open=True)
+        self.program_selection = parent
+        if self.tree.selection() != (parent,): self.tree.selection_set(parent)
+        self.tree.see(parent)
+
+    def _select(self, _event=None):
+        selected = self.tree.selection()
+        if not selected or selected[0] == self.program_selection: return
+        self.program_selection = None
+        path = self.paths.get(selected[0])
+        if path is not None: self.on_navigate(path)
+
+    def _expand(self, _event=None):
+        self.load(self.tree.focus())
+
+    def load(self, iid):
+        if iid not in self.paths or iid in self.loaded or iid in self.pending: return
+        if len(self.nodes) >= 10000:
+            self.status.configure(text=tr('Folder tree limit reached. Refresh to reload.')); return
+        if not self.slots.acquire(blocking=False):
+            self.status.configure(text=tr('Folder scan busy. Try expanding again.')); return
+        self.serial += 1
+        token, path = self.serial, self.paths[iid]
+        self.pending[iid] = (token, time.monotonic())
+        self.status.configure(text=tr('Loading folders…'))
+        # Workers never touch Tk. Two daemon workers maximum, even if an offline
+        # drive blocks a system call; stale/late results are ignored.
+        def work():
+            try:
+                values, partial = child_folders(path, self.stop)
+                result = (values, partial, '')
+            except Exception as exc:
+                result = ([], False, str(exc))
+            finally:
+                self.slots.release()
+            if not self.stop.is_set(): self.results.put((iid, token, result))
+        threading.Thread(target=work, daemon=True, name='PFC-folder-tree').start()
+
+    def _poll(self):
+        for iid, (token, started) in list(self.pending.items()):
+            if time.monotonic()-started > 5:
+                self.pending.pop(iid, None)
+                self.status.configure(text=tr('Folder scan timed out. Try expanding again.'))
+        while not self.results.empty():
+            iid, token, (paths, partial, error) = self.results.get_nowait()
+            if iid not in self.pending or self.pending[iid][0] != token: continue
+            self.pending.pop(iid, None)
+            if not self.tree.exists(iid): continue
+            for child in self.tree.get_children(iid):
+                if child not in self.paths: self.tree.delete(child)
+            for path in paths:
+                if len(self.nodes) >= 10000: partial = True; break
+                self._node(path, iid)
+            if not error: self.loaded.add(iid)
+            self.status.configure(text=error or (tr('Folder list limited. Use the file list or Refresh.') if partial else ''))
+            if error and not self.tree.get_children(iid): self.tree.insert(iid, 'end', text='…')
+        self._draw_lines()
+        self._poll_job = self.after(80, self._poll)
+
+    def refresh(self):
+        # Explicit refresh bounds cache lifetime and picks up drive/folder changes.
+        selected = self.tree.selection()
+        path = self.paths.get(selected[0]) if selected else None
+        self.pending.clear(); self.loaded.clear(); self.paths.clear(); self.nodes.clear()
+        self.tree.delete(*self.tree.get_children(self.pc))
+        for drive in root_folders(): self._node(drive, self.pc)
+        if path is not None:
+            self.sync(path)
+            self.load(self.nodes[os.path.normcase(str(path))])
+
+    def destroy(self):
+        self.stop.set()
+        self.after_cancel(self._poll_job)
+        if self._line_job is not None: self.after_cancel(self._line_job)
+        super().destroy()
+
+
+class SharedTabBar(ChamferNotebook):
+    """Present existing FilePanes without reparenting, copying or closing them."""
+    def __init__(self, master, owner):
+        self.owner = owner
+        super().__init__(master, tab_style=owner.tab_style_var.get(),
+                         on_color_changed=self._color_changed,
+                         on_lock_changed=self._lock_changed,
+                         on_tabs_reordered=owner.save_config)
+
+    def sync(self, panes, active):
+        self._tabs = [p for p in self._tabs if p in panes]
+        self._tabs.extend(p for p in panes if p not in self._tabs)
+        self._texts = {p:self.owner._tabs_for(p)._texts.get(p, '') for p in self._tabs}
+        self._colors = {p:self.owner._tabs_for(p)._colors.get(p, 'default') for p in self._tabs}
+        self._locks = {p:p.lock_mode for p in self._tabs}
+        self._selected = active if active in self._tabs else (self._tabs[0] if self._tabs else None)
+        self._draw()
+
+    def select(self, tab=None):
+        if tab is None: return str(self._selected) if self._selected is not None else ''
+        pane = self._resolve(tab)
+        self.owner._select_single_tab(pane)
+        return str(pane)
+
+    def current(self): return self._selected
+
+    def _color_changed(self, pane, value):
+        self.owner._tabs_for(pane).set_color(pane, value)
+
+    def _lock_changed(self, pane, value):
+        self.owner._tabs_for(pane).set_lock(pane, value)
 
 import csv
 import difflib
@@ -10575,9 +10999,9 @@ import urllib.request
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.17.20"
+__version__ = "0.17.21"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -10660,8 +11084,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/20"
+BUILD_DATE = "2026/09/21"
 VERSION_HISTORY = (
+    ("v0.17.21", "2026/09/21", (
+        "Added: One-panel workspace with shared tabs, a lazy folder tree and explicit copy/move/compare destinations.",
+        "Improved: Solid folder-tree hierarchy lines stay aligned across scrolling, zoom and color themes.",
+        "Improved: Compact, high-resolution tab-lock badges distinguish locked and return-to-folder modes.",
+    )),
     ("v0.17.20", "2026/09/20", (
         "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.",
         "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.",
@@ -12724,7 +13153,14 @@ class Commander(tk.Tk):
         self._archive_open_messages: queue.Queue = queue.Queue()
         self._archive_open_poll_job = None
         saved_panel_count = self.config_data.getint("view", "panel_count", fallback=2)
-        self.panel_count_var = tk.IntVar(value=max(2, min(4, saved_panel_count)))
+        self.panel_count_var = tk.IntVar(value=max(1, min(4, saved_panel_count)))
+        self._multi_panel_count = max(2, min(4, self.config_data.getint('view', 'multi_panel_count', fallback=max(2, saved_panel_count))))
+        self._single_layout = False
+        self._single_busy = False
+        try:
+            self._tree_ratio = max(.15, min(.65, self.config_data.getfloat('view', 'folder_tree_ratio', fallback=1/3)))
+        except ValueError:
+            self._tree_ratio = 1/3
         self.ui_language_var = tk.StringVar(value=saved_language if saved_language in dict(LANGUAGES) else "en")
         self._clipboard_visual_key = None
         self._clipboard_visual_state = None
@@ -12847,9 +13283,19 @@ class Commander(tk.Tk):
             tabs.set_theme(self.palette)
         active_section = self.config_data.get("state", "active_panel", fallback="left")
         active_index = PANEL_SECTIONS.index(active_section) if active_section in PANEL_SECTIONS else 0
-        if active_index >= self.panel_count_var.get():
+        if active_index >= (self._multi_panel_count if self.panel_count_var.get() == 1 else self.panel_count_var.get()):
             active_index = 0
         self.active = self.panel_tabs[active_index].current()
+        self.single_tabs = SharedTabBar(self, self)
+        self.folder_tree = RootFolderTree(split, self._tree_navigate, self._tree_context)
+        split.bind('<ButtonRelease-1>', self._remember_tree_ratio, add='+')
+        split.bind('<Configure>', lambda _e:self.after_idle(self._place_tree_sash), add='+')
+        try:
+            order = json.loads(self.config_data.get('state', 'single_tab_order', fallback='[]'))
+            self.single_tabs._tabs = [self.panel_tabs[group].panes()[index] for group,index in order
+                                     if 0 <= group < self._multi_panel_count and 0 <= index < len(self.panel_tabs[group].panes())]
+        except (ValueError, TypeError, IndexError):
+            self.single_tabs._tabs = []
         self.apply_font_size(save=False)
         self.apply_tab_style(save=False)
         actions = ttk.Frame(self); self.actions_frame = actions
@@ -12942,6 +13388,7 @@ class Commander(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.close_app)
         self.apply_color_scheme(save=False)
         self._ready = True
+        self.apply_panel_count(save=False)
         self._save_job = None
         self._auto_refresh_job = None
         self._directory_watches = DirectoryWatchManager()
@@ -13080,6 +13527,7 @@ class Commander(tk.Tk):
     def save_config(self, record_recent: bool = True) -> None:
         if not self._ready:
             return
+        self._sync_single_workspace()
         ensure_config_defaults(self.config_data)
         if record_recent and self.active is not None:
             self._record_recent(self.active.persistent_path())
@@ -13134,6 +13582,11 @@ class Commander(tk.Tk):
             self.config_data.set('view', key, str(variable.get()))
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
+        self.config_data.set('view', 'multi_panel_count', str(self._multi_panel_count))
+        self.config_data.set('view', 'folder_tree_ratio', str(self._tree_ratio))
+        self.config_data.set('state', 'single_tab_order', json.dumps([
+            (self.panel_tabs.index(self._tabs_for(p)), self._tabs_for(p).index(p))
+            for p in self.single_tabs._tabs if p in self.all_panes()]))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
         self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
         self.config_data.set("view", "extension_effect", str(self.extension_effect_var.get()).lower())
@@ -13486,8 +13939,8 @@ class Commander(tk.Tk):
                                    self.apply_tab_style)
         add_scaled_cascade(view, tr("Tab Style"), tab_style)
         panel_counts = tk.Menu(view, tearoff=False, font=menu_font)
-        for count in range(2, 5):
-            add_scaled_radiobutton(panel_counts, tr("{count} Panels", count=count), count,
+        for count in range(1, 5):
+            add_scaled_radiobutton(panel_counts, tr('1 Panel') if count == 1 else tr("{count} Panels", count=count), count,
                                    self.panel_count_var, self.apply_panel_count)
         add_scaled_cascade(view, tr("Panel Counts"), panel_counts)
         language_menu = tk.Menu(view, tearoff=False, font=menu_font)
@@ -13757,6 +14210,13 @@ class Commander(tk.Tk):
                 canvas.move("all", shift, 0)
 
     def set_active(self, pane: FilePane) -> None:
+        previous = getattr(self, 'active', None)
+        if (self._single_layout and not self._single_busy and previous is not None and previous is not pane
+                and previous.lock_mode == 'reset' and previous.locked_path is not None
+                and self._tabs_for(previous) is not self._tabs_for(pane)):
+            self._single_busy = True
+            try: previous.navigate(previous.locked_path, bypass_lock=True)
+            finally: self._single_busy = False
         self.active = pane
         self.show_hidden_var.set(pane.show_hidden)
         self.show_system_var.set(pane.show_system)
@@ -13784,6 +14244,10 @@ class Commander(tk.Tk):
         visible = self.visible_panel_tabs() if hasattr(self, "panel_tabs") else []
         if not buttons or not visible:
             return
+        if self.panel_count_var.get() == 1:
+            buttons['F5'].configure(text=f"F5 {tr('Copy to…')}")
+            buttons['F6'].configure(text=f"F6 {tr('Move to…')}")
+            return
         source_tabs = self._tabs_for(self.active) if self.active is not None else visible[0]
         if source_tabs not in visible:
             source_tabs = visible[0]
@@ -13806,20 +14270,85 @@ class Commander(tk.Tk):
     def visible_panel_tabs(self) -> list[PaneTabs]:
         if not hasattr(self, "panel_tabs"):
             return []
+        if self.panel_count_var.get() == 1:
+            if not hasattr(self, 'left_tabs'): return self.panel_tabs[:1]
+            active = getattr(self, 'active', None)
+            return [self._tabs_for(active)] if active is not None else self.panel_tabs[:1]
         return self.panel_tabs[:max(2, min(4, self.panel_count_var.get()))]
 
+    def _place_tree_sash(self):
+        if self._single_layout and len(self.split.panes()) == 2:
+            self.split.sashpos(0, round(self.split.winfo_width()*self._tree_ratio))
+
+    def _remember_tree_ratio(self, _event=None):
+        if self._single_layout and len(self.split.panes()) == 2:
+            self._tree_ratio = max(.15, min(.65, self.split.sashpos(0)/max(1,self.split.winfo_width())))
+            self.save_config(record_recent=False)
+
+    def _sync_single_workspace(self):
+        if not self._single_layout or self._single_busy: return
+        panes = [p for tabs in self.panel_tabs[:self._multi_panel_count] for p in tabs.panes()]
+        self.single_tabs.sync(panes, self.active)
+        owner = self._tabs_for(self.active)
+        expected = (str(self.folder_tree), str(owner))
+        if tuple(self.split.panes()) != expected:
+            for item in self.split.panes():
+                if str(item) not in expected: self.split.forget(item)
+            if str(self.folder_tree) not in self.split.panes():
+                if self.split.panes(): self.split.insert(0, self.folder_tree, weight=1)
+                else: self.split.add(self.folder_tree, weight=1)
+            if str(owner) not in self.split.panes(): self.split.add(owner, weight=2)
+            # A newly mapped notebook negotiates its requested width after idle;
+            # place the sash after that negotiation, not before it collapses the tree.
+            self.after(50, self._place_tree_sash)
+        self.folder_tree.sync(self.active.persistent_path())
+
+    def _select_single_tab(self, pane):
+        previous = self.active
+        self._single_busy = True
+        try:
+            if (previous is not pane and previous.lock_mode == 'reset' and previous.locked_path is not None
+                    and self._tabs_for(previous) is not self._tabs_for(pane)):
+                previous.navigate(previous.locked_path, bypass_lock=True)
+            self._tabs_for(pane).select(pane)
+            self.active = pane
+        finally:
+            self._single_busy = False
+        self.set_active(pane)
+        pane.focus_file_list()
+
+    def _tree_navigate(self, path):
+        self.active.navigate_external(path)
+        self._sync_single_workspace()
+
+    def _tree_context(self, event):
+        self.header_popup.close_all()
+        menu = self._build_panel_context_menu(self.active)
+        menu.entryconfigure(tr('Refresh'), command=self.refresh)
+        self.header_popup.show_at(max(event.x_root, self.folder_tree.winfo_rootx()+15),
+                                 max(event.y_root, self.folder_tree.winfo_rooty()+25), menu)
+        return 'break'
+
     def apply_panel_count(self, save: bool = True) -> None:
-        count = max(2, min(4, int(self.panel_count_var.get())))
+        count = max(1, min(4, int(self.panel_count_var.get())))
         self.panel_count_var.set(count)
         if not hasattr(self, "split"):
             return
-        present = set(self.split.panes())
-        for index, tabs in enumerate(self.panel_tabs):
-            pane_id = str(tabs)
-            if index < count and pane_id not in present:
-                self.split.add(tabs, weight=1)
-            elif index >= count and pane_id in present:
-                self.split.forget(tabs)
+        if count == 1:
+            if not self._single_layout: self._set_compare_target(None)
+            self._single_layout = True
+            for tabs in self.panel_tabs: tabs.bar.pack_forget()
+            self.single_tabs.pack(fill='x', padx=5, before=self.split)
+            self._sync_single_workspace()
+            self.update_idletasks(); self._place_tree_sash()
+        else:
+            self._single_layout = False
+            self._multi_panel_count = count
+            if hasattr(self, 'single_tabs'): self.single_tabs.pack_forget()
+            for item in self.split.panes(): self.split.forget(item)
+            for index, tabs in enumerate(self.panel_tabs):
+                tabs.bar.pack(fill='x', side='top', before=tabs.current())
+                if index < count: self.split.add(tabs, weight=1)
         if self.active is None or self._tabs_for(self.active) not in self.visible_panel_tabs():
             self.set_active(self.panel_tabs[0].current())
         else:
@@ -13853,6 +14382,8 @@ class Commander(tk.Tk):
         self.update_transfer_actions()
         for pane in self.all_panes():
             pane.apply_language()
+        self.folder_tree.caption.configure(text=tr('Folders'))
+        self.folder_tree.tree.item(self.folder_tree.pc, text=tr('This PC'))
         for window in (self.preview_window, self.search_window,
                        self.compare_window, self.multi_rename_window,
                        self.space_analyzer_window):
@@ -14234,8 +14765,8 @@ class Commander(tk.Tk):
         menu.add_command(label=paste_label, accelerator="Ctrl+V",
                          command=lambda target=paste_destination: self._clipboard_paste_to(target))
         menu.add_separator()
-        menu.add_command(label=tr("Copy to Target Panel"), accelerator="F5", command=self.copy)
-        menu.add_command(label=tr("Move to Target Panel"), accelerator="F6", command=self.move)
+        menu.add_command(label=tr('Copy to…' if self.panel_count_var.get() == 1 else 'Copy to Target Panel'), accelerator="F5", command=self.copy)
+        menu.add_command(label=tr('Move to…' if self.panel_count_var.get() == 1 else 'Move to Target Panel'), accelerator="F6", command=self.move)
         menu.add_separator()
         menu.add_command(label=tr("Rename"), accelerator="F2",
                          state=normal_if(single), command=self.rename)
@@ -14564,10 +15095,11 @@ class Commander(tk.Tk):
 
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
         path, selected_file = navigation_destination(path)
+        target_tabs = self.left_tabs if self.panel_count_var.get() == 1 else self._tabs_for(pane)
         if path.is_dir():
             session = pane.archive_session
             if session is None or not session.contains(path):
-                self.active = self._tabs_for(pane).add_tab(path)
+                self.active = target_tabs.add_tab(path)
                 if selected_file is not None:
                     self.active.select_path(selected_file)
                     self.active.focus_file_list()
@@ -14576,7 +15108,7 @@ class Commander(tk.Tk):
             # needs its own session so closing one cannot invalidate another.
             relative = session.relative_path(path)
             selected_relative = session.relative_path(selected_file) if selected_file is not None else None
-            target = self._tabs_for(pane).add_tab(session.archive_path.parent)
+            target = target_tabs.add_tab(session.archive_path.parent)
             self.active = target
 
             def restore_relative(opened: ArchiveSession) -> None:
@@ -14655,7 +15187,7 @@ class Commander(tk.Tk):
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
-        tabs = self._tabs_for(source)
+        tabs = self.single_tabs if self._single_layout else self._tabs_for(source)
         tab_ids = tabs.tabs()
         if tab_ids:
             index = (tabs.index(tabs.select()) + direction) % len(tab_ids)
@@ -14664,6 +15196,10 @@ class Commander(tk.Tk):
         return "break"
 
     def switch_panel(self) -> str:
+        if self._single_layout:
+            if self.focus_get() is self.folder_tree.tree: self.active.focus_file_list()
+            else: self.folder_tree.tree.focus_set()
+            return 'break'
         source, target = self.panes()
         self.set_active(target)
         target.focus_file_list()
@@ -14898,6 +15434,7 @@ class Commander(tk.Tk):
             self._record_recent(source.path); source.focus_file_list(); self.save_config()
 
     def refresh(self) -> None:
+        if self._single_layout: self.folder_tree.refresh()
         for pane in self.visible_panes():
             pane.refresh()
 
@@ -15138,7 +15675,7 @@ class Commander(tk.Tk):
             self.search_window.activate()
 
     def send_search_listing_to_tab(self, paths, source: FilePane) -> None:
-        tabs = self._tabs_for(source)
+        tabs = self.left_tabs if self._single_layout else self._tabs_for(source)
         pane = tabs.add_tab(source.path)
         pane.show_file_listing(paths, tr("Search Results"))
         self.set_active(pane)
@@ -15313,6 +15850,20 @@ class Commander(tk.Tk):
         self.save_config()
 
     def compare_selected(self) -> None:
+        if self._single_layout:
+            items = self.active.selected_paths()
+            if len(items) == 2:
+                self._set_compare_target(None); self.compare_paths(*items); return
+            if len(items) > 2:
+                messagebox.showinfo(tr('Compare'), tr('Select at most two items.'), parent=self); return
+            chosen = items[0] if items else self.active.path
+            if chosen.is_dir():
+                value = filedialog.askdirectory(parent=self, title=tr('Choose comparison folder'), initialdir=str(chosen))
+            else:
+                value = filedialog.askopenfilename(parent=self, title=tr('Choose comparison file'), initialdir=str(chosen.parent))
+            if value:
+                self._set_compare_target(None); self.compare_paths(chosen, Path(value))
+            return
         source, target = self.panes()
         source_items = source.selected_paths()
         target_items = target.selected_paths()
@@ -15545,6 +16096,7 @@ class Commander(tk.Tk):
             for pane in self.all_panes():
                 pane.path_bar.redraw()
                 pane._update_view_mode_button()
+        if hasattr(self, 'single_tabs'): self.single_tabs.redraw()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
         preferences = getattr(self, "_prefix_preferences", None)
@@ -15625,6 +16177,7 @@ class Commander(tk.Tk):
             for pane in self.all_panes():
                 pane.set_active_appearance(pane is self.active, palette)
                 pane.path_bar.redraw()
+        if hasattr(self, 'single_tabs'): self.single_tabs.set_theme(palette)
         for window_name in ("preview_window", "search_window", "compare_window",
                             "multi_rename_window", "space_analyzer_window"):
             window = getattr(self, window_name, None)
@@ -15652,6 +16205,7 @@ class Commander(tk.Tk):
         if hasattr(self, "panel_tabs"):
             for tabs in self.panel_tabs:
                 tabs.set_style(style)
+        if hasattr(self, 'single_tabs'): self.single_tabs.set_style(style)
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.notebook.set_style(style)
         if save:
@@ -15730,12 +16284,22 @@ class Commander(tk.Tk):
         self._execute_transfer(verb, operation, source.selected_paths(), target.path)
 
     def copy(self) -> None:
+        if self._single_layout:
+            self._single_transfer('Copy', copy_items); return
         source, target = self.panes()
         self._execute_transfer("Copy", copy_items, source.selected_paths(), target.path,
                                confirm=False)
 
     def move(self) -> None:
+        if self._single_layout:
+            self._single_transfer('Move', move_items); return
         self._run("Move", move_items)
+
+    def _single_transfer(self, verb, operation):
+        items = self.active.selected_paths()
+        if not items: return
+        value = filedialog.askdirectory(parent=self, title=tr('Choose destination folder'), initialdir=str(self.active.persistent_path()))
+        if value: self._execute_transfer(verb, operation, items, Path(value), confirm=False)
 
     def _execute_delete(self, items: list[Path], permanent: bool,
                         verb: str | None = None, archive: bool = False,
@@ -15787,6 +16351,7 @@ class Commander(tk.Tk):
         self._execute_delete(items, permanent)
 
     def delete_hotkey(self, permanent: bool = False) -> None:
+        if self._single_layout and self.focus_get() is self.folder_tree.tree: return
         if not self._clipboard_is_text_control():
             self.delete(permanent=permanent)
 

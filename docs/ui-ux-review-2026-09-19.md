@@ -45,6 +45,11 @@ signed-in environment. This task does not authorize networking or sign-in.
 
 ## Tab lock: options for review, not applied
 
+Update 2026-09-20: the user subsequently selected the compact C tile design with
+neutral shared colors. It is now implemented in the working tree; see
+[the selected Tab Lock design](tab-lock-design.md). The comparison below records
+the earlier research, not the current selection.
+
 | Option | Benefit | Cost / concern |
 | --- | --- | --- |
 | Small outlined padlock before the title | Explicit familiar meaning; works without color | Uses roughly one icon's width |

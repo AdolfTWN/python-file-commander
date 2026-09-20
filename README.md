@@ -1,6 +1,13 @@
 # Python File Commander
 
-Current version: **v0.17.20**
+Current version: **v0.17.21**
+
+**View → Panel Counts → 1 Panel** provides a full-width
+shared tab strip above a roughly 1/3 folder tree and 2/3 file list. Original panel
+groups are preserved for switching back, new tabs belong to P1, and F5/F6/F9 ask
+for explicit targets. Folder expansion is lazy and bounded, with no drive-wide
+index. Solid hierarchy lines connect parents and children and follow zoom,
+scrolling and the current color theme. See [one-panel behavior and limits](docs/single-panel.md).
 
 Right-click **blank file-panel space** for Panel Counts, Right Click Menu,
 List/Folder/File view, File Columns (including restoring hidden columns), Font
@@ -11,6 +18,13 @@ Shift+F10/Menu works on the focused tab bar and controls, or an empty file list.
 These are shortcuts to existing main-menu settings, not separate preferences;
 Tab Style, panel count, font and scheme remain application-wide. See
 [context-menu details](docs/context-settings.md).
+
+Tab Lock refinement: compact neutral badges replace heavy edge
+strokes. A closed padlock means navigation opens a new tab; the large return
+arrow with a small padlock means restore the locked path when leaving the tab.
+Both use the same dark-grey tile in light themes and light-grey tile in dark
+mode, scale with the font and sit close to the left edge. See
+[the selected design](docs/tab-lock-design.md).
 
 Right-click a file column header for its display options; click the heading to
 change sorting. All column

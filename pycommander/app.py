@@ -20,7 +20,7 @@ import urllib.request
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
 from . import __version__
 from .fileops import OperationFailure, OperationResult, compact_file_size, copy_items, delete_items, format_size, is_hidden, is_system, move_items, recycle_items, roots
@@ -46,6 +46,7 @@ from .cloudstatus import CLOUD_LABELS, CLOUD_DETAILS, CloudStatusCache
 from .marquee import NameMarquee
 from .detailcells import SizeUnitCells
 from .columnsettings import modified_text
+from .singlepanel import RootFolderTree, SharedTabBar
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -130,6 +131,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.21", "2026/09/21", (
+        "Added: One-panel workspace with shared tabs, a lazy folder tree and explicit copy/move/compare destinations.",
+        "Improved: Solid folder-tree hierarchy lines stay aligned across scrolling, zoom and color themes.",
+        "Improved: Compact, high-resolution tab-lock badges distinguish locked and return-to-folder modes.",
+    )),
     ("v0.17.20", "2026/09/20", (
         "Added: Right-click panel background for panel counts, context-menu mode, view modes, columns, font size and colors.",
         "Added: Tab context menus include shared Tab Style and grouped Tab Color; empty tab bars expose style settings.",
@@ -2192,7 +2198,14 @@ class Commander(tk.Tk):
         self._archive_open_messages: queue.Queue = queue.Queue()
         self._archive_open_poll_job = None
         saved_panel_count = self.config_data.getint("view", "panel_count", fallback=2)
-        self.panel_count_var = tk.IntVar(value=max(2, min(4, saved_panel_count)))
+        self.panel_count_var = tk.IntVar(value=max(1, min(4, saved_panel_count)))
+        self._multi_panel_count = max(2, min(4, self.config_data.getint('view', 'multi_panel_count', fallback=max(2, saved_panel_count))))
+        self._single_layout = False
+        self._single_busy = False
+        try:
+            self._tree_ratio = max(.15, min(.65, self.config_data.getfloat('view', 'folder_tree_ratio', fallback=1/3)))
+        except ValueError:
+            self._tree_ratio = 1/3
         self.ui_language_var = tk.StringVar(value=saved_language if saved_language in dict(LANGUAGES) else "en")
         self._clipboard_visual_key = None
         self._clipboard_visual_state = None
@@ -2315,9 +2328,19 @@ class Commander(tk.Tk):
             tabs.set_theme(self.palette)
         active_section = self.config_data.get("state", "active_panel", fallback="left")
         active_index = PANEL_SECTIONS.index(active_section) if active_section in PANEL_SECTIONS else 0
-        if active_index >= self.panel_count_var.get():
+        if active_index >= (self._multi_panel_count if self.panel_count_var.get() == 1 else self.panel_count_var.get()):
             active_index = 0
         self.active = self.panel_tabs[active_index].current()
+        self.single_tabs = SharedTabBar(self, self)
+        self.folder_tree = RootFolderTree(split, self._tree_navigate, self._tree_context)
+        split.bind('<ButtonRelease-1>', self._remember_tree_ratio, add='+')
+        split.bind('<Configure>', lambda _e:self.after_idle(self._place_tree_sash), add='+')
+        try:
+            order = json.loads(self.config_data.get('state', 'single_tab_order', fallback='[]'))
+            self.single_tabs._tabs = [self.panel_tabs[group].panes()[index] for group,index in order
+                                     if 0 <= group < self._multi_panel_count and 0 <= index < len(self.panel_tabs[group].panes())]
+        except (ValueError, TypeError, IndexError):
+            self.single_tabs._tabs = []
         self.apply_font_size(save=False)
         self.apply_tab_style(save=False)
         actions = ttk.Frame(self); self.actions_frame = actions
@@ -2410,6 +2433,7 @@ class Commander(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.close_app)
         self.apply_color_scheme(save=False)
         self._ready = True
+        self.apply_panel_count(save=False)
         self._save_job = None
         self._auto_refresh_job = None
         self._directory_watches = DirectoryWatchManager()
@@ -2548,6 +2572,7 @@ class Commander(tk.Tk):
     def save_config(self, record_recent: bool = True) -> None:
         if not self._ready:
             return
+        self._sync_single_workspace()
         ensure_config_defaults(self.config_data)
         if record_recent and self.active is not None:
             self._record_recent(self.active.persistent_path())
@@ -2602,6 +2627,11 @@ class Commander(tk.Tk):
             self.config_data.set('view', key, str(variable.get()))
         self.config_data.set("view", "tab_style", self.tab_style_var.get())
         self.config_data.set("view", "panel_count", str(self.panel_count_var.get()))
+        self.config_data.set('view', 'multi_panel_count', str(self._multi_panel_count))
+        self.config_data.set('view', 'folder_tree_ratio', str(self._tree_ratio))
+        self.config_data.set('state', 'single_tab_order', json.dumps([
+            (self.panel_tabs.index(self._tabs_for(p)), self._tabs_for(p).index(p))
+            for p in self.single_tabs._tabs if p in self.all_panes()]))
         self.config_data.set("view", "ui_language", self.ui_language_var.get())
         self.config_data.set("view", "color_scheme", self.color_scheme_var.get())
         self.config_data.set("view", "extension_effect", str(self.extension_effect_var.get()).lower())
@@ -2954,8 +2984,8 @@ class Commander(tk.Tk):
                                    self.apply_tab_style)
         add_scaled_cascade(view, tr("Tab Style"), tab_style)
         panel_counts = tk.Menu(view, tearoff=False, font=menu_font)
-        for count in range(2, 5):
-            add_scaled_radiobutton(panel_counts, tr("{count} Panels", count=count), count,
+        for count in range(1, 5):
+            add_scaled_radiobutton(panel_counts, tr('1 Panel') if count == 1 else tr("{count} Panels", count=count), count,
                                    self.panel_count_var, self.apply_panel_count)
         add_scaled_cascade(view, tr("Panel Counts"), panel_counts)
         language_menu = tk.Menu(view, tearoff=False, font=menu_font)
@@ -3225,6 +3255,13 @@ class Commander(tk.Tk):
                 canvas.move("all", shift, 0)
 
     def set_active(self, pane: FilePane) -> None:
+        previous = getattr(self, 'active', None)
+        if (self._single_layout and not self._single_busy and previous is not None and previous is not pane
+                and previous.lock_mode == 'reset' and previous.locked_path is not None
+                and self._tabs_for(previous) is not self._tabs_for(pane)):
+            self._single_busy = True
+            try: previous.navigate(previous.locked_path, bypass_lock=True)
+            finally: self._single_busy = False
         self.active = pane
         self.show_hidden_var.set(pane.show_hidden)
         self.show_system_var.set(pane.show_system)
@@ -3252,6 +3289,10 @@ class Commander(tk.Tk):
         visible = self.visible_panel_tabs() if hasattr(self, "panel_tabs") else []
         if not buttons or not visible:
             return
+        if self.panel_count_var.get() == 1:
+            buttons['F5'].configure(text=f"F5 {tr('Copy to…')}")
+            buttons['F6'].configure(text=f"F6 {tr('Move to…')}")
+            return
         source_tabs = self._tabs_for(self.active) if self.active is not None else visible[0]
         if source_tabs not in visible:
             source_tabs = visible[0]
@@ -3274,20 +3315,85 @@ class Commander(tk.Tk):
     def visible_panel_tabs(self) -> list[PaneTabs]:
         if not hasattr(self, "panel_tabs"):
             return []
+        if self.panel_count_var.get() == 1:
+            if not hasattr(self, 'left_tabs'): return self.panel_tabs[:1]
+            active = getattr(self, 'active', None)
+            return [self._tabs_for(active)] if active is not None else self.panel_tabs[:1]
         return self.panel_tabs[:max(2, min(4, self.panel_count_var.get()))]
 
+    def _place_tree_sash(self):
+        if self._single_layout and len(self.split.panes()) == 2:
+            self.split.sashpos(0, round(self.split.winfo_width()*self._tree_ratio))
+
+    def _remember_tree_ratio(self, _event=None):
+        if self._single_layout and len(self.split.panes()) == 2:
+            self._tree_ratio = max(.15, min(.65, self.split.sashpos(0)/max(1,self.split.winfo_width())))
+            self.save_config(record_recent=False)
+
+    def _sync_single_workspace(self):
+        if not self._single_layout or self._single_busy: return
+        panes = [p for tabs in self.panel_tabs[:self._multi_panel_count] for p in tabs.panes()]
+        self.single_tabs.sync(panes, self.active)
+        owner = self._tabs_for(self.active)
+        expected = (str(self.folder_tree), str(owner))
+        if tuple(self.split.panes()) != expected:
+            for item in self.split.panes():
+                if str(item) not in expected: self.split.forget(item)
+            if str(self.folder_tree) not in self.split.panes():
+                if self.split.panes(): self.split.insert(0, self.folder_tree, weight=1)
+                else: self.split.add(self.folder_tree, weight=1)
+            if str(owner) not in self.split.panes(): self.split.add(owner, weight=2)
+            # A newly mapped notebook negotiates its requested width after idle;
+            # place the sash after that negotiation, not before it collapses the tree.
+            self.after(50, self._place_tree_sash)
+        self.folder_tree.sync(self.active.persistent_path())
+
+    def _select_single_tab(self, pane):
+        previous = self.active
+        self._single_busy = True
+        try:
+            if (previous is not pane and previous.lock_mode == 'reset' and previous.locked_path is not None
+                    and self._tabs_for(previous) is not self._tabs_for(pane)):
+                previous.navigate(previous.locked_path, bypass_lock=True)
+            self._tabs_for(pane).select(pane)
+            self.active = pane
+        finally:
+            self._single_busy = False
+        self.set_active(pane)
+        pane.focus_file_list()
+
+    def _tree_navigate(self, path):
+        self.active.navigate_external(path)
+        self._sync_single_workspace()
+
+    def _tree_context(self, event):
+        self.header_popup.close_all()
+        menu = self._build_panel_context_menu(self.active)
+        menu.entryconfigure(tr('Refresh'), command=self.refresh)
+        self.header_popup.show_at(max(event.x_root, self.folder_tree.winfo_rootx()+15),
+                                 max(event.y_root, self.folder_tree.winfo_rooty()+25), menu)
+        return 'break'
+
     def apply_panel_count(self, save: bool = True) -> None:
-        count = max(2, min(4, int(self.panel_count_var.get())))
+        count = max(1, min(4, int(self.panel_count_var.get())))
         self.panel_count_var.set(count)
         if not hasattr(self, "split"):
             return
-        present = set(self.split.panes())
-        for index, tabs in enumerate(self.panel_tabs):
-            pane_id = str(tabs)
-            if index < count and pane_id not in present:
-                self.split.add(tabs, weight=1)
-            elif index >= count and pane_id in present:
-                self.split.forget(tabs)
+        if count == 1:
+            if not self._single_layout: self._set_compare_target(None)
+            self._single_layout = True
+            for tabs in self.panel_tabs: tabs.bar.pack_forget()
+            self.single_tabs.pack(fill='x', padx=5, before=self.split)
+            self._sync_single_workspace()
+            self.update_idletasks(); self._place_tree_sash()
+        else:
+            self._single_layout = False
+            self._multi_panel_count = count
+            if hasattr(self, 'single_tabs'): self.single_tabs.pack_forget()
+            for item in self.split.panes(): self.split.forget(item)
+            for index, tabs in enumerate(self.panel_tabs):
+                tabs.bar.pack(fill='x', side='top', before=tabs.current())
+                if index < count: self.split.add(tabs, weight=1)
         if self.active is None or self._tabs_for(self.active) not in self.visible_panel_tabs():
             self.set_active(self.panel_tabs[0].current())
         else:
@@ -3321,6 +3427,8 @@ class Commander(tk.Tk):
         self.update_transfer_actions()
         for pane in self.all_panes():
             pane.apply_language()
+        self.folder_tree.caption.configure(text=tr('Folders'))
+        self.folder_tree.tree.item(self.folder_tree.pc, text=tr('This PC'))
         for window in (self.preview_window, self.search_window,
                        self.compare_window, self.multi_rename_window,
                        self.space_analyzer_window):
@@ -3702,8 +3810,8 @@ class Commander(tk.Tk):
         menu.add_command(label=paste_label, accelerator="Ctrl+V",
                          command=lambda target=paste_destination: self._clipboard_paste_to(target))
         menu.add_separator()
-        menu.add_command(label=tr("Copy to Target Panel"), accelerator="F5", command=self.copy)
-        menu.add_command(label=tr("Move to Target Panel"), accelerator="F6", command=self.move)
+        menu.add_command(label=tr('Copy to…' if self.panel_count_var.get() == 1 else 'Copy to Target Panel'), accelerator="F5", command=self.copy)
+        menu.add_command(label=tr('Move to…' if self.panel_count_var.get() == 1 else 'Move to Target Panel'), accelerator="F6", command=self.move)
         menu.add_separator()
         menu.add_command(label=tr("Rename"), accelerator="F2",
                          state=normal_if(single), command=self.rename)
@@ -4032,10 +4140,11 @@ class Commander(tk.Tk):
 
     def _open_folder_in_new_tab(self, pane: FilePane, path: Path) -> None:
         path, selected_file = navigation_destination(path)
+        target_tabs = self.left_tabs if self.panel_count_var.get() == 1 else self._tabs_for(pane)
         if path.is_dir():
             session = pane.archive_session
             if session is None or not session.contains(path):
-                self.active = self._tabs_for(pane).add_tab(path)
+                self.active = target_tabs.add_tab(path)
                 if selected_file is not None:
                     self.active.select_path(selected_file)
                     self.active.focus_file_list()
@@ -4044,7 +4153,7 @@ class Commander(tk.Tk):
             # needs its own session so closing one cannot invalidate another.
             relative = session.relative_path(path)
             selected_relative = session.relative_path(selected_file) if selected_file is not None else None
-            target = self._tabs_for(pane).add_tab(session.archive_path.parent)
+            target = target_tabs.add_tab(session.archive_path.parent)
             self.active = target
 
             def restore_relative(opened: ArchiveSession) -> None:
@@ -4123,7 +4232,7 @@ class Commander(tk.Tk):
 
     def switch_tab(self, direction: int) -> str:
         source = self.active or self.left_tabs.current()
-        tabs = self._tabs_for(source)
+        tabs = self.single_tabs if self._single_layout else self._tabs_for(source)
         tab_ids = tabs.tabs()
         if tab_ids:
             index = (tabs.index(tabs.select()) + direction) % len(tab_ids)
@@ -4132,6 +4241,10 @@ class Commander(tk.Tk):
         return "break"
 
     def switch_panel(self) -> str:
+        if self._single_layout:
+            if self.focus_get() is self.folder_tree.tree: self.active.focus_file_list()
+            else: self.folder_tree.tree.focus_set()
+            return 'break'
         source, target = self.panes()
         self.set_active(target)
         target.focus_file_list()
@@ -4366,6 +4479,7 @@ class Commander(tk.Tk):
             self._record_recent(source.path); source.focus_file_list(); self.save_config()
 
     def refresh(self) -> None:
+        if self._single_layout: self.folder_tree.refresh()
         for pane in self.visible_panes():
             pane.refresh()
 
@@ -4606,7 +4720,7 @@ class Commander(tk.Tk):
             self.search_window.activate()
 
     def send_search_listing_to_tab(self, paths, source: FilePane) -> None:
-        tabs = self._tabs_for(source)
+        tabs = self.left_tabs if self._single_layout else self._tabs_for(source)
         pane = tabs.add_tab(source.path)
         pane.show_file_listing(paths, tr("Search Results"))
         self.set_active(pane)
@@ -4781,6 +4895,20 @@ class Commander(tk.Tk):
         self.save_config()
 
     def compare_selected(self) -> None:
+        if self._single_layout:
+            items = self.active.selected_paths()
+            if len(items) == 2:
+                self._set_compare_target(None); self.compare_paths(*items); return
+            if len(items) > 2:
+                messagebox.showinfo(tr('Compare'), tr('Select at most two items.'), parent=self); return
+            chosen = items[0] if items else self.active.path
+            if chosen.is_dir():
+                value = filedialog.askdirectory(parent=self, title=tr('Choose comparison folder'), initialdir=str(chosen))
+            else:
+                value = filedialog.askopenfilename(parent=self, title=tr('Choose comparison file'), initialdir=str(chosen.parent))
+            if value:
+                self._set_compare_target(None); self.compare_paths(chosen, Path(value))
+            return
         source, target = self.panes()
         source_items = source.selected_paths()
         target_items = target.selected_paths()
@@ -5013,6 +5141,7 @@ class Commander(tk.Tk):
             for pane in self.all_panes():
                 pane.path_bar.redraw()
                 pane._update_view_mode_button()
+        if hasattr(self, 'single_tabs'): self.single_tabs.redraw()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
         preferences = getattr(self, "_prefix_preferences", None)
@@ -5093,6 +5222,7 @@ class Commander(tk.Tk):
             for pane in self.all_panes():
                 pane.set_active_appearance(pane is self.active, palette)
                 pane.path_bar.redraw()
+        if hasattr(self, 'single_tabs'): self.single_tabs.set_theme(palette)
         for window_name in ("preview_window", "search_window", "compare_window",
                             "multi_rename_window", "space_analyzer_window"):
             window = getattr(self, window_name, None)
@@ -5120,6 +5250,7 @@ class Commander(tk.Tk):
         if hasattr(self, "panel_tabs"):
             for tabs in self.panel_tabs:
                 tabs.set_style(style)
+        if hasattr(self, 'single_tabs'): self.single_tabs.set_style(style)
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.notebook.set_style(style)
         if save:
@@ -5198,12 +5329,22 @@ class Commander(tk.Tk):
         self._execute_transfer(verb, operation, source.selected_paths(), target.path)
 
     def copy(self) -> None:
+        if self._single_layout:
+            self._single_transfer('Copy', copy_items); return
         source, target = self.panes()
         self._execute_transfer("Copy", copy_items, source.selected_paths(), target.path,
                                confirm=False)
 
     def move(self) -> None:
+        if self._single_layout:
+            self._single_transfer('Move', move_items); return
         self._run("Move", move_items)
+
+    def _single_transfer(self, verb, operation):
+        items = self.active.selected_paths()
+        if not items: return
+        value = filedialog.askdirectory(parent=self, title=tr('Choose destination folder'), initialdir=str(self.active.persistent_path()))
+        if value: self._execute_transfer(verb, operation, items, Path(value), confirm=False)
 
     def _execute_delete(self, items: list[Path], permanent: bool,
                         verb: str | None = None, archive: bool = False,
@@ -5255,6 +5396,7 @@ class Commander(tk.Tk):
         self._execute_delete(items, permanent)
 
     def delete_hotkey(self, permanent: bool = False) -> None:
+        if self._single_layout and self.focus_get() is self.folder_tree.tree: return
         if not self._clipboard_is_text_control():
             self.delete(permanent=permanent)
 

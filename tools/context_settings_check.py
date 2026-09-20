@@ -56,7 +56,7 @@ with tempfile.TemporaryDirectory() as raw:
         submenu(submenu(menu,'File Columns'),'Ext').invoke(0)
         assert app.column_visible_vars['ext'].get()
         for count in (4,2,3,2):
-            submenu(menu,'Panel Counts').invoke(count-2);settle(app)
+            submenu(menu,'Panel Counts').invoke(count-1);settle(app)
             assert len(app.visible_panel_tabs())==count
         # A file row must still dispatch to the chosen native/PFC handler.
         right.set_view_mode('list');settle(app)
