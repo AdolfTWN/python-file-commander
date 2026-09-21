@@ -1,4 +1,4 @@
-# One-panel workspace — v0.17.24
+# One-panel workspace — v0.17.25
 
 Select **View → Panel Counts → 1 Panel**, also available through the background
 context menu. This is one navigation workspace, not a second transfer panel.
@@ -37,6 +37,23 @@ context menu. This is one navigation workspace, not a second transfer panel.
   not operate on an unrelated selected file in the right pane.
 - Each original panel still retains at least one tab, matching the existing
   close-tab rule; this also ensures it can be restored as a usable panel.
+
+## Floating ancestor context
+
+Parents of the first visible tree row are pinned above the scrollable area once
+they leave the viewport. The icons and dotted joints use the same indentation
+and horizontal scroll offset as the tree; each parent has its own text row.
+This follows the viewport rather than the selected folder. Native rows are not
+covered, and returning to the top removes the pinned area automatically.
+
+Click a parent to reveal/select it through normal navigation. The mouse wheel
+continues scrolling over the floating area, and hovering exposes the full path.
+Only the nearest ancestors fit in roughly one third of the available tree area
+(2–6 rows depending on font/window size); an earlier-ancestors menu keeps the
+remaining chain accessible for unusually deep paths. No filesystem scan, index
+or recursive expansion is introduced: this reads cached parent relationships.
+If a joint falls outside the horizontal viewport, its floating name/icon stays
+at the edge with a direction hint instead of becoming invisible too.
 
 ## Operations have explicit targets
 
@@ -118,3 +135,15 @@ autosave-reopens-collapse failure in the new double-click regression. Offline
 Windows portable checks passed for double-clicks, connector geometry, expansion
 and shared panels; the 150% native tree was visually inspected. Matched portable
 SHA-256: `f780b55be42249a1756f90b6f6c7bda085facc2b4aeb31f98e303a1a675f7db8`.
+
+v0.17.25 validation: 199 unit tests passed (8 platform skips). Source and portable
+GUI checks covered viewport-following ancestors, aligned joints, top restoration,
+branch changes, three themes at 100/150/300%, horizontal clipping, deep-path
+overflow, wheel/click behavior, refresh and stable bottom scrolling. Related
+double-click, connector, bounded expansion, shared-panel, path and ZIP-exit
+checks passed. Final offline Windows portable checks passed for sticky ancestors,
+double-clicks, connectors, expansion and shared panels; the 150% floating tree
+was visually inspected. Native overflow-menu posting/dismissal was also checked;
+the automated menu-content test bypasses Windows' blocking popup loop.
+Matched portable SHA-256:
+`a3bb6bc4fcdf66073c59128e53e2121b59c235ac18036505a74e4cbfc2ed426d`.

@@ -77,7 +77,21 @@ class RootFolderTree(ttk.Frame):
             variable=self.expand_all_var, command=self.toggle_expand_all)
         self.expand_all_button.pack(side='right', padx=(8,0))
         ToolTip(self.expand_all_button, lambda: tr('Expand descendants of the current folder. Uncheck to stop.'))
-        body = ttk.Frame(self); body.pack(fill='both', expand=True)
+        self._sticky = tk.Canvas(self, height=0, highlightthickness=0, borderwidth=0,
+                                 takefocus=False, cursor='hand2')
+        self._sticky_chain = ()
+        self._sticky_rows = []
+        self._sticky_height = 0
+        self._sticky_signature = None
+        self._sticky_menu = None
+        self._sticky.bind('<Button-1>', self._sticky_click)
+        self._sticky.bind('<Double-Button-1>', lambda _e:'break')
+        for event in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
+            self._sticky.bind(event, self._line_wheel)
+        self._sticky.bind('<Motion>', self._sticky_motion)
+        self._sticky_tip = ''
+        ToolTip(self._sticky, lambda: self._sticky_tip)
+        body = self._body = ttk.Frame(self); body.pack(fill='both', expand=True)
         self.tree = ttk.Treeview(body, show='tree', selectmode='browse', style='FolderNav.Treeview')
         self._line_rows = []
         self._line_signature = None
@@ -178,6 +192,106 @@ class RootFolderTree(ttk.Frame):
         self._draw_lines()
         return 'break'
 
+    def _sticky_motion(self, event):
+        row = next((iid for top, bottom, iid in self._sticky_rows if top <= event.y < bottom), '')
+        if row and not self.tree.exists(row): row = ''
+        self._sticky_tip = (tr('Earlier ancestors…') if row is None else
+                            str(self.paths.get(row, self.tree.item(row, 'text'))) if row else '')
+
+    def _reveal_ancestor(self, iid):
+        if not self.tree.exists(iid): return
+        self.tree.focus_set(); self.tree.focus(iid)
+        self.tree.selection_set(iid)
+        self.tree.see(iid)
+        self._schedule_lines()
+
+    def _sticky_click(self, event):
+        for top, bottom, iid in self._sticky_rows:
+            if not top <= event.y < bottom: continue
+            if iid is not None:
+                self._reveal_ancestor(iid)
+            else:
+                if self._sticky_menu is not None: self._sticky_menu.destroy()
+                menu = tk.Menu(self, tearoff=False)
+                self._sticky_menu = menu
+                shown = {row for _, _, row in self._sticky_rows}
+                for ancestor in self._sticky_chain:
+                    if ancestor not in shown and self.tree.exists(ancestor):
+                        menu.add_command(label=self.tree.item(ancestor, 'text'),
+                            command=lambda item=ancestor:self._reveal_ancestor(item))
+                try: menu.tk_popup(event.x_root, event.y_root)
+                finally: menu.grab_release()
+            break
+        return 'break'
+
+    def _draw_sticky(self, rows, width, height, indent, bg, fg, font):
+        # Only the ancestors of the first visible row describe this viewport;
+        # selection may be elsewhere. No traversal/scanning of other subtrees.
+        chain = []
+        if rows:
+            item = self.tree.parent(rows[0][0])
+            while item:
+                chain.append(item); item = self.tree.parent(item)
+            chain.reverse()
+        self._sticky_chain = tuple(chain)
+        if not chain:
+            self._sticky.pack_forget()
+            self._sticky_height = 0
+            self._sticky_rows = []
+            self._sticky_signature = None
+            return
+        row_height = rows[0][3]
+        # Keep a usable file-tree viewport even for unusually deep paths.
+        limit = max(2, min(6, (height+self._sticky_height)//(3*row_height)))
+        visible = chain if len(chain) <= limit else [None]+chain[-(limit-1):]
+        band_height = len(visible)*row_height+1
+        x = rows[0][1]
+        signature = (tuple(chain), tuple(visible), width, row_height, indent, x,
+                     bg, fg, tuple(sorted(font.actual().items())),
+                     tuple(self.tree.item(i, 'text') for i in chain))
+        if signature == self._sticky_signature: return
+        self._sticky_signature = signature
+        self._sticky_height = band_height
+        ink, paper = self.winfo_rgb(fg), self.winfo_rgb(bg)
+        tint = '#'+''.join(f'{round((a*.06+b*.94)/257):02x}' for a,b in zip(ink,paper))
+        muted = '#'+''.join(f'{round((a*.48+b*.52)/257):02x}' for a,b in zip(ink,paper))
+        canvas = self._sticky
+        canvas.configure(height=band_height, background=tint)
+        canvas.pack(before=self._body, fill='x', padx=(0, max(0,self._body.winfo_width()-width)))
+        canvas.delete('all'); self._sticky_rows = []
+        for index, iid in enumerate(visible):
+            top, mid = index*row_height, (index+.5)*row_height
+            self._sticky_rows.append((top, top+row_height, iid))
+            if iid is None:
+                canvas.create_text(max(5,x+indent/2), mid, text='⋯ '+tr('Earlier ancestors…'),
+                                   font=font, fill=fg, anchor='w', tags='ancestor-overflow')
+                continue
+            depth = chain.index(iid)
+            joint = round(x+(depth+.5)*indent)
+            # Horizontal scrolling or extreme indentation can put the joint
+            # outside the viewport. Keep its context readable at the edge.
+            center = joint
+            if joint < self._icon_size/2 or joint > width-self._icon_size/2:
+                clipped_left = joint < self._icon_size/2
+                center = round(max(self._icon_size/2+6,
+                                   min(joint,width-max(100,indent*3))))
+                canvas.create_text(3 if clipped_left else width-4,mid,
+                                   text='‹' if clipped_left else '›',font=font,fill=muted,
+                                   anchor='w' if clipped_left else 'e',tags='ancestor-offscreen')
+            if index:
+                parent_x = round(x+(depth-.5)*indent)
+                canvas.create_line(parent_x,top,parent_x,mid,joint,mid,
+                                   fill=muted,dash=(1,2),tags='ancestor-branch')
+            canvas.create_line(joint,mid,joint,top+row_height,
+                               fill=muted,dash=(1,2),tags='ancestor-branch')
+            path = self.paths.get(iid)
+            kind = 'pc' if iid == self.pc else 'drive' if path and path.parent == path else 'folder'
+            canvas.create_image(center,round(mid),image=self._icons[kind],tags='ancestor-icon')
+            canvas.create_text(round(center+indent/2+4),mid,
+                               text=self.tree.item(iid,'text'),font=font,fill=fg,anchor='w',
+                               tags='ancestor-name')
+        canvas.create_line(0,band_height-1,width,band_height-1,fill=muted,tags='ancestor-edge')
+
     def _draw_lines(self):
         """Paint only visible indentation cells, leaving native text/keys intact.
 
@@ -225,6 +339,7 @@ class RootFolderTree(ttk.Frame):
             opened = bool(self.tree.item(iid, 'open')) and children
             rows.append((iid, x, top, h, flags, children, opened, iid in selected))
             y = max(y+1, top+h)
+        self._draw_sticky(rows, width, height, indent, bg, fg, font)
         signature = (tuple(rows), width, height, indent, bg, fg, selbg, selfg)
         if signature == self._line_signature: return
         self._line_signature = signature

@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.24**
+Current version: **v0.17.25**
 
 Windows automatically recovers an offscreen PFC window after startup, monitor
 removal or resume. Valid secondary-monitor positions and deliberately minimized
@@ -21,6 +21,10 @@ refreshing or leaving one-panel mode also stops expansion. Existing expanded
 branches stay open. Links/reparse folders are not traversed automatically.
 Double-click a folder's text, icon or connector area to expand/collapse it.
 Manual collapse survives background saving and cancels Expand All.
+When scrolling hides parent folders, their icons and names remain pinned above
+the tree, aligned with the hierarchy lines. Click one to return to it; scrolling
+back restores the normal rows. Deep paths use a compact earlier-ancestors menu
+so the pinned area never takes over the tree viewport.
 
 Right-click **blank file-panel space** for Panel Counts, Right Click Menu,
 List/Folder/File view, File Columns (including restoring hidden columns), Font

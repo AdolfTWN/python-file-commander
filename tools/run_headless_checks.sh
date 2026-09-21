@@ -29,6 +29,8 @@ xvfb-run -a python3 tools/folder_expand_check.py
 xvfb-run -a python3 tools/folder_expand_check.py pfc
 xvfb-run -a python3 tools/folder_double_click_check.py
 xvfb-run -a python3 tools/folder_double_click_check.py pfc
+xvfb-run -a python3 tools/folder_sticky_check.py
+xvfb-run -a python3 tools/folder_sticky_check.py pfc
 xvfb-run -a python3 tools/markdown_preview_check.py
 xvfb-run -a python3 tools/markdown_preview_check.py pfc
 xvfb-run -a python3 tools/markdown_reading_check.py

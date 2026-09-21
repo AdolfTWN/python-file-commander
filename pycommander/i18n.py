@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Earlier ancestors…': ('更上層目錄…', '更上层目录…', '상위 경로 더 보기…'),
+    'Added: Floating folder-tree ancestors keep parent icons and names visible while scrolling, aligned with hierarchy lines.': ('新增：捲動目錄樹時浮動顯示上層圖示與名稱，並對齊階層線。', '新增：滚动目录树时浮动显示上层图标与名称，并对齐层级线。', '추가: 트리를 스크롤할 때 상위 폴더 아이콘과 이름이 계층 선에 맞춰 고정 표시됩니다.'),
     'Improved: Folder icons sit on tree junctions so parent-child relationships are clear and indentation uses less space.': ('改善：資料夾圖示對齊樹狀節點，清楚呈現上下層關係並減少縮排空間。', '改进：文件夹图标对齐树状节点，清晰呈现上下层关系并减少缩进空间。', '개선: 폴더 아이콘을 트리 연결점에 배치하여 상하위 관계를 명확히 하고 들여쓰기 공간을 줄입니다.'),
     'Fixed: Folder-tree double-click reliably expands or collapses without background synchronization resetting the tree.': ('修正：雙擊目錄樹可正常展開或收合，背景同步不再重設目錄樹。', '修复：双击目录树可正常展开或折叠，后台同步不再重置目录树。', '수정: 폴더 트리를 두 번 클릭하여 펼치거나 접을 때 백그라운드 동기화가 트리를 재설정하지 않습니다.'),
     'Improved: Fine dotted folder-tree connectors, compact plus controls and antialiased folder and drive icons.': ('改善：細緻虛線目錄樹、小型加號控制及平滑的資料夾與磁碟圖示。', '改进：精细虚线目录树、小型加号控件及平滑的文件夹与磁盘图标。', '개선: 섬세한 점선 트리, 작은 더하기 컨트롤 및 부드러운 폴더/드라이브 아이콘.'),
