@@ -11,7 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
-    'Earlier ancestors…': ('更上層目錄…', '更上层目录…', '상위 경로 더 보기…'),
+    'Fixed: Folder-tree ancestor guides draw immediately on startup without loading sibling folders.': ('修正：啟動時立即繪製目錄樹上層垂直線，不需先載入同層資料夾。', '修复：启动时立即绘制目录树上层垂直线，无需先加载同层文件夹。', '수정: 같은 수준의 폴더를 불러오지 않아도 시작 시 상위 폴더 안내선이 즉시 표시됩니다.'),
+    'Improved: All floating ancestors are shown directly, without an Earlier Ancestors menu.': ('改善：直接顯示所有浮動上層，移除更上層目錄選單。', '改进：直接显示所有浮动上层，移除更上层目录菜单。', '개선: 모든 상위 폴더를 메뉴 없이 고정 영역에 직접 표시합니다.'),
     'Added: Floating folder-tree ancestors keep parent icons and names visible while scrolling, aligned with hierarchy lines.': ('新增：捲動目錄樹時浮動顯示上層圖示與名稱，並對齊階層線。', '新增：滚动目录树时浮动显示上层图标与名称，并对齐层级线。', '추가: 트리를 스크롤할 때 상위 폴더 아이콘과 이름이 계층 선에 맞춰 고정 표시됩니다.'),
     'Improved: Folder icons sit on tree junctions so parent-child relationships are clear and indentation uses less space.': ('改善：資料夾圖示對齊樹狀節點，清楚呈現上下層關係並減少縮排空間。', '改进：文件夹图标对齐树状节点，清晰呈现上下层关系并减少缩进空间。', '개선: 폴더 아이콘을 트리 연결점에 배치하여 상하위 관계를 명확히 하고 들여쓰기 공간을 줄입니다.'),
     'Fixed: Folder-tree double-click reliably expands or collapses without background synchronization resetting the tree.': ('修正：雙擊目錄樹可正常展開或收合，背景同步不再重設目錄樹。', '修复：双击目录树可正常展开或折叠，后台同步不再重置目录树。', '수정: 폴더 트리를 두 번 클릭하여 펼치거나 접을 때 백그라운드 동기화가 트리를 재설정하지 않습니다.'),

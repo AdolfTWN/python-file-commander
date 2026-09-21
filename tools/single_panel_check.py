@@ -111,7 +111,12 @@ with tempfile.TemporaryDirectory() as raw:
         # focus directly to a child races native FocusIn delivery under Xvfb.
         app.focus_force(); settle(app, .2)
         app.folder_tree.tree.focus_set(); settle(app)
-        assert app.focus_get() is app.folder_tree.tree, (app.focus_get(), app.folder_tree.tree, app._single_layout)
+        assert app.focus_get() is app.folder_tree.tree, (app.focus_get(), app.folder_tree.tree,
+            app._single_layout, app.folder_tree.tree.winfo_viewable(),
+            app.folder_tree.tree.winfo_height(), app.folder_tree._sticky_height,
+            app.folder_tree.winfo_height(), app.folder_tree.winfo_viewable(),
+            app.folder_tree._body.winfo_viewable(), app.folder_tree.tree.winfo_width(),
+            app.split.panes())
         with patch.object(app,'delete') as delete:
             app.delete_hotkey(permanent=True); delete.assert_not_called()
         # Saved divider and shared ordering; normal groups remain untouched.

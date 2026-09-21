@@ -1,5 +1,13 @@
 # PFC follow-ups
 
+## Regression follow-up — 2026-09-22
+
+- [ ] Markdown worker shutdown: full unit runs can emit a background
+  `BrokenPipeError` from `mdjobs.py`'s sender `finally: process.stdin.close()`
+  although all 201 test assertions complete successfully. Investigate cancellation
+  cleanup and add an explicit worker-thread exception regression. Recorded during
+  v0.17.26 tree validation; Markdown worker behavior was not changed in this release.
+
 ## Single-panel workspace — v0.17.21
 
 - [x] Approved: all-drive lazy tree, shared visible-group tabs with owner restore,

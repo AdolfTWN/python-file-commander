@@ -17,7 +17,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
-    'Earlier ancestors…': ('更上層目錄…', '更上层目录…', '상위 경로 더 보기…'),
+    'Fixed: Folder-tree ancestor guides draw immediately on startup without loading sibling folders.': ('修正：啟動時立即繪製目錄樹上層垂直線，不需先載入同層資料夾。', '修复：启动时立即绘制目录树上层垂直线，无需先加载同层文件夹。', '수정: 같은 수준의 폴더를 불러오지 않아도 시작 시 상위 폴더 안내선이 즉시 표시됩니다.'),
+    'Improved: All floating ancestors are shown directly, without an Earlier Ancestors menu.': ('改善：直接顯示所有浮動上層，移除更上層目錄選單。', '改进：直接显示所有浮动上层，移除更上层目录菜单。', '개선: 모든 상위 폴더를 메뉴 없이 고정 영역에 직접 표시합니다.'),
     'Added: Floating folder-tree ancestors keep parent icons and names visible while scrolling, aligned with hierarchy lines.': ('新增：捲動目錄樹時浮動顯示上層圖示與名稱，並對齊階層線。', '新增：滚动目录树时浮动显示上层图标与名称，并对齐层级线。', '추가: 트리를 스크롤할 때 상위 폴더 아이콘과 이름이 계층 선에 맞춰 고정 표시됩니다.'),
     'Improved: Folder icons sit on tree junctions so parent-child relationships are clear and indentation uses less space.': ('改善：資料夾圖示對齊樹狀節點，清楚呈現上下層關係並減少縮排空間。', '改进：文件夹图标对齐树状节点，清晰呈现上下层关系并减少缩进空间。', '개선: 폴더 아이콘을 트리 연결점에 배치하여 상하위 관계를 명확히 하고 들여쓰기 공간을 줄입니다.'),
     'Fixed: Folder-tree double-click reliably expands or collapses without background synchronization resetting the tree.': ('修正：雙擊目錄樹可正常展開或收合，背景同步不再重設目錄樹。', '修复：双击目录树可正常展开或折叠，后台同步不再重置目录树。', '수정: 폴더 트리를 두 번 클릭하여 펼치거나 접을 때 백그라운드 동기화가 트리를 재설정하지 않습니다.'),
@@ -4969,16 +4970,15 @@ def child_folders(path, stop, limit=2000, seconds=3):
 
 
 def branch_segments(following, expanded, indent, height):
-    """Connector geometry; flags run from the root through this row."""
+    """Hierarchy guides must not depend on lazily discovered siblings."""
     depth, mid = len(following)-1, height/2
     lines = []
     for level in range(1, depth):
-        if following[level]:
-            x = (level-.5)*indent
-            lines.append((x, 0, x, height))
+        x = (level-.5)*indent
+        lines.append((x, 0, x, height))
     if depth:
         x = (depth-.5)*indent
-        lines.extend(((x, 0, x, height if following[-1] else mid),
+        lines.extend(((x, 0, x, height if following[-1] or expanded else mid),
                       (x, mid, (depth+.5)*indent, mid)))
     if expanded:
         x = (depth+.5)*indent
@@ -4993,6 +4993,10 @@ class RootFolderTree(ttk.Frame):
 
     def __init__(self, master, on_navigate, on_context):
         super().__init__(master)
+        # The splitter owns our size. A tall floating ancestry must not grow
+        # the pane's requested height and push the app's bottom controls away.
+        self.configure(width=240, height=240)
+        self.pack_propagate(False)
         self.on_navigate = on_navigate
         self.on_context = on_context
         header = ttk.Frame(self); header.pack(fill='x', padx=6, pady=4)
@@ -5009,7 +5013,8 @@ class RootFolderTree(ttk.Frame):
         self._sticky_rows = []
         self._sticky_height = 0
         self._sticky_signature = None
-        self._sticky_menu = None
+        self._sticky_font = tkfont.Font(self, font='TkDefaultFont')
+        self._sticky_icons = {}
         self._sticky.bind('<Button-1>', self._sticky_click)
         self._sticky.bind('<Double-Button-1>', lambda _e:'break')
         for event in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
@@ -5026,11 +5031,13 @@ class RootFolderTree(ttk.Frame):
         scroll = ttk.Scrollbar(body, command=self.tree.yview)
         scroll.pack(side='right', fill='y'); self.tree.pack(fill='both', expand=True)
         self.tree.configure(yscrollcommand=lambda *args:(scroll.set(*args), self._schedule_lines()))
-        horizontal = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
-        horizontal.pack(fill='x')
+        horizontal = self._horizontal = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
+        horizontal.pack(side='bottom', fill='x')
         self.tree.configure(xscrollcommand=lambda *args:(horizontal.set(*args), self._schedule_lines()))
         self.status = ttk.Label(self, text='', wraplength=280)
-        self.status.pack(fill='x', padx=4)
+        self.status.pack(side='bottom', fill='x', padx=4)
+        # Reserve the bottom controls before giving the tree its remaining area.
+        body.pack_forget(); body.pack(fill='both', expand=True)
         self.paths, self.nodes, self.loaded, self.pending = {}, {}, set(), {}
         self.failed, self.partial = set(), set()
         self._bulk_queue = deque(); self._bulk_seen = set(); self._bulk_pending = set(); self._bulk_checked = set()
@@ -5121,8 +5128,7 @@ class RootFolderTree(ttk.Frame):
     def _sticky_motion(self, event):
         row = next((iid for top, bottom, iid in self._sticky_rows if top <= event.y < bottom), '')
         if row and not self.tree.exists(row): row = ''
-        self._sticky_tip = (tr('Earlier ancestors…') if row is None else
-                            str(self.paths.get(row, self.tree.item(row, 'text'))) if row else '')
+        self._sticky_tip = str(self.paths.get(row, self.tree.item(row, 'text'))) if row else ''
 
     def _reveal_ancestor(self, iid):
         if not self.tree.exists(iid): return
@@ -5134,19 +5140,7 @@ class RootFolderTree(ttk.Frame):
     def _sticky_click(self, event):
         for top, bottom, iid in self._sticky_rows:
             if not top <= event.y < bottom: continue
-            if iid is not None:
-                self._reveal_ancestor(iid)
-            else:
-                if self._sticky_menu is not None: self._sticky_menu.destroy()
-                menu = tk.Menu(self, tearoff=False)
-                self._sticky_menu = menu
-                shown = {row for _, _, row in self._sticky_rows}
-                for ancestor in self._sticky_chain:
-                    if ancestor not in shown and self.tree.exists(ancestor):
-                        menu.add_command(label=self.tree.item(ancestor, 'text'),
-                            command=lambda item=ancestor:self._reveal_ancestor(item))
-                try: menu.tk_popup(event.x_root, event.y_root)
-                finally: menu.grab_release()
+            self._reveal_ancestor(iid)
             break
         return 'break'
 
@@ -5166,18 +5160,29 @@ class RootFolderTree(ttk.Frame):
             self._sticky_rows = []
             self._sticky_signature = None
             return
-        row_height = rows[0][3]
-        # Keep a usable file-tree viewport even for unusually deep paths.
-        limit = max(2, min(6, (height+self._sticky_height)//(3*row_height)))
-        visible = chain if len(chain) <= limit else [None]+chain[-(limit-1):]
-        band_height = len(visible)*row_height+1
+        normal_height = rows[0][3]
+        # Never omit ancestors. Very deep paths use a denser context band while
+        # leaving two ordinary tree rows available for navigation.
+        actual_band = self._sticky.winfo_height() if self._sticky.winfo_ismapped() else 0
+        available = max(1, self._body.winfo_height()+actual_band-2*normal_height-4)
+        row_height = min(normal_height, max(1, int(available)//len(chain)))
+        band_height = round(len(chain)*row_height)+1
         x = rows[0][1]
-        signature = (tuple(chain), tuple(visible), width, row_height, indent, x,
+        signature = (tuple(chain), width, row_height, indent, x,
                      bg, fg, tuple(sorted(font.actual().items())),
                      tuple(self.tree.item(i, 'text') for i in chain))
         if signature == self._sticky_signature: return
         self._sticky_signature = signature
         self._sticky_height = band_height
+        self._sticky_font.configure(**font.actual())
+        if row_height < font.metrics('linespace')+4:
+            self._sticky_font.configure(size=-max(1, int(row_height-4)))
+        icon_size = max(1, min(self._icon_size, int(row_height-3)))
+        if self._sticky_icons.get('size') != icon_size:
+            self._sticky_icons = {'size':icon_size, **{
+                kind:tk.PhotoImage(master=self,data=folder_nav_icon_png(kind,icon_size),format='png')
+                for kind in ('pc','drive','folder')}}
+        font = self._sticky_font
         ink, paper = self.winfo_rgb(fg), self.winfo_rgb(bg)
         tint = '#'+''.join(f'{round((a*.06+b*.94)/257):02x}' for a,b in zip(ink,paper))
         muted = '#'+''.join(f'{round((a*.48+b*.52)/257):02x}' for a,b in zip(ink,paper))
@@ -5185,34 +5190,36 @@ class RootFolderTree(ttk.Frame):
         canvas.configure(height=band_height, background=tint)
         canvas.pack(before=self._body, fill='x', padx=(0, max(0,self._body.winfo_width()-width)))
         canvas.delete('all'); self._sticky_rows = []
-        for index, iid in enumerate(visible):
+        for index, iid in enumerate(chain):
             top, mid = index*row_height, (index+.5)*row_height
             self._sticky_rows.append((top, top+row_height, iid))
-            if iid is None:
-                canvas.create_text(max(5,x+indent/2), mid, text='⋯ '+tr('Earlier ancestors…'),
-                                   font=font, fill=fg, anchor='w', tags='ancestor-overflow')
-                continue
-            depth = chain.index(iid)
+            depth = index
             joint = round(x+(depth+.5)*indent)
             # Horizontal scrolling or extreme indentation can put the joint
             # outside the viewport. Keep its context readable at the edge.
             center = joint
-            if joint < self._icon_size/2 or joint > width-self._icon_size/2:
-                clipped_left = joint < self._icon_size/2
-                center = round(max(self._icon_size/2+6,
+            if joint < icon_size/2 or joint > width-icon_size/2:
+                clipped_left = joint < icon_size/2
+                center = round(max(icon_size/2+6,
                                    min(joint,width-max(100,indent*3))))
                 canvas.create_text(3 if clipped_left else width-4,mid,
                                    text='‹' if clipped_left else '›',font=font,fill=muted,
                                    anchor='w' if clipped_left else 'e',tags='ancestor-offscreen')
             if index:
+                for level in range(index-1):
+                    guide = round(x+(level+.5)*indent)
+                    canvas.create_line(guide,top,guide,top+row_height,
+                                       fill=muted,dash=(1,2),tags='ancestor-branch')
                 parent_x = round(x+(depth-.5)*indent)
-                canvas.create_line(parent_x,top,parent_x,mid,joint,mid,
+                canvas.create_line(parent_x,top,parent_x,top+row_height,
+                                   fill=muted,dash=(1,2),tags='ancestor-branch')
+                canvas.create_line(parent_x,mid,joint,mid,
                                    fill=muted,dash=(1,2),tags='ancestor-branch')
             canvas.create_line(joint,mid,joint,top+row_height,
                                fill=muted,dash=(1,2),tags='ancestor-branch')
             path = self.paths.get(iid)
             kind = 'pc' if iid == self.pc else 'drive' if path and path.parent == path else 'folder'
-            canvas.create_image(center,round(mid),image=self._icons[kind],tags='ancestor-icon')
+            canvas.create_image(center,round(mid),image=self._sticky_icons[kind],tags='ancestor-icon')
             canvas.create_text(round(center+indent/2+4),mid,
                                text=self.tree.item(iid,'text'),font=font,fill=fg,anchor='w',
                                tags='ancestor-name')
@@ -11471,7 +11478,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.17.25"
+__version__ = "0.17.26"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -11556,6 +11563,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/22"
 VERSION_HISTORY = (
+    ("v0.17.26", "2026/09/22", (
+        "Fixed: Folder-tree ancestor guides draw immediately on startup without loading sibling folders.",
+        "Improved: All floating ancestors are shown directly, without an Earlier Ancestors menu.",
+    )),
     ("v0.17.25", "2026/09/22", (
         "Added: Floating folder-tree ancestors keep parent icons and names visible while scrolling, aligned with hierarchy lines.",
     )),
@@ -14764,8 +14775,16 @@ class Commander(tk.Tk):
         return self.panel_tabs[:max(2, min(4, self.panel_count_var.get()))]
 
     def _place_tree_sash(self):
-        if self._single_layout and len(self.split.panes()) == 2:
-            self.split.sashpos(0, round(self.split.winfo_width()*self._tree_ratio))
+        if getattr(self, '_placing_tree_sash', False): return
+        self._placing_tree_sash = True
+        try:
+            # Complete notebook/font geometry negotiation before restoring the
+            # divider, otherwise a late size request can collapse the tree.
+            self.split.update_idletasks()
+            if self._single_layout and len(self.split.panes()) == 2:
+                self.split.sashpos(0, round(self.split.winfo_width()*self._tree_ratio))
+        finally:
+            self._placing_tree_sash = False
 
     def _remember_tree_ratio(self, _event=None):
         if self._single_layout and len(self.split.panes()) == 2:

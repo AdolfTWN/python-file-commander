@@ -2,7 +2,8 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
+from types import SimpleNamespace
 
 from pycommander.singlepanel import branch_segments, child_folders, root_folders
 
@@ -13,7 +14,27 @@ class FolderTreeTests(unittest.TestCase):
         self.assertEqual(branch_segments((False,False), False, 20,30),
                          [(10,0,10,15),(10,15,30,15)])
         self.assertEqual(branch_segments((False,True,False), True,20,30),
-                         [(10,0,10,30),(30,0,30,15),(30,15,50,15),(50,15,50,30)])
+                         [(10,0,10,30),(30,0,30,30),(30,15,50,15),(50,15,50,30)])
+
+    def test_startup_guides_do_not_need_discovered_siblings(self):
+        lines=branch_segments((False,)*6,True,20,30)
+        for x in (10,30,50,70,90):
+            self.assertIn((x,0,x,30),lines)
+        self.assertEqual(lines,branch_segments((True,)*6,True,20,30))
+
+    def test_tree_divider_waits_for_geometry_and_ignores_reentry(self):
+        from pycommander.app import Commander
+        split=Mock();split.panes.return_value=('tree','files');split.winfo_width.return_value=900
+        owner=SimpleNamespace(split=split,_single_layout=True,_tree_ratio=1/3)
+        events=[]
+        def geometry():
+            events.append('geometry')
+            Commander._place_tree_sash(owner)
+        split.update_idletasks.side_effect=geometry
+        split.sashpos.side_effect=lambda *args:events.append(args)
+        Commander._place_tree_sash(owner)
+        self.assertEqual(events,['geometry',(0,300)])
+        self.assertFalse(owner._placing_tree_sash)
 
     def test_scan_is_one_level_and_does_not_open_files_or_recurse(self):
         with tempfile.TemporaryDirectory() as raw:

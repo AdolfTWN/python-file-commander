@@ -1,4 +1,4 @@
-# One-panel workspace — v0.17.25
+# One-panel workspace — v0.17.26
 
 Select **View → Panel Counts → 1 Panel**, also available through the background
 context menu. This is one navigation workspace, not a second transfer panel.
@@ -48,9 +48,11 @@ covered, and returning to the top removes the pinned area automatically.
 
 Click a parent to reveal/select it through normal navigation. The mouse wheel
 continues scrolling over the floating area, and hovering exposes the full path.
-Only the nearest ancestors fit in roughly one third of the available tree area
-(2–6 rows depending on font/window size); an earlier-ancestors menu keeps the
-remaining chain accessible for unusually deep paths. No filesystem scan, index
+All ancestors are shown directly: no omitted levels or overflow menu. Normal
+spacing follows the UI font; unusually deep paths use tighter spacing and, only
+when needed, smaller context text/icons to retain two ordinary tree rows below.
+Ancestor guide lines depend on hierarchy, not on whether lazily loaded siblings
+are already known, so they appear completely at startup. No filesystem scan, index
 or recursive expansion is introduced: this reads cached parent relationships.
 If a joint falls outside the horizontal viewport, its floating name/icon stays
 at the edge with a direction hint instead of becoming invisible too.
@@ -147,3 +149,22 @@ was visually inspected. Native overflow-menu posting/dismissal was also checked;
 the automated menu-content test bypasses Windows' blocking popup loop.
 Matched portable SHA-256:
 `a3bb6bc4fcdf66073c59128e53e2121b59c235ac18036505a74e4cbfc2ed426d`.
+
+v0.17.26 validation: 201 unit tests passed (8 platform skips); an unrelated
+Markdown worker shutdown exception observed in the test output is recorded in
+[TODO](TODO.md), not claimed fixed by this release. The previous
+connector function omitted all five ancestor guides in a sibling-free startup
+fixture; the new function preserves them. The saved-path restart GUI test checks
+all guides before any folder click, while ancestors remain unscanned. Source and
+portable checks passed for startup, all ancestor labels/icons (including 20+
+levels), themes/zoom, scrolling, double-clicks, connectors and bounded expansion.
+Shared-panel checks passed three consecutive runs after fixing a geometry race:
+notebook layout must settle before setting the tree divider, otherwise a late
+size request can collapse the left pane and prevent keyboard focus.
+The tree's requested size is isolated from its floating content so a deep
+ancestor chain cannot push the bottom action bar out of view; the horizontal
+scrollbar is reserved before allocating the tree's remaining height.
+Final offline Windows checks passed for startup, all ancestors, double-clicks,
+connectors, expansion and shared panels; the no-click 150% startup was inspected.
+Matched portable SHA-256:
+`d0ab926339f3cf5d70763594c920318367c457fd5f4a683cde6c4ba36cdde14a`.

@@ -132,6 +132,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.26", "2026/09/22", (
+        "Fixed: Folder-tree ancestor guides draw immediately on startup without loading sibling folders.",
+        "Improved: All floating ancestors are shown directly, without an Earlier Ancestors menu.",
+    )),
     ("v0.17.25", "2026/09/22", (
         "Added: Floating folder-tree ancestors keep parent icons and names visible while scrolling, aligned with hierarchy lines.",
     )),
@@ -3340,8 +3344,16 @@ class Commander(tk.Tk):
         return self.panel_tabs[:max(2, min(4, self.panel_count_var.get()))]
 
     def _place_tree_sash(self):
-        if self._single_layout and len(self.split.panes()) == 2:
-            self.split.sashpos(0, round(self.split.winfo_width()*self._tree_ratio))
+        if getattr(self, '_placing_tree_sash', False): return
+        self._placing_tree_sash = True
+        try:
+            # Complete notebook/font geometry negotiation before restoring the
+            # divider, otherwise a late size request can collapse the tree.
+            self.split.update_idletasks()
+            if self._single_layout and len(self.split.panes()) == 2:
+                self.split.sashpos(0, round(self.split.winfo_width()*self._tree_ratio))
+        finally:
+            self._placing_tree_sash = False
 
     def _remember_tree_ratio(self, _event=None):
         if self._single_layout and len(self.split.panes()) == 2:

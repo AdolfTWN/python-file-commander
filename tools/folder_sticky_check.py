@@ -4,7 +4,6 @@ from pathlib import Path
 import sys
 import tempfile
 import time
-from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 pfc = importlib.import_module(sys.argv[1] if len(sys.argv)>1 else 'pycommander.app')
@@ -71,7 +70,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-sticky-') as raw:
                 before=(tree.yview(),nav._sticky_height,nav._sticky_chain)
                 settle(app,.3)
                 assert before==(tree.yview(),nav._sticky_height,nav._sticky_chain), 'No layout/scroll oscillation'
-                assert nav._sticky.winfo_height()<=nav.winfo_height()/2
+                assert tree.winfo_height()>=2*next(c.winfo_height() for c in nav._line_rows if c.winfo_ismapped())
         app.font_size_var.set('large');app.apply_font_size(save=False)
         tree.yview_moveto(.2);settle(app)
         tree.column('#0',width=1400,stretch=False);tree.xview_moveto(.025);settle(app)
@@ -95,7 +94,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-sticky-') as raw:
         # Return to top: no duplicated floating roots or dead band.
         tree.yview_moveto(0);settle(app)
         assert not nav._sticky.winfo_ismapped() and nav._sticky_height==0
-        # Deep ancestry is bounded and every omitted ancestor remains accessible.
+        # Every ancestor is shown directly, including deep paths; no overflow menu.
         parent=branches[0];path=root/'Deep'
         for n in range(18):
             parent=add(parent,f'Depth {n}',path);path/=f'Depth {n}'
@@ -103,19 +102,21 @@ with tempfile.TemporaryDirectory(prefix='pfc-sticky-') as raw:
         for n in range(35):add(parent,f'Leaf {n}',path)
         scroll_to(parent);tree.yview_scroll(8,'units');settle(app)
         assert len(nav._sticky_chain)>10
-        assert nav._sticky_rows[0][2] is None
-        assert len(nav._sticky_rows)<=6
+        assert tuple(iid for _,_,iid in nav._sticky_rows)==nav._sticky_chain
+        assert len(nav._sticky.find_withtag('ancestor-name'))==len(nav._sticky_chain)
+        assert len(nav._sticky.find_withtag('ancestor-icon'))==len(nav._sticky_chain)
+        assert not nav._sticky.find_withtag('ancestor-overflow')
+        assert tree.winfo_height()>=2*next(c.winfo_height() for c in nav._line_rows if c.winfo_ismapped())
+        assert app.action_button_by_hotkey['F2'].winfo_viewable(), 'All ancestors must not hide the action bar'
+        assert nav._horizontal.winfo_viewable(), 'Deep paths must retain horizontal scrolling'
+        before=(tree.yview(),nav._sticky_height,nav._sticky_chain)
+        settle(app,.4)
+        assert before==(tree.yview(),nav._sticky_height,nav._sticky_chain)
         assert nav._sticky.find_withtag('ancestor-offscreen')
         for icon in nav._sticky.find_withtag('ancestor-icon'):
             assert 0<nav._sticky.coords(icon)[0]<nav._sticky.winfo_width()
-        # Windows tk_popup runs a native modal menu loop. Inspect the generated
-        # menu without trapping unattended tests; native posting is dogfooded.
-        with patch('tkinter.Menu.tk_popup') as popup:
-            nav._sticky.event_generate('<Button-1>',x=30,y=5,rootx=50,rooty=50);settle(app)
-            popup.assert_called_once_with(50,50)
-        omitted=len(nav._sticky_chain)-(len(nav._sticky_rows)-1)
-        assert nav._sticky_menu.index('end')+1==omitted
-        nav._sticky_menu.unpost()
+        if '--deep-visual' in sys.argv:
+            print('DEEP VISUAL READY',flush=True);settle(app,25)
         # Restore a clean, representative three-level screenshot.
         tree.item(branches[0],open=False)
         scroll_to(branches[1]);tree.yview_scroll(7,'units');settle(app)
@@ -129,5 +130,5 @@ with tempfile.TemporaryDirectory(prefix='pfc-sticky-') as raw:
         assert all(tree.exists(iid) for iid in nav._sticky_chain)
         assert not errors,errors
         print('PASS: sticky viewport ancestors, aligned icons, branch changes, top restore, '
-              'theme/zoom, stable bottom scroll, wheel/click and bounded deep ancestry',flush=True)
+              'theme/zoom, stable bottom scroll, wheel/click and all deep ancestors visible',flush=True)
     finally:app.close_app()
