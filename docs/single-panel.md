@@ -1,4 +1,4 @@
-# One-panel workspace — v0.17.23
+# One-panel workspace — v0.17.24
 
 Select **View → Panel Counts → 1 Panel**, also available through the background
 context menu. This is one navigation workspace, not a second transfer panel.
@@ -14,14 +14,18 @@ context menu. This is one navigation workspace, not a second transfer panel.
   and last-child corners. Visible indentation cells are painted without covering
   native folder names; lines follow scrolling, font zoom and light/dark colors.
   The active folder and its ancestors expand by default. Expanded rows have no
-  collapse symbol or hidden mouse-collapse target; unopened branches retain an
-  expand arrow. Selection, context menus and native keyboard navigation remain
+  collapse symbol; double-clicking a folder name, icon or connector area toggles
+  expansion. Selection, context menus and native keyboard navigation remain
   available. Closed branches use small outlined plus controls. Antialiased
-  folder, drive and computer icons scale with the font. Rendering reads cached
+  folder, drive and computer icons scale with the font and sit directly on the
+  branch joints, so child connectors descend from the parent icon. Rendering reads cached
   tree items only, with no filesystem queries.
 - Clicking a folder navigates the active tab; tab/path changes synchronize the
   tree. ZIP previews synchronize to their containing persistent folder, never
   exposing an extraction temp path as the logical root.
+  Same-path background saves preserve manual collapse, selection and scroll
+  position. Manual collapse cancels Expand All; actual navigation to a different
+  folder still reveals its ancestors.
 - Switching back to 2/3/4 panels restores original group ownership and order.
   Shared-strip reordering is saved separately. New tabs and search-result tabs
   created in one-panel mode belong to P1.
@@ -105,3 +109,12 @@ Linux checks exercise real symlinks; Windows checks inject reparse attributes on
 an already cached node to ensure caching cannot bypass the automatic traversal
 guard. Windows native visuals were inspected at 150%. Matched portable SHA-256:
 `6de6e94e5215fe95e1c4491ad59cc511933d9c9c874052bc657d42110f31402b`.
+
+v0.17.24 validation: 199 unit tests passed (8 platform skips); source and portable
+checks passed for real double-click pairs, dotted joint/icon geometry at
+100/150/300% in three themes, bounded expansion, shared-panel behavior, path
+navigation and ZIP exit. The previous sync implementation reproduced the
+autosave-reopens-collapse failure in the new double-click regression. Offline
+Windows portable checks passed for double-clicks, connector geometry, expansion
+and shared panels; the 150% native tree was visually inspected. Matched portable
+SHA-256: `f780b55be42249a1756f90b6f6c7bda085facc2b4aeb31f98e303a1a675f7db8`.

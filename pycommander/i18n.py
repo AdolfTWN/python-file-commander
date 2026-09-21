@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Folder icons sit on tree junctions so parent-child relationships are clear and indentation uses less space.': ('改善：資料夾圖示對齊樹狀節點，清楚呈現上下層關係並減少縮排空間。', '改进：文件夹图标对齐树状节点，清晰呈现上下层关系并减少缩进空间。', '개선: 폴더 아이콘을 트리 연결점에 배치하여 상하위 관계를 명확히 하고 들여쓰기 공간을 줄입니다.'),
+    'Fixed: Folder-tree double-click reliably expands or collapses without background synchronization resetting the tree.': ('修正：雙擊目錄樹可正常展開或收合，背景同步不再重設目錄樹。', '修复：双击目录树可正常展开或折叠，后台同步不再重置目录树。', '수정: 폴더 트리를 두 번 클릭하여 펼치거나 접을 때 백그라운드 동기화가 트리를 재설정하지 않습니다.'),
     'Improved: Fine dotted folder-tree connectors, compact plus controls and antialiased folder and drive icons.': ('改善：細緻虛線目錄樹、小型加號控制及平滑的資料夾與磁碟圖示。', '改进：精细虚线目录树、小型加号控件及平滑的文件夹与磁盘图标。', '개선: 섬세한 점선 트리, 작은 더하기 컨트롤 및 부드러운 폴더/드라이브 아이콘.'),
     'Added: Expand All for the current folder, off by default, with cancellable bounded background expansion.': ('新增：目前資料夾的全部展開，預設關閉，支援取消及有上限的背景處理。', '新增：当前文件夹的全部展开，默认关闭，支持取消及有限制的后台处理。', '추가: 현재 폴더 모두 펼치기. 기본 꺼짐, 취소 및 제한된 백그라운드 처리 지원.'),
     'Expand All': ('全部展開', '全部展开', '모두 펼치기'),

@@ -101,10 +101,15 @@ class RootFolderTree(ttk.Frame):
         self._icon_size = 16
         self.results = queue.Queue(); self.slots = threading.BoundedSemaphore(2)
         self.stop = threading.Event(); self.serial = 0; self.program_selection = None
-        self.pc = self.tree.insert('', 'end', text=tr('This PC'), open=True, image=self._icons['pc'])
+        self.pc = self.tree.insert('', 'end', text=tr('This PC'), open=True)
         for path in root_folders(): self._node(path, self.pc)
         self.tree.bind('<<TreeviewOpen>>', self._expand)
         self.tree.bind('<<TreeviewSelect>>', self._select)
+        self._press_node = None
+        self._press_open = False
+        self.tree.bind('<Button-1>', self._remember_press)
+        self.tree.bind('<Double-Button-1>', self._double_click)
+        self.tree.bind('<<TreeviewClose>>', self._manual_collapse, add='+')
         self.tree.bind('<Button-3>', on_context)
         self.tree.bind('<Shift-F10>', on_context)
         self.tree.bind('<KeyPress-Menu>', on_context)
@@ -128,8 +133,10 @@ class RootFolderTree(ttk.Frame):
     def _line_click(self, canvas, event):
         iid = canvas.row_id
         if not self.tree.exists(iid): return 'break'
+        self._remember_press(event, iid)
         self.tree.focus_set(); self.tree.focus(iid)
-        if (abs(event.x-canvas.arrow_x) <= canvas.arrow_radius+3
+        if (abs(event.x-canvas.arrow_x) <= canvas.arrow_radius
+                and abs(event.y-canvas.arrow_y) <= canvas.arrow_radius
                 and self.tree.get_children(iid) and not self.tree.item(iid, 'open')):
             self.tree.item(iid, open=True)
             self.failed.discard(iid)
@@ -137,6 +144,30 @@ class RootFolderTree(ttk.Frame):
         else:
             self.tree.selection_set(iid)
         self._draw_lines()
+        return 'break'
+
+    def _remember_press(self, event, iid=None):
+        self._press_node = iid if iid is not None else self.tree.identify_row(event.y)
+        self._press_open = bool(self.tree.item(self._press_node, 'open')) if self._press_node else False
+
+    def _manual_collapse(self, _event=None):
+        # Manual intent wins over an in-flight/completed Expand All action.
+        if self.expand_all_var.get(): self.stop_expand_all()
+
+    def _double_click(self, event):
+        iid = self._press_node
+        if not iid or not self.tree.exists(iid): return 'break'
+        self._manual_collapse()
+        self.tree.focus_set(); self.tree.focus(iid)
+        # Single-click navigation may already have opened this node. Toggle the
+        # state at the FIRST press, not that incidental intermediate state.
+        opening = not self._press_open
+        self.tree.item(iid, open=opening)
+        if opening:
+            self.failed.discard(iid)
+            self.load(iid)
+        self._draw_lines()
+        # Suppress ttk's second toggle and focus/see handling.
         return 'break'
 
     def _line_wheel(self, event):
@@ -201,6 +232,7 @@ class RootFolderTree(ttk.Frame):
             if index == len(self._line_rows):
                 canvas = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0, takefocus=False)
                 canvas.bind('<Button-1>', lambda e, c=canvas:self._line_click(c, e))
+                canvas.bind('<Double-Button-1>', self._double_click)
                 canvas.bind('<Button-3>', self.on_context)
                 for event in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
                     canvas.bind(event, self._line_wheel)
@@ -223,21 +255,29 @@ class RootFolderTree(ttk.Frame):
             for x1,y1,x2,y2 in branch_segments(flags, opened, indent, h):
                 canvas.create_line(round(x1+offset),round(y1),round(x2+offset),round(y2),
                                    fill=muted, width=1, dash=(1,2), tags='branch')
-            center, radius = round((depth+.5)*indent+offset), max(4, min(7, round(indent*.18)))
-            canvas.row_id, canvas.arrow_x, canvas.arrow_radius = iid, center, radius
+            # Put the folder ON its tree joint, rather than placing a second
+            # native icon to the right of the indentation. Descendant lines
+            # emerge directly below the parent's icon; text starts just after it.
+            center, mid = round((depth+.5)*indent+offset), round(h/2)
+            path = self.paths.get(iid)
+            kind = 'pc' if iid == self.pc else 'drive' if path and path.parent == path else 'folder'
+            canvas.create_image(center,mid,image=self._icons[kind],tags='folder-icon')
+            canvas.icon_x, canvas.icon_y = center, mid
+            radius = max(3, min(5, round(indent*.13)))
+            plus_x = center+round(self._icon_size*.28)
+            plus_y = mid+round(self._icon_size*.26)
+            canvas.row_id, canvas.arrow_x, canvas.arrow_y, canvas.arrow_radius = iid, plus_x, plus_y, radius
             if children and not opened:
-                mid = round(h/2)
-                canvas.create_rectangle(center-radius,mid-radius,center+radius,mid+radius,
+                canvas.create_rectangle(plus_x-radius,plus_y-radius,plus_x+radius,plus_y+radius,
                                         fill=background, outline=muted, width=1, tags='indicator')
-                canvas.create_line(center-radius+2,mid,center+radius-2,mid,fill=color, tags='indicator')
-                canvas.create_line(center,mid-radius+2,center,mid+radius-2,fill=color, tags='indicator')
+                canvas.create_line(plus_x-radius+2,plus_y,plus_x+radius-2,plus_y,fill=color, tags='indicator')
+                canvas.create_line(plus_x,plus_y-radius+2,plus_x,plus_y+radius-2,fill=color, tags='indicator')
         for canvas in self._line_rows[len(rows):]: canvas.place_forget()
 
     def _node(self, path, parent):
         key = os.path.normcase(str(path))
         if key in self.nodes: return self.nodes[key]
-        kind = 'drive' if path.parent == path else 'folder'
-        iid = self.tree.insert(parent, 'end', text=path.name or str(path), image=self._icons[kind])
+        iid = self.tree.insert(parent, 'end', text=path.name or str(path))
         self.paths[iid] = path; self.nodes[key] = iid
         self.tree.insert(iid, 'end', text='…')
         return iid
@@ -246,6 +286,10 @@ class RootFolderTree(ttk.Frame):
         path = Path(path)
         if not path.is_absolute(): return
         existing = self.nodes.get(os.path.normcase(str(path)))
+        if existing is not None and existing == self._current_node:
+            # Autosave/refresh repeatedly sync the same path. They must not undo
+            # a manual collapse, reset tree selection, or scroll back to it.
+            return
         if existing and self.tree.selection() == (existing,):
             # A native tree click selects the row BEFORE navigation calls sync.
             # Still update the expansion boundary and cancel the previous run.

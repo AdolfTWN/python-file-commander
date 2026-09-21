@@ -52,10 +52,19 @@ with tempfile.TemporaryDirectory(prefix='pfc-lines-') as raw:
                         assert float(canvas.itemcget(line,'width'))==1
                     assert canvas.winfo_y()==tree.bbox(canvas.row_id)[1]
                     # No canvas may cover the native row label.
-                    text_x=canvas.winfo_x()+canvas.winfo_width()+nav._icon_size+4
+                    text_x=canvas.winfo_x()+canvas.winfo_width()+4
                     mid=canvas.winfo_y()+canvas.winfo_height()//2
                     if mid<tree.winfo_height()-2:
                         assert tree.identify_element(text_x,mid) in ('text','Treeitem.text'), (scheme,zoom,canvas.row_id,text_x,mid,tree.identify_element(text_x,mid),nav._line_indent)
+                    glyph=canvas.find_withtag('folder-icon')
+                    assert len(glyph)==1
+                    assert canvas.coords(glyph[0])==[float(canvas.icon_x),float(canvas.icon_y)]
+                    assert canvas.icon_x+nav._icon_size/2<=canvas.winfo_width()+1
+                    if tree.item(canvas.row_id,'open') and tree.get_children(canvas.row_id):
+                        assert any(canvas.coords(line)[0]==canvas.icon_x and
+                                   canvas.coords(line)[2]==canvas.icon_x and
+                                   canvas.coords(line)[1]==canvas.icon_y
+                                   for line in canvas.find_withtag('branch')), 'Children must descend from parent icon'
                 before=nav._line_signature
                 nav._draw_lines(); assert nav._line_signature==before
                 tree.yview_moveto(.6);settle(app)
@@ -65,13 +74,15 @@ with tempfile.TemporaryDirectory(prefix='pfc-lines-') as raw:
         # Expanded rows have no collapse glyph or invisible collapse hit target.
         assert tree.item(projects,'open')
         assert not canvas.find_withtag('indicator')
-        canvas.event_generate('<Button-1>',x=round(canvas.arrow_x),y=canvas.winfo_height()//2);settle(app)
+        canvas.event_generate('<Button-1>',x=round(canvas.arrow_x),y=round(canvas.arrow_y),time=10000)
+        canvas.event_generate('<ButtonRelease-1>',x=round(canvas.arrow_x),y=round(canvas.arrow_y),time=10020);settle(app)
         assert tree.item(projects,'open')
         tree.item(projects,open=False);nav._draw_lines();settle(app)
         assert not tree.item(projects,'open')
         assert canvas.find_withtag('indicator'), 'Closed branches remain discoverable'
         nav.loaded.add(projects)  # No filesystem scan for this synthetic fixture.
-        canvas.event_generate('<Button-1>',x=round(canvas.arrow_x),y=canvas.winfo_height()//2);settle(app)
+        canvas.event_generate('<Button-1>',x=round(canvas.arrow_x),y=round(canvas.arrow_y),time=11000)
+        canvas.event_generate('<ButtonRelease-1>',x=round(canvas.arrow_x),y=round(canvas.arrow_y),time=11020);settle(app)
         assert tree.item(projects,'open')
         child=tree.get_children(projects)[0]
         tree.selection_set(child);tree.see(child);settle(app)

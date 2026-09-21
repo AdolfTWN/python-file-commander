@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.23**
+Current version: **v0.17.24**
 
 Windows automatically recovers an offscreen PFC window after startup, monitor
 removal or resume. Valid secondary-monitor positions and deliberately minimized
@@ -13,11 +13,14 @@ for explicit targets. Folder expansion is lazy and bounded, with no drive-wide
 index. The current folder and its ancestors open by default; expanded rows have
 no collapse symbol, while unopened branches retain their expand control.
 Fine dotted hierarchy lines and antialiased folder/drive icons follow zoom,
-scrolling and the current color theme. See [one-panel behavior and limits](docs/single-panel.md).
+scrolling and the current color theme. Icons sit on the branch joints, with child
+connectors descending from each parent. See [one-panel behavior and limits](docs/single-panel.md).
 **Expand All**, beside Folders, starts off and expands only the current folder's
 descendants in bounded background batches. Uncheck to stop; changing folders,
 refreshing or leaving one-panel mode also stops expansion. Existing expanded
 branches stay open. Links/reparse folders are not traversed automatically.
+Double-click a folder's text, icon or connector area to expand/collapse it.
+Manual collapse survives background saving and cancels Expand All.
 
 Right-click **blank file-panel space** for Panel Counts, Right Click Menu,
 List/Folder/File view, File Columns (including restoring hidden columns), Font
