@@ -1,12 +1,18 @@
 # Python File Commander
 
-Current version: **v0.17.21**
+Current version: **v0.17.22**
+
+Windows automatically recovers an offscreen PFC window after startup, monitor
+removal or resume. Valid secondary-monitor positions and deliberately minimized
+windows are preserved; an unreachable window is centered in the primary work area.
 
 **View → Panel Counts → 1 Panel** provides a full-width
 shared tab strip above a roughly 1/3 folder tree and 2/3 file list. Original panel
 groups are preserved for switching back, new tabs belong to P1, and F5/F6/F9 ask
 for explicit targets. Folder expansion is lazy and bounded, with no drive-wide
-index. Solid hierarchy lines connect parents and children and follow zoom,
+index. The current folder and its ancestors open by default; expanded rows have
+no collapse symbol, while unopened branches retain their expand control.
+Solid hierarchy lines connect parents and children and follow zoom,
 scrolling and the current color theme. See [one-panel behavior and limits](docs/single-panel.md).
 
 Right-click **blank file-panel space** for Panel Counts, Right Click Menu,

@@ -61,10 +61,14 @@ with tempfile.TemporaryDirectory(prefix='pfc-lines-') as raw:
                 assert nav._line_signature!=before
         tree.yview_moveto(0);settle(app)
         canvas=next(c for c in nav._line_rows if c.winfo_ismapped() and c.row_id==projects)
-        # Arrow clicks operate the tree, not a covered file-list row.
+        # Expanded rows have no collapse glyph or invisible collapse hit target.
         assert tree.item(projects,'open')
+        assert not canvas.find_withtag('indicator')
         canvas.event_generate('<Button-1>',x=round(canvas.arrow_x),y=canvas.winfo_height()//2);settle(app)
+        assert tree.item(projects,'open')
+        tree.item(projects,open=False);nav._draw_lines();settle(app)
         assert not tree.item(projects,'open')
+        assert canvas.find_withtag('indicator'), 'Closed branches remain discoverable'
         nav.loaded.add(projects)  # No filesystem scan for this synthetic fixture.
         canvas.event_generate('<Button-1>',x=round(canvas.arrow_x),y=canvas.winfo_height()//2);settle(app)
         assert tree.item(projects,'open')
@@ -82,5 +86,5 @@ with tempfile.TemporaryDirectory(prefix='pfc-lines-') as raw:
             tree.xview_moveto(0);tree.yview_moveto(0);settle(app)
             ImageGrab.grab().save(str(Path(raw).parent/'pfc-folder-lines.png'))
         print('PASS: solid tree branches, last-child corners, three themes and 100/150/300% zoom, '
-              'native text clear, stable redraw, scroll alignment, expand/collapse and selection')
+              'native text clear, stable redraw, scroll alignment, no collapse glyph, expansion and selection')
     finally: app.destroy()

@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Offscreen windows return to the visible desktop after startup, monitor removal or resume.': ('修正：啟動、移除螢幕或恢復使用後，畫面外的視窗會移回可見桌面。', '修复：启动、移除显示器或恢复使用后，屏幕外的窗口会移回可见桌面。', '수정: 시작, 모니터 분리 또는 복귀 후 화면 밖 창을 보이는 바탕 화면으로 이동합니다.'),
+    'Improved: One-panel folder trees expand the active folder by default and hide collapse indicators.': ('改善：單面板目錄樹預設展開目前資料夾，並隱藏收合符號。', '改进：单面板目录树默认展开当前文件夹，并隐藏折叠符号。', '개선: 단일 패널 폴더 트리가 현재 폴더를 기본으로 펼치고 접기 표시를 숨깁니다.'),
     'Added: One-panel workspace with shared tabs, a lazy folder tree and explicit copy/move/compare destinations.': ('新增：單面板工作區，共用分頁、按需讀取的資料夾樹，以及明確的複製／移動／比較目的地。', '新增：单面板工作区，共用分页、按需读取的文件夹树，以及明确的复制／移动／比较目标。', '추가: 공유 탭, 지연 로딩 폴더 트리 및 명시적인 복사/이동/비교 대상을 갖춘 단일 패널 작업 공간.'),
     'Improved: Solid folder-tree hierarchy lines stay aligned across scrolling, zoom and color themes.': ('改善：資料夾樹的實線階層連接線，捲動、縮放及切換主題時保持對齊。', '改进：文件夹树的实线层级连接线，滚动、缩放及切换主题时保持对齐。', '개선: 스크롤, 확대/축소 및 색상 테마에서 정렬을 유지하는 폴더 트리 실선 연결선.'),
     'Improved: Compact, high-resolution tab-lock badges distinguish locked and return-to-folder modes.': ('改善：精巧高解析度分頁鎖定圖示，清楚區分鎖定與返回資料夾模式。', '改进：紧凑高清分页锁定图标，清楚区分锁定与返回文件夹模式。', '개선: 잠금 및 폴더 복귀 모드를 구분하는 작고 선명한 탭 잠금 배지.'),

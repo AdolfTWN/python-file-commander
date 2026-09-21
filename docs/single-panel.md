@@ -13,7 +13,9 @@ context menu. This is one navigation workspace, not a second transfer panel.
 - Solid vertical and horizontal connector strokes distinguish parents, siblings
   and last-child corners. Visible indentation cells are painted without covering
   native folder names; lines follow scrolling, font zoom and light/dark colors.
-  Expand/collapse, selection, context menus and native keyboard navigation remain
+  The active folder and its ancestors expand by default. Expanded rows have no
+  collapse symbol or hidden mouse-collapse target; unopened branches retain an
+  expand arrow. Selection, context menus and native keyboard navigation remain
   available. Rendering reads cached tree items only, with no filesystem queries.
 - Clicking a folder navigates the active tab; tab/path changes synchronize the
   tree. ZIP previews synchronize to their containing persistent folder, never
@@ -42,7 +44,8 @@ Hidden panels are never used as implicit copy/move/compare destinations.
 Drive enumeration uses the Windows drive-letter bitmask rather than probing all
 drives. Expanding a tree node reads only that directory's immediate entries on
 background workers. Selecting a tab inserts its already-known ancestor path
-without scanning the ancestors or their descendants.
+without scanning the ancestors. The active folder's immediate children load
+automatically; unrelated descendants are not scanned recursively.
 
 - No recursive walk, full-drive index or file-content read.
 - At most two daemon scans in flight; no unbounded worker/task queue.

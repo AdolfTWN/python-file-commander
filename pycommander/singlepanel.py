@@ -108,10 +108,10 @@ class RootFolderTree(ttk.Frame):
         iid = canvas.row_id
         if not self.tree.exists(iid): return 'break'
         self.tree.focus_set(); self.tree.focus(iid)
-        if abs(event.x-canvas.arrow_x) <= canvas.arrow_radius+3 and self.tree.get_children(iid):
-            opening = not self.tree.item(iid, 'open')
-            self.tree.item(iid, open=opening)
-            if opening: self.load(iid)
+        if (abs(event.x-canvas.arrow_x) <= canvas.arrow_radius+3
+                and self.tree.get_children(iid) and not self.tree.item(iid, 'open')):
+            self.tree.item(iid, open=True)
+            self.load(iid)
         else:
             self.tree.selection_set(iid)
         self._draw_lines()
@@ -195,11 +195,10 @@ class RootFolderTree(ttk.Frame):
                 canvas.create_line(x1+offset,y1,x2+offset,y2, fill=color, width=stroke, tags='branch')
             center, radius = (depth+.5)*indent+offset, max(3, round(indent*.16))
             canvas.row_id, canvas.arrow_x, canvas.arrow_radius = iid, center, radius
-            if children:
+            if children and not opened:
                 canvas.create_rectangle(center-radius-2,h/2-radius-2,center+radius+2,h/2+radius+2,
                                         fill=selbg if active else bg, outline='')
-                points = ((center-radius,h/2-radius/2, center+radius,h/2-radius/2, center,h/2+radius)
-                          if opened else (center-radius/2,h/2-radius, center-radius/2,h/2+radius, center+radius,h/2))
+                points = (center-radius/2,h/2-radius, center-radius/2,h/2+radius, center+radius,h/2)
                 canvas.create_polygon(*points, fill=color, tags='indicator')
         for canvas in self._line_rows[len(rows):]: canvas.place_forget()
 
@@ -215,7 +214,10 @@ class RootFolderTree(ttk.Frame):
         path = Path(path)
         if not path.is_absolute(): return
         existing = self.nodes.get(os.path.normcase(str(path)))
-        if existing and self.tree.selection() == (existing,): return
+        if existing and self.tree.selection() == (existing,):
+            self.tree.item(existing, open=True)
+            self.load(existing)
+            return
         chain = list(reversed(path.parents))+[path]
         parent = self.pc
         for part in chain:
@@ -227,6 +229,10 @@ class RootFolderTree(ttk.Frame):
                     if child not in self.paths: self.tree.delete(child)
                 self.tree.item(parent, open=True)
         self.program_selection = parent
+        # Expand the active folder immediately, but enumerate only this level.
+        # Ancestors are already open; unrelated descendants stay lazy-loaded.
+        self.tree.item(parent, open=True)
+        self.load(parent)
         if self.tree.selection() != (parent,): self.tree.selection_set(parent)
         self.tree.see(parent)
 

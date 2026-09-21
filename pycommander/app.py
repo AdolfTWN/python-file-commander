@@ -47,6 +47,7 @@ from .marquee import NameMarquee
 from .detailcells import SizeUnitCells
 from .columnsettings import modified_text
 from .singlepanel import RootFolderTree, SharedTabBar
+from .windowplacement import WindowVisibilityGuard
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -131,6 +132,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.22", "2026/09/21", (
+        "Fixed: Offscreen windows return to the visible desktop after startup, monitor removal or resume.",
+        "Improved: One-panel folder trees expand the active folder by default and hide collapse indicators.",
+    )),
     ("v0.17.21", "2026/09/21", (
         "Added: One-panel workspace with shared tabs, a lazy folder tree and explicit copy/move/compare destinations.",
         "Improved: Solid folder-tree hierarchy lines stay aligned across scrolling, zoom and color themes.",
@@ -2451,6 +2456,8 @@ class Commander(tk.Tk):
         self._schedule_auto_refresh(250)
         self._schedule_clipboard_summary(250)
         self._schedule_auto_font_size(delay=300)
+
+        self._window_visibility = WindowVisibilityGuard(self)
 
     def _install_priority_hotkeys(self, hotkeys, commands) -> None:
         """Run tab navigation before Tk widget/class bindings can consume Tab."""

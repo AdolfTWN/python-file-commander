@@ -54,7 +54,10 @@ with tempfile.TemporaryDirectory() as raw:
         assert .28 < app.split.sashpos(0)/app.split.winfo_width() < .38
         assert all(not t.bar.winfo_viewable() for t in app.panel_tabs)
         assert extra.quick_filter_var.get()=='file' and extra.archive_session is None
-        assert not app.folder_tree.pending and not app.folder_tree.loaded, 'No eager scan'
+        nav = app.folder_tree
+        active_node = nav.nodes[os.path.normcase(str(extra.path))]
+        assert nav.tree.item(active_node, 'open'), 'Active folder expands by default'
+        assert nav.loaded == {active_node}, 'Only the active directory is scanned, never the whole disk'
         for item in app.folder_tree.paths:
             if app.folder_tree.tree.item(item, 'open'):
                 assert all(child in app.folder_tree.paths for child in app.folder_tree.tree.get_children(item))
@@ -104,7 +107,10 @@ with tempfile.TemporaryDirectory() as raw:
         with patch.object(pfc.filedialog,'askopenfilename',return_value=str(root/'B'/'file.txt')), patch.object(app,'compare_paths') as compare:
             app.compare_selected(); compare.assert_called_once_with(root/'A'/'file.txt',root/'B'/'file.txt')
         assert 'P2' not in app.action_button_by_hotkey['F5'].cget('text')
-        app.folder_tree.tree.focus_force(); settle(app)
+        # Activate the toplevel first, as a real user click does. Forcing X input
+        # focus directly to a child races native FocusIn delivery under Xvfb.
+        app.focus_force(); settle(app, .2)
+        app.folder_tree.tree.focus_set(); settle(app)
         assert app.focus_get() is app.folder_tree.tree, (app.focus_get(), app.folder_tree.tree, app._single_layout)
         with patch.object(app,'delete') as delete:
             app.delete_hotkey(permanent=True); delete.assert_not_called()
