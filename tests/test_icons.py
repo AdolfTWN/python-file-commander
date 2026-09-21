@@ -7,10 +7,28 @@ from pycommander.icons import (FILE_ATTRIBUTE_NORMAL, SHGFI_ICON,
                                SHGFI_SMALLICON, SHGFI_USEFILEATTRIBUTES,
                                VCS_BADGE_SPECS, _png_from_bgra,
                                _shell_icon_request, pfc_icon_png,
-                               vcs_badge_png)
+                               vcs_badge_png, folder_nav_icon_png)
 
 
 class IconTests(unittest.TestCase):
+    def test_navigation_icons_are_distinct_scaled_antialiased_rgba(self):
+        for size in (18,27,54):
+            images = [folder_nav_icon_png(kind,size) for kind in ('folder','drive','pc')]
+            self.assertEqual(len(set(images)),3)
+            for png in images:
+                self.assertEqual(struct.unpack('>II',png[16:24]),(size,size))
+                offset, compressed = 8, bytearray()
+                while offset < len(png):
+                    length = struct.unpack('>I',png[offset:offset+4])[0]
+                    if png[offset+4:offset+8] == b'IDAT':
+                        compressed.extend(png[offset+8:offset+8+length])
+                    offset += 12+length
+                rows=zlib.decompress(compressed); stride=1+size*4
+                alpha=[rows[y*stride+1+x*4+3] for y in range(size) for x in range(size)]
+                self.assertIn(0,alpha)
+                self.assertIn(255,alpha)
+                self.assertTrue(any(0<a<255 for a in alpha))
+
     def test_vcs_badges_use_distinct_high_contrast_git_style_symbols(self):
         self.assertEqual(set(VCS_BADGE_SPECS),
                          {"clean", "modified", "added", "untracked", "deleted", "conflict"})

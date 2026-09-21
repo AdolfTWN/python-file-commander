@@ -1,4 +1,4 @@
-# One-panel workspace — v0.17.21
+# One-panel workspace — v0.17.23
 
 Select **View → Panel Counts → 1 Panel**, also available through the background
 context menu. This is one navigation workspace, not a second transfer panel.
@@ -10,13 +10,15 @@ context menu. This is one navigation workspace, not a second transfer panel.
 - The left third is a folder tree rooted at **This PC**, showing drive letters
   on Windows (`/` on Linux). The right two thirds display the active file pane.
   The sash is adjustable; its ratio is saved (15–65% tree width).
-- Solid vertical and horizontal connector strokes distinguish parents, siblings
+- Fine, muted dotted connectors distinguish parents, siblings
   and last-child corners. Visible indentation cells are painted without covering
   native folder names; lines follow scrolling, font zoom and light/dark colors.
   The active folder and its ancestors expand by default. Expanded rows have no
   collapse symbol or hidden mouse-collapse target; unopened branches retain an
   expand arrow. Selection, context menus and native keyboard navigation remain
-  available. Rendering reads cached tree items only, with no filesystem queries.
+  available. Closed branches use small outlined plus controls. Antialiased
+  folder, drive and computer icons scale with the font. Rendering reads cached
+  tree items only, with no filesystem queries.
 - Clicking a folder navigates the active tab; tab/path changes synchronize the
   tree. ZIP previews synchronize to their containing persistent folder, never
   exposing an extraction temp path as the logical root.
@@ -39,7 +41,22 @@ F9 with one file/folder (or no selection, meaning the current folder) asks for a
 matching comparison target. Two selected items can be compared directly.
 Hidden panels are never used as implicit copy/move/compare destinations.
 
-## No drive-wide scanning
+## Bounded, opt-in expansion
+
+**Expand All** sits beside Folders and defaults off on every launch. It expands
+only the current folder's subtree, not every drive under This PC. Unchecking,
+changing folders, refreshing or leaving one-panel mode stops further work; already
+expanded branches remain open. The option is a session action, not a saved INI
+preference. A completed run stays checked until cancelled or navigation changes.
+
+Expansion uses the existing bounded worker pool and at most 24 cached nodes per
+UI tick. A run stops after 30 seconds, 500 folders, 32 descendant levels or the 10,000-node
+cache cap, showing a limit message rather than claiming complete expansion.
+Permission errors, links and Windows reparse/cloud directories are skipped and
+reported as incomplete. Even previously cached nodes are checked before automatic
+descent. Manual cloud-folder navigation is unchanged. Cancelled and timed-out
+results cannot insert stale rows. Python cannot interrupt an OS call already
+blocked in a filesystem provider; it does not block the UI or create more workers.
 
 Drive enumeration uses the Windows drive-letter bitmask rather than probing all
 drives. Expanding a tree node reads only that directory's immediate entries on
@@ -79,3 +96,12 @@ SHA-256: `1d157c8e3a95097755453f20d9fda3f13ffa63adfed8a548f32f8edbc0a5e6d8`.
 Final full headless suite passed with 187 unit tests (8 platform skips) and all
 source/portable GUI regressions. The expanded scrolling fixture also passed
 separate source, portable and native Windows runs.
+
+v0.17.23 focused validation passed for source and portable: dotted one-pixel
+connectors, icon/text clearance, scrolling, all themes at 100/150/300%, default-off
+expansion, current-folder boundaries (including native tree selection), cancellation,
+stale-result rejection, folder/depth/time budgets, and navigation/unmap/refresh stop.
+Linux checks exercise real symlinks; Windows checks inject reparse attributes on
+an already cached node to ensure caching cannot bypass the automatic traversal
+guard. Windows native visuals were inspected at 150%. Matched portable SHA-256:
+`6de6e94e5215fe95e1c4491ad59cc511933d9c9c874052bc657d42110f31402b`.

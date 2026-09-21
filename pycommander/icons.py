@@ -345,6 +345,32 @@ def cloud_badge_png(size: int, status: str) -> bytes:
     return _rgba_png_downsample(pixels, size, factor)
 
 
+def folder_nav_icon_png(kind: str, size: int) -> bytes:
+    """Small, antialiased navigation glyphs; no Shell calls or disk access."""
+    scale, extent = size*4/24, size*4
+    pixels = bytearray(extent*extent*4)
+    def polygon(points, color):
+        _paint_polygon(pixels, extent, [(x*scale, y*scale) for x,y in points], _hex_rgba(color))
+    def box(x1,y1,x2,y2,color):
+        polygon(((x1,y1),(x2,y1),(x2,y2),(x1,y2)),color)
+    if kind == 'pc':
+        box(2,3,22,17,'#6d8294'); box(3,4,21,16,'#c5dbe9')
+        box(4,5,20,14,'#6fa3c4'); box(5,6,19,8,'#a3cce4')
+        box(10,17,14,20,'#8497a3'); box(6,20,18,21,'#657b8a')
+    elif kind == 'drive':
+        polygon(((4,7),(20,7),(22,15),(22,20),(2,20),(2,15)), '#768894')
+        polygon(((5,8),(19,8),(21,15),(3,15)), '#dce5eb')
+        box(3,16,21,19,'#b6c4ce'); box(5,17,13,18,'#7d919f')
+        box(18,17,20,18,'#178267')
+    else:
+        polygon(((2,5),(9,5),(11,7),(21,7),(22,9),(22,20),(2,20)), '#bc8c26')
+        polygon(((3,6),(9,6),(11,8),(21,8),(21,19),(3,19)), '#f2cd69')
+        polygon(((2,10),(22,10),(21,20),(3,20)), '#d8a43c')
+        polygon(((3,11),(21,11),(20,19),(4,19)), '#f6d577')
+        box(4,11,20,12,'#ffe9a2')
+    return _rgba_png_downsample(pixels, size, 4)
+
+
 class ShellIconProvider:
     """Caches native Windows Shell icons as Tk images."""
 

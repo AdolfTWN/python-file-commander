@@ -132,6 +132,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.23", "2026/09/22", (
+        "Improved: Fine dotted folder-tree connectors, compact plus controls and antialiased folder and drive icons.",
+        "Added: Expand All for the current folder, off by default, with cancellable bounded background expansion.",
+    )),
     ("v0.17.22", "2026/09/21", (
         "Fixed: Offscreen windows return to the visible desktop after startup, monitor removal or resume.",
         "Improved: One-panel folder trees expand the active folder by default and hide collapse indicators.",
@@ -3435,6 +3439,7 @@ class Commander(tk.Tk):
         for pane in self.all_panes():
             pane.apply_language()
         self.folder_tree.caption.configure(text=tr('Folders'))
+        self.folder_tree.expand_all_button.configure(text=tr('Expand All'))
         self.folder_tree.tree.item(self.folder_tree.pc, text=tr('This PC'))
         for window in (self.preview_window, self.search_window,
                        self.compare_window, self.multi_rename_window,

@@ -1,5 +1,6 @@
 """Shared tab strip and bounded, on-demand folder navigation for one-panel mode."""
 import ctypes
+from collections import deque
 import os
 from pathlib import Path
 import queue
@@ -11,6 +12,8 @@ import tkinter.font as tkfont
 
 from .i18n import tr
 from .tabs import ChamferNotebook
+from .icons import folder_nav_icon_png
+from .tooltip import ToolTip
 
 
 def root_folders():
@@ -40,7 +43,7 @@ def child_folders(path, stop, limit=2000, seconds=3):
 
 
 def branch_segments(following, expanded, indent, height):
-    """Solid connector geometry; flags run from the root through this row."""
+    """Connector geometry; flags run from the root through this row."""
     depth, mid = len(following)-1, height/2
     lines = []
     for level in range(1, depth):
@@ -58,12 +61,22 @@ def branch_segments(following, expanded, indent, height):
 
 
 class RootFolderTree(ttk.Frame):
+    EXPAND_SECONDS = 30
+    EXPAND_FOLDERS = 500
+    EXPAND_DEPTH = 32
+
     def __init__(self, master, on_navigate, on_context):
         super().__init__(master)
         self.on_navigate = on_navigate
         self.on_context = on_context
-        self.caption = ttk.Label(self, text=tr('Folders'))
-        self.caption.pack(anchor='w', padx=6, pady=4)
+        header = ttk.Frame(self); header.pack(fill='x', padx=6, pady=4)
+        self.caption = ttk.Label(header, text=tr('Folders'))
+        self.caption.pack(side='left')
+        self.expand_all_var = tk.BooleanVar(self, value=False)
+        self.expand_all_button = ttk.Checkbutton(header, text=tr('Expand All'),
+            variable=self.expand_all_var, command=self.toggle_expand_all)
+        self.expand_all_button.pack(side='right', padx=(8,0))
+        ToolTip(self.expand_all_button, lambda: tr('Expand descendants of the current folder. Uncheck to stop.'))
         body = ttk.Frame(self); body.pack(fill='both', expand=True)
         self.tree = ttk.Treeview(body, show='tree', selectmode='browse', style='FolderNav.Treeview')
         self._line_rows = []
@@ -79,9 +92,16 @@ class RootFolderTree(ttk.Frame):
         self.status = ttk.Label(self, text='', wraplength=280)
         self.status.pack(fill='x', padx=4)
         self.paths, self.nodes, self.loaded, self.pending = {}, {}, set(), {}
+        self.failed, self.partial = set(), set()
+        self._bulk_queue = deque(); self._bulk_seen = set(); self._bulk_pending = set(); self._bulk_checked = set()
+        self._bulk_running = False; self._bulk_incomplete = False
+        self._current_node = None
+        self._icons = {kind: tk.PhotoImage(master=self, data=folder_nav_icon_png(kind, 16), format='png')
+                       for kind in ('folder', 'drive', 'pc')}
+        self._icon_size = 16
         self.results = queue.Queue(); self.slots = threading.BoundedSemaphore(2)
         self.stop = threading.Event(); self.serial = 0; self.program_selection = None
-        self.pc = self.tree.insert('', 'end', text=tr('This PC'), open=True)
+        self.pc = self.tree.insert('', 'end', text=tr('This PC'), open=True, image=self._icons['pc'])
         for path in root_folders(): self._node(path, self.pc)
         self.tree.bind('<<TreeviewOpen>>', self._expand)
         self.tree.bind('<<TreeviewSelect>>', self._select)
@@ -95,6 +115,7 @@ class RootFolderTree(ttk.Frame):
         for key in ('<Delete>', '<Shift-Delete>', '<F2>', '<Control-c>', '<Control-x>'):
             self.tree.bind(key, lambda _e:'break')
         self._poll_job = self.after(80, self._poll)
+        self.bind('<Unmap>', lambda e: self.stop_expand_all() if e.widget is self else None)
 
     def _schedule_lines(self, _event=None):
         if self._line_job is None:
@@ -111,6 +132,7 @@ class RootFolderTree(ttk.Frame):
         if (abs(event.x-canvas.arrow_x) <= canvas.arrow_radius+3
                 and self.tree.get_children(iid) and not self.tree.item(iid, 'open')):
             self.tree.item(iid, open=True)
+            self.failed.discard(iid)
             self.load(iid)
         else:
             self.tree.selection_set(iid)
@@ -128,13 +150,18 @@ class RootFolderTree(ttk.Frame):
     def _draw_lines(self):
         """Paint only visible indentation cells, leaving native text/keys intact.
 
-        Tk Treeview has no portable solid-connector option. Small row canvases
-        provide actual solid strokes, not Unicode line characters or dotted
-        theme glyphs. Rendering reads only cached tree items, never the disk.
+        Small row canvases draw crisp, muted dotted connectors independently
+        of native theme glyphs. Rendering reads cached items only, never disk.
         """
         if not self.tree.winfo_viewable(): return
         style = ttk.Style(self)
         font = tkfont.nametofont('TkDefaultFont')
+        icon_size = max(14, round(font.metrics('linespace')*.9))
+        if icon_size != self._icon_size:
+            self._icon_size = icon_size
+            for kind, icon in self._icons.items():
+                icon.configure(data=folder_nav_icon_png(kind, icon_size), format='png')
+            self._line_signature = None
         indent = max(20, round(font.metrics('linespace')*1.1))
         if indent != self._line_indent:
             self._line_indent = indent
@@ -190,22 +217,27 @@ class RootFolderTree(ttk.Frame):
             canvas.place(x=left, y=top, width=right-left, height=h)
             canvas.delete('all')
             color = selfg if active else fg
-            stroke = max(1, round(font.metrics('linespace')/18))
+            background = selbg if active else bg
+            ink, paper = self.winfo_rgb(color), self.winfo_rgb(background)
+            muted = '#'+''.join(f'{round((a*.48+b*.52)/257):02x}' for a,b in zip(ink,paper))
             for x1,y1,x2,y2 in branch_segments(flags, opened, indent, h):
-                canvas.create_line(x1+offset,y1,x2+offset,y2, fill=color, width=stroke, tags='branch')
-            center, radius = (depth+.5)*indent+offset, max(3, round(indent*.16))
+                canvas.create_line(round(x1+offset),round(y1),round(x2+offset),round(y2),
+                                   fill=muted, width=1, dash=(1,2), tags='branch')
+            center, radius = round((depth+.5)*indent+offset), max(4, min(7, round(indent*.18)))
             canvas.row_id, canvas.arrow_x, canvas.arrow_radius = iid, center, radius
             if children and not opened:
-                canvas.create_rectangle(center-radius-2,h/2-radius-2,center+radius+2,h/2+radius+2,
-                                        fill=selbg if active else bg, outline='')
-                points = (center-radius/2,h/2-radius, center-radius/2,h/2+radius, center+radius,h/2)
-                canvas.create_polygon(*points, fill=color, tags='indicator')
+                mid = round(h/2)
+                canvas.create_rectangle(center-radius,mid-radius,center+radius,mid+radius,
+                                        fill=background, outline=muted, width=1, tags='indicator')
+                canvas.create_line(center-radius+2,mid,center+radius-2,mid,fill=color, tags='indicator')
+                canvas.create_line(center,mid-radius+2,center,mid+radius-2,fill=color, tags='indicator')
         for canvas in self._line_rows[len(rows):]: canvas.place_forget()
 
     def _node(self, path, parent):
         key = os.path.normcase(str(path))
         if key in self.nodes: return self.nodes[key]
-        iid = self.tree.insert(parent, 'end', text=path.name or str(path))
+        kind = 'drive' if path.parent == path else 'folder'
+        iid = self.tree.insert(parent, 'end', text=path.name or str(path), image=self._icons[kind])
         self.paths[iid] = path; self.nodes[key] = iid
         self.tree.insert(iid, 'end', text='…')
         return iid
@@ -215,6 +247,12 @@ class RootFolderTree(ttk.Frame):
         if not path.is_absolute(): return
         existing = self.nodes.get(os.path.normcase(str(path)))
         if existing and self.tree.selection() == (existing,):
+            # A native tree click selects the row BEFORE navigation calls sync.
+            # Still update the expansion boundary and cancel the previous run.
+            if existing != self._current_node:
+                self.stop_expand_all()
+                self._current_node = existing
+            self.program_selection = existing
             self.tree.item(existing, open=True)
             self.load(existing)
             return
@@ -229,6 +267,9 @@ class RootFolderTree(ttk.Frame):
                     if child not in self.paths: self.tree.delete(child)
                 self.tree.item(parent, open=True)
         self.program_selection = parent
+        if parent != self._current_node:
+            self.stop_expand_all()
+            self._current_node = parent
         # Expand the active folder immediately, but enumerate only this level.
         # Ancestors are already open; unrelated descendants stay lazy-loaded.
         self.tree.item(parent, open=True)
@@ -244,23 +285,33 @@ class RootFolderTree(ttk.Frame):
         if path is not None: self.on_navigate(path)
 
     def _expand(self, _event=None):
+        self.failed.discard(self.tree.focus())
         self.load(self.tree.focus())
 
-    def load(self, iid):
-        if iid not in self.paths or iid in self.loaded or iid in self.pending: return
+    def load(self, iid, bulk=False):
+        if iid not in self.paths or iid in self.pending: return
+        if not bulk and (iid in self.loaded or iid in self.failed): return
         if len(self.nodes) >= 10000:
             self.status.configure(text=tr('Folder tree limit reached. Refresh to reload.')); return
         if not self.slots.acquire(blocking=False):
             self.status.configure(text=tr('Folder scan busy. Try expanding again.')); return
         self.serial += 1
         token, path = self.serial, self.paths[iid]
-        self.pending[iid] = (token, time.monotonic())
-        self.status.configure(text=tr('Loading folders…'))
+        cancel = threading.Event()
+        self.pending[iid] = (token, time.monotonic(), cancel)
+        if bulk: self._bulk_pending.add(iid)
+        else: self.status.configure(text=tr('Loading folders…'))
+        self.failed.discard(iid)
         # Workers never touch Tk. Two daemon workers maximum, even if an offline
         # drive blocks a system call; stale/late results are ignored.
         def work():
             try:
-                values, partial = child_folders(path, self.stop)
+                # Keep cloud/link folders visible for manual navigation, but
+                # never follow them automatically during recursive expansion.
+                if bulk and (path.is_symlink() or (os.name == 'nt' and
+                        path.lstat().st_file_attributes & 0x400)):
+                    raise OSError(tr('Linked or cloud folders are skipped during Expand All.'))
+                values, partial = child_folders(path, cancel)
                 result = (values, partial, '')
             except Exception as exc:
                 result = ([], False, str(exc))
@@ -268,16 +319,72 @@ class RootFolderTree(ttk.Frame):
                 self.slots.release()
             if not self.stop.is_set(): self.results.put((iid, token, result))
         threading.Thread(target=work, daemon=True, name='PFC-folder-tree').start()
+        return True
+
+    def toggle_expand_all(self):
+        if not self.expand_all_var.get():
+            self.stop_expand_all()
+            return
+        anchor = self._current_node
+        if anchor not in self.paths:
+            self.expand_all_var.set(False)
+            return
+        self._bulk_queue = deque([(anchor, 0)]); self._bulk_seen.clear()
+        self._bulk_checked.clear()
+        self._bulk_deadline = time.monotonic()+self.EXPAND_SECONDS
+        self._bulk_running = True; self._bulk_incomplete = False
+        self.status.configure(text=tr('Expanding folders…'))
+
+    def stop_expand_all(self, message=''):
+        self._bulk_running = False
+        self.expand_all_var.set(False)
+        self._bulk_queue.clear()
+        for iid in self._bulk_pending:
+            pending = self.pending.pop(iid, None)
+            if pending: pending[2].set()
+        self._bulk_pending.clear()
+        self.status.configure(text=tr(message) if message else '')
+
+    def _expand_batch(self):
+        if not self._bulk_running: return
+        if time.monotonic() >= self._bulk_deadline or len(self.nodes) >= 10000:
+            self.stop_expand_all('Expansion limited. Expand individual folders or refresh to continue.')
+            return
+        # Bound both filesystem concurrency and Tk work per event-loop turn.
+        for _ in range(24):
+            if not self._bulk_queue:
+                self._bulk_running = False
+                self.status.configure(text=tr('Some folders could not be expanded.') if self._bulk_incomplete else '')
+                return
+            iid, depth = self._bulk_queue.popleft()
+            if iid in self._bulk_seen or not self.tree.exists(iid): continue
+            if depth > self.EXPAND_DEPTH or len(self._bulk_seen) >= self.EXPAND_FOLDERS:
+                self.stop_expand_all('Expansion limited. Expand individual folders or refresh to continue.')
+                return
+            if iid in self.failed:
+                self._bulk_incomplete = True; self._bulk_seen.add(iid)
+                continue
+            if iid not in self.loaded or iid not in self._bulk_checked:
+                self._bulk_queue.appendleft((iid, depth))
+                if iid not in self.pending: self.load(iid, bulk=True)
+                return
+            self._bulk_seen.add(iid)
+            self._bulk_incomplete |= iid in self.partial
+            self.tree.item(iid, open=True)
+            self._bulk_queue.extend((child, depth+1) for child in self.tree.get_children(iid) if child in self.paths)
 
     def _poll(self):
-        for iid, (token, started) in list(self.pending.items()):
+        for iid, (token, started, cancel) in list(self.pending.items()):
             if time.monotonic()-started > 5:
                 self.pending.pop(iid, None)
+                cancel.set(); self.failed.add(iid); self._bulk_pending.discard(iid)
                 self.status.configure(text=tr('Folder scan timed out. Try expanding again.'))
         while not self.results.empty():
             iid, token, (paths, partial, error) = self.results.get_nowait()
             if iid not in self.pending or self.pending[iid][0] != token: continue
             self.pending.pop(iid, None)
+            if iid in self._bulk_pending: self._bulk_checked.add(iid)
+            self._bulk_pending.discard(iid)
             if not self.tree.exists(iid): continue
             for child in self.tree.get_children(iid):
                 if child not in self.paths: self.tree.delete(child)
@@ -285,8 +392,11 @@ class RootFolderTree(ttk.Frame):
                 if len(self.nodes) >= 10000: partial = True; break
                 self._node(path, iid)
             if not error: self.loaded.add(iid)
+            else: self.failed.add(iid)
+            if partial: self.partial.add(iid)
             self.status.configure(text=error or (tr('Folder list limited. Use the file list or Refresh.') if partial else ''))
             if error and not self.tree.get_children(iid): self.tree.insert(iid, 'end', text='…')
+        self._expand_batch()
         self._draw_lines()
         self._poll_job = self.after(80, self._poll)
 
@@ -294,7 +404,10 @@ class RootFolderTree(ttk.Frame):
         # Explicit refresh bounds cache lifetime and picks up drive/folder changes.
         selected = self.tree.selection()
         path = self.paths.get(selected[0]) if selected else None
+        self.stop_expand_all()
+        for _, _, cancel in self.pending.values(): cancel.set()
         self.pending.clear(); self.loaded.clear(); self.paths.clear(); self.nodes.clear()
+        self.failed.clear(); self.partial.clear(); self._current_node = None
         self.tree.delete(*self.tree.get_children(self.pc))
         for drive in root_folders(): self._node(drive, self.pc)
         if path is not None:
@@ -302,6 +415,8 @@ class RootFolderTree(ttk.Frame):
             self.load(self.nodes[os.path.normcase(str(path))])
 
     def destroy(self):
+        self.stop_expand_all()
+        for _, _, cancel in self.pending.values(): cancel.set()
         self.stop.set()
         self.after_cancel(self._poll_job)
         if self._line_job is not None: self.after_cancel(self._line_job)

@@ -1,4 +1,4 @@
-"""Solid folder-tree connectors: zoom/theme, clipping, scroll and hit testing."""
+"""Dotted folder-tree connectors: zoom/theme, icons, scroll and hit testing."""
 import importlib
 from pathlib import Path
 import sys
@@ -48,10 +48,11 @@ with tempfile.TemporaryDirectory(prefix='pfc-lines-') as raw:
                 assert canvases and any(c.find_withtag('branch') for c in canvases)
                 for canvas in canvases:
                     for line in canvas.find_withtag('branch'):
-                        assert canvas.itemcget(line,'dash')==''
+                        assert canvas.itemcget(line,'dash')=='1 2'
+                        assert float(canvas.itemcget(line,'width'))==1
                     assert canvas.winfo_y()==tree.bbox(canvas.row_id)[1]
                     # No canvas may cover the native row label.
-                    text_x=canvas.winfo_x()+canvas.winfo_width()+1
+                    text_x=canvas.winfo_x()+canvas.winfo_width()+nav._icon_size+4
                     mid=canvas.winfo_y()+canvas.winfo_height()//2
                     if mid<tree.winfo_height()-2:
                         assert tree.identify_element(text_x,mid) in ('text','Treeitem.text'), (scheme,zoom,canvas.row_id,text_x,mid,tree.identify_element(text_x,mid),nav._line_indent)
@@ -85,6 +86,6 @@ with tempfile.TemporaryDirectory(prefix='pfc-lines-') as raw:
             app.font_size_var.set('large');app.apply_font_size(save=False)
             tree.xview_moveto(0);tree.yview_moveto(0);settle(app)
             ImageGrab.grab().save(str(Path(raw).parent/'pfc-folder-lines.png'))
-        print('PASS: solid tree branches, last-child corners, three themes and 100/150/300% zoom, '
+        print('PASS: fine dotted branches, last-child corners, scaled icons, three themes and 100/150/300% zoom, '
               'native text clear, stable redraw, scroll alignment, no collapse glyph, expansion and selection')
     finally: app.destroy()

@@ -11,6 +11,14 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Fine dotted folder-tree connectors, compact plus controls and antialiased folder and drive icons.': ('改善：細緻虛線目錄樹、小型加號控制及平滑的資料夾與磁碟圖示。', '改进：精细虚线目录树、小型加号控件及平滑的文件夹与磁盘图标。', '개선: 섬세한 점선 트리, 작은 더하기 컨트롤 및 부드러운 폴더/드라이브 아이콘.'),
+    'Added: Expand All for the current folder, off by default, with cancellable bounded background expansion.': ('新增：目前資料夾的全部展開，預設關閉，支援取消及有上限的背景處理。', '新增：当前文件夹的全部展开，默认关闭，支持取消及有限制的后台处理。', '추가: 현재 폴더 모두 펼치기. 기본 꺼짐, 취소 및 제한된 백그라운드 처리 지원.'),
+    'Expand All': ('全部展開', '全部展开', '모두 펼치기'),
+    'Expand descendants of the current folder. Uncheck to stop.': ('展開目前資料夾下的子目錄；取消勾選即可停止。', '展开当前文件夹下的子目录；取消勾选即可停止。', '현재 폴더의 하위 폴더를 펼칩니다. 해제하면 중지합니다.'),
+    'Expanding folders…': ('正在展開資料夾…', '正在展开文件夹…', '폴더를 펼치는 중…'),
+    'Expansion limited. Expand individual folders or refresh to continue.': ('已達展開上限，請個別展開資料夾或重新整理。', '已达展开上限，请单独展开文件夹或刷新。', '펼치기 한도입니다. 개별 폴더를 펼치거나 새로 고치세요.'),
+    'Some folders could not be expanded.': ('部分資料夾無法展開。', '部分文件夹无法展开。', '일부 폴더를 펼칠 수 없습니다.'),
+    'Linked or cloud folders are skipped during Expand All.': ('全部展開會略過連結或雲端資料夾。', '全部展开会跳过链接或云端文件夹。', '모두 펼치기는 링크 또는 클라우드 폴더를 건너뜁니다.'),
     'Fixed: Offscreen windows return to the visible desktop after startup, monitor removal or resume.': ('修正：啟動、移除螢幕或恢復使用後，畫面外的視窗會移回可見桌面。', '修复：启动、移除显示器或恢复使用后，屏幕外的窗口会移回可见桌面。', '수정: 시작, 모니터 분리 또는 복귀 후 화면 밖 창을 보이는 바탕 화면으로 이동합니다.'),
     'Improved: One-panel folder trees expand the active folder by default and hide collapse indicators.': ('改善：單面板目錄樹預設展開目前資料夾，並隱藏收合符號。', '改进：单面板目录树默认展开当前文件夹，并隐藏折叠符号。', '개선: 단일 패널 폴더 트리가 현재 폴더를 기본으로 펼치고 접기 표시를 숨깁니다.'),
     'Added: One-panel workspace with shared tabs, a lazy folder tree and explicit copy/move/compare destinations.': ('新增：單面板工作區，共用分頁、按需讀取的資料夾樹，以及明確的複製／移動／比較目的地。', '新增：单面板工作区，共用分页、按需读取的文件夹树，以及明确的复制／移动／比较目标。', '추가: 공유 탭, 지연 로딩 폴더 트리 및 명시적인 복사/이동/비교 대상을 갖춘 단일 패널 작업 공간.'),
