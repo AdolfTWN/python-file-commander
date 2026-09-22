@@ -17,6 +17,57 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Open a comparison with F9, then save it from Session.': ('先按 F9 開啟比較，再從 Session 選單儲存。', '先按 F9 打开比较，再从 Session 菜单保存。', 'F9로 비교를 연 다음 Session 메뉴에서 저장하세요.'),
+    'Archive content is read-only': ('壓縮檔內容為唯讀', '压缩档内容为只读', '압축 파일 내용은 읽기 전용입니다'),
+    'Added: Named workspaces, comparison sessions, command search and Markdown reading bookmarks.': ('新增：命名工作區、比較工作階段、命令搜尋與 Markdown 閱讀書籤。', '新增：命名工作区、比较会话、命令搜索与 Markdown 阅读书签。', '추가: 이름별 작업 공간, 비교 세션, 명령 검색 및 Markdown 읽기 북마크.'),
+    'Improved: Compact comparison rules, safe exclusion-aware copy plans, inert reports and inline differences.': ('改善：精簡比較規則、遵守排除規則的安全複製、靜態報告及行內差異。', '改进：精简比较规则、遵守排除规则的安全复制、静态报告及行内差异。', '개선: 간결한 비교 규칙, 제외 규칙을 지키는 안전 복사, 정적 보고서 및 줄 내 차이.'),
+    'Fixed: Text editing preserves encoding and line endings, detects external changes and protects unsaved drafts.': ('修正：文字編輯保留編碼與換行、偵測外部變更並保護未儲存草稿。', '修复：文本编辑保留编码与换行、检测外部更改并保护未保存草稿。', '수정: 텍스트 편집 시 인코딩과 줄바꿈 보존, 외부 변경 감지 및 저장하지 않은 초안 보호.'),
+    'Improved: Clearer typography, stable-width active tabs and responsive comparison columns.': ('改善：清楚的字體層級、寬度穩定的作用中分頁與自適應比較欄位。', '改进：清晰的字体层级、宽度稳定的活动标签页与自适应比较列。', '개선: 명확한 글꼴 계층, 너비가 안정적인 활성 탭 및 반응형 비교 열.'),
+    'Rules': ('規則', '规则', '규칙'),
+    'Cancel stops after the current file.': ('取消會在目前檔案複製完成後停止。', '取消会在当前文件复制完成后停止。', '취소하면 현재 파일 복사가 끝난 후 중지합니다.'),
+    'Stopping after the current file…': ('目前檔案完成後停止…', '当前文件完成后停止…', '현재 파일 완료 후 중지 중…'),
+    'Command search': ('命令搜尋', '命令搜索', '명령 검색'),
+    'Command': ('命令', '命令', '명령'),
+    'Category': ('分類', '分类', '분류'),
+    'Shortcut': ('快捷鍵', '快捷键', '바로 가기'),
+    'Workflows': ('工作流程', '工作流程', '작업 흐름'),
+    'Workspaces': ('工作區', '工作区', '작업 공간'),
+    'Restore previous workspace': ('還原切換前工作區', '恢复切换前工作区', '이전 작업 공간 복원'),
+    'No previous workspace is saved yet.': ('尚未儲存切換前工作區。', '尚未保存切换前工作区。', '저장된 이전 작업 공간이 없습니다.'),
+    'Session': ('工作階段', '会话', '세션'),
+    'Saved comparisons': ('已儲存的比較', '已保存的比较', '저장된 비교'),
+    'Named paths and rules · reopening never runs sync': ('儲存路徑與規則 · 開啟不會自動同步', '保存路径与规则 · 打开不会自动同步', '이름별 경로와 규칙 · 다시 열어도 동기화하지 않음'),
+    'Close comparison': ('關閉比較', '关闭比较', '비교 닫기'),
+    'Open a comparison first.': ('請先開啟一個比較。', '请先打开一个比较。', '먼저 비교를 여세요.'),
+    'Export report': ('匯出比較報告', '导出比较报告', '비교 보고서 내보내기'),
+    'Select a folder comparison to export its results.': ('請選擇資料夾比較以匯出結果。', '请选择文件夹比较以导出结果。', '결과를 내보낼 폴더 비교를 선택하세요.'),
+    'Exclusions': ('排除規則', '排除规则', '제외 규칙'),
+    'Excluded': ('已排除', '已排除', '제외됨'),
+    'Rules changed — press Compare': ('規則已變更 — 請按比較', '规则已变更 — 请按比较', '규칙 변경됨 — 비교를 누르세요'),
+    'Run Compare with the current rules before syncing.': ('請先依目前規則完成比較，再執行同步。', '请先按当前规则完成比较，再执行同步。', '동기화 전에 현재 규칙으로 비교하세요.'),
+    'Run Compare with the current rules before exporting.': ('請先依目前規則完成比較，再匯出報告。', '请先按当前规则完成比较，再导出报告。', '내보내기 전에 현재 규칙으로 비교하세요.'),
+    'Report saved (relative paths only)': ('報告已儲存（僅含相對路徑）', '报告已保存（仅含相对路径）', '보고서 저장됨(상대 경로만 포함)'),
+    'Scanned files only — no automatic delete': ('僅限已掃描檔案 — 不自動刪除', '仅限已扫描文件 — 不自动删除', '스캔된 파일만 — 자동 삭제 없음'),
+    'Save current': ('儲存目前狀態', '保存当前状态', '현재 상태 저장'),
+    'Remove saved entry?': ('移除此儲存項目？', '移除此保存项目？', '저장된 항목을 삭제할까요?'),
+    'Replace this saved entry?': ('取代這個已儲存項目？', '替换这个已保存项目？', '저장된 항목을 바꿀까요?'),
+    'Nothing saved yet. Use Save current to create a named entry.': ('尚無儲存項目。按「儲存目前狀態」建立。', '尚无保存项目。点击“保存当前状态”创建。', '저장된 항목이 없습니다. 현재 상태 저장을 사용하세요.'),
+    'Type to filter • ↑ ↓ select • Enter run • Esc close': ('輸入篩選 · ↑ ↓ 選擇 · Enter 執行 · Esc 關閉', '输入筛选 · ↑ ↓ 选择 · Enter 执行 · Esc 关闭', '입력하여 필터 · ↑ ↓ 선택 · Enter 실행 · Esc 닫기'),
+    'No matching commands. Try another word.': ('沒有符合的命令，請換一個關鍵字。', '没有符合的命令，请换一个关键词。', '일치하는 명령이 없습니다. 다른 단어를 입력하세요.'),
+    'Saved path is unavailable': ('儲存的路徑目前無法使用', '保存的路径当前无法使用', '저장된 경로를 사용할 수 없습니다'),
+    'No tabs were changed. Restore the paths or update this saved workspace.': ('未變更任何分頁。請恢復路徑或更新儲存的工作區。', '未更改任何标签页。请恢复路径或更新保存的工作区。', '탭은 변경되지 않았습니다. 경로를 복원하거나 작업 공간을 갱신하세요.'),
+    'Replace the current tabs and layout? Your current workspace is saved as Before switching. Files and global preferences are not changed.': ('要切換分頁與版面嗎？目前狀態會保留為「切換前工作區」。不變更檔案與全域偏好。', '要切换标签页与布局吗？当前状态会保留为“切换前工作区”。不更改文件与全局偏好。', '탭과 레이아웃을 바꿀까요? 현재 작업 공간은 전환 전 상태로 보관됩니다. 파일과 전역 설정은 바뀌지 않습니다.'),
+    '{count} tab(s)': ('{count} 個分頁', '{count} 个标签页', '탭 {count}개'),
+    'Edit Left': ('編輯左側', '编辑左侧', '왼쪽 편집'),
+    'Edit Right': ('編輯右側', '编辑右侧', '오른쪽 편집'),
+    'Save changes before closing?': ('關閉前儲存變更？', '关闭前保存更改？', '닫기 전에 변경 사항을 저장할까요?'),
+    'Bookmarks': ('書籤', '书签', '북마크'),
+    'Forget reading position': ('重設閱讀位置', '重置阅读位置', '읽기 위치 초기화'),
+    'Reading position reset to the top': ('閱讀位置已重設至開頭', '阅读位置已重置至开头', '읽기 위치를 처음으로 초기화했습니다'),
+    'Bookmarks are available for rendered local Markdown documents only.': ('書籤僅適用於已呈現的本機 Markdown 文件。', '书签仅适用于已渲染的本地 Markdown 文档。', '북마크는 렌더링된 로컬 Markdown 문서에서만 사용할 수 있습니다.'),
+    'Document changed: restored its section, or the top if the section is missing/ambiguous.': ('文件已變更：回到原章節；若章節不存在或重名，則回到開頭。', '文档已变更：回到原章节；若章节不存在或重名，则回到开头。', '문서 변경됨: 원래 절로 복원했습니다. 절이 없거나 중복되면 처음으로 이동합니다.'),
+    'Large document: positional line comparison': ('大型文件：逐行位置比較', '大型文档：逐行位置比较', '큰 문서: 줄 위치 기준 비교'),
+    'Preview only (256 KiB) — full equality not checked': ('僅預覽 256 KiB — 未驗證完整相等性', '仅预览 256 KiB — 未验证完整相等性', '256 KiB 미리 보기만 — 전체 동일성 미확인'),
     'Added: Categorized PFC Settings with draft Apply/Cancel and actual style comparison screenshots.': ('新增：分類式 PFC 設定、暫存套用／取消及實際樣式對照截圖。', '新增：分类式 PFC 设置、暂存应用／取消及实际样式对比截图。', '추가: 분류된 PFC 설정, 적용/취소 및 실제 스타일 비교 스크린샷.'),
     'PFC Settings': ('PFC 設定', 'PFC 设置', 'PFC 설정'),
     'Some settings may already be applied. Review the settings before retrying.': ('部分設定可能已套用，請先檢查再重試。', '部分设置可能已应用，请先检查再重试。', '일부 설정이 이미 적용되었을 수 있습니다. 확인한 후 다시 시도하세요.'),
@@ -3687,7 +3738,13 @@ class ChamferNotebook(ttk.Frame):
 
     def _draw(self):
         self.bar.delete("all"); self._hitboxes.clear()
-        font = tkfont.nametofont("TkDefaultFont")
+        font = getattr(self, '_font_override', None) or tkfont.nametofont("TkDefaultFont")
+        font_spec = (font.actual('family'), int(font.cget('size')))
+        if getattr(self, '_active_title_font_spec', None) != font_spec:
+            if not hasattr(self, '_active_title_font'): self._active_title_font = tkfont.Font(self)
+            self._active_title_font.configure(family=font_spec[0], size=font_spec[1], weight='bold')
+            self._active_title_font_spec = font_spec
+        active_font = self._active_title_font
         right_skirt = self._tab_style == "right_skirt"
         height = max(30, font.metrics("linespace") + 13)
         icon_size, icon_inset, icon_gap = tab_lock_metrics(font.metrics('linespace'), self._tab_style)
@@ -3704,9 +3761,10 @@ class ChamferNotebook(ttk.Frame):
             lock = self._locks.get(child, "unlocked")
             selected = child is self._selected
             padding = 20 if right_skirt else 28
-            width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
+            title_width = max(font.measure(text), active_font.measure(text))
+            width = max(52 if right_skirt else 58, title_width + padding)
             if lock in {'locked', 'reset'}:
-                width = max(width, font.measure(text) + icon_inset + icon_size + icon_gap + 6)
+                width = max(width, title_width + icon_inset + icon_size + icon_gap + 6)
             key = normalize_tab_color(self._colors.get(child, "default"))
             color = self.palette["tab_default"] if key == "default" else TAB_COLORS[key][1]
             top = 0 if selected else max(4, round(height * 0.22))
@@ -3761,10 +3819,10 @@ class ChamferNotebook(ttk.Frame):
                 self.bar.create_image(left + icon_inset, center_y, anchor='w',
                     image=self._lock_images[lock], tags=('tab-lock-icon', 'lock:' + str(id(child))))
                 self.bar.create_text(left + icon_inset + icon_size + icon_gap, center_y,
-                    anchor='w', text=text, font=font, fill=text_color,
+                    anchor='w', text=text, font=active_font if selected else font, fill=text_color,
                     tags=('tab-title', 'title:' + str(id(child))))
             else:
-                self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
+                self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=active_font if selected else font,
                     fill=text_color, tags=('tab-title', 'title:' + str(id(child))))
         if self._drop_position is not None:
             if not self._hitboxes or self._drop_position <= 0:
@@ -3880,6 +3938,9 @@ class ChamferNotebook(ttk.Frame):
                 add_scaled_radiobutton(style_menu,tr(label),value,selected,
                                        command=lambda value=value:self.set_style(value))
             add_scaled_cascade(menu,tr('Tab Style'),style_menu)
+        workspace_picker = getattr(owner, 'show_workspace_picker', None)
+        if callable(workspace_picker):
+            menu.add_command(label=tr('Workspaces')+'…', command=workspace_picker)
         return menu
 
     def _show_context_menu(self,child,x,y):
@@ -5756,6 +5817,597 @@ SETTINGS_SHOTS = {
 }
 
 
+"""Small local workflow records, explicit compare rules and inert reports."""
+import fnmatch
+import html
+import json
+import os
+import stat
+import tempfile
+from collections import Counter
+from pathlib import Path
+
+
+DEFAULT_COMPARE_EXCLUDES = '.git;.svn;node_modules;.venv;__pycache__'
+
+
+def compare_path_blocked(path):
+    info = Path(path).lstat()
+    # Do not follow junctions, symlinks, cloud placeholders or special devices.
+    return (stat.S_ISLNK(info.st_mode) or not (stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode))
+            or bool(getattr(info, 'st_file_attributes', 0) & (0x400 | 0x1000 | 0x40000 | 0x400000)))
+
+
+class WorkflowRecords:
+    """Named INI metadata only: no directory discovery, indexing or file content."""
+    LIMIT = 40
+
+    def __init__(self, config, key):
+        self.config, self.key = config, key
+
+    def read(self):
+        raw = self.config.get('workflows', self.key, fallback='[]')
+        try:
+            records = json.loads(raw) if len(raw) <= 1024 * 1024 else []
+            if not isinstance(records, list): return []
+            return [r for r in records if isinstance(r, dict) and isinstance(r.get('name'), str)
+                    and isinstance(r.get('data'), dict)][:self.LIMIT]
+        except (ValueError, TypeError):
+            return []
+
+    def write(self, records):
+        serialized = json.dumps(records[:self.LIMIT], ensure_ascii=False)
+        if len(serialized) > 1024 * 1024:
+            raise ValueError('Saved workflow data exceeds the limit. Remove an entry before saving more.')
+        if not self.config.has_section('workflows'): self.config.add_section('workflows')
+        self.config.set('workflows', self.key, serialized)
+
+    def put(self, name, data):
+        name = name.strip()
+        if not name or len(name) > 80:
+            raise ValueError('Use a name between 1 and 80 characters.')
+        entries = [r for r in self.read() if r['name'].casefold() != name.casefold()]
+        if len(entries) >= self.LIMIT:
+            raise ValueError('Forty saved entries is the limit. Remove one before adding another.')
+        self.write([{'name': name, 'data': data}] + entries)
+
+    def remove(self, name):
+        self.write([r for r in self.read() if r['name'] != name])
+
+
+def compare_excluded(relative, patterns):
+    """Semicolon globs: bare names at any depth, paths relative to selected roots."""
+    value = str(relative).replace('\\', '/').strip('/')
+    pieces = value.casefold().split('/')
+    rules = ['.git', '.svn'] + [p.strip().replace('\\', '/').strip('/').casefold()
+                                for p in patterns.split(';') if p.strip()]
+    prefixes = ['/'.join(pieces[:i]) for i in range(1, len(pieces) + 1)]
+    return any(any(fnmatch.fnmatchcase(part, rule) for part in (prefixes if '/' in rule else pieces))
+               for rule in rules)
+
+
+def compare_sync_plans(rows, actions, left_root, right_root, left_read_only=False, right_read_only=False):
+    """Only individually scanned files. Never copy a directory recursively.
+
+    This is essential: a recursive directory copy would silently reintroduce
+    excluded files, cloud placeholders and new unreviewed children.
+    """
+    choices = {os.path.normcase(str(Path(key))): value for key, value in actions.items()}
+    plans = []
+    for _status, key, left, right in rows:
+        relative = Path(key)
+        action = choices.get(os.path.normcase(str(relative)))
+        if action is None:
+            # Probe only ancestors, not every selected row: selecting 10,000
+            # files must not create a 100-million-comparison UI pause.
+            for parent in relative.parents:
+                action = choices.get(os.path.normcase(str(parent)))
+                if action is not None: break
+        if action == 'right' and left is not None and not right_read_only:
+            source, target = left, Path(right_root) / key
+        elif action == 'left' and right is not None and not left_read_only:
+            source, target = right, Path(left_root) / key
+        else:
+            continue
+        if not compare_path_blocked(source) and source.is_file():
+            destination_root = Path(right_root) if action == 'right' else Path(left_root)
+            ancestors = [target] + list(target.parents)
+            if any((p.exists() or p.is_symlink()) and compare_path_blocked(p) for p in ancestors
+                   if p == destination_root or destination_root in p.parents):
+                continue
+            plans.append((source, target))
+    return plans
+
+
+def comparison_report(rows, rules, format='html'):
+    """Relative names only; inert HTML, no source content or absolute roots."""
+    statuses = Counter(row[0] for row in rows)
+    rule_text = '; '.join(f'{key}: {value}' for key, value in rules.items())
+    summary = ', '.join(f'{key}: {value}' for key, value in sorted(statuses.items()))
+    if format == 'text':
+        return 'PFC comparison report\n' + rule_text + '\n' + summary + '\n\n' + '\n'.join(
+            f'{status}\t{relative}' for status, relative, *_ in rows) + '\n'
+    body = ''.join(f'<tr><td>{html.escape(status)}</td><td>{html.escape(relative)}</td></tr>'
+                   for status, relative, *_ in rows)
+    return ('<!doctype html><html lang="en"><meta charset="utf-8">'
+            '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'">'
+            '<meta name="viewport" content="width=device-width"><title>PFC comparison report</title>'
+            '<style>body{font:15px system-ui;margin:24px;color:#203447;background:#fff}'
+            'table{border-collapse:collapse;width:100%}td,th{padding:7px 10px;text-align:left;'
+            'border-bottom:1px solid #ccd5df;overflow-wrap:anywhere}th{background:#e9eef3}'
+            'p{overflow-wrap:anywhere}</style><h1>PFC comparison report</h1><p>' + html.escape(rule_text) +
+            '</p><p>' + html.escape(summary) + '</p><table><thead><tr><th>Status</th><th>Relative path</th>'
+            '</tr></thead><tbody>' + body + '</tbody></table></html>')
+
+
+def write_comparison_report(destination, rows, rules):
+    """Export cannot target a compared source through a link/alias either."""
+    destination = Path(destination)
+    if destination.exists() or destination.is_symlink():
+        info = destination.lstat()
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink > 1:
+            raise OSError('Choose an ordinary report file, not a linked or special file.')
+    canonical = destination.resolve()
+    if any(canonical == path.resolve() for row in rows for path in row[2:] if path):
+        raise OSError('The report cannot replace a compared file.')
+    content = comparison_report(rows, rules, 'text' if destination.suffix.lower() == '.txt' else 'html')
+    descriptor, staging = tempfile.mkstemp(prefix='.pfc-report-', dir=destination.parent)
+    try:
+        with os.fdopen(descriptor, 'w', encoding='utf-8', newline='\n') as stream:
+            stream.write(content); stream.flush(); os.fsync(stream.fileno())
+        os.replace(staging, destination)
+    finally:
+        if os.path.exists(staging): os.unlink(staging)
+
+
+def reading_anchor(model, offset, fraction, signature):
+    before = [h for h in model.get('headings', []) if h['start'] <= offset]
+    heading = before[-1] if before else None
+    return dict(heading=heading['title'] if heading else '', fraction=float(fraction),
+                offset=max(0, offset - heading['start']) if heading else 0,
+                signature=list(signature or []))
+
+
+def resolve_reading_anchor(model, saved, signature):
+    """No fuzzy lookup: unchanged file -> view; changed -> unique heading only."""
+    if saved.get('signature') == list(signature or []):
+        fraction = saved.get('fraction', 0)
+        return ('fraction', min(1., max(0., float(fraction))), False)
+    matches = [h for h in model.get('headings', []) if h['title'] == saved.get('heading')]
+    if len(matches) == 1:
+        return ('offset', matches[0]['start'], True)
+    return ('fraction', 0., True)
+
+
+"""Compact, keyboard-first workflow pickers; no indexing or background polling."""
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog, font as tkfont
+
+
+
+def workflow_dialog_geometry(window, master, width=650, height=420):
+    width = min(width, master.winfo_screenwidth() - 60)
+    height = min(height, master.winfo_screenheight() - 100)
+    x = max(0, min(master.winfo_screenwidth() - width, master.winfo_rootx() + 60))
+    y = max(0, min(master.winfo_screenheight() - height, master.winfo_rooty() + 70))
+    window.geometry(f'{width}x{height}+{x}+{y}')
+    window.minsize(min(420, width), min(280, height))
+    window.transient(master)
+    window.bind('<KeyPress>', lambda e: 'break')
+    def traverse(back=False):
+        current = window.focus_get() or window
+        target = current.tk_focusPrev() if back else current.tk_focusNext()
+        if target is not None: target.focus_set()
+        return 'break'
+    window.bind('<Tab>', lambda e: traverse())
+    window.bind('<Shift-Tab>', lambda e: traverse(True))
+    window.bind('<ISO_Left_Tab>', lambda e: traverse(True))
+
+
+def style_workflow_controls(window):
+    root = window._root()
+    base = tkfont.nametofont('TkDefaultFont', root=root)
+    if not hasattr(root, '_workflow_fonts'):
+        root._workflow_fonts = {name: tkfont.Font(root) for name in ('body', 'heading')}
+    for name, font in root._workflow_fonts.items():
+        font.configure(family=base.actual('family'), size=-min(22, max(14, abs(int(base.cget('size'))))),
+                       weight='bold' if name == 'heading' else 'normal')
+    font = root._workflow_fonts['body']; heading = root._workflow_fonts['heading']
+    style = ttk.Style(root)
+    for kind in ('TLabel', 'TButton', 'TEntry', 'Treeview'):
+        style.configure('PFCWorkflow.'+kind, font=font)
+    style.configure('PFCWorkflow.Treeview', rowheight=font.metrics('linespace')+8)
+    style.configure('PFCWorkflow.Treeview.Heading', font=heading)
+    pending = list(window.winfo_children())
+    while pending:
+        child = pending.pop(); pending.extend(child.winfo_children())
+        kind = child.winfo_class()
+        if kind in ('TLabel', 'TButton', 'TEntry', 'Treeview'):
+            child.configure(style='PFCWorkflow.'+kind)
+            if kind in ('TLabel', 'TEntry'): child.configure(font=font)
+        elif isinstance(child, tk.Listbox): child.configure(font=font)
+
+
+class WorkflowPicker(tk.Toplevel):
+    def __init__(self, master, title, records, save_config, capture, activate, describe):
+        super().__init__(master)
+        self.title(tr(title)); workflow_dialog_geometry(self, master)
+        self.records, self.save_config = records, save_config
+        self.capture, self.activate, self.describe = capture, activate, describe
+        area = ttk.Frame(self, padding=10); area.pack(fill='both', expand=True)
+        area.columnconfigure(0, weight=1); area.rowconfigure(1, weight=1)
+        ttk.Label(area, text=tr(title), font='TkHeadingFont').grid(row=0, column=0, sticky='w', pady=(0, 6))
+        frame = ttk.Frame(area); frame.grid(row=1, column=0, sticky='nsew')
+        self.list = tk.Listbox(frame, exportselection=False, activestyle='dotbox', borderwidth=0,
+                               highlightthickness=1, font='TkDefaultFont')
+        palette = getattr(master, 'palette', None)
+        if palette:
+            self.list.configure(background=palette['content'], foreground=palette['text'],
+                                 selectbackground=palette['selection'], selectforeground='#ffffff')
+        scroll = ttk.Scrollbar(frame, command=self.list.yview)
+        self.list.configure(yscrollcommand=scroll.set)
+        scroll.pack(side='right', fill='y'); self.list.pack(fill='both', expand=True)
+        self.detail = ttk.Label(area, anchor='nw', wraplength=600)
+        self.detail_tooltip = ToolTip(self.detail, '')
+        self.detail.grid(row=2, column=0, sticky='ew', pady=8)
+        self.bind('<Configure>', lambda e: self.detail.configure(wraplength=max(200, self.winfo_width()-30)))
+        bar = ttk.Frame(area); bar.grid(row=3, column=0, sticky='ew')
+        self.save_button = ttk.Button(bar, text=tr('Save current')+'…', command=self.save_current)
+        self.save_button.pack(side='left')
+        self.remove_button = ttk.Button(bar, text=tr('Remove'), command=self.remove)
+        self.remove_button.pack(side='left', padx=5)
+        self.open_button = ttk.Button(bar, text=tr('Open'), command=self.open)
+        self.open_button.pack(side='right')
+        ttk.Button(bar, text=tr('Close'), command=self.close).pack(side='right', padx=5)
+        self.list.bind('<<ListboxSelect>>', lambda e: self.selected())
+        self.list.bind('<Double-1>', lambda e: self.open())
+        self.bind('<Return>', lambda e: (self.focus_get().invoke(), 'break')[1]
+                  if isinstance(self.focus_get(), ttk.Button) else self.open())
+        self.bind('<Escape>', lambda e: self.close())
+        self.protocol('WM_DELETE_WINDOW', self.close)
+        style_workflow_controls(self)
+        self.refresh(); self.grab_set(); self.list.focus_set()
+
+    def refresh(self):
+        self.entries = self.records.read()
+        self.list.delete(0, 'end')
+        for item in self.entries: self.list.insert('end', item['name'])
+        if self.entries: self.list.selection_set(0)
+        self.selected()
+
+    def selected(self):
+        selected = self.list.curselection()
+        has = bool(selected)
+        self.open_button.state(['!disabled'] if has else ['disabled'])
+        self.remove_button.state(['!disabled'] if has else ['disabled'])
+        value = self.describe(self.entries[selected[0]]['data']) if has else tr('Nothing saved yet. Use Save current to create a named entry.')
+        self.detail_tooltip.text = str(value)
+        # Keep the list usable with long paths. Full path remains in the saved
+        # record; the focused item's concise context is not a second document.
+        lines = str(value).splitlines()[:3]
+        self.detail.configure(text='\n'.join(line if len(line) <= 110 else line[:45]+'…'+line[-60:] for line in lines))
+
+    def save_current(self):
+        name = simpledialog.askstring(self.title(), tr('Name'), parent=self)
+        # Python's simpledialog releases its own grab without restoring ours.
+        if self.winfo_exists(): self.grab_set()
+        if name is None: return
+        if any(r['name'].casefold() == name.strip().casefold() for r in self.entries):
+            if not messagebox.askyesno(self.title(), tr('Replace this saved entry?'), parent=self): return
+        try:
+            data = self.capture()
+            if data is None: return
+            self.records.put(name, data); self.save_config(); self.refresh()
+        except (OSError, ValueError) as exc:
+            messagebox.showerror(self.title(), str(exc), parent=self)
+
+    def remove(self):
+        selection = self.list.curselection()
+        if not selection: return
+        name = self.entries[selection[0]]['name']
+        if messagebox.askyesno(self.title(), tr('Remove saved entry?')+'\n'+name, parent=self):
+            self.records.remove(name); self.save_config(); self.refresh()
+
+    def open(self):
+        selected = self.list.curselection()
+        if not selected: return 'break'
+        try:
+            if self.activate(self.entries[selected[0]]['data']) is not False:
+                self.close()
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            messagebox.showerror(self.title(), str(exc), parent=self)
+        return 'break'
+
+    def close(self):
+        self.grab_release(); self.destroy()
+        return 'break'
+
+
+def command_matches(commands, query):
+    words = query.casefold().split()
+    return [item for item in commands if all(word in ' '.join(map(str, item[:4])).casefold()
+                                            for word in words)]
+
+
+class CommandPalette(tk.Toplevel):
+    def __init__(self, master, commands):
+        super().__init__(master)
+        self.title(tr('Command search')); workflow_dialog_geometry(self, master, 680, 390)
+        self.commands = commands
+        self.previous_focus = master.focus_get()
+        area = ttk.Frame(self, padding=10); area.pack(fill='both', expand=True)
+        area.columnconfigure(0, weight=1); area.rowconfigure(1, weight=1)
+        self.query = tk.StringVar()
+        self.entry = ttk.Entry(area, textvariable=self.query)
+        self.entry.grid(row=0, column=0, sticky='ew', pady=(0, 7))
+        self.list = ttk.Treeview(area, columns=('category', 'key'), show='tree headings', height=9,
+                                 selectmode='browse')
+        self.list.heading('#0', text=tr('Command')); self.list.heading('category', text=tr('Category'))
+        self.list.heading('key', text=tr('Shortcut'))
+        self.list.column('#0', width=340, minwidth=180)
+        self.list.column('category', width=150, minwidth=90, stretch=False)
+        self.list.column('key', width=110, minwidth=85, stretch=False)
+        self.list.grid(row=1, column=0, sticky='nsew')
+        self.hint = ttk.Label(area, text=tr('Type to filter • ↑ ↓ select • Enter run • Esc close'), anchor='w', wraplength=640)
+        self.hint.grid(row=2, column=0, sticky='ew', pady=(7, 0))
+        self.bind('<Configure>', lambda e: self.hint.configure(wraplength=max(200,self.winfo_width()-30)))
+        self.query.trace_add('write', lambda *args: self.refresh())
+        self.entry.bind('<Down>', lambda e: self.step(1)); self.entry.bind('<Up>', lambda e: self.step(-1))
+        self.bind('<Return>', lambda e: self.run()); self.list.bind('<Double-1>', lambda e: self.run())
+        self.bind('<Escape>', lambda e: self.close()); self.protocol('WM_DELETE_WINDOW', self.close)
+        style_workflow_controls(self)
+        self.refresh(); self.grab_set(); self.entry.focus_set()
+
+    def refresh(self):
+        self.filtered = command_matches(self.commands, self.query.get())
+        self.list.delete(*self.list.get_children())
+        for index, (label, category, key, aliases, callback) in enumerate(self.filtered):
+            self.list.insert('', 'end', iid=str(index), text=label, values=(category, key))
+        if self.filtered: self.list.selection_set('0')
+        self.hint.configure(text=tr('Type to filter • ↑ ↓ select • Enter run • Esc close') if self.filtered
+                            else tr('No matching commands. Try another word.'))
+
+    def step(self, direction):
+        selected = self.list.selection()
+        if self.filtered:
+            index = max(0, min(len(self.filtered)-1, (int(selected[0]) if selected else 0)+direction))
+            self.list.selection_set(str(index)); self.list.see(str(index))
+        return 'break'
+
+    def run(self):
+        selected = self.list.selection()
+        if not selected: return 'break'
+        command = self.filtered[int(selected[0])][4]
+        root = self.master
+        self.close(); root.after_idle(command)
+        return 'break'
+
+    def close(self):
+        self.grab_release(); self.destroy()
+        if self.previous_focus is not None and self.previous_focus.winfo_exists(): self.previous_focus.focus_set()
+        return 'break'
+
+"""Named file-manager layouts, with a reversible pre-switch snapshot."""
+from pathlib import Path
+from tkinter import messagebox
+
+
+
+def capture_workspace(app):
+    groups = []
+    for tabs in app.panel_tabs:
+        panes = []
+        for pane in tabs.panes():
+            panes.append(dict(path=str(pane.persistent_path()), filter=pane.quick_filter_var.get(),
+                color=tabs._colors.get(pane, 'default'), lock=pane.lock_mode,
+                locked_path=str(pane.locked_path or pane.persistent_path()),
+                sort=pane.sort_column, descending=pane.reverse, hidden=pane.show_hidden,
+                system=pane.show_system, extensions=pane.show_extensions, mode=pane.view_mode))
+        groups.append(dict(tabs=panes, selected=tabs.index(tabs.select())))
+    if sum(len(g['tabs']) for g in groups) > 80:
+        raise ValueError(tr('A workspace can contain at most 80 tabs.'))
+    return dict(groups=groups, panels=app.panel_count_var.get(), multi=app._multi_panel_count,
+                ratio=app._tree_ratio, active=app.panel_tabs.index(app._tabs_for(app.active)),
+                order=[(app.panel_tabs.index(app._tabs_for(p)), app._tabs_for(p).index(p))
+                       for p in app.single_tabs._tabs if p in app.all_panes()])
+
+
+def validate_workspace(data):
+    if not isinstance(data, dict): raise ValueError('Invalid workspace.')
+    groups = data.get('groups')
+    if not isinstance(groups, list) or len(groups) != 4: raise ValueError('Invalid workspace groups.')
+    total = 0
+    missing = []
+    for group in groups:
+        if not isinstance(group, dict) or not isinstance(group.get('tabs'), list) or not group['tabs']:
+            raise ValueError('Invalid workspace tabs.')
+        total += len(group['tabs'])
+        for pane in group['tabs']:
+            if not isinstance(pane, dict) or not isinstance(pane.get('path'), str):
+                raise ValueError('Invalid workspace path.')
+            if not Path(pane['path']).is_dir(): missing.append(pane['path'])
+            if pane.get('lock') not in ('unlocked', 'locked', 'reset'):
+                raise ValueError('Invalid tab lock.')
+            if not isinstance(pane.get('locked_path', pane['path']), str):
+                raise ValueError('Invalid locked path.')
+            if not isinstance(pane.get('color', 'default'), str):
+                raise ValueError('Invalid tab color.')
+    if total > 80: raise ValueError('A workspace can contain at most 80 tabs.')
+    if data.get('panels') not in range(1, 5) or data.get('multi') not in range(2, 5):
+        raise ValueError('Invalid panel count.')
+    if not isinstance(data.get('ratio'), (int, float)) or not .15 <= data['ratio'] <= .65:
+        raise ValueError('Invalid tree ratio.')
+    if not isinstance(data.get('order', []), list):
+        raise ValueError('Invalid shared tab order.')
+    if missing:
+        raise OSError(tr('Saved path is unavailable')+':\n'+'\n'.join(missing[:12])+
+                      '\n'+tr('No tabs were changed. Restore the paths or update this saved workspace.'))
+    return groups
+
+
+def restore_workspace(app, data):
+    groups = validate_workspace(data)  # Validate every path before touching tabs.
+    backup = capture_workspace(app)
+    if not messagebox.askyesno(tr('Workspaces'),
+            tr('Replace the current tabs and layout? Your current workspace is saved as Before switching. '
+               'Files and global preferences are not changed.'), parent=app):
+        return False
+    records = WorkflowRecords(app.config_data, 'workspace_undo')
+    records.put('Before switching', backup)
+    app.save_config()
+    previous_ready, previous_busy, previous_single = app._ready, app._single_busy, app._single_layout
+    app._ready = False; app._single_busy = True; app._single_layout = False
+    old = [list(tabs.panes()) for tabs in app.panel_tabs]
+    created = []
+    try:
+        for tabs, group in zip(app.panel_tabs, groups):
+            items = []
+            for item in group['tabs']:
+                pane = tabs.add_tab(Path(item['path']), notify=False, position=len(tabs.tabs()))
+                created.append((tabs, pane)); items.append(pane)
+                pane.sort_column = item.get('sort', 'name') if item.get('sort') in pane.all_sort_columns else 'name'
+                pane.reverse = bool(item.get('descending'))
+                pane.show_hidden = bool(item.get('hidden')); pane.show_system = bool(item.get('system'))
+                pane.show_extensions = bool(item.get('extensions', True))
+                pane.view_mode = item.get('mode', 'list') if item.get('mode') in {'list', 'folder', 'file'} else 'list'
+                pane.set_quick_filter(str(item.get('filter', '')))
+                pane.lock_mode = item['lock']
+                locked = Path(item.get('locked_path', item['path']))
+                pane.locked_path = (locked if locked.is_dir() else pane.path) if pane.lock_mode != 'unlocked' else None
+                tabs.set_color(pane, item.get('color', 'default'), notify=False)
+                tabs.set_lock(pane, pane.lock_mode, notify=False)
+                pane.set_active_appearance(False, app.palette)
+                pane._update_view_mode_button(); pane.refresh()
+            selected = group.get('selected', 0)
+            selected = selected if isinstance(selected, int) else 0
+            tabs.select(items[max(0, min(len(items)-1, selected))])
+        for tabs, panes in zip(app.panel_tabs, old):
+            for pane in panes:
+                tabs.forget(pane); tabs.on_close_archive(pane); pane.destroy()
+        app.panel_count_var.set(data['panels']); app._multi_panel_count = data['multi']; app._tree_ratio = data['ratio']
+        active = data.get('active', 0)
+        app.active = app.panel_tabs[active if isinstance(active, int) and 0 <= active < 4 else 0].current()
+        order = []
+        for pair in data.get('order', []):
+            if isinstance(pair, (list, tuple)) and len(pair) == 2:
+                group, index = pair
+                if isinstance(group, int) and isinstance(index, int) and 0 <= group < 4:
+                    panes = app.panel_tabs[group].panes()
+                    if 0 <= index < len(panes) and panes[index] not in order: order.append(panes[index])
+        app.single_tabs._tabs = order
+    except Exception:
+        for tabs, pane in created:
+            if pane.winfo_exists(): tabs.forget(pane); pane.destroy()
+        for tabs, panes in zip(app.panel_tabs, old):
+            if panes and panes[0].winfo_exists(): tabs.select(panes[0])
+        app.active = app.panel_tabs[0].current()
+        raise
+    finally:
+        app._ready, app._single_busy, app._single_layout = previous_ready, previous_busy, previous_single
+    app.apply_panel_count(); app.apply_column_settings(); app.apply_color_scheme(save=False)
+    app.active.focus_file_list()
+    app.save_config()
+    return True
+
+
+def show_workspaces(app):
+    picker = WorkflowPicker(app, 'Workspaces', WorkflowRecords(app.config_data, 'workspaces'),
+        app.save_config, lambda: capture_workspace(app), lambda d: restore_workspace(app, d),
+        lambda d: tr('{count} tab(s)', count=sum(len(g.get('tabs', [])) for g in d.get('groups', []) if isinstance(g, dict))))
+    return picker
+
+"""File-only comparison copy plans, with UI-thread conflicts and worker I/O."""
+import queue
+import threading
+from pathlib import Path
+import tkinter as tk
+from tkinter import ttk
+
+
+
+class SyncProgress(tk.Toplevel):
+    def __init__(self, master, plans, resolver, continue_errors):
+        super().__init__(master)
+        self.title(tr('Safe Sync')); self.transient(master); self.resizable(False, False)
+        self.cancelled = threading.Event(); self.messages = queue.Queue(); self.result = OperationResult()
+        self.plans = list(plans); self.resolver = resolver
+        self.protocol('WM_DELETE_WINDOW', self.cancel)
+        self.bind('<Escape>', lambda e: self.cancel()); self.bind('<KeyPress>', lambda e: 'break')
+        area = ttk.Frame(self,padding=12);area.pack(fill='both',expand=True)
+        self.label = ttk.Label(area,text=tr('Preparing…'),width=46,wraplength=460)
+        self.label.pack(fill='x')
+        self.progress = ttk.Progressbar(area, maximum=max(1,len(plans)), length=460)
+        self.progress.pack(fill='x',pady=10)
+        self.detail = ttk.Label(area,text=tr('Cancel stops after the current file.'),wraplength=460)
+        self.detail.pack(fill='x')
+        self.cancel_button = ttk.Button(area,text=tr('Cancel'),command=self.cancel)
+        self.cancel_button.pack(anchor='e',pady=(10,0))
+        style_workflow_controls(self)
+        self.update_idletasks()
+        self.geometry(f'+{max(0,master.winfo_rootx()+80)}+{max(0,master.winfo_rooty()+90)}')
+        self.grab_set()
+
+        def conflict(source, target):
+            reply = queue.Queue(maxsize=1)
+            self.messages.put(('conflict',source,target,reply))
+            while True:
+                try: return reply.get(timeout=.1)
+                except queue.Empty:
+                    if self.cancelled.is_set(): return 'cancel'
+
+        def worker():
+            result = OperationResult()
+            try:
+                for index,(source,target) in enumerate(self.plans):
+                    if self.cancelled.is_set():
+                        result.skipped.extend(p for p,_ in self.plans[index:]);break
+                    self.messages.put(('progress',index,source.name))
+                    try:
+                        # Never execute an out-of-date plan as a recursive copy
+                        # or traverse a replacement link in its destination.
+                        if compare_path_blocked(source) or not source.is_file():
+                            raise OSError('The scanned source is no longer an ordinary file.')
+                        if source.name != target.name:
+                            raise OSError('Source and target spelling differ. Rename explicitly before copying.')
+                        for parent in [target]+list(target.parents):
+                            if (parent.exists() or parent.is_symlink()) and compare_path_blocked(parent):
+                                raise OSError('Linked/cloud destinations are not supported by this copy plan.')
+                        partial = copy_items([source],target.parent,conflict,continue_errors)
+                    except (OSError, ValueError) as exc:
+                        partial = OperationResult(failures=[OperationFailure(source,target,str(exc))])
+                    result.completed.extend(partial.completed); result.skipped.extend(partial.skipped)
+                    result.failures.extend(partial.failures)
+                    self.messages.put(('progress',index+1,source.name))
+                    if partial.failures and not continue_errors:
+                        result.skipped.extend(p for p,_ in self.plans[index+1:]);break
+            except Exception as exc:
+                result.failures.append(OperationFailure(Path('.'),None,str(exc)))
+            self.messages.put(('done',result))
+        self.worker = threading.Thread(target=worker,daemon=True,name='PFC-Compare-Copy')
+        self.worker.start();self.after(40,self.poll)
+
+    def cancel(self):
+        self.cancelled.set();self.cancel_button.state(['disabled'])
+        self.detail.configure(text=tr('Stopping after the current file…'))
+
+    def poll(self):
+        while True:
+            try: item=self.messages.get_nowait()
+            except queue.Empty: break
+            if item[0]=='conflict':
+                _,source,target,reply=item
+                try: action='cancel' if self.cancelled.is_set() else self.resolver(source,target)
+                except Exception: action='cancel'
+                if action=='cancel': self.cancelled.set()
+                reply.put(action)
+                self.grab_set()
+            elif item[0]=='progress':
+                self.progress.configure(value=item[1])
+                self.label.configure(text=f'{item[1]} / {len(self.plans)} · {item[2][:70]}')
+            elif item[0]=='done':
+                self.result=item[1];self.grab_release();self.destroy();return
+        self.after(40,self.poll)
+
 """Categorized, draft-first preferences. No filesystem scanning or network preview."""
 import os
 from pathlib import Path
@@ -6159,6 +6811,125 @@ class SettingsDialog(tk.Toplevel):
         elif y+widget.winfo_height()>top+height:
             self.canvas.yview_moveto((y+widget.winfo_height()-height)/max(1,self.page.winfo_height()))
 
+"""Bounded, lossless text loading and conflict-checked editing for Compare."""
+import codecs
+import hashlib
+import os
+import stat
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+
+
+TEXT_EDIT_LIMIT = 2 * 1024 * 1024
+
+
+@dataclass
+class TextDocument:
+    path: Path
+    text: str
+    encoding: str
+    bom: bytes
+    ending: str
+    digest: str
+    reason: str = ''
+
+    @property
+    def description(self):
+        newline = {'\n': 'LF', '\r\n': 'CRLF', '\r': 'CR', '': 'Mixed EOL'}[self.ending]
+        return f'{self.encoding.upper()}{" BOM" if self.bom else ""} · {newline}' + (
+            f' · Read-only: {self.reason}' if self.reason else '')
+
+    def save(self, text):
+        if self.reason:
+            raise OSError(self.reason)
+        if self.path.is_symlink():
+            raise OSError('Symbolic links are read-only in Compare.')
+        current = read_text_document(self.path)
+        if current.reason:
+            raise OSError(current.reason)
+        if current.digest != self.digest:
+            raise OSError('The file changed on disk. Reopen it before editing; your text has not been discarded.')
+        normalized = text.replace('\r\n', '\n').replace('\r', '\n')
+        data = self.bom + normalized.replace('\n', self.ending).encode(self.encoding, errors='strict')
+        if len(data) > TEXT_EDIT_LIMIT:
+            raise OSError('The edited file exceeds the 2 MiB text limit. Your draft has not been discarded.')
+        mode = stat.S_IMODE(self.path.stat().st_mode)
+        # Same-directory replacement avoids a partially written original on an
+        # interrupted save. Refuse hard links: replacement would split the link.
+        if self.path.stat().st_nlink > 1:
+            raise OSError('Hard-linked files are read-only in Compare.')
+        fd, name = tempfile.mkstemp(prefix='.pfc-edit-', dir=self.path.parent)
+        try:
+            with os.fdopen(fd, 'wb') as stream:
+                stream.write(data)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.chmod(name, mode)
+            if read_text_document(self.path).digest != self.digest:
+                raise OSError('The file changed during save. No overwrite was performed.')
+            if os.name == 'nt':
+                import ctypes
+                from ctypes import wintypes
+                replace = ctypes.WinDLL('kernel32', use_last_error=True).ReplaceFileW
+                replace.argtypes = [wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.LPCWSTR,
+                                    wintypes.DWORD, ctypes.c_void_p, ctypes.c_void_p]
+                replace.restype = wintypes.BOOL
+                # Unlike a plain rename, preserve Windows ACLs/streams. Never
+                # opt into IGNORE_ACL_ERRORS on a failed metadata merge.
+                if not replace(str(self.path.absolute()), name, None, 0, None, None):
+                    raise ctypes.WinError(ctypes.get_last_error())
+            else:
+                import shutil
+                shutil.copystat(self.path, name)
+                os.utime(name, None)
+                os.replace(name, self.path)
+        finally:
+            if os.path.exists(name):
+                os.unlink(name)
+        self.text = normalized
+        self.digest = hashlib.sha256(data).hexdigest()
+
+
+def read_text_document(path):
+    path = Path(path)
+    info = path.stat()
+    if not stat.S_ISREG(info.st_mode):
+        raise OSError('Text Compare requires an ordinary file.')
+    with path.open('rb') as stream:
+        data = stream.read(TEXT_EDIT_LIMIT + 1)
+    if len(data) > TEXT_EDIT_LIMIT:
+        raise OSError('Text Compare is limited to 2 MiB per file. Use folder content comparison for larger files.')
+    encoding, bom, reason = 'utf-8', b'', ''
+    for marker, codec in ((codecs.BOM_UTF32_LE, 'utf-32-le'), (codecs.BOM_UTF32_BE, 'utf-32-be'),
+                          (codecs.BOM_UTF8, 'utf-8'), (codecs.BOM_UTF16_LE, 'utf-16-le'),
+                          (codecs.BOM_UTF16_BE, 'utf-16-be')):
+        if data.startswith(marker):
+            encoding, bom = codec, marker
+            break
+    try:
+        text = data[len(bom):].decode(encoding, errors='strict')
+    except UnicodeDecodeError:
+        text = data[len(bom):].decode(encoding, errors='replace')
+        reason = 'Unknown or invalid encoding; no automatic conversion'
+    if '\x00' in text:
+        reason = 'Binary data or encoding without a BOM'
+    crlf = text.count('\r\n')
+    kinds = ([ '\r\n' ] if crlf else []) + (['\n'] if text.count('\n') > crlf else []) + (
+        ['\r'] if text.count('\r') > crlf else [])
+    ending = kinds[0] if len(kinds) == 1 else ('\n' if not kinds else '')
+    if not ending:
+        reason = reason or 'Mixed line endings; no automatic conversion'
+    if path.is_symlink():
+        reason = 'Symbolic link'
+    elif info.st_nlink > 1:
+        reason = 'Hard-linked file'
+    elif not info.st_mode & 0o222 or getattr(info, 'st_file_attributes', 0) & 1:
+        reason = 'Read-only file'
+    return TextDocument(path, text.replace('\r\n', '\n').replace('\r', '\n'), encoding, bom,
+                        ending, hashlib.sha256(data).hexdigest(), reason)
+
+
 import csv
 import difflib
 import fnmatch
@@ -6172,7 +6943,7 @@ import unicodedata
 from datetime import datetime
 from pathlib import Path
 import tkinter as tk
-from tkinter import font as tkfont, messagebox, ttk
+from tkinter import font as tkfont, messagebox, ttk, filedialog, simpledialog
 
 
 
@@ -6181,6 +6952,33 @@ TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css",
                  ".cpp", ".hpp", ".java", ".csv", ".tsv"}
 TABLE_SUFFIXES = {".csv", ".tsv"}
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
+
+
+def compact_compare_font(widget):
+    root = widget._root()
+    if not hasattr(root, '_compare_chrome_font'):
+        root._compare_chrome_font = tkfont.Font(root)
+    base = tkfont.nametofont('TkDefaultFont', root=root)
+    font = root._compare_chrome_font
+    font.configure(family=base.actual('family'), size=-min(24, abs(int(base.cget('size')))))
+    return font
+
+
+def style_compare_chrome(widget):
+    """Bound controls, not document text, when extreme zoom meets a small window."""
+    font = compact_compare_font(widget)
+    style = ttk.Style(widget)
+    kinds = ('TButton', 'TMenubutton', 'TEntry', 'TLabel')
+    for kind in kinds: style.configure('PFCCompareChrome.'+kind, font=font)
+    pending = [widget]
+    while pending:
+        child = pending.pop(); pending.extend(child.winfo_children())
+        kind = child.winfo_class()
+        if kind in kinds:
+            child.configure(style='PFCCompareChrome.'+kind)
+            if kind in ('TLabel', 'TEntry'): child.configure(font=font)
+        elif isinstance(child, tk.Menu): child.configure(font=font)
+    return font
 
 
 def is_compare_archive(path: Path) -> bool:
@@ -6221,7 +7019,8 @@ def detect_compare_type(left: Path, right: Path) -> str:
         return "Text"
     try:
         for path in (left, right):
-            sample = path.read_bytes()[:4096]
+            with path.open('rb') as stream:
+                sample = stream.read(4096)
             if b"\0" in sample:
                 return "Binary"
             sample.decode("utf-8")
@@ -6230,10 +7029,11 @@ def detect_compare_type(left: Path, right: Path) -> str:
         return "Binary"
 
 
-def file_hash(path: Path) -> str:
+def file_hash(path: Path, cancelled=lambda: False) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
+            if cancelled(): raise OSError('Comparison cancelled')
             digest.update(block)
     return digest.hexdigest()
 
@@ -6270,9 +7070,21 @@ def text_files_equivalent(left: Path, right: Path) -> bool:
 
 def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int | None, str]], list[int]]:
     a, b = left.splitlines(), right.splitlines()
+    if max(len(a), len(b)) > 20000:
+        raise OSError('Text Compare is limited to 20,000 lines per file.')
     rows: list[tuple[int | None, str, int | None, str]] = []
     differences: list[int] = []
-    matcher = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    # Repetitive generated files must not turn quadratic matching into a GUI
+    # freeze. Large documents retain an honest, positional comparison fallback.
+    if max(len(a), len(b)) > 4000:
+        for index in range(max(len(a), len(b))):
+            x, y = a[index] if index < len(a) else '', b[index] if index < len(b) else ''
+            rows.append((index + 1 if index < len(a) else None, x,
+                         index + 1 if index < len(b) else None, y))
+            if x != y or (index < len(a)) != (index < len(b)):
+                differences.append(index + 1)
+        return rows, differences
+    matcher = difflib.SequenceMatcher(None, a, b, autojunk=True)
     for tag, a0, a1, b0, b1 in matcher.get_opcodes():
         length = max(a1 - a0, b1 - b0)
         for offset in range(length):
@@ -6332,7 +7144,7 @@ class DifferenceMap(tk.Canvas):
         self.redraw()
 
     def apply_scale(self, scale):
-        self.configure(width=max(38, round(38 * scale)))
+        self.configure(width=min(64, max(38, round(38 * scale))))
 
     def set_viewport(self, first, last):
         self.viewport = (max(0.0, float(first)), min(1.0, float(last)))
@@ -6396,6 +7208,7 @@ class SideBySideText(ttk.Frame):
         self.left_title, self.right_title = str(left_title), str(right_title)
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
         diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
+        self.diff_row = diff_row
         self.status_factory = status_factory or (lambda: status_text)
         self.previous_button = ttk.Button(diff_row, text=f"F7 {tr('Diff <<')}", command=self.previous)
         self.previous_button.pack(side="left")
@@ -6506,6 +7319,7 @@ class SideBySideText(ttk.Frame):
                              insertbackground=palette["text"],
                              selectbackground=palette["selection"], selectforeground="#ffffff")
             widget.tag_configure("diff", background=palette["diff"], foreground=palette["text"])
+            widget.tag_configure("inline_diff", background=palette["current_diff"], foreground="#ffffff")
             widget.tag_configure("current", background=palette["current_diff"], foreground="#ffffff")
             widget.tag_configure("match", background=palette["match"], foreground=palette["text"])
             widget.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
@@ -6524,6 +7338,7 @@ class SideBySideText(ttk.Frame):
                             list(self.all_differences))
         self.visible_rows = visible_rows
         self.diff_index = -1
+        difference_set = set(self.differences)
         for widget, number_widget, lines in (
                 (self.left, self.left_numbers, self.all_left_lines),
                 (self.right, self.right_numbers, self.all_right_lines)):
@@ -6533,14 +7348,36 @@ class SideBySideText(ttk.Frame):
                 item = lines[source_row - 1]
                 source_number, line = item if isinstance(item, tuple) else (source_row, item)
                 number_text = "" if source_number is None else str(source_number)
-                tag = "diff" if output_row in self.differences else ""
+                tag = "diff" if output_row in difference_set else ""
                 number_widget.insert("end", f"{number_text:>5}\n", tag)
                 widget.insert("end", f"{line}\n", tag)
             widget.configure(state="normal" if self.editable else "disabled")
             number_widget.configure(state="disabled")
         self.difference_map.set_rows(self.differences, len(visible_rows))
+        self._highlight_inline()
         self._build_view_menu()
         self.find_all()
+
+    def _highlight_inline(self):
+        # Tag the changed characters, with strict per-line and total budgets.
+        # No polling/repaint loop: tags are produced only when content changes.
+        budget = 100000
+        difference_set = set(self.all_differences)
+        for output_row, source_row in enumerate(self.visible_rows, 1):
+            if source_row not in difference_set:
+                continue
+            left, right = self.all_left_lines[source_row - 1], self.all_right_lines[source_row - 1]
+            a = left[1] if isinstance(left, tuple) else left
+            b = right[1] if isinstance(right, tuple) else right
+            cost = len(a) + len(b)
+            if not a or not b or max(len(a), len(b)) > 2000 or cost > budget:
+                continue
+            budget -= cost
+            for tag, a0, a1, b0, b1 in difflib.SequenceMatcher(None, a, b, autojunk=True).get_opcodes():
+                if tag != 'equal':
+                    for widget, start, end in ((self.left, a0, a1), (self.right, b0, b1)):
+                        if end > start:
+                            widget.tag_add('inline_diff', f'{output_row}.{start}', f'{output_row}.{end}')
 
     def _save(self, widget, callback):
         if callback is None:
@@ -6732,6 +7569,64 @@ class SideBySideText(ttk.Frame):
         self.diff_status.configure(text=f"{self.diff_index + 1}/{len(self.differences)}")
 
 
+class CompareTextEditor(tk.Toplevel):
+    """Edit source, never synthetic blank rows from an aligned comparison."""
+    def __init__(self, owner, document, on_saved):
+        super().__init__(owner)
+        self.document, self.on_saved = document, on_saved
+        self.title(f'{tr("Edit")}: {document.path.name}')
+        self.geometry('920x600'); self.minsize(480, 320)
+        self.transient(owner); self.protocol('WM_DELETE_WINDOW', self.close)
+        palette = getattr(owner, 'palette', color_scheme('light'))
+        bar = ttk.Frame(self, padding=6); bar.pack(fill='x')
+        ttk.Button(bar, text=tr('Save') + '  Ctrl+S', command=self.save).pack(side='right')
+        ttk.Label(bar, text=document.description, anchor='w').pack(side='left', fill='x', expand=True)
+        self.text = tk.Text(self, wrap='none', undo=True, font='TkFixedFont', padx=8, pady=6,
+                            background=palette['content'], foreground=palette['text'],
+                            insertbackground=palette['text'])
+        scroll = ttk.Scrollbar(self, command=self.text.yview)
+        scroll.pack(side='right', fill='y'); self.text.pack(fill='both', expand=True)
+        self.text.configure(yscrollcommand=scroll.set)
+        horizontal = ttk.Scrollbar(self, orient='horizontal', command=self.text.xview)
+        horizontal.pack(fill='x'); self.text.configure(xscrollcommand=horizontal.set)
+        self.text.insert('1.0', document.text); self.text.edit_reset(); self.text.edit_modified(False)
+        self.text.bind('<<Modified>>', self._modified)
+        self.bind('<Control-s>', lambda e: self.save())
+        self.bind('<Escape>', lambda e: self.close())
+        # Native Text bindings run first, then stop Commander bind_all actions.
+        self.bind('<KeyPress>', lambda e: 'break')
+        self.owner = owner
+        if not hasattr(owner, '_editors'): owner._editors = set()
+        owner._editors.add(self)
+        self.text.focus_set(); self.grab_set()
+
+    def _modified(self, _event=None):
+        self.title(f'{"* " if self.text.edit_modified() else ""}{tr("Edit")}: {self.document.path.name}')
+
+    def save(self):
+        try:
+            self.document.save(self.text.get('1.0', 'end-1c'))
+        except (OSError, UnicodeError) as exc:
+            messagebox.showerror(tr('Save failed'), str(exc), parent=self)
+            return 'break'
+        self.text.edit_modified(False)
+        try: self.on_saved()
+        except OSError as exc:
+            messagebox.showwarning(tr('Compare'), tr('Saved, but comparison could not refresh')+':\n'+str(exc), parent=self)
+        return 'break'
+
+    def close(self):
+        if self.text.edit_modified():
+            answer = messagebox.askyesnocancel(tr('Save'), tr('Save changes before closing?'), parent=self)
+            if answer is None: return False
+            if answer:
+                self.save()
+                if self.text.edit_modified(): return False
+        self.owner._editors.discard(self)
+        self.grab_release(); self.destroy()
+        return True
+
+
 class TextCompare(ttk.Frame):
     def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
                  left_title=None, right_title=None):
@@ -6739,39 +7634,66 @@ class TextCompare(ttk.Frame):
         self.left_path, self.right_path = left, right
         self.left_title, self.right_title = left_title or left, right_title or right
         self.marker_position, self.marker_changed = marker_position, marker_changed
+        self.read_only_sides = set()
         self._load()
 
     def _load(self):
-        a = self.left_path.read_text(encoding="utf-8", errors="replace")
-        b = self.right_path.read_text(encoding="utf-8", errors="replace")
-        self._left_ending = "\r\n" if "\r\n" in a else "\n"
-        self._right_ending = "\r\n" if "\r\n" in b else "\n"
-        self._left_final_newline = a.endswith(("\n", "\r"))
-        self._right_final_newline = b.endswith(("\n", "\r"))
+        self.left_document = read_text_document(self.left_path)
+        self.right_document = read_text_document(self.right_path)
+        a, b = self.left_document.text, self.right_document.text
         rows, differences = aligned_text(a, b)
+        detail = ' · ' + tr('Large document: positional line comparison') if max(len(a.splitlines()), len(b.splitlines())) > 4000 else ''
         self.view = SideBySideText(
             self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
-            status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count),
+            status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count) + detail,
             left_title=self.left_title, right_title=self.right_title,
             marker_position=self.marker_position,
-            marker_changed=self.marker_changed, editable=True,
-            save_left=self._save_left, save_right=self._save_right)
+            marker_changed=self.marker_changed)
+        self.document_controls = {}
+        for side, document, frame in (('Left', self.left_document, self.view.left_frame),
+                                       ('Right', self.right_document, self.view.right_frame)):
+            info = ttk.Frame(frame); info.grid(row=2, column=0, columnspan=2, sticky='ew')
+            edit = ttk.Button(info, text=tr('Edit ' + side), width=10,
+                              command=lambda side=side: self.edit(side))
+            edit.pack(side='right')
+            if document.reason: edit.state(['disabled'])
+            label = ttk.Label(info, text=document.description, anchor='w')
+            label.pack(side='left', fill='x', expand=True)
+            ToolTip(label, document.description)
+            self.document_controls[side] = (edit, label)
         self.view.pack(fill="both", expand=True)
 
-    def _save_left(self, content: str) -> None:
-        self._save(self.left_path, content, self._left_ending, self._left_final_newline)
+    def edit(self, side):
+        document = self.left_document if side == 'Left' else self.right_document
+        if document.reason or side in self.read_only_sides: return
+        CompareTextEditor(self.winfo_toplevel(), document, self.reload_content)
 
-    def _save_right(self, content: str) -> None:
-        self._save(self.right_path, content, self._right_ending, self._right_final_newline)
+    def set_read_only(self, left=False, right=False):
+        self.read_only_sides = {side for side, blocked in (('Left', left), ('Right', right)) if blocked}
+        for side in self.read_only_sides:
+            button, label = self.document_controls[side]
+            button.state(['disabled'])
+            label.configure(text=tr('Archive content is read-only'))
 
-    def _save(self, path: Path, content: str, ending: str, final_newline: bool) -> None:
-        normalized = content.replace("\r\n", "\n").replace("\r", "\n")
-        result = normalized.replace("\n", ending)
-        if final_newline and not result.endswith(ending):
-            result += ending
-        path.write_text(result, encoding="utf-8")
-        self.view.destroy()
-        self._load()
+    def reload_content(self):
+        position = self.view.left.yview()[0]
+        # Keep widgets/focus/geometry intact rather than destroying the tab.
+        self.left_document = read_text_document(self.left_path)
+        self.right_document = read_text_document(self.right_path)
+        rows, differences = aligned_text(self.left_document.text, self.right_document.text)
+        self.view.all_left_lines = [(r[0], r[1]) for r in rows]
+        self.view.all_right_lines = [(r[2], r[3]) for r in rows]
+        self.view.all_differences = differences
+        large = max(len(self.left_document.text.splitlines()), len(self.right_document.text.splitlines())) > 4000
+        self.view.status_factory = lambda: tr('{count} different line(s)', count=len(differences)) + (
+            ' · '+tr('Large document: positional line comparison') if large else '')
+        for side, document in (('Left', self.left_document), ('Right', self.right_document)):
+            edit, label = self.document_controls[side]
+            edit.state(['disabled'] if document.reason or side in self.read_only_sides else ['!disabled'])
+            label.configure(text=document.description)
+        self.set_read_only('Left' in self.read_only_sides, 'Right' in self.read_only_sides)
+        self.view.diff_status.configure(text=self.view.status_factory())
+        self.view.populate(); self.view.left.yview_moveto(position)
 
     def apply_language(self, old_language: str) -> None:
         self.view.apply_language(old_language)
@@ -6786,7 +7708,8 @@ class BinaryCompare(ttk.Frame):
     def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
                  left_title=None, right_title=None):
         super().__init__(master)
-        a, b = left.read_bytes()[:self.LIMIT], right.read_bytes()[:self.LIMIT]
+        with left.open('rb') as stream: a = stream.read(self.LIMIT)
+        with right.open('rb') as stream: b = stream.read(self.LIMIT)
         length = max(len(a), len(b)); different_offsets = []
         left_lines, right_lines, diff_lines = [], [], []
         for offset in range(0, length, 16):
@@ -6800,11 +7723,13 @@ class BinaryCompare(ttk.Frame):
                 text = "".join(chr(byte) if 32 <= byte < 127 else "." for byte in chunk)
                 return f"{offset:08X}  {hexdump:<47}  {text}"
             left_lines.append(render(ca)); right_lines.append(render(cb))
-        identical = file_hash(left) == file_hash(right)
+        complete = max(left.stat().st_size, right.stat().st_size) <= self.LIMIT
+        identical = a == b if complete else None
         first_offset = f"0x{different_offsets[0]:X}" if different_offsets else None
         status_factory = lambda: tr(
-            "SHA-256: {result}; first offset: {offset}",
-            result=tr("identical") if identical else tr("different"),
+            "Displayed bytes: {result}; first offset: {offset}",
+            result=(tr('Preview only (256 KiB) — full equality not checked') if identical is None else
+                    tr("identical") if identical else tr("different")),
             offset=first_offset or tr("none"))
         self.view = SideBySideText(self, left_lines, right_lines, diff_lines,
                                    status_factory=status_factory,
@@ -6820,17 +7745,20 @@ class BinaryCompare(ttk.Frame):
 
 
 def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=False,
-                ignore_invisible_text=False, cancelled=lambda: False):
+                ignore_invisible_text=False, cancelled=lambda: False, excludes=''):
     patterns = [item.strip() for item in masks.split(";") if item.strip()] or ["*"]
     def collect(root):
         if recursive:
+            def walk_error(error): raise error
             def paths():
                 for folder, directories, filenames in os.walk(root, topdown=True,
-                                                                onerror=lambda _error: None):
-                    directories[:] = [name for name in directories
-                                      if name.casefold() not in {".git", ".svn"}]
+                                                                onerror=walk_error):
                     base = Path(folder)
-                    yield from (base / name for name in directories)
+                    if cancelled(): return
+                    visible = [name for name in directories
+                               if not compare_excluded((base / name).relative_to(root), excludes)]
+                    directories[:] = [name for name in visible if not compare_path_blocked(base / name)]
+                    yield from (base / name for name in visible)
                     yield from (base / name for name in filenames)
             iterator = paths()
         else:
@@ -6843,12 +7771,14 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
                 relative_path = path.relative_to(root)
             except ValueError:
                 continue
-            if any(part.casefold() in {".git", ".svn"} for part in relative_path.parts):
+            if compare_excluded(relative_path, excludes):
                 continue
             relative = str(relative_path)
             if path.is_dir() or any(fnmatch.fnmatch(path.name.casefold(), pattern.casefold())
                                     for pattern in patterns):
-                result[relative.casefold()] = path
+                result[relative.casefold() if os.name == 'nt' else relative] = path
+                if len(result) > 100000:
+                    raise OSError('Compare is limited to 100,000 entries per side. Choose a smaller folder or more exclusions.')
         return result
     left_items, right_items = collect(left), collect(right)
     for key in sorted(left_items.keys() | right_items.keys()):
@@ -6857,7 +7787,8 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
         a, b = left_items.get(key), right_items.get(key)
         display = str((a.relative_to(left) if a else b.relative_to(right)))
         try:
-            if a is None: status = "Right only"
+            if any(compare_path_blocked(p) for p in (a, b) if p is not None): status = 'Unknown'
+            elif a is None: status = "Right only"
             elif b is None: status = "Left only"
             elif a.is_dir() != b.is_dir(): status = "Type mismatch"
             elif a.is_dir(): status = "Identical"
@@ -6867,7 +7798,7 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
                     status = "Identical"
                 elif a_stat.st_size != b_stat.st_size:
                     status = "Different"
-                elif by_content and file_hash(a) == file_hash(b):
+                elif by_content and file_hash(a, cancelled) == file_hash(b, cancelled):
                     status = "Identical"
                 elif by_content:
                     status = "Left newer" if a_stat.st_mtime_ns > b_stat.st_mtime_ns else (
@@ -7223,14 +8154,21 @@ class _FolderCompareLogic(ttk.Frame):
         self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
         recursive, masks, by_content = self.recursive_var.get(), self.mask_var.get(), self.content_var.get()
         text_equivalent = self.text_equivalent_var.get()
+        excludes = getattr(self, 'exclude_var', None)
+        excludes = excludes.get() if excludes is not None else ''
+        self._scan_rules = dict(recursive=recursive, masks=masks, by_content=by_content,
+                                ignore_invisible_text=text_equivalent, excludes=excludes)
+        self._scan_complete = False
+        left_root, right_root = self.left_root, self.right_root
         cancel = self._cancel_event
+        results = self._scan_queue  # Worker must never own/finalize Tk widgets.
         def worker():
             try:
-                rows = list(folder_rows(self.left_root, self.right_root, recursive, masks, by_content,
-                                        text_equivalent, cancel.is_set))
-                self._scan_queue.put((cancel, rows, None))
+                rows = list(folder_rows(left_root, right_root, recursive, masks, by_content,
+                                        text_equivalent, cancel.is_set, excludes))
+                results.put((cancel, rows, None))
             except OSError as exc:
-                self._scan_queue.put((cancel, [], str(exc)))
+                results.put((cancel, [], str(exc)))
         threading.Thread(target=worker, daemon=True).start()
         self.after(60, self._poll_scan)
         return "break"
@@ -7253,6 +8191,7 @@ class _FolderCompareLogic(ttk.Frame):
             messagebox.showerror(tr("Folder Compare"), error, parent=self)
             return
         self.rows, self.actions = rows, {}
+        self._scan_complete = True
         different = sum(status != "Identical" for status, *_rest in rows)
         self.scan_status.configure(text=tr("{count} item(s), {different} different",
                                            count=len(rows), different=different))
@@ -7292,16 +8231,17 @@ class _FolderCompareLogic(ttk.Frame):
         action_label = {"right": "→", "left": "←", "skip": tr("Skip")}
         allowed = self.DIFF_FILTERS.get(self.view_mode_var.get())
         initially_visible = list(self.rows) if allowed is None else [row for row in self.rows if row[0] in allowed]
-        rows_by_key = {row[1].casefold(): row for row in self.rows}
-        needed = {row[1].casefold() for row in initially_visible}
+        path_key = lambda value: os.path.normcase(str(value))
+        rows_by_key = {path_key(row[1]): row for row in self.rows}
+        needed = {path_key(row[1]) for row in initially_visible}
         for _status, relative, _left, _right in initially_visible:
             parent = Path(relative).parent
             while parent != Path("."):
-                key = str(parent).casefold()
+                key = path_key(parent)
                 if key in rows_by_key:
                     needed.add(key)
                 parent = parent.parent
-        visible = [row for row in self.rows if row[1].casefold() in needed]
+        visible = [row for row in self.rows if path_key(row[1]) in needed]
         if self.sort_column == "action":
             visible.sort(key=lambda row: self.actions.get(row[1], ""), reverse=self.sort_reverse)
         elif self.sort_column in {"left_detail", "right_detail"}:
@@ -7324,13 +8264,13 @@ class _FolderCompareLogic(ttk.Frame):
             tag = "left" if status in {"Left only", "Left newer"} else (
                 "right" if status in {"Right only", "Right newer"} else (
                     "identical" if status == "Identical" else "different"))
-            parent_key = str(Path(path).parent).casefold()
+            parent_key = path_key(Path(path).parent)
             parent_iid = item_ids.get(parent_key, "")
             iid = self.tree.insert(parent_iid, "end", text="", open=self._expand_state,
                 values=(action_label.get(self.actions.get(path), ""),
                 path if left is not None else "", self._detail(left), tr(status),
                 path if right is not None else "", self._detail(right)), tags=(tag,))
-            item_ids[path.casefold()] = iid
+            item_ids[path_key(path)] = iid
             self.item_paths[iid] = (left, right)
             self.item_keys[iid] = path
             if status != "Identical":
@@ -7369,25 +8309,18 @@ class _FolderCompareLogic(ttk.Frame):
         return "break"
 
     def _plans(self):
-        plans = []
-        by_key = {path: (left, right) for _status, path, left, right in self.rows}
-        for key, action in self.actions.items():
-            left, right = by_key.get(key, (None, None))
-            if action == "right" and left is not None:
-                plans.append((left, self.right_root / key))
-            elif action == "left" and right is not None:
-                plans.append((right, self.left_root / key))
-        plans.sort(key=lambda item: len(item[1].parts))
-        filtered = []
-        for source, target in plans:
-            if any(parent_source.is_dir() and parent_target in target.parents
-                   for parent_source, parent_target in filtered):
-                continue
-            filtered.append((source, target))
-        return filtered
+        return compare_sync_plans(self.rows, self.actions, self.left_root, self.right_root,
+                                   self.left_read_only, self.right_read_only)
 
     def dry_run(self):
-        plans = self._plans()
+        if (not getattr(self, '_scan_complete', False) or self._scanning or
+                (hasattr(self, 'scan_rules') and self.scan_rules() != self._scan_rules)):
+            messagebox.showinfo(tr('Safe Sync'), tr('Run Compare with the current rules before syncing.'), parent=self)
+            return 'break'
+        try: plans = self._plans()
+        except OSError as exc:
+            messagebox.showerror(tr('Safe Sync'), str(exc), parent=self)
+            return 'break'
         if not plans:
             messagebox.showinfo(tr("Safe Sync"), tr("Select rows and assign Copy → or ← Copy first."), parent=self)
             return "break"
@@ -7462,6 +8395,9 @@ class FolderCompare(_FolderCompareLogic):
         self.palette = getattr(master.winfo_toplevel(), "palette", color_scheme("light"))
         self._diff_icons = {}
         self.nested_details = {}
+        self._compact_details = False
+        self._full_details = {}
+        self._column_layout_spec = None
 
         self.session_tabs = ChamferNotebook(self)
         self.session_tabs.pack(fill="both", expand=True)
@@ -7477,64 +8413,69 @@ class FolderCompare(_FolderCompareLogic):
         bar = ttk.Frame(self.summary, padding=(3, 3, 3, 1)); bar.pack(fill="x")
         ttk.Label(bar, text=tr("Mask:")).pack(side="left", padx=(0, 3))
         self.mask_var = tk.StringVar(value="*")
-        ttk.Entry(bar, textvariable=self.mask_var, width=32).pack(side="left", padx=(0, 6))
-        ttk.Button(bar, text=tr("Compare"), command=self.start_scan).pack(side="left", padx=(0, 3))
-        ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan).pack(side="left", padx=(0, 8))
-        ttk.Separator(bar, orient="vertical").pack(side="left", fill="y", padx=(0, 7))
-        self.recursive_button = ttk.Button(bar, command=lambda: self._toggle_option("recursive"))
-        self.recursive_button.pack(side="left", padx=(0, 3))
-        self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
-        self.content_button.pack(side="left", padx=(0, 3))
-        self.text_equivalent_button = ttk.Button(
-            bar, command=lambda: self._toggle_option("text_equivalent"))
-        self.text_equivalent_button.pack(side="left")
-        self.text_equivalent_button._pfc_tooltip = ToolTip(
-            self.text_equivalent_button,
-            lambda: tr("Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files."))
+        self.exclude_var = tk.StringVar(value=DEFAULT_COMPARE_EXCLUDES)
+        self.rules_button = self.exclude_button = ttk.Menubutton(bar, text=tr('Rules'), width=7)
+        self.rules_menu = tk.Menu(self.rules_button, tearoff=False, font='TkMenuFont')
+        self.rules_button.configure(menu=self.rules_menu); self.rules_button.pack(side='right', padx=(4,0))
+        for label, variable in (('Recursive',self.recursive_var),('By content',self.content_var),
+                                 ('Text equivalent',self.text_equivalent_var)):
+            self.rules_menu.add_checkbutton(label=tr(label),variable=variable,
+                command=lambda:self.scan_status.configure(text=tr('Rules changed — press Compare')))
+        self.rules_menu.add_separator()
+        self.rules_menu.add_command(label=tr('Exclusions')+'…',command=self.edit_exclusions)
+        ToolTip(self.rules_button, lambda: tr('Excluded')+': '+self.exclude_var.get())
+        ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan, width=7).pack(side="right", padx=(3, 0))
+        ttk.Button(bar, text=tr("Compare"), command=self.start_scan, width=8).pack(side="right", padx=(3, 0))
+        ttk.Entry(bar, textvariable=self.mask_var, width=10).pack(side="left", fill='x', expand=True, padx=(0, 6))
 
         self.body = ttk.Frame(self.summary)
         self.center_header = ttk.Frame(self.body)
         options = ttk.Frame(self.summary, padding=(3, 1)); options.pack(fill="x")
-        self.diff_button = ttk.Menubutton(self.center_header, text=tr("Diffs"))
+        self.diff_button = ttk.Menubutton(options, text=tr("Diffs"), width=6)
         self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
         self.diff_button.configure(menu=self.diff_menu, compound="left")
-        self.diff_button.pack(side="top", fill="x")
+        self.diff_button.pack(side="left", padx=(0,4))
         self._build_diff_menu()
-        ttk.Button(options, text=tr("Expand All"), command=self.expand_all).pack(side="left", padx=(0, 3))
-        ttk.Button(options, text=tr("Collapse All"), command=self.collapse_all).pack(side="left", padx=(0, 3))
-        ttk.Button(options, text=tr("Set Base Folder"), command=self.set_base_folder).pack(side="left", padx=(0, 3))
-        ttk.Separator(options, orient="vertical").pack(side="left", fill="y", padx=7)
+        folder_button = ttk.Menubutton(options, text=tr('Folders'), width=8)
+        self.folder_menu = folder_menu = tk.Menu(folder_button,tearoff=False,font='TkMenuFont')
+        for label, callback in (('Expand All',self.expand_all),('Collapse All',self.collapse_all),
+                                 ('Set Base Folder',self.set_base_folder),('Swap Sides',self.swap_sides)):
+            folder_menu.add_command(label=tr(label),command=callback)
+        folder_button.configure(menu=folder_menu);folder_button.pack(side='left',padx=(0,4))
         self.marker_button = ttk.Menubutton(options)
         self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
         self.marker_button.configure(menu=self.marker_menu); self.marker_button.pack(side="left")
         self._build_marker_menu(); self._update_marker_button()
 
         navigation = ttk.Frame(self.summary, padding=(3, 1)); navigation.pack(fill="x")
-        self.previous_button = ttk.Button(navigation, text=f"F7 {tr('Diff <<')}", command=self.previous)
+        self.previous_button = ttk.Button(navigation, text='F7 ◀', width=5, command=self.previous)
         self.previous_button.pack(side="left", padx=(0, 3))
-        self.next_button = ttk.Button(navigation, text=f"F8 {tr('Diff >>')}", command=self.next)
+        self.next_button = ttk.Button(navigation, text='F8 ▶', width=5, command=self.next)
         self.next_button.pack(side="left", padx=(0, 3))
-        self.diff_status = ttk.Label(navigation, width=18, anchor="w")
-        self.diff_status.pack(side="left", padx=(0, 8))
+        ToolTip(self.previous_button, lambda: tr('Diff <<')+' · '+self.diff_status.cget('text'))
+        ToolTip(self.next_button, lambda: tr('Diff >>')+' · '+self.diff_status.cget('text'))
         self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
         ttk.Label(navigation, text=tr("Find:")).pack(side="left", padx=(0, 3))
-        self.search = ttk.Entry(navigation, textvariable=self.search_var, width=32)
-        self.search.pack(side="left", padx=(0, 4))
+        self.search = ttk.Entry(navigation, textvariable=self.search_var, width=10)
         self.search.bind("<Return>", lambda _event: self.find_next())
         self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
-        ttk.Button(navigation, text=tr("Find Prev"), command=self.find_previous).pack(side="left", padx=(0, 3))
-        ttk.Button(navigation, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(0, 3))
-        self.find_status = ttk.Label(navigation, anchor="w")
-        self.find_status.pack(side="left", padx=(2, 6))
-        self.case_button = ttk.Button(navigation, command=lambda: self._toggle_option("case"))
-        self.case_button.pack(side="left")
+        self.case_button = ttk.Button(navigation, text='Aa', width=3, command=lambda: self._toggle_option("case"))
+        self.case_button.pack(side='right')
+        ToolTip(self.case_button, tr('Case sensitive'))
+        for glyph,label,callback in (('▶','Find Next',self.find_next),('◀','Find Prev',self.find_previous)):
+            button = ttk.Button(navigation,text=glyph,width=2,command=callback)
+            button.pack(side='right',padx=(0,3));ToolTip(button,tr(label))
+        self.search.pack(side='left',fill='x',expand=True,padx=(0,4))
         self._update_toggle_buttons()
 
         status_row = ttk.Frame(self.summary, padding=(5, 3)); status_row.pack(side="bottom", fill="x")
+        sync_button = ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run)
+        sync_button.pack(side="right")
+        ToolTip(sync_button,tr('Scanned files only — no automatic delete'))
         self.scan_status = ttk.Label(status_row, text=tr("Ready"), anchor="w")
         self.scan_status.pack(side="left")
-        ttk.Label(status_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(12, 0))
-        ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run).pack(side="right")
+        self.diff_status = ttk.Label(options, anchor='e');self.diff_status.pack(side='right')
+        self.find_status = ttk.Label(status_row,anchor='w');self.find_status.pack(side='left',padx=8)
 
         self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
@@ -7549,6 +8490,9 @@ class FolderCompare(_FolderCompareLogic):
                                     cursor="hand2", pady=3)
         self.map_header._pfc_tooltip = ToolTip(self.map_header, tr("Swap Sides"))
         self.map_header.pack(side="top", fill="x")
+        for side, label in (('left', self.left_path_label), ('right', self.right_path_label)):
+            label.bind('<Configure>', lambda e: self._update_path_labels())
+            ToolTip(label, lambda side=side: str(self._base_label(side)))
         self._update_path_labels()
         self.left_frame = ttk.Frame(self.body); self.right_frame = ttk.Frame(self.body)
         for frame in (self.left_frame, self.right_frame):
@@ -7592,6 +8536,9 @@ class FolderCompare(_FolderCompareLogic):
         self.difference_map = DifferenceMap(self.body, self._jump_to_row)
         self.center_divider = ttk.Separator(self.body, orient="vertical")
         self.scroll = ttk.Scrollbar(self.body, orient="vertical", command=self._scroll)
+        self.body.bind('<Configure>', lambda e: self._responsive_columns())
+        for tree in self._trees():
+            tree.bind('<Configure>', lambda e: self._responsive_columns())
         self._layout_marker()
         self.apply_scale(1.0)
         self.apply_color_scheme(getattr(master.winfo_toplevel(), "palette", color_scheme("light")))
@@ -7599,6 +8546,73 @@ class FolderCompare(_FolderCompareLogic):
 
     def _trees(self):
         return (self.left_tree, self.right_tree)
+
+    def _detail(self, path):
+        value = _FolderCompareLogic._detail(path)
+        self._full_details[path] = value
+        return value.split('  ')[0] if self._compact_details else value
+
+    def _responsive_columns(self):
+        width = min(tree.winfo_width() for tree in self._trees())
+        if width < 100: return
+        compact = width < round(600*self.scale)
+        spec = (width, self.scale, compact)
+        if spec == self._column_layout_spec: return
+        self._column_layout_spec = spec
+        changed = compact != self._compact_details
+        self._compact_details = compact
+        action = max(32, round(38*self.scale))
+        detail = min(round(205*self.scale), max(round(65*self.scale), round(width*.27))) if compact else round(205*self.scale)
+        for tree in self._trees():
+            tree.column('action', width=action, minwidth=action, stretch=False)
+            tree.column('detail', width=detail, minwidth=detail, stretch=False)
+            tree.column('#0', width=max(60,width-action-detail-3), minwidth=60, stretch=True)
+            tree.heading('action', text='↔' if compact else tr('Action'))
+            tree.heading('detail', text=tr('Size') if compact else f"{tr('Size')} / {tr('Modified')}")
+        if changed:
+            for iid, paths in self.item_paths.items():
+                for tree, path in zip(self._trees(), paths):
+                    value = self._full_details.get(path, '—')
+                    if tree.exists(iid): tree.set(iid,'detail',value.split('  ')[0] if compact else value)
+
+    def scan_rules(self):
+        return dict(recursive=self.recursive_var.get(), masks=self.mask_var.get(),
+                    by_content=self.content_var.get(), ignore_invisible_text=self.text_equivalent_var.get(),
+                    excludes=self.exclude_var.get())
+
+    def restore_rules(self, rules):
+        if not isinstance(rules, dict): raise ValueError('Invalid saved comparison rules.')
+        for key, variable in (('recursive', self.recursive_var), ('masks', self.mask_var),
+                              ('by_content', self.content_var), ('ignore_invisible_text', self.text_equivalent_var),
+                              ('excludes', self.exclude_var)):
+            value = rules.get(key)
+            if isinstance(value, bool if key in {'recursive', 'by_content', 'ignore_invisible_text'} else str):
+                variable.set(value)
+        self._update_toggle_buttons()
+        self.start_scan()
+
+    def edit_exclusions(self):
+        result = simpledialog.askstring(tr('Exclusions'),
+            tr('Semicolon-separated names or relative paths. Example: node_modules;.venv;build;*.tmp\n'
+               '.git/.svn are always excluded. Compare again to apply changes.'),
+            initialvalue=self.exclude_var.get(), parent=self)
+        if result is not None:
+            self.exclude_var.set(result[:2048])
+            self.scan_status.configure(text=tr('Rules changed — press Compare'))
+
+    def export_report(self):
+        if not getattr(self, '_scan_complete', False) or self._scanning or self.scan_rules() != self._scan_rules:
+            messagebox.showinfo(tr('Export report'), tr('Run Compare with the current rules before exporting.'), parent=self)
+            return
+        filename = filedialog.asksaveasfilename(parent=self, title=tr('Export report'),
+            defaultextension='.html', initialfile='pfc-comparison.html',
+            filetypes=[('HTML', '*.html'), ('Text', '*.txt')])
+        if not filename: return
+        try:
+            write_comparison_report(filename, self.rows, self._scan_rules)
+            self.scan_status.configure(text=tr('Report saved (relative paths only)'))
+        except OSError as exc:
+            messagebox.showerror(tr('Export report'), str(exc), parent=self)
 
     def _toggle_option(self, option):
         if option == "recursive":
@@ -7613,14 +8627,8 @@ class FolderCompare(_FolderCompareLogic):
         return "break"
 
     def _update_toggle_buttons(self):
-        self.recursive_button.configure(
-            text=f"{'✓' if self.recursive_var.get() else '–'} {tr('Recursive')}")
-        self.content_button.configure(
-            text=f"{'✓' if self.content_var.get() else '–'} {tr('By content')}")
-        self.text_equivalent_button.configure(
-            text=f"{'✓' if self.text_equivalent_var.get() else '–'} {tr('Text equivalent')}")
         self.case_button.configure(
-            text=f"{'✓' if self.case_var.get() else '–'} {tr('Case sensitive')}")
+            text=f"{'✓' if self.case_var.get() else ''}Aa")
 
     def _build_diff_menu(self):
         self.diff_menu.delete(0, "end")
@@ -7831,6 +8839,9 @@ class FolderCompare(_FolderCompareLogic):
         self.marker_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                                    activebackground=palette["menu_active"],
                                    activeforeground=palette["menu_active_text"])
+        for menu in (self.rules_menu, self.folder_menu):
+            menu.configure(background=palette['menu'], foreground=palette['menu_text'],
+                           activebackground=palette['menu_active'], activeforeground=palette['menu_active_text'])
         for details in self.nested_details.values():
             view = getattr(details["detail"], "view", details["detail"])
             handler = getattr(view, "apply_color_scheme", None)
@@ -7839,6 +8850,8 @@ class FolderCompare(_FolderCompareLogic):
 
     def apply_scale(self, scale: float):
         self.scale = scale
+        chrome = style_compare_chrome(self)
+        self.session_tabs._font_override = chrome
         self.session_tabs.redraw()
         style = ttk.Style(self)
         linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
@@ -7849,9 +8862,12 @@ class FolderCompare(_FolderCompareLogic):
             tree.column("#0", width=max(130, round(340 * scale)))
             tree.column("action", width=max(50, round(70 * scale)))
             tree.column("detail", width=max(110, round(205 * scale)))
+        self._column_layout_spec = None
+        self._responsive_columns()
         padding = max(3, round(3 * scale))
-        for label in (self.left_path_label, self.right_path_label): label.configure(padx=padding * 2, pady=padding)
-        self.map_header.configure(pady=padding); self.difference_map.apply_scale(scale)
+        for label in (self.left_path_label, self.right_path_label):
+            label.configure(padx=padding * 2, pady=padding, font=chrome)
+        self.map_header.configure(pady=padding, font=chrome); self.difference_map.apply_scale(scale)
         self._build_diff_menu()
         for details in self.nested_details.values():
             handler = getattr(details["detail"], "apply_scale", None)
@@ -7861,8 +8877,8 @@ class FolderCompare(_FolderCompareLogic):
     def apply_language(self, old_language: str):
         selected_keys = {self.item_keys.get(iid) for iid in self._selected_items()}
         retranslate_widgets(self, old_language)
-        self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
-        self.next_button.configure(text=f"F8 {tr('Diff >>')}")
+        self.previous_button.configure(text='F7 ◀')
+        self.next_button.configure(text='F8 ▶')
         self._update_path_labels(); self._build_diff_menu(); self._build_marker_menu()
         self._update_marker_button(); self._update_toggle_buttons(); self._update_headings(); self.populate()
         selected = [iid for iid in self._all_tree_items() if self.item_keys.get(iid) in selected_keys]
@@ -7884,11 +8900,13 @@ class FolderCompare(_FolderCompareLogic):
         action_mark = direction if self.sort_column == "action" else ""
         self.left_tree.heading("#0", text=tr("Name") + path_mark)
         self.right_tree.heading("#0", text=tr("Name") + path_mark)
-        self.left_tree.heading("action", text=tr("Action") + action_mark)
-        self.right_tree.heading("action", text=tr("Action") + action_mark)
-        self.left_tree.heading("detail", text=f"{tr('Size')} / {tr('Modified')}" +
+        action_name = '↔' if self._compact_details else tr('Action')
+        detail_name = tr('Size') if self._compact_details else f"{tr('Size')} / {tr('Modified')}"
+        self.left_tree.heading("action", text=action_name + action_mark)
+        self.right_tree.heading("action", text=action_name + action_mark)
+        self.left_tree.heading("detail", text=detail_name +
                                (direction if self.sort_column == "left_detail" else ""))
-        self.right_tree.heading("detail", text=f"{tr('Size')} / {tr('Modified')}" +
+        self.right_tree.heading("detail", text=detail_name +
                                 (direction if self.sort_column == "right_detail" else ""))
 
     def change_sort(self, column):
@@ -7905,15 +8923,16 @@ class FolderCompare(_FolderCompareLogic):
         action_label = {"right": "→", "left": "←", "skip": tr("Skip")}
         allowed = self.DIFF_FILTERS.get(self.view_mode_var.get())
         initially_visible = list(self.rows) if allowed is None else [row for row in self.rows if row[0] in allowed]
-        rows_by_key = {row[1].casefold(): row for row in self.rows}
-        needed = {row[1].casefold() for row in initially_visible}
+        path_key = lambda value: os.path.normcase(str(value))
+        rows_by_key = {path_key(row[1]): row for row in self.rows}
+        needed = {path_key(row[1]) for row in initially_visible}
         for _status, relative, _left, _right in initially_visible:
             parent = Path(relative).parent
             while parent != Path("."):
-                key = str(parent).casefold()
+                key = path_key(parent)
                 if key in rows_by_key: needed.add(key)
                 parent = parent.parent
-        visible = [row for row in self.rows if row[1].casefold() in needed]
+        visible = [row for row in self.rows if path_key(row[1]) in needed]
         if self.sort_column == "action":
             visible.sort(key=lambda row: self.actions.get(row[1], ""), reverse=self.sort_reverse)
         elif self.sort_column in {"left_detail", "right_detail"}:
@@ -7936,7 +8955,7 @@ class FolderCompare(_FolderCompareLogic):
                    "newer_left" if status == "Left newer" else
                    "newer_right" if status == "Right newer" else
                    "identical" if status == "Identical" else "different")
-            parent_iid = item_ids.get(str(Path(path).parent).casefold(), "")
+            parent_iid = item_ids.get(path_key(Path(path).parent), "")
             action = action_label.get(self.actions.get(path), "")
             self.left_tree.insert(parent_iid, "end", iid=iid, text=path if left is not None else "",
                                   open=self._expand_state,
@@ -7947,10 +8966,11 @@ class FolderCompare(_FolderCompareLogic):
                                    values=(self._detail(right),
                                            action if self.actions.get(path) in {"left", "skip"} else ""),
                                    tags=(tag,))
-            item_ids[path.casefold()] = iid; self.item_paths[iid] = (left, right); self.item_keys[iid] = path
+            item_ids[path_key(path)] = iid; self.item_paths[iid] = (left, right); self.item_keys[iid] = path
             if status != "Identical": self.difference_items.append(iid)
         ordered = list(self._all_tree_items())
-        difference_rows = [ordered.index(iid) + 1 for iid in self.difference_items if iid in ordered]
+        row_numbers = {iid: index+1 for index, iid in enumerate(ordered)}
+        difference_rows = [row_numbers[iid] for iid in self.difference_items if iid in row_numbers]
         self.difference_map.set_rows(difference_rows, len(ordered))
         self._update_difference_status(0); self.find_all()
 
@@ -8018,8 +9038,16 @@ class FolderCompare(_FolderCompareLogic):
             if action == "right" and left is not None and not self.right_read_only: self.actions[key] = action
             elif action == "left" and right is not None and not self.left_read_only: self.actions[key] = action
             elif action == "skip": self.actions[key] = action
-        self.populate(); self._select_items([iid for iid in self._all_tree_items()
-                                             if self.item_keys.get(iid) in selected_keys])
+        if self.sort_column == 'action':
+            self.populate(); self._select_items([iid for iid in self._all_tree_items()
+                                                 if self.item_keys.get(iid) in selected_keys])
+        else:
+            # Changing a copy direction is not a new scan. Keep row identity,
+            # expansion, selection and viewport instead of flashing both trees.
+            for iid in selected:
+                choice = self.actions.get(self.item_keys.get(iid))
+                self.left_tree.set(iid, 'action', '→' if choice == 'right' else tr('Skip') if choice == 'skip' else '')
+                self.right_tree.set(iid, 'action', '←' if choice == 'left' else tr('Skip') if choice == 'skip' else '')
         return "break"
 
     def set_base_folder(self):
@@ -8036,8 +9064,20 @@ class FolderCompare(_FolderCompareLogic):
         self._update_path_labels(); self.start_scan(); return "break"
 
     def _update_path_labels(self):
-        self.left_path_label.configure(text=f"{tr('Left')}: {self._base_label('left')}")
-        self.right_path_label.configure(text=f"{tr('Right')}: {self._base_label('right')}")
+        for side, label in (('left', self.left_path_label), ('right', self.right_path_label)):
+            prefix = tr(side.title())+': '
+            path = str(self._base_label(side))
+            font = tkfont.nametofont(str(label.cget('font')))
+            available = label.winfo_width()-2*int(label.cget('padx'))-4
+            if available > 30 and font.measure(prefix+path) > available:
+                low, high = 0, len(path)
+                while low < high:
+                    middle = (low+high+1)//2
+                    if font.measure(prefix+'…'+path[-middle:]) <= available: low = middle
+                    else: high = middle-1
+                path = '…'+path[-low:] if low else '…'
+            text = prefix+path
+            if label.cget('text') != text: label.configure(text=text)
 
     def _active_detail_view(self):
         selected = self.session_tabs.select()
@@ -8075,6 +9115,8 @@ class FolderCompare(_FolderCompareLogic):
         right_title = nested_source_label(self.right_label, relative)
         kind, detail = self.open_detail(
             host, left, right, left_title=left_title, right_title=right_title)
+        if type(detail) is TextCompare:
+            detail.set_read_only(self.left_read_only, self.right_read_only)
         detail.pack(fill="both", expand=True)
         install_button_tooltips(page)
         details = {
@@ -8141,8 +9183,9 @@ class TableCompare(TextCompare):
     def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
                  left_title=None, right_title=None):
         def rows(path):
+            import io
             delimiter = "\t" if path.suffix.casefold() == ".tsv" else ","
-            with path.open("r", encoding="utf-8-sig", errors="replace", newline="") as stream:
+            with io.StringIO(read_text_document(path).text, newline='') as stream:
                 return [" | ".join(row) for row in csv.reader(stream, delimiter=delimiter)]
         ttk.Frame.__init__(self, master)
         a, b = "\n".join(rows(left)), "\n".join(rows(right))
@@ -8172,6 +9215,15 @@ class CompareWindow(tk.Toplevel):
         self.title(tr("PFC Compare"))
         self.geometry(config.get("compare", "geometry", fallback="1400x850"))
         self.protocol("WM_DELETE_WINDOW", self.close)
+        session_bar = ttk.Frame(self, padding=(5, 3)); session_bar.pack(fill='x')
+        session_button = ttk.Menubutton(session_bar, text=tr('Session'))
+        session_menu = tk.Menu(session_button, tearoff=False, font='TkMenuFont')
+        session_menu.add_command(label=tr('Saved comparisons')+'…', command=self.saved_comparisons)
+        session_menu.add_command(label=tr('Export report')+'…', command=self.export_report)
+        session_menu.add_separator()
+        session_menu.add_command(label=tr('Close comparison'), command=self.close_active)
+        session_button.configure(menu=session_menu); session_button.pack(side='left')
+        ToolTip(session_button, tr('Named paths and rules · reopening never runs sync'))
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.notebook.set_theme(self.palette)
         self.configure(background=self.palette["window"])
@@ -8185,8 +9237,62 @@ class CompareWindow(tk.Toplevel):
         install_button_tooltips(self)
         self._schedule_refresh()
 
+    def current_comparison(self):
+        return self.nametowidget(self.notebook.select()) if self.notebook.tabs() else None
+
+    def capture_session(self):
+        frame = self.current_comparison()
+        if frame is None: raise ValueError(tr('Open a comparison first.'))
+        left, right, kind, signature = self.comparisons[frame]
+        data = {'left': str(left), 'right': str(right), 'kind': kind}
+        if isinstance(frame, FolderCompare):
+            data['rules'] = frame.scan_rules()
+            data['bases'] = [str(frame.left_root.relative_to(frame.left_base_root)),
+                             str(frame.right_root.relative_to(frame.right_base_root))]
+            data['view'] = frame.view_mode_var.get()
+        return data
+
+    def open_session(self, data):
+        left, right = Path(data['left']), Path(data['right'])
+        missing = [str(path) for path in (left, right) if not path.exists()]
+        if missing: raise OSError(tr('Saved path is unavailable')+':\n'+'\n'.join(missing))
+        kind = data.get('kind', 'Auto')
+        if kind not in {'Auto', 'Text', 'Table', 'Binary', 'Folder'}: kind = 'Auto'
+        bases = data.get('bases', ['.', '.'])
+        if not isinstance(bases, list) or len(bases) != 2 or any(
+                not isinstance(p, str) or Path(p).is_absolute() or '..' in Path(p).parts for p in bases):
+            raise ValueError('Invalid saved comparison base.')
+        frame = self.add(left, right, kind)
+        if isinstance(frame, FolderCompare):
+            a, b = frame.left_base_root / bases[0], frame.right_base_root / bases[1]
+            if not a.is_dir() or not b.is_dir():
+                frame.scan_status.configure(text=tr('Saved base unavailable; showing source roots'))
+            else:
+                frame.left_root, frame.right_root = a, b
+                frame._update_path_labels()
+            view = data.get('view', 'all')
+            frame.view_mode_var.set(view if view in frame.DIFF_FILTERS else 'all')
+            frame.restore_rules(data.get('rules', {}))
+        return True
+
+    def saved_comparisons(self):
+        picker = WorkflowPicker(self, 'Saved comparisons', WorkflowRecords(self.config_data, 'compare_sessions'),
+                        self.save_config, self.capture_session, self.open_session,
+                        lambda d: str(d.get('left', ''))+'\n↔ '+str(d.get('right', '')))
+        if self.current_comparison() is None:
+            picker.save_button.state(['disabled'])
+            if not picker.entries:
+                picker.detail.configure(text=tr('Open a comparison with F9, then save it from Session.'))
+
+    def export_report(self):
+        frame = self.current_comparison()
+        if isinstance(frame, FolderCompare): frame.export_report()
+        else:
+            messagebox.showinfo(tr('Export report'), tr('Select a folder comparison to export its results.'), parent=self)
+
     def apply_scale(self, scale: float) -> None:
         self.scale = scale
+        self.notebook._font_override = style_compare_chrome(self)
         self.notebook.redraw()
         for frame in self.comparisons:
             handler = getattr(frame, "apply_scale", None)
@@ -8287,6 +9393,7 @@ class CompareWindow(tk.Toplevel):
         if callable(handler):
             handler(self.scale)
         self.notebook.select(frame); self.after_idle(self.activate)
+        return frame
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()
@@ -8296,6 +9403,9 @@ class CompareWindow(tk.Toplevel):
 
     def _auto_refresh(self):
         self._refresh_job = None
+        if getattr(self, '_editors', None):
+            self._schedule_refresh()
+            return
         if self.notebook.tabs():
             frame = self.nametowidget(self.notebook.select())
             details = self.comparisons.get(frame)
@@ -8303,6 +9413,14 @@ class CompareWindow(tk.Toplevel):
                 left, right, kind, previous = details
                 current = self._signature(left, right)
                 if current is not None and current != previous:
+                    if type(frame) is TextCompare:
+                        try:
+                            frame.reload_content()
+                            self.comparisons[frame] = (left, right, kind, current)
+                        except OSError as exc:
+                            frame.view.diff_status.configure(text=str(exc))
+                        self._schedule_refresh()
+                        return
                     index = self.notebook.index(frame)
                     title = self.notebook.tab(frame)["text"]
                     self.notebook.forget(frame); self.comparisons.pop(frame, None); frame.destroy()
@@ -8320,6 +9438,7 @@ class CompareWindow(tk.Toplevel):
         if self.winfo_exists(): self._schedule_refresh()
 
     def _navigate(self, method):
+        if not self.notebook.tabs(): return
         frame = self.nametowidget(self.notebook.select())
         pending = [frame]
         while pending:
@@ -8330,6 +9449,7 @@ class CompareWindow(tk.Toplevel):
             pending.extend(widget.winfo_children())
 
     def focus_search(self):
+        if not self.notebook.tabs(): return 'break'
         frame = self.nametowidget(self.notebook.select())
         pending = [frame]
         while pending:
@@ -8339,6 +9459,8 @@ class CompareWindow(tk.Toplevel):
         return "break"
 
     def close(self):
+        for editor in list(getattr(self, '_editors', ())):
+            if not editor.close(): return
         if self._refresh_job is not None:
             self.after_cancel(self._refresh_job); self._refresh_job = None
         if not self.config_data.has_section("compare"): self.config_data.add_section("compare")
@@ -8352,6 +9474,8 @@ class CompareWindow(tk.Toplevel):
 
     def close_active(self):
         tabs = self.notebook.tabs()
+        if not tabs:
+            self.close(); return
         current = self.notebook.select()
         widget = self.nametowidget(current)
         if hasattr(widget, "close_nested_detail") and widget.close_nested_detail():
@@ -8598,7 +9722,12 @@ class MarkdownJobs:
             except (OSError,ValueError):
                 results.put((process,{'error':'Preview worker could not accept the request'}))
             finally:
-                process.stdin.close()
+                try:
+                    process.stdin.close()
+                except (OSError, ValueError):
+                    # A cancelled/crashed worker may close its pipe before the
+                    # buffered writer flushes. Cleanup must not raise in a thread.
+                    pass
         def receive():
             try:
                 while True:
@@ -9294,13 +10423,18 @@ class PreviewWindow(tk.Toplevel):
 
     def _begin_markdown_result(self,result,context):
         # Do not replace the old document until the worker has succeeded.
+        self._remember_markdown_position()
         if context['navigation']:
-            self._md_history.append((str(self.path),context['view'],bool(self._linked_path)))
+            self._md_history.append((str(self.path),context['view'],bool(self._linked_path),str(self._md_boundary)))
             self._md_history=self._md_history[-20:]
             self._linked_path=Path(context['request']['path'])
         elif context.get('back'):
             self._linked_path=Path(context['request']['path']) if context['back'][2] else None
             self._md_history.pop()
+        if context.get('bookmark_boundary'):
+            self._md_boundary=Path(context['bookmark_boundary'])
+        elif context.get('back') and len(context['back']) > 3:
+            self._md_boundary=Path(context['back'][3])
         self._md_display_path=Path(context['request']['path'])
         self._md_signature=result['signature'];self._md_model=result;self._md_folded.clear()
         self.text.configure(state='normal');self.text.delete('1.0','end')
@@ -9339,6 +10473,9 @@ class PreviewWindow(tk.Toplevel):
         self.md_menu.add_command(label=tr('Markdown Source') if result.get('rendered') else tr('Rendered'),
                                  command=self.toggle_markdown_source,state='normal' if self.extension_effect else 'disabled')
         self.md_menu.add_command(label=tr('Refresh')+'  F5',command=self.load)
+        self.md_menu.add_command(label=tr('Bookmarks')+'…', command=self.markdown_bookmarks,
+                                 state='normal' if result.get('rendered') and not self._archive_markdown() else 'disabled')
+        self.md_menu.add_command(label=tr('Forget reading position'), command=self.forget_reading_position)
         self.md_menu.add_command(label=self._markdown_boundary_label(),state='disabled')
         self.md_menu.add_separator()
         for number,item in enumerate(result.get('links',[])[:100]):
@@ -9358,6 +10495,63 @@ class PreviewWindow(tk.Toplevel):
         if context['restore'] is not None: self.text.yview_moveto(context['restore'])
         else: self.text.yview_moveto(0)
         if context['fragment']: self._jump_markdown_fragment(context['fragment'])
+        elif context.get('bookmark'):
+            self._restore_reading_position(context['bookmark'])
+        elif context['restore'] is None and result.get('rendered'):
+            saved = next((item['data'] for item in WorkflowRecords(self.config_data, 'reading_positions').read()
+                          if item['data'].get('path') == str(self._md_display_path)), None)
+            if saved: self._restore_reading_position(saved)
+
+    def _capture_markdown_position(self):
+        if (not self._md_model.get('rendered') or self._md_insert or self._archive_markdown()
+                or self._md_display_path != self.path):
+            raise ValueError(tr('Bookmarks are available for rendered local Markdown documents only.'))
+        offset = len(self.text.get('1.0', self.text.index('@0,0')))
+        data = reading_anchor(self._md_model, offset, self.text.yview()[0], self._md_signature)
+        data.update(path=str(self._md_display_path), boundary=str(self._md_boundary))
+        return data
+
+    def _remember_markdown_position(self):
+        if not self._md_display_path: return
+        try: data = self._capture_markdown_position()
+        except ValueError: return
+        records = WorkflowRecords(self.config_data, 'reading_positions')
+        entries = [r for r in records.read() if r['data'].get('path') != data['path']]
+        records.write([{'name': self._md_display_path.name[:80], 'data': data}] + entries)
+
+    def _restore_reading_position(self, data):
+        try: kind, value, changed = resolve_reading_anchor(self._md_model, data, self._md_signature)
+        except (TypeError, ValueError): return
+        if kind == 'offset':
+            self._expand_markdown_at(value); self.text.yview(f'1.0+{value}c')
+        else: self.text.yview_moveto(value)
+        if changed:
+            self.status.configure(text=tr('Document changed: restored its section, or the top if the section is missing/ambiguous.'))
+
+    def markdown_bookmarks(self):
+        WorkflowPicker(self, 'Bookmarks', WorkflowRecords(self.config_data, 'markdown_bookmarks'),
+                        self.save_config, self._capture_markdown_position, self.open_markdown_bookmark,
+                        lambda d: str(d.get('path', ''))+'\n'+str(d.get('heading', '')))
+
+    def open_markdown_bookmark(self, data):
+        target = Path(data['path']); boundary = Path(data['boundary'])
+        if target.suffix.casefold() != '.md': raise ValueError('Only Markdown bookmarks are supported.')
+        if target == self._md_display_path and self._md_model.get('rendered'):
+            self._restore_reading_position(data); return True
+        # Exact explicit target, checked in the bounded worker. No basename
+        # search, no synchronous exists/resolve call, no cloud hydration fallback.
+        target.relative_to(boundary)
+        self._queue_markdown(target, navigation=True, guarded=True)
+        self._md_queued['request']['boundary'] = str(boundary)
+        self._md_queued['bookmark_boundary'] = str(boundary)
+        self._md_queued['bookmark'] = data
+        return True
+
+    def forget_reading_position(self):
+        records = WorkflowRecords(self.config_data, 'reading_positions')
+        records.write([r for r in records.read() if r['data'].get('path') != str(self._md_display_path)])
+        self.text.yview_moveto(0); self.save_config()
+        self.status.configure(text=tr('Reading position reset to the top'))
 
     def markdown_heading(self):
         index=self.md_outline.current();headings=self._md_model.get('headings',[])
@@ -9445,6 +10639,7 @@ class PreviewWindow(tk.Toplevel):
         entry=self._md_history[-1]
         self._queue_markdown(Path(entry[0]),restore=entry[1])
         self._md_queued['back']=entry
+        if len(entry) > 3: self._md_queued['request']['boundary'] = entry[3]
         return 'break'
 
     def _copy_select_all(self,event=None):
@@ -9532,6 +10727,7 @@ class PreviewWindow(tk.Toplevel):
         return self._linked_path if self._linked_path is not None else self.files[self.index]
 
     def show(self, files, selected) -> None:
+        self._remember_markdown_position()
         self.cancel_markdown()
         self._linked_path=None;self._md_history=[]
         self._md_boundary=Path(os.path.abspath(selected)).parent
@@ -9596,6 +10792,7 @@ class PreviewWindow(tk.Toplevel):
         path = self.path
         if self._markdown_mode():
             self._queue_markdown();return
+        self._remember_markdown_position()
         if self._md_jobs.pending or self._md_queued: self.cancel_markdown()
         self._md_model={};self._md_insert=None;self.md_tools.pack_forget()
         for tag in self.text.tag_names():
@@ -9709,17 +10906,20 @@ class PreviewWindow(tk.Toplevel):
 
     def previous_file(self) -> None:
         if self.files:
+            self._remember_markdown_position()
             self._linked_path=None;self._md_history=[]
             self.index = (self.index - 1) % len(self.files)
             self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
 
     def next_file(self) -> None:
         if self.files:
+            self._remember_markdown_position()
             self._linked_path=None;self._md_history=[]
             self.index = (self.index + 1) % len(self.files)
             self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
 
     def close(self) -> None:
+        self._remember_markdown_position()
         self._md_jobs.close()
         if self._md_poll_job is not None:
             self.after_cancel(self._md_poll_job);self._md_poll_job=None
@@ -11938,7 +13138,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.17.27"
+__version__ = "0.17.28"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -12023,6 +13223,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/22"
 VERSION_HISTORY = (
+    ("v0.17.28", "2026/09/22", (
+        "Added: Named workspaces, comparison sessions, command search and Markdown reading bookmarks.",
+        "Improved: Compact comparison rules, safe exclusion-aware copy plans, inert reports and inline differences.",
+        "Fixed: Text editing preserves encoding and line endings, detects external changes and protects unsaved drafts.",
+        "Improved: Clearer typography, stable-width active tabs and responsive comparison columns.",
+    )),
     ("v0.17.27", "2026/09/22", (
         "Added: Categorized PFC Settings with draft Apply/Cancel and actual style comparison screenshots.",
     )),
@@ -14304,6 +15510,7 @@ class Commander(tk.Tk):
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
             "quick_filter": "<Control-y>",
+            "command_search": "<Control-Shift-P>",
         }
         commands = {
             "rename": self.rename, "preview": self.preview, "search": self.search, "copy": self.copy,
@@ -14331,6 +15538,7 @@ class Commander(tk.Tk):
             "favorites_menu": lambda: self._show_folder_menu(self.favorites_menu, self._rebuild_favorites_menu),
             "recent_menu": lambda: self._show_folder_menu(self.recent_menu, self._rebuild_recent_menu),
             "quick_filter": lambda: self.panes()[0].toggle_quick_filter(),
+            "command_search": self.show_command_palette,
         }
         if not self.config_data.has_section("hotkeys"):
             self.config_data.add_section("hotkeys")
@@ -14375,7 +15583,57 @@ class Commander(tk.Tk):
     def _dispatch_global_hotkey(self, command):
         # Native combobox popdowns have their own toplevel: guarding only the
         # Settings toplevel binding does not protect the background file list.
-        return 'break' if self._settings_are_open() else command()
+        try:
+            modal = self.grab_current()
+        except (KeyError, tk.TclError):
+            modal = True
+        return 'break' if self._settings_are_open() or modal else command()
+
+    def show_command_palette(self):
+        if self._settings_are_open(): return 'break'
+        commands = []
+        for label, category, key, aliases, callback in (
+            ('Preview', 'Files', 'F3', 'preview 預覽 预览', self.preview),
+            ('Search', 'Files', 'F4', 'find 搜尋 搜索 搜寻', self.search),
+            ('Compare', 'Files', 'F9', 'diff compare 比較 比较', self.compare_selected),
+            ('Saved comparisons', 'Workflows', '', 'session compare 比較 工作階段 比较 会话', self.show_saved_comparisons),
+            ('Workspaces', 'Workflows', '', 'workspace project tabs 工作區 工作区 專案 项目', lambda: show_workspaces(self)),
+            ('Restore previous workspace', 'Workflows', '', 'undo workspace 復原 還原 恢复', self.restore_previous_workspace),
+            ('New Tab', 'Go', 'Ctrl+Up', 'tab 分頁 标签', self.new_tab),
+            ('Parent Folder', 'Go', 'Left', 'parent folder 上層 上层 目錄 目录', self.parent_folder),
+            ('Quick Filter', 'Files', 'Ctrl+Y', 'filter 篩選 筛选', lambda: self.panes()[0].toggle_quick_filter()),
+            ('Refresh', 'Files', 'Ctrl+R', 'reload 刷新 重新整理', self.refresh),
+            ('Rename', 'Files', 'F2', 'rename multi 批次 改名 重命名', self.rename),
+            ('Folder Space Analyzer', 'Tools', '', 'disk space 磁碟 磁盘 容量', self.show_space_analyzer),
+            ('Copy Paths', 'Files', 'F11', 'copy path 路徑 路径', self.copy_paths),
+            ('Check Update', 'Help', '', 'update 更新 升級 升级', self.check_update),
+            ('Help', 'Help', 'F1', 'help 幫助 帮助', self.show_help),
+        ):
+            commands.append((tr(label), tr(category), key, label+' '+aliases, callback))
+        from_specs = preference_specs(self)
+        for key, category, group, label, choices, method in from_specs:
+            commands.append((tr(label), tr(dict(SETTINGS_CATEGORIES)[category]), '',
+                             label+' '+key+' '+tr(group), lambda c=category: self.show_settings(c)))
+        CommandPalette(self, commands)
+        return 'break'
+
+    def show_saved_comparisons(self):
+        if self.compare_window is None or not self.compare_window.winfo_exists():
+            self.compare_window = CompareWindow(self, self.config_data, self.save_config, self.execute_sync_plans)
+            self.compare_window.notebook.set_style(self.tab_style_var.get())
+        self.compare_window.apply_scale(self._font_scales.get(self.font_size_var.get(), 1.0))
+        self.compare_window.saved_comparisons()
+
+    def show_workspace_picker(self):
+        return show_workspaces(self)
+
+    def restore_previous_workspace(self):
+        records = WorkflowRecords(self.config_data, 'workspace_undo').read()
+        if records:
+            try: restore_workspace(self, records[0]['data'])
+            except (OSError, ValueError) as exc: messagebox.showerror(tr('Workspaces'), str(exc), parent=self)
+        else:
+            messagebox.showinfo(tr('Workspaces'), tr('No previous workspace is saved yet.'), parent=self)
 
     def _install_priority_hotkeys(self, hotkeys, commands) -> None:
         """Run tab navigation before Tk widget/class bindings can consume Tab."""
@@ -14583,6 +15841,15 @@ class Commander(tk.Tk):
         self.after(10000, lambda: warning.destroy() if warning.winfo_exists() else None)
 
     def close_app(self) -> None:
+        pending_sync = getattr(self, '_sync_dialog', None)
+        if pending_sync is not None and pending_sync.winfo_exists():
+            pending_sync.cancel()
+            return
+        if self.compare_window is not None and self.compare_window.winfo_exists():
+            self.compare_window.close()
+            if self.compare_window.winfo_exists(): return
+        if self.preview_window is not None and self.preview_window.winfo_exists():
+            self.preview_window.close()
         self._clear_tab_drag_target()
         if self._drag_state is not None:
             self._handle_internal_drag("cancel", self._drag_state["source"], None)
@@ -14749,7 +16016,7 @@ class Commander(tk.Tk):
         previous_header = getattr(self, "header", None)
         if previous_header is not None and previous_header.winfo_exists():
             previous_header.destroy()
-        menu_font = tkfont.nametofont("TkMenuFont")
+        menu_font = self._role_fonts['menu']
         header_bg = self.palette["header"]
         header_fg = self.palette["header_text"]
         active_bg = self.palette["header_active"]
@@ -14769,7 +16036,7 @@ class Commander(tk.Tk):
         self.clipboard_icon_canvas.pack(fill="both", expand=True)
         self.clipboard_summary = tk.Label(self.clipboard_summary_frame, text=tr("Clipboard: checking…"),
                                           anchor="e", width=1,
-                                          font=menu_font,
+                                          font=self._role_fonts['auxiliary'],
                                           background=header_bg, foreground=self.palette["header_muted"])
         self.compare_target_label = tk.Label(
             header, text="", anchor="center", font=menu_font, padx=12, pady=2,
@@ -14782,14 +16049,14 @@ class Commander(tk.Tk):
         header.bind("<Configure>", lambda _event: self._update_compare_target_label(), add="+")
         self._update_compare_target_label()
         title = tk.Label(header, text="PFC",
-                         font=tkfont.nametofont("TkCaptionFont"),
+                         font=self._role_fonts['auxiliary'],
                          background=header_bg, foreground=header_fg, cursor="hand2")
         title.pack(side="left", padx=(2, 8))
         title.bind("<Button-1>", lambda _event: self.show_help())
-        version_label = tk.Label(header, text=f"v{__version__}", font=menu_font,
+        version_label = tk.Label(header, text=f"v{__version__}", font=self._role_fonts['auxiliary'],
                                  background=header_bg, foreground=self.palette["header_muted"])
         version_label.pack(side="left", padx=(0, 10))
-        button_style = dict(font=menu_font, relief="raised", borderwidth=1, padx=9, pady=2,
+        button_style = dict(font=menu_font, relief="flat", borderwidth=1, padx=8, pady=3,
                             cursor="hand2",
                             background=self.palette["header_button"], foreground=header_fg,
                             activebackground=active_bg, activeforeground="#ffffff")
@@ -14942,6 +16209,10 @@ class Commander(tk.Tk):
         tools.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
         tools.add_separator()
         tools.add_command(label=tr('PFC Settings')+'…', command=self.show_settings)
+        tools.add_command(label=tr('Command search')+'…', accelerator='Ctrl+Shift+P', command=self.show_command_palette)
+        tools.add_command(label=tr('Saved comparisons')+'…', command=self.show_saved_comparisons)
+        tools.add_command(label=tr('Workspaces')+'…', command=lambda: show_workspaces(self))
+        tools.add_command(label=tr('Restore previous workspace'), command=self.restore_previous_workspace)
 
         versions_button = tk.Button(header, text=tr("Help"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
@@ -15724,6 +16995,7 @@ class Commander(tk.Tk):
                               ('Right Click Menu',self.right_click_menu),
                               ('Font Size',self.font_size_menu),('Color Scheme',self.color_scheme_menu)):
             add_scaled_cascade(menu,tr(label),submenu)
+        menu.add_command(label=tr('Workspaces')+'…', command=self.show_workspace_picker)
         return menu
 
     def show_panel_context_menu(self,pane,x,y):
@@ -16925,18 +18197,12 @@ class Commander(tk.Tk):
             messagebox.showerror(tr("Compare failed"), str(exc), parent=self)
 
     def execute_sync_plans(self, plans: list[tuple[Path, Path]]) -> OperationResult:
-        result = OperationResult(); resolver = self._conflict_resolver()
-        for index, (source, target) in enumerate(plans):
-            try:
-                partial = copy_items([source], target.parent, resolver, self.continue_errors_var.get())
-            except (OSError, shutil.Error) as exc:
-                partial = OperationResult(failures=[OperationFailure(source, target, str(exc))])
-            result.completed.extend(partial.completed)
-            result.skipped.extend(partial.skipped)
-            result.failures.extend(partial.failures)
-            if partial.failures and not self.continue_errors_var.get():
-                result.skipped.extend(source for source, _target in plans[index + 1:])
-                break
+        if not plans: return OperationResult()
+        self._sync_dialog = dialog = SyncProgress(self, plans, self._conflict_resolver(), self.continue_errors_var.get())
+        # Tk continues dispatching redraw/input/conflict callbacks while worker
+        # file I/O runs; callers rescan only after the actual copy completes.
+        self.wait_window(dialog)
+        result = dialog.result; self._sync_dialog = None
         self.refresh(); self._show_operation_result("Safe Sync", result)
         return result
 
@@ -17021,7 +18287,9 @@ class Commander(tk.Tk):
             self._install_zoom_bindtag(widget=child)
 
     def _zoom_wheel(self, event) -> str:
-        if self._settings_are_open():
+        try: modal = self.grab_current()
+        except (KeyError, tk.TclError): modal = True
+        if self._settings_are_open() or modal:
             return 'break'
         number = getattr(event, "num", None)
         delta = getattr(event, "delta", 0)
@@ -17074,8 +18342,17 @@ class Commander(tk.Tk):
             size = max(1, round(abs(base) * scale * (1 if base < 0 else self._base_tk_scaling)))
             tkfont.nametofont(name).configure(size=-size)
         default_font = tkfont.nametofont("TkDefaultFont")
+        if not hasattr(self, '_role_fonts'): self._role_fonts = {}
+        for role, ratio, weight in (('menu', .9, 'normal'), ('auxiliary', .8, 'normal'),
+                                     ('heading', .9, 'bold')):
+            if role not in self._role_fonts:
+                self._role_fonts[role] = tkfont.Font(self)
+            self._role_fonts[role].configure(family=default_font.actual('family'),
+                size=-max(10, round(abs(int(default_font.cget('size'))) * ratio)), weight=weight)
         row_height = scaled_tree_row_height(default_font.metrics("linespace"), scale)
         style = ttk.Style(self)
+        for name in ('Active.Treeview.Heading', 'Inactive.Treeview.Heading'):
+            style.configure(name, font=self._role_fonts['heading'])
         style.configure("Treeview", rowheight=row_height)
         style.configure("Active.Treeview", rowheight=row_height)
         style.configure("Inactive.Treeview", rowheight=row_height)

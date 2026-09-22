@@ -18,6 +18,8 @@ from .tabs import color_scheme
 from .markdownblocks import markdown_blocks, property_rows, render_grid
 from .mdlinks import markdown_destination, read_linked_markdown
 from .mdjobs import MarkdownJobs, limit_markdown_worker_memory
+from .workflowdata import WorkflowRecords, reading_anchor, resolve_reading_anchor
+from .workflows import WorkflowPicker
 
 
 TEXT_EXTENSIONS = {
@@ -511,13 +513,18 @@ class PreviewWindow(tk.Toplevel):
 
     def _begin_markdown_result(self,result,context):
         # Do not replace the old document until the worker has succeeded.
+        self._remember_markdown_position()
         if context['navigation']:
-            self._md_history.append((str(self.path),context['view'],bool(self._linked_path)))
+            self._md_history.append((str(self.path),context['view'],bool(self._linked_path),str(self._md_boundary)))
             self._md_history=self._md_history[-20:]
             self._linked_path=Path(context['request']['path'])
         elif context.get('back'):
             self._linked_path=Path(context['request']['path']) if context['back'][2] else None
             self._md_history.pop()
+        if context.get('bookmark_boundary'):
+            self._md_boundary=Path(context['bookmark_boundary'])
+        elif context.get('back') and len(context['back']) > 3:
+            self._md_boundary=Path(context['back'][3])
         self._md_display_path=Path(context['request']['path'])
         self._md_signature=result['signature'];self._md_model=result;self._md_folded.clear()
         self.text.configure(state='normal');self.text.delete('1.0','end')
@@ -556,6 +563,9 @@ class PreviewWindow(tk.Toplevel):
         self.md_menu.add_command(label=tr('Markdown Source') if result.get('rendered') else tr('Rendered'),
                                  command=self.toggle_markdown_source,state='normal' if self.extension_effect else 'disabled')
         self.md_menu.add_command(label=tr('Refresh')+'  F5',command=self.load)
+        self.md_menu.add_command(label=tr('Bookmarks')+'…', command=self.markdown_bookmarks,
+                                 state='normal' if result.get('rendered') and not self._archive_markdown() else 'disabled')
+        self.md_menu.add_command(label=tr('Forget reading position'), command=self.forget_reading_position)
         self.md_menu.add_command(label=self._markdown_boundary_label(),state='disabled')
         self.md_menu.add_separator()
         for number,item in enumerate(result.get('links',[])[:100]):
@@ -575,6 +585,63 @@ class PreviewWindow(tk.Toplevel):
         if context['restore'] is not None: self.text.yview_moveto(context['restore'])
         else: self.text.yview_moveto(0)
         if context['fragment']: self._jump_markdown_fragment(context['fragment'])
+        elif context.get('bookmark'):
+            self._restore_reading_position(context['bookmark'])
+        elif context['restore'] is None and result.get('rendered'):
+            saved = next((item['data'] for item in WorkflowRecords(self.config_data, 'reading_positions').read()
+                          if item['data'].get('path') == str(self._md_display_path)), None)
+            if saved: self._restore_reading_position(saved)
+
+    def _capture_markdown_position(self):
+        if (not self._md_model.get('rendered') or self._md_insert or self._archive_markdown()
+                or self._md_display_path != self.path):
+            raise ValueError(tr('Bookmarks are available for rendered local Markdown documents only.'))
+        offset = len(self.text.get('1.0', self.text.index('@0,0')))
+        data = reading_anchor(self._md_model, offset, self.text.yview()[0], self._md_signature)
+        data.update(path=str(self._md_display_path), boundary=str(self._md_boundary))
+        return data
+
+    def _remember_markdown_position(self):
+        if not self._md_display_path: return
+        try: data = self._capture_markdown_position()
+        except ValueError: return
+        records = WorkflowRecords(self.config_data, 'reading_positions')
+        entries = [r for r in records.read() if r['data'].get('path') != data['path']]
+        records.write([{'name': self._md_display_path.name[:80], 'data': data}] + entries)
+
+    def _restore_reading_position(self, data):
+        try: kind, value, changed = resolve_reading_anchor(self._md_model, data, self._md_signature)
+        except (TypeError, ValueError): return
+        if kind == 'offset':
+            self._expand_markdown_at(value); self.text.yview(f'1.0+{value}c')
+        else: self.text.yview_moveto(value)
+        if changed:
+            self.status.configure(text=tr('Document changed: restored its section, or the top if the section is missing/ambiguous.'))
+
+    def markdown_bookmarks(self):
+        WorkflowPicker(self, 'Bookmarks', WorkflowRecords(self.config_data, 'markdown_bookmarks'),
+                        self.save_config, self._capture_markdown_position, self.open_markdown_bookmark,
+                        lambda d: str(d.get('path', ''))+'\n'+str(d.get('heading', '')))
+
+    def open_markdown_bookmark(self, data):
+        target = Path(data['path']); boundary = Path(data['boundary'])
+        if target.suffix.casefold() != '.md': raise ValueError('Only Markdown bookmarks are supported.')
+        if target == self._md_display_path and self._md_model.get('rendered'):
+            self._restore_reading_position(data); return True
+        # Exact explicit target, checked in the bounded worker. No basename
+        # search, no synchronous exists/resolve call, no cloud hydration fallback.
+        target.relative_to(boundary)
+        self._queue_markdown(target, navigation=True, guarded=True)
+        self._md_queued['request']['boundary'] = str(boundary)
+        self._md_queued['bookmark_boundary'] = str(boundary)
+        self._md_queued['bookmark'] = data
+        return True
+
+    def forget_reading_position(self):
+        records = WorkflowRecords(self.config_data, 'reading_positions')
+        records.write([r for r in records.read() if r['data'].get('path') != str(self._md_display_path)])
+        self.text.yview_moveto(0); self.save_config()
+        self.status.configure(text=tr('Reading position reset to the top'))
 
     def markdown_heading(self):
         index=self.md_outline.current();headings=self._md_model.get('headings',[])
@@ -662,6 +729,7 @@ class PreviewWindow(tk.Toplevel):
         entry=self._md_history[-1]
         self._queue_markdown(Path(entry[0]),restore=entry[1])
         self._md_queued['back']=entry
+        if len(entry) > 3: self._md_queued['request']['boundary'] = entry[3]
         return 'break'
 
     def _copy_select_all(self,event=None):
@@ -749,6 +817,7 @@ class PreviewWindow(tk.Toplevel):
         return self._linked_path if self._linked_path is not None else self.files[self.index]
 
     def show(self, files, selected) -> None:
+        self._remember_markdown_position()
         self.cancel_markdown()
         self._linked_path=None;self._md_history=[]
         self._md_boundary=Path(os.path.abspath(selected)).parent
@@ -813,6 +882,7 @@ class PreviewWindow(tk.Toplevel):
         path = self.path
         if self._markdown_mode():
             self._queue_markdown();return
+        self._remember_markdown_position()
         if self._md_jobs.pending or self._md_queued: self.cancel_markdown()
         self._md_model={};self._md_insert=None;self.md_tools.pack_forget()
         for tag in self.text.tag_names():
@@ -926,17 +996,20 @@ class PreviewWindow(tk.Toplevel):
 
     def previous_file(self) -> None:
         if self.files:
+            self._remember_markdown_position()
             self._linked_path=None;self._md_history=[]
             self.index = (self.index - 1) % len(self.files)
             self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
 
     def next_file(self) -> None:
         if self.files:
+            self._remember_markdown_position()
             self._linked_path=None;self._md_history=[]
             self.index = (self.index + 1) % len(self.files)
             self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
 
     def close(self) -> None:
+        self._remember_markdown_position()
         self._md_jobs.close()
         if self._md_poll_job is not None:
             self.after_cancel(self._md_poll_job);self._md_poll_job=None

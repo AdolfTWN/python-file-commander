@@ -88,7 +88,8 @@ with tempfile.TemporaryDirectory() as raw:
         for _ in range(4):
             tabs._popup_keyboard();settle(app);app.header_popup.close_all()
         empty=tabs._build_context_menu(None)
-        assert empty.index('end')==0 and submenu(empty,'Tab Style') is app.tab_style_menu
+        assert submenu(empty,'Tab Style') is app.tab_style_menu
+        assert index(empty,'Workspaces…') is not None
         # Shared custom cascade renderer: three levels, large fonts, both edges.
         for font in ('small','large','300'):
             app.font_size_var.set(font);app.apply_font_size(save=False);settle(app)

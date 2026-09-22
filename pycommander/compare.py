@@ -13,12 +13,15 @@ import unicodedata
 from datetime import datetime
 from pathlib import Path
 import tkinter as tk
-from tkinter import font as tkfont, messagebox, ttk
+from tkinter import font as tkfont, messagebox, ttk, filedialog, simpledialog
 
 from .tabs import ChamferNotebook, color_scheme
 from .tooltip import ToolTip, install_button_tooltips
 from .i18n import retranslate_widgets, tr
 from .archivefs import extract_archive_to
+from .textio import read_text_document
+from .workflowdata import WorkflowRecords, DEFAULT_COMPARE_EXCLUDES, compare_excluded, compare_sync_plans, comparison_report, write_comparison_report, compare_path_blocked
+from .workflows import WorkflowPicker
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -26,6 +29,33 @@ TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css",
                  ".cpp", ".hpp", ".java", ".csv", ".tsv"}
 TABLE_SUFFIXES = {".csv", ".tsv"}
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
+
+
+def compact_compare_font(widget):
+    root = widget._root()
+    if not hasattr(root, '_compare_chrome_font'):
+        root._compare_chrome_font = tkfont.Font(root)
+    base = tkfont.nametofont('TkDefaultFont', root=root)
+    font = root._compare_chrome_font
+    font.configure(family=base.actual('family'), size=-min(24, abs(int(base.cget('size')))))
+    return font
+
+
+def style_compare_chrome(widget):
+    """Bound controls, not document text, when extreme zoom meets a small window."""
+    font = compact_compare_font(widget)
+    style = ttk.Style(widget)
+    kinds = ('TButton', 'TMenubutton', 'TEntry', 'TLabel')
+    for kind in kinds: style.configure('PFCCompareChrome.'+kind, font=font)
+    pending = [widget]
+    while pending:
+        child = pending.pop(); pending.extend(child.winfo_children())
+        kind = child.winfo_class()
+        if kind in kinds:
+            child.configure(style='PFCCompareChrome.'+kind)
+            if kind in ('TLabel', 'TEntry'): child.configure(font=font)
+        elif isinstance(child, tk.Menu): child.configure(font=font)
+    return font
 
 
 def is_compare_archive(path: Path) -> bool:
@@ -66,7 +96,8 @@ def detect_compare_type(left: Path, right: Path) -> str:
         return "Text"
     try:
         for path in (left, right):
-            sample = path.read_bytes()[:4096]
+            with path.open('rb') as stream:
+                sample = stream.read(4096)
             if b"\0" in sample:
                 return "Binary"
             sample.decode("utf-8")
@@ -75,10 +106,11 @@ def detect_compare_type(left: Path, right: Path) -> str:
         return "Binary"
 
 
-def file_hash(path: Path) -> str:
+def file_hash(path: Path, cancelled=lambda: False) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
+            if cancelled(): raise OSError('Comparison cancelled')
             digest.update(block)
     return digest.hexdigest()
 
@@ -115,9 +147,21 @@ def text_files_equivalent(left: Path, right: Path) -> bool:
 
 def aligned_text(left: str, right: str) -> tuple[list[tuple[int | None, str, int | None, str]], list[int]]:
     a, b = left.splitlines(), right.splitlines()
+    if max(len(a), len(b)) > 20000:
+        raise OSError('Text Compare is limited to 20,000 lines per file.')
     rows: list[tuple[int | None, str, int | None, str]] = []
     differences: list[int] = []
-    matcher = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    # Repetitive generated files must not turn quadratic matching into a GUI
+    # freeze. Large documents retain an honest, positional comparison fallback.
+    if max(len(a), len(b)) > 4000:
+        for index in range(max(len(a), len(b))):
+            x, y = a[index] if index < len(a) else '', b[index] if index < len(b) else ''
+            rows.append((index + 1 if index < len(a) else None, x,
+                         index + 1 if index < len(b) else None, y))
+            if x != y or (index < len(a)) != (index < len(b)):
+                differences.append(index + 1)
+        return rows, differences
+    matcher = difflib.SequenceMatcher(None, a, b, autojunk=True)
     for tag, a0, a1, b0, b1 in matcher.get_opcodes():
         length = max(a1 - a0, b1 - b0)
         for offset in range(length):
@@ -177,7 +221,7 @@ class DifferenceMap(tk.Canvas):
         self.redraw()
 
     def apply_scale(self, scale):
-        self.configure(width=max(38, round(38 * scale)))
+        self.configure(width=min(64, max(38, round(38 * scale))))
 
     def set_viewport(self, first, last):
         self.viewport = (max(0.0, float(first)), min(1.0, float(last)))
@@ -241,6 +285,7 @@ class SideBySideText(ttk.Frame):
         self.left_title, self.right_title = str(left_title), str(right_title)
         toolbar = ttk.Frame(self); toolbar.pack(fill="x")
         diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
+        self.diff_row = diff_row
         self.status_factory = status_factory or (lambda: status_text)
         self.previous_button = ttk.Button(diff_row, text=f"F7 {tr('Diff <<')}", command=self.previous)
         self.previous_button.pack(side="left")
@@ -351,6 +396,7 @@ class SideBySideText(ttk.Frame):
                              insertbackground=palette["text"],
                              selectbackground=palette["selection"], selectforeground="#ffffff")
             widget.tag_configure("diff", background=palette["diff"], foreground=palette["text"])
+            widget.tag_configure("inline_diff", background=palette["current_diff"], foreground="#ffffff")
             widget.tag_configure("current", background=palette["current_diff"], foreground="#ffffff")
             widget.tag_configure("match", background=palette["match"], foreground=palette["text"])
             widget.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
@@ -369,6 +415,7 @@ class SideBySideText(ttk.Frame):
                             list(self.all_differences))
         self.visible_rows = visible_rows
         self.diff_index = -1
+        difference_set = set(self.differences)
         for widget, number_widget, lines in (
                 (self.left, self.left_numbers, self.all_left_lines),
                 (self.right, self.right_numbers, self.all_right_lines)):
@@ -378,14 +425,36 @@ class SideBySideText(ttk.Frame):
                 item = lines[source_row - 1]
                 source_number, line = item if isinstance(item, tuple) else (source_row, item)
                 number_text = "" if source_number is None else str(source_number)
-                tag = "diff" if output_row in self.differences else ""
+                tag = "diff" if output_row in difference_set else ""
                 number_widget.insert("end", f"{number_text:>5}\n", tag)
                 widget.insert("end", f"{line}\n", tag)
             widget.configure(state="normal" if self.editable else "disabled")
             number_widget.configure(state="disabled")
         self.difference_map.set_rows(self.differences, len(visible_rows))
+        self._highlight_inline()
         self._build_view_menu()
         self.find_all()
+
+    def _highlight_inline(self):
+        # Tag the changed characters, with strict per-line and total budgets.
+        # No polling/repaint loop: tags are produced only when content changes.
+        budget = 100000
+        difference_set = set(self.all_differences)
+        for output_row, source_row in enumerate(self.visible_rows, 1):
+            if source_row not in difference_set:
+                continue
+            left, right = self.all_left_lines[source_row - 1], self.all_right_lines[source_row - 1]
+            a = left[1] if isinstance(left, tuple) else left
+            b = right[1] if isinstance(right, tuple) else right
+            cost = len(a) + len(b)
+            if not a or not b or max(len(a), len(b)) > 2000 or cost > budget:
+                continue
+            budget -= cost
+            for tag, a0, a1, b0, b1 in difflib.SequenceMatcher(None, a, b, autojunk=True).get_opcodes():
+                if tag != 'equal':
+                    for widget, start, end in ((self.left, a0, a1), (self.right, b0, b1)):
+                        if end > start:
+                            widget.tag_add('inline_diff', f'{output_row}.{start}', f'{output_row}.{end}')
 
     def _save(self, widget, callback):
         if callback is None:
@@ -577,6 +646,64 @@ class SideBySideText(ttk.Frame):
         self.diff_status.configure(text=f"{self.diff_index + 1}/{len(self.differences)}")
 
 
+class CompareTextEditor(tk.Toplevel):
+    """Edit source, never synthetic blank rows from an aligned comparison."""
+    def __init__(self, owner, document, on_saved):
+        super().__init__(owner)
+        self.document, self.on_saved = document, on_saved
+        self.title(f'{tr("Edit")}: {document.path.name}')
+        self.geometry('920x600'); self.minsize(480, 320)
+        self.transient(owner); self.protocol('WM_DELETE_WINDOW', self.close)
+        palette = getattr(owner, 'palette', color_scheme('light'))
+        bar = ttk.Frame(self, padding=6); bar.pack(fill='x')
+        ttk.Button(bar, text=tr('Save') + '  Ctrl+S', command=self.save).pack(side='right')
+        ttk.Label(bar, text=document.description, anchor='w').pack(side='left', fill='x', expand=True)
+        self.text = tk.Text(self, wrap='none', undo=True, font='TkFixedFont', padx=8, pady=6,
+                            background=palette['content'], foreground=palette['text'],
+                            insertbackground=palette['text'])
+        scroll = ttk.Scrollbar(self, command=self.text.yview)
+        scroll.pack(side='right', fill='y'); self.text.pack(fill='both', expand=True)
+        self.text.configure(yscrollcommand=scroll.set)
+        horizontal = ttk.Scrollbar(self, orient='horizontal', command=self.text.xview)
+        horizontal.pack(fill='x'); self.text.configure(xscrollcommand=horizontal.set)
+        self.text.insert('1.0', document.text); self.text.edit_reset(); self.text.edit_modified(False)
+        self.text.bind('<<Modified>>', self._modified)
+        self.bind('<Control-s>', lambda e: self.save())
+        self.bind('<Escape>', lambda e: self.close())
+        # Native Text bindings run first, then stop Commander bind_all actions.
+        self.bind('<KeyPress>', lambda e: 'break')
+        self.owner = owner
+        if not hasattr(owner, '_editors'): owner._editors = set()
+        owner._editors.add(self)
+        self.text.focus_set(); self.grab_set()
+
+    def _modified(self, _event=None):
+        self.title(f'{"* " if self.text.edit_modified() else ""}{tr("Edit")}: {self.document.path.name}')
+
+    def save(self):
+        try:
+            self.document.save(self.text.get('1.0', 'end-1c'))
+        except (OSError, UnicodeError) as exc:
+            messagebox.showerror(tr('Save failed'), str(exc), parent=self)
+            return 'break'
+        self.text.edit_modified(False)
+        try: self.on_saved()
+        except OSError as exc:
+            messagebox.showwarning(tr('Compare'), tr('Saved, but comparison could not refresh')+':\n'+str(exc), parent=self)
+        return 'break'
+
+    def close(self):
+        if self.text.edit_modified():
+            answer = messagebox.askyesnocancel(tr('Save'), tr('Save changes before closing?'), parent=self)
+            if answer is None: return False
+            if answer:
+                self.save()
+                if self.text.edit_modified(): return False
+        self.owner._editors.discard(self)
+        self.grab_release(); self.destroy()
+        return True
+
+
 class TextCompare(ttk.Frame):
     def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
                  left_title=None, right_title=None):
@@ -584,39 +711,66 @@ class TextCompare(ttk.Frame):
         self.left_path, self.right_path = left, right
         self.left_title, self.right_title = left_title or left, right_title or right
         self.marker_position, self.marker_changed = marker_position, marker_changed
+        self.read_only_sides = set()
         self._load()
 
     def _load(self):
-        a = self.left_path.read_text(encoding="utf-8", errors="replace")
-        b = self.right_path.read_text(encoding="utf-8", errors="replace")
-        self._left_ending = "\r\n" if "\r\n" in a else "\n"
-        self._right_ending = "\r\n" if "\r\n" in b else "\n"
-        self._left_final_newline = a.endswith(("\n", "\r"))
-        self._right_final_newline = b.endswith(("\n", "\r"))
+        self.left_document = read_text_document(self.left_path)
+        self.right_document = read_text_document(self.right_path)
+        a, b = self.left_document.text, self.right_document.text
         rows, differences = aligned_text(a, b)
+        detail = ' · ' + tr('Large document: positional line comparison') if max(len(a.splitlines()), len(b.splitlines())) > 4000 else ''
         self.view = SideBySideText(
             self, [(row[0], row[1]) for row in rows], [(row[2], row[3]) for row in rows], differences,
-            status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count),
+            status_factory=lambda count=len(differences): tr("{count} different line(s)", count=count) + detail,
             left_title=self.left_title, right_title=self.right_title,
             marker_position=self.marker_position,
-            marker_changed=self.marker_changed, editable=True,
-            save_left=self._save_left, save_right=self._save_right)
+            marker_changed=self.marker_changed)
+        self.document_controls = {}
+        for side, document, frame in (('Left', self.left_document, self.view.left_frame),
+                                       ('Right', self.right_document, self.view.right_frame)):
+            info = ttk.Frame(frame); info.grid(row=2, column=0, columnspan=2, sticky='ew')
+            edit = ttk.Button(info, text=tr('Edit ' + side), width=10,
+                              command=lambda side=side: self.edit(side))
+            edit.pack(side='right')
+            if document.reason: edit.state(['disabled'])
+            label = ttk.Label(info, text=document.description, anchor='w')
+            label.pack(side='left', fill='x', expand=True)
+            ToolTip(label, document.description)
+            self.document_controls[side] = (edit, label)
         self.view.pack(fill="both", expand=True)
 
-    def _save_left(self, content: str) -> None:
-        self._save(self.left_path, content, self._left_ending, self._left_final_newline)
+    def edit(self, side):
+        document = self.left_document if side == 'Left' else self.right_document
+        if document.reason or side in self.read_only_sides: return
+        CompareTextEditor(self.winfo_toplevel(), document, self.reload_content)
 
-    def _save_right(self, content: str) -> None:
-        self._save(self.right_path, content, self._right_ending, self._right_final_newline)
+    def set_read_only(self, left=False, right=False):
+        self.read_only_sides = {side for side, blocked in (('Left', left), ('Right', right)) if blocked}
+        for side in self.read_only_sides:
+            button, label = self.document_controls[side]
+            button.state(['disabled'])
+            label.configure(text=tr('Archive content is read-only'))
 
-    def _save(self, path: Path, content: str, ending: str, final_newline: bool) -> None:
-        normalized = content.replace("\r\n", "\n").replace("\r", "\n")
-        result = normalized.replace("\n", ending)
-        if final_newline and not result.endswith(ending):
-            result += ending
-        path.write_text(result, encoding="utf-8")
-        self.view.destroy()
-        self._load()
+    def reload_content(self):
+        position = self.view.left.yview()[0]
+        # Keep widgets/focus/geometry intact rather than destroying the tab.
+        self.left_document = read_text_document(self.left_path)
+        self.right_document = read_text_document(self.right_path)
+        rows, differences = aligned_text(self.left_document.text, self.right_document.text)
+        self.view.all_left_lines = [(r[0], r[1]) for r in rows]
+        self.view.all_right_lines = [(r[2], r[3]) for r in rows]
+        self.view.all_differences = differences
+        large = max(len(self.left_document.text.splitlines()), len(self.right_document.text.splitlines())) > 4000
+        self.view.status_factory = lambda: tr('{count} different line(s)', count=len(differences)) + (
+            ' · '+tr('Large document: positional line comparison') if large else '')
+        for side, document in (('Left', self.left_document), ('Right', self.right_document)):
+            edit, label = self.document_controls[side]
+            edit.state(['disabled'] if document.reason or side in self.read_only_sides else ['!disabled'])
+            label.configure(text=document.description)
+        self.set_read_only('Left' in self.read_only_sides, 'Right' in self.read_only_sides)
+        self.view.diff_status.configure(text=self.view.status_factory())
+        self.view.populate(); self.view.left.yview_moveto(position)
 
     def apply_language(self, old_language: str) -> None:
         self.view.apply_language(old_language)
@@ -631,7 +785,8 @@ class BinaryCompare(ttk.Frame):
     def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
                  left_title=None, right_title=None):
         super().__init__(master)
-        a, b = left.read_bytes()[:self.LIMIT], right.read_bytes()[:self.LIMIT]
+        with left.open('rb') as stream: a = stream.read(self.LIMIT)
+        with right.open('rb') as stream: b = stream.read(self.LIMIT)
         length = max(len(a), len(b)); different_offsets = []
         left_lines, right_lines, diff_lines = [], [], []
         for offset in range(0, length, 16):
@@ -645,11 +800,13 @@ class BinaryCompare(ttk.Frame):
                 text = "".join(chr(byte) if 32 <= byte < 127 else "." for byte in chunk)
                 return f"{offset:08X}  {hexdump:<47}  {text}"
             left_lines.append(render(ca)); right_lines.append(render(cb))
-        identical = file_hash(left) == file_hash(right)
+        complete = max(left.stat().st_size, right.stat().st_size) <= self.LIMIT
+        identical = a == b if complete else None
         first_offset = f"0x{different_offsets[0]:X}" if different_offsets else None
         status_factory = lambda: tr(
-            "SHA-256: {result}; first offset: {offset}",
-            result=tr("identical") if identical else tr("different"),
+            "Displayed bytes: {result}; first offset: {offset}",
+            result=(tr('Preview only (256 KiB) — full equality not checked') if identical is None else
+                    tr("identical") if identical else tr("different")),
             offset=first_offset or tr("none"))
         self.view = SideBySideText(self, left_lines, right_lines, diff_lines,
                                    status_factory=status_factory,
@@ -665,17 +822,20 @@ class BinaryCompare(ttk.Frame):
 
 
 def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=False,
-                ignore_invisible_text=False, cancelled=lambda: False):
+                ignore_invisible_text=False, cancelled=lambda: False, excludes=''):
     patterns = [item.strip() for item in masks.split(";") if item.strip()] or ["*"]
     def collect(root):
         if recursive:
+            def walk_error(error): raise error
             def paths():
                 for folder, directories, filenames in os.walk(root, topdown=True,
-                                                                onerror=lambda _error: None):
-                    directories[:] = [name for name in directories
-                                      if name.casefold() not in {".git", ".svn"}]
+                                                                onerror=walk_error):
                     base = Path(folder)
-                    yield from (base / name for name in directories)
+                    if cancelled(): return
+                    visible = [name for name in directories
+                               if not compare_excluded((base / name).relative_to(root), excludes)]
+                    directories[:] = [name for name in visible if not compare_path_blocked(base / name)]
+                    yield from (base / name for name in visible)
                     yield from (base / name for name in filenames)
             iterator = paths()
         else:
@@ -688,12 +848,14 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
                 relative_path = path.relative_to(root)
             except ValueError:
                 continue
-            if any(part.casefold() in {".git", ".svn"} for part in relative_path.parts):
+            if compare_excluded(relative_path, excludes):
                 continue
             relative = str(relative_path)
             if path.is_dir() or any(fnmatch.fnmatch(path.name.casefold(), pattern.casefold())
                                     for pattern in patterns):
-                result[relative.casefold()] = path
+                result[relative.casefold() if os.name == 'nt' else relative] = path
+                if len(result) > 100000:
+                    raise OSError('Compare is limited to 100,000 entries per side. Choose a smaller folder or more exclusions.')
         return result
     left_items, right_items = collect(left), collect(right)
     for key in sorted(left_items.keys() | right_items.keys()):
@@ -702,7 +864,8 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
         a, b = left_items.get(key), right_items.get(key)
         display = str((a.relative_to(left) if a else b.relative_to(right)))
         try:
-            if a is None: status = "Right only"
+            if any(compare_path_blocked(p) for p in (a, b) if p is not None): status = 'Unknown'
+            elif a is None: status = "Right only"
             elif b is None: status = "Left only"
             elif a.is_dir() != b.is_dir(): status = "Type mismatch"
             elif a.is_dir(): status = "Identical"
@@ -712,7 +875,7 @@ def folder_rows(left: Path, right: Path, recursive=True, masks="*", by_content=F
                     status = "Identical"
                 elif a_stat.st_size != b_stat.st_size:
                     status = "Different"
-                elif by_content and file_hash(a) == file_hash(b):
+                elif by_content and file_hash(a, cancelled) == file_hash(b, cancelled):
                     status = "Identical"
                 elif by_content:
                     status = "Left newer" if a_stat.st_mtime_ns > b_stat.st_mtime_ns else (
@@ -1068,14 +1231,21 @@ class _FolderCompareLogic(ttk.Frame):
         self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
         recursive, masks, by_content = self.recursive_var.get(), self.mask_var.get(), self.content_var.get()
         text_equivalent = self.text_equivalent_var.get()
+        excludes = getattr(self, 'exclude_var', None)
+        excludes = excludes.get() if excludes is not None else ''
+        self._scan_rules = dict(recursive=recursive, masks=masks, by_content=by_content,
+                                ignore_invisible_text=text_equivalent, excludes=excludes)
+        self._scan_complete = False
+        left_root, right_root = self.left_root, self.right_root
         cancel = self._cancel_event
+        results = self._scan_queue  # Worker must never own/finalize Tk widgets.
         def worker():
             try:
-                rows = list(folder_rows(self.left_root, self.right_root, recursive, masks, by_content,
-                                        text_equivalent, cancel.is_set))
-                self._scan_queue.put((cancel, rows, None))
+                rows = list(folder_rows(left_root, right_root, recursive, masks, by_content,
+                                        text_equivalent, cancel.is_set, excludes))
+                results.put((cancel, rows, None))
             except OSError as exc:
-                self._scan_queue.put((cancel, [], str(exc)))
+                results.put((cancel, [], str(exc)))
         threading.Thread(target=worker, daemon=True).start()
         self.after(60, self._poll_scan)
         return "break"
@@ -1098,6 +1268,7 @@ class _FolderCompareLogic(ttk.Frame):
             messagebox.showerror(tr("Folder Compare"), error, parent=self)
             return
         self.rows, self.actions = rows, {}
+        self._scan_complete = True
         different = sum(status != "Identical" for status, *_rest in rows)
         self.scan_status.configure(text=tr("{count} item(s), {different} different",
                                            count=len(rows), different=different))
@@ -1137,16 +1308,17 @@ class _FolderCompareLogic(ttk.Frame):
         action_label = {"right": "→", "left": "←", "skip": tr("Skip")}
         allowed = self.DIFF_FILTERS.get(self.view_mode_var.get())
         initially_visible = list(self.rows) if allowed is None else [row for row in self.rows if row[0] in allowed]
-        rows_by_key = {row[1].casefold(): row for row in self.rows}
-        needed = {row[1].casefold() for row in initially_visible}
+        path_key = lambda value: os.path.normcase(str(value))
+        rows_by_key = {path_key(row[1]): row for row in self.rows}
+        needed = {path_key(row[1]) for row in initially_visible}
         for _status, relative, _left, _right in initially_visible:
             parent = Path(relative).parent
             while parent != Path("."):
-                key = str(parent).casefold()
+                key = path_key(parent)
                 if key in rows_by_key:
                     needed.add(key)
                 parent = parent.parent
-        visible = [row for row in self.rows if row[1].casefold() in needed]
+        visible = [row for row in self.rows if path_key(row[1]) in needed]
         if self.sort_column == "action":
             visible.sort(key=lambda row: self.actions.get(row[1], ""), reverse=self.sort_reverse)
         elif self.sort_column in {"left_detail", "right_detail"}:
@@ -1169,13 +1341,13 @@ class _FolderCompareLogic(ttk.Frame):
             tag = "left" if status in {"Left only", "Left newer"} else (
                 "right" if status in {"Right only", "Right newer"} else (
                     "identical" if status == "Identical" else "different"))
-            parent_key = str(Path(path).parent).casefold()
+            parent_key = path_key(Path(path).parent)
             parent_iid = item_ids.get(parent_key, "")
             iid = self.tree.insert(parent_iid, "end", text="", open=self._expand_state,
                 values=(action_label.get(self.actions.get(path), ""),
                 path if left is not None else "", self._detail(left), tr(status),
                 path if right is not None else "", self._detail(right)), tags=(tag,))
-            item_ids[path.casefold()] = iid
+            item_ids[path_key(path)] = iid
             self.item_paths[iid] = (left, right)
             self.item_keys[iid] = path
             if status != "Identical":
@@ -1214,25 +1386,18 @@ class _FolderCompareLogic(ttk.Frame):
         return "break"
 
     def _plans(self):
-        plans = []
-        by_key = {path: (left, right) for _status, path, left, right in self.rows}
-        for key, action in self.actions.items():
-            left, right = by_key.get(key, (None, None))
-            if action == "right" and left is not None:
-                plans.append((left, self.right_root / key))
-            elif action == "left" and right is not None:
-                plans.append((right, self.left_root / key))
-        plans.sort(key=lambda item: len(item[1].parts))
-        filtered = []
-        for source, target in plans:
-            if any(parent_source.is_dir() and parent_target in target.parents
-                   for parent_source, parent_target in filtered):
-                continue
-            filtered.append((source, target))
-        return filtered
+        return compare_sync_plans(self.rows, self.actions, self.left_root, self.right_root,
+                                   self.left_read_only, self.right_read_only)
 
     def dry_run(self):
-        plans = self._plans()
+        if (not getattr(self, '_scan_complete', False) or self._scanning or
+                (hasattr(self, 'scan_rules') and self.scan_rules() != self._scan_rules)):
+            messagebox.showinfo(tr('Safe Sync'), tr('Run Compare with the current rules before syncing.'), parent=self)
+            return 'break'
+        try: plans = self._plans()
+        except OSError as exc:
+            messagebox.showerror(tr('Safe Sync'), str(exc), parent=self)
+            return 'break'
         if not plans:
             messagebox.showinfo(tr("Safe Sync"), tr("Select rows and assign Copy → or ← Copy first."), parent=self)
             return "break"
@@ -1307,6 +1472,9 @@ class FolderCompare(_FolderCompareLogic):
         self.palette = getattr(master.winfo_toplevel(), "palette", color_scheme("light"))
         self._diff_icons = {}
         self.nested_details = {}
+        self._compact_details = False
+        self._full_details = {}
+        self._column_layout_spec = None
 
         self.session_tabs = ChamferNotebook(self)
         self.session_tabs.pack(fill="both", expand=True)
@@ -1322,64 +1490,69 @@ class FolderCompare(_FolderCompareLogic):
         bar = ttk.Frame(self.summary, padding=(3, 3, 3, 1)); bar.pack(fill="x")
         ttk.Label(bar, text=tr("Mask:")).pack(side="left", padx=(0, 3))
         self.mask_var = tk.StringVar(value="*")
-        ttk.Entry(bar, textvariable=self.mask_var, width=32).pack(side="left", padx=(0, 6))
-        ttk.Button(bar, text=tr("Compare"), command=self.start_scan).pack(side="left", padx=(0, 3))
-        ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan).pack(side="left", padx=(0, 8))
-        ttk.Separator(bar, orient="vertical").pack(side="left", fill="y", padx=(0, 7))
-        self.recursive_button = ttk.Button(bar, command=lambda: self._toggle_option("recursive"))
-        self.recursive_button.pack(side="left", padx=(0, 3))
-        self.content_button = ttk.Button(bar, command=lambda: self._toggle_option("content"))
-        self.content_button.pack(side="left", padx=(0, 3))
-        self.text_equivalent_button = ttk.Button(
-            bar, command=lambda: self._toggle_option("text_equivalent"))
-        self.text_equivalent_button.pack(side="left")
-        self.text_equivalent_button._pfc_tooltip = ToolTip(
-            self.text_equivalent_button,
-            lambda: tr("Ignore BOM, line-ending, trailing-space, Unicode-composition, and invisible-control differences in text files."))
+        self.exclude_var = tk.StringVar(value=DEFAULT_COMPARE_EXCLUDES)
+        self.rules_button = self.exclude_button = ttk.Menubutton(bar, text=tr('Rules'), width=7)
+        self.rules_menu = tk.Menu(self.rules_button, tearoff=False, font='TkMenuFont')
+        self.rules_button.configure(menu=self.rules_menu); self.rules_button.pack(side='right', padx=(4,0))
+        for label, variable in (('Recursive',self.recursive_var),('By content',self.content_var),
+                                 ('Text equivalent',self.text_equivalent_var)):
+            self.rules_menu.add_checkbutton(label=tr(label),variable=variable,
+                command=lambda:self.scan_status.configure(text=tr('Rules changed — press Compare')))
+        self.rules_menu.add_separator()
+        self.rules_menu.add_command(label=tr('Exclusions')+'…',command=self.edit_exclusions)
+        ToolTip(self.rules_button, lambda: tr('Excluded')+': '+self.exclude_var.get())
+        ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan, width=7).pack(side="right", padx=(3, 0))
+        ttk.Button(bar, text=tr("Compare"), command=self.start_scan, width=8).pack(side="right", padx=(3, 0))
+        ttk.Entry(bar, textvariable=self.mask_var, width=10).pack(side="left", fill='x', expand=True, padx=(0, 6))
 
         self.body = ttk.Frame(self.summary)
         self.center_header = ttk.Frame(self.body)
         options = ttk.Frame(self.summary, padding=(3, 1)); options.pack(fill="x")
-        self.diff_button = ttk.Menubutton(self.center_header, text=tr("Diffs"))
+        self.diff_button = ttk.Menubutton(options, text=tr("Diffs"), width=6)
         self.diff_menu = tk.Menu(self.diff_button, tearoff=False)
         self.diff_button.configure(menu=self.diff_menu, compound="left")
-        self.diff_button.pack(side="top", fill="x")
+        self.diff_button.pack(side="left", padx=(0,4))
         self._build_diff_menu()
-        ttk.Button(options, text=tr("Expand All"), command=self.expand_all).pack(side="left", padx=(0, 3))
-        ttk.Button(options, text=tr("Collapse All"), command=self.collapse_all).pack(side="left", padx=(0, 3))
-        ttk.Button(options, text=tr("Set Base Folder"), command=self.set_base_folder).pack(side="left", padx=(0, 3))
-        ttk.Separator(options, orient="vertical").pack(side="left", fill="y", padx=7)
+        folder_button = ttk.Menubutton(options, text=tr('Folders'), width=8)
+        self.folder_menu = folder_menu = tk.Menu(folder_button,tearoff=False,font='TkMenuFont')
+        for label, callback in (('Expand All',self.expand_all),('Collapse All',self.collapse_all),
+                                 ('Set Base Folder',self.set_base_folder),('Swap Sides',self.swap_sides)):
+            folder_menu.add_command(label=tr(label),command=callback)
+        folder_button.configure(menu=folder_menu);folder_button.pack(side='left',padx=(0,4))
         self.marker_button = ttk.Menubutton(options)
         self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
         self.marker_button.configure(menu=self.marker_menu); self.marker_button.pack(side="left")
         self._build_marker_menu(); self._update_marker_button()
 
         navigation = ttk.Frame(self.summary, padding=(3, 1)); navigation.pack(fill="x")
-        self.previous_button = ttk.Button(navigation, text=f"F7 {tr('Diff <<')}", command=self.previous)
+        self.previous_button = ttk.Button(navigation, text='F7 ◀', width=5, command=self.previous)
         self.previous_button.pack(side="left", padx=(0, 3))
-        self.next_button = ttk.Button(navigation, text=f"F8 {tr('Diff >>')}", command=self.next)
+        self.next_button = ttk.Button(navigation, text='F8 ▶', width=5, command=self.next)
         self.next_button.pack(side="left", padx=(0, 3))
-        self.diff_status = ttk.Label(navigation, width=18, anchor="w")
-        self.diff_status.pack(side="left", padx=(0, 8))
+        ToolTip(self.previous_button, lambda: tr('Diff <<')+' · '+self.diff_status.cget('text'))
+        ToolTip(self.next_button, lambda: tr('Diff >>')+' · '+self.diff_status.cget('text'))
         self.search_var, self.case_var = tk.StringVar(), tk.BooleanVar(value=False)
         ttk.Label(navigation, text=tr("Find:")).pack(side="left", padx=(0, 3))
-        self.search = ttk.Entry(navigation, textvariable=self.search_var, width=32)
-        self.search.pack(side="left", padx=(0, 4))
+        self.search = ttk.Entry(navigation, textvariable=self.search_var, width=10)
         self.search.bind("<Return>", lambda _event: self.find_next())
         self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
-        ttk.Button(navigation, text=tr("Find Prev"), command=self.find_previous).pack(side="left", padx=(0, 3))
-        ttk.Button(navigation, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(0, 3))
-        self.find_status = ttk.Label(navigation, anchor="w")
-        self.find_status.pack(side="left", padx=(2, 6))
-        self.case_button = ttk.Button(navigation, command=lambda: self._toggle_option("case"))
-        self.case_button.pack(side="left")
+        self.case_button = ttk.Button(navigation, text='Aa', width=3, command=lambda: self._toggle_option("case"))
+        self.case_button.pack(side='right')
+        ToolTip(self.case_button, tr('Case sensitive'))
+        for glyph,label,callback in (('▶','Find Next',self.find_next),('◀','Find Prev',self.find_previous)):
+            button = ttk.Button(navigation,text=glyph,width=2,command=callback)
+            button.pack(side='right',padx=(0,3));ToolTip(button,tr(label))
+        self.search.pack(side='left',fill='x',expand=True,padx=(0,4))
         self._update_toggle_buttons()
 
         status_row = ttk.Frame(self.summary, padding=(5, 3)); status_row.pack(side="bottom", fill="x")
+        sync_button = ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run)
+        sync_button.pack(side="right")
+        ToolTip(sync_button,tr('Scanned files only — no automatic delete'))
         self.scan_status = ttk.Label(status_row, text=tr("Ready"), anchor="w")
         self.scan_status.pack(side="left")
-        ttk.Label(status_row, text=tr("Copy only — no automatic delete")).pack(side="left", padx=(12, 0))
-        ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run).pack(side="right")
+        self.diff_status = ttk.Label(options, anchor='e');self.diff_status.pack(side='right')
+        self.find_status = ttk.Label(status_row,anchor='w');self.find_status.pack(side='left',padx=8)
 
         self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
@@ -1394,6 +1567,9 @@ class FolderCompare(_FolderCompareLogic):
                                     cursor="hand2", pady=3)
         self.map_header._pfc_tooltip = ToolTip(self.map_header, tr("Swap Sides"))
         self.map_header.pack(side="top", fill="x")
+        for side, label in (('left', self.left_path_label), ('right', self.right_path_label)):
+            label.bind('<Configure>', lambda e: self._update_path_labels())
+            ToolTip(label, lambda side=side: str(self._base_label(side)))
         self._update_path_labels()
         self.left_frame = ttk.Frame(self.body); self.right_frame = ttk.Frame(self.body)
         for frame in (self.left_frame, self.right_frame):
@@ -1437,6 +1613,9 @@ class FolderCompare(_FolderCompareLogic):
         self.difference_map = DifferenceMap(self.body, self._jump_to_row)
         self.center_divider = ttk.Separator(self.body, orient="vertical")
         self.scroll = ttk.Scrollbar(self.body, orient="vertical", command=self._scroll)
+        self.body.bind('<Configure>', lambda e: self._responsive_columns())
+        for tree in self._trees():
+            tree.bind('<Configure>', lambda e: self._responsive_columns())
         self._layout_marker()
         self.apply_scale(1.0)
         self.apply_color_scheme(getattr(master.winfo_toplevel(), "palette", color_scheme("light")))
@@ -1444,6 +1623,73 @@ class FolderCompare(_FolderCompareLogic):
 
     def _trees(self):
         return (self.left_tree, self.right_tree)
+
+    def _detail(self, path):
+        value = _FolderCompareLogic._detail(path)
+        self._full_details[path] = value
+        return value.split('  ')[0] if self._compact_details else value
+
+    def _responsive_columns(self):
+        width = min(tree.winfo_width() for tree in self._trees())
+        if width < 100: return
+        compact = width < round(600*self.scale)
+        spec = (width, self.scale, compact)
+        if spec == self._column_layout_spec: return
+        self._column_layout_spec = spec
+        changed = compact != self._compact_details
+        self._compact_details = compact
+        action = max(32, round(38*self.scale))
+        detail = min(round(205*self.scale), max(round(65*self.scale), round(width*.27))) if compact else round(205*self.scale)
+        for tree in self._trees():
+            tree.column('action', width=action, minwidth=action, stretch=False)
+            tree.column('detail', width=detail, minwidth=detail, stretch=False)
+            tree.column('#0', width=max(60,width-action-detail-3), minwidth=60, stretch=True)
+            tree.heading('action', text='↔' if compact else tr('Action'))
+            tree.heading('detail', text=tr('Size') if compact else f"{tr('Size')} / {tr('Modified')}")
+        if changed:
+            for iid, paths in self.item_paths.items():
+                for tree, path in zip(self._trees(), paths):
+                    value = self._full_details.get(path, '—')
+                    if tree.exists(iid): tree.set(iid,'detail',value.split('  ')[0] if compact else value)
+
+    def scan_rules(self):
+        return dict(recursive=self.recursive_var.get(), masks=self.mask_var.get(),
+                    by_content=self.content_var.get(), ignore_invisible_text=self.text_equivalent_var.get(),
+                    excludes=self.exclude_var.get())
+
+    def restore_rules(self, rules):
+        if not isinstance(rules, dict): raise ValueError('Invalid saved comparison rules.')
+        for key, variable in (('recursive', self.recursive_var), ('masks', self.mask_var),
+                              ('by_content', self.content_var), ('ignore_invisible_text', self.text_equivalent_var),
+                              ('excludes', self.exclude_var)):
+            value = rules.get(key)
+            if isinstance(value, bool if key in {'recursive', 'by_content', 'ignore_invisible_text'} else str):
+                variable.set(value)
+        self._update_toggle_buttons()
+        self.start_scan()
+
+    def edit_exclusions(self):
+        result = simpledialog.askstring(tr('Exclusions'),
+            tr('Semicolon-separated names or relative paths. Example: node_modules;.venv;build;*.tmp\n'
+               '.git/.svn are always excluded. Compare again to apply changes.'),
+            initialvalue=self.exclude_var.get(), parent=self)
+        if result is not None:
+            self.exclude_var.set(result[:2048])
+            self.scan_status.configure(text=tr('Rules changed — press Compare'))
+
+    def export_report(self):
+        if not getattr(self, '_scan_complete', False) or self._scanning or self.scan_rules() != self._scan_rules:
+            messagebox.showinfo(tr('Export report'), tr('Run Compare with the current rules before exporting.'), parent=self)
+            return
+        filename = filedialog.asksaveasfilename(parent=self, title=tr('Export report'),
+            defaultextension='.html', initialfile='pfc-comparison.html',
+            filetypes=[('HTML', '*.html'), ('Text', '*.txt')])
+        if not filename: return
+        try:
+            write_comparison_report(filename, self.rows, self._scan_rules)
+            self.scan_status.configure(text=tr('Report saved (relative paths only)'))
+        except OSError as exc:
+            messagebox.showerror(tr('Export report'), str(exc), parent=self)
 
     def _toggle_option(self, option):
         if option == "recursive":
@@ -1458,14 +1704,8 @@ class FolderCompare(_FolderCompareLogic):
         return "break"
 
     def _update_toggle_buttons(self):
-        self.recursive_button.configure(
-            text=f"{'✓' if self.recursive_var.get() else '–'} {tr('Recursive')}")
-        self.content_button.configure(
-            text=f"{'✓' if self.content_var.get() else '–'} {tr('By content')}")
-        self.text_equivalent_button.configure(
-            text=f"{'✓' if self.text_equivalent_var.get() else '–'} {tr('Text equivalent')}")
         self.case_button.configure(
-            text=f"{'✓' if self.case_var.get() else '–'} {tr('Case sensitive')}")
+            text=f"{'✓' if self.case_var.get() else ''}Aa")
 
     def _build_diff_menu(self):
         self.diff_menu.delete(0, "end")
@@ -1676,6 +1916,9 @@ class FolderCompare(_FolderCompareLogic):
         self.marker_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                                    activebackground=palette["menu_active"],
                                    activeforeground=palette["menu_active_text"])
+        for menu in (self.rules_menu, self.folder_menu):
+            menu.configure(background=palette['menu'], foreground=palette['menu_text'],
+                           activebackground=palette['menu_active'], activeforeground=palette['menu_active_text'])
         for details in self.nested_details.values():
             view = getattr(details["detail"], "view", details["detail"])
             handler = getattr(view, "apply_color_scheme", None)
@@ -1684,6 +1927,8 @@ class FolderCompare(_FolderCompareLogic):
 
     def apply_scale(self, scale: float):
         self.scale = scale
+        chrome = style_compare_chrome(self)
+        self.session_tabs._font_override = chrome
         self.session_tabs.redraw()
         style = ttk.Style(self)
         linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
@@ -1694,9 +1939,12 @@ class FolderCompare(_FolderCompareLogic):
             tree.column("#0", width=max(130, round(340 * scale)))
             tree.column("action", width=max(50, round(70 * scale)))
             tree.column("detail", width=max(110, round(205 * scale)))
+        self._column_layout_spec = None
+        self._responsive_columns()
         padding = max(3, round(3 * scale))
-        for label in (self.left_path_label, self.right_path_label): label.configure(padx=padding * 2, pady=padding)
-        self.map_header.configure(pady=padding); self.difference_map.apply_scale(scale)
+        for label in (self.left_path_label, self.right_path_label):
+            label.configure(padx=padding * 2, pady=padding, font=chrome)
+        self.map_header.configure(pady=padding, font=chrome); self.difference_map.apply_scale(scale)
         self._build_diff_menu()
         for details in self.nested_details.values():
             handler = getattr(details["detail"], "apply_scale", None)
@@ -1706,8 +1954,8 @@ class FolderCompare(_FolderCompareLogic):
     def apply_language(self, old_language: str):
         selected_keys = {self.item_keys.get(iid) for iid in self._selected_items()}
         retranslate_widgets(self, old_language)
-        self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
-        self.next_button.configure(text=f"F8 {tr('Diff >>')}")
+        self.previous_button.configure(text='F7 ◀')
+        self.next_button.configure(text='F8 ▶')
         self._update_path_labels(); self._build_diff_menu(); self._build_marker_menu()
         self._update_marker_button(); self._update_toggle_buttons(); self._update_headings(); self.populate()
         selected = [iid for iid in self._all_tree_items() if self.item_keys.get(iid) in selected_keys]
@@ -1729,11 +1977,13 @@ class FolderCompare(_FolderCompareLogic):
         action_mark = direction if self.sort_column == "action" else ""
         self.left_tree.heading("#0", text=tr("Name") + path_mark)
         self.right_tree.heading("#0", text=tr("Name") + path_mark)
-        self.left_tree.heading("action", text=tr("Action") + action_mark)
-        self.right_tree.heading("action", text=tr("Action") + action_mark)
-        self.left_tree.heading("detail", text=f"{tr('Size')} / {tr('Modified')}" +
+        action_name = '↔' if self._compact_details else tr('Action')
+        detail_name = tr('Size') if self._compact_details else f"{tr('Size')} / {tr('Modified')}"
+        self.left_tree.heading("action", text=action_name + action_mark)
+        self.right_tree.heading("action", text=action_name + action_mark)
+        self.left_tree.heading("detail", text=detail_name +
                                (direction if self.sort_column == "left_detail" else ""))
-        self.right_tree.heading("detail", text=f"{tr('Size')} / {tr('Modified')}" +
+        self.right_tree.heading("detail", text=detail_name +
                                 (direction if self.sort_column == "right_detail" else ""))
 
     def change_sort(self, column):
@@ -1750,15 +2000,16 @@ class FolderCompare(_FolderCompareLogic):
         action_label = {"right": "→", "left": "←", "skip": tr("Skip")}
         allowed = self.DIFF_FILTERS.get(self.view_mode_var.get())
         initially_visible = list(self.rows) if allowed is None else [row for row in self.rows if row[0] in allowed]
-        rows_by_key = {row[1].casefold(): row for row in self.rows}
-        needed = {row[1].casefold() for row in initially_visible}
+        path_key = lambda value: os.path.normcase(str(value))
+        rows_by_key = {path_key(row[1]): row for row in self.rows}
+        needed = {path_key(row[1]) for row in initially_visible}
         for _status, relative, _left, _right in initially_visible:
             parent = Path(relative).parent
             while parent != Path("."):
-                key = str(parent).casefold()
+                key = path_key(parent)
                 if key in rows_by_key: needed.add(key)
                 parent = parent.parent
-        visible = [row for row in self.rows if row[1].casefold() in needed]
+        visible = [row for row in self.rows if path_key(row[1]) in needed]
         if self.sort_column == "action":
             visible.sort(key=lambda row: self.actions.get(row[1], ""), reverse=self.sort_reverse)
         elif self.sort_column in {"left_detail", "right_detail"}:
@@ -1781,7 +2032,7 @@ class FolderCompare(_FolderCompareLogic):
                    "newer_left" if status == "Left newer" else
                    "newer_right" if status == "Right newer" else
                    "identical" if status == "Identical" else "different")
-            parent_iid = item_ids.get(str(Path(path).parent).casefold(), "")
+            parent_iid = item_ids.get(path_key(Path(path).parent), "")
             action = action_label.get(self.actions.get(path), "")
             self.left_tree.insert(parent_iid, "end", iid=iid, text=path if left is not None else "",
                                   open=self._expand_state,
@@ -1792,10 +2043,11 @@ class FolderCompare(_FolderCompareLogic):
                                    values=(self._detail(right),
                                            action if self.actions.get(path) in {"left", "skip"} else ""),
                                    tags=(tag,))
-            item_ids[path.casefold()] = iid; self.item_paths[iid] = (left, right); self.item_keys[iid] = path
+            item_ids[path_key(path)] = iid; self.item_paths[iid] = (left, right); self.item_keys[iid] = path
             if status != "Identical": self.difference_items.append(iid)
         ordered = list(self._all_tree_items())
-        difference_rows = [ordered.index(iid) + 1 for iid in self.difference_items if iid in ordered]
+        row_numbers = {iid: index+1 for index, iid in enumerate(ordered)}
+        difference_rows = [row_numbers[iid] for iid in self.difference_items if iid in row_numbers]
         self.difference_map.set_rows(difference_rows, len(ordered))
         self._update_difference_status(0); self.find_all()
 
@@ -1863,8 +2115,16 @@ class FolderCompare(_FolderCompareLogic):
             if action == "right" and left is not None and not self.right_read_only: self.actions[key] = action
             elif action == "left" and right is not None and not self.left_read_only: self.actions[key] = action
             elif action == "skip": self.actions[key] = action
-        self.populate(); self._select_items([iid for iid in self._all_tree_items()
-                                             if self.item_keys.get(iid) in selected_keys])
+        if self.sort_column == 'action':
+            self.populate(); self._select_items([iid for iid in self._all_tree_items()
+                                                 if self.item_keys.get(iid) in selected_keys])
+        else:
+            # Changing a copy direction is not a new scan. Keep row identity,
+            # expansion, selection and viewport instead of flashing both trees.
+            for iid in selected:
+                choice = self.actions.get(self.item_keys.get(iid))
+                self.left_tree.set(iid, 'action', '→' if choice == 'right' else tr('Skip') if choice == 'skip' else '')
+                self.right_tree.set(iid, 'action', '←' if choice == 'left' else tr('Skip') if choice == 'skip' else '')
         return "break"
 
     def set_base_folder(self):
@@ -1881,8 +2141,20 @@ class FolderCompare(_FolderCompareLogic):
         self._update_path_labels(); self.start_scan(); return "break"
 
     def _update_path_labels(self):
-        self.left_path_label.configure(text=f"{tr('Left')}: {self._base_label('left')}")
-        self.right_path_label.configure(text=f"{tr('Right')}: {self._base_label('right')}")
+        for side, label in (('left', self.left_path_label), ('right', self.right_path_label)):
+            prefix = tr(side.title())+': '
+            path = str(self._base_label(side))
+            font = tkfont.nametofont(str(label.cget('font')))
+            available = label.winfo_width()-2*int(label.cget('padx'))-4
+            if available > 30 and font.measure(prefix+path) > available:
+                low, high = 0, len(path)
+                while low < high:
+                    middle = (low+high+1)//2
+                    if font.measure(prefix+'…'+path[-middle:]) <= available: low = middle
+                    else: high = middle-1
+                path = '…'+path[-low:] if low else '…'
+            text = prefix+path
+            if label.cget('text') != text: label.configure(text=text)
 
     def _active_detail_view(self):
         selected = self.session_tabs.select()
@@ -1920,6 +2192,8 @@ class FolderCompare(_FolderCompareLogic):
         right_title = nested_source_label(self.right_label, relative)
         kind, detail = self.open_detail(
             host, left, right, left_title=left_title, right_title=right_title)
+        if type(detail) is TextCompare:
+            detail.set_read_only(self.left_read_only, self.right_read_only)
         detail.pack(fill="both", expand=True)
         install_button_tooltips(page)
         details = {
@@ -1986,8 +2260,9 @@ class TableCompare(TextCompare):
     def __init__(self, master, left: Path, right: Path, marker_position="middle", marker_changed=None,
                  left_title=None, right_title=None):
         def rows(path):
+            import io
             delimiter = "\t" if path.suffix.casefold() == ".tsv" else ","
-            with path.open("r", encoding="utf-8-sig", errors="replace", newline="") as stream:
+            with io.StringIO(read_text_document(path).text, newline='') as stream:
                 return [" | ".join(row) for row in csv.reader(stream, delimiter=delimiter)]
         ttk.Frame.__init__(self, master)
         a, b = "\n".join(rows(left)), "\n".join(rows(right))
@@ -2017,6 +2292,15 @@ class CompareWindow(tk.Toplevel):
         self.title(tr("PFC Compare"))
         self.geometry(config.get("compare", "geometry", fallback="1400x850"))
         self.protocol("WM_DELETE_WINDOW", self.close)
+        session_bar = ttk.Frame(self, padding=(5, 3)); session_bar.pack(fill='x')
+        session_button = ttk.Menubutton(session_bar, text=tr('Session'))
+        session_menu = tk.Menu(session_button, tearoff=False, font='TkMenuFont')
+        session_menu.add_command(label=tr('Saved comparisons')+'…', command=self.saved_comparisons)
+        session_menu.add_command(label=tr('Export report')+'…', command=self.export_report)
+        session_menu.add_separator()
+        session_menu.add_command(label=tr('Close comparison'), command=self.close_active)
+        session_button.configure(menu=session_menu); session_button.pack(side='left')
+        ToolTip(session_button, tr('Named paths and rules · reopening never runs sync'))
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.notebook.set_theme(self.palette)
         self.configure(background=self.palette["window"])
@@ -2030,8 +2314,62 @@ class CompareWindow(tk.Toplevel):
         install_button_tooltips(self)
         self._schedule_refresh()
 
+    def current_comparison(self):
+        return self.nametowidget(self.notebook.select()) if self.notebook.tabs() else None
+
+    def capture_session(self):
+        frame = self.current_comparison()
+        if frame is None: raise ValueError(tr('Open a comparison first.'))
+        left, right, kind, signature = self.comparisons[frame]
+        data = {'left': str(left), 'right': str(right), 'kind': kind}
+        if isinstance(frame, FolderCompare):
+            data['rules'] = frame.scan_rules()
+            data['bases'] = [str(frame.left_root.relative_to(frame.left_base_root)),
+                             str(frame.right_root.relative_to(frame.right_base_root))]
+            data['view'] = frame.view_mode_var.get()
+        return data
+
+    def open_session(self, data):
+        left, right = Path(data['left']), Path(data['right'])
+        missing = [str(path) for path in (left, right) if not path.exists()]
+        if missing: raise OSError(tr('Saved path is unavailable')+':\n'+'\n'.join(missing))
+        kind = data.get('kind', 'Auto')
+        if kind not in {'Auto', 'Text', 'Table', 'Binary', 'Folder'}: kind = 'Auto'
+        bases = data.get('bases', ['.', '.'])
+        if not isinstance(bases, list) or len(bases) != 2 or any(
+                not isinstance(p, str) or Path(p).is_absolute() or '..' in Path(p).parts for p in bases):
+            raise ValueError('Invalid saved comparison base.')
+        frame = self.add(left, right, kind)
+        if isinstance(frame, FolderCompare):
+            a, b = frame.left_base_root / bases[0], frame.right_base_root / bases[1]
+            if not a.is_dir() or not b.is_dir():
+                frame.scan_status.configure(text=tr('Saved base unavailable; showing source roots'))
+            else:
+                frame.left_root, frame.right_root = a, b
+                frame._update_path_labels()
+            view = data.get('view', 'all')
+            frame.view_mode_var.set(view if view in frame.DIFF_FILTERS else 'all')
+            frame.restore_rules(data.get('rules', {}))
+        return True
+
+    def saved_comparisons(self):
+        picker = WorkflowPicker(self, 'Saved comparisons', WorkflowRecords(self.config_data, 'compare_sessions'),
+                        self.save_config, self.capture_session, self.open_session,
+                        lambda d: str(d.get('left', ''))+'\n↔ '+str(d.get('right', '')))
+        if self.current_comparison() is None:
+            picker.save_button.state(['disabled'])
+            if not picker.entries:
+                picker.detail.configure(text=tr('Open a comparison with F9, then save it from Session.'))
+
+    def export_report(self):
+        frame = self.current_comparison()
+        if isinstance(frame, FolderCompare): frame.export_report()
+        else:
+            messagebox.showinfo(tr('Export report'), tr('Select a folder comparison to export its results.'), parent=self)
+
     def apply_scale(self, scale: float) -> None:
         self.scale = scale
+        self.notebook._font_override = style_compare_chrome(self)
         self.notebook.redraw()
         for frame in self.comparisons:
             handler = getattr(frame, "apply_scale", None)
@@ -2132,6 +2470,7 @@ class CompareWindow(tk.Toplevel):
         if callable(handler):
             handler(self.scale)
         self.notebook.select(frame); self.after_idle(self.activate)
+        return frame
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()
@@ -2141,6 +2480,9 @@ class CompareWindow(tk.Toplevel):
 
     def _auto_refresh(self):
         self._refresh_job = None
+        if getattr(self, '_editors', None):
+            self._schedule_refresh()
+            return
         if self.notebook.tabs():
             frame = self.nametowidget(self.notebook.select())
             details = self.comparisons.get(frame)
@@ -2148,6 +2490,14 @@ class CompareWindow(tk.Toplevel):
                 left, right, kind, previous = details
                 current = self._signature(left, right)
                 if current is not None and current != previous:
+                    if type(frame) is TextCompare:
+                        try:
+                            frame.reload_content()
+                            self.comparisons[frame] = (left, right, kind, current)
+                        except OSError as exc:
+                            frame.view.diff_status.configure(text=str(exc))
+                        self._schedule_refresh()
+                        return
                     index = self.notebook.index(frame)
                     title = self.notebook.tab(frame)["text"]
                     self.notebook.forget(frame); self.comparisons.pop(frame, None); frame.destroy()
@@ -2165,6 +2515,7 @@ class CompareWindow(tk.Toplevel):
         if self.winfo_exists(): self._schedule_refresh()
 
     def _navigate(self, method):
+        if not self.notebook.tabs(): return
         frame = self.nametowidget(self.notebook.select())
         pending = [frame]
         while pending:
@@ -2175,6 +2526,7 @@ class CompareWindow(tk.Toplevel):
             pending.extend(widget.winfo_children())
 
     def focus_search(self):
+        if not self.notebook.tabs(): return 'break'
         frame = self.nametowidget(self.notebook.select())
         pending = [frame]
         while pending:
@@ -2184,6 +2536,8 @@ class CompareWindow(tk.Toplevel):
         return "break"
 
     def close(self):
+        for editor in list(getattr(self, '_editors', ())):
+            if not editor.close(): return
         if self._refresh_job is not None:
             self.after_cancel(self._refresh_job); self._refresh_job = None
         if not self.config_data.has_section("compare"): self.config_data.add_section("compare")
@@ -2197,6 +2551,8 @@ class CompareWindow(tk.Toplevel):
 
     def close_active(self):
         tabs = self.notebook.tabs()
+        if not tabs:
+            self.close(); return
         current = self.notebook.select()
         widget = self.nametowidget(current)
         if hasattr(widget, "close_nested_detail") and widget.close_nested_detail():

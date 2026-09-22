@@ -1,6 +1,8 @@
 import tempfile
 import time
 import unittest
+import threading
+from unittest import mock
 from pathlib import Path
 
 from pycommander.mdjobs import MarkdownJobs
@@ -54,6 +56,31 @@ def markdown_worker_main():
         while not self.jobs.submit({'value':'new'}):
             self.assertLess(time.monotonic(),end);time.sleep(.01)
         self.assertEqual(self.result()['value'],'new')
+
+    def test_sender_cleanup_swallow_broken_pipe_on_close(self):
+        closed = threading.Event(); errors = []
+        class Input:
+            def write(self, value): raise BrokenPipeError('worker exited')
+            def flush(self): pass
+            def close(self):
+                closed.set(); raise BrokenPipeError('buffered close')
+        class Output:
+            def readline(self, size): closed.wait(2); return b''
+            def close(self): pass
+        class Process:
+            stdin = Input(); stdout = Output()
+            def poll(self): return None
+            def kill(self): pass
+            def wait(self): return 0
+        process = Process()
+        with mock.patch('pycommander.mdjobs.subprocess.Popen', return_value=process), \
+             mock.patch('threading.excepthook', side_effect=lambda exc: errors.append(exc)):
+            self.jobs._start(); self.jobs.outgoing.put({'id':1})
+            self.assertTrue(closed.wait(2))
+            for thread in threading.enumerate():
+                if thread.name.startswith('PFC-Markdown-'): thread.join(2)
+        self.jobs.process = None
+        self.assertFalse(errors)
 
 
 if __name__=='__main__':unittest.main()

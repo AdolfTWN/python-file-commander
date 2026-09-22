@@ -46,9 +46,13 @@ from .cloudstatus import CLOUD_LABELS, CLOUD_DETAILS, CloudStatusCache
 from .marquee import NameMarquee
 from .detailcells import SizeUnitCells
 from .columnsettings import modified_text
+from .workflowdata import WorkflowRecords
+from .workflows import CommandPalette
+from .workspaces import show_workspaces, restore_workspace
+from .syncprogress import SyncProgress
 from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard
-from .settings import SettingsDialog, SETTINGS_CATEGORIES
+from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -133,6 +137,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.28", "2026/09/22", (
+        "Added: Named workspaces, comparison sessions, command search and Markdown reading bookmarks.",
+        "Improved: Compact comparison rules, safe exclusion-aware copy plans, inert reports and inline differences.",
+        "Fixed: Text editing preserves encoding and line endings, detects external changes and protects unsaved drafts.",
+        "Improved: Clearer typography, stable-width active tabs and responsive comparison columns.",
+    )),
     ("v0.17.27", "2026/09/22", (
         "Added: Categorized PFC Settings with draft Apply/Cancel and actual style comparison screenshots.",
     )),
@@ -2414,6 +2424,7 @@ class Commander(tk.Tk):
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
             "quick_filter": "<Control-y>",
+            "command_search": "<Control-Shift-P>",
         }
         commands = {
             "rename": self.rename, "preview": self.preview, "search": self.search, "copy": self.copy,
@@ -2441,6 +2452,7 @@ class Commander(tk.Tk):
             "favorites_menu": lambda: self._show_folder_menu(self.favorites_menu, self._rebuild_favorites_menu),
             "recent_menu": lambda: self._show_folder_menu(self.recent_menu, self._rebuild_recent_menu),
             "quick_filter": lambda: self.panes()[0].toggle_quick_filter(),
+            "command_search": self.show_command_palette,
         }
         if not self.config_data.has_section("hotkeys"):
             self.config_data.add_section("hotkeys")
@@ -2485,7 +2497,57 @@ class Commander(tk.Tk):
     def _dispatch_global_hotkey(self, command):
         # Native combobox popdowns have their own toplevel: guarding only the
         # Settings toplevel binding does not protect the background file list.
-        return 'break' if self._settings_are_open() else command()
+        try:
+            modal = self.grab_current()
+        except (KeyError, tk.TclError):
+            modal = True
+        return 'break' if self._settings_are_open() or modal else command()
+
+    def show_command_palette(self):
+        if self._settings_are_open(): return 'break'
+        commands = []
+        for label, category, key, aliases, callback in (
+            ('Preview', 'Files', 'F3', 'preview 預覽 预览', self.preview),
+            ('Search', 'Files', 'F4', 'find 搜尋 搜索 搜寻', self.search),
+            ('Compare', 'Files', 'F9', 'diff compare 比較 比较', self.compare_selected),
+            ('Saved comparisons', 'Workflows', '', 'session compare 比較 工作階段 比较 会话', self.show_saved_comparisons),
+            ('Workspaces', 'Workflows', '', 'workspace project tabs 工作區 工作区 專案 项目', lambda: show_workspaces(self)),
+            ('Restore previous workspace', 'Workflows', '', 'undo workspace 復原 還原 恢复', self.restore_previous_workspace),
+            ('New Tab', 'Go', 'Ctrl+Up', 'tab 分頁 标签', self.new_tab),
+            ('Parent Folder', 'Go', 'Left', 'parent folder 上層 上层 目錄 目录', self.parent_folder),
+            ('Quick Filter', 'Files', 'Ctrl+Y', 'filter 篩選 筛选', lambda: self.panes()[0].toggle_quick_filter()),
+            ('Refresh', 'Files', 'Ctrl+R', 'reload 刷新 重新整理', self.refresh),
+            ('Rename', 'Files', 'F2', 'rename multi 批次 改名 重命名', self.rename),
+            ('Folder Space Analyzer', 'Tools', '', 'disk space 磁碟 磁盘 容量', self.show_space_analyzer),
+            ('Copy Paths', 'Files', 'F11', 'copy path 路徑 路径', self.copy_paths),
+            ('Check Update', 'Help', '', 'update 更新 升級 升级', self.check_update),
+            ('Help', 'Help', 'F1', 'help 幫助 帮助', self.show_help),
+        ):
+            commands.append((tr(label), tr(category), key, label+' '+aliases, callback))
+        from_specs = preference_specs(self)
+        for key, category, group, label, choices, method in from_specs:
+            commands.append((tr(label), tr(dict(SETTINGS_CATEGORIES)[category]), '',
+                             label+' '+key+' '+tr(group), lambda c=category: self.show_settings(c)))
+        CommandPalette(self, commands)
+        return 'break'
+
+    def show_saved_comparisons(self):
+        if self.compare_window is None or not self.compare_window.winfo_exists():
+            self.compare_window = CompareWindow(self, self.config_data, self.save_config, self.execute_sync_plans)
+            self.compare_window.notebook.set_style(self.tab_style_var.get())
+        self.compare_window.apply_scale(self._font_scales.get(self.font_size_var.get(), 1.0))
+        self.compare_window.saved_comparisons()
+
+    def show_workspace_picker(self):
+        return show_workspaces(self)
+
+    def restore_previous_workspace(self):
+        records = WorkflowRecords(self.config_data, 'workspace_undo').read()
+        if records:
+            try: restore_workspace(self, records[0]['data'])
+            except (OSError, ValueError) as exc: messagebox.showerror(tr('Workspaces'), str(exc), parent=self)
+        else:
+            messagebox.showinfo(tr('Workspaces'), tr('No previous workspace is saved yet.'), parent=self)
 
     def _install_priority_hotkeys(self, hotkeys, commands) -> None:
         """Run tab navigation before Tk widget/class bindings can consume Tab."""
@@ -2693,6 +2755,15 @@ class Commander(tk.Tk):
         self.after(10000, lambda: warning.destroy() if warning.winfo_exists() else None)
 
     def close_app(self) -> None:
+        pending_sync = getattr(self, '_sync_dialog', None)
+        if pending_sync is not None and pending_sync.winfo_exists():
+            pending_sync.cancel()
+            return
+        if self.compare_window is not None and self.compare_window.winfo_exists():
+            self.compare_window.close()
+            if self.compare_window.winfo_exists(): return
+        if self.preview_window is not None and self.preview_window.winfo_exists():
+            self.preview_window.close()
         self._clear_tab_drag_target()
         if self._drag_state is not None:
             self._handle_internal_drag("cancel", self._drag_state["source"], None)
@@ -2859,7 +2930,7 @@ class Commander(tk.Tk):
         previous_header = getattr(self, "header", None)
         if previous_header is not None and previous_header.winfo_exists():
             previous_header.destroy()
-        menu_font = tkfont.nametofont("TkMenuFont")
+        menu_font = self._role_fonts['menu']
         header_bg = self.palette["header"]
         header_fg = self.palette["header_text"]
         active_bg = self.palette["header_active"]
@@ -2879,7 +2950,7 @@ class Commander(tk.Tk):
         self.clipboard_icon_canvas.pack(fill="both", expand=True)
         self.clipboard_summary = tk.Label(self.clipboard_summary_frame, text=tr("Clipboard: checking…"),
                                           anchor="e", width=1,
-                                          font=menu_font,
+                                          font=self._role_fonts['auxiliary'],
                                           background=header_bg, foreground=self.palette["header_muted"])
         self.compare_target_label = tk.Label(
             header, text="", anchor="center", font=menu_font, padx=12, pady=2,
@@ -2892,14 +2963,14 @@ class Commander(tk.Tk):
         header.bind("<Configure>", lambda _event: self._update_compare_target_label(), add="+")
         self._update_compare_target_label()
         title = tk.Label(header, text="PFC",
-                         font=tkfont.nametofont("TkCaptionFont"),
+                         font=self._role_fonts['auxiliary'],
                          background=header_bg, foreground=header_fg, cursor="hand2")
         title.pack(side="left", padx=(2, 8))
         title.bind("<Button-1>", lambda _event: self.show_help())
-        version_label = tk.Label(header, text=f"v{__version__}", font=menu_font,
+        version_label = tk.Label(header, text=f"v{__version__}", font=self._role_fonts['auxiliary'],
                                  background=header_bg, foreground=self.palette["header_muted"])
         version_label.pack(side="left", padx=(0, 10))
-        button_style = dict(font=menu_font, relief="raised", borderwidth=1, padx=9, pady=2,
+        button_style = dict(font=menu_font, relief="flat", borderwidth=1, padx=8, pady=3,
                             cursor="hand2",
                             background=self.palette["header_button"], foreground=header_fg,
                             activebackground=active_bg, activeforeground="#ffffff")
@@ -3052,6 +3123,10 @@ class Commander(tk.Tk):
         tools.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
         tools.add_separator()
         tools.add_command(label=tr('PFC Settings')+'…', command=self.show_settings)
+        tools.add_command(label=tr('Command search')+'…', accelerator='Ctrl+Shift+P', command=self.show_command_palette)
+        tools.add_command(label=tr('Saved comparisons')+'…', command=self.show_saved_comparisons)
+        tools.add_command(label=tr('Workspaces')+'…', command=lambda: show_workspaces(self))
+        tools.add_command(label=tr('Restore previous workspace'), command=self.restore_previous_workspace)
 
         versions_button = tk.Button(header, text=tr("Help"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
@@ -3834,6 +3909,7 @@ class Commander(tk.Tk):
                               ('Right Click Menu',self.right_click_menu),
                               ('Font Size',self.font_size_menu),('Color Scheme',self.color_scheme_menu)):
             add_scaled_cascade(menu,tr(label),submenu)
+        menu.add_command(label=tr('Workspaces')+'…', command=self.show_workspace_picker)
         return menu
 
     def show_panel_context_menu(self,pane,x,y):
@@ -5035,18 +5111,12 @@ class Commander(tk.Tk):
             messagebox.showerror(tr("Compare failed"), str(exc), parent=self)
 
     def execute_sync_plans(self, plans: list[tuple[Path, Path]]) -> OperationResult:
-        result = OperationResult(); resolver = self._conflict_resolver()
-        for index, (source, target) in enumerate(plans):
-            try:
-                partial = copy_items([source], target.parent, resolver, self.continue_errors_var.get())
-            except (OSError, shutil.Error) as exc:
-                partial = OperationResult(failures=[OperationFailure(source, target, str(exc))])
-            result.completed.extend(partial.completed)
-            result.skipped.extend(partial.skipped)
-            result.failures.extend(partial.failures)
-            if partial.failures and not self.continue_errors_var.get():
-                result.skipped.extend(source for source, _target in plans[index + 1:])
-                break
+        if not plans: return OperationResult()
+        self._sync_dialog = dialog = SyncProgress(self, plans, self._conflict_resolver(), self.continue_errors_var.get())
+        # Tk continues dispatching redraw/input/conflict callbacks while worker
+        # file I/O runs; callers rescan only after the actual copy completes.
+        self.wait_window(dialog)
+        result = dialog.result; self._sync_dialog = None
         self.refresh(); self._show_operation_result("Safe Sync", result)
         return result
 
@@ -5131,7 +5201,9 @@ class Commander(tk.Tk):
             self._install_zoom_bindtag(widget=child)
 
     def _zoom_wheel(self, event) -> str:
-        if self._settings_are_open():
+        try: modal = self.grab_current()
+        except (KeyError, tk.TclError): modal = True
+        if self._settings_are_open() or modal:
             return 'break'
         number = getattr(event, "num", None)
         delta = getattr(event, "delta", 0)
@@ -5184,8 +5256,17 @@ class Commander(tk.Tk):
             size = max(1, round(abs(base) * scale * (1 if base < 0 else self._base_tk_scaling)))
             tkfont.nametofont(name).configure(size=-size)
         default_font = tkfont.nametofont("TkDefaultFont")
+        if not hasattr(self, '_role_fonts'): self._role_fonts = {}
+        for role, ratio, weight in (('menu', .9, 'normal'), ('auxiliary', .8, 'normal'),
+                                     ('heading', .9, 'bold')):
+            if role not in self._role_fonts:
+                self._role_fonts[role] = tkfont.Font(self)
+            self._role_fonts[role].configure(family=default_font.actual('family'),
+                size=-max(10, round(abs(int(default_font.cget('size'))) * ratio)), weight=weight)
         row_height = scaled_tree_row_height(default_font.metrics("linespace"), scale)
         style = ttk.Style(self)
+        for name in ('Active.Treeview.Heading', 'Inactive.Treeview.Heading'):
+            style.configure(name, font=self._role_fonts['heading'])
         style.configure("Treeview", rowheight=row_height)
         style.configure("Active.Treeview", rowheight=row_height)
         style.configure("Inactive.Treeview", rowheight=row_height)

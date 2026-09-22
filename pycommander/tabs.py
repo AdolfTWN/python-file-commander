@@ -715,7 +715,13 @@ class ChamferNotebook(ttk.Frame):
 
     def _draw(self):
         self.bar.delete("all"); self._hitboxes.clear()
-        font = tkfont.nametofont("TkDefaultFont")
+        font = getattr(self, '_font_override', None) or tkfont.nametofont("TkDefaultFont")
+        font_spec = (font.actual('family'), int(font.cget('size')))
+        if getattr(self, '_active_title_font_spec', None) != font_spec:
+            if not hasattr(self, '_active_title_font'): self._active_title_font = tkfont.Font(self)
+            self._active_title_font.configure(family=font_spec[0], size=font_spec[1], weight='bold')
+            self._active_title_font_spec = font_spec
+        active_font = self._active_title_font
         right_skirt = self._tab_style == "right_skirt"
         height = max(30, font.metrics("linespace") + 13)
         icon_size, icon_inset, icon_gap = tab_lock_metrics(font.metrics('linespace'), self._tab_style)
@@ -732,9 +738,10 @@ class ChamferNotebook(ttk.Frame):
             lock = self._locks.get(child, "unlocked")
             selected = child is self._selected
             padding = 20 if right_skirt else 28
-            width = max(52 if right_skirt else 58, font.measure(text) + padding + (10 if selected else 0))
+            title_width = max(font.measure(text), active_font.measure(text))
+            width = max(52 if right_skirt else 58, title_width + padding)
             if lock in {'locked', 'reset'}:
-                width = max(width, font.measure(text) + icon_inset + icon_size + icon_gap + 6)
+                width = max(width, title_width + icon_inset + icon_size + icon_gap + 6)
             key = normalize_tab_color(self._colors.get(child, "default"))
             color = self.palette["tab_default"] if key == "default" else TAB_COLORS[key][1]
             top = 0 if selected else max(4, round(height * 0.22))
@@ -789,10 +796,10 @@ class ChamferNotebook(ttk.Frame):
                 self.bar.create_image(left + icon_inset, center_y, anchor='w',
                     image=self._lock_images[lock], tags=('tab-lock-icon', 'lock:' + str(id(child))))
                 self.bar.create_text(left + icon_inset + icon_size + icon_gap, center_y,
-                    anchor='w', text=text, font=font, fill=text_color,
+                    anchor='w', text=text, font=active_font if selected else font, fill=text_color,
                     tags=('tab-title', 'title:' + str(id(child))))
             else:
-                self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=font,
+                self.bar.create_text(left + width / 2, (top + height) / 2 + 1, text=text, font=active_font if selected else font,
                     fill=text_color, tags=('tab-title', 'title:' + str(id(child))))
         if self._drop_position is not None:
             if not self._hitboxes or self._drop_position <= 0:
@@ -908,6 +915,9 @@ class ChamferNotebook(ttk.Frame):
                 add_scaled_radiobutton(style_menu,tr(label),value,selected,
                                        command=lambda value=value:self.set_style(value))
             add_scaled_cascade(menu,tr('Tab Style'),style_menu)
+        workspace_picker = getattr(owner, 'show_workspace_picker', None)
+        if callable(workspace_picker):
+            menu.add_command(label=tr('Workspaces')+'…', command=workspace_picker)
         return menu
 
     def _show_context_menu(self,child,x,y):

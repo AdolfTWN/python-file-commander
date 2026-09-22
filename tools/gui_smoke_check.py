@@ -44,7 +44,7 @@ def main() -> None:
             assert all("Build" not in widget.cget("text") for widget in app.header_left_widgets)
             for menu_button in (app.files_menu_button, app.go_menu_button, app.view_menu_button,
                                 app.tools_menu_button, app.versions_menu_button):
-                assert menu_button.cget("relief") == "raised"
+                assert menu_button.cget("relief") == "flat"
                 assert isinstance(menu_button, pfc.tk.Button)
             assert [widget.cget("text") for widget in app.header_left_widgets[2:]] == [
                 "Files", "Go", "View", "Tools", "Help"]
@@ -61,7 +61,8 @@ def main() -> None:
             assert [app.tools_menu.entrycget(index, "label")
                     for index in range(app.tools_menu.index("end") + 1)
                     if app.tools_menu.type(index) != "separator"] == [
-                "Preview", "Compare", "Folder Space Analyzer", "PFC Settings…"]
+                "Preview", "Compare", "Folder Space Analyzer", "PFC Settings…", "Command search…",
+                "Saved comparisons…", "Workspaces…", "Restore previous workspace"]
             assert "F8" not in app.action_button_by_hotkey
             assert not app.config_data.has_option("hotkeys", "explorer_menu")
             assert not app.bind_all("<F8>")
@@ -178,7 +179,7 @@ def main() -> None:
             while compare_view._scanning and time.monotonic() < deadline:
                 app.update(); time.sleep(.03)
             assert compare_view.text_equivalent_var.get()
-            assert "Text equivalent" in compare_view.text_equivalent_button.cget("text")
+            assert compare_view.rules_menu.entrycget(2, 'label') == 'Text equivalent'
             assert [(status, path) for status, path, *_rest in compare_view.rows] == [
                 ("Identical", "same.md")]
             compare_view.destroy()
@@ -244,7 +245,9 @@ def main() -> None:
                 font_name = source_tabs.bar.itemcget(item, "font")
                 drawn_tab_fonts.append(pfc.tkfont.Font(root=app, font=font_name).actual())
             assert len(drawn_tab_fonts) >= 2
-            assert all(actual == tab_font for actual in drawn_tab_fonts), drawn_tab_fonts
+            assert all(all(actual[key] == tab_font[key] for key in ('family','size','slant','underline','overstrike'))
+                       for actual in drawn_tab_fonts), drawn_tab_fonts
+            assert sum(actual['weight']=='bold' for actual in drawn_tab_fonts)==1
             labels = [app.files_menu.entrycget(index, "label")
                       for index in range(app.files_menu.index("end") + 1)
                       if app.files_menu.type(index) not in {"separator", "tearoff"}]
@@ -685,7 +688,7 @@ def main() -> None:
             assert folder_frame.right_tree.cget("columns") == ("detail", "action")
             assert folder_frame.tree.cget("style") == "PFCCompare.Treeview"
             if hasattr(folder_frame, "center_header"):
-                assert folder_frame.diff_button.master is folder_frame.center_header
+                assert folder_frame.diff_button.master is not folder_frame.center_header
             compare_window.apply_scale(2.0); app.update_idletasks()
             compare_style = pfc.ttk.Style(folder_frame)
             assert int(compare_style.lookup("PFCCompare.Treeview", "rowheight")) > 30

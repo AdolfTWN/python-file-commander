@@ -79,7 +79,12 @@ class MarkdownJobs:
             except (OSError,ValueError):
                 results.put((process,{'error':'Preview worker could not accept the request'}))
             finally:
-                process.stdin.close()
+                try:
+                    process.stdin.close()
+                except (OSError, ValueError):
+                    # A cancelled/crashed worker may close its pipe before the
+                    # buffered writer flushes. Cleanup must not raise in a thread.
+                    pass
         def receive():
             try:
                 while True:

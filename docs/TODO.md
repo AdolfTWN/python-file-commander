@@ -2,11 +2,28 @@
 
 ## Regression follow-up — 2026-09-22
 
-- [ ] Markdown worker shutdown: full unit runs can emit a background
+- [x] Markdown worker shutdown (v0.17.28): full unit runs could emit a background
   `BrokenPipeError` from `mdjobs.py`'s sender `finally: process.stdin.close()`
-  although all 201 test assertions complete successfully. Investigate cancellation
-  cleanup and add an explicit worker-thread exception regression. Recorded during
-  v0.17.26 tree validation; Markdown worker behavior was not changed in this release.
+  although all 201 baseline test assertions completed successfully. Cancellation
+  cleanup now tolerates a closed worker pipe; an explicit thread-exception
+  regression verifies cancellation cleanup.
+
+## Approved workflow expansion — v0.17.28
+
+- [x] Safe original-source text editor: preserve encoding/BOM/EOL, reject external
+  changes, do not save synthetic aligned rows; archive sides remain read-only.
+- [x] Named comparison sessions and exclusion rules, persisted locally.
+- [x] Command/Settings search (Ctrl+Shift+P), with modal shortcut isolation.
+- [x] Markdown bookmarks and reading resume, bounded exact paths and no index.
+- [x] Escaped HTML/text comparison reports and bounded inline character differences.
+- [x] Named workspaces with path validation and reversible pre-switch snapshot.
+- [x] Scanned-file-only copy plans honor excludes and child Skip. Worker copying,
+  UI-thread conflict prompts, visible progress and file-boundary cancellation.
+- [x] Compact top-area typography, stable-width bold active tabs, responsive
+  comparison columns and keyboard-accessible pickers.
+- See [workflow guide](workflow-upgrade.md) for scope and deliberate exclusions;
+  [three-round validation](workflow-validation-2026-09-22.md) records evidence and
+  release checks.
 
 ## Single-panel workspace — v0.17.21
 
@@ -79,10 +96,10 @@ as proposals, not unapproved visual changes or full Obsidian compatibility.
 4. [x] **Tab lock-mode visual options — research complete** — Compared lock glyph, text badge and heavy edges. The subsequently selected C variant is implemented in v0.17.21 (see above).
 5. [x] **Compact zoom control (v0.17.18)** — Removed down arrow only; percentage menu, keyboard access and plus/minus remain.
 6. [x] **Markdown rendering and Obsidian research (v0.17.18)** — Read-only tables and literal property values, cell wrapping/horizontal scrolling, search/source view, safe handling of nested/unknown syntax. Obsidian candidates and limits documented separately, not implemented implicitly.
-7. [x] **Top-area typography and layout standards — planning complete** — Relative font sizes, two weights, spacing, alignment and emphasis specified for review. Existing header/tab visual design remains unchanged.
+7. [x] **Top-area typography and layout standards** — Approved in the subsequent workflow batch and implemented in v0.17.28: compact menu/version text, bold headings and active tab, no extra permanent toolbar and no tab-width jump.
 
 - [x] **Tab-lock design decision** — User selected C with matching neutral tile colors and distinct compact silhouettes; see the selected-design section above.
-- [ ] **Top-area design decision** — Review typography/layout proposal before applying its broader visual redesign.
+- [x] **Top-area design decision** — User authorized the full priority batch, emphasizing compact, useful and stable UI; applied in v0.17.28.
 
 ## Existing follow-ups
 
