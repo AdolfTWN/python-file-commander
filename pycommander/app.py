@@ -53,6 +53,8 @@ from .syncprogress import SyncProgress
 from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs
+from .actionbar import ActionBarLayout
+from .vcsui import VcsActions
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -137,6 +139,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.5", "2026/09/23", (
+        "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.",
+        "Improved: A measured-width action bar fits F8 without shrinking fonts or displacing zoom; compact labels preserve transfer destinations.",
+    )),
     ("v0.18.4", "2026/09/23", (
         "Improved: Layout settings compare complete 1–4 panel workspaces, with a visible folder tree and shared or independent tabs.",
         "Improved: Before and After show explicit panel counts; enlarged comparisons follow the same draft layout and tab style.",
@@ -2421,6 +2427,7 @@ class Commander(tk.Tk):
         for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
                                        ("F4", "Search", self.search), ("F5", "Copy", self.copy),
                                        ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
+                                       ("F8", "VCS", self.show_vcs_actions),
                                        ("F9", "Compare", self.compare_selected),
                                        ("F11", "Copy Path", self.copy_paths),
                                        ("F12", "Change Path", self.change_dir)):
@@ -2431,6 +2438,8 @@ class Commander(tk.Tk):
             button.pack(side="left", fill="x", expand=True, padx=1)
             self.action_buttons.append((button, hotkey, label))
             self.action_button_by_hotkey[hotkey] = button
+        self.action_bar = ActionBarLayout(self, action_commands)
+        self.vcs_actions = VcsActions(self)
         self.update_rename_action()
         self.update_transfer_actions()
         install_button_tooltips(self)
@@ -2455,6 +2464,7 @@ class Commander(tk.Tk):
             "tools_menu": "<Alt-t>", "versions_menu": "<Alt-h>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
             "compare": "<F9>",
+            "version_control": "<F8>",
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
             "quick_filter": "<Control-y>",
@@ -2481,6 +2491,7 @@ class Commander(tk.Tk):
             "versions_menu": lambda: self.show_header_menu("versions"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
             "compare": self.compare_selected,
+            "version_control": self.show_vcs_actions,
             "permanent_delete": lambda: self.delete_hotkey(permanent=True),
             "toggle_favorite": self.toggle_favorite,
             "favorites_menu": lambda: self._show_folder_menu(self.favorites_menu, self._rebuild_favorites_menu),
@@ -2527,6 +2538,9 @@ class Commander(tk.Tk):
     def _settings_are_open(self):
         dialog=getattr(self,'settings_window',None)
         return dialog is not None and dialog.winfo_exists()
+
+    def show_vcs_actions(self):
+        return self.vcs_actions.show()
 
     def _dispatch_global_hotkey(self, command):
         # Native combobox popdowns have their own toplevel: guarding only the
@@ -3444,7 +3458,12 @@ class Commander(tk.Tk):
         if button is None or pane is None:
             return
         label = "Multi-Rename" if len(pane.selected_paths()) > 1 else "Rename"
-        button.configure(text=f"F2 {tr(label)}")
+        if hasattr(self, 'action_bar'):
+            self.action_bar.set_label('F2', f'F2 {tr(label)}', f'F2 {tr(label)}')
+        else:
+            button.configure(text=f"F2 {tr(label)}")
+        if hasattr(self, 'vcs_actions'):
+            self.vcs_actions.request()
 
     def update_transfer_actions(self) -> None:
         """Expose the exact F5/F6 destination in every panel layout."""
@@ -3453,16 +3472,16 @@ class Commander(tk.Tk):
         if not buttons or not visible:
             return
         if self.panel_count_var.get() == 1:
-            buttons['F5'].configure(text=f"F5 {tr('Copy to…')}")
-            buttons['F6'].configure(text=f"F6 {tr('Move to…')}")
+            self.action_bar.set_label('F5', f"F5 {tr('Copy to…')}", f"F5 {tr('Copy')}")
+            self.action_bar.set_label('F6', f"F6 {tr('Move to…')}", f"F6 {tr('Move')}")
             return
         source_tabs = self._tabs_for(self.active) if self.active is not None else visible[0]
         if source_tabs not in visible:
             source_tabs = visible[0]
         source_index = visible.index(source_tabs)
         target_number = transfer_target_index(source_index, len(visible)) + 1
-        buttons["F5"].configure(text=f"F5 P{target_number} ← {tr('Copy')}")
-        buttons["F6"].configure(text=f"F6 P{target_number} ← {tr('Move')}")
+        self.action_bar.set_label('F5', f"F5 P{target_number} ← {tr('Copy')}", f'F5→P{target_number}')
+        self.action_bar.set_label('F6', f"F6 P{target_number} ← {tr('Move')}", f'F6→P{target_number}')
 
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
@@ -3540,6 +3559,17 @@ class Commander(tk.Tk):
     def _tree_context(self, event):
         self.header_popup.close_all()
         menu = self._build_panel_context_menu(self.active)
+        tree = self.folder_tree.tree
+        if getattr(event, 'num', None) == 3:
+            # Branch-line canvases are children of the tree; use tree coordinates,
+            # not the prior keyboard focus, when a folder icon is right-clicked.
+            iid = tree.identify_row(event.y_root - tree.winfo_rooty())
+        else:
+            selected = tree.selection()
+            iid = tree.focus() if tree.focus() in selected else (selected[0] if selected else '')
+        path = self.folder_tree.paths.get(iid)
+        if path is not None and self.right_click_menu_var.get() != 'explorer':
+            add_scaled_cascade(menu, tr('Version Control'), self.vcs_actions.build_menu(menu, tree_path=path))
         menu.entryconfigure(tr('Refresh'), command=self.refresh)
         self.header_popup.show_at(max(event.x_root, self.folder_tree.winfo_rootx()+15),
                                  max(event.y_root, self.folder_tree.winfo_rooty()+25), menu)
@@ -3594,6 +3624,9 @@ class Commander(tk.Tk):
                                    exit_label=tr("Exit PFC"))
         for button, hotkey, label in self.action_buttons:
             button.configure(text=f"{hotkey} {tr(label)}".rstrip())
+        self.action_bar.localize()
+        self.vcs_actions.context = None
+        self.vcs_actions.request()
         self.update_rename_action()
         self.update_transfer_actions()
         for pane in self.all_panes():
@@ -3975,6 +4008,7 @@ class Commander(tk.Tk):
                          command=lambda: self._open_folder_in_new_tab(pane, clicked))
         menu.add_command(label=tr("Preview"), accelerator="F3",
                          state=normal_if(single and clicked.is_file()), command=self.preview)
+        add_scaled_cascade(menu, tr('Version Control'), self.vcs_actions.build_menu(menu, pane, clicked))
         menu.add_separator()
         menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
@@ -4287,7 +4321,7 @@ class Commander(tk.Tk):
             pane.focus_file_list()
 
     def show_explorer_menu(self) -> str:
-        """Compatibility entry point; F8 is intentionally no longer bound."""
+        """Compatibility entry point; F8 now opens version control, not Explorer."""
         pane = self.panes()[0]
         if pane.archive_session is not None:
             messagebox.showinfo(
@@ -5322,6 +5356,7 @@ class Commander(tk.Tk):
                 pane.path_bar.redraw()
                 pane._update_view_mode_button()
         if hasattr(self, 'single_tabs'): self.single_tabs.redraw()
+        if hasattr(self, 'action_bar'): self.action_bar.schedule()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
         preferences = getattr(self, "_prefix_preferences", None)

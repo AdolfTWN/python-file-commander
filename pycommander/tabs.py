@@ -423,6 +423,9 @@ class _HeaderPopup:
             active = index == self.selected and state != "disabled"
             bg = self.ACTIVE_BG if active else self.BG
             fg = self.ACTIVE_FG if active else (self.DISABLED if state == "disabled" else self.FG)
+            if index in getattr(self.menu, '_vcs_headers', {}).values():
+                # Status summaries are informative, not unavailable commands.
+                fg = self.FG
             self.canvas.create_rectangle(1, top, self.width - 1, bottom, fill=bg, outline="")
             self.canvas.create_text(self.label_x, (top + bottom) // 2, text=label, anchor="w",
                                     fill=fg, font=self.font)
@@ -433,6 +436,17 @@ class _HeaderPopup:
             if marker:
                 self.canvas.create_text(self.marker_x, (top + bottom) // 2, text=marker,
                                         anchor="e", fill=fg, font=self.font)
+
+    def refresh(self) -> None:
+        """Refresh an asynchronous menu model without recreating its window/grab."""
+        self.items = []
+        self.row_bounds = {}
+        self._measure()
+        if self.selected not in self.row_bounds:
+            self.selected = None
+        self.canvas.configure(width=self.width, height=self.height)
+        self.show(self.top.winfo_rootx(), self.top.winfo_rooty())
+        self._draw()
 
     def _index_at(self, y):
         for index, (top, bottom) in self.row_bounds.items():

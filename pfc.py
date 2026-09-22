@@ -17,6 +17,38 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.": ("新增：F8 顯示 Git／SVN 狀態，開啟指定範圍的 Tortoise 提交／推送、歷史與版本關係圖，並整合 PFC 右鍵選單。", "新增：F8 显示 Git／SVN 状态，打开指定范围的 Tortoise 提交／推送、历史和版本关系图，并集成 PFC 右键菜单。", "추가: F8 Git/SVN 상태, 범위 지정 Tortoise 커밋/푸시, 기록 및 그래프를 PFC 컨텍스트 메뉴와 공유합니다."),
+    "Improved: A measured-width action bar fits F8 without shrinking fonts or displacing zoom; compact labels preserve transfer destinations.": ("改善：快捷列依文字寬度配置，容納 F8 且不縮小字型或擠壓縮放控制；精簡文字保留傳送目的面板。", "改进：快捷栏按文字宽度布局，容纳 F8 且不缩小字体或挤压缩放控件；精简标签保留传送目标面板。", "개선: 글꼴이나 확대 제어를 줄이지 않고 F8을 배치하며 간결한 레이블에도 전송 대상 패널을 유지합니다."),
+    "Version Control": ("版本控制", "版本控制", "버전 관리"),
+    "Too many selected paths. Select fewer items or their parent folder.": ("選取的路徑過多；請減少項目或改選上層資料夾。", "选择的路径过多；请减少项目或改选上级文件夹。", "선택 경로가 너무 많습니다. 항목 수를 줄이거나 상위 폴더를 선택하세요."),
+    "VCS": ("VCS", "VCS", "VCS"),
+    "Folder": ("資料夾", "文件夹", "폴더"),
+    "Path": ("路徑", "路径", "경로"),
+    "Archive previews are not working copies.": ("壓縮檔預覽不是工作副本。", "压缩包预览不是工作副本。", "압축 미리 보기는 작업 사본이 아닙니다."),
+    "Not a Git or SVN working copy.": ("此位置不是 Git 或 SVN 工作副本。", "此位置不是 Git 或 SVN 工作副本。", "Git/SVN 작업 사본이 아닙니다."),
+    "Working copy is unavailable.": ("無法存取工作副本。", "无法访问工作副本。", "작업 사본에 접근할 수 없습니다."),
+    "Selection spans working copies. Select items from one working copy.": ("選取項目跨工作副本；請只選取同一副本的項目。", "选择跨越工作副本；请只选择同一副本的项目。", "서로 다른 작업 사본입니다. 하나의 작업 사본만 선택하세요."),
+    "Command-line client not found. Tortoise dialogs are still available.": ("未找到命令列工具；仍可開啟 Tortoise 畫面。", "未找到命令行工具；仍可打开 Tortoise 界面。", "CLI가 없습니다. Tortoise 창은 계속 사용할 수 있습니다."),
+    "Status unavailable or timed out. No changes were made.": ("無法取得狀態或查詢逾時；未做任何變更。", "无法获取状态或查询超时；未做任何更改。", "상태 조회 실패/시간 초과. 변경 사항은 없습니다."),
+    "Checking working copy…": ("辨識工作副本中…", "正在识别工作副本…", "작업 사본 확인 중…"),
+    "Checking status…": ("查詢狀態中…", "正在查询状态…", "상태 확인 중…"),
+    "Commit selected…": ("提交所選項目…", "提交所选项目…", "선택 항목 커밋…"),
+    "Commit entire working copy…": ("提交整個工作副本…", "提交整个工作副本…", "전체 작업 사본 커밋…"),
+    "Push current branch…": ("推送目前分支…", "推送当前分支…", "현재 브랜치 푸시…"),
+    "Show History": ("顯示提交歷史", "显示提交历史", "커밋 기록 보기"),
+    "Show Graph": ("顯示分支關係圖", "显示分支关系图", "리비전 그래프 보기"),
+    "Show History (may use network)": ("顯示提交歷史（可能連網）", "显示提交历史（可能联网）", "기록 보기 (네트워크 사용 가능)"),
+    "Show Graph (may use network)": ("顯示版本關係圖（可能連網）", "显示版本关系图（可能联网）", "그래프 보기 (네트워크 사용 가능)"),
+    "Refresh status": ("重新查詢狀態", "重新查询状态", "상태 새로 고침"),
+    "Choose Tortoise client…": ("指定 Tortoise 執行檔…", "指定 Tortoise 可执行文件…", "Tortoise 실행 파일 선택…"),
+    "Selected: {count} · {path}": ("選取 {count} 項 · {path}", "选取 {count} 项 · {path}", "선택 {count}개 · {path}"),
+    "Changes {changed} · Untracked {untracked} · Conflicts {conflicts}": ("變更 {changed} · 未追蹤 {untracked} · 衝突 {conflicts}", "变更 {changed} · 未跟踪 {untracked} · 冲突 {conflicts}", "변경 {changed} · 미추적 {untracked} · 충돌 {conflicts}"),
+    "Commit sends changes to the SVN server; no Push.": ("Commit 直接提交至 SVN 伺服器，無 Push。", "Commit 直接提交到 SVN 服务器，无 Push。", "Commit은 SVN 서버에 직접 제출하며 Push는 없습니다."),
+    "Push {ahead} · Behind {behind} · {upstream} (cached)": ("待推送 {ahead} · 落後 {behind} · {upstream}（本機快取）", "待推送 {ahead} · 落后 {behind} · {upstream}（本地缓存）", "푸시 {ahead} · 뒤처짐 {behind} · {upstream} (캐시)"),
+    "Push: unknown — no upstream information (no Fetch).": ("待推送：未知；無 upstream 資訊（未 Fetch）。", "待推送：未知；无 upstream 信息（未 Fetch）。", "푸시: 알 수 없음 — upstream 정보 없음 (Fetch 안 함)."),
+    "Tortoise integration requires Windows.": ("Tortoise 整合功能僅支援 Windows。", "Tortoise 集成功能仅支持 Windows。", "Tortoise 연동은 Windows에서 지원됩니다."),
+    "Select the matching Tortoise executable.": ("請選取對應的 Tortoise 執行檔。", "请选择对应的 Tortoise 可执行文件。", "해당 Tortoise 실행 파일을 선택하세요."),
+    "Tortoise client not found. Choose an installed client; nothing will be installed.": ("未找到 Tortoise。請指定已安裝的執行檔；PFC 不會自動安裝。", "未找到 Tortoise。请指定已安装的可执行文件；PFC 不会自动安装。", "Tortoise를 찾을 수 없습니다. 설치된 실행 파일을 선택하세요. 자동 설치하지 않습니다."),
     "Improved: Layout settings compare complete 1–4 panel workspaces, with a visible folder tree and shared or independent tabs.": ("改善：配置設定直接比較完整的 1–4 面板工作區，清楚顯示資料夾樹與共用／獨立分頁。", "改进：布局设置直接比较完整的 1–4 面板工作区，清晰显示文件夹树与共享／独立标签。", "개선: 배치 설정에서 폴더 트리와 공유/개별 탭을 포함한 1–4개 패널 작업 공간 전체를 비교합니다."),
     "Improved: Before and After show explicit panel counts; enlarged comparisons follow the same draft layout and tab style.": ("改善：目前與套用後標明面板數；放大比較也顯示相同的待套用配置與分頁樣式。", "改进：当前与应用后标明面板数；放大比较也显示相同的待应用布局与标签样式。", "개선: 변경 전후 패널 수를 명시하며 확대 비교에도 변경안의 배치와 탭 스타일을 표시합니다."),
     "Compare complete layouts and tab styles before applying.": ("套用前比較完整配置與分頁樣式。", "应用前比较完整布局与标签样式。", "적용 전 전체 배치와 탭 스타일을 비교하세요."),
@@ -2845,6 +2877,11 @@ _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
 
 
+def invalidate_vcs_cache():
+    """A client dialog finished; the next overlay request must use fresh metadata."""
+    _CACHE.clear()
+
+
 def _run_options() -> dict:
     """Keep background VCS commands invisible in Windows GUI launches."""
     return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
@@ -3528,6 +3565,9 @@ class _HeaderPopup:
             active = index == self.selected and state != "disabled"
             bg = self.ACTIVE_BG if active else self.BG
             fg = self.ACTIVE_FG if active else (self.DISABLED if state == "disabled" else self.FG)
+            if index in getattr(self.menu, '_vcs_headers', {}).values():
+                # Status summaries are informative, not unavailable commands.
+                fg = self.FG
             self.canvas.create_rectangle(1, top, self.width - 1, bottom, fill=bg, outline="")
             self.canvas.create_text(self.label_x, (top + bottom) // 2, text=label, anchor="w",
                                     fill=fg, font=self.font)
@@ -3538,6 +3578,17 @@ class _HeaderPopup:
             if marker:
                 self.canvas.create_text(self.marker_x, (top + bottom) // 2, text=marker,
                                         anchor="e", fill=fg, font=self.font)
+
+    def refresh(self) -> None:
+        """Refresh an asynchronous menu model without recreating its window/grab."""
+        self.items = []
+        self.row_bounds = {}
+        self._measure()
+        if self.selected not in self.row_bounds:
+            self.selected = None
+        self.canvas.configure(width=self.width, height=self.height)
+        self.show(self.top.winfo_rootx(), self.top.winfo_rooty())
+        self._draw()
 
     def _index_at(self, y):
         for index, (top, bottom) in self.row_bounds.items():
@@ -4055,7 +4106,7 @@ BUTTON_HELP = {
     "F4 Search": "Search for files and folders below the current path.",
     "F5 Copy": "Copy selected items to the destination panel shown on F5.",
     "F6 Move": "Move selected items to the opposite panel.", "F7 New folder": "Create a folder here.",
-    "F8": "Reserved for a future action.", "F9 Compare": "Compare selected files or folders.",
+    "F8": "Git / SVN status, commit, history and graph.", "F9 Compare": "Compare selected files or folders.",
     "F11 Copy Path": "Copy all selected full paths as text.",
     "F12 Change Path": "Focus and select the path bar for direct paste.",
     "File <<": "Preview the previous item.", "File >>": "Preview the next item.",
@@ -7569,6 +7620,677 @@ class SettingsDialog(tk.Toplevel):
         if y<top:self.canvas.yview_moveto(y/max(1,self.page.winfo_height()))
         elif y+widget.winfo_height()>top+height:
             self.canvas.yview_moveto((y+widget.winfo_height()-height)/max(1,self.page.winfo_height()))
+
+"""Read-only VCS discovery/status and explicit Tortoise dialog hand-off.
+
+No command in this module stages, commits, fetches or pushes. GUI commands only
+open the client's confirmation dialog; authentication remains with that client.
+"""
+
+import os
+import shutil
+import subprocess
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True)
+class VcsLocation:
+    kind: str
+    root: Path
+
+
+@dataclass(frozen=True)
+class VcsContext:
+    location: VcsLocation | None
+    focus: Path
+    paths: tuple[Path, ...]
+    reason: str = ""
+    mixed: bool = False
+
+
+@dataclass(frozen=True)
+class VcsSummary:
+    changed: int = 0
+    untracked: int = 0
+    conflicts: int = 0
+    branch: str = ""
+    upstream: str = ""
+    ahead: int | None = None
+    behind: int | None = None
+    url: str = ""
+    error: str = ""
+
+
+def vcs_absolute(path):
+    # Do not resolve a tracked symlink into an unrelated repository.
+    return Path(os.path.abspath(path))
+
+
+def vcs_location(path):
+    path = vcs_absolute(path)
+    if any(part.casefold() in {'.git', '.svn'} for part in path.parts):
+        return None
+    directory = path if path.is_dir() else path.parent
+    for candidate in (directory, *directory.parents):
+        for kind, marker in (('git', '.git'), ('svn', '.svn')):
+            if (candidate / marker).exists():
+                # A .git file represents a worktree/submodule, not its parent's repo.
+                return VcsLocation(kind, candidate)
+    return None
+
+
+def vcs_context(paths, focus, virtual=False):
+    focus = vcs_absolute(focus)
+    paths = tuple(dict.fromkeys(vcs_absolute(p) for p in paths)) or (focus,)
+    if virtual:
+        return VcsContext(None, focus, paths, 'Archive previews are not working copies.')
+    try:
+        location = vcs_location(focus)
+        if location is None:
+            return VcsContext(None, focus, paths, 'Not a Git or SVN working copy.')
+        mixed = any(vcs_location(p) != location for p in paths)
+        return VcsContext(location, focus, paths, mixed=mixed)
+    except OSError:
+        return VcsContext(None, focus, paths, 'Working copy is unavailable.')
+
+
+def vcs_run(command):
+    env = os.environ.copy()
+    # Local status must never open a terminal/authentication dialog or update the index.
+    env.update(GIT_TERMINAL_PROMPT='0', GIT_OPTIONAL_LOCKS='0')
+    result = subprocess.run(command, capture_output=True, timeout=4, env=env,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('VCS status unavailable')
+    return result.stdout
+
+
+def vcs_cli(kind):
+    if os.name == 'nt':
+        # Windows executable lookup otherwise searches the current working directory.
+        # Merely selecting a repository must not execute its own git.exe/svn.exe.
+        found = next((result for entry in os.environ.get('PATH', '').split(os.pathsep)
+                      if entry and Path(entry).is_absolute()
+                      for result in [shutil.which(str(Path(entry) / (kind + '.exe')))] if result), None)
+    else:
+        found = shutil.which(kind)
+    if found:
+        return found
+    if os.name == 'nt':
+        for variable in ('ProgramFiles', 'ProgramFiles(x86)'):
+            base = os.environ.get(variable)
+            if base:
+                relative = 'Git/cmd/git.exe' if kind == 'git' else 'TortoiseSVN/bin/svn.exe'
+                candidate = Path(base) / relative
+                if candidate.is_file():
+                    return str(candidate)
+    return None
+
+
+def vcs_parse_git_status(data):
+    values = dict(changed=0, untracked=0, conflicts=0, branch='', upstream='',
+                  ahead=None, behind=None)
+    records = iter(data.split(b'\0'))
+    for record in records:
+        if record.startswith(b'# branch.head '):
+            values['branch'] = record[14:].decode('utf-8', 'replace')
+        elif record.startswith(b'# branch.upstream '):
+            values['upstream'] = record[18:].decode('utf-8', 'replace')
+        elif record.startswith(b'# branch.ab '):
+            counts = record[12:].split()
+            values['ahead'], values['behind'] = int(counts[0]), abs(int(counts[1]))
+        elif record.startswith(b'? '):
+            values['untracked'] += 1
+        elif record.startswith(b'u '):
+            values['conflicts'] += 1
+        elif record.startswith((b'1 ', b'2 ')):
+            values['changed'] += 1
+            if record.startswith(b'2 '):
+                next(records, None)  # second path can contain arbitrary characters
+    return VcsSummary(**values)
+
+
+def vcs_status(context):
+    if context.location is None:
+        return VcsSummary(error=context.reason)
+    if context.mixed:
+        return VcsSummary(error='Selection spans working copies. Select items from one working copy.')
+    kind, root = context.location.kind, context.location.root
+    executable = vcs_cli(kind)
+    if executable is None:
+        return VcsSummary(error='Command-line client not found. Tortoise dialogs are still available.')
+    try:
+        if kind == 'git':
+            command = [executable, '--no-optional-locks', '--literal-pathspecs', '-c', 'core.fsmonitor=false', '-C', str(root),
+                       'status', '--porcelain=v2', '--branch', '-z', '--untracked-files=normal', '--']
+            command.extend(os.path.relpath(p, root) for p in context.paths)
+            return vcs_parse_git_status(vcs_run(command))
+        # status/info without -u are local-only; @ disambiguates literal peg characters.
+        targets = [str(p) + '@' for p in context.paths]
+        document = ET.fromstring(vcs_run([executable, 'status', '--xml', '--non-interactive',
+                                         '--ignore-externals', '--', *targets]))
+        changed = untracked = conflicts = 0
+        seen = set()
+        for entry in document.findall('.//entry'):
+            path = entry.get('path')
+            if path in seen:
+                continue
+            seen.add(path)
+            wc = entry.find('wc-status')
+            if wc is None:
+                continue
+            item, props = wc.get('item'), wc.get('props')
+            if item == 'conflicted' or props == 'conflicted' or wc.get('tree-conflicted') == 'true':
+                conflicts += 1
+            elif item == 'unversioned':
+                untracked += 1
+            elif item in {'modified', 'added', 'deleted', 'missing', 'replaced', 'obstructed', 'incomplete'} or props == 'modified':
+                changed += 1
+        # An untracked item has no info, but its nearest versioned parent does.
+        url = ''
+        for info_path in dict.fromkeys((context.focus, context.focus.parent, root)):
+            if info_path != root and root not in info_path.parents:
+                continue
+            try:
+                info = ET.fromstring(vcs_run([executable, 'info', '--xml', '--non-interactive',
+                                             '--', str(info_path) + '@']))
+                url = info.findtext('.//relative-url') or info.findtext('.//url') or ''
+                break
+            except ValueError:
+                continue
+        return VcsSummary(changed, untracked, conflicts, url=url)
+    except (OSError, subprocess.SubprocessError, ValueError, ET.ParseError):
+        return VcsSummary(error='Status unavailable or timed out. No changes were made.')
+
+
+VCS_CLIENT_NAMES = {'git': 'TortoiseGitProc.exe', 'svn': 'TortoiseProc.exe'}
+
+
+def vcs_find_client(kind, configured=''):
+    name = VCS_CLIENT_NAMES[kind]
+    candidates = [configured] if configured else []
+    if os.name == 'nt':
+        # Only known installation locations/explicit preferences, never the working repo.
+        try:
+            import winreg
+            for hive in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
+                for view in (winreg.KEY_WOW64_64KEY, winreg.KEY_WOW64_32KEY):
+                    try:
+                        product = 'TortoiseGit' if kind == 'git' else 'TortoiseSVN'
+                        with winreg.OpenKey(hive, 'Software\\' + product, 0, winreg.KEY_READ | view) as key:
+                            candidates.append(str(Path(winreg.QueryValueEx(key, 'Directory')[0]) / 'bin' / name))
+                    except OSError:
+                        pass
+        except ImportError:
+            pass
+        for variable in ('ProgramFiles', 'ProgramFiles(x86)', 'ProgramW6432'):
+            base = os.environ.get(variable)
+            if base:
+                candidates.append(str(Path(base) / ('TortoiseGit' if kind == 'git' else 'TortoiseSVN') / 'bin' / name))
+    for candidate in candidates:
+        if candidate and Path(candidate).is_absolute() and Path(candidate).is_file() and Path(candidate).name.casefold() == name.casefold():
+            return str(candidate)
+    return None
+
+
+def vcs_dialog_command(executable, context, action):
+    if context.location is None:
+        raise ValueError('Not a Git or SVN working copy.')
+    if action not in {'commit', 'commit_all', 'push', 'log', 'revisiongraph'}:
+        raise ValueError('Unsupported VCS action')
+    if action in {'commit', 'commit_all', 'push'} and context.mixed:
+        raise ValueError('Selection spans working copies. Select items from one working copy.')
+    location = context.location
+    if action == 'push' and location.kind != 'git':
+        raise ValueError('SVN does not use Push')
+    if action == 'commit':
+        paths = context.paths
+    elif action in {'commit_all', 'push'} or (action == 'revisiongraph' and location.kind == 'git'):
+        paths = (location.root,)
+    else:
+        paths = (context.focus,)
+    if any('*' in str(p) or '\0' in str(p) for p in paths):
+        raise ValueError('Unsupported path characters')
+    command = 'commit' if action == 'commit_all' else action
+    arguments = [str(executable), '/command:' + command, '/path:' + '*'.join(map(str, paths))]
+    if len(subprocess.list2cmdline(arguments).encode('utf-16-le')) > 60000:
+        raise ValueError('Too many selected paths. Select fewer items or their parent folder.')
+    return arguments
+
+"""Single-line action bar: measured widths, stable zoom, no font shrinking."""
+
+import tkinter as tk
+import tkinter.font as tkfont
+from tkinter import ttk
+
+
+
+class ActionBarLayout:
+    def __init__(self, app, frame):
+        self.app, self.frame = app, frame
+        self.labels = {}
+        self.job = None
+        self.mode = 'full'
+        frame.pack_propagate(False)
+        frame.bind('<Configure>', lambda _e: self.schedule(), add='+')
+        frame.bind('<Destroy>', self._destroy, add='+')
+        for button, key, label in app.action_buttons:
+            button.pack_forget()
+            self.labels[key] = (str(button.cget('text')), str(button.cget('text')))
+            if key != 'F8':
+                button._pfc_tooltip = ToolTip(button, lambda k=key: self.help(k), delay=650)
+        self.localize()
+
+    def _destroy(self, event):
+        if event.widget is self.frame and self.job:
+            self.frame.after_cancel(self.job)
+            self.job = None
+
+    def localize(self):
+        short = {'F2': 'Rename', 'F3': 'Preview', 'F4': 'Search', 'F5': 'Copy',
+                 'F6': 'Move', 'F7': 'Folder', 'F9': 'Compare', 'F11': 'Copy Path', 'F12': 'Path'}
+        for button, key, label in self.app.action_buttons:
+            if key != 'F8':
+                self.set_label(key, f'{key} {tr(label)}', f'{key} {tr(short[key])}')
+
+    def help(self, key):
+        descriptions = {'F2': 'Rename the selected item.', 'F3': 'Open the selected item in PFC Preview.',
+                        'F4': 'Search for files and folders below the current path.',
+                        'F7': 'Create a folder here.', 'F9': 'Compare selected files or folders.',
+                        'F11': 'Copy all selected full paths as text.',
+                        'F12': 'Focus and select the path bar for direct paste.'}
+        full = self.labels[key][0]
+        return full + ('\n' + tr(descriptions[key]) if key in descriptions else '')
+
+    def set_label(self, key, full, compact=None):
+        value = (full, compact or full)
+        if self.labels.get(key) != value:
+            self.labels[key] = value
+            self.app.action_button_by_hotkey[key].configure(text=full)
+            self.schedule()
+
+    def schedule(self):
+        if self.job is None:
+            self.job = self.frame.after_idle(self.layout)
+
+    def layout(self):
+        self.job = None
+        if not self.frame.winfo_exists():
+            return
+        font = tkfont.nametofont('TkDefaultFont')
+        padding = max(8, round(font.metrics('linespace') * .35))
+        ttk.Style(self.app).configure('Action.TButton', padding=(2, 2))
+        keys = [key for _, key, _ in self.app.action_buttons]
+        available = max(1, self.frame.winfo_width())
+        # Reserve the same F8 space for Git, SVN and VCS to avoid selection jitter.
+        def widths(labels):
+            return [max(font.measure(text), font.measure('F8 VCS') if key == 'F8' else 0) + padding + 2
+                    for key, text in zip(keys, labels)]
+        labels = [self.labels[key][0] for key in keys]
+        self.mode = 'full'
+        if sum(widths(labels)) > available:
+            labels = [self.labels[key][1] for key in keys]
+            self.mode = 'compact'
+        if sum(widths(labels)) > available:
+            # Reduce individual long labels first; F5/F6 keep their destination.
+            self.mode = 'keys'
+            for i in sorted(range(len(keys)), key=lambda i: font.measure(labels[i]), reverse=True):
+                if keys[i] not in {'F5', 'F6', 'F8'}:
+                    labels[i] = keys[i]
+                if sum(widths(labels)) <= available:
+                    break
+        measured = widths(labels)
+        total = sum(measured)
+        spare = max(0, available - total)
+        height = font.metrics('linespace') + padding + 4
+        if self.frame.winfo_reqheight() != height:
+            self.frame.configure(height=height)
+        x = 0
+        for i, (button, key, _) in enumerate(self.app.action_buttons):
+            width = measured[i] + spare // len(keys) + (1 if i < spare % len(keys) else 0)
+            # All supported main-window sizes fit the key-only baseline.
+            if button.cget('text') != labels[i]:
+                button.configure(text=labels[i])
+            button.configure(style='Action.TButton')
+            button.place(x=x, y=0, width=max(1, width - 2), height=height)
+            x += width
+
+"""F8 and context menus share one asynchronous, selection-scoped VCS controller."""
+
+import os
+import queue
+import subprocess
+import threading
+import time
+import tkinter as tk
+import tkinter.font as tkfont
+from pathlib import Path
+from tkinter import filedialog, messagebox
+
+
+
+class VcsActions:
+    def __init__(self, app):
+        self.app = app
+        self.context = None
+        self.key = None
+        self.tree_target = False
+        self.pending = None
+        self.busy = False
+        self.stopped = False
+        self.results = queue.Queue()
+        self.status_cache = {}
+        self.clients = {}
+        self.debounce = None
+        self.poll_job = app.after(80, self._poll)
+        self.menus = []
+        self.processes = []
+        self.tooltip = tr('Not a Git or SVN working copy.')
+        button = app.action_button_by_hotkey['F8']
+        button._pfc_tooltip = ToolTip(button, lambda: self.tooltip, delay=650)
+        tree = app.folder_tree.tree
+        tree.bind('<FocusIn>', lambda _e: self.request(tree=True), add='+')
+        tree.bind('<<TreeviewSelect>>', lambda _e: self.request(), add='+')
+        app.bind('<FocusIn>', self._focus, add='+')
+        app.bind('<Destroy>', self._destroy, add='+')
+        self.request()
+
+    def _focus(self, event):
+        if any(event.widget is pane.tree for pane in self.app.all_panes()):
+            self.request(tree=False)
+        elif event.widget is self.app.folder_tree.tree:
+            self.request(tree=True)
+
+    def _destroy(self, event):
+        if event.widget is self.app:
+            self.stopped = True
+            for job in (self.debounce, self.poll_job):
+                if job:
+                    try: self.app.after_cancel(job)
+                    except tk.TclError: pass
+
+    def snapshot(self, pane=None, clicked=None, tree_path=None):
+        pane = pane or self.app.active
+        if tree_path is not None:
+            return ((tree_path,), tree_path, False)
+        if self.tree_target and self.app._single_layout and clicked is None:
+            tree = self.app.folder_tree
+            selection = tree.tree.selection()
+            iid = tree.tree.focus()
+            if iid not in selection:
+                iid = selection[0] if selection else ''
+            path = tree.paths.get(iid)
+            if path is None:
+                return ((), Path(os.path.abspath(os.sep)), True)
+            return ((path,), path, False)
+        paths = tuple(pane.selected_paths())
+        iid = pane.tree.focus()
+        tags = pane.tree.item(iid, 'tags') if iid and pane.tree.exists(iid) else ()
+        focus = clicked or (Path(tags[0]) if tags and Path(tags[0]) in paths else None)
+        focus = focus or (paths[0] if paths else pane.path)
+        return (paths or (focus,), focus, pane.archive_session is not None)
+
+    def request(self, tree=None):
+        if self.stopped:
+            return
+        if tree is not None:
+            self.tree_target = tree
+        snapshot = self.snapshot()
+        if snapshot != self.key:
+            self.key = snapshot
+            self.context = None
+            self.tooltip = tr('Checking working copy…')
+            self._button(None)
+        if self.debounce:
+            self.app.after_cancel(self.debounce)
+        self.debounce = self.app.after(200, lambda: self._discover(snapshot))
+
+    def _discover(self, snapshot):
+        self.debounce = None
+        if snapshot != self.key or self.context is not None:
+            return
+        self._queue(('context', snapshot))
+
+    def _queue(self, task):
+        # One worker and one latest request: rapid navigation cannot create a thread storm.
+        if self.busy:
+            if task[0] == 'context' or self.pending is None or self.pending[0] != 'context':
+                self.pending = task
+            return
+        self.busy = True
+        def work():
+            try:
+                value = vcs_context(*task[1]) if task[0] == 'context' else vcs_status(task[1])
+                clients = {}
+                if task[0] == 'context' and value.location:
+                    kind = value.location.kind
+                    clients[kind] = vcs_find_client(kind, self.app_vcs_paths.get(kind, ''))
+                self.results.put((task, value, clients))
+            except Exception:
+                # Never leave the controller permanently busy after filesystem races.
+                self.results.put((task, None, {}))
+        # Copy Tk/config state on the GUI thread; workers never call Tk.
+        self.app_vcs_paths = {kind: self.app.config_data.get('vcs', kind + '_client', fallback='')
+                              for kind in ('git', 'svn')}
+        threading.Thread(target=work, daemon=True, name='PFC-VCS-actions').start()
+
+    def _poll(self):
+        self.poll_job = None
+        if self.stopped:
+            return
+        try:
+            task, value, clients = self.results.get_nowait()
+            self.busy = False
+            self.clients.update(clients)
+            if task[0] == 'context' and task[1] == self.key:
+                self.context = value
+                self.tooltip = (tr(value.reason) if value and not value.location else
+                                tr('Version Control') + (' — ' + str(value.focus) if value else ''))
+                self._button(value)
+                for menu, snapshot, context in list(self.menus):
+                    if snapshot == self.key and context is None:
+                        self._populate(menu, snapshot, value)
+            elif task[0] == 'status' and value is not None:
+                self.status_cache[task[1]] = (time.monotonic(), value)
+                if len(self.status_cache) > 64:
+                    self.status_cache.pop(next(iter(self.status_cache)))
+                for menu, snapshot, context in list(self.menus):
+                    if context == task[1]:
+                        self._summary(menu, context, value)
+            pending, self.pending = self.pending, None
+            if pending:
+                self._queue(pending)
+        except queue.Empty:
+            pass
+        finished = [p for p in self.processes if p.poll() is not None]
+        if finished:
+            self.processes = [p for p in self.processes if p not in finished]
+            self.invalidate()
+        self.menus = [(m, s, c) for m, s, c in self.menus if m.winfo_exists()]
+        self.poll_job = self.app.after(80, self._poll)
+
+    def _button(self, context):
+        button = self.app.action_button_by_hotkey['F8']
+        kind = context.location.kind if context and context.location else None
+        label = {'git': 'Git', 'svn': 'SVN'}.get(kind, 'VCS')
+        self.app.action_bar.set_label('F8', 'F8 ' + label, 'F8 ' + label)
+        button.state(['!disabled'] if kind else ['disabled'])
+
+    def invalidate(self):
+        self.status_cache.clear()
+        invalidate_vcs_cache()
+        self.context = None
+        self.request()
+        # Refresh only existing VCS badges, never rebuild rows or move selection.
+        for pane in self.app.all_panes():
+            pane._vcs_generation += 1
+            pane._vcs_loading = False
+            pane._vcs_requested_at = 0
+            pane._request_vcs_statuses()
+
+    def _clip(self, text):
+        limit = min(650, max(240, self.app.winfo_screenwidth() - 120))
+        font = tkfont.nametofont('TkMenuFont')
+        text = str(text).replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+        if font.measure(text) <= limit:
+            return text
+        left, right = len(text) // 2, len(text) // 2
+        while left > 1 and font.measure(text[:left] + '…' + text[-right:]) > limit:
+            left -= 1; right = max(1, right - 1)
+        return text[:left] + '…' + text[-right:]
+
+    def build_menu(self, parent, pane=None, clicked=None, tree_path=None):
+        snapshot = self.snapshot(pane, clicked, tree_path)
+        context = self.context if snapshot == self.key else None
+        menu = tk.Menu(parent, tearoff=False, font='TkMenuFont')
+        self.menus.append((menu, snapshot, context))
+        self._populate(menu, snapshot, context)
+        if context is None:
+            self.key = snapshot
+            self.context = None
+            self._queue(('context', snapshot))
+        return menu
+
+    def _populate(self, menu, snapshot, context):
+        if not menu.winfo_exists():
+            return
+        self.menus = [(m, s, context if m is menu else c) for m, s, c in self.menus]
+        menu.delete(0, 'end')
+        menu._vcs_headers = {}
+        if not context or not context.location:
+            menu.add_command(label=tr(context.reason if context else 'Checking working copy…'), state='disabled')
+            self._redraw(menu)
+            return
+        kind = context.location.kind
+        for key in ('location', 'scope', 'changes', 'remote'):
+            menu._vcs_headers[key] = menu.index('end') + 1 if menu.index('end') is not None else 0
+            menu.add_command(label=tr('Checking status…'), state='disabled')
+        menu.add_separator()
+        for action, label in [('commit', 'Commit selected…'), ('commit_all', 'Commit entire working copy…'),
+                              ('push', 'Push current branch…'), ('log', 'Show History'),
+                              ('revisiongraph', 'Show Graph')]:
+            if action == 'push' and kind == 'svn':
+                continue
+            if kind == 'svn' and action in {'log', 'revisiongraph'}:
+                label = label + ' (may use network)'
+            state = 'disabled' if context.mixed and action in {'commit', 'commit_all', 'push'} else 'normal'
+            menu.add_command(label=tr(label), state=state,
+                             command=lambda a=action, c=context: self.launch(c, a))
+        menu.add_separator()
+        menu.add_command(label=tr('Refresh status'), command=lambda: self.refresh_menu(menu, snapshot, context))
+        menu.add_command(label=tr('Choose Tortoise client…'), command=lambda: self.choose_client(kind))
+        menu._pfc_tooltip = MenuToolTip(menu, {})
+        cached = self.status_cache.get(context)
+        self._summary(menu, context, cached[1] if cached else None)
+        if not cached or time.monotonic() - cached[0] > 3:
+            self._queue(('status', context))
+
+    def _summary(self, menu, context, summary):
+        if not menu.winfo_exists() or not getattr(menu, '_vcs_headers', None):
+            return
+        kind = 'Git' if context.location.kind == 'git' else 'SVN'
+        branch = summary.branch if summary else ''
+        if branch == '(detached)':
+            branch = 'detached HEAD'
+        location = kind + ' · ' + (branch or (summary.url if summary else '') or context.location.root.name)
+        scope = tr('Selected: {count} · {path}', count=len(context.paths), path=context.focus)
+        changes = tr('Checking status…')
+        if summary:
+            changes = (tr(summary.error) if summary.error else
+                       tr('Changes {changed} · Untracked {untracked} · Conflicts {conflicts}',
+                          changed=summary.changed, untracked=summary.untracked, conflicts=summary.conflicts))
+        if context.location.kind == 'svn':
+            remote = tr('Commit sends changes to the SVN server; no Push.')
+        elif summary and summary.upstream and summary.ahead is not None:
+            remote = tr('Push {ahead} · Behind {behind} · {upstream} (cached)', ahead=summary.ahead,
+                        behind=summary.behind, upstream=summary.upstream)
+        else:
+            remote = tr('Push: unknown — no upstream information (no Fetch).')
+        if context.mixed:
+            changes = tr('Selection spans working copies. Select items from one working copy.')
+        for key, full in zip(('location', 'scope', 'changes', 'remote'), (location, scope, changes, remote)):
+            label = self._clip(full)
+            menu.entryconfigure(menu._vcs_headers[key], label=label)
+            menu._pfc_tooltip.descriptions[label] = full
+            self.app.header_popup.descriptions[label] = full
+        self._redraw(menu)
+
+    def _redraw(self, menu):
+        for popup in list(self.app.header_popup.popups):
+            if popup.menu is menu:
+                popup.refresh()
+                if getattr(menu, '_vcs_above_button', False):
+                    button = self.app.action_button_by_hotkey['F8']
+                    popup.show(button.winfo_rootx(), button.winfo_rooty() - popup.height - 4)
+
+    def refresh_menu(self, menu, snapshot, context):
+        self.status_cache.pop(context, None)
+        self._queue(('status', context))
+        # Menu commands close the popup first; reopen the same scoped menu.
+        self.app.after_idle(lambda: self._show(menu))
+
+    def _show(self, menu):
+        if not menu.winfo_exists():
+            return
+        button = self.app.action_button_by_hotkey['F8']
+        menu._vcs_above_button = True
+        self.app.header_popup.show_at(button.winfo_rootx(), button.winfo_rooty(), menu)
+        popup = self.app.header_popup.popups[0]
+        popup.show(button.winfo_rootx(), button.winfo_rooty() - popup.height - 4)
+
+    def show(self):
+        # Compare/preview/search own their keys. Never act on the hidden main selection.
+        focused = self.app.focus_get()
+        if self.app._settings_are_open() or self.app.grab_current() or (
+                focused is not None and focused.winfo_toplevel() is not self.app):
+            return 'break'
+        old = getattr(self, 'quick_menu', None)
+        self.app.header_popup.close_all()
+        if old is not None:
+            old.destroy()
+        self.quick_menu = self.build_menu(self.app)
+        self._show(self.quick_menu)
+        return 'break'
+
+    def choose_client(self, kind):
+        if os.name != 'nt':
+            messagebox.showinfo(tr('Version Control'), tr('Tortoise integration requires Windows.'), parent=self.app)
+            return None
+        filename = filedialog.askopenfilename(parent=self.app, title=tr('Choose Tortoise client…'),
+                    filetypes=[(VCS_CLIENT_NAMES[kind], VCS_CLIENT_NAMES[kind])])
+        if not filename:
+            return None
+        executable = vcs_find_client(kind, filename)
+        if not executable or os.path.normcase(executable) != os.path.normcase(filename):
+            messagebox.showerror(tr('Version Control'), tr('Select the matching Tortoise executable.'), parent=self.app)
+            return None
+        if not self.app.config_data.has_section('vcs'):
+            self.app.config_data.add_section('vcs')
+        self.app.config_data.set('vcs', kind + '_client', executable)
+        self.app.save_config()
+        self.clients[kind] = executable
+        return executable
+
+    def launch(self, context, action):
+        if os.name != 'nt':
+            messagebox.showinfo(tr('Version Control'), tr('Tortoise integration requires Windows.'), parent=self.app)
+            return
+        kind = context.location.kind
+        executable = self.clients.get(kind)
+        if not executable:
+            messagebox.showinfo(tr('Version Control'),
+                tr('Tortoise client not found. Choose an installed client; nothing will be installed.'), parent=self.app)
+            executable = self.choose_client(kind)
+        if not executable:
+            return
+        try:
+            command = vcs_dialog_command(executable, context, action)
+            self.processes.append(subprocess.Popen(command, cwd=context.location.root,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0)))
+        except (OSError, ValueError) as exc:
+            messagebox.showerror(tr('Version Control'), tr(str(exc)), parent=self.app)
 
 """Bounded, lossless text loading and conflict-checked editing for Compare."""
 import codecs
@@ -13897,7 +14619,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.18.4"
+__version__ = "0.18.5"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -13982,6 +14704,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/23"
 VERSION_HISTORY = (
+    ("v0.18.5", "2026/09/23", (
+        "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.",
+        "Improved: A measured-width action bar fits F8 without shrinking fonts or displacing zoom; compact labels preserve transfer destinations.",
+    )),
     ("v0.18.4", "2026/09/23", (
         "Improved: Layout settings compare complete 1–4 panel workspaces, with a visible folder tree and shared or independent tabs.",
         "Improved: Before and After show explicit panel counts; enlarged comparisons follow the same draft layout and tab style.",
@@ -16266,6 +16992,7 @@ class Commander(tk.Tk):
         for hotkey, label, command in (("F2", "Rename", self.rename), ("F3", "Preview", self.preview),
                                        ("F4", "Search", self.search), ("F5", "Copy", self.copy),
                                        ("F6", "Move", self.move), ("F7", "New Folder", self.mkdir),
+                                       ("F8", "VCS", self.show_vcs_actions),
                                        ("F9", "Compare", self.compare_selected),
                                        ("F11", "Copy Path", self.copy_paths),
                                        ("F12", "Change Path", self.change_dir)):
@@ -16276,6 +17003,8 @@ class Commander(tk.Tk):
             button.pack(side="left", fill="x", expand=True, padx=1)
             self.action_buttons.append((button, hotkey, label))
             self.action_button_by_hotkey[hotkey] = button
+        self.action_bar = ActionBarLayout(self, action_commands)
+        self.vcs_actions = VcsActions(self)
         self.update_rename_action()
         self.update_transfer_actions()
         install_button_tooltips(self)
@@ -16300,6 +17029,7 @@ class Commander(tk.Tk):
             "tools_menu": "<Alt-t>", "versions_menu": "<Alt-h>",
             "copy_paths": "<F11>", "change_dir": "<F12>",
             "compare": "<F9>",
+            "version_control": "<F8>",
             "permanent_delete": "<Shift-Delete>", "toggle_favorite": "<Control-d>",
             "favorites_menu": "<Control-b>", "recent_menu": "<Control-Shift-R>",
             "quick_filter": "<Control-y>",
@@ -16326,6 +17056,7 @@ class Commander(tk.Tk):
             "versions_menu": lambda: self.show_header_menu("versions"),
             "copy_paths": self.copy_paths, "change_dir": self.change_dir,
             "compare": self.compare_selected,
+            "version_control": self.show_vcs_actions,
             "permanent_delete": lambda: self.delete_hotkey(permanent=True),
             "toggle_favorite": self.toggle_favorite,
             "favorites_menu": lambda: self._show_folder_menu(self.favorites_menu, self._rebuild_favorites_menu),
@@ -16372,6 +17103,9 @@ class Commander(tk.Tk):
     def _settings_are_open(self):
         dialog=getattr(self,'settings_window',None)
         return dialog is not None and dialog.winfo_exists()
+
+    def show_vcs_actions(self):
+        return self.vcs_actions.show()
 
     def _dispatch_global_hotkey(self, command):
         # Native combobox popdowns have their own toplevel: guarding only the
@@ -17289,7 +18023,12 @@ class Commander(tk.Tk):
         if button is None or pane is None:
             return
         label = "Multi-Rename" if len(pane.selected_paths()) > 1 else "Rename"
-        button.configure(text=f"F2 {tr(label)}")
+        if hasattr(self, 'action_bar'):
+            self.action_bar.set_label('F2', f'F2 {tr(label)}', f'F2 {tr(label)}')
+        else:
+            button.configure(text=f"F2 {tr(label)}")
+        if hasattr(self, 'vcs_actions'):
+            self.vcs_actions.request()
 
     def update_transfer_actions(self) -> None:
         """Expose the exact F5/F6 destination in every panel layout."""
@@ -17298,16 +18037,16 @@ class Commander(tk.Tk):
         if not buttons or not visible:
             return
         if self.panel_count_var.get() == 1:
-            buttons['F5'].configure(text=f"F5 {tr('Copy to…')}")
-            buttons['F6'].configure(text=f"F6 {tr('Move to…')}")
+            self.action_bar.set_label('F5', f"F5 {tr('Copy to…')}", f"F5 {tr('Copy')}")
+            self.action_bar.set_label('F6', f"F6 {tr('Move to…')}", f"F6 {tr('Move')}")
             return
         source_tabs = self._tabs_for(self.active) if self.active is not None else visible[0]
         if source_tabs not in visible:
             source_tabs = visible[0]
         source_index = visible.index(source_tabs)
         target_number = transfer_target_index(source_index, len(visible)) + 1
-        buttons["F5"].configure(text=f"F5 P{target_number} ← {tr('Copy')}")
-        buttons["F6"].configure(text=f"F6 P{target_number} ← {tr('Move')}")
+        self.action_bar.set_label('F5', f"F5 P{target_number} ← {tr('Copy')}", f'F5→P{target_number}')
+        self.action_bar.set_label('F6', f"F6 P{target_number} ← {tr('Move')}", f'F6→P{target_number}')
 
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
@@ -17385,6 +18124,17 @@ class Commander(tk.Tk):
     def _tree_context(self, event):
         self.header_popup.close_all()
         menu = self._build_panel_context_menu(self.active)
+        tree = self.folder_tree.tree
+        if getattr(event, 'num', None) == 3:
+            # Branch-line canvases are children of the tree; use tree coordinates,
+            # not the prior keyboard focus, when a folder icon is right-clicked.
+            iid = tree.identify_row(event.y_root - tree.winfo_rooty())
+        else:
+            selected = tree.selection()
+            iid = tree.focus() if tree.focus() in selected else (selected[0] if selected else '')
+        path = self.folder_tree.paths.get(iid)
+        if path is not None and self.right_click_menu_var.get() != 'explorer':
+            add_scaled_cascade(menu, tr('Version Control'), self.vcs_actions.build_menu(menu, tree_path=path))
         menu.entryconfigure(tr('Refresh'), command=self.refresh)
         self.header_popup.show_at(max(event.x_root, self.folder_tree.winfo_rootx()+15),
                                  max(event.y_root, self.folder_tree.winfo_rooty()+25), menu)
@@ -17439,6 +18189,9 @@ class Commander(tk.Tk):
                                    exit_label=tr("Exit PFC"))
         for button, hotkey, label in self.action_buttons:
             button.configure(text=f"{hotkey} {tr(label)}".rstrip())
+        self.action_bar.localize()
+        self.vcs_actions.context = None
+        self.vcs_actions.request()
         self.update_rename_action()
         self.update_transfer_actions()
         for pane in self.all_panes():
@@ -17820,6 +18573,7 @@ class Commander(tk.Tk):
                          command=lambda: self._open_folder_in_new_tab(pane, clicked))
         menu.add_command(label=tr("Preview"), accelerator="F3",
                          state=normal_if(single and clicked.is_file()), command=self.preview)
+        add_scaled_cascade(menu, tr('Version Control'), self.vcs_actions.build_menu(menu, pane, clicked))
         menu.add_separator()
         menu.add_command(label=tr("Copy to Clipboard"), accelerator="Ctrl+C", command=self.clipboard_copy)
         menu.add_command(label=tr("Cut to Clipboard"), accelerator="Ctrl+X", command=self.clipboard_cut)
@@ -18132,7 +18886,7 @@ class Commander(tk.Tk):
             pane.focus_file_list()
 
     def show_explorer_menu(self) -> str:
-        """Compatibility entry point; F8 is intentionally no longer bound."""
+        """Compatibility entry point; F8 now opens version control, not Explorer."""
         pane = self.panes()[0]
         if pane.archive_session is not None:
             messagebox.showinfo(
@@ -19167,6 +19921,7 @@ class Commander(tk.Tk):
                 pane.path_bar.redraw()
                 pane._update_view_mode_button()
         if hasattr(self, 'single_tabs'): self.single_tabs.redraw()
+        if hasattr(self, 'action_bar'): self.action_bar.schedule()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
         preferences = getattr(self, "_prefix_preferences", None)

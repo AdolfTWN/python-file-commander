@@ -1,6 +1,14 @@
 # Python File Commander
 
-Current version: **v0.18.4**
+Current version: **v0.18.5**
+
+**F8 Git / SVN:** select a file or folder to see local changes, cached upstream
+ahead/behind, and open Tortoise Commit, Push (Git), History or Graph dialogs.
+Commit defaults to the selection; whole-working-copy commit is a separate action.
+The PFC context menu shares these actions; Explorer's native menu is unchanged.
+The compact bottom bar fits F8 without changing font scale or displacing zoom.
+Requires installed Tortoise clients on Windows; nothing is auto-installed or
+submitted. See [scope, dependencies and safety](docs/vcs-actions.md).
 
 Windows folder icons are cached per path, so Downloads, Documents, OneDrive and
 ordinary folders keep their own Shell icons after navigation and font zoom.
@@ -140,7 +148,7 @@ python tools/build_single_file.py
 
 Current core: two resizable panels by default, optionally three or four through View > Layout & Tabs > Panel Counts, color-customizable and lockable tabs, drive/path navigation, marked column sorting, native Windows Shell file-type icons, multi-select, inline rename or Multi-Rename (F2), popup viewer (F3), background file search (F4), copy (F5), move (F6), inline new-folder creation (F7), Folder Compare/Safe Sync (F9), safe Recycle Bin delete (Del), explicit permanent delete (Shift+Del), Quick Filter (Ctrl+Y), and refresh (Ctrl+R). Git/SVN status overlays propagate to a repository root shown in its parent folder, so clean or changed projects are visible before entering them; Git clean state also reflects locally known upstream ahead/behind divergence without performing a network fetch. Each panel has a path-side view button cycling through List, Folder Tree, and File Tree modes; tree branches expand in place without leaving the current root. Tab cycles through every visible panel. From P2-P4, F5/F6 and F9 target the adjacent panel on the left; P1 targets P2. The action bar always shows the exact destination. Right enters a folder, Left returns to its parent, and Ctrl+Up duplicates the current folder into a new tab. Page Up/Down keeps the selection bar, keyboard focus, and visible row synchronized. Drag a tab with the mouse to reorder it or move its complete session to another visible panel; every panel retains at least one tab and the resulting order is saved immediately. Right-click a tab to choose its persistent color and lock mode. A locked tab opens navigation in a new tab; "Lock (open folder is allowed)" resets to its locked path after switching away or restarting. Panel count and every panel's tab-specific order, colors, locks, and Quick Filters are saved in `pfc.ini`.
 
-Right-click a local file or folder to open the native Windows File Explorer menu by default. **View > Paths & Operations > Right Click Menu** switches between File Explorer and PFC; Shift+F10 and the Menu key follow the same saved preference. There is no delayed hover menu. PFC's compact task menu keeps open/preview, clipboard, target-panel transfer, rename, and both delete modes directly visible. Compare, Folder Space Analyzer, compression, and extraction live under **Analyze & Archive**; Windows administrative, terminal, shortcut, and path actions live under **More Actions**. Archive workspaces and non-Windows platforms use the PFC menu because native Explorer is unavailable. F8 remains unbound.
+Right-click a local file or folder to open the native Windows File Explorer menu by default. **View > Paths & Operations > Right Click Menu** switches between File Explorer and PFC; Shift+F10 and the Menu key follow the same saved preference. There is no delayed hover menu. PFC's compact task menu keeps open/preview, clipboard, target-panel transfer, rename, and both delete modes directly visible. Compare, Folder Space Analyzer, compression, and extraction live under **Analyze & Archive**; Windows administrative, terminal, shortcut, and path actions live under **More Actions**. Archive workspaces and non-Windows platforms use the PFC menu because native Explorer is unavailable. F8 opens **Version Control**, also available as a PFC context submenu. Compare windows retain their own F8 next-difference shortcut.
 
 Long names in file panels are clipped without rewriting their middle or shrinking the font. **View > File Columns → Name settings → Long Filename Scrolling** (on by default) scrolls only the focused selected row in the active file list. It holds the beginning for one second, moves left at 36 pixels/second at 100% font size (scaled with zoom), holds the ending for 1.5 seconds, and repeats. Icons, row height and other columns stay still. Editing, dragging, menus and leaving the list pause animation; offscreen or inactive rows do not animate. Turning scrolling off leaves names statically clipped with full-name hover help. Both new preferences are saved in the INI.
 

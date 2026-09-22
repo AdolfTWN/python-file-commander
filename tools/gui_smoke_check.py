@@ -63,9 +63,10 @@ def main() -> None:
                     if app.tools_menu.type(index) != "separator"] == [
                 "Preview", "Compare", "Folder Space Analyzer", "PFC Settings…", "Command search…",
                 "Saved comparisons…", "Workspaces…", "Restore previous workspace"]
-            assert "F8" not in app.action_button_by_hotkey
+            assert "F8" in app.action_button_by_hotkey
             assert not app.config_data.has_option("hotkeys", "explorer_menu")
-            assert not app.bind_all("<F8>")
+            assert app.bind_all("<F8>")
+            assert app.config_data.get('hotkeys', 'version_control') == '<F8>'
             assert app.left_tabs.current().tree.bind("<ButtonRelease-3>")
             assert not app.left_tabs.current().tree.bind("<Button-3>")
             hierarchy_indexes = [index for index in range(app.view_menu.index("end") + 1)
@@ -597,7 +598,7 @@ def main() -> None:
             context_cascades = [context_menu.entrycget(index, "label")
                                 for index in range(context_menu.index("end") + 1)
                                 if context_menu.type(index) == "cascade"]
-            assert context_cascades == ["Analyze & Archive", "More Actions"]
+            assert context_cascades == ["Version Control", "Analyze & Archive", "More Actions"]
             assert len(context_labels) == 12, context_labels
             submenu_labels = {
                 context_menu.entrycget(index, "label"): {

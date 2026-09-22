@@ -13,6 +13,11 @@ _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
 
 
+def invalidate_vcs_cache():
+    """A client dialog finished; the next overlay request must use fresh metadata."""
+    _CACHE.clear()
+
+
 def _run_options() -> dict:
     """Keep background VCS commands invisible in Windows GUI launches."""
     return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}

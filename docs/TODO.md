@@ -1,5 +1,18 @@
 # PFC follow-ups
 
+## F8 version control — v0.18.5
+
+- [x] Fit F8 into the measured-width single-row action bar without shrinking fonts
+  or sacrificing zoom/transfer destination labels.
+- [x] Shared selection-scoped Git/SVN menus, local-only asynchronous status,
+  explicit unknown/upstream cache states, Tortoise dialog hand-off and saved paths.
+- [x] Guard mixed repositories, metadata/archive locations and child-window F8;
+  test package/portable layouts and Windows native UI offline.
+- [ ] End-to-end real TortoiseGit/TortoiseSVN dialog verification on a Windows
+  installation with those clients. The shared VM has neither installed; this
+  release validates command construction/dispatch without committing or pushing.
+- See [F8 guide and safety boundaries](vcs-actions.md).
+
 ## Understandable panel layout comparison — v0.18.4
 
 - [x] Replace duplicated single-pane screenshots and tiny diagrams on Layout &
