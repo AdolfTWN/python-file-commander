@@ -26,9 +26,42 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
         app.save_config();before=(root/'pfc.ini').read_text()
         app.show_settings();d=app.settings_window;settle(app)
         assert app.grab_current() is d
+        # Settings must use a checkmark asset, not Clam's native cross glyph.
+        import tkinter.ttk as ttk
+        style=ttk.Style(d)
+        assert 'Prefs.Checkbutton.indicator' in str(style.layout('Prefs.TCheckbutton'))
+        check_images=dict(app._settings_check_images)
+        assert len(check_images)==4 and all(18<=img.width()<=24 for img in check_images.values())
+        checkbox=d.controls['auto_font_size'];checkbox.focus_force()
+        checkbox.event_generate('<KeyPress-space>');checkbox.event_generate('<KeyRelease-space>');settle(app)
+        assert d.vars['auto_font_size'].get(), 'Space enables a checkbutton'
+        checkbox.invoke();assert not d.vars['auto_font_size'].get()
         assert len(d.preview_labels)==2 and all(w.image.width()>200 for w,_v in d.preview_labels)
+        # Previews are above, not inside, the scrolling options pane.
+        for w,_v in d.preview_labels:
+            assert w.winfo_rooty()>=d.winfo_rooty()
+            assert w.winfo_rooty()+w.winfo_height()<=d.canvas.winfo_rooty()
+            assert w.image.width()>=300
+        assert d.font_example.winfo_viewable() and '100%' in d.sample_title.cget('text')
+        d.vars['auto_font_size'].set(True)
+        assert 'reference' in d.sample_title.cget('text')
+        d.vars['auto_font_size'].set(False);d.vars['font_size'].set('175');settle(app)
+        assert '175%' in d.sample_title.cget('text') and 'after Apply' in d.sample_title.cget('text')
+        assert abs(d.sample_font.cget('size'))==round(d._sample_pixels()*1.75)
+        image_ids=[str(w.image) for w,_v in d.preview_labels]
+        for _ in range(6):d._update_shots()
+        assert image_ids==[str(w.image) for w,_v in d.preview_labels], 'Stable previews must reuse image objects'
+        d.vars['auto_font_size'].set(d.original['auto_font_size']);d.vars['font_size'].set(d.original['font_size'])
         d._enlarge(None);settle(app)
         popup=app.grab_current();assert popup is not d
+        def descendants(widget):
+            for child in widget.winfo_children():
+                yield child
+                yield from descendants(child)
+        full=[widget for widget in descendants(popup) if hasattr(widget,'image')]
+        assert len(full)==2 and all(w.image.width()==540 for w in full), 'Compare both full-size images together'
+        assert 0<=popup.winfo_rootx() and popup.winfo_rootx()+popup.winfo_width()<=popup.winfo_screenwidth()
+        assert 0<=popup.winfo_rooty() and popup.winfo_rooty()+popup.winfo_height()<=popup.winfo_screenheight()
         popup.event_generate('<Escape>');settle(app)
         assert app.grab_current() is d
         d.vars['color_scheme'].set('dark');d.vars['panel_count'].set(1)
@@ -41,6 +74,13 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
         assert app.recycle_bin_var.get()
         assert before==(root/'pfc.ini').read_text(),'Cancel must not write preferences'
         app.show_settings('columns');d=app.settings_window;settle(app)
+        d.vars['column_modified'].set(False)
+        assert all(d.controls[k].instate(['disabled']) for k in ('date_order','time_style'))
+        assert 'hidden' in d.date_example.cget('text')
+        d.vars['column_modified'].set(True)
+        assert all(d.controls[k].instate(['readonly']) for k in ('date_order','time_style'))
+        d.vars['column_size'].set(False);assert d.controls['size_emphasis'].instate(['disabled'])
+        d.vars['column_size'].set(True);assert not d.controls['size_emphasis'].instate(['disabled'])
         original_pane=app.active
         d.vars['column_ext'].set(False);d.vars['show_hidden'].set(True)
         d.vars['date_order'].set('mdy');d.vars['time_style'].set('12')
@@ -53,6 +93,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
         assert app.color_scheme_var.get()=='dark' and app.tab_style_var.get()=='rounded'
         assert app._single_layout
         assert d.apply_button.instate(['disabled'])
+        assert all(app._settings_check_images[state] is image for state,image in check_images.items()), 'Apply must reuse checkbox images'
         d.vars['color_scheme'].set('light');d.cancel()
         assert app.color_scheme_var.get()=='dark','Cancel after Apply keeps applied settings'
         # Scope is the original tab, not a new active tab selected by layout.
@@ -91,6 +132,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
             assert d.footer.winfo_rooty()+d.footer.winfo_height()<=d.winfo_rooty()+d.winfo_height()+1
         # Prefix editing is a draft too; validation rejects relative paths before any apply.
         d.show_page('navigation');settle(app)
+        d.vars['recycle_bin'].set(False);assert 'permanently' in d.danger_note.cget('text')
+        d.vars['recycle_bin'].set(True)
         assert len(d.prefix_rows)==3
         d.prefix_rows[0][1].set('relative/path');d.vars['recycle_bin'].set(False)
         messages=[];old=pfc.messagebox.showerror
@@ -109,10 +152,25 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
                 app.show_settings();d=app.settings_window;d.geometry('780x560+0+0');settle(app)
                 for key,_label in pfc.SETTINGS_CATEGORIES:
                     d.show_page(key);settle(app)
+                    if key in ('appearance','layout'):
+                        for widget,_v in d.preview_labels:
+                            assert widget.image.width()>=200
+                            assert widget.winfo_rooty()+widget.winfo_height()<=d.canvas.winfo_rooty()
+                        top=d.comparison.winfo_rooty()
+                        d.canvas.yview_moveto(1);settle(app)
+                        assert d.comparison.winfo_rooty()==top
+                    assert d.canvas.winfo_height()>=60, (scale,scheme,key,d.canvas.winfo_height())
                     d.canvas.yview_moveto(1);settle(app)
                     assert d.footer.winfo_ismapped() and d.apply_button.winfo_ismapped()
                     assert d.page.winfo_width()<=d.canvas.winfo_width()+1
                 d.cancel()
+        # Wheel over a closed combo scrolls options without silently changing it.
+        app.show_settings('columns');d=app.settings_window;settle(app)
+        d.canvas.yview_moveto(1);settle(app)
+        old=d.vars['date_order'].get()
+        d.controls['date_order'].event_generate('<MouseWheel>',delta=-120);settle(app)
+        assert d.vars['date_order'].get()==old
+        d.cancel()
         app.font_size_var.set('large');app.apply_font_size(save=False)
         app.color_scheme_var.set('light');app.apply_color_scheme(save=False)
         app.show_settings();d=app.settings_window;d.vars['color_scheme'].set('dark');d.vars['tab_style'].set('squarish');settle(app)

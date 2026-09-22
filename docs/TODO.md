@@ -1,5 +1,24 @@
 # PFC follow-ups
 
+## Settings visibility and clarity — v0.18.1
+
+- [x] Keep larger current/draft style previews above the scrolling controls;
+  compare both original demo screenshots together in a screen-bounded window.
+- [x] Label the font sample with its actual percentage and distinguish fixed
+  scale from the auto-size reference. Keep Settings and sample layout stable.
+- [x] Review all six pages: nearby scope/safety explanations, paired panel
+  diagrams, dependent column controls and protection from accidental wheel edits.
+- [x] Replace Settings checkbox crosses with crisp ticks; preserve off/disabled
+  states, keyboard focus and Space-key toggling, without changing other dialogs.
+- Validation details: [Settings design](settings-design.md).
+
+## Diagnosed folder icon cache — pending implementation
+
+- [ ] Windows directories currently share a cache key across paths, allowing the
+  first loaded special-folder icon (for example Downloads) to be reused for other
+  folders. Use a bounded path-aware cache and verify native icons/overlays. This
+  diagnosis is not part of the Settings v0.18.1 fix.
+
 ## Truthful folder expansion hints — v0.18.0
 
 - [x] Replace placeholder-based plus indicators with confirmed child-directory

@@ -17,6 +17,30 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Improved: Enabled settings use clear checkmarks instead of crosses, with distinct off and disabled states.": ("改善：設定啟用以清楚勾號取代叉號，並區分未勾選與停用狀態。", "改进：设置启用以清晰勾号代替叉号，并区分未勾选与禁用状态。", "개선: 활성화된 설정은 X 대신 명확한 체크 표시를 사용하며 해제와 비활성 상태를 구분합니다."),
+    "Improved: Settings keeps larger Before/After previews visible and compares both styles at full size.": ("改善：設定頁固定顯示較大的套用前後預覽，並可同時比較完整尺寸樣式。", "改进：设置页固定显示更大的应用前后预览，并可同时比较完整尺寸样式。", "개선: 설정의 변경 전후 미리 보기를 크게 고정 표시하고 두 스타일을 원본 크기로 비교합니다."),
+    "Improved: Font samples show the applied scale; settings explain scope, dependencies and delete safety beside each option.": ("改善：字型範例標示套用倍率；各選項旁說明作用範圍、相依條件與刪除安全性。", "改进：字体示例标示应用倍率；各选项旁说明作用范围、依赖条件与删除安全性。", "개선: 글꼴 예제에 적용 배율을 표시하고 각 옵션 옆에 범위, 종속 조건과 삭제 안전성을 설명합니다."),
+    "Sample tabs and file list; panel layout is shown below.": ("範例分頁與檔案清單；下方另顯示面板配置。", "示例标签与文件列表；下方另显示面板布局。", "탭과 파일 목록 예제입니다. 패널 배치는 아래에 표시됩니다."),
+    "Syntax colors & Markdown (Extension Effect)": ("語法配色與 Markdown 呈現（Extension Effect）", "语法配色与 Markdown 渲染（Extension Effect）", "구문 색상 및 Markdown (Extension Effect)"),
+    "Choose a style below. The comparison shows your current style and the draft; only Apply or OK changes PFC.": ("比較目前樣式與待套用樣式；下方調整，按「套用」或「確定」才會生效。", "比较当前样式与待应用样式；在下方调整，点击“应用”或“确定”才会生效。", "현재 스타일과 변경안을 비교하세요. 아래에서 선택하고 적용 또는 확인을 눌러 반영합니다."),
+    "Compare tab style and panel layout before applying. Tab colors and locks stay in each tab’s right-click menu.": ("套用前比較分頁樣式與面板配置；分頁顏色及鎖定仍在各分頁右鍵選單。", "应用前比较标签样式与面板布局；标签颜色及锁定仍在各标签右键菜单。", "적용 전 탭 스타일과 패널 배치를 비교하세요. 탭 색상과 잠금은 각 탭의 우클릭 메뉴에 있습니다."),
+    "Configure file menus, delete behavior and path shortcuts. Changes apply only after Apply or OK.": ("設定檔案選單、刪除方式與路徑捷徑；按「套用」或「確定」才會生效。", "设置文件菜单、删除方式与路径快捷方式；点击“应用”或“确定”才会生效。", "파일 메뉴, 삭제 동작과 경로 바로 가기를 설정합니다. 적용 또는 확인 후 반영됩니다."),
+    "Controls F3 Preview only. It does not change files, index drives or enable external plugins.": ("僅控制 F3 預覽；不修改檔案、不索引磁碟，也不啟用外部外掛。", "仅控制 F3 预览；不修改文件、不索引磁盘，也不启用外部插件。", "F3 미리 보기에만 적용됩니다. 파일 수정, 드라이브 색인 또는 외부 플러그인 활성화를 하지 않습니다."),
+    "Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.": ("選擇介面語言與 Windows 登入啟動方式；更新仍在「說明」中手動執行。", "选择界面语言与 Windows 登录启动方式；更新仍在“帮助”中手动执行。", "인터페이스 언어와 Windows 로그인 동작을 선택합니다. 업데이트는 도움말에서 수동 실행합니다."),
+    "Auto fits the main window width. Turn it off for a fixed percentage. Settings keeps a stable reading size.": ("自動模式配合主視窗寬度調整；關閉後指定固定倍率。設定視窗維持穩定字級。", "自动模式配合主窗口宽度调整；关闭后指定固定倍率。设置窗口保持稳定字号。", "자동 모드는 기본 창 너비에 맞춥니다. 끄면 고정 배율을 선택합니다. 설정 창 글자 크기는 유지됩니다."),
+    "1 Panel: folder tree + file list with shared tabs. 2–4 Panels: separate file lists and tab groups.": ("1 面板：資料夾樹＋檔案清單，共用分頁。2–4 面板：各自的檔案清單與分頁組。", "1 面板：文件夹树＋文件列表，共享标签。2–4 面板：各自的文件列表与标签组。", "1 패널: 폴더 트리와 파일 목록, 공유 탭. 2–4 패널: 독립 파일 목록과 탭 그룹."),
+    "GB is bold; TB is bold red. This changes display only, not file sizes.": ("GB 使用粗體；TB 使用紅色粗體。只改變顯示，不改變檔案大小。", "GB 使用粗体；TB 使用红色粗体。只改变显示，不改变文件大小。", "GB는 굵게, TB는 빨간 굵은 글씨로 표시합니다. 파일 크기는 변경되지 않습니다."),
+    "File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.": ("File Explorer 使用 Windows 原生檔案選單；空白區及欄位保留 PFC 快速選單。", "File Explorer 使用 Windows 原生文件菜单；空白区及列保留 PFC 快捷菜单。", "File Explorer는 Windows 기본 파일 메뉴를 사용합니다. 빈 영역과 열 메뉴는 PFC 바로 가기를 유지합니다."),
+    "Continue with the remaining files after a failure; errors are still reported.": ("某個檔案失敗後繼續處理其餘檔案；仍會回報錯誤。", "某个文件失败后继续处理其余文件；仍会报告错误。", "실패 후 나머지 파일을 계속 처리하며 오류는 계속 보고합니다."),
+    "On: syntax colors and formatted Markdown. Off: plain source text. Outline, properties, links and tables are in F3 Preview.": ("開啟：語法配色與 Markdown 排版。關閉：純原始文字。大綱、屬性、連結及表格工具位於 F3 預覽。", "开启：语法配色与 Markdown 排版。关闭：纯原始文本。大纲、属性、链接及表格工具位于 F3 预览。", "켜기: 구문 색상과 Markdown 서식. 끄기: 원본 텍스트. 목차, 속성, 링크 및 표 도구는 F3 미리 보기에 있습니다."),
+    "Changes the interface after Apply, not your file names.": ("套用後變更介面語言，不會更改檔名。", "应用后更改界面语言，不会更改文件名。", "적용 후 인터페이스 언어를 변경하며 파일 이름은 바꾸지 않습니다."),
+    "Compare at full size…": ("原尺寸並列比較…", "原尺寸并列比较…", "원본 크기로 비교…"),
+    "Style details from demo screenshots; font size is shown separately.": ("示範截圖的樣式細節；字型大小另以文字範例呈現。", "示例截图的样式细节；字体大小另以文本示例呈现。", "데모 화면의 스타일 세부 비교입니다. 글꼴 크기는 별도 텍스트 예제로 표시합니다."),
+    "File text after Apply · {percent}%": ("套用後的檔名文字大小 · {percent}%", "应用后的文件名文字大小 · {percent}%", "적용 후 파일명 글자 크기 · {percent}%"),
+    "Auto font · {percent}% reference; follows window width": ("自動字級 · 以 {percent}% 示範，實際依視窗寬度調整", "自动字号 · 以 {percent}% 演示，实际依窗口宽度调整", "자동 글꼴 · {percent}% 예시, 실제 크기는 창 너비에 맞춤"),
+    "Date column hidden; format is remembered.": ("日期欄位已隱藏；保留格式設定。", "日期列已隐藏；保留格式设置。", "날짜 열은 숨겨져 있으며 형식 설정은 유지됩니다."),
+    "Delete moves items to Recycle Bin. Shift+Delete is always permanent.": ("Delete 移至資源回收筒；Shift+Delete 一律永久刪除。", "Delete 移至回收站；Shift+Delete 始终永久删除。", "Delete는 휴지통으로 이동하며 Shift+Delete는 항상 영구 삭제합니다."),
+    "Warning: Delete will permanently remove files after Apply.": ("注意：套用後，Delete 將永久刪除檔案。", "注意：应用后，Delete 将永久删除文件。", "경고: 적용 후 Delete는 파일을 영구 삭제합니다."),
     'Fixed: Empty and files-only folders no longer show a false expand icon before being opened.': ('修正：空資料夾及只有檔案的資料夾，不再於開啟前顯示錯誤的展開圖示。', '修复：空文件夹及只有文件的文件夹，不再于打开前显示错误的展开图标。', '수정: 비어 있거나 파일만 있는 폴더에 열기 전 잘못된 확장 아이콘이 표시되지 않습니다.'),
     'Improved: Visible folder expansion hints are checked in the background without recursive scanning or blocking navigation.': ('改善：背景確認可見資料夾的展開提示，不遞迴掃描，也不阻塞導覽。', '改进：后台确认可见文件夹的展开提示，不递归扫描，也不阻塞导航。', '개선: 재귀 검색이나 탐색 차단 없이 보이는 폴더의 확장 표시를 백그라운드에서 확인합니다.'),
     'Open a comparison with F9, then save it from Session.': ('先按 F9 開啟比較，再從 Session 選單儲存。', '先按 F9 打开比较，再从 Session 菜单保存。', 'F9로 비교를 연 다음 Session 메뉴에서 저장하세요.'),
@@ -6593,11 +6617,13 @@ class SyncProgress(tk.Toplevel):
 
 """Categorized, draft-first preferences. No filesystem scanning or network preview."""
 import os
+import math
 from pathlib import Path
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk, filedialog, messagebox
 from datetime import datetime
+from functools import lru_cache
 
 
 
@@ -6606,6 +6632,34 @@ SETTINGS_CATEGORIES = (
     ('columns', 'File Columns'), ('navigation', 'Paths & Operations'),
     ('preview', 'Preview'), ('general', 'General'),
 )
+
+
+@lru_cache(maxsize=48)
+def settings_check_icon_png(size, selected, disabled, dark):
+    """A crisp tick (never the Clam theme's X), independent of installed fonts."""
+    supersample=4;extent=size*supersample;unit=extent/20
+    pixels=bytearray(extent*extent*4)
+    if disabled:
+        edge,face,ink=('#657380','#394550','#a3afba') if dark else ('#aeb8c2','#e2e6ea','#657380')
+    elif selected:
+        edge,face,ink=('#8bc8ff','#8bc8ff','#153449') if dark else ('#176fbc','#176fbc','#ffffff')
+    else:
+        edge,face,ink=('#a9bbc9','#252d35','#ffffff') if dark else ('#5b6c7b','#ffffff','#153449')
+    edge,face,ink=map(_hex_rgba,(edge,face,ink))
+    def rounded(x,y,lo,hi,r):
+        cx=max(lo+r,min(x,hi-r));cy=max(lo+r,min(y,hi-r))
+        return (x-cx)**2+(y-cy)**2<=r*r
+    for y in range(extent):
+        py=(y+.5)/unit
+        for x in range(extent):
+            px=(x+.5)/unit
+            if not rounded(px,py,1,19,2.3):continue
+            color=face if rounded(px,py,2.2,17.8,1.2) else edge
+            if selected and min(_distance_to_segment(px,py,5,10,8.5,13.5),
+                                _distance_to_segment(px,py,8.5,13.5,15,6.5))<=1.15:
+                color=ink
+            start=(y*extent+x)*4;pixels[start:start+4]=bytes(color)
+    return _rgba_png_downsample(pixels,size,supersample)
 
 
 def preference_specs(app):
@@ -6637,7 +6691,7 @@ def preference_specs(app):
          [('explorer','File Explorer'), ('pfc','PFC')], 'save_config'),
         ('recycle_bin', 'navigation', 'File Operation Settings', 'Send Delete to Recycle Bin', None, 'save_config'),
         ('continue_errors', 'navigation', 'File Operation Settings', 'Continue After File Errors', None, 'save_config'),
-        ('extension_effect', 'preview', 'F3 Preview', 'Extension Effect', None, 'set_extension_effect'),
+        ('extension_effect', 'preview', 'F3 Preview', 'Syntax colors & Markdown (Extension Effect)', None, 'set_extension_effect'),
         ('ui_language', 'general', 'UI Language', 'UI Language', list(LANGUAGES), 'apply_ui_language'),
         ('auto_start', 'general', 'Windows startup', 'Auto Start when boot', None, 'toggle_auto_start'),
     ]
@@ -6655,7 +6709,7 @@ class SettingsDialog(tk.Toplevel):
         # The content area scrolls; the footer never scrolls out of reach.
         base = tkfont.nametofont('TkDefaultFont')
         self.font = tkfont.Font(self, family=base.actual('family'),
-                                size=-min(22, max(14, abs(int(base.cget('size'))))))
+                                size=-max(14, min(18, round(app._base_tk_scaling*11))))
         self.heading_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size'), weight='bold'))
         self.small_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size')))
         self.specs = preference_specs(app)
@@ -6672,11 +6726,13 @@ class SettingsDialog(tk.Toplevel):
         self.controls = {}
         self.images = []
         self.status_var = tk.StringVar(self)
+        self._shot_sources = {}
+        self._shot_job = None
         self._build()
         sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
-        width, height = min(1080, sw-48), min(820, sh-80)
+        width, height = min(1180, sw-48), min(720, sh-80)
         self.geometry(f'{width}x{height}+{max(0,min(app.winfo_rootx()+30,sw-width-24))}+{max(0,min(app.winfo_rooty()+30,sh-height-40))}')
-        self.minsize(min(720,width), min(440,height))
+        self.minsize(min(720,width), min(560,height))
         self.protocol('WM_DELETE_WINDOW', self.cancel)
         self.bind('<Escape>', lambda _e: self.cancel())
         # Stop application-wide file shortcuts from acting behind the modal dialog.
@@ -6706,7 +6762,7 @@ class SettingsDialog(tk.Toplevel):
         style = ttk.Style(self)
         for suffix in ('TButton','TCheckbutton','TLabel','TCombobox','TEntry'):
             style.configure('Prefs.'+suffix, font=self.font)
-        style.configure('Prefs.TCheckbutton',indicatorsize=18,indicatormargin=(0,0,7,0))
+        self._checkbutton_style(style)
         style.configure('PrefsTitle.TLabel', font=self.heading_font)
         self.footer = ttk.Frame(self, padding=12)
         self.footer.pack(side='bottom', fill='x')
@@ -6719,7 +6775,7 @@ class SettingsDialog(tk.Toplevel):
         self.status_label = ttk.Label(self.footer, textvariable=self.status_var, style='Prefs.TLabel')
         self.status_label.pack(side='left', fill='x', expand=True)
         body = ttk.Frame(self, padding=(12,12,12,0)); body.pack(fill='both', expand=True)
-        self.nav = tk.Listbox(body, font=self.font, width=20, exportselection=False,
+        self.nav = tk.Listbox(body, font=self.font, width=18, exportselection=False,
                               activestyle='none', relief='flat', borderwidth=0,
                               highlightthickness=1, background=p['surface_alt'], foreground=p['text'],
                               selectbackground=p['selection'], selectforeground='#ffffff',
@@ -6731,6 +6787,10 @@ class SettingsDialog(tk.Toplevel):
         self.title_label = ttk.Label(right, style='PrefsTitle.TLabel'); self.title_label.pack(anchor='w', pady=(0,6))
         self.intro = ttk.Label(right, text=tr('Changes take effect only after Apply or OK.'), style='Prefs.TLabel', wraplength=500)
         self.intro.pack(anchor='w', pady=(0,12))
+        # Comparison stays in view while only the preference controls scroll.
+        self.comparison = ttk.Frame(right)
+        self.comparison.pack(fill='x', pady=(0,8))
+        self.comparison.bind('<Configure>', lambda _e:self._schedule_shots())
         content = ttk.Frame(right); content.pack(fill='both', expand=True)
         self.canvas = tk.Canvas(content, highlightthickness=0, bg=p['window'])
         self.scrollbar = ttk.Scrollbar(content, orient='vertical', command=self.canvas.yview)
@@ -6744,12 +6804,37 @@ class SettingsDialog(tk.Toplevel):
         self.nav.selection_set(index); self.nav.activate(index)
         self.show_page(self.category)
 
+    def _checkbutton_style(self, style):
+        # Ttk elements retain image names after the dialog closes. Own these four
+        # images on the application, reuse them on Apply/reopen, and keep the
+        # native checkbutton's focus, mouse and Space-key behavior intact.
+        images=getattr(self.app,'_settings_check_images',None)
+        if images is None:
+            images={state:tk.PhotoImage(master=self.app) for state in
+                    ((False,False),(True,False),(False,True),(True,True))}
+            self.app._settings_check_images=images
+        size=max(18,min(24,self.font.metrics('linespace')))
+        dark=self.app.color_scheme_var.get()=='dark'
+        for (selected,disabled),image in images.items():
+            image.configure(data=settings_check_icon_png(size,selected,disabled,dark),format='png')
+        name='Prefs.Checkbutton.indicator'
+        if name not in style.element_names():
+            style.element_create(name,'image',images[False,False],
+                ('disabled','selected',images[True,True]),
+                ('disabled','!selected',images[False,True]),
+                ('selected',images[True,False]),width=size+7,sticky='w')
+        def replace(layout):
+            return [(name if element=='Checkbutton.indicator' else element,
+                     {key:replace(value) if key=='children' else value for key,value in options.items()})
+                    for element,options in layout]
+        style.layout('Prefs.TCheckbutton',replace(style.layout('TCheckbutton')))
+
     def _resize(self, event):
         self.canvas.itemconfigure(self.page_id,width=event.width)
         self.intro.configure(wraplength=max(100,event.width-12))
         for label in getattr(self,'wrap_labels',[]):
             label.configure(wraplength=max(140,event.width-36))
-        self._update_shots()
+        self._schedule_shots()
 
     def _select(self, _event=None):
         selection=self.nav.curselection()
@@ -6767,107 +6852,186 @@ class SettingsDialog(tk.Toplevel):
         if self.nav.curselection()!=(index,):
             self.nav.selection_clear(0,'end');self.nav.selection_set(index);self.nav.activate(index)
         for child in self.page.winfo_children():child.destroy()
+        for child in self.comparison.winfo_children():child.destroy()
         self.controls={};self.images=[];self.wrap_labels=[];self.preview_labels=[];self.date_example=None
+        self.layout_examples=[];self.sample_title=None;self.danger_note=None
         self.title_label.configure(text=tr(dict(SETTINGS_CATEGORIES)[category]))
         self.canvas.yview_moveto(0)
+        notes={
+            'appearance':'Choose a style below. The comparison shows your current style and the draft; only Apply or OK changes PFC.',
+            'layout':'Compare tab style and panel layout before applying. Tab colors and locks stay in each tab’s right-click menu.',
+            'columns':'Name visibility applies to the tab where Settings was opened. Other column preferences apply to all tabs. Hidden columns can be restored here.',
+            'navigation':'Configure file menus, delete behavior and path shortcuts. Changes apply only after Apply or OK.',
+            'preview':'Controls F3 Preview only. It does not change files, index drives or enable external plugins.',
+            'general':'Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.',
+        }
+        self.intro.configure(text=tr(notes[category]))
+        if category in ('appearance','layout'):
+            self.comparison.pack(before=self.canvas.master,fill='x',pady=(0,8))
+            self._previews()
+        else:self.comparison.pack_forget()
         group=None
         for key,cat,title,label,choices,_method in self.specs:
             if cat!=category:continue
-            if title!=group:
+            compact=category in ('appearance','layout')
+            if title!=group and not compact:
                 if group is not None:ttk.Separator(self.page).pack(fill='x',pady=8)
                 self._label(self.page,title,True); group=title
             if choices is None:
                 control=ttk.Checkbutton(self.page,text=tr(label),variable=self.vars[key],style='Prefs.TCheckbutton')
                 control.pack(anchor='w',pady=5)
             else:
-                if label!=title:self._label(self.page,label)
-                control=ttk.Combobox(self.page,state='readonly',style='Prefs.TCombobox',font=self.font,
+                container=self.page
+                if compact:
+                    container=ttk.Frame(self.page);container.pack(fill='x',pady=(4,6))
+                    ttk.Label(container,text=tr(label),style='PrefsTitle.TLabel',width=13).pack(side='left',padx=(0,8))
+                elif label!=title:self._label(self.page,label)
+                control=ttk.Combobox(container,state='readonly',style='Prefs.TCombobox',font=self.font,
                                       values=[tr('{count} Panels',count=value) if key=='panel_count' and value>1
                                               else tr(str(label)) for value,label in choices])
                 control.current([v for v,_ in choices].index(self.vars[key].get()))
-                control.pack(fill='x',pady=(0,6))
-                popdown=self.tk.call('ttk::combobox::PopdownWindow',str(control))
-                self.tk.call(str(popdown)+'.f.l','configure','-font',str(self.font))
+                control.pack(fill='x',expand=compact,pady=(0,0 if compact else 6))
+                self._prepare_combo(control)
                 control.bind('<<ComboboxSelected>>',lambda _e,k=key,c=control,opts=choices:self.vars[k].set(opts[c.current()][0]))
             self.controls[key]=control
             if key=='auto_start' and os.name!='nt':
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
-        notes={
-            'appearance':'Auto adjusts to window and panel widths. Turn it off to choose a fixed scale. The settings dialog keeps a stable reading size.',
-            'layout':'1 Panel combines a folder tree and file list with shared tabs. Tab colors and lock modes remain in each tab’s right-click menu.',
-            'columns':'Name visibility applies to the tab where Settings was opened. Other column preferences apply to all tabs. Hidden columns can be restored here.',
-            'navigation':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts. Disabling Recycle Bin makes Delete permanent; Shift+Delete always bypasses it.',
-            'preview':'Extension Effect enables syntax colors and Markdown rendering in F3 Preview. Reading tools (outline, properties, links and tables) remain in Preview. Link resolution stays within the selected document workspace; this setting does not scan drives.',
-            'general':'Auto Start writes a Windows sign-in entry only when applied. Follow your organization’s software policy. Updates remain a manual action in Help.',
-        }
-        self._label(self.page,notes[category])
-        if category=='appearance':
-            self._label(self.page,'Text at selected scale',True)
-            self.font_example=tk.Label(self.page,text='PFC · Notes.md',anchor='w',
-                                       bg=self.app.palette['surface'],fg=self.app.palette['text'])
-            self.font_example.pack(fill='x',pady=6)
-        if category in ('appearance','layout'): self._previews()
-        if category=='columns':
-            self.date_example=self._label(self.page,'')
-            self._label(self.page,'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.')
+            hints={
+                'font_size':'Auto fits the main window width. Turn it off for a fixed percentage. Settings keeps a stable reading size.',
+                'panel_count':'1 Panel: folder tree + file list with shared tabs. 2–4 Panels: separate file lists and tab groups.',
+                'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
+                'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
+                'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
+                'continue_errors':'Continue with the remaining files after a failure; errors are still reported.',
+                'extension_effect':'On: syntax colors and formatted Markdown. Off: plain source text. Outline, properties, links and tables are in F3 Preview.',
+                'ui_language':'Changes the interface after Apply, not your file names.',
+                'auto_start':'Auto Start writes a Windows sign-in entry only when applied. Follow your organization’s software policy. Updates remain a manual action in Help.',
+            }
+            if key in hints:self._label(self.page,hints[key])
+            if key=='recycle_bin':self.danger_note=self._label(self.page,'')
+            if key=='time_style':self.date_example=self._label(self.page,'')
         if category=='navigation':self._prefix_rows()
         for label in self.wrap_labels:
             label.configure(wraplength=max(140,self.canvas.winfo_width()-36))
         self._changed()
 
     def _previews(self):
-        self._label(self.page,'Style comparison',True)
-        self._label(self.page,'Sample screenshots from PFC with demo files (100%). No personal folders are captured.')
-        cards=ttk.Frame(self.page);cards.pack(fill='x')
+        bar=ttk.Frame(self.comparison);bar.pack(fill='x')
+        ttk.Label(bar,text=tr('Style comparison'),style='PrefsTitle.TLabel').pack(side='left')
+        ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
+                   command=lambda:self._enlarge(None)).pack(side='right')
+        caption=ttk.Label(self.comparison,text=tr('Style details from demo screenshots; font size is shown separately.' if self.category=='appearance'
+                          else 'Sample tabs and file list; panel layout is shown below.'),
+                          style='Prefs.TLabel',wraplength=480)
+        caption.pack(fill='x',pady=(2,4));self.comparison_caption=caption
+        cards=ttk.Frame(self.comparison);cards.pack(fill='x')
         cards.columnconfigure((0,1),weight=1,uniform='preview')
         for i,(title,values) in enumerate((('Current style',self.original),('After Apply',None))):
             card=ttk.Frame(cards);card.grid(row=0,column=i,sticky='nsew',padx=(0,8))
-            self._label(card,title,True)
-            label=tk.Label(card,bd=1,relief='solid',anchor='center',bg=self.app.palette['surface'])
+            ttk.Label(card,text=tr(title),style='PrefsTitle.TLabel').pack(anchor='w',pady=(2,4))
+            label=tk.Label(card,bd=1,relief='solid',anchor='center',bg=self.app.palette['surface'],cursor='hand2')
             label.pack(fill='x',pady=(0,8))
-            ttk.Button(card,text=tr('Enlarge preview'),style='Prefs.TButton',
-                       command=lambda v=values:self._enlarge(v)).pack(anchor='w')
+            label.bind('<Button-1>',lambda _e:self._enlarge(None))
             self.preview_labels.append((label,values))
-        if self.category=='layout':
-            self.layout_example=tk.Canvas(self.page,height=94,highlightthickness=0)
-            self.layout_example.pack(fill='x',pady=8)
-            self.layout_example.bind('<Configure>',lambda _e:self._layout_preview())
-            self._label(self.page,'Layout diagram · relative widths only')
+            if self.category=='layout':
+                diagram=tk.Canvas(card,height=64,highlightthickness=0)
+                diagram.pack(fill='x',pady=(0,4))
+                diagram.bind('<Configure>',lambda _e:self._layout_preview())
+                self.layout_examples.append((diagram,values))
+        if self.category=='appearance':
+            self.sample_title=ttk.Label(self.comparison,style='PrefsTitle.TLabel')
+            self.sample_title.pack(anchor='w',pady=(0,3))
+            self.sample_font=tkfont.Font(self)
+            # Reserve the maximum sample height: choosing 100–300% cannot move
+            # the controls under the pointer or push the comparison off-screen.
+            self.sample_font.configure(size=-round(self._sample_pixels()*3))
+            self.sample_box_height=self.sample_font.metrics('linespace')+4
+            holder=ttk.Frame(self.comparison,height=self.sample_box_height)
+            holder.pack(fill='x');holder.pack_propagate(False)
+            self.font_example=tk.Label(holder,text='Notes.md · Aa 123',anchor='w',
+                bg=self.app.palette['surface'],fg=self.app.palette['text'],font=self.sample_font)
+            self.font_example.pack(fill='both',expand=True)
 
     def _enlarge(self,values):
-        values=values or {key:var.get() for key,var in self.vars.items()}
         popup=tk.Toplevel(self);popup.transient(self);popup.title(tr('Style comparison'))
-        shot=tk.PhotoImage(master=popup,data=SETTINGS_SHOTS[values['color_scheme']+'/'+values['tab_style']],format='png')
-        label=ttk.Label(popup,image=shot);label.image=shot;label.pack(padx=12,pady=12)
+        sw,sh=self.winfo_screenwidth(),self.winfo_screenheight()
+        wide=sw>=1180
+        width,height=min(sw-48,1140 if wide else 620),min(sh-80,330 if wide else 600)
+        popup.geometry(f'{width}x{height}+{max(0,(sw-width)//2)}+{max(0,(sh-height)//2)}')
+        footer=ttk.Frame(popup);footer.pack(side='bottom',fill='x',pady=8)
+        canvas=tk.Canvas(popup,highlightthickness=0,bg=self.app.palette['window'])
+        vertical=ttk.Scrollbar(popup,command=canvas.yview);vertical.pack(side='right',fill='y')
+        horizontal=ttk.Scrollbar(popup,orient='horizontal',command=canvas.xview);horizontal.pack(side='bottom',fill='x')
+        canvas.pack(fill='both',expand=True)
+        canvas.configure(yscrollcommand=vertical.set,xscrollcommand=horizontal.set)
+        body=ttk.Frame(canvas,padding=10);canvas.create_window(0,0,window=body,anchor='nw')
+        for i,(title,state) in enumerate((('Current style',self.original),('After Apply',values or {k:v.get() for k,v in self.vars.items()}))):
+            card=ttk.Frame(body);card.grid(row=0 if wide else i,column=i if wide else 0,padx=6,pady=4)
+            ttk.Label(card,text=tr(title),style='PrefsTitle.TLabel').pack(anchor='w',pady=(0,6))
+            shot=tk.PhotoImage(master=popup,data=SETTINGS_SHOTS[state['color_scheme']+'/'+state['tab_style']],format='png')
+            label=ttk.Label(card,image=shot);label.image=shot;label.pack()
+        body.bind('<Configure>',lambda _e:canvas.configure(scrollregion=canvas.bbox('all')))
+        popup.bind('<MouseWheel>',lambda e:(canvas.yview_scroll(-1 if e.delta>0 else 1,'units'),'break')[-1])
+        popup.bind('<Button-4>',lambda _e:(canvas.yview_scroll(-3,'units'),'break')[-1])
+        popup.bind('<Button-5>',lambda _e:(canvas.yview_scroll(3,'units'),'break')[-1])
         def close():
             popup.grab_release();popup.destroy();self.grab_set();self.nav.focus_set()
-        button=ttk.Button(popup,text=tr('Close'),command=close,style='Prefs.TButton')
-        button.pack(pady=(0,12))
+        button=ttk.Button(footer,text=tr('Close'),command=close,style='Prefs.TButton')
+        button.pack()
         popup.protocol('WM_DELETE_WINDOW',close);popup.bind('<Escape>',lambda _e:close())
         popup.bind('<KeyPress>',self._key_event,add='+')
         popup.grab_set()
         popup.update_idletasks();button.focus_force()
 
+    def _schedule_shots(self):
+        if self._shot_job is None:self._shot_job=self.after_idle(self._update_shots)
+
     def _update_shots(self):
-        width=max(160,(self.canvas.winfo_width()-40)//2)
-        factor=max(1,(540+width-1)//width)
+        if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
+        width=max(120,(self.comparison.winfo_width()-26)//2)
+        # Crop the relevant tab/path/list detail, then resize with smaller steps
+        # than integer subsampling. Original full screenshots remain in Compare.
+        factor=max(4,math.ceil(360*4/min(360,width)))
+        if getattr(self,'comparison_caption',None) is not None and self.comparison_caption.winfo_exists():
+            self.comparison_caption.configure(wraplength=max(100,self.comparison.winfo_width()-12))
+        if self.sample_title is not None:
+            self.sample_title.configure(wraplength=max(100,self.comparison.winfo_width()-12))
         for label,values in getattr(self,'preview_labels',[]):
             values=values or {key:var.get() for key,var in self.vars.items()}
             key=values['color_scheme']+'/'+values['tab_style']
             if getattr(label,'shot_key',None)!=(key,factor):
-                photo=tk.PhotoImage(master=self,data=SETTINGS_SHOTS[key],format='png')
-                label.image=photo.subsample(factor)
+                if key not in self._shot_sources:
+                    photo=tk.PhotoImage(master=self,data=SETTINGS_SHOTS[key],format='png')
+                    detail=tk.PhotoImage(master=self)
+                    detail.tk.call(str(detail),'copy',str(photo),'-from',0,0,360,150)
+                    self._shot_sources[key]=detail
+                photo=self._shot_sources[key]
+                label.image=photo if factor==4 else photo.zoom(4).subsample(factor)
                 label.configure(image=label.image);label.shot_key=(key,factor)
 
     def _layout_preview(self):
-        c=self.layout_example;c.delete('all');p=color_scheme(self.vars['color_scheme'].get())
-        c.configure(bg=p['window']);w=max(240,c.winfo_width()-8);n=self.vars['panel_count'].get()
-        for i in range(2 if n==1 else n):
-            left=(0 if i==0 else w/3) if n==1 else w*i/n
-            right=(w/3 if i==0 else w) if n==1 else w*(i+1)/n
-            c.create_rectangle(left+2,20,right-2,88,fill=p['surface'],outline=p['border'])
-            c.create_text((left+right)/2,54,text=tr('Folders') if n==1 and i==0 else tr('Files'),fill=p['text'],font=self.font)
-        c.create_text(4,8,anchor='w',text=tr('Shared tabs') if n==1 else tr('Tabs per panel'),font=self.font,fill=p['text'])
+        for c,values in self.layout_examples:
+            values=values or {key:var.get() for key,var in self.vars.items()}
+            c.delete('all');p=color_scheme(values['color_scheme'])
+            c.configure(bg=p['window']);w=max(100,c.winfo_width()-8);n=values['panel_count']
+            for i in range(2 if n==1 else n):
+                left=(0 if i==0 else w/3) if n==1 else w*i/n
+                right=(w/3 if i==0 else w) if n==1 else w*(i+1)/n
+                c.create_rectangle(left+2,24,right-2,60,fill=p['surface'],outline=p['border'])
+                c.create_text((left+right)/2,42,text=tr('Folders') if n==1 and i==0 else tr('Files'),fill=p['text'],font=self.font)
+            c.create_text(4,10,anchor='w',text=tr('Shared tabs') if n==1 else tr('Tabs per panel'),font=self.font,fill=p['text'])
+
+    def _sample_pixels(self):
+        base=self.app._base_font_sizes['TkDefaultFont']
+        return abs(base)*(1 if base<0 else self.app._base_tk_scaling)
+
+    def _prepare_combo(self, control):
+        popdown=self.tk.call('ttk::combobox::PopdownWindow',str(control))
+        self.tk.call(str(popdown)+'.f.l','configure','-font',str(self.font))
+        # A wheel gesture over a closed combo scrolls without changing a draft.
+        control.bind('<MouseWheel>',self._wheel)
+        control.bind('<Button-4>',lambda _e:self._scroll(-3))
+        control.bind('<Button-5>',lambda _e:self._scroll(3))
 
     def _prefix_rows(self):
         self._label(self.page,'Custom folder prefixes',True)
@@ -6876,7 +7040,8 @@ class SettingsDialog(tk.Toplevel):
         for index,item in enumerate(self.prefix_draft):
             row=ttk.Frame(self.page);row.pack(fill='x',pady=5)
             keys=list(PREFIX_ICONS)
-            icon=ttk.Combobox(row,values=[tr(PREFIX_ICONS[k]) for k in keys],state='readonly',font=self.font,width=12)
+            icon=ttk.Combobox(row,values=[tr(PREFIX_ICONS[k]) for k in keys],state='readonly',font=self.font,style='Prefs.TCombobox',width=12)
+            self._prepare_combo(icon)
             icon.current(keys.index(item['icon']));icon.pack(side='left')
             img=prefix_icon(self,item['icon'],20);self.images.append(img)
             picture=ttk.Label(row,image=img);picture.pack(side='left',padx=4)
@@ -6909,12 +7074,22 @@ class SettingsDialog(tk.Toplevel):
         self._update_shots()
         if self.category=='appearance' and hasattr(self,'font_example') and self.font_example.winfo_exists():
             scale=self.app._font_scales[self.vars['font_size'].get()]
-            self.sample_font=tkfont.Font(self,family=self.font.actual('family'),size=-round(14*scale))
-            self.font_example.configure(font=self.sample_font)
-        if self.category=='layout' and hasattr(self,'layout_example') and self.layout_example.winfo_exists():self._layout_preview()
+            self.sample_font.configure(family=self.font.actual('family'),size=-round(self._sample_pixels()*scale))
+            title='File text after Apply · {percent}%' if not self.vars['auto_font_size'].get() else 'Auto font · {percent}% reference; follows window width'
+            self.sample_title.configure(text=tr(title,percent=round(scale*100)))
+            p=color_scheme(self.vars['color_scheme'].get())
+            self.font_example.configure(bg=p['surface'],fg=p['text'])
+        if self.category=='layout':self._layout_preview()
         if self.category=='columns' and self.date_example is not None:
             stamp=datetime(2026,9,22,17,15).timestamp()
-            self.date_example.configure(text=tr('Example')+': '+modified_text(stamp,self.vars['date_order'].get(),self.vars['time_style'].get()))
+            shown=self.vars['column_modified'].get()
+            self.date_example.configure(text=tr('Example')+': '+modified_text(stamp,self.vars['date_order'].get(),self.vars['time_style'].get()) if shown else tr('Date column hidden; format is remembered.'))
+            for key in ('date_order','time_style'):self.controls[key].configure(state='readonly' if shown else 'disabled')
+            self.controls['size_emphasis'].state(['!disabled'] if self.vars['column_size'].get() else ['disabled'])
+        if self.danger_note is not None:
+            self.danger_note.configure(text=tr('Delete moves items to Recycle Bin. Shift+Delete is always permanent.') if self.vars['recycle_bin'].get() else tr('Warning: Delete will permanently remove files after Apply.'))
+            self.danger_note.configure(foreground=self.app.palette['text'] if self.vars['recycle_bin'].get() else
+                                      '#ffb4a9' if self.app.color_scheme_var.get()=='dark' else '#b00020')
 
     def apply(self,close=False):
         prefixes=[]
@@ -6967,6 +7142,7 @@ class SettingsDialog(tk.Toplevel):
         self.title(tr('PFC Settings'));self._build();self.nav.focus_set()
 
     def cancel(self):
+        if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
         self.grab_release();self.destroy()
 
     def _key_event(self,event):
@@ -6981,7 +7157,7 @@ class SettingsDialog(tk.Toplevel):
         return 'break'
 
     def _wheel(self,event):
-        if isinstance(event.widget,(ttk.Combobox,tk.Listbox)):return 'break'
+        if isinstance(event.widget,tk.Listbox):return 'break'
         return self._scroll(-1 if event.delta>0 else 1)
 
     def _reveal_focus(self,event):
@@ -13321,7 +13497,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.18.0"
+__version__ = "0.18.1"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -13406,6 +13582,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/23"
 VERSION_HISTORY = (
+    ("v0.18.1", "2026/09/23", (
+        "Improved: Settings keeps larger Before/After previews visible and compares both styles at full size.",
+        "Improved: Font samples show the applied scale; settings explain scope, dependencies and delete safety beside each option.",
+        "Improved: Enabled settings use clear checkmarks instead of crosses, with distinct off and disabled states.",
+    )),
     ("v0.18.0", "2026/09/23", (
         "Fixed: Empty and files-only folders no longer show a false expand icon before being opened.",
         "Improved: Visible folder expansion hints are checked in the background without recursive scanning or blocking navigation.",

@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.0**
+Current version: **v0.18.1**
 
 **Compact workflow tools:** Ctrl+Shift+P searches commands and Settings. Tools
 holds named Workspaces and Saved comparisons; F9 adds source-safe text editing,
@@ -11,8 +11,11 @@ or automatic sync. See the [eight-feature guide and safety limits](docs/workflow
 Preferences are now grouped in **View → PFC Settings** (also in Tools), with
 Appearance, Layout & Tabs, File Columns, Paths & Operations, Preview and General.
 Changes remain drafts until Apply/OK; Cancel discards only unapplied changes.
-Appearance includes actual demo-file screenshots of the three themes and tab
-shapes, with enlarged previews. Contextual shortcuts remain available. See the
+Appearance keeps larger current/draft style details visible above the scrolling
+controls, with a paired full-size comparison. The font sample states its applied
+percentage (or auto-size reference); Layout & Tabs compares panel diagrams too.
+Scope, dependencies and safety notes sit beside their options. Enabled settings
+use checkmarks, with distinct off/disabled states. Contextual shortcuts remain available. See the
 [settings design and validation](docs/settings-design.md).
 
 Windows automatically recovers an offscreen PFC window after startup, monitor
