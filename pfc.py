@@ -96,6 +96,8 @@ _SINGLE_PANEL_TRANSLATIONS = {
     'Current style': ('目前樣式', '当前样式', '현재 스타일'),
     'After Apply': ('套用後', '应用后', '적용 후'),
     'Enlarge preview': ('放大預覽', '放大预览', '미리 보기 확대'),
+    'Fixed: Folder trees load siblings along the active path on startup, without extra clicks or recursive scanning.': ('修正：啟動時補齊目前路徑各層的同層資料夾，不必額外點選，也不遞迴掃描。', '修复：启动时补齐当前路径各层的同级文件夹，无需额外点击，也不递归扫描。', '수정: 시작 시 현재 경로의 형제 폴더를 추가 클릭이나 재귀 검색 없이 불러옵니다.'),
+    'Fixed: Dotted hierarchy lines connect actual branches; background loading preserves sorted folders and selection.': ('修正：階層虛線依實際分支連接，背景載入保留資料夾排序及選取位置。', '修复：层级虚线按实际分支连接，后台加载保留文件夹排序及选中位置。', '수정: 점선은 실제 분기를 연결하며 백그라운드 로딩 중 폴더 정렬과 선택 위치를 유지합니다.'),
     'Text at selected scale': ('所選倍率文字示範', '所选倍率文字示例', '선택한 배율의 텍스트'),
     'Layout diagram · relative widths only': ('版面示意 · 僅表示相對寬度', '布局示意 · 仅表示相对宽度', '레이아웃 도식 · 상대 너비만 표시'),
     'Shared tabs': ('共用分頁列', '共享标签栏', '공유 탭'),
@@ -5072,15 +5074,16 @@ def child_folders(path, stop, limit=2000, seconds=3):
 
 
 def branch_segments(following, expanded, indent, height):
-    """Hierarchy guides must not depend on lazily discovered siblings."""
+    """Connect actual siblings; an expanded last child still ends its parent line."""
     depth, mid = len(following)-1, height/2
     lines = []
     for level in range(1, depth):
-        x = (level-.5)*indent
-        lines.append((x, 0, x, height))
+        if following[level]:
+            x = (level-.5)*indent
+            lines.append((x, 0, x, height))
     if depth:
         x = (depth-.5)*indent
-        lines.extend(((x, 0, x, height if following[-1] or expanded else mid),
+        lines.extend(((x, 0, x, height if following[-1] else mid),
                       (x, mid, (depth+.5)*indent, mid)))
     if expanded:
         x = (depth+.5)*indent
@@ -5130,7 +5133,9 @@ class RootFolderTree(ttk.Frame):
         self._line_signature = None
         self._line_indent = None
         self._line_job = None
-        scroll = ttk.Scrollbar(body, command=self.tree.yview)
+        self._view_epoch = 0
+        self._view_settle_job = None
+        scroll = ttk.Scrollbar(body, command=self._scroll_view)
         scroll.pack(side='right', fill='y'); self.tree.pack(fill='both', expand=True)
         self.tree.configure(yscrollcommand=lambda *args:(scroll.set(*args), self._schedule_lines()))
         horizontal = self._horizontal = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
@@ -5142,6 +5147,7 @@ class RootFolderTree(ttk.Frame):
         body.pack_forget(); body.pack(fill='both', expand=True)
         self.paths, self.nodes, self.loaded, self.pending = {}, {}, set(), {}
         self.failed, self.partial = set(), set()
+        self._context_queue = deque()
         self._bulk_queue = deque(); self._bulk_seen = set(); self._bulk_pending = set(); self._bulk_checked = set()
         self._bulk_running = False; self._bulk_incomplete = False
         self._current_node = None
@@ -5157,6 +5163,8 @@ class RootFolderTree(ttk.Frame):
         self._press_node = None
         self._press_open = False
         self.tree.bind('<Button-1>', self._remember_press)
+        for event in ('<MouseWheel>', '<Button-4>', '<Button-5>', '<KeyPress>'):
+            self.tree.bind(event, self._cancel_view_settle, add='+')
         self.tree.bind('<Double-Button-1>', self._double_click)
         self.tree.bind('<<TreeviewClose>>', self._manual_collapse, add='+')
         self.tree.bind('<Button-3>', on_context)
@@ -5196,6 +5204,7 @@ class RootFolderTree(ttk.Frame):
         return 'break'
 
     def _remember_press(self, event, iid=None):
+        self._cancel_view_settle()
         self._press_node = iid if iid is not None else self.tree.identify_row(event.y)
         self._press_open = bool(self.tree.item(self._press_node, 'open')) if self._press_node else False
 
@@ -5220,12 +5229,23 @@ class RootFolderTree(ttk.Frame):
         return 'break'
 
     def _line_wheel(self, event):
+        self._cancel_view_settle()
         if getattr(event, 'num', None) in (4, 5):
             self.tree.yview_scroll(-3 if event.num == 4 else 3, 'units')
         else:
             self.tree.event_generate('<MouseWheel>', delta=event.delta, state=event.state)
         self._draw_lines()
         return 'break'
+
+    def _cancel_view_settle(self, _event=None):
+        self._view_epoch += 1
+        if self._view_settle_job is not None:
+            self.after_cancel(self._view_settle_job)
+            self._view_settle_job = None
+
+    def _scroll_view(self, *args):
+        self._cancel_view_settle()
+        self.tree.yview(*args)
 
     def _sticky_motion(self, event):
         row = next((iid for top, bottom, iid in self._sticky_rows if top <= event.y < bottom), '')
@@ -5270,7 +5290,8 @@ class RootFolderTree(ttk.Frame):
         row_height = min(normal_height, max(1, int(available)//len(chain)))
         band_height = round(len(chain)*row_height)+1
         x = rows[0][1]
-        signature = (tuple(chain), width, row_height, indent, x,
+        following = tuple(bool(self.tree.next(item)) for item in chain)
+        signature = (tuple(chain), following, width, row_height, indent, x,
                      bg, fg, tuple(sorted(font.actual().items())),
                      tuple(self.tree.item(i, 'text') for i in chain))
         if signature == self._sticky_signature: return
@@ -5307,18 +5328,9 @@ class RootFolderTree(ttk.Frame):
                 canvas.create_text(3 if clipped_left else width-4,mid,
                                    text='‹' if clipped_left else '›',font=font,fill=muted,
                                    anchor='w' if clipped_left else 'e',tags='ancestor-offscreen')
-            if index:
-                for level in range(index-1):
-                    guide = round(x+(level+.5)*indent)
-                    canvas.create_line(guide,top,guide,top+row_height,
-                                       fill=muted,dash=(1,2),tags='ancestor-branch')
-                parent_x = round(x+(depth-.5)*indent)
-                canvas.create_line(parent_x,top,parent_x,top+row_height,
+            for x1, y1, x2, y2 in branch_segments(following[:index+1], True, indent, row_height):
+                canvas.create_line(round(x+x1),top+y1,round(x+x2),top+y2,
                                    fill=muted,dash=(1,2),tags='ancestor-branch')
-                canvas.create_line(parent_x,mid,joint,mid,
-                                   fill=muted,dash=(1,2),tags='ancestor-branch')
-            canvas.create_line(joint,mid,joint,top+row_height,
-                               fill=muted,dash=(1,2),tags='ancestor-branch')
             path = self.paths.get(iid)
             kind = 'pc' if iid == self.pc else 'drive' if path and path.parent == path else 'folder'
             canvas.create_image(center,round(mid),image=self._sticky_icons[kind],tags='ancestor-icon')
@@ -5448,15 +5460,15 @@ class RootFolderTree(ttk.Frame):
                 self._current_node = existing
             self.program_selection = existing
             self.tree.item(existing, open=True)
-            self.load(existing)
+            self._queue_context(existing)
             return
         chain = list(reversed(path.parents))+[path]
         parent = self.pc
         for part in chain:
             parent = self._node(part, parent)
             if part != path:
-                # Ancestors shown for a known path do not need visible dummy
-                # rows. They remain unscanned and can load on manual expansion.
+                # Seed the known path immediately, without showing dummy rows.
+                # Background one-level scans will fill in its actual siblings.
                 for child in self.tree.get_children(parent):
                     if child not in self.paths: self.tree.delete(child)
                 self.tree.item(parent, open=True)
@@ -5464,12 +5476,34 @@ class RootFolderTree(ttk.Frame):
         if parent != self._current_node:
             self.stop_expand_all()
             self._current_node = parent
-        # Expand the active folder immediately, but enumerate only this level.
-        # Ancestors are already open; unrelated descendants stay lazy-loaded.
+        # Fill each expanded level, never recurse into unrelated descendants.
         self.tree.item(parent, open=True)
-        self.load(parent)
+        self._queue_context(parent)
         if self.tree.selection() != (parent,): self.tree.selection_set(parent)
         self.tree.see(parent)
+
+    def _queue_context(self, iid):
+        # Active folder first, then nearest ancestors. Keep work bounded to the
+        # current path and retry queued levels when the two workers are busy.
+        self._context_queue.clear()
+        while iid in self.paths:
+            self._context_queue.append(iid)
+            iid = self.tree.parent(iid)
+        self._load_context()
+
+    def _load_context(self):
+        while self._context_queue:
+            iid = self._context_queue[0]
+            if (iid not in self.paths or iid in self.loaded or iid in self.failed
+                    or iid in self.pending or not self.tree.item(iid, 'open')):
+                self._context_queue.popleft()
+                continue
+            if len(self.nodes) >= 10000:
+                self._context_queue.clear()
+                self.status.configure(text=tr('Folder tree limit reached. Refresh to reload.'))
+                return
+            if not self.load(iid, quiet_busy=True): return
+            self._context_queue.popleft()
 
     def _select(self, _event=None):
         selected = self.tree.selection()
@@ -5482,13 +5516,15 @@ class RootFolderTree(ttk.Frame):
         self.failed.discard(self.tree.focus())
         self.load(self.tree.focus())
 
-    def load(self, iid, bulk=False):
+    def load(self, iid, bulk=False, quiet_busy=False):
         if iid not in self.paths or iid in self.pending: return
         if not bulk and (iid in self.loaded or iid in self.failed): return
         if len(self.nodes) >= 10000:
             self.status.configure(text=tr('Folder tree limit reached. Refresh to reload.')); return
         if not self.slots.acquire(blocking=False):
-            self.status.configure(text=tr('Folder scan busy. Try expanding again.')); return
+            if not quiet_busy:
+                self.status.configure(text=tr('Folder scan busy. Try expanding again.'))
+            return
         self.serial += 1
         token, path = self.serial, self.paths[iid]
         cancel = threading.Event()
@@ -5573,6 +5609,7 @@ class RootFolderTree(ttk.Frame):
                 self.pending.pop(iid, None)
                 cancel.set(); self.failed.add(iid); self._bulk_pending.discard(iid)
                 self.status.configure(text=tr('Folder scan timed out. Try expanding again.'))
+        anchor = None
         while not self.results.empty():
             iid, token, (paths, partial, error) = self.results.get_nowait()
             if iid not in self.pending or self.pending[iid][0] != token: continue
@@ -5580,19 +5617,73 @@ class RootFolderTree(ttk.Frame):
             if iid in self._bulk_pending: self._bulk_checked.add(iid)
             self._bulk_pending.discard(iid)
             if not self.tree.exists(iid): continue
+            if anchor is None: anchor = self._view_anchor()
             for child in self.tree.get_children(iid):
                 if child not in self.paths: self.tree.delete(child)
             for path in paths:
                 if len(self.nodes) >= 10000: partial = True; break
                 self._node(path, iid)
+            # A saved path may already have seeded one child before this scan.
+            # Merge in place, sorted, preserving IDs, open states and selection.
+            children = self.tree.get_children(iid)
+            ordered = sorted(children, key=lambda child: self.tree.item(child, 'text').casefold())
+            if tuple(ordered) != children: self.tree.set_children(iid, *ordered)
             if not error: self.loaded.add(iid)
             else: self.failed.add(iid)
             if partial: self.partial.add(iid)
             self.status.configure(text=error or (tr('Folder list limited. Use the file list or Refresh.') if partial else ''))
             if error and not self.tree.get_children(iid): self.tree.insert(iid, 'end', text='…')
+        if anchor is not None: self._restore_view_anchor(anchor)
+        self._load_context()
         self._expand_batch()
         self._draw_lines()
+        if anchor is not None and self.tree.selection() == (anchor[0],):
+            self._cancel_view_settle()
+            self._view_settle_job = self.after_idle(self._settle_scan_selection, anchor[0], self._view_epoch, 32)
         self._poll_job = self.after(80, self._poll)
+
+    def _settle_scan_selection(self, iid, epoch, remaining):
+        # A new floating ancestry changes the viewport AFTER Tk lays it out.
+        # Keep the previously visible row whole, but never fight user scrolling,
+        # keyboard navigation, a changed selection or a collapsed branch.
+        self._view_settle_job = None
+        if (not remaining or epoch != self._view_epoch or not self.tree.winfo_viewable()
+                or not self.tree.exists(iid) or self.tree.selection() != (iid,)):
+            return
+        box = self.tree.bbox(iid)
+        if box and box[1] >= 1 and box[1]+box[3] < self.tree.winfo_height(): return
+        parent = self.tree.parent(iid)
+        while parent:
+            if not self.tree.item(parent, 'open'): return
+            parent = self.tree.parent(parent)
+        self.tree.see(iid)
+        self._draw_lines()
+        self._view_settle_job = self.after_idle(self._settle_scan_selection, iid, epoch, remaining-1)
+
+    def _view_anchor(self):
+        # Keep a visible selection at its screen row while ancestors gain
+        # siblings. If the user scrolled away, preserve their top row instead.
+        for iid in (*self.tree.selection(), self.tree.identify_row(1)):
+            if not iid: continue
+            box = self.tree.bbox(iid)
+            if box and 0 <= box[1] < self.tree.winfo_height():
+                return iid, max(0, (box[1]-1)//box[3])
+
+    def _restore_view_anchor(self, anchor):
+        iid, offset = anchor
+        if not self.tree.exists(iid): return
+        # Cached Tk nodes only, and only after a scan changes the tree. Never
+        # enumerate the filesystem or rescan every node on ordinary redraws.
+        stack = list(reversed(self.tree.get_children('')))
+        position = 0
+        while stack:
+            item = stack.pop()
+            if item == iid:
+                self.tree.yview(max(0, position-offset))
+                return
+            position += 1
+            if self.tree.item(item, 'open'):
+                stack.extend(reversed(self.tree.get_children(item)))
 
     def refresh(self):
         # Explicit refresh bounds cache lifetime and picks up drive/folder changes.
@@ -5601,6 +5692,7 @@ class RootFolderTree(ttk.Frame):
         self.stop_expand_all()
         for _, _, cancel in self.pending.values(): cancel.set()
         self.pending.clear(); self.loaded.clear(); self.paths.clear(); self.nodes.clear()
+        self._context_queue.clear()
         self.failed.clear(); self.partial.clear(); self._current_node = None
         self.tree.delete(*self.tree.get_children(self.pc))
         for drive in root_folders(): self._node(drive, self.pc)
@@ -5609,6 +5701,7 @@ class RootFolderTree(ttk.Frame):
             self.load(self.nodes[os.path.normcase(str(path))])
 
     def destroy(self):
+        self._cancel_view_settle()
         self.stop_expand_all()
         for _, _, cancel in self.pending.values(): cancel.set()
         self.stop.set()
@@ -13138,7 +13231,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.17.28"
+__version__ = "0.17.29"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -13221,8 +13314,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/22"
+BUILD_DATE = "2026/09/23"
 VERSION_HISTORY = (
+    ("v0.17.29", "2026/09/23", (
+        "Fixed: Folder trees load siblings along the active path on startup, without extra clicks or recursive scanning.",
+        "Fixed: Dotted hierarchy lines connect actual branches; background loading preserves sorted folders and selection.",
+    )),
     ("v0.17.28", "2026/09/22", (
         "Added: Named workspaces, comparison sessions, command search and Markdown reading bookmarks.",
         "Improved: Compact comparison rules, safe exclusion-aware copy plans, inert reports and inline differences.",

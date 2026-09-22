@@ -1,4 +1,4 @@
-"""Saved-path startup draws all ancestor guides before any folder click."""
+"""Saved-path startup completes expanded levels and draws actual sibling guides."""
 import importlib
 import os
 from pathlib import Path
@@ -32,27 +32,35 @@ with tempfile.TemporaryDirectory(prefix='pfc-startup-') as raw:
     try:
         settle(app,1)
         nav=app.folder_tree;tree=nav.tree
+        deadline=time.monotonic()+10
+        while (nav.pending or nav._context_queue) and time.monotonic()<deadline:settle(app,.1)
+        assert not nav.pending and not nav._context_queue
         assert app.active.path==target
         iid=nav.nodes[os.path.normcase(str(target))]
         ancestors=[];parent=tree.parent(iid)
         while parent:
             ancestors.append(parent);parent=tree.parent(parent)
-        assert any(item not in nav.loaded for item in ancestors if item in nav.paths)
+        assert all(item in nav.loaded for item in ancestors if item in nav.paths)
+        settle(app,.3)
+        box=tree.bbox(iid)
+        assert box and box[1]>=1 and box[1]+box[3]<tree.winfo_height(), 'Startup selection must remain fully visible'
         # No input events before these assertions: inspect the first loaded view.
         checked=0
         for canvas in nav._line_rows:
             if not canvas.winfo_ismapped():continue
-            row=canvas.row_id;depth=0;parent=tree.parent(row)
-            while parent:depth+=1;parent=tree.parent(parent)
+            row=canvas.row_id;chain=[row];parent=tree.parent(row)
+            while parent:chain.append(parent);parent=tree.parent(parent)
+            chain.reverse();depth=len(chain)-1
             bbox=tree.bbox(row);offset=bbox[0]-canvas.winfo_x()
             coords=[canvas.coords(line) for line in canvas.find_withtag('branch')]
             for level in range(1,depth):
                 x=round((level-.5)*nav._line_indent+offset)
-                assert [float(x),0.,float(x),float(bbox[3])] in coords,(row,level,coords)
+                expected=bool(tree.next(chain[level]))
+                assert ([float(x),0.,float(x),float(bbox[3])] in coords)==expected,(row,level,coords)
                 checked+=1
         assert checked>10
         if '--visual' in sys.argv:
             print('VISUAL READY',flush=True);settle(app,25)
         assert not errors,errors
-        print('PASS: saved-path restart, unscanned ancestors and complete vertical guides before any folder click',flush=True)
+        print('PASS: saved-path restart, populated ancestors and truthful vertical guides before any folder click',flush=True)
     finally:app.close_app()

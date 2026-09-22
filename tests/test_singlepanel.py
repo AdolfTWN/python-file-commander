@@ -9,18 +9,29 @@ from pycommander.singlepanel import branch_segments, child_folders, root_folders
 
 
 class FolderTreeTests(unittest.TestCase):
-    def test_solid_branch_endings_and_ancestor_continuations(self):
+    def test_branch_endings_and_ancestor_continuations(self):
         self.assertEqual(branch_segments((False,), True, 20, 30), [(10,15,10,30)])
         self.assertEqual(branch_segments((False,False), False, 20,30),
                          [(10,0,10,15),(10,15,30,15)])
         self.assertEqual(branch_segments((False,True,False), True,20,30),
-                         [(10,0,10,30),(30,0,30,30),(30,15,50,15),(50,15,50,30)])
+                         [(10,0,10,30),(30,0,30,15),(30,15,50,15),(50,15,50,30)])
 
-    def test_startup_guides_do_not_need_discovered_siblings(self):
+    def test_last_child_chain_does_not_draw_phantom_continuations(self):
         lines=branch_segments((False,)*6,True,20,30)
-        for x in (10,30,50,70,90):
-            self.assertIn((x,0,x,30),lines)
-        self.assertEqual(lines,branch_segments((True,)*6,True,20,30))
+        self.assertEqual(lines, [(90,0,90,15),(90,15,110,15),(110,15,110,30)])
+        for x in (10,30,50,70):
+            self.assertNotIn((x,0,x,30),lines)
+
+    def test_only_real_later_siblings_continue_ancestor_lines(self):
+        from itertools import product
+        for flags in product((False,True), repeat=6):
+            for expanded in (False,True):
+                lines=branch_segments(flags,expanded,20,30)
+                for level in range(1,5):
+                    x=(level-.5)*20
+                    self.assertEqual((x,0,x,30) in lines,flags[level])
+                self.assertIn((90,0,90,30 if flags[-1] else 15),lines)
+                self.assertEqual((110,15,110,30) in lines,expanded)
 
     def test_tree_divider_waits_for_geometry_and_ignores_reentry(self):
         from pycommander.app import Commander
@@ -35,6 +46,24 @@ class FolderTreeTests(unittest.TestCase):
         Commander._place_tree_sash(owner)
         self.assertEqual(events,['geometry',(0,300)])
         self.assertFalse(owner._placing_tree_sash)
+
+    def test_scan_reveal_keeps_whole_row_but_respects_user_scroll_and_collapse(self):
+        from pycommander.singlepanel import RootFolderTree
+        tree=Mock();tree.winfo_viewable.return_value=True;tree.exists.return_value=True
+        tree.selection.return_value=('target',);tree.bbox.return_value=(0,35,100,30)
+        tree.winfo_height.return_value=60;tree.parent.return_value=''
+        owner=SimpleNamespace(tree=tree,_view_epoch=4,_view_settle_job=None,
+                              _draw_lines=Mock(),after_idle=Mock(),_settle_scan_selection=Mock())
+        RootFolderTree._settle_scan_selection(owner,'target',4,32)
+        tree.see.assert_called_once_with('target');owner._draw_lines.assert_called_once()
+        tree.see.reset_mock();owner.after_idle.reset_mock()
+        # User wheel/scrollbar/key input invalidates the old completion callback.
+        RootFolderTree._settle_scan_selection(owner,'target',3,32)
+        tree.see.assert_not_called();owner.after_idle.assert_not_called()
+        # Nor should an asynchronously completed scan reopen a collapsed path.
+        tree.bbox.return_value=();tree.parent.return_value='parent';tree.item.return_value=False
+        RootFolderTree._settle_scan_selection(owner,'target',4,32)
+        tree.see.assert_not_called();owner.after_idle.assert_not_called()
 
     def test_scan_is_one_level_and_does_not_open_files_or_recurse(self):
         with tempfile.TemporaryDirectory() as raw:

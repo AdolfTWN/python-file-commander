@@ -90,6 +90,8 @@ _SINGLE_PANEL_TRANSLATIONS = {
     'Current style': ('目前樣式', '当前样式', '현재 스타일'),
     'After Apply': ('套用後', '应用后', '적용 후'),
     'Enlarge preview': ('放大預覽', '放大预览', '미리 보기 확대'),
+    'Fixed: Folder trees load siblings along the active path on startup, without extra clicks or recursive scanning.': ('修正：啟動時補齊目前路徑各層的同層資料夾，不必額外點選，也不遞迴掃描。', '修复：启动时补齐当前路径各层的同级文件夹，无需额外点击，也不递归扫描。', '수정: 시작 시 현재 경로의 형제 폴더를 추가 클릭이나 재귀 검색 없이 불러옵니다.'),
+    'Fixed: Dotted hierarchy lines connect actual branches; background loading preserves sorted folders and selection.': ('修正：階層虛線依實際分支連接，背景載入保留資料夾排序及選取位置。', '修复：层级虚线按实际分支连接，后台加载保留文件夹排序及选中位置。', '수정: 점선은 실제 분기를 연결하며 백그라운드 로딩 중 폴더 정렬과 선택 위치를 유지합니다.'),
     'Text at selected scale': ('所選倍率文字示範', '所选倍率文字示例', '선택한 배율의 텍스트'),
     'Layout diagram · relative widths only': ('版面示意 · 僅表示相對寬度', '布局示意 · 仅表示相对宽度', '레이아웃 도식 · 상대 너비만 표시'),
     'Shared tabs': ('共用分頁列', '共享标签栏', '공유 탭'),

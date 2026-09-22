@@ -1,4 +1,4 @@
-# One-panel workspace — v0.17.26
+# One-panel workspace — v0.17.29
 
 Select **View → Panel Counts → 1 Panel**, also available through the background
 context menu. This is one navigation workspace, not a second transfer panel.
@@ -51,9 +51,10 @@ continues scrolling over the floating area, and hovering exposes the full path.
 All ancestors are shown directly: no omitted levels or overflow menu. Normal
 spacing follows the UI font; unusually deep paths use tighter spacing and, only
 when needed, smaller context text/icons to retain two ordinary tree rows below.
-Ancestor guide lines depend on hierarchy, not on whether lazily loaded siblings
-are already known, so they appear completely at startup. No filesystem scan, index
-or recursive expansion is introduced: this reads cached parent relationships.
+Ancestor connectors follow actual sibling relationships, ending when there is
+no following sibling. Startup fills the expanded active-path levels using bounded
+one-directory background scans; painting only reads cached parent relationships.
+Floating connectors use the same topology, with every ancestor still labeled.
 If a joint falls outside the horizontal viewport, its floating name/icon stays
 at the edge with a direction hint instead of becoming invisible too.
 
@@ -84,8 +85,11 @@ blocked in a filesystem provider; it does not block the UI or create more worker
 Drive enumeration uses the Windows drive-letter bitmask rather than probing all
 drives. Expanding a tree node reads only that directory's immediate entries on
 background workers. Selecting a tab inserts its already-known ancestor path
-without scanning the ancestors. The active folder's immediate children load
-automatically; unrelated descendants are not scanned recursively.
+immediately, then queues the active folder and its ancestors' immediate children,
+nearest first. Busy workers do not drop queued ancestor levels. Discovered siblings
+are merged alphabetically without replacing existing IDs or open/selection states.
+The visible selection (or top row when scrolled away) anchors background updates.
+Unrelated descendants and other drives are not scanned recursively.
 
 - No recursive walk, full-drive index or file-content read.
 - At most two daemon scans in flight; no unbounded worker/task queue.
@@ -168,3 +172,32 @@ Final offline Windows checks passed for startup, all ancestors, double-clicks,
 connectors, expansion and shared panels; the no-click 150% startup was inspected.
 Matched portable SHA-256:
 `d0ab926339f3cf5d70763594c920318367c457fd5f4a683cde6c4ba36cdde14a`.
+
+## v0.17.29 hierarchy correction
+
+The v0.17.26 startup workaround drew every ancestor continuation whether or not
+a later sibling existed. At the same time, startup seeded only the saved path and
+left its ancestor listings empty. Clicking an ancestor then appended its missing
+siblings after the seeded child, changing the apparent topology and sort order.
+
+Startup now queues one-level scans along the active path, using the same two-worker
+pool, timeout, entry and cache limits. Rows retain IDs and open states while sibling
+lists are merged in alphabetical order. Normal and pinned connectors share one
+geometry function: only real following siblings get a continuing parent line,
+including the expanded-last-child case. No recursive sibling/drive scan is added.
+
+Background merges anchor the existing selection or viewport row. A bounded idle
+layout check keeps a previously visible selection whole after pinned ancestors
+resize the viewport; pointer, wheel, scrollbar or keyboard intent cancels it.
+
+Validation: the old connector reproduced four phantom ancestor continuations in
+the new last-child fixture, versus zero after the fix. The full headless suite
+passed, followed by 222 unit tests (8 platform skips) and focused source/portable
+regressions for final viewport handling. `folder_hierarchy_check.py` covers
+startup without clicking, saturated worker queuing, sorted merges, real branch
+topology, no recursion into siblings, unchanged selection, collapse and refresh.
+The saved-INI startup test requires populated ancestors and a fully visible row.
+Windows 11 offline portable checks passed for hierarchy, saved startup, real
+double-clicks, floating ancestors, connectors at 100/150/300%, bounded Expand All
+and shared-panel behavior. Tested portable SHA-256:
+`2316d85df27e1e09a9faff9f9b3991728ad58e8eaec3c6b709e624ec2b695cdc`.

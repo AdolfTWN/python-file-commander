@@ -137,6 +137,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.29", "2026/09/23", (
+        "Fixed: Folder trees load siblings along the active path on startup, without extra clicks or recursive scanning.",
+        "Fixed: Dotted hierarchy lines connect actual branches; background loading preserves sorted folders and selection.",
+    )),
     ("v0.17.28", "2026/09/22", (
         "Added: Named workspaces, comparison sessions, command search and Markdown reading bookmarks.",
         "Improved: Compact comparison rules, safe exclusion-aware copy plans, inert reports and inline differences.",

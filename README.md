@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.28**
+Current version: **v0.17.29**
 
 **Compact workflow tools:** Ctrl+Shift+P searches commands and Settings. Tools
 holds named Workspaces and Saved comparisons; F9 adds source-safe text editing,
@@ -38,7 +38,9 @@ When scrolling hides parent folders, their icons and names remain pinned above
 the tree, aligned with the hierarchy lines. Click one to return to it; scrolling
 back restores the normal rows. Every ancestor is shown directly, with denser
 spacing and scaled context text/icons only when needed for very deep paths.
-Hierarchy guides are complete from startup, without scanning sibling folders.
+The active path's expanded levels load their immediate sibling folders in the
+background at startup. Dotted lines connect actual branches and stop at the last
+child; sorted merges retain selection and do not recursively scan other folders.
 
 Right-click **blank file-panel space** for Panel Counts, Right Click Menu,
 List/Folder/File view, File Columns (including restoring hidden columns), Font

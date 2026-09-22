@@ -57,7 +57,10 @@ with tempfile.TemporaryDirectory() as raw:
         nav = app.folder_tree
         active_node = nav.nodes[os.path.normcase(str(extra.path))]
         assert nav.tree.item(active_node, 'open'), 'Active folder expands by default'
-        assert nav.loaded == {active_node}, 'Only the active directory is scanned, never the whole disk'
+        deadline=time.monotonic()+8
+        while (nav.pending or nav._context_queue) and time.monotonic()<deadline:settle(app,.05)
+        expected={extra.path,*extra.path.parents}
+        assert {nav.paths[item] for item in nav.loaded} == expected, 'Only active-path levels, never unrelated descendants'
         for item in app.folder_tree.paths:
             if app.folder_tree.tree.item(item, 'open'):
                 assert all(child in app.folder_tree.paths for child in app.folder_tree.tree.get_children(item))

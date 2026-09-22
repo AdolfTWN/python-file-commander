@@ -1,5 +1,15 @@
 # PFC follow-ups
 
+## Folder hierarchy follow-up — v0.17.29
+
+- [x] Fix startup-only ancestor chains: complete immediate sibling lists along
+  the active path through the bounded background pool, not only after a click.
+- [x] Remove unconditional vertical guide continuations. Normal and floating
+  tree rows now join actual sibling branches and end at the last child.
+- [x] Merge seeded path nodes and discovered siblings in sorted order, preserving
+  selection, expanded IDs and viewport context; unrelated descendants stay lazy.
+- Validation details are recorded in [single-panel behavior](single-panel.md).
+
 ## Regression follow-up — 2026-09-22
 
 - [x] Markdown worker shutdown (v0.17.28): full unit runs could emit a background
