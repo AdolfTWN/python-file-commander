@@ -30,6 +30,7 @@ with tempfile.TemporaryDirectory() as raw:
     pfc.Commander._find_ini_path=staticmethod(lambda:Path(raw)/'pfc.ini')
     pfc.Commander._sync_auto_start=lambda self,**kw:True
     app=pfc.Commander();errors=[]
+    context=app._build_panel_context_menu(app.active)
     app.report_callback_exception=lambda *exc:errors.append(str(exc))
     try:
         app.auto_font_size_var.set(False)
@@ -39,7 +40,7 @@ with tempfile.TemporaryDirectory() as raw:
                 app.geometry(f'900x650+{x}+0');pump(app)
                 for col in range(4):
                     ctl=app.header_popup
-                    ctl.show(app.view_menu_button,app.view_menu);pump(app)
+                    ctl.show(app.view_menu_button,context);pump(app)
                     root=ctl.popups[0]
                     index=next(i for i,k,l,a,s in root.items if l=='File Columns')
                     hover(app,root,index,native=True)
@@ -62,8 +63,8 @@ with tempfile.TemporaryDirectory() as raw:
                     ctl.close_all()
                 print('PASS: nested columns',size,'window x=',x,flush=True)
         # Down highlights; Right enters exactly one level, Left returns one.
-        ctl.show(app.view_menu_button,app.view_menu);pump(app)
-        root=ctl.popups[0];root._move(1)
+        ctl.show(app.view_menu_button,context);pump(app)
+        root=ctl.popups[0];root._move(1);root._move(1)
         assert len(ctl.popups)==1
         root._open_selected();pump(app)
         assert len(ctl.popups)==2

@@ -61,7 +61,7 @@ def main() -> None:
             assert [app.tools_menu.entrycget(index, "label")
                     for index in range(app.tools_menu.index("end") + 1)
                     if app.tools_menu.type(index) != "separator"] == [
-                "Preview", "Compare", "Folder Space Analyzer"]
+                "Preview", "Compare", "Folder Space Analyzer", "PFC Settings…"]
             assert "F8" not in app.action_button_by_hotkey
             assert not app.config_data.has_option("hotkeys", "explorer_menu")
             assert not app.bind_all("<F8>")
@@ -69,7 +69,9 @@ def main() -> None:
             assert not app.left_tabs.current().tree.bind("<Button-3>")
             hierarchy_indexes = [index for index in range(app.view_menu.index("end") + 1)
                                  if app.view_menu.type(index) == "cascade"]
-            assert len(hierarchy_indexes) == 7
+            assert len(hierarchy_indexes) == 0
+            assert [app.view_menu.entrycget(i,'label') for i in range(app.view_menu.index('end')+1)
+                    if app.view_menu.type(i)!='separator']==['PFC Settings…']+[pfc.tr(label)+'…' for _,label in pfc.SETTINGS_CATEGORIES]
             assert app.right_click_menu_var.get() == "explorer"
             assert app.long_name_scrolling_var.get()
             assert app.color_scheme_var.get() == "light"
@@ -181,7 +183,7 @@ def main() -> None:
                 ("Identical", "same.md")]
             compare_view.destroy()
             assert all(app.view_menu.entrycget(index, "label") != "Quick Filter"
-                       for index in range(app.view_menu.index("end") + 1))
+                       for index in range(app.view_menu.index("end") + 1) if app.view_menu.type(index)!='separator')
             assert all(not app.view_menu.entrycget(index, "accelerator")
                        for index in hierarchy_indexes)
             pfc._refresh_scaled_indicators(app.font_size_menu)

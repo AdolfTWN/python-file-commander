@@ -48,6 +48,7 @@ from .detailcells import SizeUnitCells
 from .columnsettings import modified_text
 from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard
+from .settings import SettingsDialog, SETTINGS_CATEGORIES
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -132,6 +133,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.17.27", "2026/09/22", (
+        "Added: Categorized PFC Settings with draft Apply/Cancel and actual style comparison screenshots.",
+    )),
     ("v0.17.26", "2026/09/22", (
         "Fixed: Folder-tree ancestor guides draw immediately on startup without loading sibling folders.",
         "Improved: All floating ancestors are shown directly, without an Earlier Ancestors menu.",
@@ -2448,7 +2452,7 @@ class Commander(tk.Tk):
             self.config_data.set("hotkeys", name, key)
             configured_hotkeys[name] = key
             if name not in {"select_previous", "select_next", "permanent_delete"}:
-                self.bind_all(key, lambda _e, fn=commands[name]: fn())
+                self.bind_all(key, lambda _e, fn=commands[name]: self._dispatch_global_hotkey(fn))
         self._install_priority_hotkeys(configured_hotkeys, commands)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
         self.apply_color_scheme(save=False)
@@ -2473,6 +2477,15 @@ class Commander(tk.Tk):
         self._schedule_auto_font_size(delay=300)
 
         self._window_visibility = WindowVisibilityGuard(self)
+
+    def _settings_are_open(self):
+        dialog=getattr(self,'settings_window',None)
+        return dialog is not None and dialog.winfo_exists()
+
+    def _dispatch_global_hotkey(self, command):
+        # Native combobox popdowns have their own toplevel: guarding only the
+        # Settings toplevel binding does not protect the background file list.
+        return 'break' if self._settings_are_open() else command()
 
     def _install_priority_hotkeys(self, hotkeys, commands) -> None:
         """Run tab navigation before Tk widget/class bindings can consume Tab."""
@@ -2921,6 +2934,10 @@ class Commander(tk.Tk):
         add_scaled_checkbutton(operation_settings, tr("Continue After File Errors"),
                                self.continue_errors_var, self.save_config)
         add_scaled_cascade(files, tr("File Operation Settings"), operation_settings)
+        # Preserve the native model for contextual shortcuts, route preferences
+        # through the consolidated dialog in the main menu.
+        files.delete(files.index('end'))
+        files.add_command(label=tr("File Operation Settings"), command=lambda:self.show_settings('navigation'))
         files.add_separator()
         files.add_command(label=tr("Exit"), command=self.close_app)
         align_scaled_cascade_arrows(files)
@@ -2945,9 +2962,10 @@ class Commander(tk.Tk):
         view_button.pack(side="left")
         view = tk.Menu(view_button, tearoff=False, font=menu_font)
         visibility = tk.Menu(view, tearoff=False, font=menu_font)
-        self.show_hidden_var = tk.BooleanVar(value=False)
-        self.show_system_var = tk.BooleanVar(value=False)
-        self.show_extensions_var = tk.BooleanVar(value=True)
+        if not hasattr(self,'show_hidden_var'):
+            self.show_hidden_var = tk.BooleanVar(value=False)
+            self.show_system_var = tk.BooleanVar(value=False)
+            self.show_extensions_var = tk.BooleanVar(value=True)
         add_scaled_checkbutton(visibility, tr("Show Hidden"), self.show_hidden_var,
                                self.set_hidden_visibility)
         add_scaled_checkbutton(visibility, tr("Show System"), self.show_system_var,
@@ -3015,6 +3033,13 @@ class Commander(tk.Tk):
             add_scaled_radiobutton(language_menu, native_label, code, self.ui_language_var,
                                    self.apply_ui_language)
         add_scaled_cascade(view, tr("UI Language"), language_menu)
+        view.delete(0, 'end')
+        view._pfc_scaled_indicators = []
+        view.configure(postcommand='')
+        view.add_command(label=tr('PFC Settings')+'…', command=self.show_settings)
+        view.add_separator()
+        for category, label in SETTINGS_CATEGORIES:
+            view.add_command(label=tr(label)+'…', command=lambda key=category:self.show_settings(key))
         align_scaled_cascade_arrows(view)
 
         tools_button = tk.Button(header, text=tr("Tools"),
@@ -3025,10 +3050,8 @@ class Commander(tk.Tk):
         tools.add_command(label=tr("Preview"), accelerator="F3", command=self.preview)
         tools.add_command(label=tr("Compare"), accelerator="F9", command=self.compare_selected)
         tools.add_command(label=tr("Folder Space Analyzer"), command=self.show_space_analyzer)
-        if os.name == "nt":
-            tools.add_separator()
-            add_scaled_checkbutton(tools, tr("Auto Start when boot"), self.auto_start_var,
-                                   self.toggle_auto_start)
+        tools.add_separator()
+        tools.add_command(label=tr('PFC Settings')+'…', command=self.show_settings)
 
         versions_button = tk.Button(header, text=tr("Help"),
                                     command=lambda: self.show_header_menu("versions"), **button_style)
@@ -3129,6 +3152,15 @@ class Commander(tk.Tk):
         })
         self._panel_count_tooltip = MenuToolTip(panel_counts, menu_help)
         self.config(menu="")
+
+    def show_settings(self, category='appearance'):
+        self.header_popup.close_all()
+        dialog=getattr(self,'settings_window',None)
+        if dialog is not None and dialog.winfo_exists():
+            dialog.lift();dialog.focus_set()
+        else:
+            self.settings_window=SettingsDialog(self,category)
+        return 'break'
 
     def _update_header_menu_states(self) -> None:
         """Keep menu affordances honest for the active selection."""
@@ -5099,6 +5131,8 @@ class Commander(tk.Tk):
             self._install_zoom_bindtag(widget=child)
 
     def _zoom_wheel(self, event) -> str:
+        if self._settings_are_open():
+            return 'break'
         number = getattr(event, "num", None)
         delta = getattr(event, "delta", 0)
         if number in (4, 5):

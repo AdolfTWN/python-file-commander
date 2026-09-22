@@ -64,6 +64,9 @@ def build() -> Path:
     singlepanel = (ROOT / 'pycommander' / 'singlepanel.py').read_text(encoding='utf-8')
     tooltip += '\n\n' + '\n'.join(line for line in singlepanel.splitlines() if not line.startswith('from .'))
     tooltip += '\n\n' + (ROOT / 'pycommander' / 'windowplacement.py').read_text(encoding='utf-8')
+    tooltip += '\n\n' + (ROOT / 'pycommander' / 'settingsshots.py').read_text(encoding='utf-8')
+    settings = (ROOT / 'pycommander' / 'settings.py').read_text(encoding='utf-8')
+    tooltip += '\n\n' + '\n'.join(line for line in settings.splitlines() if not line.startswith('from .'))
     compare = compare.replace("from __future__ import annotations\n\n", "", 1)
     compare = "\n".join(line for line in compare.splitlines() if not line.startswith("from .")) + "\n"
     preview = preview.replace("from __future__ import annotations\n\n", "", 1)

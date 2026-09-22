@@ -1,6 +1,13 @@
 # Python File Commander
 
-Current version: **v0.17.26**
+Current version: **v0.17.27**
+
+Preferences are now grouped in **View → PFC Settings** (also in Tools), with
+Appearance, Layout & Tabs, File Columns, Paths & Operations, Preview and General.
+Changes remain drafts until Apply/OK; Cancel discards only unapplied changes.
+Appearance includes actual demo-file screenshots of the three themes and tab
+shapes, with enlarged previews. Contextual shortcuts remain available. See the
+[settings design and validation](docs/settings-design.md).
 
 Windows automatically recovers an offscreen PFC window after startup, monitor
 removal or resume. Valid secondary-monitor positions and deliberately minimized
