@@ -17,6 +17,18 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Improved: Layout settings compare complete 1–4 panel workspaces, with a visible folder tree and shared or independent tabs.": ("改善：配置設定直接比較完整的 1–4 面板工作區，清楚顯示資料夾樹與共用／獨立分頁。", "改进：布局设置直接比较完整的 1–4 面板工作区，清晰显示文件夹树与共享／独立标签。", "개선: 배치 설정에서 폴더 트리와 공유/개별 탭을 포함한 1–4개 패널 작업 공간 전체를 비교합니다."),
+    "Improved: Before and After show explicit panel counts; enlarged comparisons follow the same draft layout and tab style.": ("改善：目前與套用後標明面板數；放大比較也顯示相同的待套用配置與分頁樣式。", "改进：当前与应用后标明面板数；放大比较也显示相同的待应用布局与标签样式。", "개선: 변경 전후 패널 수를 명시하며 확대 비교에도 변경안의 배치와 탭 스타일을 표시합니다."),
+    "Compare complete layouts and tab styles before applying.": ("套用前比較完整配置與分頁樣式。", "应用前比较完整布局与标签样式。", "적용 전 전체 배치와 탭 스타일을 비교하세요."),
+    "Panel layout comparison": ("面板配置比較", "面板布局比较", "패널 배치 비교"),
+    "Enlarge comparison…": ("放大比較…", "放大比较…", "비교 확대…"),
+    "Whole-window illustration. The left stays unchanged until Apply; the right follows your choices.": ("完整視窗示意。左側保留目前配置；右側隨選項更新，按「套用」才生效。", "完整窗口示意。左侧保留当前布局；右侧随选项更新，点击“应用”才生效。", "전체 창 예시입니다. 왼쪽은 현재 배치, 오른쪽은 변경안이며 적용 후 반영됩니다."),
+    "Before · {count} Panel": ("目前 · {count} 面板", "当前 · {count} 面板", "변경 전 · 패널 {count}개"),
+    "Before · {count} Panels": ("目前 · {count} 面板", "当前 · {count} 面板", "변경 전 · 패널 {count}개"),
+    "After Apply · {count} Panel": ("套用後 · {count} 面板", "应用后 · {count} 面板", "적용 후 · 패널 {count}개"),
+    "After Apply · {count} Panels": ("套用後 · {count} 面板", "应用后 · {count} 面板", "적용 후 · 패널 {count}개"),
+    "Folder tree + one file list · shared tabs": ("資料夾樹＋一個檔案清單 · 共用分頁", "文件夹树＋一个文件列表 · 共享标签", "폴더 트리 + 파일 목록 1개 · 공유 탭"),
+    "{count} file lists · separate tabs": ("{count} 個檔案清單 · 各自獨立分頁", "{count} 个文件列表 · 各自独立标签", "파일 목록 {count}개 · 개별 탭"),
     "Added: Every Settings page has a fixed-top preview that reflects draft choices before Apply.": ("新增：每個設定分頁皆有固定頂部預覽，套用前即可查看草稿選項的效果。", "新增：每个设置分页都有固定顶部预览，应用前即可查看草稿选项的效果。", "추가: 모든 설정 페이지 상단에 고정된 미리 보기로 적용 전 변경안을 확인할 수 있습니다."),
     "Added: Safe examples for file columns, operation policies, path prefixes, Markdown, language and Windows startup.": ("新增：檔案欄位、操作策略、路徑前綴、Markdown、語言與 Windows 啟動的安全範例。", "新增：文件栏位、操作策略、路径前缀、Markdown、语言与 Windows 启动的安全示例。", "추가: 파일 열, 작업 정책, 경로 접두사, Markdown, 언어 및 Windows 시작 동작의 안전한 예제."),
     "Preview · After Apply": ("預覽 · 套用後", "预览 · 应用后", "미리 보기 · 적용 후"),
@@ -6666,6 +6678,131 @@ from tkinter import ttk
 
 
 
+class SettingsLayoutPreview(ttk.Frame):
+    """A whole-workspace illustration, not a repeated single-pane screenshot."""
+    def __init__(self, parent, font, *, before=False, height=None):
+        super().__init__(parent)
+        self.before = before
+        self.font = tkfont.Font(self, **font_snapshot(font, size=-max(12, min(14, abs(font.cget('size'))))))
+        self.bold = tkfont.Font(self, **font_snapshot(self.font, weight='bold'))
+        self.line = max(22, self.font.metrics('linespace') + 4)
+        self.title = ttk.Label(self, style='PrefsTitle.TLabel')
+        self.title.pack(anchor='w', pady=(2, 4))
+        self.canvas = tk.Canvas(self, width=1, height=height or 7*self.line, highlightthickness=1, takefocus=False)
+        self.canvas.pack(fill='x')
+        self.description = ttk.Label(self, style='Prefs.TLabel', wraplength=300)
+        self.description.pack(fill='x', pady=(4, 0))
+        self.values = {}; self._key = None; self._job = None
+        self.canvas.bind('<Configure>', self._schedule)
+
+    def _schedule(self, _event=None):
+        if self._job is None:
+            self._job = self.after_idle(self._draw)
+
+    def update_sample(self, values):
+        self.values = {key: values[key] for key in ('panel_count', 'tab_style', 'color_scheme')}
+        count = self.values['panel_count']
+        self.title.configure(text=tr('Before · {count} Panel' if count == 1 else 'Before · {count} Panels', count=count)
+                             if self.before else tr('After Apply · {count} Panel' if count == 1 else 'After Apply · {count} Panels', count=count))
+        self.description.configure(text=tr('Folder tree + one file list · shared tabs') if count == 1 else
+                                   tr('{count} file lists · separate tabs', count=count))
+        self._draw()
+
+    def destroy(self):
+        if self._job is not None:
+            self.after_cancel(self._job); self._job = None
+        super().destroy()
+        self.font = self.bold = None
+
+    def _text(self, x, y, text, width, *, bold=False, color=None, tag='label'):
+        font = self.bold if bold else self.font
+        shown = str(text)
+        while shown and font.measure(shown) > max(0, width):
+            shown = shown[:-1]
+        self.canvas.create_text(x, y, text=shown, anchor='w', font=font,
+                                fill=color or self.palette['text'], tags=tag)
+
+    def _folder(self, x, y):
+        c = self.canvas
+        c.create_polygon(x,y-6,x+6,y-6,x+8,y-3,x+15,y-3,x+15,y+7,x,y+7,
+                         fill='#ffda70', outline='#b78a25', tags='folder-icon')
+        c.create_line(x,y-2,x+15,y-2,fill='#b78a25',tags='folder-icon')
+
+    def _tabs(self, x, y, width, labels):
+        c, p, line = self.canvas, self.palette, self.line
+        c.create_rectangle(x,y,x+width,y+line,fill=p['tab_bar'],outline='',tags='tab-group')
+        # Independent groups stay visible even in the four-panel compact view.
+        tab_width = min(94, (width-12)/len(labels))
+        style = self.values['tab_style']
+        for index, label in enumerate(labels):
+            left = x+3+index*tab_width; right = left+tab_width-7
+            top = y+2 if index==0 else y+5; bottom=y+line-1
+            if style=='right_skirt':
+                points=(left,bottom,left,top,right-3,top,right,top+3,right,bottom-6,right+5,bottom)
+            elif style=='rounded':
+                points=(left,bottom,left,top+5,left+2,top+2,left+5,top,right-5,top,right-2,top+2,right,top+5,right,bottom)
+            else:
+                points=(left,bottom,left,top,right,top,right,bottom)
+            c.create_polygon(points,fill=p['tab_default'],outline=p['border'],tags='tab-shape')
+            self._text(left+4,(top+bottom)/2,label,right-left-7,color=p['tab_text'],tag='tab-title')
+        c.create_line(x,y+line,x+width,y+line,fill=p['selection'],width=2)
+
+    def _files(self, x, top, width, bottom, index):
+        c,p,line = self.canvas,self.palette,self.line
+        c.create_rectangle(x,top,x+width,bottom,fill=p['surface'],outline=p['border'],tags='file-panel')
+        label=tr('Files') if self.values['panel_count']==1 else f'P{index+1}'
+        if width>110 and self.values['panel_count']>1:label+=' · '+tr('Files')
+        c.create_rectangle(x+1,top+1,x+width-1,top+line,fill=p['header_button'],outline='')
+        self._text(x+6,top+line/2,label,width-12,bold=True,color=p['header_text'],tag='file-heading')
+        names=(('Design','Notes.md','Plan.txt','Readme.md'), ('Photos','Image.png','Trip.md','List.txt'),
+               ('Archive','v1.zip','v2.zip','Log.txt'), ('Work','Draft.md','Todo.txt','Report.md'))[index]
+        for row,name in enumerate(names):
+            y=top+(row+1.55)*line
+            if y+line/2>bottom:break
+            selected=row==1
+            if selected:c.create_rectangle(x+1,y-line/2,x+width-1,y+line/2,fill=p['selection'] if index==0 else p['inactive_selection'],outline='')
+            if row==0:self._folder(x+5,y)
+            else:c.create_rectangle(x+8,y-6,x+17,y+6,fill=p['surface_alt'],outline=p['border'])
+            if width>=80:
+                self._text(x+24,y,name,width-29,color='#ffffff' if selected else p['text'],tag='file-name')
+            else:
+                c.create_line(x+24,y,x+width-6,y,fill='#ffffff' if selected else p['muted'],tags='file-row')
+
+    def _draw(self):
+        if self._job is not None:self.after_cancel(self._job);self._job=None
+        if not self.values:return
+        width=max(180,self.canvas.winfo_width());height=int(self.canvas.cget('height'))
+        key=(width,height,tuple(self.values.items()))
+        if key==self._key:return
+        self._key=key;c=self.canvas;c.delete('all');p=self.palette=color_scheme(self.values['color_scheme'])
+        c.configure(bg=p['window'],highlightbackground=p['border'])
+        self.description.configure(wraplength=max(160,width-4))
+        count=self.values['panel_count'];line=self.line;top=6;bottom=height-6
+        if count==1:
+            self._tabs(5,top,width-10,('Projects','Docs','Downloads'))
+            top+=line+3;split=5+(width-10)/3
+            c.create_rectangle(5,top,split-2,bottom,fill=p['surface_alt'],outline=p['border'],tags='folder-tree')
+            self._text(11,top+line/2,tr('Folders'),split-20,bold=True,tag='tree-heading')
+            # Dotted hierarchy, nested folder icons and one selected folder make
+            # the navigation tree visibly different from a second file list.
+            for row,(indent,name) in enumerate(((0,'C:'),(1,'Users'),(2,'Work'),(2,'Docs'))):
+                y=top+(row+1.6)*line;x=14+indent*12
+                if x+18>split-5:continue
+                if indent:
+                    c.create_line(x-7,y-line,x-7,y,fill=p['muted'],dash=(1,2),tags='tree-branch')
+                    c.create_line(x-7,y,x-2,y,fill=p['muted'],dash=(1,2),tags='tree-branch')
+                self._folder(x,y)
+                if split-x>48:self._text(x+19,y,name,split-x-23,tag='tree-name')
+            self._files(split+2,top,width-split-7,bottom,0)
+        else:
+            pane_width=(width-10-(count-1)*4)/count
+            for index in range(count):
+                x=5+index*(pane_width+4)
+                labels=('Projects','Docs') if pane_width>=170 else ('A','B')
+                self._tabs(x,top,pane_width,labels)
+                self._files(x,top+line+3,pane_width,bottom,index)
+
+
 def column_sample_rows(values):
     """The same display formatters as the file list, with fixed synthetic data."""
     samples = [('Projects', True, 0, ''), ('Notes.md', False, 1536, ''),
@@ -7107,7 +7244,7 @@ class SettingsDialog(tk.Toplevel):
         self.canvas.yview_moveto(0)
         notes={
             'appearance':'Choose a style below. The comparison shows your current style and the draft; only Apply or OK changes PFC.',
-            'layout':'Compare tab style and panel layout before applying. Tab colors and locks stay in each tab’s right-click menu.',
+            'layout':'Compare complete layouts and tab styles before applying.',
             'columns':'Name visibility applies to the tab where Settings was opened. Other column preferences apply to all tabs. Hidden columns can be restored here.',
             'navigation':'Configure file menus, delete behavior and path shortcuts. Changes apply only after Apply or OK.',
             'preview':'Controls F3 Preview only. It does not change files, index drives or enable external plugins.',
@@ -7148,7 +7285,6 @@ class SettingsDialog(tk.Toplevel):
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
                 'font_size':'Auto fits the main window width. Turn it off for a fixed percentage. Settings keeps a stable reading size.',
-                'panel_count':'1 Panel: folder tree + file list with shared tabs. 2–4 Panels: separate file lists and tab groups.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
@@ -7166,6 +7302,8 @@ class SettingsDialog(tk.Toplevel):
         self._changed()
 
     def _previews(self):
+        if self.category=='layout':
+            return self._layout_previews()
         bar=ttk.Frame(self.comparison);bar.pack(fill='x')
         ttk.Label(bar,text=tr('Style comparison'),style='PrefsTitle.TLabel').pack(side='left')
         ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
@@ -7183,11 +7321,6 @@ class SettingsDialog(tk.Toplevel):
             label.pack(fill='x',pady=(0,8))
             label.bind('<Button-1>',lambda _e:self._enlarge(None))
             self.preview_labels.append((label,values))
-            if self.category=='layout':
-                diagram=tk.Canvas(card,height=64,highlightthickness=0)
-                diagram.pack(fill='x',pady=(0,4))
-                diagram.bind('<Configure>',lambda _e:self._layout_preview())
-                self.layout_examples.append((diagram,values))
         if self.category=='appearance':
             self.sample_title=ttk.Label(self.comparison,style='PrefsTitle.TLabel')
             self.sample_title.pack(anchor='w',pady=(0,3))
@@ -7202,11 +7335,28 @@ class SettingsDialog(tk.Toplevel):
                 bg=self.app.palette['surface'],fg=self.app.palette['text'],font=self.sample_font)
             self.font_example.pack(fill='both',expand=True)
 
+    def _layout_previews(self):
+        bar=ttk.Frame(self.comparison);bar.pack(fill='x')
+        ttk.Label(bar,text=tr('Panel layout comparison'),style='PrefsTitle.TLabel').pack(side='left')
+        ttk.Button(bar,text=tr('Enlarge comparison…'),style='Prefs.TButton',
+                   command=lambda:self._enlarge(None)).pack(side='right')
+        self.comparison_caption=ttk.Label(self.comparison,
+            text=tr('Whole-window illustration. The left stays unchanged until Apply; the right follows your choices.'),
+            style='Prefs.TLabel',wraplength=480)
+        self.comparison_caption.pack(fill='x',pady=(2,4))
+        cards=ttk.Frame(self.comparison);cards.pack(fill='x')
+        cards.columnconfigure((0,1),weight=1,uniform='layout-preview')
+        for i,values in enumerate((self.original,None)):
+            sample=SettingsLayoutPreview(cards,self.font,before=i==0)
+            sample.grid(row=0,column=i,sticky='nsew',padx=(0,8))
+            self.layout_examples.append((sample,values))
+
     def _enlarge(self,values):
-        popup=tk.Toplevel(self);popup.transient(self);popup.title(tr('Style comparison'))
+        layout=self.category=='layout'
+        popup=tk.Toplevel(self);popup.transient(self);popup.title(tr('Panel layout comparison' if layout else 'Style comparison'))
         sw,sh=self.winfo_screenwidth(),self.winfo_screenheight()
         wide=sw>=1180
-        width,height=min(sw-48,1140 if wide else 620),min(sh-80,330 if wide else 600)
+        width,height=min(sw-48,1140 if wide else 620),min(sh-80,(410 if wide else 720) if layout else (330 if wide else 600))
         popup.geometry(f'{width}x{height}+{max(0,(sw-width)//2)}+{max(0,(sh-height)//2)}')
         footer=ttk.Frame(popup);footer.pack(side='bottom',fill='x',pady=8)
         canvas=tk.Canvas(popup,highlightthickness=0,bg=self.app.palette['window'])
@@ -7217,6 +7367,11 @@ class SettingsDialog(tk.Toplevel):
         body=ttk.Frame(canvas,padding=10);canvas.create_window(0,0,window=body,anchor='nw')
         for i,(title,state) in enumerate((('Current style',self.original),('After Apply',values or {k:v.get() for k,v in self.vars.items()}))):
             card=ttk.Frame(body);card.grid(row=0 if wide else i,column=i if wide else 0,padx=6,pady=4)
+            if layout:
+                sample=SettingsLayoutPreview(card,self.font,before=i==0,height=220)
+                sample.canvas.configure(width=540)
+                sample.pack();sample.update_sample(state)
+                continue
             ttk.Label(card,text=tr(title),style='PrefsTitle.TLabel').pack(anchor='w',pady=(0,6))
             shot=tk.PhotoImage(master=popup,data=SETTINGS_SHOTS[state['color_scheme']+'/'+state['tab_style']],format='png')
             label=ttk.Label(card,image=shot);label.image=shot;label.pack()
@@ -7260,16 +7415,9 @@ class SettingsDialog(tk.Toplevel):
                 label.configure(image=label.image);label.shot_key=(key,factor)
 
     def _layout_preview(self):
-        for c,values in self.layout_examples:
+        for sample,values in self.layout_examples:
             values=values or {key:var.get() for key,var in self.vars.items()}
-            c.delete('all');p=color_scheme(values['color_scheme'])
-            c.configure(bg=p['window']);w=max(100,c.winfo_width()-8);n=values['panel_count']
-            for i in range(2 if n==1 else n):
-                left=(0 if i==0 else w/3) if n==1 else w*i/n
-                right=(w/3 if i==0 else w) if n==1 else w*(i+1)/n
-                c.create_rectangle(left+2,24,right-2,60,fill=p['surface'],outline=p['border'])
-                c.create_text((left+right)/2,42,text=tr('Folders') if n==1 and i==0 else tr('Files'),fill=p['text'],font=self.font)
-            c.create_text(4,10,anchor='w',text=tr('Shared tabs') if n==1 else tr('Tabs per panel'),font=self.font,fill=p['text'])
+            sample.update_sample(values)
 
     def _sample_pixels(self):
         base=self.app._base_font_sizes['TkDefaultFont']
@@ -13749,7 +13897,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.18.3"
+__version__ = "0.18.4"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -13834,6 +13982,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/23"
 VERSION_HISTORY = (
+    ("v0.18.4", "2026/09/23", (
+        "Improved: Layout settings compare complete 1–4 panel workspaces, with a visible folder tree and shared or independent tabs.",
+        "Improved: Before and After show explicit panel counts; enlarged comparisons follow the same draft layout and tab style.",
+    )),
     ("v0.18.3", "2026/09/23", (
         "Added: Every Settings page has a fixed-top preview that reflects draft choices before Apply.",
         "Added: Safe examples for file columns, operation policies, path prefixes, Markdown, language and Windows startup.",

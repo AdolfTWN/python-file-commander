@@ -11,6 +11,18 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Improved: Layout settings compare complete 1–4 panel workspaces, with a visible folder tree and shared or independent tabs.": ("改善：配置設定直接比較完整的 1–4 面板工作區，清楚顯示資料夾樹與共用／獨立分頁。", "改进：布局设置直接比较完整的 1–4 面板工作区，清晰显示文件夹树与共享／独立标签。", "개선: 배치 설정에서 폴더 트리와 공유/개별 탭을 포함한 1–4개 패널 작업 공간 전체를 비교합니다."),
+    "Improved: Before and After show explicit panel counts; enlarged comparisons follow the same draft layout and tab style.": ("改善：目前與套用後標明面板數；放大比較也顯示相同的待套用配置與分頁樣式。", "改进：当前与应用后标明面板数；放大比较也显示相同的待应用布局与标签样式。", "개선: 변경 전후 패널 수를 명시하며 확대 비교에도 변경안의 배치와 탭 스타일을 표시합니다."),
+    "Compare complete layouts and tab styles before applying.": ("套用前比較完整配置與分頁樣式。", "应用前比较完整布局与标签样式。", "적용 전 전체 배치와 탭 스타일을 비교하세요."),
+    "Panel layout comparison": ("面板配置比較", "面板布局比较", "패널 배치 비교"),
+    "Enlarge comparison…": ("放大比較…", "放大比较…", "비교 확대…"),
+    "Whole-window illustration. The left stays unchanged until Apply; the right follows your choices.": ("完整視窗示意。左側保留目前配置；右側隨選項更新，按「套用」才生效。", "完整窗口示意。左侧保留当前布局；右侧随选项更新，点击“应用”才生效。", "전체 창 예시입니다. 왼쪽은 현재 배치, 오른쪽은 변경안이며 적용 후 반영됩니다."),
+    "Before · {count} Panel": ("目前 · {count} 面板", "当前 · {count} 面板", "변경 전 · 패널 {count}개"),
+    "Before · {count} Panels": ("目前 · {count} 面板", "当前 · {count} 面板", "변경 전 · 패널 {count}개"),
+    "After Apply · {count} Panel": ("套用後 · {count} 面板", "应用后 · {count} 面板", "적용 후 · 패널 {count}개"),
+    "After Apply · {count} Panels": ("套用後 · {count} 面板", "应用后 · {count} 面板", "적용 후 · 패널 {count}개"),
+    "Folder tree + one file list · shared tabs": ("資料夾樹＋一個檔案清單 · 共用分頁", "文件夹树＋一个文件列表 · 共享标签", "폴더 트리 + 파일 목록 1개 · 공유 탭"),
+    "{count} file lists · separate tabs": ("{count} 個檔案清單 · 各自獨立分頁", "{count} 个文件列表 · 各自独立标签", "파일 목록 {count}개 · 개별 탭"),
     "Added: Every Settings page has a fixed-top preview that reflects draft choices before Apply.": ("新增：每個設定分頁皆有固定頂部預覽，套用前即可查看草稿選項的效果。", "新增：每个设置分页都有固定顶部预览，应用前即可查看草稿选项的效果。", "추가: 모든 설정 페이지 상단에 고정된 미리 보기로 적용 전 변경안을 확인할 수 있습니다."),
     "Added: Safe examples for file columns, operation policies, path prefixes, Markdown, language and Windows startup.": ("新增：檔案欄位、操作策略、路徑前綴、Markdown、語言與 Windows 啟動的安全範例。", "新增：文件栏位、操作策略、路径前缀、Markdown、语言与 Windows 启动的安全示例。", "추가: 파일 열, 작업 정책, 경로 접두사, Markdown, 언어 및 Windows 시작 동작의 안전한 예제."),
     "Preview · After Apply": ("預覽 · 套用後", "预览 · 应用后", "미리 보기 · 적용 후"),

@@ -13,7 +13,7 @@ from .tabs import TAB_STYLES, color_scheme
 from .columnsettings import modified_text
 from .homeprefix import PREFIX_ICONS, prefix_icon
 from .settingsshots import SETTINGS_SHOTS
-from .settingspreview import SettingsSamplePreview
+from .settingspreview import SettingsSamplePreview, SettingsLayoutPreview
 from .icons import _distance_to_segment, _hex_rgba, _rgba_png_downsample
 
 
@@ -249,7 +249,7 @@ class SettingsDialog(tk.Toplevel):
         self.canvas.yview_moveto(0)
         notes={
             'appearance':'Choose a style below. The comparison shows your current style and the draft; only Apply or OK changes PFC.',
-            'layout':'Compare tab style and panel layout before applying. Tab colors and locks stay in each tab’s right-click menu.',
+            'layout':'Compare complete layouts and tab styles before applying.',
             'columns':'Name visibility applies to the tab where Settings was opened. Other column preferences apply to all tabs. Hidden columns can be restored here.',
             'navigation':'Configure file menus, delete behavior and path shortcuts. Changes apply only after Apply or OK.',
             'preview':'Controls F3 Preview only. It does not change files, index drives or enable external plugins.',
@@ -290,7 +290,6 @@ class SettingsDialog(tk.Toplevel):
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
                 'font_size':'Auto fits the main window width. Turn it off for a fixed percentage. Settings keeps a stable reading size.',
-                'panel_count':'1 Panel: folder tree + file list with shared tabs. 2–4 Panels: separate file lists and tab groups.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
@@ -308,6 +307,8 @@ class SettingsDialog(tk.Toplevel):
         self._changed()
 
     def _previews(self):
+        if self.category=='layout':
+            return self._layout_previews()
         bar=ttk.Frame(self.comparison);bar.pack(fill='x')
         ttk.Label(bar,text=tr('Style comparison'),style='PrefsTitle.TLabel').pack(side='left')
         ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
@@ -325,11 +326,6 @@ class SettingsDialog(tk.Toplevel):
             label.pack(fill='x',pady=(0,8))
             label.bind('<Button-1>',lambda _e:self._enlarge(None))
             self.preview_labels.append((label,values))
-            if self.category=='layout':
-                diagram=tk.Canvas(card,height=64,highlightthickness=0)
-                diagram.pack(fill='x',pady=(0,4))
-                diagram.bind('<Configure>',lambda _e:self._layout_preview())
-                self.layout_examples.append((diagram,values))
         if self.category=='appearance':
             self.sample_title=ttk.Label(self.comparison,style='PrefsTitle.TLabel')
             self.sample_title.pack(anchor='w',pady=(0,3))
@@ -344,11 +340,28 @@ class SettingsDialog(tk.Toplevel):
                 bg=self.app.palette['surface'],fg=self.app.palette['text'],font=self.sample_font)
             self.font_example.pack(fill='both',expand=True)
 
+    def _layout_previews(self):
+        bar=ttk.Frame(self.comparison);bar.pack(fill='x')
+        ttk.Label(bar,text=tr('Panel layout comparison'),style='PrefsTitle.TLabel').pack(side='left')
+        ttk.Button(bar,text=tr('Enlarge comparison…'),style='Prefs.TButton',
+                   command=lambda:self._enlarge(None)).pack(side='right')
+        self.comparison_caption=ttk.Label(self.comparison,
+            text=tr('Whole-window illustration. The left stays unchanged until Apply; the right follows your choices.'),
+            style='Prefs.TLabel',wraplength=480)
+        self.comparison_caption.pack(fill='x',pady=(2,4))
+        cards=ttk.Frame(self.comparison);cards.pack(fill='x')
+        cards.columnconfigure((0,1),weight=1,uniform='layout-preview')
+        for i,values in enumerate((self.original,None)):
+            sample=SettingsLayoutPreview(cards,self.font,before=i==0)
+            sample.grid(row=0,column=i,sticky='nsew',padx=(0,8))
+            self.layout_examples.append((sample,values))
+
     def _enlarge(self,values):
-        popup=tk.Toplevel(self);popup.transient(self);popup.title(tr('Style comparison'))
+        layout=self.category=='layout'
+        popup=tk.Toplevel(self);popup.transient(self);popup.title(tr('Panel layout comparison' if layout else 'Style comparison'))
         sw,sh=self.winfo_screenwidth(),self.winfo_screenheight()
         wide=sw>=1180
-        width,height=min(sw-48,1140 if wide else 620),min(sh-80,330 if wide else 600)
+        width,height=min(sw-48,1140 if wide else 620),min(sh-80,(410 if wide else 720) if layout else (330 if wide else 600))
         popup.geometry(f'{width}x{height}+{max(0,(sw-width)//2)}+{max(0,(sh-height)//2)}')
         footer=ttk.Frame(popup);footer.pack(side='bottom',fill='x',pady=8)
         canvas=tk.Canvas(popup,highlightthickness=0,bg=self.app.palette['window'])
@@ -359,6 +372,11 @@ class SettingsDialog(tk.Toplevel):
         body=ttk.Frame(canvas,padding=10);canvas.create_window(0,0,window=body,anchor='nw')
         for i,(title,state) in enumerate((('Current style',self.original),('After Apply',values or {k:v.get() for k,v in self.vars.items()}))):
             card=ttk.Frame(body);card.grid(row=0 if wide else i,column=i if wide else 0,padx=6,pady=4)
+            if layout:
+                sample=SettingsLayoutPreview(card,self.font,before=i==0,height=220)
+                sample.canvas.configure(width=540)
+                sample.pack();sample.update_sample(state)
+                continue
             ttk.Label(card,text=tr(title),style='PrefsTitle.TLabel').pack(anchor='w',pady=(0,6))
             shot=tk.PhotoImage(master=popup,data=SETTINGS_SHOTS[state['color_scheme']+'/'+state['tab_style']],format='png')
             label=ttk.Label(card,image=shot);label.image=shot;label.pack()
@@ -402,16 +420,9 @@ class SettingsDialog(tk.Toplevel):
                 label.configure(image=label.image);label.shot_key=(key,factor)
 
     def _layout_preview(self):
-        for c,values in self.layout_examples:
+        for sample,values in self.layout_examples:
             values=values or {key:var.get() for key,var in self.vars.items()}
-            c.delete('all');p=color_scheme(values['color_scheme'])
-            c.configure(bg=p['window']);w=max(100,c.winfo_width()-8);n=values['panel_count']
-            for i in range(2 if n==1 else n):
-                left=(0 if i==0 else w/3) if n==1 else w*i/n
-                right=(w/3 if i==0 else w) if n==1 else w*(i+1)/n
-                c.create_rectangle(left+2,24,right-2,60,fill=p['surface'],outline=p['border'])
-                c.create_text((left+right)/2,42,text=tr('Folders') if n==1 and i==0 else tr('Files'),fill=p['text'],font=self.font)
-            c.create_text(4,10,anchor='w',text=tr('Shared tabs') if n==1 else tr('Tabs per panel'),font=self.font,fill=p['text'])
+            sample.update_sample(values)
 
     def _sample_pixels(self):
         base=self.app._base_font_sizes['TkDefaultFont']

@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.3**
+Current version: **v0.18.4**
 
 Windows folder icons are cached per path, so Downloads, Documents, OneDrive and
 ordinary folders keep their own Shell icons after navigation and font zoom.
@@ -18,7 +18,10 @@ Appearance, Layout & Tabs, File Columns, Paths & Operations, Preview and General
 Changes remain drafts until Apply/OK; Cancel discards only unapplied changes.
 Appearance keeps larger current/draft style details visible above the scrolling
 controls, with a paired full-size comparison. The font sample states its applied
-percentage (or auto-size reference); Layout & Tabs compares panel diagrams too.
+percentage (or auto-size reference). Layout & Tabs compares complete workspaces:
+one folder tree plus one file list with shared tabs, or 2–4 independent file lists
+and tab groups. Before/After label the panel counts; enlarged comparisons show
+the same configuration and tab style. These are safe synthetic illustrations.
 Every category now keeps a preview above its scrolling options. File Columns
 shows a draft file-list example; Paths & Operations illustrates menus, deletion,
 errors and all three prefixes; Preview demonstrates Markdown/source; General

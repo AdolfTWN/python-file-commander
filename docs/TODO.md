@@ -1,5 +1,15 @@
 # PFC follow-ups
 
+## Understandable panel layout comparison — v0.18.4
+
+- [x] Replace duplicated single-pane screenshots and tiny diagrams on Layout &
+  Tabs with whole-workspace Before/After illustrations for all 1–4 panel modes.
+- [x] Distinguish the 1-panel folder tree from its file list and show a shared
+  tab strip; show independent tab strips and numbered file lists in 2–4 panels.
+- [x] Label current/draft counts, reflect tab shape, keep Before unchanged until
+  Apply and use the same renderer for enlarged comparison. No live file access.
+- [x] Remove duplicate explanatory blocks to keep compact settings usable.
+
 ## Preview on every Settings page — v0.18.3
 
 - [x] Keep a fixed-top preview on all six pages, not just Appearance and Layout.

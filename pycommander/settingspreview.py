@@ -13,6 +13,131 @@ from .icons import cloud_badge_png, folder_nav_icon_png, vcs_badge_png
 from .tabs import color_scheme
 
 
+class SettingsLayoutPreview(ttk.Frame):
+    """A whole-workspace illustration, not a repeated single-pane screenshot."""
+    def __init__(self, parent, font, *, before=False, height=None):
+        super().__init__(parent)
+        self.before = before
+        self.font = tkfont.Font(self, **font_snapshot(font, size=-max(12, min(14, abs(font.cget('size'))))))
+        self.bold = tkfont.Font(self, **font_snapshot(self.font, weight='bold'))
+        self.line = max(22, self.font.metrics('linespace') + 4)
+        self.title = ttk.Label(self, style='PrefsTitle.TLabel')
+        self.title.pack(anchor='w', pady=(2, 4))
+        self.canvas = tk.Canvas(self, width=1, height=height or 7*self.line, highlightthickness=1, takefocus=False)
+        self.canvas.pack(fill='x')
+        self.description = ttk.Label(self, style='Prefs.TLabel', wraplength=300)
+        self.description.pack(fill='x', pady=(4, 0))
+        self.values = {}; self._key = None; self._job = None
+        self.canvas.bind('<Configure>', self._schedule)
+
+    def _schedule(self, _event=None):
+        if self._job is None:
+            self._job = self.after_idle(self._draw)
+
+    def update_sample(self, values):
+        self.values = {key: values[key] for key in ('panel_count', 'tab_style', 'color_scheme')}
+        count = self.values['panel_count']
+        self.title.configure(text=tr('Before · {count} Panel' if count == 1 else 'Before · {count} Panels', count=count)
+                             if self.before else tr('After Apply · {count} Panel' if count == 1 else 'After Apply · {count} Panels', count=count))
+        self.description.configure(text=tr('Folder tree + one file list · shared tabs') if count == 1 else
+                                   tr('{count} file lists · separate tabs', count=count))
+        self._draw()
+
+    def destroy(self):
+        if self._job is not None:
+            self.after_cancel(self._job); self._job = None
+        super().destroy()
+        self.font = self.bold = None
+
+    def _text(self, x, y, text, width, *, bold=False, color=None, tag='label'):
+        font = self.bold if bold else self.font
+        shown = str(text)
+        while shown and font.measure(shown) > max(0, width):
+            shown = shown[:-1]
+        self.canvas.create_text(x, y, text=shown, anchor='w', font=font,
+                                fill=color or self.palette['text'], tags=tag)
+
+    def _folder(self, x, y):
+        c = self.canvas
+        c.create_polygon(x,y-6,x+6,y-6,x+8,y-3,x+15,y-3,x+15,y+7,x,y+7,
+                         fill='#ffda70', outline='#b78a25', tags='folder-icon')
+        c.create_line(x,y-2,x+15,y-2,fill='#b78a25',tags='folder-icon')
+
+    def _tabs(self, x, y, width, labels):
+        c, p, line = self.canvas, self.palette, self.line
+        c.create_rectangle(x,y,x+width,y+line,fill=p['tab_bar'],outline='',tags='tab-group')
+        # Independent groups stay visible even in the four-panel compact view.
+        tab_width = min(94, (width-12)/len(labels))
+        style = self.values['tab_style']
+        for index, label in enumerate(labels):
+            left = x+3+index*tab_width; right = left+tab_width-7
+            top = y+2 if index==0 else y+5; bottom=y+line-1
+            if style=='right_skirt':
+                points=(left,bottom,left,top,right-3,top,right,top+3,right,bottom-6,right+5,bottom)
+            elif style=='rounded':
+                points=(left,bottom,left,top+5,left+2,top+2,left+5,top,right-5,top,right-2,top+2,right,top+5,right,bottom)
+            else:
+                points=(left,bottom,left,top,right,top,right,bottom)
+            c.create_polygon(points,fill=p['tab_default'],outline=p['border'],tags='tab-shape')
+            self._text(left+4,(top+bottom)/2,label,right-left-7,color=p['tab_text'],tag='tab-title')
+        c.create_line(x,y+line,x+width,y+line,fill=p['selection'],width=2)
+
+    def _files(self, x, top, width, bottom, index):
+        c,p,line = self.canvas,self.palette,self.line
+        c.create_rectangle(x,top,x+width,bottom,fill=p['surface'],outline=p['border'],tags='file-panel')
+        label=tr('Files') if self.values['panel_count']==1 else f'P{index+1}'
+        if width>110 and self.values['panel_count']>1:label+=' · '+tr('Files')
+        c.create_rectangle(x+1,top+1,x+width-1,top+line,fill=p['header_button'],outline='')
+        self._text(x+6,top+line/2,label,width-12,bold=True,color=p['header_text'],tag='file-heading')
+        names=(('Design','Notes.md','Plan.txt','Readme.md'), ('Photos','Image.png','Trip.md','List.txt'),
+               ('Archive','v1.zip','v2.zip','Log.txt'), ('Work','Draft.md','Todo.txt','Report.md'))[index]
+        for row,name in enumerate(names):
+            y=top+(row+1.55)*line
+            if y+line/2>bottom:break
+            selected=row==1
+            if selected:c.create_rectangle(x+1,y-line/2,x+width-1,y+line/2,fill=p['selection'] if index==0 else p['inactive_selection'],outline='')
+            if row==0:self._folder(x+5,y)
+            else:c.create_rectangle(x+8,y-6,x+17,y+6,fill=p['surface_alt'],outline=p['border'])
+            if width>=80:
+                self._text(x+24,y,name,width-29,color='#ffffff' if selected else p['text'],tag='file-name')
+            else:
+                c.create_line(x+24,y,x+width-6,y,fill='#ffffff' if selected else p['muted'],tags='file-row')
+
+    def _draw(self):
+        if self._job is not None:self.after_cancel(self._job);self._job=None
+        if not self.values:return
+        width=max(180,self.canvas.winfo_width());height=int(self.canvas.cget('height'))
+        key=(width,height,tuple(self.values.items()))
+        if key==self._key:return
+        self._key=key;c=self.canvas;c.delete('all');p=self.palette=color_scheme(self.values['color_scheme'])
+        c.configure(bg=p['window'],highlightbackground=p['border'])
+        self.description.configure(wraplength=max(160,width-4))
+        count=self.values['panel_count'];line=self.line;top=6;bottom=height-6
+        if count==1:
+            self._tabs(5,top,width-10,('Projects','Docs','Downloads'))
+            top+=line+3;split=5+(width-10)/3
+            c.create_rectangle(5,top,split-2,bottom,fill=p['surface_alt'],outline=p['border'],tags='folder-tree')
+            self._text(11,top+line/2,tr('Folders'),split-20,bold=True,tag='tree-heading')
+            # Dotted hierarchy, nested folder icons and one selected folder make
+            # the navigation tree visibly different from a second file list.
+            for row,(indent,name) in enumerate(((0,'C:'),(1,'Users'),(2,'Work'),(2,'Docs'))):
+                y=top+(row+1.6)*line;x=14+indent*12
+                if x+18>split-5:continue
+                if indent:
+                    c.create_line(x-7,y-line,x-7,y,fill=p['muted'],dash=(1,2),tags='tree-branch')
+                    c.create_line(x-7,y,x-2,y,fill=p['muted'],dash=(1,2),tags='tree-branch')
+                self._folder(x,y)
+                if split-x>48:self._text(x+19,y,name,split-x-23,tag='tree-name')
+            self._files(split+2,top,width-split-7,bottom,0)
+        else:
+            pane_width=(width-10-(count-1)*4)/count
+            for index in range(count):
+                x=5+index*(pane_width+4)
+                labels=('Projects','Docs') if pane_width>=170 else ('A','B')
+                self._tabs(x,top,pane_width,labels)
+                self._files(x,top+line+3,pane_width,bottom,index)
+
+
 def column_sample_rows(values):
     """The same display formatters as the file list, with fixed synthetic data."""
     samples = [('Projects', True, 0, ''), ('Notes.md', False, 1536, ''),

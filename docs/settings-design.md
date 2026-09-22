@@ -1,4 +1,4 @@
-# PFC Settings — v0.18.3
+# PFC Settings — v0.18.4
 
 ## Information architecture
 
@@ -12,7 +12,7 @@ contextual shortcuts, not duplicated as a second preference store.
 | Category | Contents | Scope |
 | --- | --- | --- |
 | Appearance | Theme, auto/manual font scale, text sample, screenshots | Application |
-| Layout & Tabs | 1–4 panels, tab shape, layout diagram, style screenshots | Application |
+| Layout & Tabs | 1–4 panels, tab shape, whole-workspace Before/After illustrations | Application |
 | File Columns | Hidden/system/extensions; sorting, marquee; overlays; visible columns, size emphasis, date/time | Name visibility: original tab; other settings: all tabs |
 | Paths & Operations | Native/PFC right-click mode, recycle/error policy, three custom prefix slots | Application |
 | Preview | Extension Effect and explanation of existing reading tools | F3 Preview |
@@ -20,8 +20,8 @@ contextual shortcuts, not duplicated as a second preference store.
 
 ### Fixed-top previews on every page (v0.18.3)
 
-Appearance and Layout retain the existing screenshot comparisons, font sample
-and panel diagrams. The other four pages now use readable, code-drawn examples
+Appearance retains screenshot comparisons and the font sample. Layout uses
+whole-workspace illustrations (see v0.18.4 below). The other four pages use code-drawn examples
 above the scrolling controls, labeled **Preview · After Apply**:
 
 - **File Columns:** a synthetic file list uses the actual size/date formatters.
@@ -40,7 +40,7 @@ above the scrolling controls, labeled **Preview · After Apply**:
   Names remain unchanged; the startup setting is still Windows-only.
 
 These four samples never open files, scan paths, query cloud providers, invoke
-native menus, delete data or write startup entries. Current/draft screenshots on
+native menus, delete data or write startup entries. Current/draft comparisons on
 Appearance/Layout remain separate from these draft-only examples. Sample heights
 are stable while options change; only changed state or width triggers repaint.
 Icons and fonts are released on the UI thread during category switching. The
@@ -94,8 +94,13 @@ action, not a global recursive-scan option. Help retains manual Check Update.
   the same base pixel calculation as the main app and reserves maximum sample
   height to prevent jumping controls. Auto sizing is explicitly labeled a reference,
   not a prediction: its eventual scale depends on actual window/panel widths.
-- Both current and draft layout diagrams show relative widths and shared tabs
-  in single-panel mode, directly under their style screenshots.
+- Layout comparisons show the complete workspace instead of duplicated single-pane
+  screenshots. The folder tree uses nested icons and hierarchy lines; every file
+  pane has its own list, and tab groups span the shared workspace only in 1-panel
+  mode. Current/draft headers state the panel counts. Small 3/4-panel illustrations
+  simplify filenames into lines when necessary rather than shrinking their font.
+  These are illustrative proportions, not captures of personal paths or precise
+  saved splitter positions. The enlarged view uses the same renderer and draft.
 - Column settings give a real formatter-based date/time example and a OneDrive
   status legend; missing status is not misrepresented as successful synchronization.
 - Scope/help now precedes or directly follows the relevant option on all six
@@ -212,3 +217,38 @@ package and portable tests were repeated after the keyboard/translation refineme
   `900247399a8bf49abb4edf1dd23d3fc4cd747455203b061b8d832dd6b50bc7a0`.
   Network was kept disabled and the lease released for immediate pool-managed
   disk hibernation after validation.
+
+### v0.18.4 panel comparison
+
+The old Layout page repeated a single file-list crop for both sides; changing
+panel count only changed a tiny row underneath. The comparison now gives the
+whole workspace the available preview area, with explicit Before/After counts.
+One-panel mode has a roughly one-third-width folder tree, one file list and a
+single tab strip across both. Two through four panels have separate tab strips
+and numbered file lists. Nested tree icons/lines cannot be mistaken for another
+list. Tab shape changes are reflected in those same strips.
+
+Both sides use the same synthetic renderer, including the enlarged comparison.
+The left holds the applied baseline; the right follows drafts. Apply updates
+the baseline and Cancel preserves the actual layout. The drawing is explicitly
+labeled as an illustration, not an exact capture of the user's splitter or files.
+Narrow cards keep readable fonts and show simplified file rows rather than tiny
+text. Redundant help blocks were removed so both layout controls remain visible
+in the compact English review at 780×560. Unchanged state reuses canvas items;
+preview fonts and pending redraw callbacks are released on destruction.
+
+Validation: 238 unit tests passed (8 platform skips), plus focused package and
+portable checks for layout comparisons, all-page previews, Settings interactions,
+single-panel behavior and context settings. Layout checks cover 1→1/2/3/4 and
+3→1, the one-third tree, tab-group counts, all three tab shapes, four languages,
+three themes, both 1180×720 and 780×560, stable redraw, enlarged views and
+Apply/Cancel baseline semantics. These focused checks are included in the full
+headless runner for future runs; unrelated full-suite checks were not repeated
+for this presentation-only change.
+
+Offline Windows 11 ARM64 passed the final portable layout and Settings checks
+(both exit 0). Native Traditional Chinese 175% review confirmed the whole-window
+1→4 comparison and enlarged view. SHA-256:
+`ea796e4ec36361ec908e1d8c2621c80cb047e0f1722773732e8293e8d0260499`.
+The VM lease was released immediately afterward with networking disabled and
+pool-managed disk hibernation. No startup or account settings were changed.
