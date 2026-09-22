@@ -17,6 +17,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Fixed: Folder icons keep their own identity when navigating or changing font scale, instead of sharing the Downloads icon.": ("修正：切換資料夾或字型比例時，各資料夾保留自己的圖示，不再共用下載資料夾圖示。", "修复：切换文件夹或字体比例时，各文件夹保留自己的图标，不再共用下载文件夹图标。", "수정: 폴더 이동이나 글꼴 배율 변경 시 다운로드 아이콘을 공유하지 않고 각 폴더의 고유 아이콘을 유지합니다."),
+    "Improved: Bounded icon caching preserves displayed images and independent Git/SVN and OneDrive badges.": ("改善：圖示快取限制容量，同時保留顯示中的圖示及獨立的 Git/SVN、OneDrive 狀態標記。", "改进：图标缓存限制容量，同时保留显示中的图标及独立的 Git/SVN、OneDrive 状态标记。", "개선: 제한된 아이콘 캐시는 표시 중인 이미지와 독립적인 Git/SVN 및 OneDrive 상태 배지를 보존합니다."),
     "Improved: Enabled settings use clear checkmarks instead of crosses, with distinct off and disabled states.": ("改善：設定啟用以清楚勾號取代叉號，並區分未勾選與停用狀態。", "改进：设置启用以清晰勾号代替叉号，并区分未勾选与禁用状态。", "개선: 활성화된 설정은 X 대신 명확한 체크 표시를 사용하며 해제와 비활성 상태를 구분합니다."),
     "Improved: Settings keeps larger Before/After previews visible and compares both styles at full size.": ("改善：設定頁固定顯示較大的套用前後預覽，並可同時比較完整尺寸樣式。", "改进：设置页固定显示更大的应用前后预览，并可同时比较完整尺寸样式。", "개선: 설정의 변경 전후 미리 보기를 크게 고정 표시하고 두 스타일을 원본 크기로 비교합니다."),
     "Improved: Font samples show the applied scale; settings explain scope, dependencies and delete safety beside each option.": ("改善：字型範例標示套用倍率；各選項旁說明作用範圍、相依條件與刪除安全性。", "改进：字体示例标示应用倍率；各选项旁说明作用范围、依赖条件与删除安全性。", "개선: 글꼴 예제에 적용 배율을 표시하고 각 옵션 옆에 범위, 종속 조건과 삭제 안전성을 설명합니다."),
@@ -1860,6 +1862,7 @@ import ctypes
 import os
 import struct
 import zlib
+from collections import OrderedDict
 from pathlib import Path
 from tkinter import PhotoImage
 
@@ -2226,20 +2229,29 @@ def folder_nav_icon_png(kind: str, size: int) -> bytes:
 
 
 class ShellIconProvider:
-    """Caches native Windows Shell icons as Tk images."""
+    """Bounded native icon cache. Widgets must retain images while displaying them."""
 
-    def __init__(self, size: int = 16, text_gap: int | None = None) -> None:
+    def __init__(self, size: int = 16, text_gap: int | None = None,
+                 *, cache_limit: int = 512) -> None:
         self.size = size
         self.text_gap = max(4, round(size * 0.3)) if text_gap is None else text_gap
-        self.cache: dict[str, PhotoImage] = {}
+        self.cache_limit = max(1, cache_limit)
+        self.cache: OrderedDict[tuple, PhotoImage] = OrderedDict()
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
     def get(self, path: Path, is_dir: bool, overlay: str | None = None, cloud: str | None = None) -> PhotoImage:
         if os.name != "nt":
             return self.blank
         suffix = path.suffix.casefold()
-        base_key = "<folder>" if is_dir else (str(path) if suffix in {".lnk", ".ico"} else suffix or "<file>")
-        key = f"{base_key}|{overlay or ''}|{cloud or ''}"
+        # Shell folders may carry a Known Folder or desktop.ini icon. Sharing
+        # one '<folder>' entry makes the first folder (often Downloads) poison
+        # every later directory, including after a zoom recreates this cache.
+        # Normalize lexically only: never resolve cloud files, links or shares.
+        if is_dir or suffix in {".lnk", ".ico"}:
+            base_key = ('folder' if is_dir else 'path', os.path.abspath(path))
+        else:
+            base_key = ('type', suffix)
+        key = (base_key, overlay or '', cloud or '')
         if key not in self.cache:
             icon = self._load(path, is_dir)
             if icon is not None and overlay:
@@ -2252,6 +2264,9 @@ class ShellIconProvider:
                 result.tk.call(str(result), 'copy', str(badge), '-to', 0, 0, '-compositingrule', 'overlay')
                 icon = result
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
+        self.cache.move_to_end(key)
+        while len(self.cache) > self.cache_limit:
+            self.cache.popitem(last=False)
         return self.cache[key]
 
     def _with_overlay(self, icon: PhotoImage, overlay: str, compact=False) -> PhotoImage:
@@ -13497,7 +13512,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.18.1"
+__version__ = "0.18.2"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -13582,6 +13597,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/23"
 VERSION_HISTORY = (
+    ("v0.18.2", "2026/09/23", (
+        "Fixed: Folder icons keep their own identity when navigating or changing font scale, instead of sharing the Downloads icon.",
+        "Improved: Bounded icon caching preserves displayed images and independent Git/SVN and OneDrive badges.",
+    )),
     ("v0.18.1", "2026/09/23", (
         "Improved: Settings keeps larger Before/After previews visible and compares both styles at full size.",
         "Improved: Font samples show the applied scale; settings explain scope, dependencies and delete safety beside each option.",
@@ -14321,6 +14340,9 @@ class FilePane(ttk.Frame):
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
+        # Treeview stores Tcl image names, not Python references. Pin displayed
+        # images independently of the bounded provider cache (and zoom changes).
+        self._row_icons = {}
         self._vcs_statuses: dict[str, str] = {}
         self._vcs_path: Path | None = None
         self._vcs_requested_at = 0.0
@@ -14620,7 +14642,9 @@ class FilePane(ttk.Frame):
         owner = self.winfo_toplevel()
         cloud = owner.cloud_status.get(path) if owner.onedrive_overlay_var.get() else None
         vcs = status_for(self._vcs_statuses, path) if owner.vcs_overlay_var.get() else None
-        return self.icons.get(path, is_dir, vcs, cloud)
+        image = self.icons.get(path, is_dir, vcs, cloud)
+        self._row_icons[str(path)] = image
+        return image
 
     def _full_item_name(self, iid: str) -> str:
         tags = self.tree.item(iid, "tags")
@@ -15148,6 +15172,7 @@ class FilePane(ttk.Frame):
         if reset_view:
             selected, expanded, scroll_position = set(), set(), 0.0
         self.tree.delete(*self.tree.get_children())
+        self._row_icons.clear()
         self._date_values.clear()
         try:
             self._request_vcs_statuses()
@@ -15381,6 +15406,7 @@ class FilePane(ttk.Frame):
         self.mode = "preview"
         self.display_title = item.name
         self.tree.delete(*self.tree.get_children())
+        self._row_icons.clear()
         self.path_bar.set_location(f"[Preview] {item}")
         try:
             stat = item.stat()
@@ -15409,6 +15435,7 @@ class FilePane(ttk.Frame):
         self.mode = "search"
         self.display_title = f"Search: {query}"
         self.tree.delete(*self.tree.get_children())
+        self._row_icons.clear()
         self._date_values.clear()
         self.path_bar.set_location(f"[Search] {query} in {self.path}")
         query = query.casefold()
@@ -15443,6 +15470,7 @@ class FilePane(ttk.Frame):
         self.display_title = title
         self.path_bar.set_location(f"[{title}]")
         self.tree.delete(*self.tree.get_children())
+        self._row_icons.clear()
         self._date_values.clear()
         total = 0
         for item in paths:

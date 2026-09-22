@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Fixed: Folder icons keep their own identity when navigating or changing font scale, instead of sharing the Downloads icon.": ("修正：切換資料夾或字型比例時，各資料夾保留自己的圖示，不再共用下載資料夾圖示。", "修复：切换文件夹或字体比例时，各文件夹保留自己的图标，不再共用下载文件夹图标。", "수정: 폴더 이동이나 글꼴 배율 변경 시 다운로드 아이콘을 공유하지 않고 각 폴더의 고유 아이콘을 유지합니다."),
+    "Improved: Bounded icon caching preserves displayed images and independent Git/SVN and OneDrive badges.": ("改善：圖示快取限制容量，同時保留顯示中的圖示及獨立的 Git/SVN、OneDrive 狀態標記。", "改进：图标缓存限制容量，同时保留显示中的图标及独立的 Git/SVN、OneDrive 状态标记。", "개선: 제한된 아이콘 캐시는 표시 중인 이미지와 독립적인 Git/SVN 및 OneDrive 상태 배지를 보존합니다."),
     "Improved: Enabled settings use clear checkmarks instead of crosses, with distinct off and disabled states.": ("改善：設定啟用以清楚勾號取代叉號，並區分未勾選與停用狀態。", "改进：设置启用以清晰勾号代替叉号，并区分未勾选与禁用状态。", "개선: 활성화된 설정은 X 대신 명확한 체크 표시를 사용하며 해제와 비활성 상태를 구분합니다."),
     "Improved: Settings keeps larger Before/After previews visible and compares both styles at full size.": ("改善：設定頁固定顯示較大的套用前後預覽，並可同時比較完整尺寸樣式。", "改进：设置页固定显示更大的应用前后预览，并可同时比较完整尺寸样式。", "개선: 설정의 변경 전후 미리 보기를 크게 고정 표시하고 두 스타일을 원본 크기로 비교합니다."),
     "Improved: Font samples show the applied scale; settings explain scope, dependencies and delete safety beside each option.": ("改善：字型範例標示套用倍率；各選項旁說明作用範圍、相依條件與刪除安全性。", "改进：字体示例标示应用倍率；各选项旁说明作用范围、依赖条件与删除安全性。", "개선: 글꼴 예제에 적용 배율을 표시하고 각 옵션 옆에 범위, 종속 조건과 삭제 안전성을 설명합니다."),

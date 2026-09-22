@@ -2,6 +2,9 @@ import struct
 import unittest
 import zlib
 from pathlib import Path
+from unittest.mock import patch
+
+from pycommander import icons
 
 from pycommander.icons import (FILE_ATTRIBUTE_NORMAL, SHGFI_ICON,
                                SHGFI_SMALLICON, SHGFI_USEFILEATTRIBUTES,
@@ -118,6 +121,62 @@ class ShellIconRequestTests(unittest.TestCase):
         self.assertEqual(lookup, str(path))
         self.assertEqual(attributes, 0)
         self.assertEqual(flags, SHGFI_ICON | SHGFI_SMALLICON)
+
+
+class ShellIconCacheTests(unittest.TestCase):
+    def test_cache_is_bounded_and_keeps_recently_used_paths(self):
+        paths = [Path('/profile') / str(i) for i in range(5)]
+        with patch.object(icons, 'PhotoImage'), patch.object(icons.os, 'name', 'nt'):
+            provider = icons.ShellIconProvider(cache_limit=2)
+            with patch.object(provider, '_load', side_effect=lambda p, d: object()) as load, \
+                    patch.object(provider, '_with_text_gap', side_effect=lambda image: image):
+                first = provider.get(paths[0], True)
+                second = provider.get(paths[1], True)
+                self.assertIs(provider.get(paths[0], True), first)
+                provider.get(paths[2], True)
+                self.assertIs(provider.get(paths[0], True), first)
+                self.assertIsNot(provider.get(paths[1], True), second)
+                self.assertEqual(load.call_count, 4)
+                for path in paths:
+                    provider.get(path, True)
+                    self.assertLessEqual(len(provider.cache), 2)
+
+    def test_folder_icons_are_path_specific_in_both_navigation_orders(self):
+        paths = [Path('/profile') / name for name in
+                 ('Downloads', 'OneDrive', 'Documents', 'Projects', 'Other/Downloads')]
+        for order in (paths, list(reversed(paths))):
+            with self.subTest(first=order[0]), patch.object(icons, 'PhotoImage'), \
+                    patch.object(icons.os, 'name', 'nt'):
+                provider = icons.ShellIconProvider()
+                with patch.object(provider, '_load', side_effect=lambda p, d: object()) as load, \
+                        patch.object(provider, '_with_text_gap', side_effect=lambda image: image):
+                    images = [provider.get(path, True) for path in order]
+                    self.assertEqual(len({id(image) for image in images}), len(paths))
+                    for path, image in zip(order, images):
+                        self.assertIs(provider.get(path, True), image)
+                    self.assertEqual(load.call_count, len(paths))
+
+    def test_file_type_reuse_and_path_sensitive_shortcuts_are_preserved(self):
+        paths = [Path('/work') / name for name in
+                 ('a.txt', 'b.TXT', 'a.lnk', 'b.lnk', 'a.ico', 'b.ico', 'folder.txt')]
+        with patch.object(icons, 'PhotoImage'), patch.object(icons.os, 'name', 'nt'):
+            provider = icons.ShellIconProvider()
+            with patch.object(provider, '_load', side_effect=lambda p, d: object()), \
+                    patch.object(provider, '_with_text_gap', side_effect=lambda image: image):
+                images = [provider.get(path, index == 6) for index, path in enumerate(paths)]
+                self.assertIs(images[0], images[1])
+                self.assertEqual(len({id(image) for image in images}), 6)
+
+    def test_folder_overlays_do_not_alias_other_paths_or_plain_icons(self):
+        paths = [Path('/profile/Downloads'), Path('/profile/Documents')]
+        with patch.object(icons, 'PhotoImage'), patch.object(icons.os, 'name', 'nt'):
+            provider = icons.ShellIconProvider()
+            with patch.object(provider, '_load', side_effect=lambda p, d: object()), \
+                    patch.object(provider, '_with_text_gap', side_effect=lambda image: image), \
+                    patch.object(provider, '_with_overlay', side_effect=lambda *a, **k: object()):
+                images = [provider.get(path, True, overlay) for path in paths
+                          for overlay in (None, 'clean', 'modified')]
+                self.assertEqual(len({id(image) for image in images}), 6)
 
 
 if __name__ == "__main__":

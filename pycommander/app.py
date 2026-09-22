@@ -137,6 +137,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.2", "2026/09/23", (
+        "Fixed: Folder icons keep their own identity when navigating or changing font scale, instead of sharing the Downloads icon.",
+        "Improved: Bounded icon caching preserves displayed images and independent Git/SVN and OneDrive badges.",
+    )),
     ("v0.18.1", "2026/09/23", (
         "Improved: Settings keeps larger Before/After previews visible and compares both styles at full size.",
         "Improved: Font samples show the applied scale; settings explain scope, dependencies and delete safety beside each option.",
@@ -876,6 +880,9 @@ class FilePane(ttk.Frame):
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified")}
         self.icons = ShellIconProvider()
+        # Treeview stores Tcl image names, not Python references. Pin displayed
+        # images independently of the bounded provider cache (and zoom changes).
+        self._row_icons = {}
         self._vcs_statuses: dict[str, str] = {}
         self._vcs_path: Path | None = None
         self._vcs_requested_at = 0.0
@@ -1175,7 +1182,9 @@ class FilePane(ttk.Frame):
         owner = self.winfo_toplevel()
         cloud = owner.cloud_status.get(path) if owner.onedrive_overlay_var.get() else None
         vcs = status_for(self._vcs_statuses, path) if owner.vcs_overlay_var.get() else None
-        return self.icons.get(path, is_dir, vcs, cloud)
+        image = self.icons.get(path, is_dir, vcs, cloud)
+        self._row_icons[str(path)] = image
+        return image
 
     def _full_item_name(self, iid: str) -> str:
         tags = self.tree.item(iid, "tags")
@@ -1703,6 +1712,7 @@ class FilePane(ttk.Frame):
         if reset_view:
             selected, expanded, scroll_position = set(), set(), 0.0
         self.tree.delete(*self.tree.get_children())
+        self._row_icons.clear()
         self._date_values.clear()
         try:
             self._request_vcs_statuses()
@@ -1936,6 +1946,7 @@ class FilePane(ttk.Frame):
         self.mode = "preview"
         self.display_title = item.name
         self.tree.delete(*self.tree.get_children())
+        self._row_icons.clear()
         self.path_bar.set_location(f"[Preview] {item}")
         try:
             stat = item.stat()
@@ -1964,6 +1975,7 @@ class FilePane(ttk.Frame):
         self.mode = "search"
         self.display_title = f"Search: {query}"
         self.tree.delete(*self.tree.get_children())
+        self._row_icons.clear()
         self._date_values.clear()
         self.path_bar.set_location(f"[Search] {query} in {self.path}")
         query = query.casefold()
@@ -1998,6 +2010,7 @@ class FilePane(ttk.Frame):
         self.display_title = title
         self.path_bar.set_location(f"[{title}]")
         self.tree.delete(*self.tree.get_children())
+        self._row_icons.clear()
         self._date_values.clear()
         total = 0
         for item in paths:

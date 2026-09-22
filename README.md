@@ -1,6 +1,11 @@
 # Python File Commander
 
-Current version: **v0.18.1**
+Current version: **v0.18.2**
+
+Windows folder icons are cached per path, so Downloads, Documents, OneDrive and
+ordinary folders keep their own Shell icons after navigation and font zoom.
+The cache is bounded; displayed rows retain their images independently, including
+Git/SVN and OneDrive badges.
 
 **Compact workflow tools:** Ctrl+Shift+P searches commands and Settings. Tools
 holds named Workspaces and Saved comparisons; F9 adds source-safe text editing,

@@ -6,6 +6,7 @@ import ctypes
 import os
 import struct
 import zlib
+from collections import OrderedDict
 from pathlib import Path
 from tkinter import PhotoImage
 
@@ -372,20 +373,29 @@ def folder_nav_icon_png(kind: str, size: int) -> bytes:
 
 
 class ShellIconProvider:
-    """Caches native Windows Shell icons as Tk images."""
+    """Bounded native icon cache. Widgets must retain images while displaying them."""
 
-    def __init__(self, size: int = 16, text_gap: int | None = None) -> None:
+    def __init__(self, size: int = 16, text_gap: int | None = None,
+                 *, cache_limit: int = 512) -> None:
         self.size = size
         self.text_gap = max(4, round(size * 0.3)) if text_gap is None else text_gap
-        self.cache: dict[str, PhotoImage] = {}
+        self.cache_limit = max(1, cache_limit)
+        self.cache: OrderedDict[tuple, PhotoImage] = OrderedDict()
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
     def get(self, path: Path, is_dir: bool, overlay: str | None = None, cloud: str | None = None) -> PhotoImage:
         if os.name != "nt":
             return self.blank
         suffix = path.suffix.casefold()
-        base_key = "<folder>" if is_dir else (str(path) if suffix in {".lnk", ".ico"} else suffix or "<file>")
-        key = f"{base_key}|{overlay or ''}|{cloud or ''}"
+        # Shell folders may carry a Known Folder or desktop.ini icon. Sharing
+        # one '<folder>' entry makes the first folder (often Downloads) poison
+        # every later directory, including after a zoom recreates this cache.
+        # Normalize lexically only: never resolve cloud files, links or shares.
+        if is_dir or suffix in {".lnk", ".ico"}:
+            base_key = ('folder' if is_dir else 'path', os.path.abspath(path))
+        else:
+            base_key = ('type', suffix)
+        key = (base_key, overlay or '', cloud or '')
         if key not in self.cache:
             icon = self._load(path, is_dir)
             if icon is not None and overlay:
@@ -398,6 +408,9 @@ class ShellIconProvider:
                 result.tk.call(str(result), 'copy', str(badge), '-to', 0, 0, '-compositingrule', 'overlay')
                 icon = result
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
+        self.cache.move_to_end(key)
+        while len(self.cache) > self.cache_limit:
+            self.cache.popitem(last=False)
         return self.cache[key]
 
     def _with_overlay(self, icon: PhotoImage, overlay: str, compact=False) -> PhotoImage:

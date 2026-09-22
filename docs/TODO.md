@@ -12,12 +12,18 @@
   states, keyboard focus and Space-key toggling, without changing other dialogs.
 - Validation details: [Settings design](settings-design.md).
 
-## Diagnosed folder icon cache — pending implementation
+## Folder icon cache — v0.18.2
 
-- [ ] Windows directories currently share a cache key across paths, allowing the
-  first loaded special-folder icon (for example Downloads) to be reused for other
-  folders. Use a bounded path-aware cache and verify native icons/overlays. This
-  diagnosis is not part of the Settings v0.18.1 fix.
+- [x] Replace the shared directory key with lexical absolute paths, retaining
+  per-file shortcut icons and safe generic executable lookups. The first folder
+  (often Downloads) can no longer override other folders after navigation/zoom.
+- [x] Bound each provider to 512 recent entries. File rows pin displayed images
+  separately, releasing them after navigation, search/result replacement or
+  preview; eviction and font resizing must not blank existing rows.
+- [x] Add order-independent identity, LRU eviction and overlay unit regressions;
+  `tools/folder_icon_check.py` covers navigation, zoom, retained Tcl images,
+  preview/search transitions and native Windows Shell pixel comparisons.
+- Validation details: [folder icon identity](folder-icons.md).
 
 ## Truthful folder expansion hints — v0.18.0
 
