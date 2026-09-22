@@ -17,6 +17,8 @@ xvfb-run -a python3 tools/workflow_features_check.py
 xvfb-run -a python3 tools/workflow_features_check.py pfc
 xvfb-run -a python3 tools/settings_check.py
 xvfb-run -a python3 tools/settings_check.py pfc
+xvfb-run -a python3 tools/settings_previews_check.py
+xvfb-run -a python3 tools/settings_previews_check.py pfc
 xvfb-run -a python3 tools/window_visibility_check.py
 xvfb-run -a python3 tools/window_visibility_check.py pfc
 xvfb-run -a python3 tools/gui_smoke_check.py

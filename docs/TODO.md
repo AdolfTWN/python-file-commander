@@ -1,5 +1,16 @@
 # PFC follow-ups
 
+## Preview on every Settings page — v0.18.3
+
+- [x] Keep a fixed-top preview on all six pages, not just Appearance and Layout.
+- [x] Live file-column example uses shared date/size formatting, visibility,
+  sorting and independent cloud/VCS badges; safe sample data only.
+- [x] Show menu/deletion/error policy and three prefix examples, formatted/plain
+  Markdown, draft language and Windows sign-in behavior without executing them.
+- [x] Stable sample heights and unchanged-draft image reuse; explicitly release
+  preview images/fonts on the UI thread when switching pages.
+- See [Settings design and validation](settings-design.md).
+
 ## Settings visibility and clarity — v0.18.1
 
 - [x] Keep larger current/draft style previews above the scrolling controls;

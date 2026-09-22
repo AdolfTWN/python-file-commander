@@ -137,6 +137,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.3", "2026/09/23", (
+        "Added: Every Settings page has a fixed-top preview that reflects draft choices before Apply.",
+        "Added: Safe examples for file columns, operation policies, path prefixes, Markdown, language and Windows startup.",
+    )),
     ("v0.18.2", "2026/09/23", (
         "Fixed: Folder icons keep their own identity when navigating or changing font scale, instead of sharing the Downloads icon.",
         "Improved: Bounded icon caching preserves displayed images and independent Git/SVN and OneDrive badges.",

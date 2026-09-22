@@ -13,6 +13,7 @@ from .tabs import TAB_STYLES, color_scheme
 from .columnsettings import modified_text
 from .homeprefix import PREFIX_ICONS, prefix_icon
 from .settingsshots import SETTINGS_SHOTS
+from .settingspreview import SettingsSamplePreview
 from .icons import _distance_to_segment, _hex_rgba, _rgba_png_downsample
 
 
@@ -243,7 +244,7 @@ class SettingsDialog(tk.Toplevel):
         for child in self.page.winfo_children():child.destroy()
         for child in self.comparison.winfo_children():child.destroy()
         self.controls={};self.images=[];self.wrap_labels=[];self.preview_labels=[];self.date_example=None
-        self.layout_examples=[];self.sample_title=None;self.danger_note=None
+        self.layout_examples=[];self.sample_title=None;self.danger_note=None;self.page_preview=None
         self.title_label.configure(text=tr(dict(SETTINGS_CATEGORIES)[category]))
         self.canvas.yview_moveto(0)
         notes={
@@ -255,10 +256,12 @@ class SettingsDialog(tk.Toplevel):
             'general':'Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.',
         }
         self.intro.configure(text=tr(notes[category]))
+        self.comparison.pack(before=self.canvas.master,fill='x',pady=(0,8))
         if category in ('appearance','layout'):
-            self.comparison.pack(before=self.canvas.master,fill='x',pady=(0,8))
             self._previews()
-        else:self.comparison.pack_forget()
+        else:
+            self.page_preview=SettingsSamplePreview(self.comparison,category,self.font)
+            self.page_preview.pack(fill='x')
         group=None
         for key,cat,title,label,choices,_method in self.specs:
             if cat!=category:continue
@@ -461,6 +464,8 @@ class SettingsDialog(tk.Toplevel):
         if 'font_size' in self.controls:
             self.controls['font_size'].configure(state='disabled' if self.vars['auto_font_size'].get() else 'readonly')
         self._update_shots()
+        if self.page_preview is not None:
+            self.page_preview.update_sample({k:v.get() for k,v in self.vars.items()},self.prefix_draft)
         if self.category=='appearance' and hasattr(self,'font_example') and self.font_example.winfo_exists():
             scale=self.app._font_scales[self.vars['font_size'].get()]
             self.sample_font.configure(family=self.font.actual('family'),size=-round(self._sample_pixels()*scale))

@@ -72,6 +72,8 @@ def build() -> Path:
     tooltip += '\n\n' + '\n'.join(line for line in workspaces.splitlines() if not line.startswith('from .'))
     syncprogress = (ROOT / 'pycommander' / 'syncprogress.py').read_text(encoding='utf-8')
     tooltip += '\n\n' + '\n'.join(line for line in syncprogress.splitlines() if not line.startswith('from .'))
+    settingspreview = (ROOT / 'pycommander' / 'settingspreview.py').read_text(encoding='utf-8')
+    tooltip += '\n\n' + '\n'.join(line for line in settingspreview.splitlines() if not line.startswith('from .'))
     settings = (ROOT / 'pycommander' / 'settings.py').read_text(encoding='utf-8')
     tooltip += '\n\n' + '\n'.join(line for line in settings.splitlines() if not line.startswith('from .'))
     compare = compare.replace("from __future__ import annotations\n\n", "", 1)

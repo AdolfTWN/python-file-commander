@@ -11,6 +11,28 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Added: Every Settings page has a fixed-top preview that reflects draft choices before Apply.": ("新增：每個設定分頁皆有固定頂部預覽，套用前即可查看草稿選項的效果。", "新增：每个设置分页都有固定顶部预览，应用前即可查看草稿选项的效果。", "추가: 모든 설정 페이지 상단에 고정된 미리 보기로 적용 전 변경안을 확인할 수 있습니다."),
+    "Added: Safe examples for file columns, operation policies, path prefixes, Markdown, language and Windows startup.": ("新增：檔案欄位、操作策略、路徑前綴、Markdown、語言與 Windows 啟動的安全範例。", "新增：文件栏位、操作策略、路径前缀、Markdown、语言与 Windows 启动的安全示例。", "추가: 파일 열, 작업 정책, 경로 접두사, Markdown, 언어 및 Windows 시작 동작의 안전한 예제."),
+    "Preview · After Apply": ("預覽 · 套用後", "预览 · 应用后", "미리 보기 · 적용 후"),
+    "Open": ("開啟", "打开", "열기"),
+    "Properties": ("內容", "属性", "속성"),
+    "Demo files only. Column, date and status changes appear here immediately.": ("僅使用範例檔案；欄位、日期及狀態圖示會立即反映待套用設定。", "仅使用示例文件；栏位、日期及状态图标立即反映待应用设置。", "예제 파일입니다. 열, 날짜 및 상태 변경을 즉시 확인할 수 있습니다."),
+    "Long names: scroll on hover": ("檔案清單長檔名：停留時捲動", "文件列表长文件名：悬停时滚动", "파일 목록의 긴 이름: 마우스를 올리면 스크롤"),
+    "Long names: static": ("檔案清單長檔名：不捲動", "文件列表长文件名：不滚动", "파일 목록의 긴 이름: 스크롤 안 함"),
+    "Behavior illustration only; no menu, deletion or folder access is executed.": ("僅示範行為，不會實際開啟選單、刪除檔案或存取資料夾。", "仅演示行为，不会实际打开菜单、删除文件或访问文件夹。", "동작 예시입니다. 실제 메뉴 열기, 삭제 또는 폴더 접근은 실행하지 않습니다."),
+    "Permanent delete": ("永久刪除", "永久删除", "영구 삭제"),
+    "Shift+Delete: always permanent": ("Shift+Delete：一律永久刪除", "Shift+Delete：始终永久删除", "Shift+Delete: 항상 영구 삭제"),
+    "On error: continue remaining files": ("發生錯誤：繼續處理其餘檔案", "发生错误：继续处理其余文件", "오류 발생 시: 나머지 파일 계속 처리"),
+    "On error: stop": ("發生錯誤：停止處理", "发生错误：停止处理", "오류 발생 시: 중지"),
+    "Prefix examples · sample child “Docs”": ("前綴範例 · 子資料夾以「Docs」示範", "前缀示例 · 子文件夹以“Docs”演示", "접두 경로 예제 · 하위 폴더 ‘Docs’"),
+    "Notes.md · formatted Markdown sample": ("Notes.md · Markdown 格式化預覽範例", "Notes.md · Markdown 格式化预览示例", "Notes.md · 서식 있는 Markdown 예제"),
+    "Notes.md · plain source sample": ("Notes.md · 純文字原始碼範例", "Notes.md · 纯文本源代码示例", "Notes.md · 일반 원본 텍스트 예제"),
+    "Headings, tables and emphasis; original file stays unchanged.": ("呈現標題、表格及粗體；原始檔案不會改變。", "呈现标题、表格及粗体；原始文件不会改变。", "제목, 표, 강조 표시를 보여 줍니다. 원본 파일은 변경하지 않습니다."),
+    "Sample interface language and sign-in behavior; applies only after Apply.": ("介面語言與登入行為範例；按「套用」後才會生效。", "界面语言与登录行为示例；点击“应用”后才会生效。", "인터페이스 언어와 로그인 동작 예제입니다. 적용 후에만 반영됩니다."),
+    "Windows sign-in": ("登入 Windows", "登录 Windows", "Windows 로그인"),
+    "PFC opens automatically": ("自動開啟 PFC", "自动打开 PFC", "PFC 자동 실행"),
+    "Open PFC manually": ("手動開啟 PFC", "手动打开 PFC", "PFC 수동 실행"),
+    "File names are unchanged; startup is Windows only.": ("不會翻譯檔名；自動啟動僅適用於 Windows。", "不会翻译文件名；自动启动仅适用于 Windows。", "파일 이름은 변경되지 않습니다. 자동 시작은 Windows 전용입니다."),
     "Fixed: Folder icons keep their own identity when navigating or changing font scale, instead of sharing the Downloads icon.": ("修正：切換資料夾或字型比例時，各資料夾保留自己的圖示，不再共用下載資料夾圖示。", "修复：切换文件夹或字体比例时，各文件夹保留自己的图标，不再共用下载文件夹图标。", "수정: 폴더 이동이나 글꼴 배율 변경 시 다운로드 아이콘을 공유하지 않고 각 폴더의 고유 아이콘을 유지합니다."),
     "Improved: Bounded icon caching preserves displayed images and independent Git/SVN and OneDrive badges.": ("改善：圖示快取限制容量，同時保留顯示中的圖示及獨立的 Git/SVN、OneDrive 狀態標記。", "改进：图标缓存限制容量，同时保留显示中的图标及独立的 Git/SVN、OneDrive 状态标记。", "개선: 제한된 아이콘 캐시는 표시 중인 이미지와 독립적인 Git/SVN 및 OneDrive 상태 배지를 보존합니다."),
     "Improved: Enabled settings use clear checkmarks instead of crosses, with distinct off and disabled states.": ("改善：設定啟用以清楚勾號取代叉號，並區分未勾選與停用狀態。", "改进：设置启用以清晰勾号代替叉号，并区分未勾选与禁用状态。", "개선: 활성화된 설정은 X 대신 명확한 체크 표시를 사용하며 해제와 비활성 상태를 구분합니다."),
@@ -228,7 +250,12 @@ def get_language() -> str:
 
 
 def tr(text: str, **values) -> str:
-    translated = _TRANSLATIONS.get(_language, {}).get(text, text)
+    return tr_for_language(_language, text, **values)
+
+
+def tr_for_language(language: str, text: str, **values) -> str:
+    """Translate a draft/example without changing the running interface language."""
+    translated = _TRANSLATIONS.get(language, {}).get(text, text)
     return translated.format(**values) if values else translated
 
 

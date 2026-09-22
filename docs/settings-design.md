@@ -1,4 +1,4 @@
-# PFC Settings — v0.18.1
+# PFC Settings — v0.18.3
 
 ## Information architecture
 
@@ -17,6 +17,34 @@ contextual shortcuts, not duplicated as a second preference store.
 | Paths & Operations | Native/PFC right-click mode, recycle/error policy, three custom prefix slots | Application |
 | Preview | Extension Effect and explanation of existing reading tools | F3 Preview |
 | General | UI language and Windows sign-in startup | Application / Windows account |
+
+### Fixed-top previews on every page (v0.18.3)
+
+Appearance and Layout retain the existing screenshot comparisons, font sample
+and panel diagrams. The other four pages now use readable, code-drawn examples
+above the scrolling controls, labeled **Preview · After Apply**:
+
+- **File Columns:** a synthetic file list uses the actual size/date formatters.
+  Hidden/system files, extensions, mixed sorting, column visibility, GB/TB
+  emphasis and cloud/VCS icons reflect draft choices. A caption reports the
+  long-name scrolling policy; the static sample does not run a marquee.
+- **Paths & Operations:** an explicitly illustrative Explorer/PFC menu, Delete
+  versus Shift+Delete policy, stop/continue-on-error, and all three custom prefix
+  examples. Each configured prefix demonstrates a synthetic child named Docs;
+  the end result stays visible even when the prefix path is long.
+- **Preview:** the same small Markdown document in source or formatted mode,
+  including a heading, table and bold text. This is a lightweight illustration,
+  not a second document browser or background Markdown indexing job.
+- **General:** sample menus/buttons show the draft language without changing the
+  running interface. A sign-in flow distinguishes automatic from manual launch.
+  Names remain unchanged; the startup setting is still Windows-only.
+
+These four samples never open files, scan paths, query cloud providers, invoke
+native menus, delete data or write startup entries. Current/draft screenshots on
+Appearance/Layout remain separate from these draft-only examples. Sample heights
+are stable while options change; only changed state or width triggers repaint.
+Icons and fonts are released on the UI thread during category switching. The
+dialog's existing Apply/Cancel and keyboard behavior is unchanged.
 
 Per-tab color/lock, per-pane List/Folder/File mode, favorites, recent folders and
 document-specific preview tools stay next to their content; these are not silently
@@ -44,8 +72,8 @@ action, not a global recursive-scan option. Help retains manual Check Update.
 
 ## Visual design
 
-- Appearance and Layout keep the comparison outside and above the scrolling
-  controls. Current and draft details are visible immediately, and do not scroll
+- Every page keeps its preview outside and above the scrolling
+  controls. Style comparisons or draft examples are visible immediately, and do not scroll
   away while choosing options. Compact label/control rows avoid excess vertical
   whitespace. The default window is 1180×720, bounded by the screen.
 - Stable independent 14–18 pixel dialog fonts avoid controls moving under the
@@ -161,3 +189,26 @@ package and portable tests were repeated after the keyboard/translation refineme
   `f92e6d28a91803889b7c8866445adb46d3129e2a008d9ce878d98f26e2aff71c`.
   Both validation leases were released immediately after their checks, with the
   network disabled and disk hibernation managed by the VM pool.
+
+### v0.18.3 validation — 2026-09-23
+
+- The full headless suite passed: 238 unit tests (8 platform skips) and 66 GUI
+  invocations across the package and portable builds.
+- New `settings_previews_check.py` checks all six pages at 1180×720 and 780×560,
+  across four languages and three themes with the main app at 300%. It asserts
+  fixed-top placement during scrolling, visible footer, usable options area,
+  bounded preview text, stable redraw, draft-only language and unchanged INI on
+  Cancel. Focused package/portable checks were repeated after final refinements.
+- Visual review covered compact host examples and native Traditional Chinese
+  Windows examples at a 175% main-app scale. Review corrected clipped 12-hour
+  dates, menu spacing, long-prefix result visibility and untranslated example
+  commands. Repeated category changes also exposed a Tk image-finalizer lifetime
+  issue; preview-owned images/fonts now release explicitly on the UI thread.
+- Windows tests use an isolated temporary INI and stub startup/tray integration;
+  preview samples do not change files, Windows startup or account configuration.
+  No VM internet access is needed for this feature.
+- Final Windows portable preview, Settings and contextual-menu checks all exit
+  0. Tested SHA-256:
+  `900247399a8bf49abb4edf1dd23d3fc4cd747455203b061b8d832dd6b50bc7a0`.
+  Network was kept disabled and the lease released for immediate pool-managed
+  disk hibernation after validation.
