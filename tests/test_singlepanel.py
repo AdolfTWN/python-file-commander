@@ -5,10 +5,72 @@ import unittest
 from unittest.mock import patch, Mock
 from types import SimpleNamespace
 
-from pycommander.singlepanel import branch_segments, child_folders, root_folders
+from pycommander.singlepanel import branch_segments, child_folders, folder_has_children, root_folders
 
 
 class FolderTreeTests(unittest.TestCase):
+    def test_late_negative_hint_never_replaces_navigation_children(self):
+        import queue
+        from pycommander.singlepanel import RootFolderTree
+        for pending, loaded, branch in ((True, False, False), (False, True, False),
+                                         (False, False, True)):
+            cancel = threading.Event(); results = queue.Queue()
+            results.put((cancel, 'folder', False)); results.put((cancel, None, None))
+            tree = Mock()
+            owner = SimpleNamespace(_probe_results=results, _probe_cancel=cancel,
+                paths={'folder': Path('/folder')}, loaded={'folder'} if loaded else set(),
+                pending={'folder': object()} if pending else {}, _child_hints={},
+                _has_branch=lambda _iid: branch, tree=tree)
+            RootFolderTree._poll_probes(owner)
+            self.assertIsNone(owner._probe_cancel)
+            self.assertEqual(owner._child_hints, {})
+            tree.delete.assert_not_called()
+
+    def test_child_hint_distinguishes_files_empty_and_actual_subfolders(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            self.assertIs(folder_has_children(root, threading.Event()), False)
+            (root/'rule.md').write_text('not read')
+            with patch('builtins.open', side_effect=AssertionError('content read')):
+                self.assertIs(folder_has_children(root, threading.Event()), False)
+                (root/'nested').mkdir()
+                self.assertIs(folder_has_children(root, threading.Event()), True)
+
+    def test_child_hint_stops_at_first_directory(self):
+        directory = Mock(); directory.is_dir.return_value = True
+        entries = Mock(); entries.__enter__ = Mock(return_value=iter([directory, None]))
+        entries.__exit__ = Mock(return_value=False)
+        with tempfile.TemporaryDirectory() as raw, patch('os.scandir', return_value=entries):
+            self.assertIs(folder_has_children(Path(raw), threading.Event()), True)
+        directory.is_dir.assert_called_once_with(follow_symlinks=False)
+
+    def test_child_hint_limits_errors_and_cancel_remain_unknown(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw); (root/'file').touch()
+            self.assertIsNone(folder_has_children(root, threading.Event(), limit=0))
+            self.assertIsNone(folder_has_children(root, threading.Event(), seconds=-1))
+            cancel = threading.Event(); cancel.set()
+            with patch('os.scandir', side_effect=AssertionError('cancel must not scan')):
+                self.assertIsNone(folder_has_children(root, cancel))
+            with patch('os.scandir', side_effect=PermissionError('denied')):
+                self.assertIsNone(folder_has_children(root, threading.Event()))
+            entry = Mock(); entry.is_dir.side_effect = PermissionError('denied entry')
+            entries = Mock(); entries.__enter__ = Mock(return_value=iter([entry]))
+            entries.__exit__ = Mock(return_value=False)
+            with patch('os.scandir', return_value=entries):
+                self.assertIsNone(folder_has_children(root, threading.Event()))
+
+    def test_child_hint_never_probes_drives_shares_or_reparse_placeholders(self):
+        from pathlib import PureWindowsPath
+        for path in (Path(Path.cwd().anchor), PureWindowsPath(r'\\server\share\folder')):
+            with patch('os.scandir', side_effect=AssertionError('unsafe scan')):
+                self.assertIsNone(folder_has_children(path, threading.Event()))
+        for flags, mode in ((0x400, 0o40755), (0x1000, 0o40755), (0, 0o120777)):
+            with patch.object(Path, 'lstat', return_value=SimpleNamespace(
+                    st_file_attributes=flags, st_mode=mode)), patch('os.scandir',
+                    side_effect=AssertionError('linked/cloud scan')):
+                self.assertIsNone(folder_has_children(Path('/example/folder'), threading.Event()))
+
     def test_branch_endings_and_ancestor_continuations(self):
         self.assertEqual(branch_segments((False,), True, 20, 30), [(10,15,10,30)])
         self.assertEqual(branch_segments((False,False), False, 20,30),

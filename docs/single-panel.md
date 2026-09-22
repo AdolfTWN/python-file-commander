@@ -1,4 +1,4 @@
-# One-panel workspace — v0.17.29
+# One-panel workspace — v0.18.0
 
 Select **View → Panel Counts → 1 Panel**, also available through the background
 context menu. This is one navigation workspace, not a second transfer panel.
@@ -16,10 +16,21 @@ context menu. This is one navigation workspace, not a second transfer panel.
   The active folder and its ancestors expand by default. Expanded rows have no
   collapse symbol; double-clicking a folder name, icon or connector area toggles
   expansion. Selection, context menus and native keyboard navigation remain
-  available. Closed branches use small outlined plus controls. Antialiased
+  available. Closed branches use small outlined plus controls only after a real
+  subfolder is known; empty and files-only folders have no plus. Antialiased
   folder, drive and computer icons scale with the font and sit directly on the
   branch joints, so child connectors descend from the parent icon. Rendering reads cached
   tree items only, with no filesystem queries.
+- A separate single background worker checks only visible, unopened folders for
+  child directories, stopping at the first match. It never opens file content or
+  recursively indexes descendants. Each hint is bounded to 2,000 entries / 0.2s,
+  with batches capped at 32 visible candidates / 1s (cooperative OS-I/O limits).
+  Unknown, denied or limited results do not pretend to be confirmed branches or
+  leaves; click/double-click/Right-arrow still allow manual discovery. Automatic
+  hints skip drive roots, UNC paths, symlinks and Windows reparse/offline folders.
+  Hints cannot occupy the two navigation workers. Refresh clears their cache and
+  discards stale results; normal navigation also reads the chosen folder anew
+  if only a hint, not a full listing, is cached. No new preference is required.
 - Clicking a folder navigates the active tab; tab/path changes synchronize the
   tree. ZIP previews synchronize to their containing persistent folder, never
   exposing an extraction temp path as the logical root.
@@ -37,6 +48,41 @@ context menu. This is one navigation workspace, not a second transfer panel.
   not operate on an unrelated selected file in the right pane.
 - Each original panel still retains at least one tab, matching the existing
   close-tab rule; this also ensures it can be restored as a usable panel.
+
+## v0.18.0 tree UI/UX checks
+
+The original defect came from treating the lazy-loading placeholder as a real
+child. Expansion badges now use verified children; placeholders only preserve
+manual/keyboard discovery while a result is unknown. Opening an unloaded branch
+also invalidates its badge immediately, without drawing a placeholder connector.
+
+The release checks cover three rounds:
+
+1. **Meaning and interaction:** empty / files-only / real child / inconclusive
+   folders before any click, native Right-arrow, double-click on text/icon/line,
+   manual discovery after an inconclusive hint, and newly added children after
+   Refresh. Late negative hints cannot replace actual navigation results.
+2. **Geometry and legibility:** 100/150/300% font scales, three color schemes,
+   icon size, native text hit regions, thin dotted branch endpoints, floating
+   ancestors, horizontal clipping, selection and stable redraw signatures.
+3. **Lifecycle and scope:** saved deep-path startup, sorted sibling completion,
+   bounded Expand All and hint workers, cancellation/refresh, shared tab/panel
+   restoration and a final Windows portable-artifact hash check.
+
+`folder_leaf_check.py` is the new targeted regression; the existing `folder_*`
+and `single_panel_check.py` scripts cover the surrounding behavior. The Windows
+Expand All suite could not create its real symlink fixture; Linux real-symlink
+checks and mocked Windows reparse/offline guards cover that boundary separately.
+No live OneDrive hydration or remote-share latency claim is made by these tests.
+
+Offline Windows ARM64 portable checks passed for leaf hints, saved-path hierarchy,
+startup, double-click, floating ancestors, connector/theme/zoom geometry, bounded
+expansion and single-panel integration. Both the focused 150% fixture and the
+actual PFC startup window were visually inspected. Tested portable SHA-256:
+`b7ecb1b8b37ca9b1dbe93694a6d4682484bcf067164ce3764ab022a42fd1a631`.
+Linux validation also passed: the complete 62-invocation headless GUI suite,
+final 227-unit-test run (8 platform skips), and final source/portable leaf checks
+using PFC's `clam` theme with explicit native-text clearance assertions.
 
 ## Floating ancestor context
 

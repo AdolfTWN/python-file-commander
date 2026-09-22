@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.17.29**
+Current version: **v0.18.0**
 
 **Compact workflow tools:** Ctrl+Shift+P searches commands and Settings. Tools
 holds named Workspaces and Saved comparisons; F9 adds source-safe text editing,

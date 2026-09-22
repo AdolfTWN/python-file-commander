@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Empty and files-only folders no longer show a false expand icon before being opened.': ('修正：空資料夾及只有檔案的資料夾，不再於開啟前顯示錯誤的展開圖示。', '修复：空文件夹及只有文件的文件夹，不再于打开前显示错误的展开图标。', '수정: 비어 있거나 파일만 있는 폴더에 열기 전 잘못된 확장 아이콘이 표시되지 않습니다.'),
+    'Improved: Visible folder expansion hints are checked in the background without recursive scanning or blocking navigation.': ('改善：背景確認可見資料夾的展開提示，不遞迴掃描，也不阻塞導覽。', '改进：后台确认可见文件夹的展开提示，不递归扫描，也不阻塞导航。', '개선: 재귀 검색이나 탐색 차단 없이 보이는 폴더의 확장 표시를 백그라운드에서 확인합니다.'),
     'Open a comparison with F9, then save it from Session.': ('先按 F9 開啟比較，再從 Session 選單儲存。', '先按 F9 打开比较，再从 Session 菜单保存。', 'F9로 비교를 연 다음 Session 메뉴에서 저장하세요.'),
     'Archive content is read-only': ('壓縮檔內容為唯讀', '压缩档内容为只读', '압축 파일 내용은 읽기 전용입니다'),
     'Added: Named workspaces, comparison sessions, command search and Markdown reading bookmarks.': ('新增：命名工作區、比較工作階段、命令搜尋與 Markdown 閱讀書籤。', '新增：命名工作区、比较会话、命令搜索与 Markdown 阅读书签。', '추가: 이름별 작업 공간, 비교 세션, 명령 검색 및 Markdown 읽기 북마크.'),

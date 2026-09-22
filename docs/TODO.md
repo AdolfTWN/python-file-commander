@@ -1,5 +1,16 @@
 # PFC follow-ups
 
+## Truthful folder expansion hints — v0.18.0
+
+- [x] Replace placeholder-based plus indicators with confirmed child-directory
+  hints. Empty and files-only folders are plain leaves before the first click.
+- [x] Single bounded background hint worker; visible rows only, early exit,
+  no recursive index or file reads, guarded cloud/link/share probing.
+- [x] Preserve unknown-state manual discovery; ignore stale refresh results and
+  prevent late hints from replacing children discovered by actual navigation.
+- [x] Add leaf/branch/unknown, keyboard, zoom/contrast, stable redraw and refresh
+  regressions; see [single-panel behavior](single-panel.md) for scope and limits.
+
 ## Folder hierarchy follow-up — v0.17.29
 
 - [x] Fix startup-only ancestor chains: complete immediate sibling lists along

@@ -4,6 +4,7 @@ from collections import deque
 import os
 from pathlib import Path
 import queue
+import stat
 import threading
 import time
 import tkinter as tk
@@ -40,6 +41,34 @@ def child_folders(path, stop, limit=2000, seconds=3):
             except OSError:
                 continue
     return sorted(found, key=lambda p:p.name.casefold()), partial
+
+
+def folder_has_children(path, stop, limit=2000, seconds=.2):
+    """True/False only when verified; None means unknown, not an empty folder.
+
+    A visible-row hint, not a directory index: stop at the first subdirectory,
+    never open file contents, and avoid automatically probing drives, shares,
+    symlinks or Windows cloud/reparse placeholders.
+    """
+    if stop.is_set() or path.parent == path or str(path).startswith(('\\\\', '//')):
+        return None
+    deadline = time.monotonic()+seconds
+    try:
+        info = path.lstat()
+        if stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & (0x400 | 0x1000):
+            return None
+        uncertain = False
+        with os.scandir(path) as entries:
+            for index, entry in enumerate(entries):
+                if stop.is_set() or index >= limit or time.monotonic() > deadline:
+                    return None
+                try:
+                    if entry.is_dir(follow_symlinks=False): return True
+                except OSError:
+                    uncertain = True
+        return None if uncertain or stop.is_set() else False
+    except OSError:
+        return None
 
 
 def branch_segments(following, expanded, indent, height):
@@ -116,6 +145,10 @@ class RootFolderTree(ttk.Frame):
         body.pack_forget(); body.pack(fill='both', expand=True)
         self.paths, self.nodes, self.loaded, self.pending = {}, {}, set(), {}
         self.failed, self.partial = set(), set()
+        self._child_hints = {}  # absent = not checked; None = inconclusive
+        self._probe_results = queue.Queue()
+        self._probe_cancel = None
+        self._visible_nodes = ()
         self._context_queue = deque()
         self._bulk_queue = deque(); self._bulk_seen = set(); self._bulk_pending = set(); self._bulk_checked = set()
         self._bulk_running = False; self._bulk_incomplete = False
@@ -163,7 +196,7 @@ class RootFolderTree(ttk.Frame):
         self.tree.focus_set(); self.tree.focus(iid)
         if (abs(event.x-canvas.arrow_x) <= canvas.arrow_radius
                 and abs(event.y-canvas.arrow_y) <= canvas.arrow_radius
-                and self.tree.get_children(iid) and not self.tree.item(iid, 'open')):
+                and self._has_branch(iid) and not self.tree.item(iid, 'open')):
             self.tree.item(iid, open=True)
             self.failed.discard(iid)
             self.load(iid)
@@ -351,15 +384,17 @@ class RootFolderTree(ttk.Frame):
                 chain.append(item); item = self.tree.parent(item)
             chain.reverse()
             flags = tuple(bool(self.tree.next(item)) for item in chain)
-            children = bool(self.tree.get_children(iid))
-            opened = bool(self.tree.item(iid, 'open')) and children
-            rows.append((iid, x, top, h, flags, children, opened, iid in selected))
+            actual_children = any(child in self.paths for child in self.tree.get_children(iid))
+            children = actual_children or self._child_hints.get(iid) is True
+            opened = bool(self.tree.item(iid, 'open'))
+            rows.append((iid, x, top, h, flags, children, opened, actual_children, iid in selected))
             y = max(y+1, top+h)
+        self._visible_nodes = tuple(row[0] for row in rows)
         self._draw_sticky(rows, width, height, indent, bg, fg, font)
         signature = (tuple(rows), width, height, indent, bg, fg, selbg, selfg)
         if signature == self._line_signature: return
         self._line_signature = signature
-        for index, (iid, x, top, h, flags, children, opened, active) in enumerate(rows):
+        for index, (iid, x, top, h, flags, children, opened, actual_children, active) in enumerate(rows):
             if index == len(self._line_rows):
                 canvas = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0, takefocus=False)
                 canvas.bind('<Button-1>', lambda e, c=canvas:self._line_click(c, e))
@@ -383,7 +418,7 @@ class RootFolderTree(ttk.Frame):
             background = selbg if active else bg
             ink, paper = self.winfo_rgb(color), self.winfo_rgb(background)
             muted = '#'+''.join(f'{round((a*.48+b*.52)/257):02x}' for a,b in zip(ink,paper))
-            for x1,y1,x2,y2 in branch_segments(flags, opened, indent, h):
+            for x1,y1,x2,y2 in branch_segments(flags, opened and actual_children, indent, h):
                 canvas.create_line(round(x1+offset),round(y1),round(x2+offset),round(y2),
                                    fill=muted, width=1, dash=(1,2), tags='branch')
             # Put the folder ON its tree joint, rather than placing a second
@@ -404,6 +439,52 @@ class RootFolderTree(ttk.Frame):
                 canvas.create_line(plus_x-radius+2,plus_y,plus_x+radius-2,plus_y,fill=color, tags='indicator')
                 canvas.create_line(plus_x,plus_y-radius+2,plus_x,plus_y+radius-2,fill=color, tags='indicator')
         for canvas in self._line_rows[len(rows):]: canvas.place_forget()
+
+    def _has_branch(self, iid):
+        return (self._child_hints.get(iid) is True or
+                any(child in self.paths for child in self.tree.get_children(iid)))
+
+    def _probe_visible(self):
+        # Independent single worker: a slow hint must never monopolize the two
+        # navigation workers. A blocked OS call cannot create more threads.
+        if self._probe_cancel is not None or not self.tree.winfo_viewable(): return
+        candidates = []
+        for iid in self._visible_nodes:
+            if (iid not in self.paths or iid in self.loaded or iid in self.pending
+                    or iid in self.failed or iid in self._child_hints
+                    or self.tree.item(iid, 'open') or self._has_branch(iid)):
+                continue
+            candidates.append((iid, self.paths[iid]))
+            if len(candidates) >= 32: break
+        if not candidates: return
+        cancel = self._probe_cancel = threading.Event()
+        def work():
+            deadline = time.monotonic()+1
+            try:
+                for iid, path in candidates:
+                    if cancel.is_set() or self.stop.is_set() or time.monotonic() > deadline: break
+                    value = folder_has_children(path, cancel)
+                    self._probe_results.put((cancel, iid, value))
+            finally:
+                self._probe_results.put((cancel, None, None))
+        threading.Thread(target=work, daemon=True, name='PFC-folder-hints').start()
+
+    def _poll_probes(self):
+        while not self._probe_results.empty():
+            cancel, iid, value = self._probe_results.get_nowait()
+            if cancel is not self._probe_cancel: continue
+            if iid is None:
+                self._probe_cancel = None
+                continue
+            if (cancel.is_set() or iid not in self.paths or iid in self.loaded
+                    or iid in self.pending or self._has_branch(iid)):
+                continue
+            self._child_hints[iid] = value
+            if value is False:
+                # Remove only the keyboard-expansion placeholder, never a real
+                # child inserted by navigation while a hint was in flight.
+                for child in self.tree.get_children(iid):
+                    if child not in self.paths: self.tree.delete(child)
 
     def _node(self, path, parent):
         key = os.path.normcase(str(path))
@@ -573,6 +654,7 @@ class RootFolderTree(ttk.Frame):
             self._bulk_queue.extend((child, depth+1) for child in self.tree.get_children(iid) if child in self.paths)
 
     def _poll(self):
+        self._poll_probes()
         for iid, (token, started, cancel) in list(self.pending.items()):
             if time.monotonic()-started > 5:
                 self.pending.pop(iid, None)
@@ -599,6 +681,8 @@ class RootFolderTree(ttk.Frame):
             if tuple(ordered) != children: self.tree.set_children(iid, *ordered)
             if not error: self.loaded.add(iid)
             else: self.failed.add(iid)
+            self._child_hints[iid] = (True if self.tree.get_children(iid) else
+                                      None if error or partial else False)
             if partial: self.partial.add(iid)
             self.status.configure(text=error or (tr('Folder list limited. Use the file list or Refresh.') if partial else ''))
             if error and not self.tree.get_children(iid): self.tree.insert(iid, 'end', text='…')
@@ -606,6 +690,7 @@ class RootFolderTree(ttk.Frame):
         self._load_context()
         self._expand_batch()
         self._draw_lines()
+        self._probe_visible()
         if anchor is not None and self.tree.selection() == (anchor[0],):
             self._cancel_view_settle()
             self._view_settle_job = self.after_idle(self._settle_scan_selection, anchor[0], self._view_epoch, 32)
@@ -659,6 +744,8 @@ class RootFolderTree(ttk.Frame):
         selected = self.tree.selection()
         path = self.paths.get(selected[0]) if selected else None
         self.stop_expand_all()
+        if self._probe_cancel is not None: self._probe_cancel.set()
+        self._child_hints.clear(); self._visible_nodes = ()
         for _, _, cancel in self.pending.values(): cancel.set()
         self.pending.clear(); self.loaded.clear(); self.paths.clear(); self.nodes.clear()
         self._context_queue.clear()
@@ -672,6 +759,7 @@ class RootFolderTree(ttk.Frame):
     def destroy(self):
         self._cancel_view_settle()
         self.stop_expand_all()
+        if self._probe_cancel is not None: self._probe_cancel.set()
         for _, _, cancel in self.pending.values(): cancel.set()
         self.stop.set()
         self.after_cancel(self._poll_job)

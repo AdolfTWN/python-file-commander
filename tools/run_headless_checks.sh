@@ -39,6 +39,8 @@ xvfb-run -a python3 tools/folder_startup_check.py
 xvfb-run -a python3 tools/folder_startup_check.py pfc
 xvfb-run -a python3 tools/folder_hierarchy_check.py
 xvfb-run -a python3 tools/folder_hierarchy_check.py pfc
+xvfb-run -a python3 tools/folder_leaf_check.py
+xvfb-run -a python3 tools/folder_leaf_check.py pfc
 xvfb-run -a python3 tools/markdown_preview_check.py
 xvfb-run -a python3 tools/markdown_preview_check.py pfc
 xvfb-run -a python3 tools/markdown_reading_check.py
