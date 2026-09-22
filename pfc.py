@@ -17,6 +17,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Fixed: Folder-tree selection, icons and text scroll together when floating ancestors appear or disappear.": ("修正：浮動上層目錄出現或消失時，資料夾樹的光棒、圖示與文字同步捲動，不再短暫錯位。", "修复：浮动上级目录出现或消失时，文件夹树的选中条、图标与文字同步滚动，不再短暂错位。", "수정: 고정 상위 폴더가 나타나거나 사라질 때 폴더 트리의 선택 표시, 아이콘과 텍스트가 함께 스크롤됩니다."),
+    "Improved: Floating ancestors reuse full-size icons; regression checks cover immediate wheel repaint across themes and font scales.": ("改善：浮動階層共用原尺寸圖示，並新增跨配色與字型比例的滾輪即時重繪回歸測試。", "改进：浮动层级共用原尺寸图标，并新增跨配色与字体比例的滚轮即时重绘回归测试。", "개선: 고정 상위 폴더가 원래 크기의 아이콘을 재사용하며, 테마와 글꼴 배율별 즉시 휠 다시 그리기 회귀 검사를 추가했습니다."),
     "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.": ("新增：F8 顯示 Git／SVN 狀態，開啟指定範圍的 Tortoise 提交／推送、歷史與版本關係圖，並整合 PFC 右鍵選單。", "新增：F8 显示 Git／SVN 状态，打开指定范围的 Tortoise 提交／推送、历史和版本关系图，并集成 PFC 右键菜单。", "추가: F8 Git/SVN 상태, 범위 지정 Tortoise 커밋/푸시, 기록 및 그래프를 PFC 컨텍스트 메뉴와 공유합니다."),
     "Improved: A measured-width action bar fits F8 without shrinking fonts or displacing zoom; compact labels preserve transfer destinations.": ("改善：快捷列依文字寬度配置，容納 F8 且不縮小字型或擠壓縮放控制；精簡文字保留傳送目的面板。", "改进：快捷栏按文字宽度布局，容纳 F8 且不缩小字体或挤压缩放控件；精简标签保留传送目标面板。", "개선: 글꼴이나 확대 제어를 줄이지 않고 F8을 배치하며 간결한 레이블에도 전송 대상 패널을 유지합니다."),
     "Version Control": ("版本控制", "版本控制", "버전 관리"),
@@ -5293,14 +5295,15 @@ class RootFolderTree(ttk.Frame):
         self._line_signature = None
         self._line_indent = None
         self._line_job = None
+        self._drawing_lines = False
         self._view_epoch = 0
         self._view_settle_job = None
         scroll = ttk.Scrollbar(body, command=self._scroll_view)
         scroll.pack(side='right', fill='y'); self.tree.pack(fill='both', expand=True)
-        self.tree.configure(yscrollcommand=lambda *args:(scroll.set(*args), self._schedule_lines()))
+        self.tree.configure(yscrollcommand=lambda *args:self._scrolled(scroll, *args))
         horizontal = self._horizontal = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
         horizontal.pack(side='bottom', fill='x')
-        self.tree.configure(xscrollcommand=lambda *args:(horizontal.set(*args), self._schedule_lines()))
+        self.tree.configure(xscrollcommand=lambda *args:self._scrolled(horizontal, *args))
         self.status = ttk.Label(self, text='', wraplength=280)
         self.status.pack(side='bottom', fill='x', padx=4)
         # Reserve the bottom controls before giving the tree its remaining area.
@@ -5334,8 +5337,21 @@ class RootFolderTree(ttk.Frame):
         self.tree.bind('<Button-3>', on_context)
         self.tree.bind('<Shift-F10>', on_context)
         self.tree.bind('<KeyPress-Menu>', on_context)
-        for event in ('<Configure>', '<Expose>', '<<TreeviewOpen>>', '<<TreeviewClose>>', '<<TreeviewSelect>>'):
+        self.tree.bind('<Configure>', self._redraw_lines, add='+')
+        for event in ('<Expose>', '<<TreeviewOpen>>', '<<TreeviewClose>>', '<<TreeviewSelect>>'):
             self.tree.bind(event, self._schedule_lines, add='+')
+        # Run AFTER native Treeview input but BEFORE it paints. An after_idle
+        # callback is too late: native text has already moved while the child
+        # canvases still show the previous row's selection/icon. Preserve Tk's
+        # platform-specific wheel and keyboard behaviour instead of duplicating it.
+        self._render_tag = f'PFCFolderRender{id(self)}'
+        tags = list(self.tree.bindtags())
+        tags.insert(tags.index('Treeview')+1, self._render_tag)
+        self.tree.bindtags(tuple(tags))
+        for event in ('<MouseWheel>', '<Shift-MouseWheel>', '<Button-4>', '<Button-5>',
+                      '<Shift-Button-4>', '<Shift-Button-5>', '<KeyPress>',
+                      '<Button-1>', '<ButtonRelease-1>'):
+            self.tree.bind_class(self._render_tag, event, self._redraw_lines)
         # These belong to the file list, never silently operate on its old row
         # while the navigation tree has focus. Arrow keys keep native tree use.
         for key in ('<Delete>', '<Shift-Delete>', '<F2>', '<Control-c>', '<Control-x>'):
@@ -5347,9 +5363,22 @@ class RootFolderTree(ttk.Frame):
         if self._line_job is None:
             self._line_job = self.after_idle(self._redraw_lines)
 
-    def _redraw_lines(self):
-        self._line_job = None
-        self._draw_lines()
+    def _redraw_lines(self, _event=None):
+        if self._drawing_lines: return
+        if self._line_job is not None:
+            self.after_cancel(self._line_job)
+            self._line_job = None
+        self._drawing_lines = True
+        try:
+            self._draw_lines()
+        finally:
+            self._drawing_lines = False
+
+    def _scrolled(self, scrollbar, *args):
+        scrollbar.set(*args)
+        # Also cover scrollbar drags, see(), and programmatic x/yview changes.
+        # Tk calls this while preparing its new viewport, before native paint.
+        self._redraw_lines()
 
     def _line_click(self, canvas, event):
         iid = canvas.row_id
@@ -5398,7 +5427,7 @@ class RootFolderTree(ttk.Frame):
             self.tree.yview_scroll(-3 if event.num == 4 else 3, 'units')
         else:
             self.tree.event_generate('<MouseWheel>', delta=event.delta, state=event.state)
-        self._draw_lines()
+        self._redraw_lines()
         return 'break'
 
     def _cancel_view_settle(self, _event=None):
@@ -5410,6 +5439,7 @@ class RootFolderTree(ttk.Frame):
     def _scroll_view(self, *args):
         self._cancel_view_settle()
         self.tree.yview(*args)
+        self._redraw_lines()
 
     def _sticky_motion(self, event):
         row = next((iid for top, bottom, iid in self._sticky_rows if top <= event.y < bottom), '')
@@ -5465,7 +5495,9 @@ class RootFolderTree(ttk.Frame):
         if row_height < font.metrics('linespace')+4:
             self._sticky_font.configure(size=-max(1, int(row_height-4)))
         icon_size = max(1, min(self._icon_size, int(row_height-3)))
-        if self._sticky_icons.get('size') != icon_size:
+        if icon_size == self._icon_size:
+            self._sticky_icons = {'size':icon_size, 'shared':True, **self._icons}
+        elif self._sticky_icons.get('shared') or self._sticky_icons.get('size') != icon_size:
             self._sticky_icons = {'size':icon_size, **{
                 kind:tk.PhotoImage(master=self,data=folder_nav_icon_png(kind,icon_size),format='png')
                 for kind in ('pc','drive','folder')}}
@@ -5926,6 +5958,8 @@ class RootFolderTree(ttk.Frame):
         self.stop.set()
         self.after_cancel(self._poll_job)
         if self._line_job is not None: self.after_cancel(self._line_job)
+        for event in self.tree.bind_class(self._render_tag):
+            self.tree.unbind_class(self._render_tag, event)
         super().destroy()
 
 
@@ -14619,7 +14653,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.18.5"
+__version__ = "0.18.6"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -14704,6 +14738,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/23"
 VERSION_HISTORY = (
+    ("v0.18.6", "2026/09/23", (
+        "Fixed: Folder-tree selection, icons and text scroll together when floating ancestors appear or disappear.",
+        "Improved: Floating ancestors reuse full-size icons; regression checks cover immediate wheel repaint across themes and font scales.",
+    )),
     ("v0.18.5", "2026/09/23", (
         "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.",
         "Improved: A measured-width action bar fits F8 without shrinking fonts or displacing zoom; compact labels preserve transfer destinations.",

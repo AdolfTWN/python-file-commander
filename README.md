@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.5**
+Current version: **v0.18.6**
 
 **F8 Git / SVN:** select a file or folder to see local changes, cached upstream
 ahead/behind, and open Tortoise Commit, Push (Git), History or Graph dialogs.

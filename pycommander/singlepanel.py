@@ -131,14 +131,15 @@ class RootFolderTree(ttk.Frame):
         self._line_signature = None
         self._line_indent = None
         self._line_job = None
+        self._drawing_lines = False
         self._view_epoch = 0
         self._view_settle_job = None
         scroll = ttk.Scrollbar(body, command=self._scroll_view)
         scroll.pack(side='right', fill='y'); self.tree.pack(fill='both', expand=True)
-        self.tree.configure(yscrollcommand=lambda *args:(scroll.set(*args), self._schedule_lines()))
+        self.tree.configure(yscrollcommand=lambda *args:self._scrolled(scroll, *args))
         horizontal = self._horizontal = ttk.Scrollbar(self, orient='horizontal', command=self.tree.xview)
         horizontal.pack(side='bottom', fill='x')
-        self.tree.configure(xscrollcommand=lambda *args:(horizontal.set(*args), self._schedule_lines()))
+        self.tree.configure(xscrollcommand=lambda *args:self._scrolled(horizontal, *args))
         self.status = ttk.Label(self, text='', wraplength=280)
         self.status.pack(side='bottom', fill='x', padx=4)
         # Reserve the bottom controls before giving the tree its remaining area.
@@ -172,8 +173,21 @@ class RootFolderTree(ttk.Frame):
         self.tree.bind('<Button-3>', on_context)
         self.tree.bind('<Shift-F10>', on_context)
         self.tree.bind('<KeyPress-Menu>', on_context)
-        for event in ('<Configure>', '<Expose>', '<<TreeviewOpen>>', '<<TreeviewClose>>', '<<TreeviewSelect>>'):
+        self.tree.bind('<Configure>', self._redraw_lines, add='+')
+        for event in ('<Expose>', '<<TreeviewOpen>>', '<<TreeviewClose>>', '<<TreeviewSelect>>'):
             self.tree.bind(event, self._schedule_lines, add='+')
+        # Run AFTER native Treeview input but BEFORE it paints. An after_idle
+        # callback is too late: native text has already moved while the child
+        # canvases still show the previous row's selection/icon. Preserve Tk's
+        # platform-specific wheel and keyboard behaviour instead of duplicating it.
+        self._render_tag = f'PFCFolderRender{id(self)}'
+        tags = list(self.tree.bindtags())
+        tags.insert(tags.index('Treeview')+1, self._render_tag)
+        self.tree.bindtags(tuple(tags))
+        for event in ('<MouseWheel>', '<Shift-MouseWheel>', '<Button-4>', '<Button-5>',
+                      '<Shift-Button-4>', '<Shift-Button-5>', '<KeyPress>',
+                      '<Button-1>', '<ButtonRelease-1>'):
+            self.tree.bind_class(self._render_tag, event, self._redraw_lines)
         # These belong to the file list, never silently operate on its old row
         # while the navigation tree has focus. Arrow keys keep native tree use.
         for key in ('<Delete>', '<Shift-Delete>', '<F2>', '<Control-c>', '<Control-x>'):
@@ -185,9 +199,22 @@ class RootFolderTree(ttk.Frame):
         if self._line_job is None:
             self._line_job = self.after_idle(self._redraw_lines)
 
-    def _redraw_lines(self):
-        self._line_job = None
-        self._draw_lines()
+    def _redraw_lines(self, _event=None):
+        if self._drawing_lines: return
+        if self._line_job is not None:
+            self.after_cancel(self._line_job)
+            self._line_job = None
+        self._drawing_lines = True
+        try:
+            self._draw_lines()
+        finally:
+            self._drawing_lines = False
+
+    def _scrolled(self, scrollbar, *args):
+        scrollbar.set(*args)
+        # Also cover scrollbar drags, see(), and programmatic x/yview changes.
+        # Tk calls this while preparing its new viewport, before native paint.
+        self._redraw_lines()
 
     def _line_click(self, canvas, event):
         iid = canvas.row_id
@@ -236,7 +263,7 @@ class RootFolderTree(ttk.Frame):
             self.tree.yview_scroll(-3 if event.num == 4 else 3, 'units')
         else:
             self.tree.event_generate('<MouseWheel>', delta=event.delta, state=event.state)
-        self._draw_lines()
+        self._redraw_lines()
         return 'break'
 
     def _cancel_view_settle(self, _event=None):
@@ -248,6 +275,7 @@ class RootFolderTree(ttk.Frame):
     def _scroll_view(self, *args):
         self._cancel_view_settle()
         self.tree.yview(*args)
+        self._redraw_lines()
 
     def _sticky_motion(self, event):
         row = next((iid for top, bottom, iid in self._sticky_rows if top <= event.y < bottom), '')
@@ -303,7 +331,9 @@ class RootFolderTree(ttk.Frame):
         if row_height < font.metrics('linespace')+4:
             self._sticky_font.configure(size=-max(1, int(row_height-4)))
         icon_size = max(1, min(self._icon_size, int(row_height-3)))
-        if self._sticky_icons.get('size') != icon_size:
+        if icon_size == self._icon_size:
+            self._sticky_icons = {'size':icon_size, 'shared':True, **self._icons}
+        elif self._sticky_icons.get('shared') or self._sticky_icons.get('size') != icon_size:
             self._sticky_icons = {'size':icon_size, **{
                 kind:tk.PhotoImage(master=self,data=folder_nav_icon_png(kind,icon_size),format='png')
                 for kind in ('pc','drive','folder')}}
@@ -764,6 +794,8 @@ class RootFolderTree(ttk.Frame):
         self.stop.set()
         self.after_cancel(self._poll_job)
         if self._line_job is not None: self.after_cancel(self._line_job)
+        for event in self.tree.bind_class(self._render_tag):
+            self.tree.unbind_class(self._render_tag, event)
         super().destroy()
 
 

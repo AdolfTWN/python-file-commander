@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Fixed: Folder-tree selection, icons and text scroll together when floating ancestors appear or disappear.": ("修正：浮動上層目錄出現或消失時，資料夾樹的光棒、圖示與文字同步捲動，不再短暫錯位。", "修复：浮动上级目录出现或消失时，文件夹树的选中条、图标与文字同步滚动，不再短暂错位。", "수정: 고정 상위 폴더가 나타나거나 사라질 때 폴더 트리의 선택 표시, 아이콘과 텍스트가 함께 스크롤됩니다."),
+    "Improved: Floating ancestors reuse full-size icons; regression checks cover immediate wheel repaint across themes and font scales.": ("改善：浮動階層共用原尺寸圖示，並新增跨配色與字型比例的滾輪即時重繪回歸測試。", "改进：浮动层级共用原尺寸图标，并新增跨配色与字体比例的滚轮即时重绘回归测试。", "개선: 고정 상위 폴더가 원래 크기의 아이콘을 재사용하며, 테마와 글꼴 배율별 즉시 휠 다시 그리기 회귀 검사를 추가했습니다."),
     "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.": ("新增：F8 顯示 Git／SVN 狀態，開啟指定範圍的 Tortoise 提交／推送、歷史與版本關係圖，並整合 PFC 右鍵選單。", "新增：F8 显示 Git／SVN 状态，打开指定范围的 Tortoise 提交／推送、历史和版本关系图，并集成 PFC 右键菜单。", "추가: F8 Git/SVN 상태, 범위 지정 Tortoise 커밋/푸시, 기록 및 그래프를 PFC 컨텍스트 메뉴와 공유합니다."),
     "Improved: A measured-width action bar fits F8 without shrinking fonts or displacing zoom; compact labels preserve transfer destinations.": ("改善：快捷列依文字寬度配置，容納 F8 且不縮小字型或擠壓縮放控制；精簡文字保留傳送目的面板。", "改进：快捷栏按文字宽度布局，容纳 F8 且不缩小字体或挤压缩放控件；精简标签保留传送目标面板。", "개선: 글꼴이나 확대 제어를 줄이지 않고 F8을 배치하며 간결한 레이블에도 전송 대상 패널을 유지합니다."),
     "Version Control": ("版本控制", "版本控制", "버전 관리"),

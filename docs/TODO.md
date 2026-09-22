@@ -1,5 +1,19 @@
 # PFC follow-ups
 
+## Folder-tree scroll painting — v0.18.6
+
+- [x] Synchronize native tree scrolling with selection/icon/connector canvases
+  before paint, including sticky-ancestor appearance/disappearance and resizing.
+- [x] Preserve platform wheel behaviour, Ctrl+wheel zoom, keyboard navigation,
+  scrollbar movement, dotted lines and all floating ancestors.
+- [x] Reuse normal-size navigation icons in floating rows instead of generating
+  a second set during the first scrolling transition.
+- [x] Add immediate-dispatch regression checks: the old portable fails, while
+  package, portable and offline Windows pass 432 checks each across three themes,
+  100/150/175/200% and text/icon/sticky wheel targets. Periodic repaint is disabled
+  in this test so delayed repairs cannot hide a failure.
+- See [diagnosis and validation](folder-scroll-validation.md).
+
 ## F8 version control — v0.18.5
 
 - [x] Fit F8 into the measured-width single-row action bar without shrinking fonts

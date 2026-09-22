@@ -43,6 +43,8 @@ xvfb-run -a python3 tools/folder_double_click_check.py
 xvfb-run -a python3 tools/folder_double_click_check.py pfc
 xvfb-run -a python3 tools/folder_sticky_check.py
 xvfb-run -a python3 tools/folder_sticky_check.py pfc
+xvfb-run -a python3 tools/folder_scroll_check.py
+xvfb-run -a python3 tools/folder_scroll_check.py pfc
 xvfb-run -a python3 tools/folder_startup_check.py
 xvfb-run -a python3 tools/folder_startup_check.py pfc
 xvfb-run -a python3 tools/folder_hierarchy_check.py
