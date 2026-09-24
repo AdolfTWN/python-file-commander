@@ -139,10 +139,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
-    ("v0.18.6", "2026/09/25", (
+    ("v0.18.7", "2026/09/25", (
         "Fixed: Folder-tree rows use native images instead of separate overlays; navigation reveals the complete selected row after sticky layout changes.",
         "Fixed: Code and YAML previews no longer fail on a translated syntax-label parameter collision.",
         "Added: F3 multi-file tabs retain each document's reading position, search and view mode; inactive tabs load only when selected.",
+    )),
+    ("v0.18.6", "2026/09/23", (
+        "Attempted: Folder-tree scroll repaint synchronization; user retesting still found tearing. Superseded by native-row rendering in v0.18.7.",
     )),
     ("v0.18.5", "2026/09/23", (
         "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.",

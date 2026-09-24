@@ -1,12 +1,10 @@
 # Python File Commander
 
-Current version: **v0.18.6**
+Current version: **v0.18.7**
 
-The 2026/09/25 main-branch correction retains 0.18.6 at the user's request; the
-original v0.18.6 tag is not moved. This refreshed portable fixes blank code/YAML
-Preview, adds F3 multi-file tabs and replaces the folder-tree split renderer.
-An already-installed 0.18.6 does not discover an equal-version build through
-Check Update; download the main-branch `pfc.py` and replace it with PFC closed.
+The 2026/09/25 release fixes blank code/YAML Preview, adds F3 multi-file tabs
+and replaces the folder-tree split renderer. Use Check for Updates to upgrade
+from 0.18.6; the original v0.18.6 tag is preserved for historical comparison.
 See [Windows A/B evidence and remaining acceptance](docs/folder-scroll-validation.md).
 
 **F8 Git / SVN:** select a file or folder to see local changes, cached upstream

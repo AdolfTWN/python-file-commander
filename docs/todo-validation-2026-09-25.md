@@ -1,4 +1,4 @@
-# TODO correction and UI/UX validation — refreshed 0.18.6 main
+# TODO correction and UI/UX validation — v0.18.7
 
 ## Implemented
 
@@ -44,11 +44,11 @@
 
 ## Delivery
 
-Retain 0.18.6 as explicitly requested after the failed earlier repair. Preserve
-the published tag instead of force-moving it. The corrected portable is on main;
-equal-version Check Update deliberately does not offer it. Close PFC and manually
-replace `pfc.py`, or authorize a subsequent patch version for update discovery.
-The private GitLab mirror must match main and keep the unchanged version tag.
+The user clarified that the earlier same-version exception covered the failed
+repair only; the new features and corrections are released as v0.18.7. Rebuild
+the portable on main and publish a new v0.18.7 tag for Check for Updates discovery.
+Preserve the original v0.18.6 tag. The private GitLab mirror must match main and
+both version tags. This version-only release does not expand the test claims above.
 
 Deferred cloud links and larger Obsidian-style extensions are not silently enabled:
 their bounded workspace, provider no-recall, renderer and execution-policy decisions

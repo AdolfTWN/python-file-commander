@@ -1,4 +1,8 @@
-# Folder-tree selection scroll repair attempt — v0.18.6
+# Folder-tree selection scroll correction — v0.18.7
+
+The native-row correction and new Preview features ship as v0.18.7 following
+the user's 2026-09-25 clarification. The original v0.18.6 tag and failed-attempt
+evidence remain unchanged. Physical-laptop and live OneDrive acceptance remain open.
 
 ## Current candidate: native-row rendering (2026-09-24)
 

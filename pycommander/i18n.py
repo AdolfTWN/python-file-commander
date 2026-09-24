@@ -11,6 +11,7 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Attempted: Folder-tree scroll repaint synchronization; user retesting still found tearing. Superseded by native-row rendering in v0.18.7.": ("修正嘗試：資料夾樹捲動重繪同步；使用者複測仍發現光棒破裂。v0.18.7 改以原生列繪製取代。", "修复尝试：文件夹树滚动重绘同步；用户复测仍发现选中条破裂。v0.18.7 改以原生行绘制取代。", "수정 시도: 폴더 트리 스크롤 다시 그리기 동기화 후에도 사용자 재시험에서 화면 분할이 발견되었습니다. v0.18.7의 기본 행 렌더링으로 대체되었습니다."),
     "Fixed: Folder-tree rows use native images instead of separate overlays; navigation reveals the complete selected row after sticky layout changes.": ("修正：資料夾樹改用原生列圖像，移除分離的覆蓋層；導航時在浮動階層調整後完整顯示選取列。", "修复：文件夹树改用原生行图像，移除分离覆盖层；导航时在浮动层级调整后完整显示选中行。", "수정: 폴더 트리는 분리된 오버레이 대신 기본 행 이미지를 사용하고 고정 계층 변경 후 선택 행을 표시합니다."),
     "Fixed: Code and YAML previews no longer fail on a translated syntax-label parameter collision.": ("修正：程式碼與 YAML 預覽不再因語法標籤翻譯參數衝突而空白。", "修复：代码与 YAML 预览不再因语法标签翻译参数冲突而空白。", "수정: 구문 레이블 번역 매개변수 충돌로 코드 및 YAML 미리 보기가 비는 문제를 해결했습니다."),
     "Added: F3 multi-file tabs retain each document's reading position, search and view mode; inactive tabs load only when selected.": ("新增：F3 多檔案頁籤各自保留閱讀位置、搜尋及檢視模式；未作用的頁籤等切換時才載入。", "新增：F3 多文件标签页各自保留阅读位置、搜索和视图模式；未激活的标签页等切换时才加载。", "추가: F3 다중 문서 탭이 읽기 위치, 검색, 보기 모드를 유지하고 선택할 때만 문서를 로드합니다."),

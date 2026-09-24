@@ -1,6 +1,6 @@
 # PFC follow-ups
 
-## Current completion boundary — 2026-09-24
+## Current completion boundary — 2026-09-25
 
 The actionable offline defects and Preview-tab request below are implemented and
 validated. This is not a declaration that all TODOs are closed.
@@ -20,12 +20,12 @@ External acceptance and explicitly deferred Markdown features remain open:
   plugins/executable queries require a separate execution/security decision.
   These were not silently enabled by a generic UI polish change.
 
-Per the existing explicit instruction, the correction retains 0.18.6 unless the
-user approves a new patch version. Do not force-move the published v0.18.6 tag.
-Check Update compares versions, so an equal-version refreshed main build needs a
-manual portable replacement; do not claim automatic discovery of a newer version.
+The user clarified on 2026-09-25 that the earlier same-version exception applied
+to the failed repair only. These new features and corrections ship as v0.18.7,
+with a rebuilt portable and new tag so Check for Updates can discover the release.
+Preserve the original v0.18.6 tag and its failed-retest evidence.
 
-## F3 Preview — readable text files appear blank (0.18.6 refreshed main)
+## F3 Preview — readable text files appear blank (v0.18.7)
 
 - [x] Investigate and fix files that display text normally in an external editor
   but show no text in PFC Preview. Photo 38905.jpg shows `skill.yaml` readable in
@@ -44,7 +44,7 @@ manual portable replacement; do not claim automatic discovery of a newer version
 Linux package and Windows portable GUI checks cover YAML, Python, JSON, XML,
 PowerShell, plain text, UTF-16, Auto/Text and explicit missing-file errors.
 
-## F3 Preview — multiple file tabs (0.18.6 refreshed main)
+## F3 Preview — multiple file tabs (v0.18.7)
 
 - [x] Support multiple file tabs within one Preview window, especially for
   quickly switching between several Markdown documents.
@@ -72,8 +72,9 @@ reuse v0.18.6 for the eventual correction, per the user's explicit instruction.
 Work resumed on 2026-09-24. The candidate replaces the split renderer itself:
 transparent native item images contain the lines/icons, and Treeview owns the
 entire selected row. No independent row Canvas remains. The old attempted fix
-and its failed user retest remain recorded below. Keep the 0.18.6 version number
-and original tag per the user's explicit instruction; publish the correction on main.
+and its failed user retest remain recorded below. On 2026-09-25 the user clarified
+that this correction plus new features should ship as v0.18.7. The original
+v0.18.6 tag remains unchanged; real-laptop acceptance is still pending.
 
 - [ ] Navigation-triggered tearing: from the user folder, enter OneDrive in the
   file list. The left tree highlight becomes split/clipped (photo 38854.jpg;
