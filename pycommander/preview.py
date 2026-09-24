@@ -309,10 +309,12 @@ def render_hex(data: bytes) -> str:
     return "".join(lines)
 
 
-class PreviewWindow(tk.Toplevel):
+class PreviewPage(tk.Frame):
     def __init__(self, master, config, save_config, files, selected,
-                 extension_effect: bool = True) -> None:
+                 extension_effect: bool = True, *, host, lazy=False) -> None:
         super().__init__(master)
+        self.host = host
+        self._loaded = not lazy
         self.config_data, self.save_config = config, save_config
         self.files = list(files)
         self.index = self.files.index(selected) if selected in self.files else 0
@@ -339,13 +341,6 @@ class PreviewWindow(tk.Toplevel):
         self._md_auto_suspended=False
         self.bind('<Destroy>',lambda e:self._md_jobs.close() if e.widget is self else None,add='+')
         self.title(tr("PFC Preview"))
-        self.geometry(config.get("preview", "geometry", fallback="1100x720"))
-        self.minsize(640, 400)
-        self.protocol("WM_DELETE_WINDOW", self.close)
-        self.bind("<Escape>", lambda _event: self.close())
-        self.bind("<Control-f>", lambda _event: self.focus_search())
-        self.bind("<Alt-Left>", lambda _event: self.markdown_back() if self._md_history else self.previous_file())
-        self.bind("<Alt-Right>", lambda _event: self.next_file())
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
         file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
@@ -412,12 +407,17 @@ class PreviewWindow(tk.Toplevel):
         self.bind('<F5>',lambda e:self.load())
         self._configure_effect_fonts()
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
-        self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
+        self.apply_color_scheme(getattr(host.master, "palette", color_scheme("light")))
         install_button_tooltips(self)
-        self.load()
+        if not lazy: self.load()
         self._schedule_refresh()
         self._md_poll_job=self.after(40,self._poll_markdown)
-        self.after_idle(self.activate)
+
+    def title(self, value):
+        self.page_title = value
+        if self.host.active_page is self:
+            self.host.title(value)
+            self.host.path_label.configure(text=str(self.path))
 
     def _markdown_mode(self):
         return self.path.suffix.casefold()=='.md' and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
@@ -437,7 +437,7 @@ class PreviewWindow(tk.Toplevel):
 
     def _archive_markdown(self):
         # Use the archive session already owned by Commander. No target lookup.
-        for session in getattr(self.master,'_archive_sessions',[]):
+        for session in getattr(self.host.master,'_archive_sessions',[]):
             root=getattr(session,'root',None)
             if root is not None:
                 try: Path(os.path.abspath(self.path)).relative_to(Path(os.path.abspath(root)));return True
@@ -740,7 +740,7 @@ class PreviewWindow(tk.Toplevel):
         except tk.TclError: return 'break'
         self.clipboard_clear();self.clipboard_append(value);return 'break'
 
-    def apply_language(self, old_language: str) -> None:
+    def apply_language(self, old_language: str, *, reload=True) -> None:
         mode = self.mode_values.get(self.mode_var.get(), self.mode_var.get())
         retranslate_widgets(self, old_language)
         self.mode_values = {tr("Auto"): "Auto", tr("Text"): "Text", tr("Hex"): "Hex"}
@@ -751,7 +751,7 @@ class PreviewWindow(tk.Toplevel):
         self.markdown_combo.configure(values=tuple(self.markdown_values))
         self.markdown_var.set(next(label for label, value in self.markdown_values.items()
                                    if value == markdown_mode))
-        self.load()
+        if reload: self.load()
 
     def _configure_effect_fonts(self) -> None:
         base = tkfont.nametofont("TkFixedFont")
@@ -816,15 +816,6 @@ class PreviewWindow(tk.Toplevel):
     def path(self) -> Path:
         return self._linked_path if self._linked_path is not None else self.files[self.index]
 
-    def show(self, files, selected) -> None:
-        self._remember_markdown_position()
-        self.cancel_markdown()
-        self._linked_path=None;self._md_history=[]
-        self._md_boundary=Path(os.path.abspath(selected)).parent
-        self.files = list(files)
-        self.index = self.files.index(selected) if selected in self.files else 0
-        self.load(); self.activate()
-
     def set_extension_effect(self, enabled: bool) -> None:
         self.extension_effect = bool(enabled)
         self.load()
@@ -847,7 +838,7 @@ class PreviewWindow(tk.Toplevel):
             self._span_job = self.after(8, self._apply_span_batch)
 
     def activate(self) -> None:
-        self.deiconify(); self.lift(); self.focus_force(); self.text.focus_set()
+        self.host.activate(); self.text.focus_set()
 
     def _path_signature(self):
         try:
@@ -864,11 +855,13 @@ class PreviewWindow(tk.Toplevel):
 
     def _auto_refresh(self) -> None:
         self._refresh_job = None
+        if self.host.active_page is not self:
+            self._schedule_refresh(); return
         if self._markdown_mode():
             if (not self._md_auto_suspended and not self._md_jobs.pending and not self._md_queued
                     and not self._md_insert and self._md_display_path==self.path
                     and time.monotonic()-self._md_last_probe>5 and self.focus_displayof() is not None
-                    and self.focus_displayof().winfo_toplevel() is self
+                    and self.focus_displayof().winfo_toplevel() is self.host
                     and not self.text.tag_ranges('sel')):
                 self._md_last_probe=time.monotonic();self._queue_markdown(probe=True)
             if self.winfo_exists(): self._schedule_refresh()
@@ -996,17 +989,11 @@ class PreviewWindow(tk.Toplevel):
 
     def previous_file(self) -> None:
         if self.files:
-            self._remember_markdown_position()
-            self._linked_path=None;self._md_history=[]
-            self.index = (self.index - 1) % len(self.files)
-            self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
+            self.host.show(self.files, self.files[(self.index-1) % len(self.files)])
 
     def next_file(self) -> None:
         if self.files:
-            self._remember_markdown_position()
-            self._linked_path=None;self._md_history=[]
-            self.index = (self.index + 1) % len(self.files)
-            self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
+            self.host.show(self.files, self.files[(self.index+1) % len(self.files)])
 
     def close(self) -> None:
         self._remember_markdown_position()
@@ -1017,7 +1004,157 @@ class PreviewWindow(tk.Toplevel):
             self.after_cancel(self._refresh_job); self._refresh_job = None
         if self._span_job is not None:
             self.after_cancel(self._span_job); self._span_job = None
-        if not self.config_data.has_section("preview"): self.config_data.add_section("preview")
-        self.config_data.set("preview", "geometry", self.geometry())
-        self.config_data.set("preview", "wrap", str(self.wrap_var.get()).lower())
+        self.destroy()
+
+
+class PreviewWindow(tk.Toplevel):
+    """One window, independent read-only documents; inactive tabs never read files."""
+    MAX_TABS = 32
+
+    def __init__(self, master, config, save_config, files, selected, extension_effect=True):
+        super().__init__(master)
+        self.config_data, self.save_config = config, save_config
+        self.extension_effect = extension_effect
+        self.pages = {}
+        self.active_page = None
+        self.geometry(config.get('preview', 'geometry', fallback='1100x720'))
+        self.minsize(640, 400)
+        self.protocol('WM_DELETE_WINDOW', self.close)
+        bar = ttk.Frame(self); bar.pack(fill='x', padx=6, pady=(4,0))
+        self.document_menu = ttk.Menubutton(bar, text=tr('Open documents'))
+        self.document_menu.pack(side='left')
+        self.documents = tk.Menu(self.document_menu, tearoff=False, postcommand=self._document_list)
+        self.document_menu.configure(menu=self.documents)
+        self.path_label = ttk.Label(bar, anchor='w', width=1)
+        self.path_label.pack(side='left', fill='x', expand=True, padx=8)
+        ToolTip(self.path_label, lambda: str(self.active_page.path) if self.active_page else '')
+        close_button = ttk.Button(bar, text=tr('Close tab'), command=self.close_tab)
+        close_button.pack(side='right')
+        ToolTip(close_button, lambda: tr('Close tab')+' (Ctrl+W)')
+        ToolTip(self.document_menu, lambda: tr('Open documents')+' (Ctrl+Tab / Ctrl+Shift+Tab)')
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill='both', expand=True)
+        self.notebook.bind('<<NotebookTabChanged>>', self._tab_changed)
+        self.notebook.bind('<Button-2>', self._middle_close)
+        for sequence, action in (
+                ('<Escape>', self.close), ('<Control-w>', self.close_tab),
+                ('<Control-f>', lambda: self.active_page.focus_search()),
+                ('<F5>', lambda: self.active_page.load()),
+                ('<Alt-Left>', lambda: self.active_page.markdown_back() if self.active_page._md_history else self.active_page.previous_file()),
+                ('<Alt-Right>', lambda: self.active_page.next_file()),
+                ('<Control-Tab>', lambda: self.cycle(1)),
+                ('<Control-Shift-Tab>', lambda: self.cycle(-1)),
+                ('<Control-ISO_Left_Tab>', lambda: self.cycle(-1))):
+            self.bind(sequence, lambda e, fn=action: (fn(), 'break')[1])
+        self.show(files, selected)
+
+    def __getattr__(self, name):
+        # Preserve Preview's active-document interface for callers and tools.
+        page = self.__dict__.get('active_page')
+        if page is not None and hasattr(page, name): return getattr(page, name)
+        raise AttributeError(name)
+
+    def _document_list(self):
+        self.documents.delete(0, 'end')
+        for page in self.pages.values():
+            self.documents.add_command(label=str(page.path), command=lambda p=page:self.notebook.select(p))
+
+    def show(self, files, selected):
+        self.open_paths(files, [selected], selected)
+
+    def open_paths(self, files, selected_paths, selected=None):
+        from tkinter import messagebox
+        selected_paths = list(selected_paths)
+        if not selected_paths: return
+        selected = selected or selected_paths[0]
+        chosen = None
+        for path in selected_paths:
+            path = Path(path)
+            key = os.path.normcase(os.path.abspath(path))
+            page = self.pages.get(key)
+            if page is None:
+                if len(self.pages) >= self.MAX_TABS:
+                    messagebox.showinfo(tr('PFC Preview'), tr('Close a preview tab before opening more (limit: 32).'), parent=self)
+                    break
+                navigation = list(files)
+                if path not in navigation: navigation.append(path)
+                page = PreviewPage(self.notebook, self.config_data, self.save_config,
+                                   navigation, path, self.extension_effect, host=self, lazy=True)
+                self.pages[key] = page
+                label = path.name or str(path)
+                if len(label)>38: label=label[:24]+'…'+label[-10:]
+                self.notebook.add(page, text=label)
+            else:
+                page.files = list(files)
+                if path not in page.files: page.files.append(path)
+                page.index = page.files.index(path)
+            if path == selected: chosen = page
+        if chosen is not None: self.notebook.select(chosen)
+        self._tab_changed()
+        self.activate()
+
+    def _tab_changed(self, _event=None):
+        tab = self.notebook.select()
+        if not tab: return
+        page = self.nametowidget(tab)
+        if self.active_page is not page:
+            previous = self.active_page
+            if previous is not None:
+                previous._remember_markdown_position()
+                if previous._md_jobs.pending or previous._md_queued or previous._md_insert:
+                    previous.cancel_markdown(); previous._loaded = False
+                previous._md_jobs.close()
+            self.active_page = page
+        if not page._loaded:
+            page._loaded = True; page.load()
+        self.title(getattr(page, 'page_title', tr('PFC Preview')))
+        self.path_label.configure(text=str(page.path))
+
+    def activate(self):
+        self.deiconify(); self.lift(); self.focus_force()
+        if self.active_page: self.active_page.text.focus_set()
+
+    def cycle(self, direction):
+        tabs = self.notebook.tabs()
+        if tabs: self.notebook.select(tabs[(tabs.index(self.notebook.select())+direction) % len(tabs)])
+
+    def _middle_close(self, event):
+        try: self.close_tab(self.nametowidget(self.notebook.tabs()[self.notebook.index(f'@{event.x},{event.y}')]))
+        except tk.TclError: pass
+
+    def close_tab(self, page=None):
+        page = page or self.active_page
+        if page is None: return
+        if len(self.pages) == 1: self.close(); return
+        self.notebook.forget(page)
+        self.pages = {key:value for key,value in self.pages.items() if value is not page}
+        if self.active_page is page: self.active_page = None
+        page.close(); self._tab_changed()
+
+    def apply_scale(self, scale):
+        for page in self.pages.values(): page.apply_scale(scale)
+
+    def apply_color_scheme(self, palette):
+        self.configure(background=palette['window'])
+        for page in self.pages.values(): page.apply_color_scheme(palette)
+
+    def apply_language(self, old_language):
+        for page in self.pages.values():
+            page.apply_language(old_language, reload=page is self.active_page)
+        retranslate_widgets(self, old_language)
+
+    def set_extension_effect(self, enabled):
+        self.extension_effect = enabled
+        for page in self.pages.values():
+            page.extension_effect = enabled
+            if page is self.active_page: page.load()
+            else: page._loaded = False
+
+    def close(self):
+        if not self.config_data.has_section('preview'): self.config_data.add_section('preview')
+        self.config_data.set('preview', 'geometry', self.geometry())
+        if self.active_page:
+            self.config_data.set('preview', 'wrap', str(self.active_page.wrap_var.get()).lower())
+        for page in list(self.pages.values()): page.close()
+        self.pages.clear(); self.active_page = None
         self.save_config(); self.destroy()

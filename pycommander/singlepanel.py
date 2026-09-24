@@ -127,7 +127,8 @@ class RootFolderTree(ttk.Frame):
         ToolTip(self._sticky, lambda: self._sticky_tip)
         body = self._body = ttk.Frame(self); body.pack(fill='both', expand=True)
         self.tree = ttk.Treeview(body, show='tree', selectmode='browse', style='FolderNav.Treeview')
-        self._line_rows = []
+        self._row_images = {}
+        self._image_cache = {}
         self._line_signature = None
         self._line_indent = None
         self._line_job = None
@@ -165,7 +166,7 @@ class RootFolderTree(ttk.Frame):
         self.tree.bind('<<TreeviewSelect>>', self._select)
         self._press_node = None
         self._press_open = False
-        self.tree.bind('<Button-1>', self._remember_press)
+        self.tree.bind('<Button-1>', self._native_click)
         for event in ('<MouseWheel>', '<Button-4>', '<Button-5>', '<KeyPress>'):
             self.tree.bind(event, self._cancel_view_settle, add='+')
         self.tree.bind('<Double-Button-1>', self._double_click)
@@ -216,26 +217,30 @@ class RootFolderTree(ttk.Frame):
         # Tk calls this while preparing its new viewport, before native paint.
         self._redraw_lines()
 
-    def _line_click(self, canvas, event):
-        iid = canvas.row_id
-        if not self.tree.exists(iid): return 'break'
-        self._remember_press(event, iid)
-        self.tree.focus_set(); self.tree.focus(iid)
-        if (abs(event.x-canvas.arrow_x) <= canvas.arrow_radius
-                and abs(event.y-canvas.arrow_y) <= canvas.arrow_radius
-                and self._has_branch(iid) and not self.tree.item(iid, 'open')):
-            self.tree.item(iid, open=True)
-            self.failed.discard(iid)
-            self.load(iid)
-        else:
-            self.tree.selection_set(iid)
-        self._draw_lines()
-        return 'break'
-
     def _remember_press(self, event, iid=None):
         self._cancel_view_settle()
         self._press_node = iid if iid is not None else self.tree.identify_row(event.y)
         self._press_open = bool(self.tree.item(self._press_node, 'open')) if self._press_node else False
+
+    def _native_click(self, event):
+        self._remember_press(event)
+        iid = self._press_node
+        if not iid or not self._has_branch(iid) or self.tree.item(iid, 'open'): return
+        box = self.tree.bbox(iid)
+        if not box or not self._line_indent: return
+        depth, parent = 0, self.tree.parent(iid)
+        while parent:
+            depth += 1; parent = self.tree.parent(parent)
+        center = box[0]+(depth+.5)*self._line_indent
+        radius = max(3, min(5, round(self._line_indent*.13)))
+        plus_x = round(center)+round(self._icon_size*.28)
+        plus_y = box[1]+box[3]//2+round(self._icon_size*.26)
+        if abs(event.x-plus_x) <= radius and abs(event.y-plus_y) <= radius:
+            self.tree.focus_set(); self.tree.focus(iid)
+            self.tree.item(iid, open=True)
+            self.failed.discard(iid); self.load(iid)
+            self._redraw_lines()
+            return 'break'
 
     def _manual_collapse(self, _event=None):
         # Manual intent wins over an in-flight/completed Expand All action.
@@ -372,10 +377,10 @@ class RootFolderTree(ttk.Frame):
         canvas.create_line(0,band_height-1,width,band_height-1,fill=muted,tags='ancestor-edge')
 
     def _draw_lines(self):
-        """Paint only visible indentation cells, leaving native text/keys intact.
+        """Use native item images: icon, text and selection scroll as ONE row.
 
-        Small row canvases draw crisp, muted dotted connectors independently
-        of native theme glyphs. Rendering reads cached items only, never disk.
+        No child windows cover Treeview. Transparent image prefixes contain
+        the dotted connectors and icon; ttk owns the entire selection surface.
         """
         if not self.tree.winfo_viewable(): return
         style = ttk.Style(self)
@@ -389,9 +394,15 @@ class RootFolderTree(ttk.Frame):
         indent = max(20, round(font.metrics('linespace')*1.1))
         if indent != self._line_indent:
             self._line_indent = indent
-            style.configure('FolderNav.Treeview', indent=indent)
-            style.configure('FolderNav.Treeview.Item', indicatorsize=indent, indicatormargins=0)
             self._line_signature = None
+        if str(style.lookup('FolderNav.Treeview', 'indent')) != '0':
+            style.configure('FolderNav.Treeview', indent=0)
+        layout = [('Treeitem.padding', {
+            'sticky':'nswe', 'children':[
+                ('Treeitem.image', {'side':'left', 'sticky':''}),
+                ('Treeitem.text', {'side':'left', 'sticky':''})]} )]
+        if style.layout('FolderNav.Treeview.Item') != layout:
+            style.layout('FolderNav.Treeview.Item', layout)
         height, width = self.tree.winfo_height(), self.tree.winfo_width()
         selected = self.tree.selection()
         bg = style.lookup('FolderNav.Treeview', 'background') or '#ffffff'
@@ -424,51 +435,42 @@ class RootFolderTree(ttk.Frame):
         signature = (tuple(rows), width, height, indent, bg, fg, selbg, selfg)
         if signature == self._line_signature: return
         self._line_signature = signature
-        for index, (iid, x, top, h, flags, children, opened, actual_children, active) in enumerate(rows):
-            if index == len(self._line_rows):
-                canvas = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0, takefocus=False)
-                canvas.bind('<Button-1>', lambda e, c=canvas:self._line_click(c, e))
-                canvas.bind('<Double-Button-1>', self._double_click)
-                canvas.bind('<Button-3>', self.on_context)
-                for event in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
-                    canvas.bind(event, self._line_wheel)
-                self._line_rows.append(canvas)
-            canvas = self._line_rows[index]
-            depth = len(flags)-1
-            # Keep native text fully visible; reserve exactly its indentation.
-            prefix = (depth+1)*indent
-            left, right = max(1, x), min(width-1, x+prefix)
-            if right <= left:
-                canvas.place_forget(); continue
-            offset = x-left
-            canvas.configure(background=selbg if active else bg)
-            canvas.place(x=left, y=top, width=right-left, height=h)
-            canvas.delete('all')
-            color = selfg if active else fg
-            background = selbg if active else bg
-            ink, paper = self.winfo_rgb(color), self.winfo_rgb(background)
-            muted = '#'+''.join(f'{round((a*.48+b*.52)/257):02x}' for a,b in zip(ink,paper))
-            for x1,y1,x2,y2 in branch_segments(flags, opened and actual_children, indent, h):
-                canvas.create_line(round(x1+offset),round(y1),round(x2+offset),round(y2),
-                                   fill=muted, width=1, dash=(1,2), tags='branch')
-            # Put the folder ON its tree joint, rather than placing a second
-            # native icon to the right of the indentation. Descendant lines
-            # emerge directly below the parent's icon; text starts just after it.
-            center, mid = round((depth+.5)*indent+offset), round(h/2)
+        for iid, x, top, h, flags, children, opened, actual_children, active in rows:
             path = self.paths.get(iid)
             kind = 'pc' if iid == self.pc else 'drive' if path and path.parent == path else 'folder'
-            canvas.create_image(center,mid,image=self._icons[kind],tags='folder-icon')
-            canvas.icon_x, canvas.icon_y = center, mid
-            radius = max(3, min(5, round(indent*.13)))
-            plus_x = center+round(self._icon_size*.28)
-            plus_y = mid+round(self._icon_size*.26)
-            canvas.row_id, canvas.arrow_x, canvas.arrow_y, canvas.arrow_radius = iid, plus_x, plus_y, radius
-            if children and not opened:
-                canvas.create_rectangle(plus_x-radius,plus_y-radius,plus_x+radius,plus_y+radius,
-                                        fill=background, outline=muted, width=1, tags='indicator')
-                canvas.create_line(plus_x-radius+2,plus_y,plus_x+radius-2,plus_y,fill=color, tags='indicator')
-                canvas.create_line(plus_x,plus_y-radius+2,plus_x,plus_y+radius-2,fill=color, tags='indicator')
-        for canvas in self._line_rows[len(rows):]: canvas.place_forget()
+            key = (flags, opened and actual_children, children and not opened,
+                   kind, indent, h, self._icon_size, bg, fg)
+            image = self._image_cache.get(key)
+            if image is None:
+                image = self._prefix_image(*key)
+                if len(self._image_cache) >= 512: self._image_cache.clear()
+                self._image_cache[key] = image
+            if self._row_images.get(iid) is not image:
+                self._row_images[iid] = image
+                self.tree.item(iid, image=image)
+
+    def _prefix_image(self, flags, expanded, expandable, kind, indent, height, icon_size, bg, fg):
+        image = tk.PhotoImage(master=self, width=len(flags)*indent, height=height)
+        ink, paper = self.winfo_rgb(fg), self.winfo_rgb(bg)
+        muted = '#'+''.join(f'{round((a*.48+b*.52)/257):02x}' for a,b in zip(ink,paper))
+        for x1,y1,x2,y2 in branch_segments(flags, expanded, indent, height):
+            if x1 == x2:
+                for y in range(round(y1), min(height, round(y2)+1), 3):
+                    image.put(muted, (round(x1), y))
+            else:
+                for x in range(round(x1), round(x2)+1, 3):
+                    image.put(muted, (x, round(y1)))
+        center, mid = round((len(flags)-.5)*indent), height//2
+        self.tk.call(str(image), 'copy', str(self._icons[kind]), '-to',
+                     center-icon_size//2, mid-icon_size//2, '-compositingrule', 'overlay')
+        if expandable:
+            r = max(3, min(5, round(indent*.13)))
+            px, py = center+round(icon_size*.28), mid+round(icon_size*.26)
+            image.put(muted, (px-r, py-r, px+r+1, py+r+1))
+            image.put(bg, (px-r+1, py-r+1, px+r, py+r))
+            image.put(fg, (px-r+2, py, px+r-1, py+1))
+            image.put(fg, (px, py-r+2, px+1, py+r-1))
+        return image
 
     def _has_branch(self, iid):
         return (self._child_hints.get(iid) is True or
@@ -560,7 +562,10 @@ class RootFolderTree(ttk.Frame):
         self.tree.item(parent, open=True)
         self._queue_context(parent)
         if self.tree.selection() != (parent,): self.tree.selection_set(parent)
+        self.tree.focus(parent)
         self.tree.see(parent)
+        self._cancel_view_settle()
+        self._view_settle_job = self.after_idle(self._settle_scan_selection, parent, self._view_epoch, 32)
 
     def _queue_context(self, iid):
         # Active folder first, then nearest ancestors. Keep work bounded to the
@@ -781,6 +786,7 @@ class RootFolderTree(ttk.Frame):
         self._context_queue.clear()
         self.failed.clear(); self.partial.clear(); self._current_node = None
         self.tree.delete(*self.tree.get_children(self.pc))
+        self._row_images.clear(); self._image_cache.clear()
         for drive in root_folders(): self._node(drive, self.pc)
         if path is not None:
             self.sync(path)

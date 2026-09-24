@@ -17,6 +17,12 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Fixed: Folder-tree rows use native images instead of separate overlays; navigation reveals the complete selected row after sticky layout changes.": ("修正：資料夾樹改用原生列圖像，移除分離的覆蓋層；導航時在浮動階層調整後完整顯示選取列。", "修复：文件夹树改用原生行图像，移除分离覆盖层；导航时在浮动层级调整后完整显示选中行。", "수정: 폴더 트리는 분리된 오버레이 대신 기본 행 이미지를 사용하고 고정 계층 변경 후 선택 행을 표시합니다."),
+    "Fixed: Code and YAML previews no longer fail on a translated syntax-label parameter collision.": ("修正：程式碼與 YAML 預覽不再因語法標籤翻譯參數衝突而空白。", "修复：代码与 YAML 预览不再因语法标签翻译参数冲突而空白。", "수정: 구문 레이블 번역 매개변수 충돌로 코드 및 YAML 미리 보기가 비는 문제를 해결했습니다."),
+    "Added: F3 multi-file tabs retain each document's reading position, search and view mode; inactive tabs load only when selected.": ("新增：F3 多檔案頁籤各自保留閱讀位置、搜尋及檢視模式；未作用的頁籤等切換時才載入。", "新增：F3 多文件标签页各自保留阅读位置、搜索和视图模式；未激活的标签页等切换时才加载。", "추가: F3 다중 문서 탭이 읽기 위치, 검색, 보기 모드를 유지하고 선택할 때만 문서를 로드합니다."),
+    "Open documents": ("已開啟文件", "已打开文档", "열린 문서"),
+    "Close tab": ("關閉頁籤", "关闭标签页", "탭 닫기"),
+    "Close a preview tab before opening more (limit: 32).": ("請先關閉部分預覽頁籤再開啟其他文件（上限 32 個）。", "请先关闭部分预览标签页再打开其他文档（上限 32 个）。", "더 열려면 미리 보기 탭을 닫으세요 (최대 32개)."),
     "Fixed: Folder-tree selection, icons and text scroll together when floating ancestors appear or disappear.": ("修正：浮動上層目錄出現或消失時，資料夾樹的光棒、圖示與文字同步捲動，不再短暫錯位。", "修复：浮动上级目录出现或消失时，文件夹树的选中条、图标与文字同步滚动，不再短暂错位。", "수정: 고정 상위 폴더가 나타나거나 사라질 때 폴더 트리의 선택 표시, 아이콘과 텍스트가 함께 스크롤됩니다."),
     "Improved: Floating ancestors reuse full-size icons; regression checks cover immediate wheel repaint across themes and font scales.": ("改善：浮動階層共用原尺寸圖示，並新增跨配色與字型比例的滾輪即時重繪回歸測試。", "改进：浮动层级共用原尺寸图标，并新增跨配色与字体比例的滚轮即时重绘回归测试。", "개선: 고정 상위 폴더가 원래 크기의 아이콘을 재사용하며, 테마와 글꼴 배율별 즉시 휠 다시 그리기 회귀 검사를 추가했습니다."),
     "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.": ("新增：F8 顯示 Git／SVN 狀態，開啟指定範圍的 Tortoise 提交／推送、歷史與版本關係圖，並整合 PFC 右鍵選單。", "新增：F8 显示 Git／SVN 状态，打开指定范围的 Tortoise 提交／推送、历史和版本关系图，并集成 PFC 右键菜单。", "추가: F8 Git/SVN 상태, 범위 지정 Tortoise 커밋/푸시, 기록 및 그래프를 PFC 컨텍스트 메뉴와 공유합니다."),
@@ -305,7 +311,7 @@ def tr(text: str, **values) -> str:
     return tr_for_language(_language, text, **values)
 
 
-def tr_for_language(language: str, text: str, **values) -> str:
+def tr_for_language(language: str, text: str, /, **values) -> str:
     """Translate a draft/example without changing the running interface language."""
     translated = _TRANSLATIONS.get(language, {}).get(text, text)
     return translated.format(**values) if values else translated
@@ -5291,7 +5297,8 @@ class RootFolderTree(ttk.Frame):
         ToolTip(self._sticky, lambda: self._sticky_tip)
         body = self._body = ttk.Frame(self); body.pack(fill='both', expand=True)
         self.tree = ttk.Treeview(body, show='tree', selectmode='browse', style='FolderNav.Treeview')
-        self._line_rows = []
+        self._row_images = {}
+        self._image_cache = {}
         self._line_signature = None
         self._line_indent = None
         self._line_job = None
@@ -5329,7 +5336,7 @@ class RootFolderTree(ttk.Frame):
         self.tree.bind('<<TreeviewSelect>>', self._select)
         self._press_node = None
         self._press_open = False
-        self.tree.bind('<Button-1>', self._remember_press)
+        self.tree.bind('<Button-1>', self._native_click)
         for event in ('<MouseWheel>', '<Button-4>', '<Button-5>', '<KeyPress>'):
             self.tree.bind(event, self._cancel_view_settle, add='+')
         self.tree.bind('<Double-Button-1>', self._double_click)
@@ -5380,26 +5387,30 @@ class RootFolderTree(ttk.Frame):
         # Tk calls this while preparing its new viewport, before native paint.
         self._redraw_lines()
 
-    def _line_click(self, canvas, event):
-        iid = canvas.row_id
-        if not self.tree.exists(iid): return 'break'
-        self._remember_press(event, iid)
-        self.tree.focus_set(); self.tree.focus(iid)
-        if (abs(event.x-canvas.arrow_x) <= canvas.arrow_radius
-                and abs(event.y-canvas.arrow_y) <= canvas.arrow_radius
-                and self._has_branch(iid) and not self.tree.item(iid, 'open')):
-            self.tree.item(iid, open=True)
-            self.failed.discard(iid)
-            self.load(iid)
-        else:
-            self.tree.selection_set(iid)
-        self._draw_lines()
-        return 'break'
-
     def _remember_press(self, event, iid=None):
         self._cancel_view_settle()
         self._press_node = iid if iid is not None else self.tree.identify_row(event.y)
         self._press_open = bool(self.tree.item(self._press_node, 'open')) if self._press_node else False
+
+    def _native_click(self, event):
+        self._remember_press(event)
+        iid = self._press_node
+        if not iid or not self._has_branch(iid) or self.tree.item(iid, 'open'): return
+        box = self.tree.bbox(iid)
+        if not box or not self._line_indent: return
+        depth, parent = 0, self.tree.parent(iid)
+        while parent:
+            depth += 1; parent = self.tree.parent(parent)
+        center = box[0]+(depth+.5)*self._line_indent
+        radius = max(3, min(5, round(self._line_indent*.13)))
+        plus_x = round(center)+round(self._icon_size*.28)
+        plus_y = box[1]+box[3]//2+round(self._icon_size*.26)
+        if abs(event.x-plus_x) <= radius and abs(event.y-plus_y) <= radius:
+            self.tree.focus_set(); self.tree.focus(iid)
+            self.tree.item(iid, open=True)
+            self.failed.discard(iid); self.load(iid)
+            self._redraw_lines()
+            return 'break'
 
     def _manual_collapse(self, _event=None):
         # Manual intent wins over an in-flight/completed Expand All action.
@@ -5536,10 +5547,10 @@ class RootFolderTree(ttk.Frame):
         canvas.create_line(0,band_height-1,width,band_height-1,fill=muted,tags='ancestor-edge')
 
     def _draw_lines(self):
-        """Paint only visible indentation cells, leaving native text/keys intact.
+        """Use native item images: icon, text and selection scroll as ONE row.
 
-        Small row canvases draw crisp, muted dotted connectors independently
-        of native theme glyphs. Rendering reads cached items only, never disk.
+        No child windows cover Treeview. Transparent image prefixes contain
+        the dotted connectors and icon; ttk owns the entire selection surface.
         """
         if not self.tree.winfo_viewable(): return
         style = ttk.Style(self)
@@ -5553,9 +5564,15 @@ class RootFolderTree(ttk.Frame):
         indent = max(20, round(font.metrics('linespace')*1.1))
         if indent != self._line_indent:
             self._line_indent = indent
-            style.configure('FolderNav.Treeview', indent=indent)
-            style.configure('FolderNav.Treeview.Item', indicatorsize=indent, indicatormargins=0)
             self._line_signature = None
+        if str(style.lookup('FolderNav.Treeview', 'indent')) != '0':
+            style.configure('FolderNav.Treeview', indent=0)
+        layout = [('Treeitem.padding', {
+            'sticky':'nswe', 'children':[
+                ('Treeitem.image', {'side':'left', 'sticky':''}),
+                ('Treeitem.text', {'side':'left', 'sticky':''})]} )]
+        if style.layout('FolderNav.Treeview.Item') != layout:
+            style.layout('FolderNav.Treeview.Item', layout)
         height, width = self.tree.winfo_height(), self.tree.winfo_width()
         selected = self.tree.selection()
         bg = style.lookup('FolderNav.Treeview', 'background') or '#ffffff'
@@ -5588,51 +5605,42 @@ class RootFolderTree(ttk.Frame):
         signature = (tuple(rows), width, height, indent, bg, fg, selbg, selfg)
         if signature == self._line_signature: return
         self._line_signature = signature
-        for index, (iid, x, top, h, flags, children, opened, actual_children, active) in enumerate(rows):
-            if index == len(self._line_rows):
-                canvas = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0, takefocus=False)
-                canvas.bind('<Button-1>', lambda e, c=canvas:self._line_click(c, e))
-                canvas.bind('<Double-Button-1>', self._double_click)
-                canvas.bind('<Button-3>', self.on_context)
-                for event in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
-                    canvas.bind(event, self._line_wheel)
-                self._line_rows.append(canvas)
-            canvas = self._line_rows[index]
-            depth = len(flags)-1
-            # Keep native text fully visible; reserve exactly its indentation.
-            prefix = (depth+1)*indent
-            left, right = max(1, x), min(width-1, x+prefix)
-            if right <= left:
-                canvas.place_forget(); continue
-            offset = x-left
-            canvas.configure(background=selbg if active else bg)
-            canvas.place(x=left, y=top, width=right-left, height=h)
-            canvas.delete('all')
-            color = selfg if active else fg
-            background = selbg if active else bg
-            ink, paper = self.winfo_rgb(color), self.winfo_rgb(background)
-            muted = '#'+''.join(f'{round((a*.48+b*.52)/257):02x}' for a,b in zip(ink,paper))
-            for x1,y1,x2,y2 in branch_segments(flags, opened and actual_children, indent, h):
-                canvas.create_line(round(x1+offset),round(y1),round(x2+offset),round(y2),
-                                   fill=muted, width=1, dash=(1,2), tags='branch')
-            # Put the folder ON its tree joint, rather than placing a second
-            # native icon to the right of the indentation. Descendant lines
-            # emerge directly below the parent's icon; text starts just after it.
-            center, mid = round((depth+.5)*indent+offset), round(h/2)
+        for iid, x, top, h, flags, children, opened, actual_children, active in rows:
             path = self.paths.get(iid)
             kind = 'pc' if iid == self.pc else 'drive' if path and path.parent == path else 'folder'
-            canvas.create_image(center,mid,image=self._icons[kind],tags='folder-icon')
-            canvas.icon_x, canvas.icon_y = center, mid
-            radius = max(3, min(5, round(indent*.13)))
-            plus_x = center+round(self._icon_size*.28)
-            plus_y = mid+round(self._icon_size*.26)
-            canvas.row_id, canvas.arrow_x, canvas.arrow_y, canvas.arrow_radius = iid, plus_x, plus_y, radius
-            if children and not opened:
-                canvas.create_rectangle(plus_x-radius,plus_y-radius,plus_x+radius,plus_y+radius,
-                                        fill=background, outline=muted, width=1, tags='indicator')
-                canvas.create_line(plus_x-radius+2,plus_y,plus_x+radius-2,plus_y,fill=color, tags='indicator')
-                canvas.create_line(plus_x,plus_y-radius+2,plus_x,plus_y+radius-2,fill=color, tags='indicator')
-        for canvas in self._line_rows[len(rows):]: canvas.place_forget()
+            key = (flags, opened and actual_children, children and not opened,
+                   kind, indent, h, self._icon_size, bg, fg)
+            image = self._image_cache.get(key)
+            if image is None:
+                image = self._prefix_image(*key)
+                if len(self._image_cache) >= 512: self._image_cache.clear()
+                self._image_cache[key] = image
+            if self._row_images.get(iid) is not image:
+                self._row_images[iid] = image
+                self.tree.item(iid, image=image)
+
+    def _prefix_image(self, flags, expanded, expandable, kind, indent, height, icon_size, bg, fg):
+        image = tk.PhotoImage(master=self, width=len(flags)*indent, height=height)
+        ink, paper = self.winfo_rgb(fg), self.winfo_rgb(bg)
+        muted = '#'+''.join(f'{round((a*.48+b*.52)/257):02x}' for a,b in zip(ink,paper))
+        for x1,y1,x2,y2 in branch_segments(flags, expanded, indent, height):
+            if x1 == x2:
+                for y in range(round(y1), min(height, round(y2)+1), 3):
+                    image.put(muted, (round(x1), y))
+            else:
+                for x in range(round(x1), round(x2)+1, 3):
+                    image.put(muted, (x, round(y1)))
+        center, mid = round((len(flags)-.5)*indent), height//2
+        self.tk.call(str(image), 'copy', str(self._icons[kind]), '-to',
+                     center-icon_size//2, mid-icon_size//2, '-compositingrule', 'overlay')
+        if expandable:
+            r = max(3, min(5, round(indent*.13)))
+            px, py = center+round(icon_size*.28), mid+round(icon_size*.26)
+            image.put(muted, (px-r, py-r, px+r+1, py+r+1))
+            image.put(bg, (px-r+1, py-r+1, px+r, py+r))
+            image.put(fg, (px-r+2, py, px+r-1, py+1))
+            image.put(fg, (px, py-r+2, px+1, py+r-1))
+        return image
 
     def _has_branch(self, iid):
         return (self._child_hints.get(iid) is True or
@@ -5724,7 +5732,10 @@ class RootFolderTree(ttk.Frame):
         self.tree.item(parent, open=True)
         self._queue_context(parent)
         if self.tree.selection() != (parent,): self.tree.selection_set(parent)
+        self.tree.focus(parent)
         self.tree.see(parent)
+        self._cancel_view_settle()
+        self._view_settle_job = self.after_idle(self._settle_scan_selection, parent, self._view_epoch, 32)
 
     def _queue_context(self, iid):
         # Active folder first, then nearest ancestors. Keep work bounded to the
@@ -5945,6 +5956,7 @@ class RootFolderTree(ttk.Frame):
         self._context_queue.clear()
         self.failed.clear(); self.partial.clear(); self._current_node = None
         self.tree.delete(*self.tree.get_children(self.pc))
+        self._row_images.clear(); self._image_cache.clear()
         for drive in root_folders(): self._node(drive, self.pc)
         if path is not None:
             self.sync(path)
@@ -11734,10 +11746,12 @@ def render_hex(data: bytes) -> str:
     return "".join(lines)
 
 
-class PreviewWindow(tk.Toplevel):
+class PreviewPage(tk.Frame):
     def __init__(self, master, config, save_config, files, selected,
-                 extension_effect: bool = True) -> None:
+                 extension_effect: bool = True, *, host, lazy=False) -> None:
         super().__init__(master)
+        self.host = host
+        self._loaded = not lazy
         self.config_data, self.save_config = config, save_config
         self.files = list(files)
         self.index = self.files.index(selected) if selected in self.files else 0
@@ -11764,13 +11778,6 @@ class PreviewWindow(tk.Toplevel):
         self._md_auto_suspended=False
         self.bind('<Destroy>',lambda e:self._md_jobs.close() if e.widget is self else None,add='+')
         self.title(tr("PFC Preview"))
-        self.geometry(config.get("preview", "geometry", fallback="1100x720"))
-        self.minsize(640, 400)
-        self.protocol("WM_DELETE_WINDOW", self.close)
-        self.bind("<Escape>", lambda _event: self.close())
-        self.bind("<Control-f>", lambda _event: self.focus_search())
-        self.bind("<Alt-Left>", lambda _event: self.markdown_back() if self._md_history else self.previous_file())
-        self.bind("<Alt-Right>", lambda _event: self.next_file())
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
         file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
@@ -11837,12 +11844,17 @@ class PreviewWindow(tk.Toplevel):
         self.bind('<F5>',lambda e:self.load())
         self._configure_effect_fonts()
         self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
-        self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
+        self.apply_color_scheme(getattr(host.master, "palette", color_scheme("light")))
         install_button_tooltips(self)
-        self.load()
+        if not lazy: self.load()
         self._schedule_refresh()
         self._md_poll_job=self.after(40,self._poll_markdown)
-        self.after_idle(self.activate)
+
+    def title(self, value):
+        self.page_title = value
+        if self.host.active_page is self:
+            self.host.title(value)
+            self.host.path_label.configure(text=str(self.path))
 
     def _markdown_mode(self):
         return self.path.suffix.casefold()=='.md' and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
@@ -11862,7 +11874,7 @@ class PreviewWindow(tk.Toplevel):
 
     def _archive_markdown(self):
         # Use the archive session already owned by Commander. No target lookup.
-        for session in getattr(self.master,'_archive_sessions',[]):
+        for session in getattr(self.host.master,'_archive_sessions',[]):
             root=getattr(session,'root',None)
             if root is not None:
                 try: Path(os.path.abspath(self.path)).relative_to(Path(os.path.abspath(root)));return True
@@ -12165,7 +12177,7 @@ class PreviewWindow(tk.Toplevel):
         except tk.TclError: return 'break'
         self.clipboard_clear();self.clipboard_append(value);return 'break'
 
-    def apply_language(self, old_language: str) -> None:
+    def apply_language(self, old_language: str, *, reload=True) -> None:
         mode = self.mode_values.get(self.mode_var.get(), self.mode_var.get())
         retranslate_widgets(self, old_language)
         self.mode_values = {tr("Auto"): "Auto", tr("Text"): "Text", tr("Hex"): "Hex"}
@@ -12176,7 +12188,7 @@ class PreviewWindow(tk.Toplevel):
         self.markdown_combo.configure(values=tuple(self.markdown_values))
         self.markdown_var.set(next(label for label, value in self.markdown_values.items()
                                    if value == markdown_mode))
-        self.load()
+        if reload: self.load()
 
     def _configure_effect_fonts(self) -> None:
         base = tkfont.nametofont("TkFixedFont")
@@ -12241,15 +12253,6 @@ class PreviewWindow(tk.Toplevel):
     def path(self) -> Path:
         return self._linked_path if self._linked_path is not None else self.files[self.index]
 
-    def show(self, files, selected) -> None:
-        self._remember_markdown_position()
-        self.cancel_markdown()
-        self._linked_path=None;self._md_history=[]
-        self._md_boundary=Path(os.path.abspath(selected)).parent
-        self.files = list(files)
-        self.index = self.files.index(selected) if selected in self.files else 0
-        self.load(); self.activate()
-
     def set_extension_effect(self, enabled: bool) -> None:
         self.extension_effect = bool(enabled)
         self.load()
@@ -12272,7 +12275,7 @@ class PreviewWindow(tk.Toplevel):
             self._span_job = self.after(8, self._apply_span_batch)
 
     def activate(self) -> None:
-        self.deiconify(); self.lift(); self.focus_force(); self.text.focus_set()
+        self.host.activate(); self.text.focus_set()
 
     def _path_signature(self):
         try:
@@ -12289,11 +12292,13 @@ class PreviewWindow(tk.Toplevel):
 
     def _auto_refresh(self) -> None:
         self._refresh_job = None
+        if self.host.active_page is not self:
+            self._schedule_refresh(); return
         if self._markdown_mode():
             if (not self._md_auto_suspended and not self._md_jobs.pending and not self._md_queued
                     and not self._md_insert and self._md_display_path==self.path
                     and time.monotonic()-self._md_last_probe>5 and self.focus_displayof() is not None
-                    and self.focus_displayof().winfo_toplevel() is self
+                    and self.focus_displayof().winfo_toplevel() is self.host
                     and not self.text.tag_ranges('sel')):
                 self._md_last_probe=time.monotonic();self._queue_markdown(probe=True)
             if self.winfo_exists(): self._schedule_refresh()
@@ -12421,17 +12426,11 @@ class PreviewWindow(tk.Toplevel):
 
     def previous_file(self) -> None:
         if self.files:
-            self._remember_markdown_position()
-            self._linked_path=None;self._md_history=[]
-            self.index = (self.index - 1) % len(self.files)
-            self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
+            self.host.show(self.files, self.files[(self.index-1) % len(self.files)])
 
     def next_file(self) -> None:
         if self.files:
-            self._remember_markdown_position()
-            self._linked_path=None;self._md_history=[]
-            self.index = (self.index + 1) % len(self.files)
-            self._md_boundary=Path(os.path.abspath(self.path)).parent;self.load()
+            self.host.show(self.files, self.files[(self.index+1) % len(self.files)])
 
     def close(self) -> None:
         self._remember_markdown_position()
@@ -12442,9 +12441,159 @@ class PreviewWindow(tk.Toplevel):
             self.after_cancel(self._refresh_job); self._refresh_job = None
         if self._span_job is not None:
             self.after_cancel(self._span_job); self._span_job = None
-        if not self.config_data.has_section("preview"): self.config_data.add_section("preview")
-        self.config_data.set("preview", "geometry", self.geometry())
-        self.config_data.set("preview", "wrap", str(self.wrap_var.get()).lower())
+        self.destroy()
+
+
+class PreviewWindow(tk.Toplevel):
+    """One window, independent read-only documents; inactive tabs never read files."""
+    MAX_TABS = 32
+
+    def __init__(self, master, config, save_config, files, selected, extension_effect=True):
+        super().__init__(master)
+        self.config_data, self.save_config = config, save_config
+        self.extension_effect = extension_effect
+        self.pages = {}
+        self.active_page = None
+        self.geometry(config.get('preview', 'geometry', fallback='1100x720'))
+        self.minsize(640, 400)
+        self.protocol('WM_DELETE_WINDOW', self.close)
+        bar = ttk.Frame(self); bar.pack(fill='x', padx=6, pady=(4,0))
+        self.document_menu = ttk.Menubutton(bar, text=tr('Open documents'))
+        self.document_menu.pack(side='left')
+        self.documents = tk.Menu(self.document_menu, tearoff=False, postcommand=self._document_list)
+        self.document_menu.configure(menu=self.documents)
+        self.path_label = ttk.Label(bar, anchor='w', width=1)
+        self.path_label.pack(side='left', fill='x', expand=True, padx=8)
+        ToolTip(self.path_label, lambda: str(self.active_page.path) if self.active_page else '')
+        close_button = ttk.Button(bar, text=tr('Close tab'), command=self.close_tab)
+        close_button.pack(side='right')
+        ToolTip(close_button, lambda: tr('Close tab')+' (Ctrl+W)')
+        ToolTip(self.document_menu, lambda: tr('Open documents')+' (Ctrl+Tab / Ctrl+Shift+Tab)')
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill='both', expand=True)
+        self.notebook.bind('<<NotebookTabChanged>>', self._tab_changed)
+        self.notebook.bind('<Button-2>', self._middle_close)
+        for sequence, action in (
+                ('<Escape>', self.close), ('<Control-w>', self.close_tab),
+                ('<Control-f>', lambda: self.active_page.focus_search()),
+                ('<F5>', lambda: self.active_page.load()),
+                ('<Alt-Left>', lambda: self.active_page.markdown_back() if self.active_page._md_history else self.active_page.previous_file()),
+                ('<Alt-Right>', lambda: self.active_page.next_file()),
+                ('<Control-Tab>', lambda: self.cycle(1)),
+                ('<Control-Shift-Tab>', lambda: self.cycle(-1)),
+                ('<Control-ISO_Left_Tab>', lambda: self.cycle(-1))):
+            self.bind(sequence, lambda e, fn=action: (fn(), 'break')[1])
+        self.show(files, selected)
+
+    def __getattr__(self, name):
+        # Preserve Preview's active-document interface for callers and tools.
+        page = self.__dict__.get('active_page')
+        if page is not None and hasattr(page, name): return getattr(page, name)
+        raise AttributeError(name)
+
+    def _document_list(self):
+        self.documents.delete(0, 'end')
+        for page in self.pages.values():
+            self.documents.add_command(label=str(page.path), command=lambda p=page:self.notebook.select(p))
+
+    def show(self, files, selected):
+        self.open_paths(files, [selected], selected)
+
+    def open_paths(self, files, selected_paths, selected=None):
+        from tkinter import messagebox
+        selected_paths = list(selected_paths)
+        if not selected_paths: return
+        selected = selected or selected_paths[0]
+        chosen = None
+        for path in selected_paths:
+            path = Path(path)
+            key = os.path.normcase(os.path.abspath(path))
+            page = self.pages.get(key)
+            if page is None:
+                if len(self.pages) >= self.MAX_TABS:
+                    messagebox.showinfo(tr('PFC Preview'), tr('Close a preview tab before opening more (limit: 32).'), parent=self)
+                    break
+                navigation = list(files)
+                if path not in navigation: navigation.append(path)
+                page = PreviewPage(self.notebook, self.config_data, self.save_config,
+                                   navigation, path, self.extension_effect, host=self, lazy=True)
+                self.pages[key] = page
+                label = path.name or str(path)
+                if len(label)>38: label=label[:24]+'…'+label[-10:]
+                self.notebook.add(page, text=label)
+            else:
+                page.files = list(files)
+                if path not in page.files: page.files.append(path)
+                page.index = page.files.index(path)
+            if path == selected: chosen = page
+        if chosen is not None: self.notebook.select(chosen)
+        self._tab_changed()
+        self.activate()
+
+    def _tab_changed(self, _event=None):
+        tab = self.notebook.select()
+        if not tab: return
+        page = self.nametowidget(tab)
+        if self.active_page is not page:
+            previous = self.active_page
+            if previous is not None:
+                previous._remember_markdown_position()
+                if previous._md_jobs.pending or previous._md_queued or previous._md_insert:
+                    previous.cancel_markdown(); previous._loaded = False
+                previous._md_jobs.close()
+            self.active_page = page
+        if not page._loaded:
+            page._loaded = True; page.load()
+        self.title(getattr(page, 'page_title', tr('PFC Preview')))
+        self.path_label.configure(text=str(page.path))
+
+    def activate(self):
+        self.deiconify(); self.lift(); self.focus_force()
+        if self.active_page: self.active_page.text.focus_set()
+
+    def cycle(self, direction):
+        tabs = self.notebook.tabs()
+        if tabs: self.notebook.select(tabs[(tabs.index(self.notebook.select())+direction) % len(tabs)])
+
+    def _middle_close(self, event):
+        try: self.close_tab(self.nametowidget(self.notebook.tabs()[self.notebook.index(f'@{event.x},{event.y}')]))
+        except tk.TclError: pass
+
+    def close_tab(self, page=None):
+        page = page or self.active_page
+        if page is None: return
+        if len(self.pages) == 1: self.close(); return
+        self.notebook.forget(page)
+        self.pages = {key:value for key,value in self.pages.items() if value is not page}
+        if self.active_page is page: self.active_page = None
+        page.close(); self._tab_changed()
+
+    def apply_scale(self, scale):
+        for page in self.pages.values(): page.apply_scale(scale)
+
+    def apply_color_scheme(self, palette):
+        self.configure(background=palette['window'])
+        for page in self.pages.values(): page.apply_color_scheme(palette)
+
+    def apply_language(self, old_language):
+        for page in self.pages.values():
+            page.apply_language(old_language, reload=page is self.active_page)
+        retranslate_widgets(self, old_language)
+
+    def set_extension_effect(self, enabled):
+        self.extension_effect = enabled
+        for page in self.pages.values():
+            page.extension_effect = enabled
+            if page is self.active_page: page.load()
+            else: page._loaded = False
+
+    def close(self):
+        if not self.config_data.has_section('preview'): self.config_data.add_section('preview')
+        self.config_data.set('preview', 'geometry', self.geometry())
+        if self.active_page:
+            self.config_data.set('preview', 'wrap', str(self.active_page.wrap_var.get()).lower())
+        for page in list(self.pages.values()): page.close()
+        self.pages.clear(); self.active_page = None
         self.save_config(); self.destroy()
 
 
@@ -12896,7 +13045,7 @@ class SearchWindow(tk.Toplevel):
         if paths:
             ordered = [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.get_children()
                        if self.tree.item(iid, "tags")]
-            self.on_preview(ordered, paths[0])
+            self.on_preview(ordered, paths[0], paths)
     def compare_selected(self):
         paths = self.selected_paths()
         if len(paths) < 2:
@@ -14736,11 +14885,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/23"
+BUILD_DATE = "2026/09/25"
 VERSION_HISTORY = (
-    ("v0.18.6", "2026/09/23", (
-        "Fixed: Folder-tree selection, icons and text scroll together when floating ancestors appear or disappear.",
-        "Improved: Floating ancestors reuse full-size icons; regression checks cover immediate wheel repaint across themes and font scales.",
+    ("v0.18.6", "2026/09/25", (
+        "Fixed: Folder-tree rows use native images instead of separate overlays; navigation reveals the complete selected row after sticky layout changes.",
+        "Fixed: Code and YAML previews no longer fail on a translated syntax-label parameter collision.",
+        "Added: F3 multi-file tabs retain each document's reading position, search and view mode; inactive tabs load only when selected.",
     )),
     ("v0.18.5", "2026/09/23", (
         "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.",
@@ -19504,13 +19654,15 @@ class Commander(tk.Tk):
             tags = source.tree.item(iid, "tags")
             if tags:
                 ordered.append(Path(tags[0]))
-        self.preview_paths(ordered or items, items[0])
+        self.preview_paths(ordered or items, items[0], items)
 
-    def preview_paths(self, paths, selected) -> None:
+    def preview_paths(self, paths, selected, selected_paths=None) -> None:
         if self.preview_window is None or not self.preview_window.winfo_exists():
             self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected,
                                                 self.extension_effect_var.get())
         else: self.preview_window.show(paths, selected)
+        if selected_paths:
+            self.preview_window.open_paths(paths, selected_paths, selected)
 
     def search(self) -> None:
         source, _ = self.panes()

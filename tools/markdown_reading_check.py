@@ -59,9 +59,9 @@ with tempfile.TemporaryDirectory() as raw:
         print('PASS: tasks/callouts, 100/150/300%, three themes, folding, search and lossless copy',flush=True)
         preview.toggle_markdown_source();settle(app,preview)
         assert preview.text.get('1.0','end-1c')==before[0].decode('utf-8')
-        preview.extension_effect=False;preview.load();settle(app,preview)
+        preview.set_extension_effect(False);settle(app,preview)
         assert not preview._md_model['rendered'] and not preview._md_model['spans']
-        preview.extension_effect=True
+        preview.set_extension_effect(True)
         preview.toggle_markdown_source();settle(app,preview)
         # Unicode before a link must not shift its clickable range.
         assert preview.text.get(*preview.text.tag_ranges('md_link_0'))=='Child'
@@ -94,7 +94,7 @@ with tempfile.TemporaryDirectory() as raw:
         original_jobs=preview._md_jobs;original_jobs.close()
         slow=root/'slow_worker.py'
         slow.write_text('import time\ndef markdown_worker_main(): time.sleep(30)\n',encoding='utf-8')
-        preview._md_jobs=type(original_jobs)(slow,False)
+        preview.active_page._md_jobs=type(original_jobs)(slow,False)
         preview.load()
         until=time.monotonic()+2
         while not preview._md_jobs.pending:
@@ -103,7 +103,7 @@ with tempfile.TemporaryDirectory() as raw:
         settle(app,preview)
         assert 'timed out' in preview.status.cget('text').lower()
         assert 'Target' in preview.text.get('1.0','end')
-        preview._md_jobs.close();preview._md_jobs=original_jobs
+        preview._md_jobs.close();preview.active_page._md_jobs=original_jobs
         preview.load();settle(app,preview)
         # Archive paths allow anchors only, never following extraction paths.
         archive=root/'pfc-archive-fixture';archive.mkdir()
@@ -124,9 +124,11 @@ with tempfile.TemporaryDirectory() as raw:
         assert len(preview.text.get('1.0','end-1c'))==512*1024
         assert (start.read_bytes(),child.read_bytes())==before
         assert not errors,errors
+        jobs=[page._md_jobs for page in preview.pages.values()]
         preview.close();app.update()
-        assert preview._md_jobs.process is None
+        assert all(job.process is None for job in jobs)
         print('PASS: stale-job rejection, cancel/timeout/retry, archive boundary, bounded fallback, unchanged source and cleanup',flush=True)
     finally:
-        if preview is not None: preview._md_jobs.close()
+        if preview is not None:
+            for page in preview.pages.values(): page._md_jobs.close()
         app.destroy()

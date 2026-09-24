@@ -1,10 +1,20 @@
 import unittest
 
-from pycommander.i18n import get_language, set_language, tr_for_language
+from pycommander.i18n import get_language, set_language, tr_for_language, tr
 from pycommander.settingspreview import column_sample_rows
 
 
 class SettingsPreviewTests(unittest.TestCase):
+    def test_syntax_language_placeholder_does_not_collide_with_locale(self):
+        before = get_language()
+        try:
+            for locale in ('en','zh_TW','zh_CN','ko'):
+                set_language(locale)
+                self.assertIn('YAML', tr('{language} syntax', language='YAML'))
+                self.assertIn('Python', tr_for_language(locale, '{language} syntax', language='Python'))
+        finally:
+            set_language(before)
+
     def values(self):
         return dict(show_hidden=False, show_system=False, show_extensions=True,
                     mix_sorting=False, date_order='ymd', time_style='24')

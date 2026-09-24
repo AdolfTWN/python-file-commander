@@ -2,6 +2,13 @@
 
 Current version: **v0.18.6**
 
+The 2026/09/25 main-branch correction retains 0.18.6 at the user's request; the
+original v0.18.6 tag is not moved. This refreshed portable fixes blank code/YAML
+Preview, adds F3 multi-file tabs and replaces the folder-tree split renderer.
+An already-installed 0.18.6 does not discover an equal-version build through
+Check Update; download the main-branch `pfc.py` and replace it with PFC closed.
+See [Windows A/B evidence and remaining acceptance](docs/folder-scroll-validation.md).
+
 **F8 Git / SVN:** select a file or folder to see local changes, cached upstream
 ahead/behind, and open Tortoise Commit, Push (Git), History or Graph dialogs.
 Commit defaults to the selection; whole-working-copy commit is a separate action.
@@ -182,7 +189,19 @@ File-list sizes use compact whole numbers rounded half up, with the existing 102
 
 F4 opens a reusable, cancellable background Search window with semicolon-separated wildcard/partial-name masks, file-content and Office XML search, case sensitivity, current/limited/all folder depth, file/folder type controls, minimum/maximum KB and modified-within-days filters. A live criteria summary and Clear Filters action make retained searches explicit. Results stream into sortable detail columns and support Enter/double-click Go to File, F3 Preview, multi-selection Copy Path, comparing two selected results, and sending the complete current result listing to a new panel tab. Search geometry and common criteria persist in `pfc.ini`; results are limited to 10,000 to protect responsiveness.
 
-F3 opens a reusable popup viewer with Esc close, Auto/Text/Hex modes, text wrapping, File <</>> navigation, case-sensitive content search, Find Prev/Next navigation, encoding and truncation details. With View > Preview > Extension Effect enabled (the default), Python and popular code/config formats receive syntax colors, while Markdown supports highlighted source (up to 512 Ki characters) and rendered reading. Markdown has a compact additional reading row, background metadata refresh no more frequently than every five seconds while focused and without a text selection, and F5 manual refresh. Other preview formats retain their two-second refresh. Preview geometry and wrapping preference are saved in `pfc.ini`.
+F3 opens a reusable, multi-tab popup viewer. Multi-select opens one tab per file;
+later F3 opens additional tabs and reuses an already-open path. Each tab retains
+its reading position, search, wrapping and Auto/Text/Hex or Markdown mode.
+Ctrl+Tab / Ctrl+Shift+Tab switch tabs; Ctrl+W, middle-click or Close tab closes one;
+Esc closes the window. Open documents lists full paths (including same-named
+files) and reaches tabs beyond the visible strip. Up to 32 tabs can be open;
+inactive new tabs do not read or parse files until selected. File <</>> navigation
+opens adjacent files without replacing existing tabs. Syntax colors cover Python
+and common code/config files, including YAML. Markdown supports highlighted source
+(up to 512 Ki characters) and rendered reading, with a compact reading toolbar.
+Only the active tab refreshes: Markdown metadata at most every five seconds while
+focused and without a text selection; other formats every two seconds. F5 refreshes
+manually. Preview geometry and the wrapping preference are saved in `pfc.ini`.
 
 Additional shortcuts: Ctrl+W closes a tab, Ctrl+A selects all, Ctrl+Shift+C copies the first selected path or current folder, F11 copies every selected full path as newline-separated text, and Ctrl+H toggles hidden files. F12 focuses and selects the current path for direct paste-and-Enter navigation; a pasted file path opens its parent folder and places the selection bar on that file.
 

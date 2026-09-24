@@ -451,7 +451,7 @@ class SearchWindow(tk.Toplevel):
         if paths:
             ordered = [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.get_children()
                        if self.tree.item(iid, "tags")]
-            self.on_preview(ordered, paths[0])
+            self.on_preview(ordered, paths[0], paths)
     def compare_selected(self):
         paths = self.selected_paths()
         if len(paths) < 2:

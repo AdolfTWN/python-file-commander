@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import time
+from folder_native_test_support import assert_guides
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 pfc=importlib.import_module(sys.argv[1] if len(sys.argv)>1 else 'pycommander.app')
@@ -46,18 +47,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-startup-') as raw:
         assert box and box[1]>=1 and box[1]+box[3]<tree.winfo_height(), 'Startup selection must remain fully visible'
         # No input events before these assertions: inspect the first loaded view.
         checked=0
-        for canvas in nav._line_rows:
-            if not canvas.winfo_ismapped():continue
-            row=canvas.row_id;chain=[row];parent=tree.parent(row)
-            while parent:chain.append(parent);parent=tree.parent(parent)
-            chain.reverse();depth=len(chain)-1
-            bbox=tree.bbox(row);offset=bbox[0]-canvas.winfo_x()
-            coords=[canvas.coords(line) for line in canvas.find_withtag('branch')]
-            for level in range(1,depth):
-                x=round((level-.5)*nav._line_indent+offset)
-                expected=bool(tree.next(chain[level]))
-                assert ([float(x),0.,float(x),float(bbox[3])] in coords)==expected,(row,level,coords)
-                checked+=1
+        for row in nav._visible_nodes:
+            checked+=assert_guides(nav,row)
         assert checked>10
         if '--visual' in sys.argv:
             print('VISUAL READY',flush=True);settle(app,25)

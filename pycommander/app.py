@@ -139,9 +139,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
-    ("v0.18.6", "2026/09/23", (
-        "Fixed: Folder-tree selection, icons and text scroll together when floating ancestors appear or disappear.",
-        "Improved: Floating ancestors reuse full-size icons; regression checks cover immediate wheel repaint across themes and font scales.",
+    ("v0.18.6", "2026/09/25", (
+        "Fixed: Folder-tree rows use native images instead of separate overlays; navigation reveals the complete selected row after sticky layout changes.",
+        "Fixed: Code and YAML previews no longer fail on a translated syntax-label parameter collision.",
+        "Added: F3 multi-file tabs retain each document's reading position, search and view mode; inactive tabs load only when selected.",
     )),
     ("v0.18.5", "2026/09/23", (
         "Added: F8 Git/SVN status, scoped Tortoise commit/push dialogs, history and revision graphs, shared with PFC context menus.",
@@ -4905,13 +4906,15 @@ class Commander(tk.Tk):
             tags = source.tree.item(iid, "tags")
             if tags:
                 ordered.append(Path(tags[0]))
-        self.preview_paths(ordered or items, items[0])
+        self.preview_paths(ordered or items, items[0], items)
 
-    def preview_paths(self, paths, selected) -> None:
+    def preview_paths(self, paths, selected, selected_paths=None) -> None:
         if self.preview_window is None or not self.preview_window.winfo_exists():
             self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected,
                                                 self.extension_effect_var.get())
         else: self.preview_window.show(paths, selected)
+        if selected_paths:
+            self.preview_window.open_paths(paths, selected_paths, selected)
 
     def search(self) -> None:
         source, _ = self.panes()

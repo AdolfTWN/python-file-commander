@@ -80,16 +80,8 @@ with patch.object(module,'root_folders',lambda:[drive]), patch.object(module,'ch
         # No eager recursion through sibling folders, and no fake long lines.
         assert node(downloads/'Drivers') not in nav.loaded
         tree.see(node(target));settle()
-        canvas=next(c for c in nav._line_rows if c.winfo_ismapped() and c.row_id==node(target))
-        coords=[canvas.coords(line) for line in canvas.find_withtag('branch')]
-        flags=[];iid=node(target)
-        while iid:
-            flags.append(bool(tree.next(iid)));iid=tree.parent(iid)
-        flags.reverse();indent=nav._line_indent;height=tree.bbox(node(target))[3]
-        offset=tree.bbox(node(target))[0]-canvas.winfo_x()
-        for level in range(1,len(flags)-1):
-            x=round((level-.5)*indent+offset)
-            assert ([float(x),0.,float(x),float(height)] in coords)==flags[level]
+        from folder_native_test_support import assert_guides
+        assert assert_guides(nav,node(target))>0
         # Clicking Downloads must not cause missing siblings to suddenly appear.
         before=tree.get_children(node(downloads));before_reads=list(reads)
         tree.selection_set(node(downloads));settle()

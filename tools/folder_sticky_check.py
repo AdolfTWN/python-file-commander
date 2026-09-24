@@ -54,8 +54,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-sticky-') as raw:
         assert len(nav._sticky.find_withtag('ancestor-icon'))==3
         assert len(nav._sticky.find_withtag('ancestor-name'))==3
         # Floating joints use the same horizontal coordinate as ordinary rows.
-        first=next(c for c in nav._line_rows if c.winfo_ismapped())
-        x=tree.bbox(first.row_id)[0]
+        x=tree.bbox(nav._visible_nodes[0])[0]
         for depth,icon in enumerate(nav._sticky.find_withtag('ancestor-icon')):
             assert nav._sticky.coords(icon)[0]==round(x+(depth+.5)*nav._line_indent)
         tree.selection_set(branches[1]);settle(app)
@@ -70,12 +69,11 @@ with tempfile.TemporaryDirectory(prefix='pfc-sticky-') as raw:
                 before=(tree.yview(),nav._sticky_height,nav._sticky_chain)
                 settle(app,.3)
                 assert before==(tree.yview(),nav._sticky_height,nav._sticky_chain), 'No layout/scroll oscillation'
-                assert tree.winfo_height()>=2*next(c.winfo_height() for c in nav._line_rows if c.winfo_ismapped())
+                assert tree.winfo_height()>=2*tree.bbox(nav._visible_nodes[0])[3]
         app.font_size_var.set('large');app.apply_font_size(save=False)
         tree.yview_moveto(.2);settle(app)
         tree.column('#0',width=1400,stretch=False);tree.xview_moveto(.025);settle(app)
-        first=next(c for c in nav._line_rows if c.winfo_ismapped())
-        offset=tree.bbox(first.row_id)[0]
+        offset=tree.bbox(nav._visible_nodes[0])[0]
         for depth,icon in enumerate(nav._sticky.find_withtag('ancestor-icon')):
             joint=round(offset+(depth+.5)*nav._line_indent)
             actual=nav._sticky.coords(icon)[0]
@@ -106,7 +104,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-sticky-') as raw:
         assert len(nav._sticky.find_withtag('ancestor-name'))==len(nav._sticky_chain)
         assert len(nav._sticky.find_withtag('ancestor-icon'))==len(nav._sticky_chain)
         assert not nav._sticky.find_withtag('ancestor-overflow')
-        assert tree.winfo_height()>=2*next(c.winfo_height() for c in nav._line_rows if c.winfo_ismapped())
+        assert tree.winfo_height()>=2*tree.bbox(nav._visible_nodes[0])[3]
         assert app.action_button_by_hotkey['F2'].winfo_viewable(), 'All ancestors must not hide the action bar'
         assert nav._horizontal.winfo_viewable(), 'Deep paths must retain horizontal scrolling'
         before=(tree.yview(),nav._sticky_height,nav._sticky_chain)

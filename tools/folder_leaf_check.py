@@ -10,6 +10,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
 from unittest.mock import patch
+from folder_native_test_support import row_geometry, has_badge
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 module = importlib.import_module(next((arg for arg in sys.argv[1:] if not arg.startswith('--')),
@@ -49,9 +50,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-leaf-') as raw:
         nav = module.RootFolderTree(app, lambda path: nav.sync(path), lambda e: None)
         nav.pack(fill='both', expand=True); tree = nav.tree
         def node(path): return nav.nodes[os.path.normcase(str(path))]
-        def canvas(iid):
-            return next(c for c in nav._line_rows if c.winfo_ismapped() and c.row_id == iid)
-        def badge(iid): return bool(canvas(iid).find_withtag('indicator'))
+        def badge(iid): return has_badge(nav,iid)
         try:
             parent = nav._node(root, nav.pc)
             nav._current_node = parent; nav.program_selection = parent
@@ -88,9 +87,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-leaf-') as raw:
                 settle(); tree.yview_moveto(0); settle()
                 assert badge(branch) and all(not badge(iid) for iid in leaves)
                 for iid in (*leaves, branch, unknown):
-                    cell = canvas(iid)
-                    x = cell.winfo_x()+cell.winfo_width()+4
-                    y = cell.winfo_y()+cell.winfo_height()//2
+                    left,top,width,height=row_geometry(nav,iid)
+                    x=left+width+4;y=top+height//2
                     assert tree.identify_element(x, y) in ('text', 'Treeitem.text'), 'Icon must not cover text'
                 before = nav._line_signature
                 for _ in range(6): nav._draw_lines()
@@ -104,7 +102,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-leaf-') as raw:
                 print('VISUAL READY', flush=True); settle(25)
             # Native Right expands a real branch even before selecting/navigating it.
             nav.program_selection = branch; tree.selection_set(branch)
-            tree.focus(branch); tree.focus_force(); tree.event_generate('<KeyPress-Right>')
+            tree.focus(branch); tree.focus_force(); app.update()
+            tree.event_generate('<KeyPress-Right>')
             wait_for(lambda: branch in nav.loaded); settle()
             assert tree.item(branch, 'open') and node(root/'Projects'/'Child') in tree.get_children(branch)
             # Unknown/error rows remain accessible via normal selection.

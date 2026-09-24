@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import time
+from folder_native_test_support import row_geometry
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 pfc=importlib.import_module(sys.argv[1] if len(sys.argv)>1 else 'pycommander.app')
@@ -36,13 +37,12 @@ with tempfile.TemporaryDirectory(prefix='pfc-double-') as raw:
             global stamp
             tree.see(iid);settle(app)
             nav._draw_lines()
-            c=next(c for c in nav._line_rows if c.winfo_ismapped() and c.row_id==iid)
+            left,top,width,height=row_geometry(nav,iid)
+            target=tree;y=top+height//2
             if region in ('connector','icon'):
-                target=c;x=2 if region=='connector' else c.icon_x;y=c.icon_y
+                x=2 if region=='connector' else left+width-nav._line_indent//2
             else:
-                target=tree
-                x=c.winfo_x()+c.winfo_width()+8
-                y=tree.bbox(iid)[1]+tree.bbox(iid)[3]//2
+                x=left+width+8
             stamp+=1000
             for tick in (stamp,stamp+100):
                 target.event_generate('<ButtonPress-1>',x=x,y=y,time=tick)

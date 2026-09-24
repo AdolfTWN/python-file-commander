@@ -1,9 +1,101 @@
 # PFC follow-ups
 
-## Folder-tree scroll painting — v0.18.6
+## Current completion boundary — 2026-09-24
 
-- [x] Synchronize native tree scrolling with selection/icon/connector canvases
-  before paint, including sticky-ancestor appearance/disappearance and resizing.
+The actionable offline defects and Preview-tab request below are implemented and
+validated. This is not a declaration that all TODOs are closed.
+External acceptance and explicitly deferred Markdown features remain open:
+
+- Windows test account readiness: OneDrive process running; one configured,
+  present root; one sampled entry returned unknown metadata. No network enabled,
+  content downloaded, pin state changed or account login attempted. This supports
+  readiness only, not online/local/pinned/pending/error transition acceptance.
+- TortoiseGit, TortoiseSVN, Git CLI and SVN CLI absent on the leased VM. Real
+  external-dialog tests require installed clients; no automatic installation.
+- Cloud-link support still requires a provider-specific no-recall implementation
+  and live-provider proof. Manual F3 remains explicit and separate from link following.
+- Deferred Markdown scope is a design gate, not a hidden automatic index: explicit
+  bounded workspace selection is required before basename links/backlinks/scoped
+  search; media needs path/size/format limits; Mermaid/math needs a renderer choice;
+  plugins/executable queries require a separate execution/security decision.
+  These were not silently enabled by a generic UI polish change.
+
+Per the existing explicit instruction, the correction retains 0.18.6 unless the
+user approves a new patch version. Do not force-move the published v0.18.6 tag.
+Check Update compares versions, so an equal-version refreshed main build needs a
+manual portable replacement; do not claim automatic discovery of a newer version.
+
+## F3 Preview — readable text files appear blank (0.18.6 refreshed main)
+
+- [x] Investigate and fix files that display text normally in an external editor
+  but show no text in PFC Preview. Photo 38905.jpg shows `skill.yaml` readable in
+  Notepad++ while PFC Preview has View set to Auto and an empty content area.
+  This is a reported example, not proof that every YAML file is affected.
+- [x] Build a non-confidential reproducer and
+  distinguish file-type detection, encoding/decoding, loading errors and rendering
+  issues. A three-line YAML reproduces a `TypeError`: the translated
+  `{language} syntax` placeholder collided with `tr_for_language`'s locale
+  parameter, before text insertion. Make locale parameters positional-only;
+  regression covers all four UI languages and multiple syntax formats.
+- [x] Acceptance: readable text appears in Auto and plain-text preview; switching
+  files does not leave an unexplained blank area. Unreadable/unsupported files
+  show an explicit explanation rather than silently displaying nothing.
+
+Linux package and Windows portable GUI checks cover YAML, Python, JSON, XML,
+PowerShell, plain text, UTF-16, Auto/Text and explicit missing-file errors.
+
+## F3 Preview — multiple file tabs (0.18.6 refreshed main)
+
+- [x] Support multiple file tabs within one Preview window, especially for
+  quickly switching between several Markdown documents.
+- [x] Selecting multiple files and pressing F3 opens those files as separate
+  preview tabs in that window.
+- [x] Pressing F3 on additional files later adds tabs to the existing Preview
+  window instead of replacing the currently previewed document.
+- [x] Verify that switching tabs retains each document's preview state and
+  reading position, so comparing several MD files does not require reopening
+  them or repeatedly finding the same passage.
+
+Each tab owns its widgets/state, rather than reconstructing one document view
+on each switch. Deferred loading, active-tab-only refresh, one active Markdown
+worker, and an explicit 32-tab limit bound resource use. Ctrl+Tab, Ctrl+Shift+Tab,
+Ctrl+W, middle-click close and a full-path Open documents list support navigation.
+Linux and Windows tests exercise real file-list multiselect F3 and repeated opens.
+Search-result multiselect uses the same tabs, covered by Linux package/portable checks.
+
+## Folder-tree scroll painting — REOPENED, v0.18.6
+
+User retest on 2026-09-23: selection/highlight tearing during Tree View wheel
+scrolling is unchanged and still frequent. The v0.18.6 attempt is NOT an accepted
+fix. Defer investigation and implementation until the usage allowance recovers;
+reuse v0.18.6 for the eventual correction, per the user's explicit instruction.
+Work resumed on 2026-09-24. The candidate replaces the split renderer itself:
+transparent native item images contain the lines/icons, and Treeview owns the
+entire selected row. No independent row Canvas remains. The old attempted fix
+and its failed user retest remain recorded below. Keep the 0.18.6 version number
+and original tag per the user's explicit instruction; publish the correction on main.
+
+- [ ] Navigation-triggered tearing: from the user folder, enter OneDrive in the
+  file list. The left tree highlight becomes split/clipped (photo 38854.jpg;
+  38850.jpg is the starting state). Cover folder navigation as well as scrolling.
+- [x] Tree/current-folder synchronization: enter Desktop inside OneDrive. The
+  file list and active tab show Desktop, but the left tree does not visibly
+  locate/highlight its corresponding node (photo 38857.jpg). Check selection,
+  ancestor expansion and viewport positioning separately. Navigation now settles
+  visibility after floating-header geometry, not only after background scans.
+  Local OneDrive-shaped fixtures pass on Linux and Windows; live provider retest
+  remains alongside the navigation-triggered tearing item above.
+  Acceptance: the correct Desktop node is selected and fully visible,
+  with an intact highlight, after navigation and background folder loading settle.
+- [x] Replace the independent selection/icon/text rendering during continuous
+  wheel scrolling, including floating-ancestor entry/exit. Do not mark complete
+  solely because internal coordinates or synthetic wheel tests pass.
+- [x] Reproduce Windows OS-level wheel interaction and capture transient frames
+  with GDI. Same fixture and 127 real wheel events: released v0.18.6 has 32 split
+  frames / 652 (36.2 fps); candidate has 0 / 691 (38.4 fps). The old split screenshot
+  confirms the mismatch visually. This is controlled Windows evidence, not the
+  user's physical laptop / OneDrive acceptance. Preserve failed-attempt evidence.
+- [ ] User retest on the affected laptop, including actual OneDrive navigation.
 - [x] Preserve platform wheel behaviour, Ctrl+wheel zoom, keyboard navigation,
   scrollbar movement, dotted lines and all floating ancestors.
 - [x] Reuse normal-size navigation icons in floating rows instead of generating

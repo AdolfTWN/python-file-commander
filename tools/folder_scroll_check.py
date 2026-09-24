@@ -1,4 +1,4 @@
-"""Assert overlay alignment inside wheel dispatch, not after a settle delay."""
+"""Assert scrolling uses one native row surface, never independent overlays."""
 import importlib
 from pathlib import Path
 import sys
@@ -46,13 +46,10 @@ with tempfile.TemporaryDirectory(prefix='pfc-scroll-') as raw:
         checks = 0
         def aligned():
             assert tree.selection() == (selected,), 'Scrolling must not change selection'
-            selection_bg = pfc.ttk.Style(app).lookup('FolderNav.Treeview', 'background', ('selected',))
-            for canvas in nav._line_rows:
-                if not canvas.winfo_ismapped(): continue
-                box = tree.bbox(canvas.row_id)
-                assert box, ('stale visible canvas', canvas.row_id)
-                assert canvas.winfo_y() == box[1], ('one-row split', canvas.row_id, canvas.winfo_y(), box)
-                assert (canvas.cget('background') == selection_bg) == (canvas.row_id == selected)
+            assert not tree.winfo_children(), 'No separately painted row overlays'
+            for iid in nav._visible_nodes:
+                assert tuple(map(str,tree.item(iid,'image')))==(str(nav._row_images[iid]),)
+                assert nav._row_images[iid].height()==tree.bbox(iid)[3]
         for scheme in pfc.COLOR_SCHEMES:
             app.color_scheme_var.set(scheme); app.apply_color_scheme(save=False)
             for scale in ('small', 'large', '175', 'xl'):
@@ -62,11 +59,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-scroll-') as raw:
                     for _ in range(2):
                         for delta in (-120, -120, -120, 120, 120, 120):
                             widget = tree
-                            if source == 'icon':
-                                widget = next(c for c in nav._line_rows if c.winfo_ismapped())
-                            elif source == 'sticky' and nav._sticky.winfo_ismapped():
+                            if source == 'sticky' and nav._sticky.winfo_ismapped():
                                 widget = nav._sticky
-                            widget.event_generate('<MouseWheel>', delta=delta)
+                            widget.event_generate('<MouseWheel>', delta=delta, x=10 if source=='icon' else 400, y=20)
                             # Deliberately no update()/sleep before checking.
                             aligned(); checks += 1
                             app.update_idletasks(); aligned()
