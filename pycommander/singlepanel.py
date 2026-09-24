@@ -827,9 +827,13 @@ class SharedTabBar(ChamferNotebook):
         if tab is None: return str(self._selected) if self._selected is not None else ''
         pane = self._resolve(tab)
         self.owner._select_single_tab(pane)
+        self._see_tab(pane)
         return str(pane)
 
     def current(self): return self._selected
+
+    def _group_identity(self, child):
+        return self.owner._tabs_for(child).panel_number, getattr(child,'tab_group','')
 
     def _color_changed(self, pane, value):
         self.owner._tabs_for(pane).set_color(pane, value)

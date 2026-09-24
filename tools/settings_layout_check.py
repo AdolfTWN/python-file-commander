@@ -67,7 +67,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-layout-preview-') as raw:
                         topology(before,1);topology(after,count)
                         assert not d.preview_labels,'Layout must not reuse an unrelated single-pane screenshot'
                         assert app.panel_count_var.get()==1,'Preview cannot apply a layout'
-                        assert before.winfo_rooty()+before.winfo_height()<=d.canvas.winfo_rooty()
+                        assert before.winfo_rooty()+before.winfo_height()<=(d.page if d._whole_page_scroll else d.canvas).winfo_rooty()
                         assert d.canvas.winfo_height()>=65,(language,geometry,d.canvas.winfo_height())
                         assert d.footer.winfo_rooty()+d.footer.winfo_height()<=d.winfo_rooty()+d.winfo_height()+1
                         ids=after.canvas.find_all()
@@ -86,7 +86,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-layout-preview-') as raw:
                     assert len({tuple(points) for points in shapes})==3
                     assert before_ids==before.canvas.find_all(),'Draft style must not alter Before'
                     top=d.comparison.winfo_rooty();d.canvas.yview_moveto(1);settle(app)
-                    assert d.comparison.winfo_rooty()==top
+                    assert d.comparison.winfo_rooty()<=top if d._whole_page_scroll else d.comparison.winfo_rooty()==top
+                    d.canvas.yview_moveto(0);settle(app)
                 if theme=='light':
                     d._enlarge(None);settle(app);popup=app.grab_current()
                     samples=[w for w in descendants(popup) if type(w).__name__=='SettingsLayoutPreview']

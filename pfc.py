@@ -17,6 +17,16 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Improved: Settings follows the interface reading size, with scrollable large-text previews and always-accessible action buttons.": ("改善：設定跟隨介面字級，大字預覽可捲動，操作按鈕維持可見。", "改善：设置跟随界面字号，大字预览可滚动，操作按钮保持可见。", "개선: 설정이 인터페이스 글자 크기를 따르고 큰 글자 미리보기는 스크롤되며 작업 버튼은 항상 표시됩니다."),
+    "Added: Numbered panel-origin lines, named tab groups and synchronized tab-strip scrolling; groups persist across sessions and workspaces.": ("新增：頁籤來源面板編號細線、命名群組與同步捲動；群組隨設定及工作區保存。", "新增：标签页来源面板编号细线、命名分组与同步滚动；分组随设置及工作区保存。", "추가: 번호가 있는 원본 패널 구분선, 이름 있는 탭 그룹 및 동기 스크롤. 그룹은 세션과 작업 공간에 저장됩니다."),
+    "Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.": ("設定使用介面的字型大小，套用後這裡也會同步更新。字型較大時可捲動查看所有選項。", "设置使用界面的字体大小，应用后这里也会同步更新。字体较大时可滚动查看所有选项。", "설정도 인터페이스 글자 크기를 따릅니다. 적용 후 함께 변경되며 큰 글자에서는 스크롤하여 모든 옵션을 확인하세요."),
+    "Tab Group": ("頁籤群組", "标签页分组", "탭 그룹"),
+    "Group": ("群組", "分组", "그룹"),
+    "Set group…": ("設定群組…", "设置分组…", "그룹 설정…"),
+    "Remove from group": ("移出群組", "移出分组", "그룹에서 제거"),
+    "Group name (blank removes the group):": ("群組名稱（留白可移出群組）：", "分组名称（留空可移出分组）：", "그룹 이름 (비우면 그룹에서 제거):"),
+    "Use 1–40 characters without line breaks.": ("請使用 1–40 個字元，不可包含換行。", "请使用 1–40 个字符，不可包含换行。", "줄 바꿈 없이 1–40자를 입력하세요."),
+    "Panel {number}": ("面板 {number}", "面板 {number}", "패널 {number}"),
     "Maintenance: Added measured test workflows, comparable timing and token reports, Windows readiness gates and release verification.": ("維護：新增測試流程追蹤、可比較的耗時與 token 報告、Windows 就緒檢查及發布核對。", "维护：新增测试流程追踪、可比较的耗时与 token 报告、Windows 就绪检查及发布核对。", "유지 관리: 측정 가능한 테스트 흐름, 시간 및 토큰 비교 보고서, Windows 준비 상태 검사와 배포 검증을 추가했습니다."),
     "Fixed: PFC tooltips cancel on focus loss, stale hover and owner closure; Escape, pointer approach and an eight-second limit dismiss visible help.": ("修正：PFC 提示在失焦、滑鼠離開目標或所屬視窗關閉時取消；Esc、滑鼠移到提示上或顯示八秒後關閉。", "修正：PFC 提示在失焦、鼠标离开目标或所属窗口关闭时取消；Esc、鼠标移到提示上或显示八秒后关闭。", "수정: PFC 도움말은 포커스 상실, 호버 대상 변경 또는 소유 창 닫기 시 취소됩니다. Esc, 포인터 접근 또는 8초 경과 시 닫힙니다."),
     "Added: Opt-in Markdown project search and wiki links with explicit scope, depth and resource limits; duplicate targets require a choice.": ("新增：手動啟動 Markdown 專案搜尋與 Wiki 連結，明示範圍、層數及資源限制；同名目標由使用者選擇。", "新增：手动启动 Markdown 项目搜索与 Wiki 链接，明示范围、层数及资源限制；同名目标由用户选择。", "추가: 명시적 범위, 깊이 및 자원 제한을 사용하는 Markdown 검색과 위키 링크. 중복 대상은 사용자가 선택합니다."),
@@ -3762,10 +3772,23 @@ class ChamferNotebook(ttk.Frame):
         self._drag_moved = False
         self._drag_external = False
         self._drop_position = None
+        self.panel_number = None
+        self._group_ranges = []
+        self.group_bar = tk.Canvas(self, height=1, highlightthickness=0, takefocus=False)
+        self._group_tip = ''
+        ToolTip(self.group_bar, lambda:self._group_tip)
+        self.group_bar.bind('<Motion>', self._group_motion)
+        self.group_bar.bind('<Button-1>', self._group_click)
         self.bar = tk.Canvas(self, height=34, takefocus=True, highlightthickness=2,
                              highlightbackground="#71879a", highlightcolor="#0078d4",
                              background="#9eafbd")
         self.bar.pack(fill="x", side="top")
+        self.tab_scroll=ttk.Scrollbar(self,orient='horizontal',command=self._scroll_tabs)
+        self.bar.configure(xscrollcommand=self._tab_view_changed)
+        for widget in (self.bar,self.group_bar):
+            widget.bind('<MouseWheel>',lambda e:self._wheel_tabs(-1 if e.delta>0 else 1))
+            widget.bind('<Button-4>',lambda e:self._wheel_tabs(-1))
+            widget.bind('<Button-5>',lambda e:self._wheel_tabs(1))
         self.bar.bind("<ButtonPress-1>", self._tab_press)
         self.bar.bind("<FocusIn>", lambda _event: self.bar.configure(highlightthickness=2))
         self.bar.bind("<B1-Motion>", self._tab_motion)
@@ -3801,6 +3824,7 @@ class ChamferNotebook(ttk.Frame):
         self._selected = child
         child.pack(fill="both", expand=True, side="top")
         self._draw()
+        self._see_tab(child)
         self.event_generate("<<NotebookTabChanged>>")
         return str(child)
 
@@ -3847,7 +3871,7 @@ class ChamferNotebook(ttk.Frame):
         if not (left <= x_root < left + self.bar.winfo_width() and
                 top <= y_root < top + self.bar.winfo_height()):
             return None
-        x = x_root - left
+        x = self.bar.canvasx(x_root - left)
         insertion = 0
         for tab_left, tab_right, _child in self._hitboxes:
             if x > (tab_left + tab_right) / 2:
@@ -3996,8 +4020,79 @@ class ChamferNotebook(ttk.Frame):
             self.bar.create_line(marker_x, 2, marker_x, height - 2,
                                  fill="#0067c0", width=max(3, round(height * 0.11)))
         self.bar.configure(scrollregion=(0, 0, max(x + overlap, self.bar.winfo_width()), height))
+        self._draw_groups(font)
+        if self.bar.winfo_manager()=='pack' and x+overlap>self.bar.winfo_width()+2:
+            self.tab_scroll.pack(fill='x',after=self.bar)
+        else:
+            self.tab_scroll.pack_forget()
+
+    def _tab_view_changed(self,first,last):
+        self.tab_scroll.set(first,last)
+        self.group_bar.xview_moveto(first)
+
+    def _scroll_tabs(self,*args):
+        self.bar.xview(*args)
+        self.group_bar.xview_moveto(self.bar.xview()[0])
+
+    def _wheel_tabs(self,direction):
+        self._scroll_tabs('scroll',direction*3,'units')
+        return 'break'
+
+    def _see_tab(self,child):
+        total=max(1,float(self.bar.cget('scrollregion').split()[2]))
+        start=self.bar.canvasx(0);width=self.bar.winfo_width()
+        for left,right,pane in self._hitboxes:
+            if pane is child:
+                if left<start:self._scroll_tabs('moveto',max(0,left-3)/total)
+                elif right>start+width:self._scroll_tabs('moveto',max(0,right-width+8)/total)
+                break
+
+    def _group_identity(self, child):
+        return self.panel_number, getattr(child,'tab_group','')
+
+    def _draw_groups(self, font):
+        self.group_bar.delete('all'); self._group_ranges=[]
+        if self.bar.winfo_manager()!='pack' or not self._tabs or not any(self._group_identity(p)[0] for p in self._tabs):
+            self.group_bar.pack_forget(); return
+        if not hasattr(self,'_group_font'):self._group_font=tkfont.Font(self)
+        self._group_font.configure(family=font.actual('family'),size=font.cget('size'),weight='normal')
+        height=font.metrics('linespace')+5
+        self.group_bar.configure(height=height,background=self.palette['tab_bar'])
+        self.group_bar.pack(fill='x',side='top',before=self.bar)
+        runs=[]
+        for left,right,child in self._hitboxes:
+            identity=self._group_identity(child)
+            if runs and runs[-1][0]==identity:runs[-1][2]=right
+            else:runs.append([identity,left,right,child])
+        ink=self.palette['header_text'] if self.palette['tab_text']=='#ffffff' else self.palette['text']
+        for (number,group),left,right,child in runs:
+            label=str(number)+((' · '+group) if group else '')
+            full=tr('Panel {number}',number=number)+((' · '+tr('Group')+': '+group) if group else '')
+            shown=label
+            available=max(1,right-left-22)
+            if font.measure(shown)>available:
+                while len(shown)>1 and font.measure(shown+'…')>available:shown=shown[:-1]
+                shown=shown+'…' if len(shown)>1 else str(number)
+            self.group_bar.create_text(left+4,height/2,anchor='w',text=shown,font=self._group_font,
+                                       fill=ink,tags=('tab-group-label',))
+            start=min(right-4,left+font.measure(shown)+10)
+            self.group_bar.create_line(start,height/2,right-3,height/2,right-3,height-2,
+                                       fill=ink,width=1,tags=('tab-group-line',))
+            self._group_ranges.append((left,right,child,full))
+        self.group_bar.configure(scrollregion=self.bar.cget('scrollregion'))
+        self.group_bar.xview_moveto(self.bar.xview()[0])
+
+    def _group_motion(self,event):
+        x=self.group_bar.canvasx(event.x)
+        self._group_tip=next((label for a,b,_p,label in self._group_ranges if a<=x<=b),'')
+
+    def _group_click(self,event):
+        x=self.group_bar.canvasx(event.x)
+        pane=next((p for a,b,p,_label in self._group_ranges if a<=x<=b),None)
+        if pane is not None:self.select(pane)
 
     def _at(self, x):
+        x=self.bar.canvasx(x)
         if self._selected is not None:
             for left, right, child in self._hitboxes:
                 if child is self._selected and left <= x <= right:
@@ -4040,7 +4135,7 @@ class ChamferNotebook(ttk.Frame):
         self.bar.configure(cursor="fleur")
         insertion = 0
         for left, right, _candidate in self._hitboxes:
-            if event.x > (left + right) / 2:
+            if self.bar.canvasx(event.x) > (left + right) / 2:
                 insertion += 1
         current = self._tabs.index(child)
         if insertion > current:
@@ -4075,6 +4170,18 @@ class ChamferNotebook(ttk.Frame):
         menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
         self._context_menu=menu
         if child is not None:
+            owner=self._root()
+            if hasattr(owner,'set_tab_group') and child in owner.all_panes():
+                groups=tk.Menu(menu,tearoff=False,font='TkMenuFont')
+                groups.add_command(label=tr('Set group…'),command=lambda:owner.edit_tab_group(child))
+                names=sorted({getattr(p,'tab_group','') for p in owner.all_panes()}-{''},key=str.casefold)
+                groups._group_var=chosen=tk.StringVar(self,value=getattr(child,'tab_group',''))
+                for name in names:
+                    add_scaled_radiobutton(groups,name,name,chosen,command=lambda n=name:owner.set_tab_group(child,n))
+                groups.add_separator()
+                groups.add_command(label=tr('Remove from group'),command=lambda:owner.set_tab_group(child,''),
+                                   state='normal' if getattr(child,'tab_group','') else 'disabled')
+                add_scaled_cascade(menu,tr('Tab Group'),groups)
             colors=tk.Menu(menu,tearoff=False,font='TkMenuFont')
             menu._color_var=color=tk.StringVar(self,value=self._colors.get(child,'default'))
             for key, (label, _color) in TAB_COLORS.items():
@@ -6056,9 +6163,13 @@ class SharedTabBar(ChamferNotebook):
         if tab is None: return str(self._selected) if self._selected is not None else ''
         pane = self._resolve(tab)
         self.owner._select_single_tab(pane)
+        self._see_tab(pane)
         return str(pane)
 
     def current(self): return self._selected
+
+    def _group_identity(self, child):
+        return self.owner._tabs_for(child).panel_number, getattr(child,'tab_group','')
 
     def _color_changed(self, pane, value):
         self.owner._tabs_for(pane).set_color(pane, value)
@@ -6617,6 +6728,7 @@ def capture_workspace(app):
         for pane in tabs.panes():
             panes.append(dict(path=str(pane.persistent_path()), filter=pane.quick_filter_var.get(),
                 color=tabs._colors.get(pane, 'default'), lock=pane.lock_mode,
+                tab_group=getattr(pane,'tab_group',''),
                 locked_path=str(pane.locked_path or pane.persistent_path()),
                 sort=pane.sort_column, descending=pane.reverse, hidden=pane.show_hidden,
                 system=pane.show_system, extensions=pane.show_extensions, mode=pane.view_mode))
@@ -6681,6 +6793,8 @@ def restore_workspace(app, data):
             items = []
             for item in group['tabs']:
                 pane = tabs.add_tab(Path(item['path']), notify=False, position=len(tabs.tabs()))
+                value=item.get('tab_group','')
+                pane.tab_group=value.strip()[:40] if isinstance(value,str) and not any(ord(c)<32 for c in value) else ''
                 created.append((tabs, pane)); items.append(pane)
                 pane.sort_column = item.get('sort', 'name') if item.get('sort') in pane.all_sort_columns else 'name'
                 pane.reverse = bool(item.get('descending'))
@@ -7034,6 +7148,7 @@ class SettingsSamplePreview(ttk.Frame):
     def _text(self, x, y, text, width, *, bold=False, color=None, anchor='w', tag='sample'):
         font = self.bold if bold else self.font
         shown = str(text)
+        if width < font.measure('…'):shown=''
         if font.measure(shown) > width:
             while shown and font.measure(shown + '…') > width:
                 shown = shown[:-1]
@@ -7057,6 +7172,7 @@ class SettingsSamplePreview(ttk.Frame):
                                   ('size','Size', max(66,self.font.measure(tr('Size'))+16)),
                                   ('ext','Ext',max(43,self.font.measure(tr('Ext'))+16))):
             if v['column_' + key]:
+                space=min(space,width*{'modified':.37,'size':.20,'ext':.18}[key])
                 columns.append((key,label,right-space,right)); right -= space
         columns.append(('name','Name',4,right))
         c.create_rectangle(0,0,width,line,fill=p['surface_alt'],outline='')
@@ -7132,8 +7248,9 @@ class SettingsSamplePreview(ttk.Frame):
         for x,y,text,strong in ((20,2.5,'Task',True),(mid+8,2.5,'Status',True),
                                 (20,3.5,'Review',False),(mid+8,3.5,'Done',False)):
             self._text(x,y*line,text,mid-28,bold=strong,tag='markdown-table')
-        self._text(12,5*line,'Ready',70,bold=True)
-        self._text(16+self.bold.measure('Ready'),5*line,'to share.',width-100)
+        self._text(12,5*line,'Ready',min(width-24,self.bold.measure('Ready')),bold=True)
+        following=16+self.bold.measure('Ready')
+        self._text(following,5*line,'to share.',max(0,width-following-12))
         self._text(12,7*line,tr('Headings, tables and emphasis; original file stays unchanged.'),width-24,color=p['muted'])
 
     def _draw_general(self, width):
@@ -7143,13 +7260,14 @@ class SettingsSamplePreview(ttk.Frame):
         self.caption.configure(text=tr('Sample interface language and sign-in behavior; applies only after Apply.'))
         c.create_rectangle(0,0,width,1.7*line,fill=p['header'],outline='')
         x=12
-        for text in ('Files','Go','View','Tools','Help'):
-            label=t(text);space=self.font.measure(label)+26
+        labels=('Files','Go','View','Tools','Help')
+        for index,text in enumerate(labels):
+            label=t(text);space=min(self.font.measure(label)+26,(width-24)/len(labels))
             self._text(x,.85*line,label,space-10,color=p['header_text'],tag='language-menu');x+=space
         self._text(12,2.6*line,t('Name')+'    Notes.md',width-24,bold=True,tag='language-name')
         x=12
         for text in ('Apply','Cancel','OK'):
-            label=t(text);space=max(65,self.font.measure(label)+24)
+            label=t(text);space=min(max(65,self.font.measure(label)+24),(width-40)/3)
             c.create_rectangle(x,3.4*line,x+space,4.6*line,fill=p['button'],outline=p['border'])
             self._text(x+space/2,4*line,label,space-12,anchor='center',tag='language-button');x+=space+8
         self._text(12,5.6*line,tr('Windows sign-in')+' → '+tr('PFC opens automatically' if v['auto_start'] else 'Open PFC manually'),
@@ -7246,11 +7364,10 @@ class SettingsDialog(tk.Toplevel):
         self.pane = app.active
         self.title(tr('PFC Settings'))
         self.transient(app)
-        # Independent pixel fonts keep Apply from moving controls under the mouse.
-        # The content area scrolls; the footer never scrolls out of reach.
+        # Snapshot the actual interface font, including automatic scaling.
+        # Draft changes do not move controls until Apply; never shrink reading text.
         base = tkfont.nametofont('TkDefaultFont')
-        self.font = tkfont.Font(self, family=base.actual('family'),
-                                size=-max(14, min(18, round(app._base_tk_scaling*11))))
+        self.font = tkfont.Font(self, **font_snapshot(base))
         self.heading_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size'), weight='bold'))
         self.small_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size')))
         self.specs = preference_specs(app)
@@ -7271,7 +7388,8 @@ class SettingsDialog(tk.Toplevel):
         self._shot_job = None
         self._build()
         sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
-        width, height = min(1180, sw-48), min(720, sh-80)
+        ratio=max(1,self.font.metrics('linespace')/20)
+        width, height = min(round(1180*ratio), sw-48), min(round(720*ratio), sh-80)
         self.geometry(f'{width}x{height}+{max(0,min(app.winfo_rootx()+30,sw-width-24))}+{max(0,min(app.winfo_rooty()+30,sh-height-40))}')
         self.minsize(min(720,width), min(560,height))
         self.protocol('WM_DELETE_WINDOW', self.cancel)
@@ -7322,24 +7440,34 @@ class SettingsDialog(tk.Toplevel):
                               selectbackground=p['selection'], selectforeground='#ffffff',
                               selectmode='browse')
         self.nav.pack(side='left', fill='y', padx=(0,14))
+        body.bind('<Configure>', lambda e:self.nav.configure(
+            width=max(8,min(18,int(e.width*.24/max(1,self.font.measure('0')))))))
         for _key, label in SETTINGS_CATEGORIES: self.nav.insert('end', tr(label))
         self.nav.bind('<<ListboxSelect>>', self._select)
         right = ttk.Frame(body); right.pack(fill='both', expand=True)
         self.title_label = ttk.Label(right, style='PrefsTitle.TLabel'); self.title_label.pack(anchor='w', pady=(0,6))
         self.intro = ttk.Label(right, text=tr('Changes take effect only after Apply or OK.'), style='Prefs.TLabel', wraplength=500)
         self.intro.pack(anchor='w', pady=(0,12))
-        # Comparison stays in view while only the preference controls scroll.
-        self.comparison = ttk.Frame(right)
-        self.comparison.pack(fill='x', pady=(0,8))
-        self.comparison.bind('<Configure>', lambda _e:self._schedule_shots())
+        # At large reading scales let preview + controls scroll together. A fixed
+        # preview must never consume the whole viewport and hide every setting.
+        self._whole_page_scroll = self.font.metrics('linespace') > 20
+        if not self._whole_page_scroll:
+            self.comparison = ttk.Frame(right)
+            self.comparison.pack(fill='x', pady=(0,8))
         content = ttk.Frame(right); content.pack(fill='both', expand=True)
         self.canvas = tk.Canvas(content, highlightthickness=0, bg=p['window'])
         self.scrollbar = ttk.Scrollbar(content, orient='vertical', command=self.canvas.yview)
         self.scrollbar.pack(side='right', fill='y'); self.canvas.pack(fill='both', expand=True)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
-        self.page = ttk.Frame(self.canvas, padding=(2,0,12,10))
-        self.page_id = self.canvas.create_window(0,0,window=self.page,anchor='nw')
-        self.page.bind('<Configure>', lambda _e:self.canvas.configure(scrollregion=self.canvas.bbox('all')))
+        self.sheet = ttk.Frame(self.canvas)
+        self.page_id = self.canvas.create_window(0,0,window=self.sheet,anchor='nw')
+        if self._whole_page_scroll:
+            self.comparison = ttk.Frame(self.sheet)
+            self.comparison.pack(fill='x', pady=(0,8))
+        self.comparison.bind('<Configure>', lambda _e:self._schedule_shots())
+        self.page = ttk.Frame(self.sheet, padding=(2,0,12,10))
+        self.page.pack(fill='x')
+        self.sheet.bind('<Configure>', lambda _e:self.canvas.configure(scrollregion=self.canvas.bbox('all')))
         self.canvas.bind('<Configure>', self._resize)
         index = [key for key,_label in SETTINGS_CATEGORIES].index(self.category)
         self.nav.selection_set(index); self.nav.activate(index)
@@ -7407,7 +7535,7 @@ class SettingsDialog(tk.Toplevel):
             'general':'Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.',
         }
         self.intro.configure(text=tr(notes[category]))
-        self.comparison.pack(before=self.canvas.master,fill='x',pady=(0,8))
+        self.comparison.pack(before=self.page if self._whole_page_scroll else self.canvas.master,fill='x',pady=(0,8))
         if category in ('appearance','layout'):
             self._previews()
         else:
@@ -7440,7 +7568,7 @@ class SettingsDialog(tk.Toplevel):
             if key=='auto_start' and os.name!='nt':
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
-                'font_size':'Auto fits the main window width. Turn it off for a fixed percentage. Settings keeps a stable reading size.',
+                'font_size':'Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
@@ -7694,6 +7822,9 @@ class SettingsDialog(tk.Toplevel):
         for key in self.vars:self.original[key]=self._read(key);self.vars[key].set(self.original[key])
         self.prefix_original=[dict(item) for item in prefixes];self.prefix_draft=[dict(item) for item in prefixes]
         if close:self.cancel();return
+        self.font.configure(**font_snapshot(tkfont.nametofont('TkDefaultFont')))
+        self.heading_font.configure(**font_snapshot(self.font,weight='bold'))
+        self.small_font.configure(**font_snapshot(self.font))
         for child in self.winfo_children():child.destroy()
         self.title(tr('PFC Settings'));self._build();self.nav.focus_set()
 
@@ -7720,11 +7851,11 @@ class SettingsDialog(tk.Toplevel):
         widget=event.widget
         if not str(widget).startswith(str(self.page)+'.'):return
         self.update_idletasks()
-        y=widget.winfo_rooty()-self.page.winfo_rooty()
+        y=widget.winfo_rooty()-self.sheet.winfo_rooty()
         top=self.canvas.canvasy(0);height=self.canvas.winfo_height()
-        if y<top:self.canvas.yview_moveto(y/max(1,self.page.winfo_height()))
+        if y<top:self.canvas.yview_moveto(y/max(1,self.sheet.winfo_height()))
         elif y+widget.winfo_height()>top+height:
-            self.canvas.yview_moveto((y+widget.winfo_height()-height)/max(1,self.page.winfo_height()))
+            self.canvas.yview_moveto((y+widget.winfo_height()-height)/max(1,self.sheet.winfo_height()))
 
 """Read-only VCS discovery/status and explicit Tortoise dialog hand-off.
 
@@ -15245,9 +15376,9 @@ import urllib.request
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.10"
+__version__ = "0.18.11"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -15332,6 +15463,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/25"
 VERSION_HISTORY = (
+    ("v0.18.11", "2026/09/25", (
+        "Improved: Settings follows the interface reading size, with scrollable large-text previews and always-accessible action buttons.",
+        "Added: Numbered panel-origin lines, named tab groups and synchronized tab-strip scrolling; groups persist across sessions and workspaces.",
+    )),
     ("v0.18.10", "2026/09/25", (
         "Maintenance: Added measured test workflows, comparable timing and token reports, Windows readiness gates and release verification.",
     )),
@@ -16090,6 +16225,7 @@ class FilePane(ttk.Frame):
         self.view_mode = "list"
         self.display_title = self.path.name or str(self.path)
         self.lock_mode = "unlocked"
+        self.tab_group = ""
         self.locked_path: Path | None = None
         self.on_locked_navigation = lambda _path: None
         self._signature = None
@@ -17602,6 +17738,8 @@ class Commander(tk.Tk):
                 tab_style=self.tab_style_var.get(),
                 on_open_folder=self._open_folder_in_new_tab)
             self.panel_tabs.append(tabs)
+            tabs.panel_number = len(self.panel_tabs)
+            tabs.redraw()
         self.left_tabs, self.right_tabs = self.panel_tabs[:2]
         self.left = self.left_tabs.current()
         self.right = self.right_tabs.current()
@@ -17882,9 +18020,13 @@ class Commander(tk.Tk):
             locks = json.loads(self.config_data.get(side, "tab_locks", fallback="[]"))
             locked_paths = json.loads(self.config_data.get(side, "locked_paths", fallback="[]"))
             filters = json.loads(self.config_data.get(side, "tab_filters", fallback="[]"))
+            groups = json.loads(self.config_data.get(side, "tab_groups", fallback="[]"))
         except (json.JSONDecodeError, TypeError):
-            colors, locks, locked_paths, filters = [], [], [], []
+            colors, locks, locked_paths, filters, groups = [], [], [], [], []
+        if not isinstance(groups, list): groups = []
         for index, pane in enumerate(tabs.panes()):
+            value = groups[index] if index < len(groups) else ''
+            pane.tab_group = value.strip()[:40] if isinstance(value,str) and not any(ord(c)<32 for c in value) else ''
             pane.sort_column = column if column in pane.all_sort_columns else "name"
             pane.reverse = descending
             pane.mix_sorting = self.mix_sorting_var.get()
@@ -17944,6 +18086,7 @@ class Commander(tk.Tk):
             self.config_data.set(side, "tab_colors", json.dumps([
                 tabs._colors.get(p, "default") for p in panes]))
             self.config_data.set(side, "tab_locks", json.dumps([p.lock_mode for p in panes]))
+            self.config_data.set(side, "tab_groups", config_json([p.tab_group for p in panes], ensure_ascii=False))
             self.config_data.set(side, "locked_paths", config_json([
                 str(p.persistent_path() if p.archive_session is not None
                     else p.locked_path or p.persistent_path()) for p in panes]))
@@ -18697,6 +18840,20 @@ class Commander(tk.Tk):
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
 
+    def set_tab_group(self, pane, name):
+        name = name.strip()
+        if len(name)>40 or any(ord(c)<32 for c in name):
+            messagebox.showerror(tr('Tab Group'), tr('Use 1–40 characters without line breaks.'), parent=self)
+            return
+        pane.tab_group = name
+        self._tabs_for(pane).redraw()
+        self.save_config()
+
+    def edit_tab_group(self, pane):
+        name = simpledialog.askstring(tr('Tab Group'), tr('Group name (blank removes the group):'),
+                                      initialvalue=pane.tab_group, parent=self)
+        if name is not None:self.set_tab_group(pane,name)
+
     def set_tab_color(self, path: Path, color: str) -> None:
         key = str(path)
         if color == "default":
@@ -18794,7 +18951,8 @@ class Commander(tk.Tk):
         if count == 1:
             if not self._single_layout: self._set_compare_target(None)
             self._single_layout = True
-            for tabs in self.panel_tabs: tabs.bar.pack_forget()
+            for tabs in self.panel_tabs:
+                tabs.bar.pack_forget();tabs.redraw()
             self.single_tabs.pack(fill='x', padx=5, before=self.split)
             self._sync_single_workspace()
             self.update_idletasks(); self._place_tree_sash()
@@ -18805,6 +18963,7 @@ class Commander(tk.Tk):
             for item in self.split.panes(): self.split.forget(item)
             for index, tabs in enumerate(self.panel_tabs):
                 tabs.bar.pack(fill='x', side='top', before=tabs.current())
+                tabs.redraw()
                 if index < count: self.split.add(tabs, weight=1)
         if self.active is None or self._tabs_for(self.active) not in self.visible_panel_tabs():
             self.set_active(self.panel_tabs[0].current())
@@ -18922,6 +19081,7 @@ class Commander(tk.Tk):
     @staticmethod
     def _copy_tab_view(source: FilePane, target: FilePane) -> None:
         selected = source.selected_paths()
+        target.tab_group = source.tab_group
         target.history = list(source.history)
         target.folder_selections = dict(source.folder_selections)
         target.sort_column = source.sort_column

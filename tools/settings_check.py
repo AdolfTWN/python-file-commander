@@ -157,13 +157,13 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
                             assert len(d.layout_examples)==2 and not d.preview_labels
                             for sample,_v in d.layout_examples:
                                 assert sample.canvas.winfo_width()>=200
-                                assert sample.winfo_rooty()+sample.winfo_height()<=d.canvas.winfo_rooty()
+                                assert sample.winfo_rooty()+sample.winfo_height()<=(d.page if d._whole_page_scroll else d.canvas).winfo_rooty()
                         for widget,_v in d.preview_labels:
                             assert widget.image.width()>=200
-                            assert widget.winfo_rooty()+widget.winfo_height()<=d.canvas.winfo_rooty()
+                            assert widget.winfo_rooty()+widget.winfo_height()<=(d.page if d._whole_page_scroll else d.canvas).winfo_rooty()
                         top=d.comparison.winfo_rooty()
                         d.canvas.yview_moveto(1);settle(app)
-                        assert d.comparison.winfo_rooty()==top
+                        assert d.comparison.winfo_rooty()<=top if d._whole_page_scroll else d.comparison.winfo_rooty()==top
                     assert d.canvas.winfo_height()>=60, (scale,scheme,key,d.canvas.winfo_height())
                     d.canvas.yview_moveto(1);settle(app)
                     assert d.footer.winfo_ismapped() and d.apply_button.winfo_ismapped()

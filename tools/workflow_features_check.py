@@ -173,6 +173,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-workflows-check-') as raw:
         # Named workspaces retain per-tab options/locks and both layout modes.
         pane = app.left_tabs.add_tab(right); pane.show_hidden = True
         pane.set_quick_filter('*.txt'); pane.lock_mode = 'locked'; pane.locked_path = right
+        pane.tab_group = 'Project notes'
         app.left_tabs.set_lock(pane, 'locked', notify=False)
         app.panel_count_var.set(1); app.apply_panel_count(); settle(app)
         snapshot = work.capture_workspace(app)

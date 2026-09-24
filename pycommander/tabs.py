@@ -569,10 +569,23 @@ class ChamferNotebook(ttk.Frame):
         self._drag_moved = False
         self._drag_external = False
         self._drop_position = None
+        self.panel_number = None
+        self._group_ranges = []
+        self.group_bar = tk.Canvas(self, height=1, highlightthickness=0, takefocus=False)
+        self._group_tip = ''
+        ToolTip(self.group_bar, lambda:self._group_tip)
+        self.group_bar.bind('<Motion>', self._group_motion)
+        self.group_bar.bind('<Button-1>', self._group_click)
         self.bar = tk.Canvas(self, height=34, takefocus=True, highlightthickness=2,
                              highlightbackground="#71879a", highlightcolor="#0078d4",
                              background="#9eafbd")
         self.bar.pack(fill="x", side="top")
+        self.tab_scroll=ttk.Scrollbar(self,orient='horizontal',command=self._scroll_tabs)
+        self.bar.configure(xscrollcommand=self._tab_view_changed)
+        for widget in (self.bar,self.group_bar):
+            widget.bind('<MouseWheel>',lambda e:self._wheel_tabs(-1 if e.delta>0 else 1))
+            widget.bind('<Button-4>',lambda e:self._wheel_tabs(-1))
+            widget.bind('<Button-5>',lambda e:self._wheel_tabs(1))
         self.bar.bind("<ButtonPress-1>", self._tab_press)
         self.bar.bind("<FocusIn>", lambda _event: self.bar.configure(highlightthickness=2))
         self.bar.bind("<B1-Motion>", self._tab_motion)
@@ -608,6 +621,7 @@ class ChamferNotebook(ttk.Frame):
         self._selected = child
         child.pack(fill="both", expand=True, side="top")
         self._draw()
+        self._see_tab(child)
         self.event_generate("<<NotebookTabChanged>>")
         return str(child)
 
@@ -654,7 +668,7 @@ class ChamferNotebook(ttk.Frame):
         if not (left <= x_root < left + self.bar.winfo_width() and
                 top <= y_root < top + self.bar.winfo_height()):
             return None
-        x = x_root - left
+        x = self.bar.canvasx(x_root - left)
         insertion = 0
         for tab_left, tab_right, _child in self._hitboxes:
             if x > (tab_left + tab_right) / 2:
@@ -803,8 +817,79 @@ class ChamferNotebook(ttk.Frame):
             self.bar.create_line(marker_x, 2, marker_x, height - 2,
                                  fill="#0067c0", width=max(3, round(height * 0.11)))
         self.bar.configure(scrollregion=(0, 0, max(x + overlap, self.bar.winfo_width()), height))
+        self._draw_groups(font)
+        if self.bar.winfo_manager()=='pack' and x+overlap>self.bar.winfo_width()+2:
+            self.tab_scroll.pack(fill='x',after=self.bar)
+        else:
+            self.tab_scroll.pack_forget()
+
+    def _tab_view_changed(self,first,last):
+        self.tab_scroll.set(first,last)
+        self.group_bar.xview_moveto(first)
+
+    def _scroll_tabs(self,*args):
+        self.bar.xview(*args)
+        self.group_bar.xview_moveto(self.bar.xview()[0])
+
+    def _wheel_tabs(self,direction):
+        self._scroll_tabs('scroll',direction*3,'units')
+        return 'break'
+
+    def _see_tab(self,child):
+        total=max(1,float(self.bar.cget('scrollregion').split()[2]))
+        start=self.bar.canvasx(0);width=self.bar.winfo_width()
+        for left,right,pane in self._hitboxes:
+            if pane is child:
+                if left<start:self._scroll_tabs('moveto',max(0,left-3)/total)
+                elif right>start+width:self._scroll_tabs('moveto',max(0,right-width+8)/total)
+                break
+
+    def _group_identity(self, child):
+        return self.panel_number, getattr(child,'tab_group','')
+
+    def _draw_groups(self, font):
+        self.group_bar.delete('all'); self._group_ranges=[]
+        if self.bar.winfo_manager()!='pack' or not self._tabs or not any(self._group_identity(p)[0] for p in self._tabs):
+            self.group_bar.pack_forget(); return
+        if not hasattr(self,'_group_font'):self._group_font=tkfont.Font(self)
+        self._group_font.configure(family=font.actual('family'),size=font.cget('size'),weight='normal')
+        height=font.metrics('linespace')+5
+        self.group_bar.configure(height=height,background=self.palette['tab_bar'])
+        self.group_bar.pack(fill='x',side='top',before=self.bar)
+        runs=[]
+        for left,right,child in self._hitboxes:
+            identity=self._group_identity(child)
+            if runs and runs[-1][0]==identity:runs[-1][2]=right
+            else:runs.append([identity,left,right,child])
+        ink=self.palette['header_text'] if self.palette['tab_text']=='#ffffff' else self.palette['text']
+        for (number,group),left,right,child in runs:
+            label=str(number)+((' · '+group) if group else '')
+            full=tr('Panel {number}',number=number)+((' · '+tr('Group')+': '+group) if group else '')
+            shown=label
+            available=max(1,right-left-22)
+            if font.measure(shown)>available:
+                while len(shown)>1 and font.measure(shown+'…')>available:shown=shown[:-1]
+                shown=shown+'…' if len(shown)>1 else str(number)
+            self.group_bar.create_text(left+4,height/2,anchor='w',text=shown,font=self._group_font,
+                                       fill=ink,tags=('tab-group-label',))
+            start=min(right-4,left+font.measure(shown)+10)
+            self.group_bar.create_line(start,height/2,right-3,height/2,right-3,height-2,
+                                       fill=ink,width=1,tags=('tab-group-line',))
+            self._group_ranges.append((left,right,child,full))
+        self.group_bar.configure(scrollregion=self.bar.cget('scrollregion'))
+        self.group_bar.xview_moveto(self.bar.xview()[0])
+
+    def _group_motion(self,event):
+        x=self.group_bar.canvasx(event.x)
+        self._group_tip=next((label for a,b,_p,label in self._group_ranges if a<=x<=b),'')
+
+    def _group_click(self,event):
+        x=self.group_bar.canvasx(event.x)
+        pane=next((p for a,b,p,_label in self._group_ranges if a<=x<=b),None)
+        if pane is not None:self.select(pane)
 
     def _at(self, x):
+        x=self.bar.canvasx(x)
         if self._selected is not None:
             for left, right, child in self._hitboxes:
                 if child is self._selected and left <= x <= right:
@@ -847,7 +932,7 @@ class ChamferNotebook(ttk.Frame):
         self.bar.configure(cursor="fleur")
         insertion = 0
         for left, right, _candidate in self._hitboxes:
-            if event.x > (left + right) / 2:
+            if self.bar.canvasx(event.x) > (left + right) / 2:
                 insertion += 1
         current = self._tabs.index(child)
         if insertion > current:
@@ -882,6 +967,18 @@ class ChamferNotebook(ttk.Frame):
         menu = tk.Menu(self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
         self._context_menu=menu
         if child is not None:
+            owner=self._root()
+            if hasattr(owner,'set_tab_group') and child in owner.all_panes():
+                groups=tk.Menu(menu,tearoff=False,font='TkMenuFont')
+                groups.add_command(label=tr('Set group…'),command=lambda:owner.edit_tab_group(child))
+                names=sorted({getattr(p,'tab_group','') for p in owner.all_panes()}-{''},key=str.casefold)
+                groups._group_var=chosen=tk.StringVar(self,value=getattr(child,'tab_group',''))
+                for name in names:
+                    add_scaled_radiobutton(groups,name,name,chosen,command=lambda n=name:owner.set_tab_group(child,n))
+                groups.add_separator()
+                groups.add_command(label=tr('Remove from group'),command=lambda:owner.set_tab_group(child,''),
+                                   state='normal' if getattr(child,'tab_group','') else 'disabled')
+                add_scaled_cascade(menu,tr('Tab Group'),groups)
             colors=tk.Menu(menu,tearoff=False,font='TkMenuFont')
             menu._color_var=color=tk.StringVar(self,value=self._colors.get(child,'default'))
             for key, (label, _color) in TAB_COLORS.items():

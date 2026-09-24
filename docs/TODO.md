@@ -1,5 +1,18 @@
 # PFC follow-ups
 
+## Settings readability and tab provenance — v0.18.11
+
+- [x] Inherit exact main-window font units/size when Settings opens and after Apply;
+  retain draft/Cancel behavior. Large fonts scroll preview and controls together,
+  preserving footer access rather than reducing reading size.
+- [x] Numbered thin-line P1–P4 headers retain panel ownership in One Panel;
+  custom named groups persist in INI, workspace snapshots and cross-panel moves.
+- [x] Context actions set/join/remove groups; adjacent group runs share a header
+  without changing user ordering. Horizontal scrolling keeps labels aligned.
+- [ ] Native Windows acceptance: this run stopped at `qga-not-ready` (VM1),
+  disabled networking and released its lease. No native UI test passed; keep
+  this separate from Linux source/portable headless acceptance.
+
 ## Measured maintenance workflow — v0.18.10
 
 - [x] Required per-task tracing instructions, private local results and automatic

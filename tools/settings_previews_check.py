@@ -82,11 +82,11 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-previews-') as raw:
                         d.show_page(category);settle(app)
                         assert d.comparison.winfo_ismapped(), category
                         bottom=d.comparison.winfo_rooty()+d.comparison.winfo_height()
-                        assert bottom<=d.canvas.winfo_rooty(),(category,geometry)
+                        assert bottom<=(d.page if d._whole_page_scroll else d.canvas).winfo_rooty(),(category,geometry)
                         assert d.canvas.winfo_height()>=65,(category,language,geometry,d.canvas.winfo_height())
                         assert d.footer.winfo_rooty()+d.footer.winfo_height()<=d.winfo_rooty()+d.winfo_height()+1
                         top=d.comparison.winfo_rooty();d.canvas.yview_moveto(1);settle(app)
-                        assert d.comparison.winfo_rooty()==top
+                        assert d.comparison.winfo_rooty()<=top if d._whole_page_scroll else d.comparison.winfo_rooty()==top
                         if d.page_preview:
                             sample=d.page_preview
                             ids=sample.canvas.find_all();assert ids

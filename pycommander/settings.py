@@ -10,7 +10,7 @@ from functools import lru_cache
 
 from .i18n import tr, LANGUAGES
 from .tabs import TAB_STYLES, color_scheme
-from .columnsettings import modified_text
+from .columnsettings import modified_text, font_snapshot
 from .homeprefix import PREFIX_ICONS, prefix_icon
 from .settingsshots import SETTINGS_SHOTS
 from .settingspreview import SettingsSamplePreview, SettingsLayoutPreview
@@ -95,11 +95,10 @@ class SettingsDialog(tk.Toplevel):
         self.pane = app.active
         self.title(tr('PFC Settings'))
         self.transient(app)
-        # Independent pixel fonts keep Apply from moving controls under the mouse.
-        # The content area scrolls; the footer never scrolls out of reach.
+        # Snapshot the actual interface font, including automatic scaling.
+        # Draft changes do not move controls until Apply; never shrink reading text.
         base = tkfont.nametofont('TkDefaultFont')
-        self.font = tkfont.Font(self, family=base.actual('family'),
-                                size=-max(14, min(18, round(app._base_tk_scaling*11))))
+        self.font = tkfont.Font(self, **font_snapshot(base))
         self.heading_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size'), weight='bold'))
         self.small_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size')))
         self.specs = preference_specs(app)
@@ -120,7 +119,8 @@ class SettingsDialog(tk.Toplevel):
         self._shot_job = None
         self._build()
         sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
-        width, height = min(1180, sw-48), min(720, sh-80)
+        ratio=max(1,self.font.metrics('linespace')/20)
+        width, height = min(round(1180*ratio), sw-48), min(round(720*ratio), sh-80)
         self.geometry(f'{width}x{height}+{max(0,min(app.winfo_rootx()+30,sw-width-24))}+{max(0,min(app.winfo_rooty()+30,sh-height-40))}')
         self.minsize(min(720,width), min(560,height))
         self.protocol('WM_DELETE_WINDOW', self.cancel)
@@ -171,24 +171,34 @@ class SettingsDialog(tk.Toplevel):
                               selectbackground=p['selection'], selectforeground='#ffffff',
                               selectmode='browse')
         self.nav.pack(side='left', fill='y', padx=(0,14))
+        body.bind('<Configure>', lambda e:self.nav.configure(
+            width=max(8,min(18,int(e.width*.24/max(1,self.font.measure('0')))))))
         for _key, label in SETTINGS_CATEGORIES: self.nav.insert('end', tr(label))
         self.nav.bind('<<ListboxSelect>>', self._select)
         right = ttk.Frame(body); right.pack(fill='both', expand=True)
         self.title_label = ttk.Label(right, style='PrefsTitle.TLabel'); self.title_label.pack(anchor='w', pady=(0,6))
         self.intro = ttk.Label(right, text=tr('Changes take effect only after Apply or OK.'), style='Prefs.TLabel', wraplength=500)
         self.intro.pack(anchor='w', pady=(0,12))
-        # Comparison stays in view while only the preference controls scroll.
-        self.comparison = ttk.Frame(right)
-        self.comparison.pack(fill='x', pady=(0,8))
-        self.comparison.bind('<Configure>', lambda _e:self._schedule_shots())
+        # At large reading scales let preview + controls scroll together. A fixed
+        # preview must never consume the whole viewport and hide every setting.
+        self._whole_page_scroll = self.font.metrics('linespace') > 20
+        if not self._whole_page_scroll:
+            self.comparison = ttk.Frame(right)
+            self.comparison.pack(fill='x', pady=(0,8))
         content = ttk.Frame(right); content.pack(fill='both', expand=True)
         self.canvas = tk.Canvas(content, highlightthickness=0, bg=p['window'])
         self.scrollbar = ttk.Scrollbar(content, orient='vertical', command=self.canvas.yview)
         self.scrollbar.pack(side='right', fill='y'); self.canvas.pack(fill='both', expand=True)
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
-        self.page = ttk.Frame(self.canvas, padding=(2,0,12,10))
-        self.page_id = self.canvas.create_window(0,0,window=self.page,anchor='nw')
-        self.page.bind('<Configure>', lambda _e:self.canvas.configure(scrollregion=self.canvas.bbox('all')))
+        self.sheet = ttk.Frame(self.canvas)
+        self.page_id = self.canvas.create_window(0,0,window=self.sheet,anchor='nw')
+        if self._whole_page_scroll:
+            self.comparison = ttk.Frame(self.sheet)
+            self.comparison.pack(fill='x', pady=(0,8))
+        self.comparison.bind('<Configure>', lambda _e:self._schedule_shots())
+        self.page = ttk.Frame(self.sheet, padding=(2,0,12,10))
+        self.page.pack(fill='x')
+        self.sheet.bind('<Configure>', lambda _e:self.canvas.configure(scrollregion=self.canvas.bbox('all')))
         self.canvas.bind('<Configure>', self._resize)
         index = [key for key,_label in SETTINGS_CATEGORIES].index(self.category)
         self.nav.selection_set(index); self.nav.activate(index)
@@ -256,7 +266,7 @@ class SettingsDialog(tk.Toplevel):
             'general':'Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.',
         }
         self.intro.configure(text=tr(notes[category]))
-        self.comparison.pack(before=self.canvas.master,fill='x',pady=(0,8))
+        self.comparison.pack(before=self.page if self._whole_page_scroll else self.canvas.master,fill='x',pady=(0,8))
         if category in ('appearance','layout'):
             self._previews()
         else:
@@ -289,7 +299,7 @@ class SettingsDialog(tk.Toplevel):
             if key=='auto_start' and os.name!='nt':
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
-                'font_size':'Auto fits the main window width. Turn it off for a fixed percentage. Settings keeps a stable reading size.',
+                'font_size':'Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
@@ -543,6 +553,9 @@ class SettingsDialog(tk.Toplevel):
         for key in self.vars:self.original[key]=self._read(key);self.vars[key].set(self.original[key])
         self.prefix_original=[dict(item) for item in prefixes];self.prefix_draft=[dict(item) for item in prefixes]
         if close:self.cancel();return
+        self.font.configure(**font_snapshot(tkfont.nametofont('TkDefaultFont')))
+        self.heading_font.configure(**font_snapshot(self.font,weight='bold'))
+        self.small_font.configure(**font_snapshot(self.font))
         for child in self.winfo_children():child.destroy()
         self.title(tr('PFC Settings'));self._build();self.nav.focus_set()
 
@@ -569,8 +582,8 @@ class SettingsDialog(tk.Toplevel):
         widget=event.widget
         if not str(widget).startswith(str(self.page)+'.'):return
         self.update_idletasks()
-        y=widget.winfo_rooty()-self.page.winfo_rooty()
+        y=widget.winfo_rooty()-self.sheet.winfo_rooty()
         top=self.canvas.canvasy(0);height=self.canvas.winfo_height()
-        if y<top:self.canvas.yview_moveto(y/max(1,self.page.winfo_height()))
+        if y<top:self.canvas.yview_moveto(y/max(1,self.sheet.winfo_height()))
         elif y+widget.winfo_height()>top+height:
-            self.canvas.yview_moveto((y+widget.winfo_height()-height)/max(1,self.page.winfo_height()))
+            self.canvas.yview_moveto((y+widget.winfo_height()-height)/max(1,self.sheet.winfo_height()))

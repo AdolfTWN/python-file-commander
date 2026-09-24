@@ -28,7 +28,8 @@ GROUPS = {
     'tooltip': ('tooltip', 'nested_menu', 'context_settings', 'pathbar'),
     'tree': ('folder_scroll', 'folder_navigation', 'folder_sticky', 'folder_hierarchy', 'folder_leaf'),
     'preview': ('preview_tabs', 'markdown_reading', 'markdown_workspace'),
-    'settings': ('settings', 'settings_previews', 'settings_layout', 'column_menu'),
+    'settings': ('settings', 'settings_previews', 'settings_layout', 'column_menu', 'settings_readability_groups'),
+    'tabs': ('single_panel', 'tab_panel_drag', 'tab_lock', 'workflow_features'),
     'vcs': ('vcs_actions', 'vcs_gui'),
     'workflow': (),
 }

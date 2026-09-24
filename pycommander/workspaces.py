@@ -14,6 +14,7 @@ def capture_workspace(app):
         for pane in tabs.panes():
             panes.append(dict(path=str(pane.persistent_path()), filter=pane.quick_filter_var.get(),
                 color=tabs._colors.get(pane, 'default'), lock=pane.lock_mode,
+                tab_group=getattr(pane,'tab_group',''),
                 locked_path=str(pane.locked_path or pane.persistent_path()),
                 sort=pane.sort_column, descending=pane.reverse, hidden=pane.show_hidden,
                 system=pane.show_system, extensions=pane.show_extensions, mode=pane.view_mode))
@@ -78,6 +79,8 @@ def restore_workspace(app, data):
             items = []
             for item in group['tabs']:
                 pane = tabs.add_tab(Path(item['path']), notify=False, position=len(tabs.tabs()))
+                value=item.get('tab_group','')
+                pane.tab_group=value.strip()[:40] if isinstance(value,str) and not any(ord(c)<32 for c in value) else ''
                 created.append((tabs, pane)); items.append(pane)
                 pane.sort_column = item.get('sort', 'name') if item.get('sort') in pane.all_sort_columns else 'name'
                 pane.reverse = bool(item.get('descending'))

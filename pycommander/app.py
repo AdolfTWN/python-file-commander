@@ -20,7 +20,7 @@ import urllib.request
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 
 from . import __version__
 from .fileops import OperationFailure, OperationResult, compact_file_size, copy_items, delete_items, format_size, is_hidden, is_system, move_items, recycle_items, roots
@@ -139,6 +139,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.11", "2026/09/25", (
+        "Improved: Settings follows the interface reading size, with scrollable large-text previews and always-accessible action buttons.",
+        "Added: Numbered panel-origin lines, named tab groups and synchronized tab-strip scrolling; groups persist across sessions and workspaces.",
+    )),
     ("v0.18.10", "2026/09/25", (
         "Maintenance: Added measured test workflows, comparable timing and token reports, Windows readiness gates and release verification.",
     )),
@@ -897,6 +901,7 @@ class FilePane(ttk.Frame):
         self.view_mode = "list"
         self.display_title = self.path.name or str(self.path)
         self.lock_mode = "unlocked"
+        self.tab_group = ""
         self.locked_path: Path | None = None
         self.on_locked_navigation = lambda _path: None
         self._signature = None
@@ -2409,6 +2414,8 @@ class Commander(tk.Tk):
                 tab_style=self.tab_style_var.get(),
                 on_open_folder=self._open_folder_in_new_tab)
             self.panel_tabs.append(tabs)
+            tabs.panel_number = len(self.panel_tabs)
+            tabs.redraw()
         self.left_tabs, self.right_tabs = self.panel_tabs[:2]
         self.left = self.left_tabs.current()
         self.right = self.right_tabs.current()
@@ -2689,9 +2696,13 @@ class Commander(tk.Tk):
             locks = json.loads(self.config_data.get(side, "tab_locks", fallback="[]"))
             locked_paths = json.loads(self.config_data.get(side, "locked_paths", fallback="[]"))
             filters = json.loads(self.config_data.get(side, "tab_filters", fallback="[]"))
+            groups = json.loads(self.config_data.get(side, "tab_groups", fallback="[]"))
         except (json.JSONDecodeError, TypeError):
-            colors, locks, locked_paths, filters = [], [], [], []
+            colors, locks, locked_paths, filters, groups = [], [], [], [], []
+        if not isinstance(groups, list): groups = []
         for index, pane in enumerate(tabs.panes()):
+            value = groups[index] if index < len(groups) else ''
+            pane.tab_group = value.strip()[:40] if isinstance(value,str) and not any(ord(c)<32 for c in value) else ''
             pane.sort_column = column if column in pane.all_sort_columns else "name"
             pane.reverse = descending
             pane.mix_sorting = self.mix_sorting_var.get()
@@ -2751,6 +2762,7 @@ class Commander(tk.Tk):
             self.config_data.set(side, "tab_colors", json.dumps([
                 tabs._colors.get(p, "default") for p in panes]))
             self.config_data.set(side, "tab_locks", json.dumps([p.lock_mode for p in panes]))
+            self.config_data.set(side, "tab_groups", config_json([p.tab_group for p in panes], ensure_ascii=False))
             self.config_data.set(side, "locked_paths", config_json([
                 str(p.persistent_path() if p.archive_session is not None
                     else p.locked_path or p.persistent_path()) for p in panes]))
@@ -3504,6 +3516,20 @@ class Commander(tk.Tk):
     def get_tab_color(self, path: Path) -> str:
         return self._tab_colors.get(str(path), "default")
 
+    def set_tab_group(self, pane, name):
+        name = name.strip()
+        if len(name)>40 or any(ord(c)<32 for c in name):
+            messagebox.showerror(tr('Tab Group'), tr('Use 1–40 characters without line breaks.'), parent=self)
+            return
+        pane.tab_group = name
+        self._tabs_for(pane).redraw()
+        self.save_config()
+
+    def edit_tab_group(self, pane):
+        name = simpledialog.askstring(tr('Tab Group'), tr('Group name (blank removes the group):'),
+                                      initialvalue=pane.tab_group, parent=self)
+        if name is not None:self.set_tab_group(pane,name)
+
     def set_tab_color(self, path: Path, color: str) -> None:
         key = str(path)
         if color == "default":
@@ -3601,7 +3627,8 @@ class Commander(tk.Tk):
         if count == 1:
             if not self._single_layout: self._set_compare_target(None)
             self._single_layout = True
-            for tabs in self.panel_tabs: tabs.bar.pack_forget()
+            for tabs in self.panel_tabs:
+                tabs.bar.pack_forget();tabs.redraw()
             self.single_tabs.pack(fill='x', padx=5, before=self.split)
             self._sync_single_workspace()
             self.update_idletasks(); self._place_tree_sash()
@@ -3612,6 +3639,7 @@ class Commander(tk.Tk):
             for item in self.split.panes(): self.split.forget(item)
             for index, tabs in enumerate(self.panel_tabs):
                 tabs.bar.pack(fill='x', side='top', before=tabs.current())
+                tabs.redraw()
                 if index < count: self.split.add(tabs, weight=1)
         if self.active is None or self._tabs_for(self.active) not in self.visible_panel_tabs():
             self.set_active(self.panel_tabs[0].current())
@@ -3729,6 +3757,7 @@ class Commander(tk.Tk):
     @staticmethod
     def _copy_tab_view(source: FilePane, target: FilePane) -> None:
         selected = source.selected_paths()
+        target.tab_group = source.tab_group
         target.history = list(source.history)
         target.folder_selections = dict(source.folder_selections)
         target.sort_column = source.sort_column

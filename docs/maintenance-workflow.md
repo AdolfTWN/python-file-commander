@@ -34,7 +34,7 @@ For a focused self-contained run use:
 python3 tools/pfc_workflow.py auto-test --profile preview --jobs 2
 ```
 
-Profiles: `tooltip`, `tree`, `preview`, `settings`, `vcs`, `workflow`, `full`.
+Profiles: `tooltip`, `tree`, `preview`, `settings`, `tabs`, `vcs`, `workflow`, `full`.
 Except for the workflow tooling self-check, profiles include the entire unit
 suite and their selected GUI tests in source/portable forms where declared in
 the existing headless inventory. Full preserves all existing checks. No test

@@ -213,6 +213,7 @@ class SettingsSamplePreview(ttk.Frame):
     def _text(self, x, y, text, width, *, bold=False, color=None, anchor='w', tag='sample'):
         font = self.bold if bold else self.font
         shown = str(text)
+        if width < font.measure('…'):shown=''
         if font.measure(shown) > width:
             while shown and font.measure(shown + '…') > width:
                 shown = shown[:-1]
@@ -236,6 +237,7 @@ class SettingsSamplePreview(ttk.Frame):
                                   ('size','Size', max(66,self.font.measure(tr('Size'))+16)),
                                   ('ext','Ext',max(43,self.font.measure(tr('Ext'))+16))):
             if v['column_' + key]:
+                space=min(space,width*{'modified':.37,'size':.20,'ext':.18}[key])
                 columns.append((key,label,right-space,right)); right -= space
         columns.append(('name','Name',4,right))
         c.create_rectangle(0,0,width,line,fill=p['surface_alt'],outline='')
@@ -311,8 +313,9 @@ class SettingsSamplePreview(ttk.Frame):
         for x,y,text,strong in ((20,2.5,'Task',True),(mid+8,2.5,'Status',True),
                                 (20,3.5,'Review',False),(mid+8,3.5,'Done',False)):
             self._text(x,y*line,text,mid-28,bold=strong,tag='markdown-table')
-        self._text(12,5*line,'Ready',70,bold=True)
-        self._text(16+self.bold.measure('Ready'),5*line,'to share.',width-100)
+        self._text(12,5*line,'Ready',min(width-24,self.bold.measure('Ready')),bold=True)
+        following=16+self.bold.measure('Ready')
+        self._text(following,5*line,'to share.',max(0,width-following-12))
         self._text(12,7*line,tr('Headings, tables and emphasis; original file stays unchanged.'),width-24,color=p['muted'])
 
     def _draw_general(self, width):
@@ -322,13 +325,14 @@ class SettingsSamplePreview(ttk.Frame):
         self.caption.configure(text=tr('Sample interface language and sign-in behavior; applies only after Apply.'))
         c.create_rectangle(0,0,width,1.7*line,fill=p['header'],outline='')
         x=12
-        for text in ('Files','Go','View','Tools','Help'):
-            label=t(text);space=self.font.measure(label)+26
+        labels=('Files','Go','View','Tools','Help')
+        for index,text in enumerate(labels):
+            label=t(text);space=min(self.font.measure(label)+26,(width-24)/len(labels))
             self._text(x,.85*line,label,space-10,color=p['header_text'],tag='language-menu');x+=space
         self._text(12,2.6*line,t('Name')+'    Notes.md',width-24,bold=True,tag='language-name')
         x=12
         for text in ('Apply','Cancel','OK'):
-            label=t(text);space=max(65,self.font.measure(label)+24)
+            label=t(text);space=min(max(65,self.font.measure(label)+24),(width-40)/3)
             c.create_rectangle(x,3.4*line,x+space,4.6*line,fill=p['button'],outline=p['border'])
             self._text(x+space/2,4*line,label,space-12,anchor='center',tag='language-button');x+=space+8
         self._text(12,5.6*line,tr('Windows sign-in')+' → '+tr('PFC opens automatically' if v['auto_start'] else 'Open PFC manually'),

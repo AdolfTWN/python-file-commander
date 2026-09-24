@@ -11,6 +11,16 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Improved: Settings follows the interface reading size, with scrollable large-text previews and always-accessible action buttons.": ("改善：設定跟隨介面字級，大字預覽可捲動，操作按鈕維持可見。", "改善：设置跟随界面字号，大字预览可滚动，操作按钮保持可见。", "개선: 설정이 인터페이스 글자 크기를 따르고 큰 글자 미리보기는 스크롤되며 작업 버튼은 항상 표시됩니다."),
+    "Added: Numbered panel-origin lines, named tab groups and synchronized tab-strip scrolling; groups persist across sessions and workspaces.": ("新增：頁籤來源面板編號細線、命名群組與同步捲動；群組隨設定及工作區保存。", "新增：标签页来源面板编号细线、命名分组与同步滚动；分组随设置及工作区保存。", "추가: 번호가 있는 원본 패널 구분선, 이름 있는 탭 그룹 및 동기 스크롤. 그룹은 세션과 작업 공간에 저장됩니다."),
+    "Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.": ("設定使用介面的字型大小，套用後這裡也會同步更新。字型較大時可捲動查看所有選項。", "设置使用界面的字体大小，应用后这里也会同步更新。字体较大时可滚动查看所有选项。", "설정도 인터페이스 글자 크기를 따릅니다. 적용 후 함께 변경되며 큰 글자에서는 스크롤하여 모든 옵션을 확인하세요."),
+    "Tab Group": ("頁籤群組", "标签页分组", "탭 그룹"),
+    "Group": ("群組", "分组", "그룹"),
+    "Set group…": ("設定群組…", "设置分组…", "그룹 설정…"),
+    "Remove from group": ("移出群組", "移出分组", "그룹에서 제거"),
+    "Group name (blank removes the group):": ("群組名稱（留白可移出群組）：", "分组名称（留空可移出分组）：", "그룹 이름 (비우면 그룹에서 제거):"),
+    "Use 1–40 characters without line breaks.": ("請使用 1–40 個字元，不可包含換行。", "请使用 1–40 个字符，不可包含换行。", "줄 바꿈 없이 1–40자를 입력하세요."),
+    "Panel {number}": ("面板 {number}", "面板 {number}", "패널 {number}"),
     "Maintenance: Added measured test workflows, comparable timing and token reports, Windows readiness gates and release verification.": ("維護：新增測試流程追蹤、可比較的耗時與 token 報告、Windows 就緒檢查及發布核對。", "维护：新增测试流程追踪、可比较的耗时与 token 报告、Windows 就绪检查及发布核对。", "유지 관리: 측정 가능한 테스트 흐름, 시간 및 토큰 비교 보고서, Windows 준비 상태 검사와 배포 검증을 추가했습니다."),
     "Fixed: PFC tooltips cancel on focus loss, stale hover and owner closure; Escape, pointer approach and an eight-second limit dismiss visible help.": ("修正：PFC 提示在失焦、滑鼠離開目標或所屬視窗關閉時取消；Esc、滑鼠移到提示上或顯示八秒後關閉。", "修正：PFC 提示在失焦、鼠标离开目标或所属窗口关闭时取消；Esc、鼠标移到提示上或显示八秒后关闭。", "수정: PFC 도움말은 포커스 상실, 호버 대상 변경 또는 소유 창 닫기 시 취소됩니다. Esc, 포인터 접근 또는 8초 경과 시 닫힙니다."),
     "Added: Opt-in Markdown project search and wiki links with explicit scope, depth and resource limits; duplicate targets require a choice.": ("新增：手動啟動 Markdown 專案搜尋與 Wiki 連結，明示範圍、層數及資源限制；同名目標由使用者選擇。", "新增：手动启动 Markdown 项目搜索与 Wiki 链接，明示范围、层数及资源限制；同名目标由用户选择。", "추가: 명시적 범위, 깊이 및 자원 제한을 사용하는 Markdown 검색과 위키 링크. 중복 대상은 사용자가 선택합니다."),

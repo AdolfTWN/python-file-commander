@@ -1,6 +1,15 @@
 # Python File Commander
 
-Current version: **v0.18.10**
+Current version: **v0.18.11**
+
+**Readable settings and tab groups:** Settings inherits the main interface text
+size on opening and after Apply. Large-text pages scroll, with preview first and
+Apply/Cancel/OK outside the scroll area. Thin numbered lines identify P1–P4 tab
+ownership in both multi-panel and shared one-panel layouts. Right-click a tab →
+Tab Group to name/join/remove a group. Names persist in INI and saved workspaces;
+grouping never silently reorders tabs. Moving a tab to another panel updates its
+panel number while retaining its custom group. Overflowing tabs and their labels
+scroll together using the scrollbar or mouse wheel.
 
 **Maintenance tracing:** grouped tests record durations and compare equivalent
 runs automatically; real token counters are imported only when available.

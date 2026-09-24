@@ -72,12 +72,13 @@ action, not a global recursive-scan option. Help retains manual Check Update.
 
 ## Visual design
 
-- Every page keeps its preview outside and above the scrolling
-  controls. Style comparisons or draft examples are visible immediately, and do not scroll
-  away while choosing options. Compact label/control rows avoid excess vertical
-  whitespace. The default window is 1180×720, bounded by the screen.
-- Stable independent 14–18 pixel dialog fonts avoid controls moving under the
-  pointer after global zoom changes. Apply/Cancel/OK remain in a fixed footer.
+- Preview is first on every page. At ordinary reading size it stays above the
+  scrolling controls; at larger sizes the preview and controls scroll together,
+  so a tall example cannot squeeze all controls out of the window. Compact rows
+  avoid excess whitespace. Initial geometry grows with text size within the screen.
+- Since v0.18.11 the dialog snapshots the actual interface font, preserving pixel
+  units, on opening and after Apply. Draft font changes only affect the sample
+  until applied. Text is never reduced to fit; Apply/Cancel/OK stay in a fixed footer.
 - All categories and new explanations are translated into English, Traditional
   Chinese, Simplified Chinese and Korean. The dialog rebuilds after language Apply.
 - Current / After Apply screenshots are real PFC widget captures using a temporary
