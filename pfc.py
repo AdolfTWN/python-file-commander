@@ -17,6 +17,7 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Fixed: PFC tooltips cancel on focus loss, stale hover and owner closure; Escape, pointer approach and an eight-second limit dismiss visible help.": ("修正：PFC 提示在失焦、滑鼠離開目標或所屬視窗關閉時取消；Esc、滑鼠移到提示上或顯示八秒後關閉。", "修正：PFC 提示在失焦、鼠标离开目标或所属窗口关闭时取消；Esc、鼠标移到提示上或显示八秒后关闭。", "수정: PFC 도움말은 포커스 상실, 호버 대상 변경 또는 소유 창 닫기 시 취소됩니다. Esc, 포인터 접근 또는 8초 경과 시 닫힙니다."),
     "Added: Opt-in Markdown project search and wiki links with explicit scope, depth and resource limits; duplicate targets require a choice.": ("新增：手動啟動 Markdown 專案搜尋與 Wiki 連結，明示範圍、層數及資源限制；同名目標由使用者選擇。", "新增：手动启动 Markdown 项目搜索与 Wiki 链接，明示范围、层数及资源限制；同名目标由用户选择。", "추가: 명시적 범위, 깊이 및 자원 제한을 사용하는 Markdown 검색과 위키 링크. 중복 대상은 사용자가 선택합니다."),
     "Added: On-demand Markdown backlinks distinguish exact paths from ambiguous filename references without a persistent index.": ("新增：按需搜尋 Markdown 反向連結，區分確定路徑與可能的同名文件連結，不建立永久索引。", "新增：按需搜索 Markdown 反向链接，区分确定路径与可能的同名文档链接，不建立永久索引。", "추가: 영구 색인 없이 필요할 때 Markdown 백링크를 검색하고 정확한 경로와 모호한 파일명 참조를 구분합니다."),
     "Markdown workspace": ("Markdown 文件範圍", "Markdown 文档范围", "Markdown 작업 영역"),
@@ -3400,7 +3401,6 @@ class HeaderPopupController:
         self.descriptions = descriptions or {}
         self.popups = []
         self.tooltip = None
-        self.tooltip_job = None
         self.keyboard_pointer = None
 
     def show(self, button, menu) -> None:
@@ -3478,38 +3478,14 @@ class HeaderPopupController:
 
     def schedule_tooltip(self, popup, index) -> None:
         self._hide_tooltip()
-        self.tooltip_job = self.owner.after(5000, lambda: self._show_tooltip(popup, index))
-
-    def _show_tooltip(self, popup, index) -> None:
-        self.tooltip_job = None
-        if popup not in self.popups:
-            return
         label = popup.menu.entrycget(index, "label")
-        text = self.descriptions.get(label, label)
-        tip = tk.Toplevel(self.owner)
-        tip.overrideredirect(True)
-        tip.attributes("-topmost", True)
-        x, y = self.owner.winfo_pointerxy()
-        tip.geometry(f"+{x + 14}+{y + 18}")
-        palette = getattr(self.owner, "palette", COLOR_SCHEMES["light"])
-        tk.Label(tip, text=text, justify="left", background=palette["tooltip"],
-                 foreground=palette["tooltip_text"],
-                 relief="solid", borderwidth=1, padx=7, pady=4,
-                 font=tkfont.nametofont("TkDefaultFont")).pack()
-        self.tooltip = tip
+        self.tooltip = popup.help_tip
+        self.tooltip.text = self.descriptions.get(label, label)
+        self.tooltip._enter()
 
     def _hide_tooltip(self) -> None:
-        if self.tooltip_job is not None:
-            try:
-                self.owner.after_cancel(self.tooltip_job)
-            except tk.TclError:
-                pass
-            self.tooltip_job = None
         if self.tooltip is not None:
-            try:
-                self.tooltip.destroy()
-            except tk.TclError:
-                pass
+            self.tooltip.hide()
             self.tooltip = None
 
 
@@ -3537,6 +3513,8 @@ class _HeaderPopup:
         self.canvas = tk.Canvas(self.top, width=self.width, height=self.height, background=self.BG,
                                 highlightthickness=1, highlightbackground=self.BORDER, takefocus=True)
         self.canvas.pack()
+        self.top.palette = palette
+        self.help_tip = ToolTip(self.canvas, "", bind_hover=False)
         self.canvas.bind("<Motion>", self._motion)
         self.canvas.bind("<Enter>", self._motion)
         self.top.bind("<Motion>", self._motion)
@@ -3655,7 +3633,6 @@ class _HeaderPopup:
         self.selected = index
         self._draw()
         if index is not None:
-            self.controller.schedule_tooltip(self, index)
             if self.menu.type(index) == "cascade" and self.menu.entrycget(index, "state") != "disabled":
                 if open_cascade:
                     self.controller.open_child(self, index)
@@ -3663,6 +3640,7 @@ class _HeaderPopup:
                     self.controller._close_from(self.controller.popups.index(self) + 1)
             else:
                 self.controller._close_from(self.controller.popups.index(self) + 1)
+                self.controller.schedule_tooltip(self, index)
 
     def _event_target(self, event):
         if hasattr(event, 'x_root') and hasattr(event, 'y_root'):
@@ -4168,54 +4146,127 @@ BUTTON_HELP = {
 
 
 class ToolTip:
-    def __init__(self, widget, text, delay=5000):
+    """Owner-scoped, bounded hover help; never survives a stale hover/focus."""
+
+    poll_ms = 100
+    lifetime_ms = 8000
+
+    def __init__(self, widget, text, delay=5000, *, bind_hover=True):
         self.widget, self.text, self.delay = widget, text, delay
         self.job = self.popup = None
-        widget.bind("<Enter>", self._enter, add="+")
+        self.watch_job = self.expire_job = None
+        self.owner = widget.winfo_toplevel()
+        while isinstance(self.owner, tk.Menu):
+            self.owner = self.owner.master.winfo_toplevel()
+        self.owner_bindings = []
+        if bind_hover:
+            widget.bind("<Enter>", self._enter, add="+")
         widget.bind("<Leave>", self.hide, add="+")
         widget.bind("<Button>", self.hide, add="+")
+        widget.bind("<MouseWheel>", self.hide, add="+")
+        widget.bind("<Unmap>", self.hide, add="+")
+        widget.bind("<Destroy>", self.hide, add="+")
 
     def _enter(self, _event=None):
-        self.hide(); self.job = self.widget.after(self.delay, self.show)
+        self.hide()
+        self._schedule()
+
+    def _schedule(self):
+        if not self._eligible():
+            return
+        # Bind only for the lifetime of a pending/visible tooltip. No root-wide
+        # permanent callbacks accumulating as preview tabs/menus are destroyed.
+        for sequence in ("<FocusOut>", "<KeyPress>", "<ButtonPress>", "<Unmap>"):
+            token = self.owner.bind(sequence, self.hide, add="+")
+            self.owner_bindings.append((sequence, token))
+        self.job = self.widget.after(self.delay, self.show)
+        self.watch_job = self.widget.after(self.poll_ms, self._watch)
+
+    def _eligible(self):
+        try:
+            if not self.widget.winfo_viewable() or not self.owner.winfo_viewable():
+                return False
+            focus = self.owner.focus_displayof()
+            if focus is None or focus.winfo_toplevel() != self.owner:
+                return False
+            x, y = self.widget.winfo_pointerxy()
+            return self._target_at(x, y)
+        except (tk.TclError, KeyError):
+            return False
+
+    def _target_at(self, x, y):
+        target = self.widget.winfo_containing(x, y)
+        return target == self.widget
+
+    def _watch(self):
+        self.watch_job = None
+        if not self._eligible():
+            self.hide()
+        else:
+            self.watch_job = self.widget.after(self.poll_ms, self._watch)
 
     def show(self):
         self.job = None
-        if not self.widget.winfo_exists(): return
-        self.popup = tk.Toplevel(self.widget.winfo_toplevel())
-        self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
-        x, y = self.widget.winfo_pointerxy()
-        self.popup.geometry(f"+{x + 14}+{y + 18}")
-        owner = self.widget.winfo_toplevel()
-        palette = getattr(owner, "palette", {})
+        if not self._eligible():
+            self.hide()
+            return
         text = self.text() if callable(self.text) else self.text
         if not text:
-            self.popup.destroy(); self.popup = None; return
-        tk.Label(self.popup, text=text, justify="left",
+            self.hide()
+            return
+        if self.popup is not None:
+            return
+        self.popup = tk.Toplevel(self.owner, takefocus=False)
+        self.popup.withdraw()
+        self.popup.overrideredirect(True)
+        # Owned help must not float globally above unrelated applications.
+        self.popup.transient(self.owner)
+        x, y = self.widget.winfo_pointerxy()
+        self.popup.geometry(f"+{x + 14}+{y + 18}")
+        palette = getattr(self.owner, "palette", {})
+        tk.Label(self.popup, text=text, justify="left", wraplength=900,
                  background=palette.get("tooltip", "#fffbd6"),
                  foreground=palette.get("tooltip_text", "#18232c"),
                  relief="solid", borderwidth=1, padx=7, pady=4).pack()
+        # If the pointer approaches the help window, dismiss it before a click
+        # can be intercepted. Escape and owner input also dismiss immediately.
+        self.popup.bind("<Enter>", self.hide, add="+")
+        self.popup.bind("<ButtonPress>", self.hide, add="+")
+        self.popup.deiconify()
+        self.expire_job = self.widget.after(self.lifetime_ms, self.hide)
 
     def hide(self, _event=None):
-        if self.job is not None:
-            try: self.widget.after_cancel(self.job)
+        for name in ("job", "watch_job", "expire_job"):
+            token = getattr(self, name)
+            if token is not None:
+                try: self.widget.after_cancel(token)
+                except tk.TclError: pass
+                setattr(self, name, None)
+        for sequence, token in self.owner_bindings:
+            try: self.owner.unbind(sequence, token)
             except tk.TclError: pass
-            self.job = None
+        self.owner_bindings.clear()
         if self.popup is not None:
             try: self.popup.destroy()
             except tk.TclError: pass
             self.popup = None
 
 
-class TreeItemToolTip:
+class TreeItemToolTip(ToolTip):
     """Shows delayed text for the Treeview row currently under the pointer."""
 
     def __init__(self, tree, text_for_item, delay=3000):
         self.tree, self.text_for_item, self.delay = tree, text_for_item, delay
-        self.job = self.popup = None
         self.item = ""
+        super().__init__(tree, self._text, delay, bind_hover=False)
         tree.bind("<Motion>", self._motion, add="+")
-        tree.bind("<Leave>", self.hide, add="+")
-        tree.bind("<Button>", self.hide, add="+")
+
+    def _text(self):
+        return self.text_for_item(self.item) if self.item else ""
+
+    def _target_at(self, x, y):
+        return (super()._target_at(x, y) and bool(self.item)
+                and self.tree.identify_row(y - self.tree.winfo_rooty()) == self.item)
 
     def _motion(self, event):
         item = self.tree.identify_row(event.y)
@@ -4223,42 +4274,19 @@ class TreeItemToolTip:
             return
         self.hide(); self.item = item
         if item and self.text_for_item(item):
-            self.job = self.tree.after(self.delay, self.show)
-
-    def show(self):
-        self.job = None
-        text = self.text_for_item(self.item) if self.item else ""
-        if not text or not self.tree.winfo_exists():
-            return
-        self.popup = tk.Toplevel(self.tree.winfo_toplevel())
-        self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
-        x, y = self.tree.winfo_pointerxy()
-        self.popup.geometry(f"+{x + 14}+{y + 18}")
-        owner = self.tree.winfo_toplevel()
-        palette = getattr(owner, "palette", {})
-        tk.Label(self.popup, text=text, justify="left", wraplength=900,
-                 background=palette.get("tooltip", "#fffbd6"),
-                 foreground=palette.get("tooltip_text", "#18232c"),
-                 relief="solid", borderwidth=1, padx=7, pady=4).pack()
+            self._schedule()
 
     def hide(self, _event=None):
-        if self.job is not None:
-            try: self.tree.after_cancel(self.job)
-            except tk.TclError: pass
-            self.job = None
-        if self.popup is not None:
-            try: self.popup.destroy()
-            except tk.TclError: pass
-            self.popup = None
+        super().hide(_event)
         self.item = ""
 
 
-class MenuToolTip:
+class MenuToolTip(ToolTip):
     def __init__(self, menu, descriptions, delay=5000):
         self.menu, self.descriptions, self.delay = menu, descriptions, delay
-        self.job = self.popup = self.last_index = None
+        self.last_index = None
+        super().__init__(menu, self._text, delay, bind_hover=False)
         menu.bind("<<MenuSelect>>", self._selected, add="+")
-        menu.bind("<Unmap>", self.hide, add="+")
 
     def _selected(self, _event=None):
         try: index = self.menu.index("active")
@@ -4266,32 +4294,20 @@ class MenuToolTip:
         if index == self.last_index: return
         self.hide(); self.last_index = index
         if index is not None and self.menu.type(index) != "separator":
-            self.job = self.menu.after(self.delay, lambda: self.show(index))
+            self._schedule()
 
-    def show(self, index):
-        self.job = None
-        try: label = self.menu.entrycget(index, "label")
-        except tk.TclError: return
-        text = self.descriptions.get(label, label.replace("\t", " — "))
-        self.popup = tk.Toplevel(self.menu.winfo_toplevel())
-        self.popup.overrideredirect(True); self.popup.attributes("-topmost", True)
-        x, y = self.menu.winfo_pointerxy(); self.popup.geometry(f"+{x + 14}+{y + 18}")
-        owner = self.menu.winfo_toplevel()
-        palette = getattr(owner, "palette", {})
-        tk.Label(self.popup, text=text, justify="left",
-                 background=palette.get("tooltip", "#fffbd6"),
-                 foreground=palette.get("tooltip_text", "#18232c"),
-                 relief="solid", borderwidth=1, padx=7, pady=4).pack()
+    def _text(self):
+        try: label = self.menu.entrycget(self.last_index, "label")
+        except tk.TclError: return ""
+        return self.descriptions.get(label, label.replace("\t", " — "))
+
+    def _target_at(self, x, y):
+        return (super()._target_at(x, y) and self.last_index is not None
+                and self.menu.index("active") == self.last_index)
 
     def hide(self, _event=None):
-        if self.job is not None:
-            try: self.menu.after_cancel(self.job)
-            except tk.TclError: pass
-            self.job = None
-        if self.popup is not None:
-            try: self.popup.destroy()
-            except tk.TclError: pass
-            self.popup = None
+        super().hide(_event)
+        self.last_index = None
 
 
 def install_button_tooltips(root) -> None:
@@ -15230,7 +15246,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.18.8"
+__version__ = "0.18.9"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -15315,6 +15331,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/25"
 VERSION_HISTORY = (
+    ("v0.18.9", "2026/09/25", (
+        "Fixed: PFC tooltips cancel on focus loss, stale hover and owner closure; Escape, pointer approach and an eight-second limit dismiss visible help.",
+    )),
     ("v0.18.8", "2026/09/25", (
         "Added: Opt-in Markdown project search and wiki links with explicit scope, depth and resource limits; duplicate targets require a choice.",
         "Added: On-demand Markdown backlinks distinguish exact paths from ambiguous filename references without a persistent index.",

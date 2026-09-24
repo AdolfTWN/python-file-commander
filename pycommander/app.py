@@ -139,6 +139,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.9", "2026/09/25", (
+        "Fixed: PFC tooltips cancel on focus loss, stale hover and owner closure; Escape, pointer approach and an eight-second limit dismiss visible help.",
+    )),
     ("v0.18.8", "2026/09/25", (
         "Added: Opt-in Markdown project search and wiki links with explicit scope, depth and resource limits; duplicate targets require a choice.",
         "Added: On-demand Markdown backlinks distinguish exact paths from ambiguous filename references without a persistent index.",

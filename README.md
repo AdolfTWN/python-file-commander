@@ -1,6 +1,10 @@
 # Python File Commander
 
-Current version: **v0.18.8**
+Current version: **v0.18.9**
+
+**Hover help:** PFC tooltips no longer remain globally on top. Pending and visible
+help is cancelled when focus or the hover target changes; Esc, pointer approach
+and an eight-second timeout dismiss it. See [validation and limits](docs/tooltip-validation.md).
 
 **Markdown workspace:** F3 → Rendered → Reading → Find Markdown files / Backlinks.
 Ctrl+click `[[Spec]]`, `[[Spec#Heading|Label]]` or `[[docs/Spec]]` to confirm a

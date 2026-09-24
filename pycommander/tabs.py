@@ -7,6 +7,7 @@ import tkinter.font as tkfont
 from tkinter import ttk
 from .i18n import tr
 from .tabicons import tab_lock_icon_png
+from .tooltip import ToolTip
 
 
 def virtual_screen_bounds(widget) -> tuple[int, int, int, int]:
@@ -208,7 +209,6 @@ class HeaderPopupController:
         self.descriptions = descriptions or {}
         self.popups = []
         self.tooltip = None
-        self.tooltip_job = None
         self.keyboard_pointer = None
 
     def show(self, button, menu) -> None:
@@ -286,38 +286,14 @@ class HeaderPopupController:
 
     def schedule_tooltip(self, popup, index) -> None:
         self._hide_tooltip()
-        self.tooltip_job = self.owner.after(5000, lambda: self._show_tooltip(popup, index))
-
-    def _show_tooltip(self, popup, index) -> None:
-        self.tooltip_job = None
-        if popup not in self.popups:
-            return
         label = popup.menu.entrycget(index, "label")
-        text = self.descriptions.get(label, label)
-        tip = tk.Toplevel(self.owner)
-        tip.overrideredirect(True)
-        tip.attributes("-topmost", True)
-        x, y = self.owner.winfo_pointerxy()
-        tip.geometry(f"+{x + 14}+{y + 18}")
-        palette = getattr(self.owner, "palette", COLOR_SCHEMES["light"])
-        tk.Label(tip, text=text, justify="left", background=palette["tooltip"],
-                 foreground=palette["tooltip_text"],
-                 relief="solid", borderwidth=1, padx=7, pady=4,
-                 font=tkfont.nametofont("TkDefaultFont")).pack()
-        self.tooltip = tip
+        self.tooltip = popup.help_tip
+        self.tooltip.text = self.descriptions.get(label, label)
+        self.tooltip._enter()
 
     def _hide_tooltip(self) -> None:
-        if self.tooltip_job is not None:
-            try:
-                self.owner.after_cancel(self.tooltip_job)
-            except tk.TclError:
-                pass
-            self.tooltip_job = None
         if self.tooltip is not None:
-            try:
-                self.tooltip.destroy()
-            except tk.TclError:
-                pass
+            self.tooltip.hide()
             self.tooltip = None
 
 
@@ -345,6 +321,8 @@ class _HeaderPopup:
         self.canvas = tk.Canvas(self.top, width=self.width, height=self.height, background=self.BG,
                                 highlightthickness=1, highlightbackground=self.BORDER, takefocus=True)
         self.canvas.pack()
+        self.top.palette = palette
+        self.help_tip = ToolTip(self.canvas, "", bind_hover=False)
         self.canvas.bind("<Motion>", self._motion)
         self.canvas.bind("<Enter>", self._motion)
         self.top.bind("<Motion>", self._motion)
@@ -463,7 +441,6 @@ class _HeaderPopup:
         self.selected = index
         self._draw()
         if index is not None:
-            self.controller.schedule_tooltip(self, index)
             if self.menu.type(index) == "cascade" and self.menu.entrycget(index, "state") != "disabled":
                 if open_cascade:
                     self.controller.open_child(self, index)
@@ -471,6 +448,7 @@ class _HeaderPopup:
                     self.controller._close_from(self.controller.popups.index(self) + 1)
             else:
                 self.controller._close_from(self.controller.popups.index(self) + 1)
+                self.controller.schedule_tooltip(self, index)
 
     def _event_target(self, event):
         if hasattr(event, 'x_root') and hasattr(event, 'y_root'):

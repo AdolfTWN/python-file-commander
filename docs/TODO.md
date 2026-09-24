@@ -1,5 +1,17 @@
 # PFC follow-ups
 
+## Tooltip lifetime — v0.18.9
+
+- [x] Reproduce PFC's delayed tooltip appearing after focus loss. Unify button,
+  path, tree-row and menu help: owner-scoped, stale-hover cancellation, Escape,
+  pointer-approach dismissal, 8-second expiry, timer/binding cleanup.
+- [x] Source/portable Linux GUI regression, including another process taking focus.
+- [ ] Native Windows tooltip acceptance: VM login rejected the fixed test
+  credential; no native test ran and no account reset was performed.
+- [ ] Attribute the photographed black “Click to go back…” window to its owning
+  process. Its text is absent from PFC; do not claim it is fixed by PFC lifecycle
+  hardening. See [evidence and limits](tooltip-validation.md).
+
 ## Current completion boundary — 2026-09-25
 
 The actionable offline defects and Preview-tab request below are implemented and
