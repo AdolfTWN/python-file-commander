@@ -1,8 +1,15 @@
 # Python File Commander
 
-Current version: **v0.18.7**
+Current version: **v0.18.8**
 
-The 2026/09/25 release fixes blank code/YAML Preview, adds F3 multi-file tabs
+**Markdown workspace:** F3 → Rendered → Reading → Find Markdown files / Backlinks.
+Ctrl+click `[[Spec]]`, `[[Spec#Heading|Label]]` or `[[docs/Spec]]` to confirm a
+project folder and search. Default depth 3; optional 1/5/8. Each explicit scan
+stops at 5,000 entries, 3 seconds or 50 results; incomplete results are labeled.
+No persistent index, automatic scope expansion or first-match guessing. Windows
+cloud/reparse restrictions remain in place. See [scope and usage](docs/markdown-workspace.md).
+
+The preceding v0.18.7 release fixes blank code/YAML Preview, adds F3 multi-file tabs
 and replaces the folder-tree split renderer. Use Check for Updates to upgrade
 from 0.18.6; the original v0.18.6 tag is preserved for historical comparison.
 See [Windows A/B evidence and remaining acceptance](docs/folder-scroll-validation.md).
@@ -106,7 +113,9 @@ Markdown preview includes read-only tasks, labeled callouts, a section menu and
 folding, alongside pipe tables and literal frontmatter properties. Search reveals
 folded matches; Select All/Copy includes their text. Ctrl+click follows **exact
 local Markdown paths within the original document's folder**, with Back and no
-index, recursive search or missing-link fallback. Reading/parsing runs in one
+automatic index, recursive search or missing-link fallback. Wiki links and the
+Reading menu offer a separate explicitly confirmed bounded workspace scan.
+Reading/parsing runs in one
 cancellable worker with timeout, memory limits and explicit source fallback.
 See the [reading guide and restrictions](docs/markdown-preview-guide.md) and
 [sample document](docs/markdown-preview-example.md). Cloud/reparse-linked targets

@@ -17,6 +17,47 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Added: Opt-in Markdown project search and wiki links with explicit scope, depth and resource limits; duplicate targets require a choice.": ("新增：手動啟動 Markdown 專案搜尋與 Wiki 連結，明示範圍、層數及資源限制；同名目標由使用者選擇。", "新增：手动启动 Markdown 项目搜索与 Wiki 链接，明示范围、层数及资源限制；同名目标由用户选择。", "추가: 명시적 범위, 깊이 및 자원 제한을 사용하는 Markdown 검색과 위키 링크. 중복 대상은 사용자가 선택합니다."),
+    "Added: On-demand Markdown backlinks distinguish exact paths from ambiguous filename references without a persistent index.": ("新增：按需搜尋 Markdown 反向連結，區分確定路徑與可能的同名文件連結，不建立永久索引。", "新增：按需搜索 Markdown 反向链接，区分确定路径与可能的同名文档链接，不建立永久索引。", "추가: 영구 색인 없이 필요할 때 Markdown 백링크를 검색하고 정확한 경로와 모호한 파일명 참조를 구분합니다."),
+    "Markdown workspace": ("Markdown 文件範圍", "Markdown 文档范围", "Markdown 작업 영역"),
+    "Browse": ("瀏覽", "浏览", "찾아보기"),
+    "Find Markdown files": ("搜尋 Markdown 文件", "搜索 Markdown 文档", "Markdown 문서 찾기"),
+    "Resolve wiki link": ("尋找 Wiki 連結目標", "查找 Wiki 链接目标", "위키 링크 찾기"),
+    "Backlinks to this document": ("連到此文件的反向連結", "链接到此文档的反向链接", "이 문서의 백링크"),
+    "Project folder": ("專案資料夾", "项目文件夹", "프로젝트 폴더"),
+    "Depth": ("向下層數", "向下层数", "하위 깊이"),
+    "Relative path": ("相對路徑", "相对路径", "상대 경로"),
+    "Match type": ("符合類型", "匹配类型", "일치 유형"),
+    "Open selected": ("開啟選取項目", "打开选中项", "선택 항목 열기"),
+    "Cancel search": ("取消搜尋", "取消搜索", "검색 취소"),
+    "Filename match": ("檔名符合", "文件名匹配", "파일 이름 일치"),
+    "Exact path reference": ("確定的路徑連結", "确定的路径链接", "정확한 경로 참조"),
+    "Possible filename reference": ("可能的同名文件連結", "可能的同名文档链接", "동명 파일 참조 가능성"),
+    "No automatic index. Up to 5,000 entries / 3 seconds / 50 results. Excluded and unavailable folders are skipped.": ("不自動索引。每次最多 5,000 個項目／3 秒／50 筆結果；略過排除項目與無法存取的資料夾。", "不自动索引。每次最多 5,000 个项目／3 秒／50 条结果；跳过排除项与无法访问的文件夹。", "자동 색인 없음. 최대 5,000개 항목 / 3초 / 결과 50개. 제외 및 접근 불가 폴더는 건너뜁니다."),
+    "Confirm the project folder, then press Search.": ("確認專案資料夾後按「搜尋」。不會自動擴大範圍。", "确认项目文件夹后按“搜索”。不会自动扩大范围。", "프로젝트 폴더를 확인한 후 검색하세요. 범위는 자동 확장되지 않습니다."),
+    "Backlinks scan local Markdown content on demand; filename-only references may be ambiguous.": ("反向連結僅在按搜尋後讀取本機 MD 內容；只寫檔名的連結可能指向同名文件。", "反向链接仅在按搜索后读取本地 MD 内容；只写文件名的链接可能指向同名文档。", "백링크는 검색할 때만 로컬 MD 내용을 읽습니다. 파일명 참조는 모호할 수 있습니다."),
+    "Previous search is stopping; try again shortly.": ("上次搜尋正在停止，請稍後再試。", "上次搜索正在停止，请稍后再试。", "이전 검색을 중지 중입니다. 잠시 후 다시 시도하세요."),
+    "Searching within the confirmed folder…": ("正在已確認的資料夾範圍內搜尋…", "正在已确认的文件夹范围内搜索…", "확인된 폴더 범위에서 검색 중…"),
+    "Search incomplete": ("搜尋未完成", "搜索未完成", "검색 미완료"),
+    "Search complete within this depth and exclusions": ("已完成指定層數與排除規則內的搜尋", "已完成指定层数与排除规则内的搜索", "지정 깊이 및 제외 규칙 내 검색 완료"),
+    "{count} results; {visited} entries; {skipped} skipped": ("{count} 筆結果；已檢查 {visited} 個項目；略過 {skipped} 個", "{count} 条结果；已检查 {visited} 个项目；跳过 {skipped} 个", "결과 {count}개; 확인 {visited}개; 건너뜀 {skipped}개"),
+    "Search timed out; no complete result. Narrow the project folder.": ("搜尋逾時，結果不完整。請縮小專案資料夾範圍。", "搜索超时，结果不完整。请缩小项目文件夹范围。", "검색 시간 초과. 결과가 불완전합니다. 프로젝트 범위를 줄이세요."),
+    "Search canceled; no complete result.": ("已取消搜尋，結果不完整。", "已取消搜索，结果不完整。", "검색 취소됨. 결과가 불완전합니다."),
+    "Ctrl+click: confirm a project folder to resolve this wiki link.": ("Ctrl＋點擊：確認專案資料夾後尋找此 Wiki 連結。", "Ctrl＋点击：确认项目文件夹后查找此 Wiki 链接。", "Ctrl+클릭: 프로젝트 폴더를 확인한 후 위키 링크를 찾습니다."),
+    "Choose an absolute project folder": ("請選擇完整路徑的專案資料夾", "请选择完整路径的项目文件夹", "절대 경로의 프로젝트 폴더를 선택하세요"),
+    "Choose a project folder, not a drive root or home folder": ("請選專案資料夾，不可使用磁碟根目錄或使用者主目錄", "请选择项目文件夹，不可使用磁盘根目录或用户主目录", "드라이브 루트나 홈 대신 프로젝트 폴더를 선택하세요"),
+    "The project folder must contain the current document": ("專案資料夾必須包含目前文件", "项目文件夹必须包含当前文档", "프로젝트 폴더에 현재 문서가 포함되어야 합니다"),
+    "Invalid wiki destination": ("Wiki 連結目標格式無效", "Wiki 链接目标格式无效", "잘못된 위키 링크 대상"),
+    "Block references are not supported": ("尚不支援區塊 ID 連結", "尚不支持块 ID 链接", "블록 참조는 지원하지 않습니다"),
+    "Invalid search depth": ("搜尋層數無效", "搜索层数无效", "잘못된 검색 깊이"),
+    "Invalid search mode": ("搜尋模式無效", "搜索模式无效", "잘못된 검색 모드"),
+    "Search text is too long": ("搜尋文字過長", "搜索文字过长", "검색어가 너무 깁니다"),
+    "time": ("時間上限", "时间上限", "시간 제한"),
+    "entries": ("項目數上限", "项目数上限", "항목 제한"),
+    "results": ("結果數上限", "结果数上限", "결과 제한"),
+    "unavailable": ("受限或無法存取項目", "受限或无法访问项", "접근 불가 항목"),
+    "large documents": ("略過大型文件", "跳过大型文档", "큰 문서 건너뜀"),
+    "content budget": ("內容讀取量上限", "内容读取量上限", "내용 읽기 한도"),
     "Attempted: Folder-tree scroll repaint synchronization; user retesting still found tearing. Superseded by native-row rendering in v0.18.7.": ("修正嘗試：資料夾樹捲動重繪同步；使用者複測仍發現光棒破裂。v0.18.7 改以原生列繪製取代。", "修复尝试：文件夹树滚动重绘同步；用户复测仍发现选中条破裂。v0.18.7 改以原生行绘制取代。", "수정 시도: 폴더 트리 스크롤 다시 그리기 동기화 후에도 사용자 재시험에서 화면 분할이 발견되었습니다. v0.18.7의 기본 행 렌더링으로 대체되었습니다."),
     "Fixed: Folder-tree rows use native images instead of separate overlays; navigation reveals the complete selected row after sticky layout changes.": ("修正：資料夾樹改用原生列圖像，移除分離的覆蓋層；導航時在浮動階層調整後完整顯示選取列。", "修复：文件夹树改用原生行图像，移除分离覆盖层；导航时在浮动层级调整后完整显示选中行。", "수정: 폴더 트리는 분리된 오버레이 대신 기본 행 이미지를 사용하고 고정 계층 변경 후 선택 행을 표시합니다."),
     "Fixed: Code and YAML previews no longer fail on a translated syntax-label parameter collision.": ("修正：程式碼與 YAML 預覽不再因語法標籤翻譯參數衝突而空白。", "修复：代码与 YAML 预览不再因语法标签翻译参数冲突而空白。", "수정: 구문 레이블 번역 매개변수 충돌로 코드 및 YAML 미리 보기가 비는 문제를 해결했습니다."),
@@ -6219,7 +6260,7 @@ class WorkflowRecords:
         if len(serialized) > 1024 * 1024:
             raise ValueError('Saved workflow data exceeds the limit. Remove an entry before saving more.')
         if not self.config.has_section('workflows'): self.config.add_section('workflows')
-        self.config.set('workflows', self.key, serialized)
+        self.config.set('workflows', self.key, serialized.replace('%', '%%'))
 
     def put(self, name, data):
         name = name.strip()
@@ -11018,6 +11059,363 @@ class CompareWindow(tk.Toplevel):
         widget.destroy()
 
 
+"""Opt-in, bounded Markdown discovery. No persistent index or automatic scans."""
+import os
+import stat
+import time
+from contextlib import contextmanager
+from pathlib import Path
+from urllib.parse import quote
+
+
+MD_EXCLUDES = frozenset({'.git', '.svn', 'node_modules', '.venv', 'venv', '__pycache__'})
+MD_UNSAFE_ATTRIBUTES = 0x400 | 0x1000 | 0x40000 | 0x400000
+
+
+def remember_markdown_workspace(config, root, depth):
+    if not config.has_section('markdown_workspace'): config.add_section('markdown_workspace')
+    # ConfigParser interprets percent signs; paths must survive a save/reload.
+    config.set('markdown_workspace', 'root', str(root).replace('%', '%%'))
+    config.set('markdown_workspace', 'depth', str(depth))
+
+
+def wiki_destination(value):
+    """Parse visible wikilink text without touching the filesystem."""
+    target, sep, alias = value.partition('|')
+    name, hashmark, fragment = target.partition('#')
+    name = name.strip(); fragment = fragment.strip()
+    if (len(value) > 1024 or any(ord(c) < 32 for c in value)
+            or any(c in name for c in '\\:*?<>"') or name.startswith('/')
+            or (name and any(p in ('.', '..', '') or p.endswith((' ', '.')) for p in name.split('/')))):
+        raise ValueError('Invalid wiki destination')
+    if not name and not fragment:
+        raise ValueError('Invalid wiki destination')
+    if fragment.startswith('^'):
+        raise ValueError('Block references are not supported')
+    if name and Path(name).suffix and Path(name).suffix.casefold() != '.md':
+        raise ValueError('Only Markdown documents can be followed')
+    filename = name if not name or name.casefold().endswith('.md') else name + '.md'
+    return {'name': filename, 'fragment': fragment,
+            'label': alias.strip() if sep and alias.strip() else (target if name else fragment),
+            'href': quote(filename, safe='/') + ('#' + quote(fragment, safe='') if hashmark else '')}
+
+
+def workspace_root(value, document):
+    """Lexical scope check; filesystem validation happens only in the worker."""
+    if not value or not Path(value).is_absolute():
+        raise ValueError('Choose an absolute project folder')
+    root = Path(os.path.abspath(value))
+    if root == Path(root.anchor) or root == Path.home():
+        raise ValueError('Choose a project folder, not a drive root or home folder')
+    try:
+        Path(os.path.abspath(document)).relative_to(root)
+    except ValueError:
+        raise ValueError('The project folder must contain the current document') from None
+    if any(p.startswith('pfc-archive-') for p in root.parts):
+        raise ValueError('Cross-document links are disabled inside archives')
+    return root
+
+
+@contextmanager
+def workspace_entries(path):
+    """Keep validated directory handles alive while enumerating one level.
+
+    Windows denies deletion/renaming of all ancestors; POSIX opens relative to
+    retained descriptors with O_NOFOLLOW. Cloud/reparse/mount paths fail closed.
+    This is not an adversarial-filesystem sandbox or a provider no-recall API.
+    """
+    path = Path(os.path.abspath(path)); handles = []
+    if os.name != 'nt':
+        try:
+            fd = os.open(path.anchor, os.O_RDONLY | os.O_DIRECTORY); handles.append(fd)
+            device = os.fstat(fd).st_dev
+            for part in path.parts[1:]:
+                fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                handles.append(fd)
+                if os.fstat(fd).st_dev != device:
+                    raise ValueError('Mounted paths are not supported for linked preview')
+            with os.scandir(fd) as entries:
+                yield entries
+        finally:
+            for fd in reversed(handles): os.close(fd)
+        return
+    import ctypes
+    from ctypes import wintypes
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.GetDriveTypeW.argtypes = [wintypes.LPCWSTR]
+    kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                                  ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+    kernel.CreateFileW.restype = wintypes.HANDLE
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel.GetFileInformationByHandleEx.argtypes = [wintypes.HANDLE, ctypes.c_int,
+                                                   ctypes.c_void_p, wintypes.DWORD]
+    if not path.drive or str(path).startswith('\\\\') or kernel.GetDriveTypeW(path.anchor) != 3:
+        raise ValueError('Only fixed local drives are supported for linked preview')
+    try:
+        for part in [*reversed(path.parents), path]:
+            handle = kernel.CreateFileW(str(part), 0x80, 1, None, 3,
+                                        0x02000000 | 0x00200000 | 0x00100000, None)
+            if handle == ctypes.c_void_p(-1).value: raise ctypes.WinError(ctypes.get_last_error())
+            handles.append(handle); attrs = (wintypes.DWORD * 2)()
+            if not kernel.GetFileInformationByHandleEx(handle, 9, attrs, ctypes.sizeof(attrs)):
+                raise ctypes.WinError(ctypes.get_last_error())
+            if not attrs[0] & 0x10 or attrs[0] & MD_UNSAFE_ATTRIBUTES:
+                raise ValueError('Cloud-only, linked or unknown reparse paths cannot be followed')
+        with os.scandir(path) as entries:
+            yield entries
+    finally:
+        for handle in reversed(handles): kernel.CloseHandle(handle)
+
+
+def scan_markdown_workspace(request, parse_document, decode):
+    """Single explicit scan, shared budgets across all branches and file reads."""
+    root = workspace_root(request['root'], request['path'])
+    depth = int(request.get('depth', 3))
+    if depth not in (1, 3, 5, 8): raise ValueError('Invalid search depth')
+    mode = request.get('mode', 'files')
+    if mode not in ('files', 'wiki', 'backlinks'): raise ValueError('Invalid search mode')
+    query = str(request.get('query', '')).strip()
+    if len(query) > 256: raise ValueError('Search text is too long')
+    target = Path(os.path.abspath(request['path']))
+    # Callers may lower budgets in tests, but never raise the release ceilings.
+    max_entries = max(1, min(5000, int(request.get('max_entries', 5000))))
+    deadline = time.monotonic() + max(.001, min(3., float(request.get('seconds', 3))))
+    pending = [(root, 0)]; seen = 0; skipped = 0; byte_count = 0
+    results = []; reasons = set(); examined = 0
+    while pending:
+        if time.monotonic() >= deadline: reasons.add('time'); break
+        directory, level = pending.pop()
+        try:
+            with workspace_entries(directory) as entries:
+                for entry in entries:
+                    if time.monotonic() >= deadline: reasons.add('time'); break
+                    if seen >= max_entries: reasons.add('entries'); break
+                    seen += 1
+                    if entry.name.casefold() in MD_EXCLUDES:
+                        skipped += 1; continue
+                    try:
+                        info = entry.stat(follow_symlinks=False)
+                        if stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & MD_UNSAFE_ATTRIBUTES:
+                            skipped += 1; reasons.add('unavailable'); continue
+                        path = directory / entry.name
+                        if stat.S_ISDIR(info.st_mode):
+                            if level < depth: pending.append((path, level + 1))
+                            else: skipped += 1
+                            continue
+                        if not stat.S_ISREG(info.st_mode) or path.suffix.casefold() != '.md': continue
+                        detail = 'Filename match'
+                        if mode == 'wiki':
+                            candidate = str(path.relative_to(root)).replace(os.sep, '/') if '/' in query else entry.name
+                            if candidate.casefold() != query.casefold(): continue
+                        if mode == 'files' and query.casefold() not in entry.name.casefold(): continue
+                        if mode == 'backlinks':
+                            if path == target: continue
+                            if info.st_size > 256 * 1024:
+                                skipped += 1; reasons.add('large documents'); continue
+                            remaining = 8 * 1024 * 1024 - byte_count
+                            if remaining <= 0 or info.st_size > remaining:
+                                reasons.add('content budget'); break
+                            read_limit = min(256 * 1024, remaining)
+                            data, _ = read_linked_markdown(path, root, read_limit)
+                            byte_count += len(data)
+                            if len(data) > read_limit:
+                                if read_limit < 256 * 1024:
+                                    reasons.add('content budget'); break
+                                skipped += 1; reasons.add('large documents'); continue
+                            examined += 1
+                            model = parse_document(decode(data)[0]); matches = []
+                            for link in model.get('links', []):
+                                try:
+                                    if link.get('wiki'):
+                                        wiki = wiki_destination(link['wiki'])
+                                        if wiki['name'] and '/' not in wiki['name']:
+                                            if wiki['name'].casefold() == target.name.casefold():
+                                                matches.append('Possible filename reference')
+                                            continue
+                                        href = wiki['href']
+                                        resolved, _ = markdown_destination(root / '__scope__.md', root, href)
+                                    else:
+                                        resolved, _ = markdown_destination(path, root, link['href'])
+                                    if os.path.normcase(str(resolved)) == os.path.normcase(str(target)):
+                                        matches.append('Exact path reference')
+                                except (ValueError, UnicodeError): continue
+                            if not matches: continue
+                            detail = 'Exact path reference' if 'Exact path reference' in matches else matches[0]
+                        results.append({'path': str(path.relative_to(root)), 'detail': detail})
+                        if len(results) >= 50: reasons.add('results'); break
+                    except (OSError, ValueError):
+                        skipped += 1; reasons.add('unavailable')
+        except (OSError, ValueError):
+            if directory == root: raise
+            skipped += 1; reasons.add('unavailable')
+        if reasons & {'entries', 'time', 'results', 'content budget'}: break
+    if time.monotonic() >= deadline: reasons.add('time')
+    return {'results': sorted(results, key=lambda r: r['path'].casefold()),
+            'root': str(root), 'visited': seen, 'skipped': skipped, 'examined': examined,
+            'reasons': sorted(reasons), 'mode': mode, 'depth': depth}
+
+"""A compact opt-in Markdown discovery dialog; no scan until Search is pressed."""
+import time
+import tkinter as tk
+from pathlib import Path
+from tkinter import ttk, filedialog
+
+
+
+class MarkdownWorkspaceDialog(tk.Toplevel):
+    def __init__(self, page, module_file, packaged, mode='files', query='', fragment=''):
+        super().__init__(page)
+        self.page = page; self.document = page.path; self.fragment = fragment; self.initial_query = query
+        self.title(tr('Markdown workspace')); workflow_dialog_geometry(self, page.host, 840, 540)
+        self.minsize(min(600,self.winfo_screenwidth()-60),min(440,self.winfo_screenheight()-100))
+        self.jobs = MarkdownJobs(module_file, packaged); self.poll_id = None
+        self.results = []; self.result_root = None; self.request = None
+        self.previous_suspended = page._md_auto_suspended
+        page._md_auto_suspended = True
+        if page._md_jobs.pending: page._md_jobs.cancel()
+        page._md_request = None; page._md_queued = None
+        config = page.config_data
+        remembered = config.get('markdown_workspace', 'root', fallback=str(self.document.parent))
+        try: remembered = str(workspace_root(remembered, self.document))
+        except ValueError: remembered = str(self.document.parent)
+        self.root_var = tk.StringVar(value=remembered)
+        saved_depth = config.get('markdown_workspace', 'depth', fallback='3')
+        self.depth_var = tk.StringVar(value=saved_depth if saved_depth in ('1','3','5','8') else '3')
+        self.query_var = tk.StringVar(value=query)
+        self.modes = {tr('Find Markdown files'): 'files', tr('Resolve wiki link'): 'wiki',
+                      tr('Backlinks to this document'): 'backlinks'}
+        self.mode_var = tk.StringVar(value=next(k for k,v in self.modes.items() if v == mode))
+        outer = ttk.Frame(self, padding=10); outer.pack(fill='both', expand=True)
+        outer.columnconfigure(1, weight=1); outer.rowconfigure(4, weight=1)
+        ttk.Label(outer, text=tr('Project folder')).grid(row=0,column=0,sticky='w',padx=(0,8))
+        self.scope = ttk.Entry(outer,textvariable=self.root_var,state='readonly')
+        self.scope.grid(row=0,column=1,sticky='ew')
+        self.browse = ttk.Button(outer,text=tr('Browse')+'…',command=self.choose_root)
+        self.browse.grid(row=0,column=2,padx=(6,0))
+        self.mode = ttk.Combobox(outer,textvariable=self.mode_var,values=list(self.modes),state='readonly',width=28)
+        self.mode.grid(row=1,column=0,columnspan=2,sticky='ew',pady=8)
+        self.mode.bind('<<ComboboxSelected>>',lambda e:self.changed())
+        depth = ttk.Frame(outer); depth.grid(row=1,column=2,padx=(8,0))
+        ttk.Label(depth,text=tr('Depth')).pack(side='left')
+        self.depth = ttk.Combobox(depth,textvariable=self.depth_var,values=('1','3','5','8'),state='readonly',width=3)
+        self.depth.pack(side='left',padx=4)
+        self.depth.bind('<<ComboboxSelected>>',lambda e:self.changed())
+        self.query = ttk.Entry(outer,textvariable=self.query_var)
+        self.query.grid(row=2,column=0,columnspan=2,sticky='ew')
+        self.search = ttk.Button(outer,text=tr('Search'),command=self.start)
+        self.search.grid(row=2,column=2,sticky='ew',padx=(8,0))
+        self.note = ttk.Label(outer,text=tr('No automatic index. Up to 5,000 entries / 3 seconds / 50 results. Excluded and unavailable folders are skipped.'),wraplength=790)
+        self.note.grid(row=3,column=0,columnspan=3,sticky='ew',pady=8)
+        listing = ttk.Frame(outer); listing.grid(row=4,column=0,columnspan=3,sticky='nsew')
+        self.tree = ttk.Treeview(listing,columns=('path','kind'),show='headings',selectmode='browse')
+        self.tree.heading('path',text=tr('Relative path'));self.tree.heading('kind',text=tr('Match type'))
+        self.tree.column('path',width=440,minwidth=180);self.tree.column('kind',width=240,minwidth=130)
+        vertical = ttk.Scrollbar(listing,command=self.tree.yview)
+        horizontal = ttk.Scrollbar(listing,orient='horizontal',command=self.tree.xview)
+        self.tree.configure(yscrollcommand=vertical.set,xscrollcommand=horizontal.set)
+        vertical.pack(side='right',fill='y');horizontal.pack(side='bottom',fill='x');self.tree.pack(fill='both',expand=True)
+        self.status = ttk.Label(outer,text=tr('Confirm the project folder, then press Search.'),wraplength=790)
+        self.status.grid(row=5,column=0,columnspan=3,sticky='ew',pady=8)
+        footer = ttk.Frame(outer);footer.grid(row=6,column=0,columnspan=3,sticky='ew')
+        self.cancel = ttk.Button(footer,text=tr('Cancel search'),command=self.cancel_search,state='disabled')
+        self.cancel.pack(side='left')
+        self.open_button = ttk.Button(footer,text=tr('Open selected'),command=self.open_selected,state='disabled')
+        self.open_button.pack(side='right')
+        ttk.Button(footer,text=tr('Close'),command=self.close).pack(side='right',padx=6)
+        self.tree.bind('<<TreeviewSelect>>',lambda e:self.open_button.state(['!disabled'] if self.tree.selection() else ['disabled']))
+        self.tree.bind('<Double-1>',lambda e:self.open_selected())
+        self.tree.bind('<Return>',lambda e:self.open_selected())
+        self.query.bind('<Return>',lambda e:self.start())
+        self.query_var.trace_add('write',lambda *a:self.changed())
+        self.bind('<Escape>',lambda e:self.close());self.protocol('WM_DELETE_WINDOW',self.close)
+        self.bind('<Configure>',self.resize)
+        self.bind('<Destroy>',self.destroyed,add='+')
+        style_workflow_controls(self);self.changed();self.grab_set();self.query.focus_set()
+        font=self._root()._workflow_fonts['body']
+        for widget in (self.mode,self.depth):widget.configure(font=font)
+        self.poll_id = self.after(40,self.poll)
+
+    def resize(self,event):
+        if event.widget is self:
+            for widget in (self.note,self.status):widget.configure(wraplength=max(250,self.winfo_width()-30))
+
+    def changed(self):
+        self.cancel_search(announce=False)
+        self.results=[];self.result_root=None
+        self.tree.delete(*self.tree.get_children());self.open_button.state(['disabled'])
+        backlink = self.modes[self.mode_var.get()] == 'backlinks'
+        self.query.configure(state='disabled' if backlink else 'normal')
+        self.status.configure(text=(tr('Backlinks scan local Markdown content on demand; filename-only references may be ambiguous.')
+                                    if backlink else tr('Confirm the project folder, then press Search.')))
+
+    def choose_root(self):
+        chosen = filedialog.askdirectory(parent=self,initialdir=self.root_var.get(),mustexist=True)
+        if not self.winfo_exists():return
+        self.grab_set()
+        if chosen:self.root_var.set(chosen);self.changed()
+
+    def start(self):
+        self.changed();self.jobs.reap()
+        try:
+            root = workspace_root(self.root_var.get(),self.document)
+            request = {'action':'workspace','path':str(self.document),'root':str(root),
+                       'depth':int(self.depth_var.get()),'mode':self.modes[self.mode_var.get()],
+                       'query':self.query_var.get(),'language':get_language()}
+            if not self.jobs.submit(request):
+                self.status.configure(text=tr('Previous search is stopping; try again shortly.'));return 'break'
+            self.request=request;self.search.state(['disabled']);self.cancel.state(['!disabled'])
+            self.status.configure(text=tr('Searching within the confirmed folder…'))
+        except (ValueError,OSError) as exc:self.status.configure(text=tr(str(exc)))
+        return 'break'
+
+    def poll(self):
+        self.poll_id=None
+        result=self.jobs.poll()
+        if result is not None and self.request:
+            request=self.request;self.request=None;self.search.state(['!disabled']);self.cancel.state(['disabled'])
+            if 'error' in result:self.status.configure(text=tr(result['error']))
+            else:
+                self.results=result['results'];self.result_root=Path(result['root'])
+                for i,item in enumerate(self.results):self.tree.insert('','end',iid=str(i),values=(item['path'],tr(item['detail'])))
+                prefix=tr('Search incomplete') if result['reasons'] else tr('Search complete within this depth and exclusions')
+                detail=tr('{count} results; {visited} entries; {skipped} skipped',count=len(self.results),visited=result['visited'],skipped=result['skipped'])
+                reasons=' / '.join(tr(r) for r in result['reasons'])
+                self.status.configure(text=prefix+' — '+detail+(' ('+reasons+')' if reasons else ''))
+                config=self.page.config_data
+                remember_markdown_workspace(config,self.result_root,request['depth'])
+                self.page.save_config()
+        if self.jobs.pending and time.monotonic()-self.jobs.started>4:
+            self.cancel_search(announce=False)
+            self.status.configure(text=tr('Search timed out; no complete result. Narrow the project folder.'))
+        self.poll_id=self.after(40,self.poll)
+
+    def cancel_search(self,announce=True):
+        self.jobs.cancel();self.request=None;self.search.state(['!disabled']);self.cancel.state(['disabled'])
+        if announce:self.status.configure(text=tr('Search canceled; no complete result.'))
+
+    def open_selected(self):
+        selected=self.tree.selection()
+        if not selected or self.result_root is None:return 'break'
+        item=self.results[int(selected[0])];root=self.result_root;path=root/item['path']
+        fragment=self.fragment if self.modes[self.mode_var.get()]=='wiki' and self.query_var.get()==self.initial_query else ''
+        self.close()
+        self.page._queue_markdown(path,navigation=True,fragment=fragment)
+        self.page._md_queued['request']['boundary']=str(root)
+        self.page._md_queued['bookmark_boundary']=str(root)
+        return 'break'
+
+    def close(self):
+        self.jobs.close()
+        if self.poll_id is not None:self.after_cancel(self.poll_id);self.poll_id=None
+        self.page._md_auto_suspended=self.previous_suspended
+        self.page._md_last_probe=time.monotonic()
+        self.grab_release();self.destroy();return 'break'
+
+    def destroyed(self,event):
+        if event.widget is self:
+            self.jobs.close()
+            if self.poll_id is not None:self.after_cancel(self.poll_id);self.poll_id=None
+
 """Exact Markdown destinations and conservative, non-searching local reads."""
 import os
 import re
@@ -11567,7 +11965,7 @@ def markdown_document(text: str):
             raise ValueError('Markdown rendering limit reached')
 
     def inline(value: str) -> None:
-        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[\[#[^\]\n]+\]\]|\[[^\]\n]+\]\([^\n)]+\)|(?<!\*)\*[^*]+\*)")
+        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[\[[^\]\n]+\]\]|\[[^\]\n]+\]\([^\n)]+\)|(?<!\*)\*[^*]+\*)")
         cursor = 0
         for match in pattern.finditer(value):
             append(value[cursor:match.start()])
@@ -11578,7 +11976,10 @@ def markdown_document(text: str):
                 append(token[1:-1], "markdown_code")
             elif token.startswith("["):
                 if token.startswith('[['):
-                    label=token[3:-2];url='#'+quote(label,safe='')
+                    try: wiki=wiki_destination(token[2:-2])
+                    except ValueError:
+                        append(token);cursor=match.end();continue
+                    label=wiki['label'];url=wiki['href']
                 else:
                     label, url = re.match(r"\[([^\]]+)\]\(([^)]+)\)", token).groups()
                 start=length
@@ -11587,6 +11988,8 @@ def markdown_document(text: str):
                 if not (match.start()>0 and value[match.start()-1]=='!'):
                     if len(links)>=2000: raise ValueError('Markdown rendering limit reached')
                     links.append({'start':start,'end':length,'href':url,'label':label})
+                    if token.startswith('[[') and wiki['name']:
+                        links[-1]['wiki']=token[2:-2]
                 append(f" ({url})", "markdown_url")
             else:
                 append(token[1:-1], "markdown_italic")
@@ -11680,7 +12083,10 @@ def markdown_worker_main():
         try:
             request=json.loads(raw);path=Path(request['path'])
             from_locale(request.get('language','en'))
-            if request.get('action')=='stat':
+            if request.get('action')=='workspace':
+                if not memory_limited: raise ValueError('Memory protection unavailable')
+                result=scan_markdown_workspace(request,markdown_document,decode_text)
+            elif request.get('action')=='stat':
                 if request.get('boundary'):
                     _,signature=read_linked_markdown(path,request['boundary'],-1)
                 else:
@@ -12004,6 +12410,9 @@ class PreviewPage(tk.Frame):
         self.md_menu.add_command(label=tr('Bookmarks')+'…', command=self.markdown_bookmarks,
                                  state='normal' if result.get('rendered') and not self._archive_markdown() else 'disabled')
         self.md_menu.add_command(label=tr('Forget reading position'), command=self.forget_reading_position)
+        workspace_state='normal' if result.get('rendered') and not self._archive_markdown() else 'disabled'
+        self.md_menu.add_command(label=tr('Find Markdown files')+'…',command=self.markdown_workspace,state=workspace_state)
+        self.md_menu.add_command(label=tr('Backlinks to this document')+'…',command=lambda:self.markdown_workspace('backlinks'),state=workspace_state)
         self.md_menu.add_command(label=self._markdown_boundary_label(),state='disabled')
         self.md_menu.add_separator()
         for number,item in enumerate(result.get('links',[])[:100]):
@@ -12132,11 +12541,26 @@ class PreviewPage(tk.Frame):
             self.md_outline.focus_set()
         else: self.status.configure(text=tr('Heading not found in loaded content'))
 
+    def markdown_workspace(self,mode='files',query='',fragment=''):
+        if self._archive_markdown() or not self._md_model.get('rendered'):
+            return 'break'
+        existing=getattr(self,'_workspace_dialog',None)
+        if existing is not None and existing.winfo_exists():existing.lift();return 'break'
+        if self._md_insert or (self._md_request and not self._md_request.get('probe')):
+            return 'break'
+        self._workspace_dialog=MarkdownWorkspaceDialog(self,Path(__file__).absolute(),bool(__package__),mode,query,fragment)
+        return 'break'
+
     def follow_markdown_link(self,number):
         loading=(self._md_request and not self._md_request['probe']) or (self._md_queued and not self._md_queued['probe'])
         if (loading or self._md_insert
                 or self._md_display_path!=self.path): return 'break'
         item=self._md_model.get('links',[])[number]
+        if item.get('wiki'):
+            if self._archive_markdown():
+                self.status.configure(text=tr('Cross-document links are disabled inside archives'));return 'break'
+            wiki=wiki_destination(item['wiki'])
+            return self.markdown_workspace('wiki',wiki['name'],wiki['fragment'])
         try: target,fragment=markdown_destination(self.path,self._md_boundary,item['href'])
         except (ValueError,UnicodeError) as exc:
             self.status.configure(text=tr(str(exc)));return 'break'
@@ -12150,6 +12574,9 @@ class PreviewPage(tk.Frame):
         return 'break'
 
     def _describe_markdown_link(self,item):
+        if item.get('wiki'):
+            self.status.configure(text=tr('Ctrl+click: confirm a project folder to resolve this wiki link.'))
+            return
         try:
             target,fragment=markdown_destination(self.path,self._md_boundary,item['href'])
             if self._archive_markdown():
@@ -14803,7 +15230,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.18.7"
+__version__ = "0.18.8"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -14888,6 +15315,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/25"
 VERSION_HISTORY = (
+    ("v0.18.8", "2026/09/25", (
+        "Added: Opt-in Markdown project search and wiki links with explicit scope, depth and resource limits; duplicate targets require a choice.",
+        "Added: On-demand Markdown backlinks distinguish exact paths from ambiguous filename references without a persistent index.",
+    )),
     ("v0.18.7", "2026/09/25", (
         "Fixed: Folder-tree rows use native images instead of separate overlays; navigation reveals the complete selected row after sticky layout changes.",
         "Fixed: Code and YAML previews no longer fail on a translated syntax-label parameter collision.",

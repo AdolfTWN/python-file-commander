@@ -41,7 +41,7 @@ class WorkflowRecords:
         if len(serialized) > 1024 * 1024:
             raise ValueError('Saved workflow data exceeds the limit. Remove an entry before saving more.')
         if not self.config.has_section('workflows'): self.config.add_section('workflows')
-        self.config.set('workflows', self.key, serialized)
+        self.config.set('workflows', self.key, serialized.replace('%', '%%'))
 
     def put(self, name, data):
         name = name.strip()

@@ -137,6 +137,11 @@ invalidate offsets/folds only when the document snapshot changes.
 
 ## Optional scoped search: separate future feature, not a fallback
 
+Update 2026-09-25: the user approved a bounded discovery trial. Filename search,
+wiki links and an on-demand backlinks list now ship in v0.18.8; see
+[the exact implementation limits](markdown-workspace.md). The proposal below is
+retained as planning history, not a promise of full Obsidian search semantics.
+
 If basename-only wikilinks are wanted later, ask the user to choose a local
 project root explicitly. One-shot filename search only, started by a separate
 button displaying the scope; no content scan or automatic index rebuild.

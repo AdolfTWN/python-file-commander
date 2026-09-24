@@ -32,7 +32,12 @@ flatten inline formatting and display link destinations as text, but their links
 are not clickable. The renderer supports a practical Markdown subset, not all
 CommonMark/Obsidian syntax. Use Source view for the exact original notation.
 
-## Links: explicit paths, no search
+## Links: exact paths and opt-in workspace discovery
+
+Since v0.18.8, `[[Spec]]`, aliases and project-relative wiki paths can be resolved
+through an explicit bounded workspace search. **Reading → Find Markdown files /
+Backlinks** uses the same confirmed scope. See [limits and examples](markdown-workspace.md).
+The rules below describe ordinary exact-path links, not automatic discovery.
 
 Hover shows the lexically normalized destination without touching its target.
 **Ctrl+click** on a label, or use its entry in **Reading**, to follow it.
@@ -40,7 +45,8 @@ Hover shows the lexically normalized destination without touching its target.
 - `[Spec](spec.md)` or `[Spec](docs/spec.md#Details)` addresses one exact `.md` file.
 - `#Details` / `[[#Details]]` jumps within the current document, with no file read.
 - The allowed boundary is the **original preview document's containing folder**,
-  including explicitly addressed descendants. It stays fixed as you navigate.
+  including explicitly addressed descendants. It stays fixed as you navigate,
+  unless you explicitly confirm a workspace and open a result inside it.
 - Relative paths start at the current document. `..` works only when the result
   remains inside that original boundary. No implicit extensions or name matching.
 - The Reading tooltip/menu shows the boundary. **← / Alt+Left** returns through
@@ -51,7 +57,7 @@ Hover shows the lexically normalized destination without touching its target.
   They never trigger a folder enumeration, Windows Search, parent search, wider
   drive scan, index, automatic creation or link repair.
 
-Not followed: basename/vault wikilinks (`[[Spec]]`), aliases, block references,
+Not followed: unconfirmed vault roots, block references,
 absolute/device/UNC/URI paths, mapped/network drives, scripts, executables,
 non-Markdown files and symlink/junction/reparse redirects. No browser or shell is
 launched. No external images, HTML/JavaScript, CSS, plugins, Mermaid, Dataview or
@@ -98,5 +104,6 @@ the process. Windows validates reparse/offline/recall attributes, final handle
 path and file identity before reading; POSIX walks directory handles without
 following symlinks and refuses device/mount changes. Unknown cases fail closed.
 
-Try [the example](markdown-preview-example.md). Basename discovery, backlinks,
-graphs, plugins and scoped indexing remain separate, unimplemented features.
+Try [the example](markdown-preview-example.md). Bounded basename discovery and
+a backlinks list are now available; graph visualization, plugins and persistent
+indexing remain separate, unimplemented features.

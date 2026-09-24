@@ -86,6 +86,9 @@ def build() -> Path:
     preview = "\n".join(line for line in preview.splitlines() if not line.startswith("from .")) + "\n"
     preview = (ROOT / 'pycommander' / 'markdownblocks.py').read_text(encoding='utf-8') + '\n\n' + preview
     preview = (ROOT/'pycommander'/'mdlinks.py').read_text(encoding='utf-8')+'\n\n'+(ROOT/'pycommander'/'mdjobs.py').read_text(encoding='utf-8')+'\n\n'+preview
+    for module in ('mdworkspaceui', 'mdworkspace'):
+        source = (ROOT / 'pycommander' / (module + '.py')).read_text(encoding='utf-8')
+        preview = '\n'.join(line for line in source.splitlines() if not line.startswith('from .')) + '\n\n' + preview
     search = search.replace("from __future__ import annotations\n\n", "", 1)
     search = "\n".join(line for line in search.splitlines() if not line.startswith("from .")) + "\n"
     multirename = multirename.replace("from __future__ import annotations\n\n", "", 1)

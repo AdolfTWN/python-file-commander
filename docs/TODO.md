@@ -15,8 +15,8 @@ External acceptance and explicitly deferred Markdown features remain open:
 - Cloud-link support still requires a provider-specific no-recall implementation
   and live-provider proof. Manual F3 remains explicit and separate from link following.
 - Deferred Markdown scope is a design gate, not a hidden automatic index: explicit
-  bounded workspace selection is required before basename links/backlinks/scoped
-  search; media needs path/size/format limits; Mermaid/math needs a renderer choice;
+  bounded workspace selection for basename links/backlinks/filename search now
+  ships in v0.18.8; media needs path/size/format limits; Mermaid/math needs a renderer choice;
   plugins/executable queries require a separate execution/security decision.
   These were not silently enabled by a generic UI polish change.
 
@@ -24,6 +24,28 @@ The user clarified on 2026-09-25 that the earlier same-version exception applied
 to the failed repair only. These new features and corrections ship as v0.18.7,
 with a rebuilt portable and new tag so Check for Updates can discover the release.
 Preserve the original v0.18.6 tag and its failed-retest evidence.
+
+## Bounded Markdown workspace — v0.18.8
+
+- [x] Explicit project-folder confirmation, saved locally; default depth 3 with
+  1/5/8 choices. Never infer a drive/home boundary or expand upward automatically.
+- [x] Wiki basename / project-relative links, display aliases and heading fragments.
+  All matches require an explicit selection; no same-name guessing.
+- [x] On-demand filename search: 5,000 total entries / 3 seconds / 50 results;
+  worker isolation, cancellation, stale-result rejection and honest partial status.
+- [x] On-demand backlinks, distinguishing exact path references from possible
+  same-name references. No persistent graph/index. Reads at most 256 KiB per file
+  and 8 MiB total; excludes code blocks and reports skipped/limited documents.
+- [x] Linux source/portable and native Windows GUI checks in four languages;
+  scope/depth/duplicate/link/budget unit regressions. See [guide](markdown-workspace.md).
+- [ ] OneDrive cloud-link reader: remains gated. No validated provider no-recall
+  implementation was added; ordinary reparse attributes are not sufficient proof.
+- [ ] Live OneDrive transitions and real Tortoise dialogs: renewed offline VM
+  inspection still found unknown sampled cloud metadata and no Git/SVN/Tortoise
+  clients. These are not completed by this release's offline tests.
+
+User feedback on v0.18.7: tree highlight is substantially improved, still under
+observation. Keep actual OneDrive navigation/physical-machine acceptance open.
 
 ## F3 Preview — readable text files appear blank (v0.18.7)
 
@@ -267,9 +289,11 @@ v0.18.6 tag remains unchanged; real-laptop acceptance is still pending.
 - [ ] **Cloud links** — Intentionally refuse all Windows reparse-linked paths,
   including resident OneDrive cases, until a provider-specific no-recall path is
   authorized and validated. This does not prevent explicit manual F3 preview.
-- [ ] **Deferred, not automatic fallbacks** — Vault/basename wikilinks, backlink
-  graphs, scoped search, embedded media, Mermaid/math, plugins and executable
-  queries. No whole-drive index is introduced.
+- [x] **Bounded discovery (v0.18.8)** — Explicit-scope basename wikilinks, filename
+  search and a backlinks list. No background index or automatic widening.
+- [ ] **Deferred, not automatic fallbacks** — Graph visualization, full-text
+  workspace search, embedded media, Mermaid/math, plugins and executable queries.
+  No whole-drive index is introduced.
 
 ## Requested UI / UX backlog — 2026-09-19
 

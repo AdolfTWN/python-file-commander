@@ -18,6 +18,8 @@ from .tabs import color_scheme
 from .markdownblocks import markdown_blocks, property_rows, render_grid
 from .mdlinks import markdown_destination, read_linked_markdown
 from .mdjobs import MarkdownJobs, limit_markdown_worker_memory
+from .mdworkspace import wiki_destination, scan_markdown_workspace
+from .mdworkspaceui import MarkdownWorkspaceDialog
 from .workflowdata import WorkflowRecords, reading_anchor, resolve_reading_anchor
 from .workflows import WorkflowPicker
 
@@ -129,7 +131,7 @@ def markdown_document(text: str):
             raise ValueError('Markdown rendering limit reached')
 
     def inline(value: str) -> None:
-        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[\[#[^\]\n]+\]\]|\[[^\]\n]+\]\([^\n)]+\)|(?<!\*)\*[^*]+\*)")
+        pattern = re.compile(r"(\*\*.+?\*\*|__.+?__|`[^`]+`|\[\[[^\]\n]+\]\]|\[[^\]\n]+\]\([^\n)]+\)|(?<!\*)\*[^*]+\*)")
         cursor = 0
         for match in pattern.finditer(value):
             append(value[cursor:match.start()])
@@ -140,7 +142,10 @@ def markdown_document(text: str):
                 append(token[1:-1], "markdown_code")
             elif token.startswith("["):
                 if token.startswith('[['):
-                    label=token[3:-2];url='#'+quote(label,safe='')
+                    try: wiki=wiki_destination(token[2:-2])
+                    except ValueError:
+                        append(token);cursor=match.end();continue
+                    label=wiki['label'];url=wiki['href']
                 else:
                     label, url = re.match(r"\[([^\]]+)\]\(([^)]+)\)", token).groups()
                 start=length
@@ -149,6 +154,8 @@ def markdown_document(text: str):
                 if not (match.start()>0 and value[match.start()-1]=='!'):
                     if len(links)>=2000: raise ValueError('Markdown rendering limit reached')
                     links.append({'start':start,'end':length,'href':url,'label':label})
+                    if token.startswith('[[') and wiki['name']:
+                        links[-1]['wiki']=token[2:-2]
                 append(f" ({url})", "markdown_url")
             else:
                 append(token[1:-1], "markdown_italic")
@@ -242,7 +249,10 @@ def markdown_worker_main():
         try:
             request=json.loads(raw);path=Path(request['path'])
             from_locale(request.get('language','en'))
-            if request.get('action')=='stat':
+            if request.get('action')=='workspace':
+                if not memory_limited: raise ValueError('Memory protection unavailable')
+                result=scan_markdown_workspace(request,markdown_document,decode_text)
+            elif request.get('action')=='stat':
                 if request.get('boundary'):
                     _,signature=read_linked_markdown(path,request['boundary'],-1)
                 else:
@@ -566,6 +576,9 @@ class PreviewPage(tk.Frame):
         self.md_menu.add_command(label=tr('Bookmarks')+'…', command=self.markdown_bookmarks,
                                  state='normal' if result.get('rendered') and not self._archive_markdown() else 'disabled')
         self.md_menu.add_command(label=tr('Forget reading position'), command=self.forget_reading_position)
+        workspace_state='normal' if result.get('rendered') and not self._archive_markdown() else 'disabled'
+        self.md_menu.add_command(label=tr('Find Markdown files')+'…',command=self.markdown_workspace,state=workspace_state)
+        self.md_menu.add_command(label=tr('Backlinks to this document')+'…',command=lambda:self.markdown_workspace('backlinks'),state=workspace_state)
         self.md_menu.add_command(label=self._markdown_boundary_label(),state='disabled')
         self.md_menu.add_separator()
         for number,item in enumerate(result.get('links',[])[:100]):
@@ -694,11 +707,26 @@ class PreviewPage(tk.Frame):
             self.md_outline.focus_set()
         else: self.status.configure(text=tr('Heading not found in loaded content'))
 
+    def markdown_workspace(self,mode='files',query='',fragment=''):
+        if self._archive_markdown() or not self._md_model.get('rendered'):
+            return 'break'
+        existing=getattr(self,'_workspace_dialog',None)
+        if existing is not None and existing.winfo_exists():existing.lift();return 'break'
+        if self._md_insert or (self._md_request and not self._md_request.get('probe')):
+            return 'break'
+        self._workspace_dialog=MarkdownWorkspaceDialog(self,Path(__file__).absolute(),bool(__package__),mode,query,fragment)
+        return 'break'
+
     def follow_markdown_link(self,number):
         loading=(self._md_request and not self._md_request['probe']) or (self._md_queued and not self._md_queued['probe'])
         if (loading or self._md_insert
                 or self._md_display_path!=self.path): return 'break'
         item=self._md_model.get('links',[])[number]
+        if item.get('wiki'):
+            if self._archive_markdown():
+                self.status.configure(text=tr('Cross-document links are disabled inside archives'));return 'break'
+            wiki=wiki_destination(item['wiki'])
+            return self.markdown_workspace('wiki',wiki['name'],wiki['fragment'])
         try: target,fragment=markdown_destination(self.path,self._md_boundary,item['href'])
         except (ValueError,UnicodeError) as exc:
             self.status.configure(text=tr(str(exc)));return 'break'
@@ -712,6 +740,9 @@ class PreviewPage(tk.Frame):
         return 'break'
 
     def _describe_markdown_link(self,item):
+        if item.get('wiki'):
+            self.status.configure(text=tr('Ctrl+click: confirm a project folder to resolve this wiki link.'))
+            return
         try:
             target,fragment=markdown_destination(self.path,self._md_boundary,item['href'])
             if self._archive_markdown():
