@@ -17,6 +17,7 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Maintenance: Added measured test workflows, comparable timing and token reports, Windows readiness gates and release verification.": ("維護：新增測試流程追蹤、可比較的耗時與 token 報告、Windows 就緒檢查及發布核對。", "维护：新增测试流程追踪、可比较的耗时与 token 报告、Windows 就绪检查及发布核对。", "유지 관리: 측정 가능한 테스트 흐름, 시간 및 토큰 비교 보고서, Windows 준비 상태 검사와 배포 검증을 추가했습니다."),
     "Fixed: PFC tooltips cancel on focus loss, stale hover and owner closure; Escape, pointer approach and an eight-second limit dismiss visible help.": ("修正：PFC 提示在失焦、滑鼠離開目標或所屬視窗關閉時取消；Esc、滑鼠移到提示上或顯示八秒後關閉。", "修正：PFC 提示在失焦、鼠标离开目标或所属窗口关闭时取消；Esc、鼠标移到提示上或显示八秒后关闭。", "수정: PFC 도움말은 포커스 상실, 호버 대상 변경 또는 소유 창 닫기 시 취소됩니다. Esc, 포인터 접근 또는 8초 경과 시 닫힙니다."),
     "Added: Opt-in Markdown project search and wiki links with explicit scope, depth and resource limits; duplicate targets require a choice.": ("新增：手動啟動 Markdown 專案搜尋與 Wiki 連結，明示範圍、層數及資源限制；同名目標由使用者選擇。", "新增：手动启动 Markdown 项目搜索与 Wiki 链接，明示范围、层数及资源限制；同名目标由用户选择。", "추가: 명시적 범위, 깊이 및 자원 제한을 사용하는 Markdown 검색과 위키 링크. 중복 대상은 사용자가 선택합니다."),
     "Added: On-demand Markdown backlinks distinguish exact paths from ambiguous filename references without a persistent index.": ("新增：按需搜尋 Markdown 反向連結，區分確定路徑與可能的同名文件連結，不建立永久索引。", "新增：按需搜索 Markdown 反向链接，区分确定路径与可能的同名文档链接，不建立永久索引。", "추가: 영구 색인 없이 필요할 때 Markdown 백링크를 검색하고 정확한 경로와 모호한 파일명 참조를 구분합니다."),
@@ -15246,7 +15247,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-__version__ = "0.18.9"
+__version__ = "0.18.10"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -15331,6 +15332,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/09/25"
 VERSION_HISTORY = (
+    ("v0.18.10", "2026/09/25", (
+        "Maintenance: Added measured test workflows, comparable timing and token reports, Windows readiness gates and release verification.",
+    )),
     ("v0.18.9", "2026/09/25", (
         "Fixed: PFC tooltips cancel on focus loss, stale hover and owner closure; Escape, pointer approach and an eight-second limit dismiss visible help.",
     )),

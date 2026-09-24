@@ -10,6 +10,11 @@ command -v xvfb-run >/dev/null 2>&1 || {
     exit 1
 }
 
+# Default entry point records timings and compares equivalent previous runs.
+# The declarations below remain the authoritative test inventory read by the
+# runner; exec prevents them from being run a second time by this shell.
+exec python3 tools/pfc_workflow.py auto-test --profile full --jobs 2 "$@"
+
 python3 -m unittest discover -s tests -v
 xvfb-run -a python3 tools/tooltip_check.py
 xvfb-run -a python3 tools/tooltip_check.py pfc

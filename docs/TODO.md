@@ -1,5 +1,28 @@
 # PFC follow-ups
 
+## Measured maintenance workflow — v0.18.10
+
+- [x] Required per-task tracing instructions, private local results and automatic
+  same-scope/environment timing comparisons; unknown token usage stays unknown.
+- [x] Official JSON usage import/live refresh, separate cache/reasoning counters,
+  full-coverage and matching model/effort gates for token comparisons.
+- [x] Grouped source/portable tests, isolated Xvfb workers, source-stability checks,
+  compact results and automatic tracing from the full headless entry point.
+- [x] Lease-ID-routed Windows runner, execution/desktop readiness checks,
+  request-bound results, heartbeat and fail-safe cleanup; no credential typing.
+- [x] Read-only release verification of commit/tag, actual updater and mirror proof.
+- [ ] Restore and accept the live Windows QGA/interactive session and then run the
+  scheduled-task worker end to end. First live gate attempt returned qga-not-ready
+  and safely released; mocked safety tests do not replace native acceptance.
+- [ ] Accumulate representative same-scope successful runs and complete official
+  usage traces before claiming real end-to-end or token savings.
+- [ ] Investigate intermittent `folder_leaf_check.py` Right-key expansion timeout
+  in both source and portable headless tests. Full inventory: 78/80 GUI checks
+  passed; the two leaf checks failed, and serial isolation also failed. A later
+  tree-group run passed, so this is not resolved or attributed to parallelism.
+  A focus-readiness experiment did not reliably fix it and was not retained.
+  Details: [maintenance workflow](maintenance-workflow.md).
+
 ## Tooltip lifetime — v0.18.9
 
 - [x] Reproduce PFC's delayed tooltip appearing after focus loss. Unify button,

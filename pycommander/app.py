@@ -139,6 +139,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.10", "2026/09/25", (
+        "Maintenance: Added measured test workflows, comparable timing and token reports, Windows readiness gates and release verification.",
+    )),
     ("v0.18.9", "2026/09/25", (
         "Fixed: PFC tooltips cancel on focus loss, stale hover and owner closure; Escape, pointer approach and an eight-second limit dismiss visible help.",
     )),

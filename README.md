@@ -1,6 +1,12 @@
 # Python File Commander
 
-Current version: **v0.18.9**
+Current version: **v0.18.10**
+
+**Maintenance tracing:** grouped tests record durations and compare equivalent
+runs automatically; real token counters are imported only when available.
+A lease-aware Windows runner blocks before UI input when the environment is not
+ready. This release changes development tooling, not PFC's user-facing behavior.
+See [workflow, limits and commands](docs/maintenance-workflow.md).
 
 **Hover help:** PFC tooltips no longer remain globally on top. Pending and visible
 help is cancelled when focus or the hover target changes; Esc, pointer approach
