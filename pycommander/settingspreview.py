@@ -111,6 +111,7 @@ class SettingsLayoutPreview(ttk.Frame):
         if key==self._key:return
         self._key=key;c=self.canvas;c.delete('all');p=self.palette=color_scheme(self.values['color_scheme'])
         c.configure(bg=p['window'],highlightbackground=p['border'])
+        self.title.configure(wraplength=max(100,width-4))
         self.description.configure(wraplength=max(160,width-4))
         count=self.values['panel_count'];line=self.line;top=6;bottom=height-6
         if count==1:
@@ -171,7 +172,7 @@ class SettingsSamplePreview(ttk.Frame):
         self.title.pack(anchor='w')
         self.caption = ttk.Label(self, style='Prefs.TLabel', wraplength=480)
         self.caption.pack(fill='x', pady=(2,5))
-        self.canvas = tk.Canvas(self, height=8*self.line, highlightthickness=1, takefocus=False)
+        self.canvas = tk.Canvas(self, width=1, height=8*self.line, highlightthickness=1, takefocus=False)
         self.canvas.pack(fill='x')
         self.values = {}; self.prefixes = []; self.images = {}; self._key = None; self._job = None
         self.canvas.bind('<Configure>', self._schedule)

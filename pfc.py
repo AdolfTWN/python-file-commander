@@ -17,6 +17,9 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Fixed: Double-click opens scrolling filenames across the text-overlay boundary.": ("修正：跨越捲動文字覆蓋層時仍可雙擊開啟檔案。", "修正：跨越滚动文字覆盖层时仍可双击打开文件。", "수정: 스크롤 파일명과 기본 행 사이에서도 두 번 클릭하여 파일을 열 수 있습니다."),
+    "Fixed: Visible folders retain polling protection against lost change notifications and refresh errors.": ("修正：可見資料夾定期檢查變更，補足遺漏通知；更新錯誤不再停止後續檢查。", "修正：可见文件夹定期检查变更，补足遗漏通知；更新错误不再停止后续检查。", "수정: 표시된 폴더를 주기적으로 확인하여 누락된 변경 알림과 새로 고침 오류에 대비합니다."),
+    "Improved: Scaled Settings scroll as one page with responsive comparisons; Preview has readable checkmarks, a Render toggle and one-row search controls.": ("改善：放大字體設定頁採完整捲動與自適應比較；預覽使用清楚的勾選框、渲染切換與單列搜尋控制。", "改善：放大字体设置页采用完整滚动与自适应比较；预览使用清楚的复选框、渲染切换与单行搜索控件。", "개선: 확대된 설정은 반응형 비교와 함께 한 페이지로 스크롤됩니다. 미리보기에는 읽기 쉬운 체크 표시, 렌더링 전환 및 한 줄 검색 컨트롤이 있습니다."),
     "Improved: Settings follows the interface reading size, with scrollable large-text previews and always-accessible action buttons.": ("改善：設定跟隨介面字級，大字預覽可捲動，操作按鈕維持可見。", "改善：设置跟随界面字号，大字预览可滚动，操作按钮保持可见。", "개선: 설정이 인터페이스 글자 크기를 따르고 큰 글자 미리보기는 스크롤되며 작업 버튼은 항상 표시됩니다."),
     "Added: Numbered panel-origin lines, named tab groups and synchronized tab-strip scrolling; groups persist across sessions and workspaces.": ("新增：頁籤來源面板編號細線、命名群組與同步捲動；群組隨設定及工作區保存。", "新增：标签页来源面板编号细线、命名分组与同步滚动；分组随设置及工作区保存。", "추가: 번호가 있는 원본 패널 구분선, 이름 있는 탭 그룹 및 동기 스크롤. 그룹은 세션과 작업 공간에 저장됩니다."),
     "Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.": ("設定使用介面的字型大小，套用後這裡也會同步更新。字型較大時可捲動查看所有選項。", "设置使用界面的字体大小，应用后这里也会同步更新。字体较大时可滚动查看所有选项。", "설정도 인터페이스 글자 크기를 따릅니다. 적용 후 함께 변경되며 큰 글자에서는 스크롤하여 모든 옵션을 확인하세요."),
@@ -2864,8 +2867,9 @@ class _WindowsDirectoryWatcher:
             )
             if not ok:
                 break
-            if returned.value:
-                self._events.put(self.path)
+            # A successful zero-byte read means the notification buffer
+            # overflowed; rescan rather than silently losing the change.
+            self._events.put(self.path)
 
     def stop(self) -> None:
         self._stopping.set()
@@ -2923,7 +2927,6 @@ class DirectoryWatchManager:
         for watcher in list(self._watchers.values()):
             watcher.stop()
         self._watchers.clear()
-
 
 
 import os
@@ -5062,6 +5065,7 @@ class CloudStatusCache:
 
 """A single clipped, font-sized moving name; file identities never change."""
 import time
+import os
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
@@ -5096,6 +5100,8 @@ class NameMarquee:
         self.item = ""
         self.suspended = False
         self.closed = False
+        self._forwarding_press = False
+        self._last_press = None
         self.canvas = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0,
                                 takefocus=0, cursor="arrow")
         self.text_id = self.canvas.create_text(0, 0, anchor="w")
@@ -5116,7 +5122,44 @@ class NameMarquee:
             self.canvas.bind(sequence, lambda e, s=sequence: self._forward(e, s))
 
     def _forward(self, event, sequence):
-        return forward_tree_event(self.tree, event, sequence)
+        self._forwarding_press = sequence == '<ButtonPress-1>'
+        try:
+            return forward_tree_event(self.tree, event, sequence)
+        finally:
+            self._forwarding_press = False
+
+    def pointer_press(self, event):
+        """Bridge a double click that crosses the canvas/native row boundary.
+
+        The original canvas events interrupt Tk's native multi-click history.
+        Track only gestures involving that overlay; native rows keep Tk's own
+        double-click behavior. No synthetic Double event is generated.
+        """
+        previous = self._last_press
+        row = self.tree.identify_row(event.y)
+        self._last_press = (event.time, event.x_root, event.y_root, row,
+                            self._forwarding_press)
+        delay, distance_x, distance_y = 500, 5, 5
+        if os.name == 'nt':
+            import ctypes
+            delay = ctypes.windll.user32.GetDoubleClickTime()
+            distance_x = max(2, ctypes.windll.user32.GetSystemMetrics(36))
+            distance_y = max(2, ctypes.windll.user32.GetSystemMetrics(37))
+        if (previous and row and previous[3] == row
+                and (previous[4] or self._forwarding_press)
+                and 0 < (event.time-previous[0]) % (2**32) <= delay
+                and abs(event.x_root-previous[1]) <= distance_x
+                and abs(event.y_root-previous[2]) <= distance_y
+                and not event.state & (1 | 4)):
+            self._last_press = None
+            self.pane._drag_press_item = self.pane._drag_press_xy = None
+            self.pane._dragging = False
+            self.stop()
+            self.tree.selection_set(row)
+            self.tree.focus(row)
+            self.pane.open_selected()
+            return True
+        return False
 
     def request(self, _event=None):
         if self.closed:
@@ -7046,6 +7089,7 @@ class SettingsLayoutPreview(ttk.Frame):
         if key==self._key:return
         self._key=key;c=self.canvas;c.delete('all');p=self.palette=color_scheme(self.values['color_scheme'])
         c.configure(bg=p['window'],highlightbackground=p['border'])
+        self.title.configure(wraplength=max(100,width-4))
         self.description.configure(wraplength=max(160,width-4))
         count=self.values['panel_count'];line=self.line;top=6;bottom=height-6
         if count==1:
@@ -7106,7 +7150,7 @@ class SettingsSamplePreview(ttk.Frame):
         self.title.pack(anchor='w')
         self.caption = ttk.Label(self, style='Prefs.TLabel', wraplength=480)
         self.caption.pack(fill='x', pady=(2,5))
-        self.canvas = tk.Canvas(self, height=8*self.line, highlightthickness=1, takefocus=False)
+        self.canvas = tk.Canvas(self, width=1, height=8*self.line, highlightthickness=1, takefocus=False)
         self.canvas.pack(fill='x')
         self.values = {}; self.prefixes = []; self.images = {}; self._key = None; self._job = None
         self.canvas.bind('<Configure>', self._schedule)
@@ -7321,6 +7365,34 @@ def settings_check_icon_png(size, selected, disabled, dark):
     return _rgba_png_downsample(pixels,size,supersample)
 
 
+def readable_check_style(owner, font, dark=False, prefix='Prefs'):
+    """Shared scalable tick indicators, owned by the Tk root across dialogs."""
+    root = owner._root()
+    size = max(18, min(48, font.metrics('linespace')))
+    style = ttk.Style(owner)
+    cache = getattr(root, '_readable_check_images', {})
+    root._readable_check_images = cache
+    key = (prefix, size, dark)
+    if key not in cache:
+        cache[key] = {state: tk.PhotoImage(master=root,
+            data=settings_check_icon_png(size, *state, dark), format='png')
+            for state in ((False, False), (True, False), (False, True), (True, True))}
+    images = cache[key]
+    name = f'{prefix}.Checkbutton.{size}.{int(dark)}.indicator'
+    if name not in style.element_names():
+        style.element_create(name, 'image', images[False, False],
+            ('disabled', 'selected', images[True, True]),
+            ('disabled', '!selected', images[False, True]),
+            ('selected', images[True, False]), width=size+7, sticky='w')
+    def replace(layout):
+        return [(name if element.endswith('Checkbutton.indicator') else element,
+                 {key: replace(value) if key == 'children' else value
+                  for key, value in options.items()}) for element, options in layout]
+    style.layout(prefix+'.TCheckbutton', replace(style.layout('TCheckbutton')))
+    style.configure(prefix+'.TCheckbutton', font=font, padding=(2, 3))
+    return prefix+'.TCheckbutton'
+
+
 def preference_specs(app):
     """key, category, group, label, choices (None = check), apply method."""
     return [
@@ -7386,6 +7458,7 @@ class SettingsDialog(tk.Toplevel):
         self.status_var = tk.StringVar(self)
         self._shot_sources = {}
         self._shot_job = None
+        self._page_top_job = None
         self._build()
         sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
         ratio=max(1,self.font.metrics('linespace')/20)
@@ -7450,7 +7523,7 @@ class SettingsDialog(tk.Toplevel):
         self.intro.pack(anchor='w', pady=(0,12))
         # At large reading scales let preview + controls scroll together. A fixed
         # preview must never consume the whole viewport and hide every setting.
-        self._whole_page_scroll = self.font.metrics('linespace') > 20
+        self._whole_page_scroll = True
         if not self._whole_page_scroll:
             self.comparison = ttk.Frame(right)
             self.comparison.pack(fill='x', pady=(0,8))
@@ -7482,11 +7555,11 @@ class SettingsDialog(tk.Toplevel):
             images={state:tk.PhotoImage(master=self.app) for state in
                     ((False,False),(True,False),(False,True),(True,True))}
             self.app._settings_check_images=images
-        size=max(18,min(24,self.font.metrics('linespace')))
+        size=max(18,min(48,self.font.metrics('linespace')))
         dark=self.app.color_scheme_var.get()=='dark'
         for (selected,disabled),image in images.items():
             image.configure(data=settings_check_icon_png(size,selected,disabled,dark),format='png')
-        name='Prefs.Checkbutton.indicator'
+        name=f'Prefs.Checkbutton.{size}.indicator'
         if name not in style.element_names():
             style.element_create(name,'image',images[False,False],
                 ('disabled','selected',images[True,True]),
@@ -7504,6 +7577,28 @@ class SettingsDialog(tk.Toplevel):
         for label in getattr(self,'wrap_labels',[]):
             label.configure(wraplength=max(140,event.width-36))
         self._schedule_shots()
+        self._layout_cards(event.width)
+
+    def _layout_cards(self, width):
+        cards = getattr(self, '_comparison_cards', [])
+        # Readable titles and diagrams take precedence over a forced two-column
+        # layout. Keep Before first, After second in compact/high-scale windows.
+        threshold = max(660, self.heading_font.measure(tr('After Apply · 4 Panels'))*2+64)
+        stacked = width < threshold
+        for i, card in enumerate(cards):
+            card.grid_configure(row=i if stacked else 0, column=0 if stacked else i,
+                                columnspan=2 if stacked else 1,
+                                padx=(0, 0 if stacked else 8), pady=(0, 8))
+        for label, control in getattr(self, '_compact_controls', []):
+            narrow = width < label.winfo_reqwidth()+self.font.measure('MMMMMMMMMMMM')+70
+            label.pack_configure(side='top' if narrow else 'left', anchor='w')
+            control.pack_configure(side='top', fill='x', expand=True)
+        bar = getattr(self, '_comparison_bar', None)
+        if bar:
+            label, button = bar
+            narrow = width < label.winfo_reqwidth()+button.winfo_reqwidth()+24
+            label.pack_configure(side='top' if narrow else 'left', anchor='w')
+            button.pack_configure(side='top' if narrow else 'right', anchor='e')
 
     def _select(self, _event=None):
         selection=self.nav.curselection()
@@ -7524,6 +7619,7 @@ class SettingsDialog(tk.Toplevel):
         for child in self.comparison.winfo_children():child.destroy()
         self.controls={};self.images=[];self.wrap_labels=[];self.preview_labels=[];self.date_example=None
         self.layout_examples=[];self.sample_title=None;self.danger_note=None;self.page_preview=None
+        self._comparison_cards=[];self._compact_controls=[];self._comparison_bar=None
         self.title_label.configure(text=tr(dict(SETTINGS_CATEGORIES)[category]))
         self.canvas.yview_moveto(0)
         notes={
@@ -7555,13 +7651,15 @@ class SettingsDialog(tk.Toplevel):
                 container=self.page
                 if compact:
                     container=ttk.Frame(self.page);container.pack(fill='x',pady=(4,6))
-                    ttk.Label(container,text=tr(label),style='PrefsTitle.TLabel',width=13).pack(side='left',padx=(0,8))
+                    control_label=ttk.Label(container,text=tr(label),style='PrefsTitle.TLabel')
+                    control_label.pack(side='left',padx=(0,8))
                 elif label!=title:self._label(self.page,label)
                 control=ttk.Combobox(container,state='readonly',style='Prefs.TCombobox',font=self.font,
                                       values=[tr('{count} Panels',count=value) if key=='panel_count' and value>1
                                               else tr(str(label)) for value,label in choices])
                 control.current([v for v,_ in choices].index(self.vars[key].get()))
                 control.pack(fill='x',expand=compact,pady=(0,0 if compact else 6))
+                if compact:self._compact_controls.append((control_label,control))
                 self._prepare_combo(control)
                 control.bind('<<ComboboxSelected>>',lambda _e,k=key,c=control,opts=choices:self.vars[k].set(opts[c.current()][0]))
             self.controls[key]=control
@@ -7584,14 +7682,26 @@ class SettingsDialog(tk.Toplevel):
         for label in self.wrap_labels:
             label.configure(wraplength=max(140,self.canvas.winfo_width()-36))
         self._changed()
+        self._layout_cards(self.canvas.winfo_width())
+        if self._page_top_job is not None:self.after_cancel(self._page_top_job)
+        self._page_top_job=self.after_idle(self._show_page_top)
+
+    def _show_page_top(self):
+        # Rebuilding a differently sized page changes the scrollregion after
+        # show_page returns. Reset after geometry settles, not against the old
+        # page's region (which can strand the preview above the viewport).
+        self._page_top_job=None
+        self.update_idletasks()
+        self.canvas.yview_moveto(0)
 
     def _previews(self):
         if self.category=='layout':
             return self._layout_previews()
         bar=ttk.Frame(self.comparison);bar.pack(fill='x')
-        ttk.Label(bar,text=tr('Style comparison'),style='PrefsTitle.TLabel').pack(side='left')
-        ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
-                   command=lambda:self._enlarge(None)).pack(side='right')
+        title=ttk.Label(bar,text=tr('Style comparison'),style='PrefsTitle.TLabel');title.pack(side='left')
+        enlarge=ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
+                   command=lambda:self._enlarge(None));enlarge.pack(side='right')
+        self._comparison_bar=(title,enlarge)
         caption=ttk.Label(self.comparison,text=tr('Style details from demo screenshots; font size is shown separately.' if self.category=='appearance'
                           else 'Sample tabs and file list; panel layout is shown below.'),
                           style='Prefs.TLabel',wraplength=480)
@@ -7600,6 +7710,7 @@ class SettingsDialog(tk.Toplevel):
         cards.columnconfigure((0,1),weight=1,uniform='preview')
         for i,(title,values) in enumerate((('Current style',self.original),('After Apply',None))):
             card=ttk.Frame(cards);card.grid(row=0,column=i,sticky='nsew',padx=(0,8))
+            self._comparison_cards.append(card)
             ttk.Label(card,text=tr(title),style='PrefsTitle.TLabel').pack(anchor='w',pady=(2,4))
             label=tk.Label(card,bd=1,relief='solid',anchor='center',bg=self.app.palette['surface'],cursor='hand2')
             label.pack(fill='x',pady=(0,8))
@@ -7621,9 +7732,10 @@ class SettingsDialog(tk.Toplevel):
 
     def _layout_previews(self):
         bar=ttk.Frame(self.comparison);bar.pack(fill='x')
-        ttk.Label(bar,text=tr('Panel layout comparison'),style='PrefsTitle.TLabel').pack(side='left')
-        ttk.Button(bar,text=tr('Enlarge comparison…'),style='Prefs.TButton',
-                   command=lambda:self._enlarge(None)).pack(side='right')
+        title=ttk.Label(bar,text=tr('Panel layout comparison'),style='PrefsTitle.TLabel');title.pack(side='left')
+        enlarge=ttk.Button(bar,text=tr('Enlarge comparison…'),style='Prefs.TButton',
+                   command=lambda:self._enlarge(None));enlarge.pack(side='right')
+        self._comparison_bar=(title,enlarge)
         self.comparison_caption=ttk.Label(self.comparison,
             text=tr('Whole-window illustration. The left stays unchanged until Apply; the right follows your choices.'),
             style='Prefs.TLabel',wraplength=480)
@@ -7633,6 +7745,7 @@ class SettingsDialog(tk.Toplevel):
         for i,values in enumerate((self.original,None)):
             sample=SettingsLayoutPreview(cards,self.font,before=i==0)
             sample.grid(row=0,column=i,sticky='nsew',padx=(0,8))
+            self._comparison_cards.append(sample)
             self.layout_examples.append((sample,values))
 
     def _enlarge(self,values):
@@ -7830,6 +7943,7 @@ class SettingsDialog(tk.Toplevel):
 
     def cancel(self):
         if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
+        if self._page_top_job is not None:self.after_cancel(self._page_top_job);self._page_top_job=None
         self.grab_release();self.destroy()
 
     def _key_event(self,event):
@@ -12336,33 +12450,50 @@ class PreviewPage(tk.Frame):
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
         file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
-        ttk.Button(file_row, text=tr("File <<"), command=self.previous_file).pack(side="left")
-        ttk.Button(file_row, text=tr("File >>"), command=self.next_file).pack(side="left", padx=(3, 10))
+        self.file_row = file_row
+        self.file_previous = ttk.Button(file_row, text=tr("File <<"), width=0, command=self.previous_file)
+        self.file_previous.pack(side="left")
+        self.file_next = ttk.Button(file_row, text=tr("File >>"), width=0, command=self.next_file)
+        self.file_next.pack(side="left", padx=(3, 10))
+        ToolTip(self.file_previous, lambda: tr('File <<')+' (Alt+Left)')
+        ToolTip(self.file_next, lambda: tr('File >>')+' (Alt+Right)')
         ttk.Label(file_row, text=tr("View:")).pack(side="left", padx=(4, 3))
         self.mode_combo = ttk.Combobox(file_row, width=7, state="readonly", textvariable=self.mode_var,
                                        values=tuple(self.mode_values))
         self.mode_combo.pack(side="left")
         self.mode_combo.bind("<<ComboboxSelected>>", lambda _event: self.load())
-        ttk.Checkbutton(file_row, text=tr("Wrap"), variable=self.wrap_var,
-                        command=self.set_wrap).pack(side="left", padx=10)
+        self._check_style = readable_check_style(self, tkfont.nametofont('TkDefaultFont'),
+            config.get('view', 'color_scheme', fallback='light') == 'dark', 'Preview')
+        self.wrap_check = ttk.Checkbutton(file_row, text=tr("Wrap"), variable=self.wrap_var,
+                        style=self._check_style, command=self.set_wrap)
+        self.wrap_check.pack(side="left", padx=10)
         self.markdown_frame = ttk.Frame(file_row)
-        ttk.Label(self.markdown_frame, text="Markdown:").pack(side="left", padx=(2, 3))
-        self.markdown_combo = ttk.Combobox(self.markdown_frame, width=10, state="readonly",
-                                           textvariable=self.markdown_var,
-                                           values=tuple(self.markdown_values))
-        self.markdown_combo.pack(side="left")
-        self.markdown_combo.bind("<<ComboboxSelected>>", lambda _event: self.load())
+        self.markdown_check = ttk.Checkbutton(self.markdown_frame, text=tr('Rendered'),
+            variable=self.markdown_var, onvalue=tr('Rendered'), offvalue=tr('Markdown Source'),
+            style=self._check_style, command=self.load)
+        self.markdown_check.pack(side='left')
+        file_row.bind('<Configure>', self._layout_file_tools)
+        self.markdown_frame.bind('<Map>', self._layout_file_tools)
+        ToolTip(self.markdown_check, lambda: tr('Markdown rendered')+' / '+tr('Markdown Source'))
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
+        self.find_row = find_row
         ttk.Label(find_row, text=tr("Find:")).pack(side="left", padx=(0, 3))
-        self.search = ttk.Entry(find_row, textvariable=self.search_var, width=24)
-        self.search.pack(side="left", fill="x", expand=True)
+        self.search = ttk.Entry(find_row, textvariable=self.search_var, width=12)
         self.search.bind("<Return>", lambda _event: self.find_next())
         self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
-        find_actions = ttk.Frame(toolbar); find_actions.pack(fill="x", pady=(3, 0))
-        ttk.Button(find_actions, text=tr("Find Prev"), command=self.find_previous).pack(side="left")
-        ttk.Button(find_actions, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
-        ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
-                        command=self.find_all).pack(side="left", padx=(8, 0))
+        find_actions = ttk.Frame(find_row); find_actions.pack(side='right', padx=(6,0))
+        self.find_prev_button = ttk.Button(find_actions, text=tr("Find Prev"), width=0, command=self.find_previous)
+        self.find_prev_button.pack(side="left")
+        self.find_next_button = ttk.Button(find_actions, text=tr("Find Next"), width=0, command=self.find_next)
+        self.find_next_button.pack(side="left", padx=(3, 0))
+        self.case_check = ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
+                        style=self._check_style, command=self.find_all)
+        self.case_check.pack(side="left", padx=(8, 0))
+        ToolTip(self.case_check, lambda: tr('Case sensitive'))
+        self.search.pack(side="left", fill="x", expand=True)
+        find_row.bind('<Configure>', self._layout_find)
+        ToolTip(self.find_prev_button, lambda: tr('Find Prev')+' (Shift+Enter)')
+        ToolTip(self.find_next_button, lambda: tr('Find Next')+' (Enter)')
         self.md_tools=ttk.Frame(toolbar)
         self.md_back=ttk.Button(self.md_tools,text='←',width=2,command=self.markdown_back)
         self.md_outline=ttk.Combobox(self.md_tools,width=1,state='readonly')
@@ -12413,6 +12544,23 @@ class PreviewPage(tk.Frame):
 
     def _markdown_mode(self):
         return self.path.suffix.casefold()=='.md' and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
+
+    def _layout_file_tools(self, _event=None):
+        font = tkfont.nametofont('TkDefaultFont')
+        needed = sum(font.measure(tr(s)) for s in ('File <<', 'File >>', 'View:'))+80
+        needed += self.mode_combo.winfo_reqwidth()+self.wrap_check.winfo_reqwidth()
+        if self.markdown_frame.winfo_ismapped(): needed += self.markdown_check.winfo_reqwidth()+8
+        compact = self.file_row.winfo_width() < needed
+        self.file_previous.configure(text='‹' if compact else tr('File <<'))
+        self.file_next.configure(text='›' if compact else tr('File >>'))
+
+    def _layout_find(self, _event=None):
+        font = tkfont.nametofont('TkDefaultFont')
+        full = sum(font.measure(tr(s)) for s in ('Find:', 'Find Prev', 'Find Next', 'Case sensitive'))
+        compact = self.find_row.winfo_width() < full+font.measure('MMMMMMMMMMMM')+100
+        self.find_prev_button.configure(text='↑' if compact else tr('Find Prev'))
+        self.find_next_button.configure(text='↓' if compact else tr('Find Next'))
+        self.case_check.configure(text='Aa' if compact else tr('Case sensitive'))
 
     def _layout_markdown_tools(self):
         fixed=(self.md_back,self.md_fold,self.md_more,self.md_task_label,self.md_cancel)
@@ -12761,7 +12909,7 @@ class PreviewPage(tk.Frame):
         self.mode_var.set(next(label for label, value in self.mode_values.items() if value == mode))
         markdown_mode = self.markdown_values.get(self.markdown_var.get(), "rendered")
         self.markdown_values = {tr("Markdown Source"): "source", tr("Rendered"): "rendered"}
-        self.markdown_combo.configure(values=tuple(self.markdown_values))
+        self.markdown_check.configure(onvalue=tr('Rendered'), offvalue=tr('Markdown Source'))
         self.markdown_var.set(next(label for label, value in self.markdown_values.items()
                                    if value == markdown_mode))
         if reload: self.load()
@@ -12784,6 +12932,8 @@ class PreviewPage(tk.Frame):
         self._configure_effect_fonts()
         self.apply_color_scheme(self.palette)
         self.after_idle(self._layout_markdown_tools)
+        self.after_idle(self._layout_find)
+        self.after_idle(self._layout_file_tools)
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -12794,6 +12944,7 @@ class PreviewPage(tk.Frame):
         self.text.tag_configure("match", background=palette["match"], foreground=palette["text"])
         self.text.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
         dark = sum(int(palette["content"][i:i + 2], 16) for i in (1, 3, 5)) < 330
+        readable_check_style(self, tkfont.nametofont('TkDefaultFont'), dark, 'Preview')
         colors = {
             "syntax_keyword": "#6cb6ff" if dark else "#005cc5",
             "syntax_string": "#a5d6a7" if dark else "#116329",
@@ -15378,7 +15529,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.11"
+__version__ = "0.18.12"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -15461,8 +15612,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/09/25"
+BUILD_DATE = "2026/10/01"
 VERSION_HISTORY = (
+    ("v0.18.12", "2026/10/01", (
+        "Fixed: Double-click opens scrolling filenames across the text-overlay boundary.",
+        "Fixed: Visible folders retain polling protection against lost change notifications and refresh errors.",
+        "Improved: Scaled Settings scroll as one page with responsive comparisons; Preview has readable checkmarks, a Render toggle and one-row search controls.",
+    )),
     ("v0.18.11", "2026/09/25", (
         "Improved: Settings follows the interface reading size, with scrollable large-text previews and always-accessible action buttons.",
         "Added: Numbered panel-origin lines, named tab groups and synchronized tab-strip scrolling; groups persist across sessions and workspaces.",
@@ -16726,6 +16882,8 @@ class FilePane(ttk.Frame):
         })
 
     def _drag_press(self, event):
+        if self.name_marquee.pointer_press(event):
+            return 'break'
         self.name_marquee.stop()
         region = self.tree.identify_region(event.x, event.y)
         iid = self.tree.identify_row(event.y)
@@ -17868,7 +18026,6 @@ class Commander(tk.Tk):
         self._auto_refresh_job = None
         self._directory_watches = DirectoryWatchManager()
         self._pending_directory_changes: set[str] = set()
-        self._next_refresh_audit = time.monotonic() + 30.0
         self._network_refresh_due = {}
         self._clipboard_job = None
         self.bind("<Configure>", self._schedule_save)
@@ -18258,17 +18415,19 @@ class Commander(tk.Tk):
 
     def _auto_refresh_tick(self) -> None:
         self._auto_refresh_job = None
+        try:
+            self._auto_refresh_visible()
+        finally:
+            # A transient shell/cloud error must not permanently stop updates.
+            self._schedule_auto_refresh(100)
+
+    def _auto_refresh_visible(self) -> None:
         enabled = self.config_data.getboolean("refresh", "auto_refresh", fallback=True)
         panes = self.visible_panes()
-        if self.cloud_status.roots:
-            rows = self._visible_cloud_rows(panes)
-            if self.onedrive_overlay_var.get():
-                self.cloud_status.poll(path for pane, iid, path in rows)
-            self._update_cloud_icons(rows)
         watch_paths = [pane.path for pane in panes
                        if enabled and pane.mode == "files" and pane.archive_session is None
                        and is_local_watch_path(pane.path)]
-        watched = self._directory_watches.sync(watch_paths)
+        self._directory_watches.sync(watch_paths)
         if enabled:
             self._pending_directory_changes.update(self._directory_watches.drain())
             for key in tuple(self._pending_directory_changes):
@@ -18280,27 +18439,33 @@ class Commander(tk.Tk):
                 self._pending_directory_changes.discard(key)
 
             now = time.monotonic()
-            # Network paths and failed/unsupported native watches keep their
-            # configured polling fallback; local watched folders only receive
-            # a low-frequency audit in case Windows overflowed an event buffer.
+            # Notifications accelerate updates but are never the only source of
+            # truth (overflow, downloads and watcher startup can lose events).
+            # Audit the active local folder at the configured two-second cadence.
+            groups = {}
             for pane in panes:
                 key = directory_key(pane.path)
-                if key in watched:
+                if pane.mode != 'files' or pane.archive_session is not None:
                     continue
+                groups.setdefault(key, []).append(pane)
+            self._network_refresh_due = {key: due for key, due in self._network_refresh_due.items() if key in groups}
+            for key, matching in groups.items():
                 interval = self.config_data.getint(
-                    "refresh", "network_interval_ms" if str(pane.path).startswith("\\\\")
-                    else "background_interval_ms", fallback=10000) / 1000
+                    "refresh", "network_interval_ms" if str(matching[0].path).startswith("\\\\")
+                    else "active_interval_ms" if self.active in matching
+                    else "background_interval_ms", fallback=2000) / 1000
                 if now >= self._network_refresh_due.get(key, 0):
-                    pane.refresh_if_changed()
-                    self._network_refresh_due[key] = now + max(1.0, interval)
-            if now >= self._next_refresh_audit:
-                for pane in panes:
-                    if directory_key(pane.path) in watched:
+                    for pane in matching:
                         pane.refresh_if_changed()
-                self._next_refresh_audit = now + 30.0
+                    self._network_refresh_due[key] = now + max(1.0, interval)
         else:
             self._pending_directory_changes.clear()
-        self._schedule_auto_refresh(100)
+        # Optional overlay failures must not prevent file-list updates above.
+        if self.cloud_status.roots:
+            rows = self._visible_cloud_rows(panes)
+            if self.onedrive_overlay_var.get():
+                self.cloud_status.poll(path for pane, iid, path in rows)
+            self._update_cloud_icons(rows)
 
     def _visible_cloud_rows(self, panes):
         rows = []

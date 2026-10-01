@@ -82,8 +82,9 @@ class _WindowsDirectoryWatcher:
             )
             if not ok:
                 break
-            if returned.value:
-                self._events.put(self.path)
+            # A successful zero-byte read means the notification buffer
+            # overflowed; rescan rather than silently losing the change.
+            self._events.put(self.path)
 
     def stop(self) -> None:
         self._stopping.set()
@@ -141,4 +142,3 @@ class DirectoryWatchManager:
         for watcher in list(self._watchers.values()):
             watcher.stop()
         self._watchers.clear()
-

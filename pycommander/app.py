@@ -139,6 +139,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.12", "2026/10/01", (
+        "Fixed: Double-click opens scrolling filenames across the text-overlay boundary.",
+        "Fixed: Visible folders retain polling protection against lost change notifications and refresh errors.",
+        "Improved: Scaled Settings scroll as one page with responsive comparisons; Preview has readable checkmarks, a Render toggle and one-row search controls.",
+    )),
     ("v0.18.11", "2026/09/25", (
         "Improved: Settings follows the interface reading size, with scrollable large-text previews and always-accessible action buttons.",
         "Added: Numbered panel-origin lines, named tab groups and synchronized tab-strip scrolling; groups persist across sessions and workspaces.",
@@ -1402,6 +1407,8 @@ class FilePane(ttk.Frame):
         })
 
     def _drag_press(self, event):
+        if self.name_marquee.pointer_press(event):
+            return 'break'
         self.name_marquee.stop()
         region = self.tree.identify_region(event.x, event.y)
         iid = self.tree.identify_row(event.y)
@@ -2544,7 +2551,6 @@ class Commander(tk.Tk):
         self._auto_refresh_job = None
         self._directory_watches = DirectoryWatchManager()
         self._pending_directory_changes: set[str] = set()
-        self._next_refresh_audit = time.monotonic() + 30.0
         self._network_refresh_due = {}
         self._clipboard_job = None
         self.bind("<Configure>", self._schedule_save)
@@ -2934,17 +2940,19 @@ class Commander(tk.Tk):
 
     def _auto_refresh_tick(self) -> None:
         self._auto_refresh_job = None
+        try:
+            self._auto_refresh_visible()
+        finally:
+            # A transient shell/cloud error must not permanently stop updates.
+            self._schedule_auto_refresh(100)
+
+    def _auto_refresh_visible(self) -> None:
         enabled = self.config_data.getboolean("refresh", "auto_refresh", fallback=True)
         panes = self.visible_panes()
-        if self.cloud_status.roots:
-            rows = self._visible_cloud_rows(panes)
-            if self.onedrive_overlay_var.get():
-                self.cloud_status.poll(path for pane, iid, path in rows)
-            self._update_cloud_icons(rows)
         watch_paths = [pane.path for pane in panes
                        if enabled and pane.mode == "files" and pane.archive_session is None
                        and is_local_watch_path(pane.path)]
-        watched = self._directory_watches.sync(watch_paths)
+        self._directory_watches.sync(watch_paths)
         if enabled:
             self._pending_directory_changes.update(self._directory_watches.drain())
             for key in tuple(self._pending_directory_changes):
@@ -2956,27 +2964,33 @@ class Commander(tk.Tk):
                 self._pending_directory_changes.discard(key)
 
             now = time.monotonic()
-            # Network paths and failed/unsupported native watches keep their
-            # configured polling fallback; local watched folders only receive
-            # a low-frequency audit in case Windows overflowed an event buffer.
+            # Notifications accelerate updates but are never the only source of
+            # truth (overflow, downloads and watcher startup can lose events).
+            # Audit the active local folder at the configured two-second cadence.
+            groups = {}
             for pane in panes:
                 key = directory_key(pane.path)
-                if key in watched:
+                if pane.mode != 'files' or pane.archive_session is not None:
                     continue
+                groups.setdefault(key, []).append(pane)
+            self._network_refresh_due = {key: due for key, due in self._network_refresh_due.items() if key in groups}
+            for key, matching in groups.items():
                 interval = self.config_data.getint(
-                    "refresh", "network_interval_ms" if str(pane.path).startswith("\\\\")
-                    else "background_interval_ms", fallback=10000) / 1000
+                    "refresh", "network_interval_ms" if str(matching[0].path).startswith("\\\\")
+                    else "active_interval_ms" if self.active in matching
+                    else "background_interval_ms", fallback=2000) / 1000
                 if now >= self._network_refresh_due.get(key, 0):
-                    pane.refresh_if_changed()
-                    self._network_refresh_due[key] = now + max(1.0, interval)
-            if now >= self._next_refresh_audit:
-                for pane in panes:
-                    if directory_key(pane.path) in watched:
+                    for pane in matching:
                         pane.refresh_if_changed()
-                self._next_refresh_audit = now + 30.0
+                    self._network_refresh_due[key] = now + max(1.0, interval)
         else:
             self._pending_directory_changes.clear()
-        self._schedule_auto_refresh(100)
+        # Optional overlay failures must not prevent file-list updates above.
+        if self.cloud_status.roots:
+            rows = self._visible_cloud_rows(panes)
+            if self.onedrive_overlay_var.get():
+                self.cloud_status.poll(path for pane, iid, path in rows)
+            self._update_cloud_icons(rows)
 
     def _visible_cloud_rows(self, panes):
         rows = []

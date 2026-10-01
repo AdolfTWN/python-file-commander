@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
         # Settings must use a checkmark asset, not Clam's native cross glyph.
         import tkinter.ttk as ttk
         style=ttk.Style(d)
-        assert 'Prefs.Checkbutton.indicator' in str(style.layout('Prefs.TCheckbutton'))
+        assert 'Prefs.Checkbutton.' in str(style.layout('Prefs.TCheckbutton'))
         check_images=dict(app._settings_check_images)
         assert len(check_images)==4 and all(18<=img.width()<=24 for img in check_images.values())
         checkbox=d.controls['auto_font_size'];checkbox.focus_force()
@@ -37,10 +37,10 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
         assert d.vars['auto_font_size'].get(), 'Space enables a checkbutton'
         checkbox.invoke();assert not d.vars['auto_font_size'].get()
         assert len(d.preview_labels)==2 and all(w.image.width()>200 for w,_v in d.preview_labels)
-        # Previews are above, not inside, the scrolling options pane.
+        # Previews lead the scrollable page; controls and footer stay reachable.
         for w,_v in d.preview_labels:
             assert w.winfo_rooty()>=d.winfo_rooty()
-            assert w.winfo_rooty()+w.winfo_height()<=d.canvas.winfo_rooty()
+            assert w.winfo_rooty()+w.winfo_height()<=d.page.winfo_rooty()
             assert w.image.width()>=300
         assert d.font_example.winfo_viewable() and '100%' in d.sample_title.cget('text')
         d.vars['auto_font_size'].set(True)

@@ -52,6 +52,34 @@ def settings_check_icon_png(size, selected, disabled, dark):
     return _rgba_png_downsample(pixels,size,supersample)
 
 
+def readable_check_style(owner, font, dark=False, prefix='Prefs'):
+    """Shared scalable tick indicators, owned by the Tk root across dialogs."""
+    root = owner._root()
+    size = max(18, min(48, font.metrics('linespace')))
+    style = ttk.Style(owner)
+    cache = getattr(root, '_readable_check_images', {})
+    root._readable_check_images = cache
+    key = (prefix, size, dark)
+    if key not in cache:
+        cache[key] = {state: tk.PhotoImage(master=root,
+            data=settings_check_icon_png(size, *state, dark), format='png')
+            for state in ((False, False), (True, False), (False, True), (True, True))}
+    images = cache[key]
+    name = f'{prefix}.Checkbutton.{size}.{int(dark)}.indicator'
+    if name not in style.element_names():
+        style.element_create(name, 'image', images[False, False],
+            ('disabled', 'selected', images[True, True]),
+            ('disabled', '!selected', images[False, True]),
+            ('selected', images[True, False]), width=size+7, sticky='w')
+    def replace(layout):
+        return [(name if element.endswith('Checkbutton.indicator') else element,
+                 {key: replace(value) if key == 'children' else value
+                  for key, value in options.items()}) for element, options in layout]
+    style.layout(prefix+'.TCheckbutton', replace(style.layout('TCheckbutton')))
+    style.configure(prefix+'.TCheckbutton', font=font, padding=(2, 3))
+    return prefix+'.TCheckbutton'
+
+
 def preference_specs(app):
     """key, category, group, label, choices (None = check), apply method."""
     return [
@@ -117,6 +145,7 @@ class SettingsDialog(tk.Toplevel):
         self.status_var = tk.StringVar(self)
         self._shot_sources = {}
         self._shot_job = None
+        self._page_top_job = None
         self._build()
         sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
         ratio=max(1,self.font.metrics('linespace')/20)
@@ -181,7 +210,7 @@ class SettingsDialog(tk.Toplevel):
         self.intro.pack(anchor='w', pady=(0,12))
         # At large reading scales let preview + controls scroll together. A fixed
         # preview must never consume the whole viewport and hide every setting.
-        self._whole_page_scroll = self.font.metrics('linespace') > 20
+        self._whole_page_scroll = True
         if not self._whole_page_scroll:
             self.comparison = ttk.Frame(right)
             self.comparison.pack(fill='x', pady=(0,8))
@@ -213,11 +242,11 @@ class SettingsDialog(tk.Toplevel):
             images={state:tk.PhotoImage(master=self.app) for state in
                     ((False,False),(True,False),(False,True),(True,True))}
             self.app._settings_check_images=images
-        size=max(18,min(24,self.font.metrics('linespace')))
+        size=max(18,min(48,self.font.metrics('linespace')))
         dark=self.app.color_scheme_var.get()=='dark'
         for (selected,disabled),image in images.items():
             image.configure(data=settings_check_icon_png(size,selected,disabled,dark),format='png')
-        name='Prefs.Checkbutton.indicator'
+        name=f'Prefs.Checkbutton.{size}.indicator'
         if name not in style.element_names():
             style.element_create(name,'image',images[False,False],
                 ('disabled','selected',images[True,True]),
@@ -235,6 +264,28 @@ class SettingsDialog(tk.Toplevel):
         for label in getattr(self,'wrap_labels',[]):
             label.configure(wraplength=max(140,event.width-36))
         self._schedule_shots()
+        self._layout_cards(event.width)
+
+    def _layout_cards(self, width):
+        cards = getattr(self, '_comparison_cards', [])
+        # Readable titles and diagrams take precedence over a forced two-column
+        # layout. Keep Before first, After second in compact/high-scale windows.
+        threshold = max(660, self.heading_font.measure(tr('After Apply · 4 Panels'))*2+64)
+        stacked = width < threshold
+        for i, card in enumerate(cards):
+            card.grid_configure(row=i if stacked else 0, column=0 if stacked else i,
+                                columnspan=2 if stacked else 1,
+                                padx=(0, 0 if stacked else 8), pady=(0, 8))
+        for label, control in getattr(self, '_compact_controls', []):
+            narrow = width < label.winfo_reqwidth()+self.font.measure('MMMMMMMMMMMM')+70
+            label.pack_configure(side='top' if narrow else 'left', anchor='w')
+            control.pack_configure(side='top', fill='x', expand=True)
+        bar = getattr(self, '_comparison_bar', None)
+        if bar:
+            label, button = bar
+            narrow = width < label.winfo_reqwidth()+button.winfo_reqwidth()+24
+            label.pack_configure(side='top' if narrow else 'left', anchor='w')
+            button.pack_configure(side='top' if narrow else 'right', anchor='e')
 
     def _select(self, _event=None):
         selection=self.nav.curselection()
@@ -255,6 +306,7 @@ class SettingsDialog(tk.Toplevel):
         for child in self.comparison.winfo_children():child.destroy()
         self.controls={};self.images=[];self.wrap_labels=[];self.preview_labels=[];self.date_example=None
         self.layout_examples=[];self.sample_title=None;self.danger_note=None;self.page_preview=None
+        self._comparison_cards=[];self._compact_controls=[];self._comparison_bar=None
         self.title_label.configure(text=tr(dict(SETTINGS_CATEGORIES)[category]))
         self.canvas.yview_moveto(0)
         notes={
@@ -286,13 +338,15 @@ class SettingsDialog(tk.Toplevel):
                 container=self.page
                 if compact:
                     container=ttk.Frame(self.page);container.pack(fill='x',pady=(4,6))
-                    ttk.Label(container,text=tr(label),style='PrefsTitle.TLabel',width=13).pack(side='left',padx=(0,8))
+                    control_label=ttk.Label(container,text=tr(label),style='PrefsTitle.TLabel')
+                    control_label.pack(side='left',padx=(0,8))
                 elif label!=title:self._label(self.page,label)
                 control=ttk.Combobox(container,state='readonly',style='Prefs.TCombobox',font=self.font,
                                       values=[tr('{count} Panels',count=value) if key=='panel_count' and value>1
                                               else tr(str(label)) for value,label in choices])
                 control.current([v for v,_ in choices].index(self.vars[key].get()))
                 control.pack(fill='x',expand=compact,pady=(0,0 if compact else 6))
+                if compact:self._compact_controls.append((control_label,control))
                 self._prepare_combo(control)
                 control.bind('<<ComboboxSelected>>',lambda _e,k=key,c=control,opts=choices:self.vars[k].set(opts[c.current()][0]))
             self.controls[key]=control
@@ -315,14 +369,26 @@ class SettingsDialog(tk.Toplevel):
         for label in self.wrap_labels:
             label.configure(wraplength=max(140,self.canvas.winfo_width()-36))
         self._changed()
+        self._layout_cards(self.canvas.winfo_width())
+        if self._page_top_job is not None:self.after_cancel(self._page_top_job)
+        self._page_top_job=self.after_idle(self._show_page_top)
+
+    def _show_page_top(self):
+        # Rebuilding a differently sized page changes the scrollregion after
+        # show_page returns. Reset after geometry settles, not against the old
+        # page's region (which can strand the preview above the viewport).
+        self._page_top_job=None
+        self.update_idletasks()
+        self.canvas.yview_moveto(0)
 
     def _previews(self):
         if self.category=='layout':
             return self._layout_previews()
         bar=ttk.Frame(self.comparison);bar.pack(fill='x')
-        ttk.Label(bar,text=tr('Style comparison'),style='PrefsTitle.TLabel').pack(side='left')
-        ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
-                   command=lambda:self._enlarge(None)).pack(side='right')
+        title=ttk.Label(bar,text=tr('Style comparison'),style='PrefsTitle.TLabel');title.pack(side='left')
+        enlarge=ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
+                   command=lambda:self._enlarge(None));enlarge.pack(side='right')
+        self._comparison_bar=(title,enlarge)
         caption=ttk.Label(self.comparison,text=tr('Style details from demo screenshots; font size is shown separately.' if self.category=='appearance'
                           else 'Sample tabs and file list; panel layout is shown below.'),
                           style='Prefs.TLabel',wraplength=480)
@@ -331,6 +397,7 @@ class SettingsDialog(tk.Toplevel):
         cards.columnconfigure((0,1),weight=1,uniform='preview')
         for i,(title,values) in enumerate((('Current style',self.original),('After Apply',None))):
             card=ttk.Frame(cards);card.grid(row=0,column=i,sticky='nsew',padx=(0,8))
+            self._comparison_cards.append(card)
             ttk.Label(card,text=tr(title),style='PrefsTitle.TLabel').pack(anchor='w',pady=(2,4))
             label=tk.Label(card,bd=1,relief='solid',anchor='center',bg=self.app.palette['surface'],cursor='hand2')
             label.pack(fill='x',pady=(0,8))
@@ -352,9 +419,10 @@ class SettingsDialog(tk.Toplevel):
 
     def _layout_previews(self):
         bar=ttk.Frame(self.comparison);bar.pack(fill='x')
-        ttk.Label(bar,text=tr('Panel layout comparison'),style='PrefsTitle.TLabel').pack(side='left')
-        ttk.Button(bar,text=tr('Enlarge comparison…'),style='Prefs.TButton',
-                   command=lambda:self._enlarge(None)).pack(side='right')
+        title=ttk.Label(bar,text=tr('Panel layout comparison'),style='PrefsTitle.TLabel');title.pack(side='left')
+        enlarge=ttk.Button(bar,text=tr('Enlarge comparison…'),style='Prefs.TButton',
+                   command=lambda:self._enlarge(None));enlarge.pack(side='right')
+        self._comparison_bar=(title,enlarge)
         self.comparison_caption=ttk.Label(self.comparison,
             text=tr('Whole-window illustration. The left stays unchanged until Apply; the right follows your choices.'),
             style='Prefs.TLabel',wraplength=480)
@@ -364,6 +432,7 @@ class SettingsDialog(tk.Toplevel):
         for i,values in enumerate((self.original,None)):
             sample=SettingsLayoutPreview(cards,self.font,before=i==0)
             sample.grid(row=0,column=i,sticky='nsew',padx=(0,8))
+            self._comparison_cards.append(sample)
             self.layout_examples.append((sample,values))
 
     def _enlarge(self,values):
@@ -561,6 +630,7 @@ class SettingsDialog(tk.Toplevel):
 
     def cancel(self):
         if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
+        if self._page_top_job is not None:self.after_cancel(self._page_top_job);self._page_top_job=None
         self.grab_release();self.destroy()
 
     def _key_event(self,event):

@@ -1,5 +1,22 @@
 # PFC Settings — v0.18.4
 
+## Scaled-layout correction (v0.18.12)
+
+This supersedes the fixed-top arrangement below: preview and options now share
+one scrollable page at every scale; Apply/Cancel/OK remain fixed. Page switching
+resets scrolling after layout settles, so old page heights cannot strand the new
+preview above the viewport. Before/After cards stack when their headings and
+diagrams cannot fit side by side. Option labels and comparison actions reflow
+instead of consuming the remaining control width. Checkmark size follows text.
+
+Self-review tasks: find both comparison states at 150%, switch all six pages
+without losing their preview, reach the final setting and footer at 200%/narrow
+width, and cancel without writing preferences. The source/portable GUI checks
+cover scale/theme/language and compact geometry. Headless screenshots were
+reviewed at actual display size. Windows VM validation is **blocked at guest
+execution**, not passed; it must not be confused with the older native evidence
+recorded below.
+
 ## Information architecture
 
 Outlook-inspired two-column options window: six persistent categories on the

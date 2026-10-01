@@ -22,6 +22,7 @@ from .mdworkspace import wiki_destination, scan_markdown_workspace
 from .mdworkspaceui import MarkdownWorkspaceDialog
 from .workflowdata import WorkflowRecords, reading_anchor, resolve_reading_anchor
 from .workflows import WorkflowPicker
+from .settings import readable_check_style
 
 
 TEXT_EXTENSIONS = {
@@ -354,33 +355,50 @@ class PreviewPage(tk.Frame):
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
         file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
-        ttk.Button(file_row, text=tr("File <<"), command=self.previous_file).pack(side="left")
-        ttk.Button(file_row, text=tr("File >>"), command=self.next_file).pack(side="left", padx=(3, 10))
+        self.file_row = file_row
+        self.file_previous = ttk.Button(file_row, text=tr("File <<"), width=0, command=self.previous_file)
+        self.file_previous.pack(side="left")
+        self.file_next = ttk.Button(file_row, text=tr("File >>"), width=0, command=self.next_file)
+        self.file_next.pack(side="left", padx=(3, 10))
+        ToolTip(self.file_previous, lambda: tr('File <<')+' (Alt+Left)')
+        ToolTip(self.file_next, lambda: tr('File >>')+' (Alt+Right)')
         ttk.Label(file_row, text=tr("View:")).pack(side="left", padx=(4, 3))
         self.mode_combo = ttk.Combobox(file_row, width=7, state="readonly", textvariable=self.mode_var,
                                        values=tuple(self.mode_values))
         self.mode_combo.pack(side="left")
         self.mode_combo.bind("<<ComboboxSelected>>", lambda _event: self.load())
-        ttk.Checkbutton(file_row, text=tr("Wrap"), variable=self.wrap_var,
-                        command=self.set_wrap).pack(side="left", padx=10)
+        self._check_style = readable_check_style(self, tkfont.nametofont('TkDefaultFont'),
+            config.get('view', 'color_scheme', fallback='light') == 'dark', 'Preview')
+        self.wrap_check = ttk.Checkbutton(file_row, text=tr("Wrap"), variable=self.wrap_var,
+                        style=self._check_style, command=self.set_wrap)
+        self.wrap_check.pack(side="left", padx=10)
         self.markdown_frame = ttk.Frame(file_row)
-        ttk.Label(self.markdown_frame, text="Markdown:").pack(side="left", padx=(2, 3))
-        self.markdown_combo = ttk.Combobox(self.markdown_frame, width=10, state="readonly",
-                                           textvariable=self.markdown_var,
-                                           values=tuple(self.markdown_values))
-        self.markdown_combo.pack(side="left")
-        self.markdown_combo.bind("<<ComboboxSelected>>", lambda _event: self.load())
+        self.markdown_check = ttk.Checkbutton(self.markdown_frame, text=tr('Rendered'),
+            variable=self.markdown_var, onvalue=tr('Rendered'), offvalue=tr('Markdown Source'),
+            style=self._check_style, command=self.load)
+        self.markdown_check.pack(side='left')
+        file_row.bind('<Configure>', self._layout_file_tools)
+        self.markdown_frame.bind('<Map>', self._layout_file_tools)
+        ToolTip(self.markdown_check, lambda: tr('Markdown rendered')+' / '+tr('Markdown Source'))
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
+        self.find_row = find_row
         ttk.Label(find_row, text=tr("Find:")).pack(side="left", padx=(0, 3))
-        self.search = ttk.Entry(find_row, textvariable=self.search_var, width=24)
-        self.search.pack(side="left", fill="x", expand=True)
+        self.search = ttk.Entry(find_row, textvariable=self.search_var, width=12)
         self.search.bind("<Return>", lambda _event: self.find_next())
         self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
-        find_actions = ttk.Frame(toolbar); find_actions.pack(fill="x", pady=(3, 0))
-        ttk.Button(find_actions, text=tr("Find Prev"), command=self.find_previous).pack(side="left")
-        ttk.Button(find_actions, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
-        ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
-                        command=self.find_all).pack(side="left", padx=(8, 0))
+        find_actions = ttk.Frame(find_row); find_actions.pack(side='right', padx=(6,0))
+        self.find_prev_button = ttk.Button(find_actions, text=tr("Find Prev"), width=0, command=self.find_previous)
+        self.find_prev_button.pack(side="left")
+        self.find_next_button = ttk.Button(find_actions, text=tr("Find Next"), width=0, command=self.find_next)
+        self.find_next_button.pack(side="left", padx=(3, 0))
+        self.case_check = ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
+                        style=self._check_style, command=self.find_all)
+        self.case_check.pack(side="left", padx=(8, 0))
+        ToolTip(self.case_check, lambda: tr('Case sensitive'))
+        self.search.pack(side="left", fill="x", expand=True)
+        find_row.bind('<Configure>', self._layout_find)
+        ToolTip(self.find_prev_button, lambda: tr('Find Prev')+' (Shift+Enter)')
+        ToolTip(self.find_next_button, lambda: tr('Find Next')+' (Enter)')
         self.md_tools=ttk.Frame(toolbar)
         self.md_back=ttk.Button(self.md_tools,text='←',width=2,command=self.markdown_back)
         self.md_outline=ttk.Combobox(self.md_tools,width=1,state='readonly')
@@ -431,6 +449,23 @@ class PreviewPage(tk.Frame):
 
     def _markdown_mode(self):
         return self.path.suffix.casefold()=='.md' and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
+
+    def _layout_file_tools(self, _event=None):
+        font = tkfont.nametofont('TkDefaultFont')
+        needed = sum(font.measure(tr(s)) for s in ('File <<', 'File >>', 'View:'))+80
+        needed += self.mode_combo.winfo_reqwidth()+self.wrap_check.winfo_reqwidth()
+        if self.markdown_frame.winfo_ismapped(): needed += self.markdown_check.winfo_reqwidth()+8
+        compact = self.file_row.winfo_width() < needed
+        self.file_previous.configure(text='‹' if compact else tr('File <<'))
+        self.file_next.configure(text='›' if compact else tr('File >>'))
+
+    def _layout_find(self, _event=None):
+        font = tkfont.nametofont('TkDefaultFont')
+        full = sum(font.measure(tr(s)) for s in ('Find:', 'Find Prev', 'Find Next', 'Case sensitive'))
+        compact = self.find_row.winfo_width() < full+font.measure('MMMMMMMMMMMM')+100
+        self.find_prev_button.configure(text='↑' if compact else tr('Find Prev'))
+        self.find_next_button.configure(text='↓' if compact else tr('Find Next'))
+        self.case_check.configure(text='Aa' if compact else tr('Case sensitive'))
 
     def _layout_markdown_tools(self):
         fixed=(self.md_back,self.md_fold,self.md_more,self.md_task_label,self.md_cancel)
@@ -779,7 +814,7 @@ class PreviewPage(tk.Frame):
         self.mode_var.set(next(label for label, value in self.mode_values.items() if value == mode))
         markdown_mode = self.markdown_values.get(self.markdown_var.get(), "rendered")
         self.markdown_values = {tr("Markdown Source"): "source", tr("Rendered"): "rendered"}
-        self.markdown_combo.configure(values=tuple(self.markdown_values))
+        self.markdown_check.configure(onvalue=tr('Rendered'), offvalue=tr('Markdown Source'))
         self.markdown_var.set(next(label for label, value in self.markdown_values.items()
                                    if value == markdown_mode))
         if reload: self.load()
@@ -802,6 +837,8 @@ class PreviewPage(tk.Frame):
         self._configure_effect_fonts()
         self.apply_color_scheme(self.palette)
         self.after_idle(self._layout_markdown_tools)
+        self.after_idle(self._layout_find)
+        self.after_idle(self._layout_file_tools)
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -812,6 +849,7 @@ class PreviewPage(tk.Frame):
         self.text.tag_configure("match", background=palette["match"], foreground=palette["text"])
         self.text.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
         dark = sum(int(palette["content"][i:i + 2], 16) for i in (1, 3, 5)) < 330
+        readable_check_style(self, tkfont.nametofont('TkDefaultFont'), dark, 'Preview')
         colors = {
             "syntax_keyword": "#6cb6ff" if dark else "#005cc5",
             "syntax_string": "#a5d6a7" if dark else "#116329",

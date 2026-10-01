@@ -1,5 +1,21 @@
 # PFC follow-ups
 
+## Interaction, refresh and scaled dialogs — v0.18.12
+
+- [x] Reproduce lost double-clicks through the real marquee Canvas event route;
+  bridge canvas/native-row gestures without changing normal-row double clicks.
+- [x] Audit active local folders every configured 2 seconds even when a Windows
+  watcher is alive; overflow invalidates the folder, timer errors do not stop
+  scheduling, duplicate visible folders all refresh, optional cloud errors occur
+  after list updates. Selection remains on the existing item after new arrivals.
+- [x] Scaled Settings: responsive comparison cards and labels, previews/options
+  in one scroller, reset position after page geometry settles, fixed footer.
+- [x] Preview: scalable tick indicators, Markdown rendering checkbox, one search
+  row with previous/next/case controls; narrow labels retain full tooltips.
+- [ ] Native Windows acceptance on the reporter's scale/theme: this task reached
+  QGA readiness but stopped at `guest-exec-unavailable`. The lease was released
+  with networking disabled. Headless source/portable checks are not native proof.
+
 ## Settings readability and tab provenance — v0.18.11
 
 - [x] Inherit exact main-window font units/size when Settings opens and after Apply;

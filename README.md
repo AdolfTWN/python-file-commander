@@ -1,6 +1,15 @@
 # Python File Commander
 
-Current version: **v0.18.11**
+Current version: **v0.18.12**
+
+**Interaction and reading fixes:** Scrolling filenames accept double-clicks.
+Directory notifications have a periodic fallback (active local folder: 2 seconds
+by default), including downloads, extraction and duplicate visible folder tabs.
+Settings previews and options scroll together; narrow comparisons stack vertically.
+F3 uses readable Wrap/Rendered checkmarks and a single search row. Narrow windows
+use arrow buttons and `Aa` with full tooltips, without reducing the chosen font.
+Package/portable checks cover these paths. Windows native acceptance remains
+pending: QGA was ready but refused guest execution; no network/account change was made.
 
 **Readable settings and tab groups:** Settings inherits the main interface text
 size on opening and after Apply. Large-text pages scroll, with preview first and
@@ -14,7 +23,7 @@ scroll together using the scrollbar or mouse wheel.
 **Maintenance tracing:** grouped tests record durations and compare equivalent
 runs automatically; real token counters are imported only when available.
 A lease-aware Windows runner blocks before UI input when the environment is not
-ready. This release changes development tooling, not PFC's user-facing behavior.
+ready. These tracing tools do not change PFC's user-facing behavior.
 See [workflow, limits and commands](docs/maintenance-workflow.md).
 
 **Hover help:** PFC tooltips no longer remain globally on top. Pending and visible

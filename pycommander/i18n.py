@@ -11,6 +11,9 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    "Fixed: Double-click opens scrolling filenames across the text-overlay boundary.": ("修正：跨越捲動文字覆蓋層時仍可雙擊開啟檔案。", "修正：跨越滚动文字覆盖层时仍可双击打开文件。", "수정: 스크롤 파일명과 기본 행 사이에서도 두 번 클릭하여 파일을 열 수 있습니다."),
+    "Fixed: Visible folders retain polling protection against lost change notifications and refresh errors.": ("修正：可見資料夾定期檢查變更，補足遺漏通知；更新錯誤不再停止後續檢查。", "修正：可见文件夹定期检查变更，补足遗漏通知；更新错误不再停止后续检查。", "수정: 표시된 폴더를 주기적으로 확인하여 누락된 변경 알림과 새로 고침 오류에 대비합니다."),
+    "Improved: Scaled Settings scroll as one page with responsive comparisons; Preview has readable checkmarks, a Render toggle and one-row search controls.": ("改善：放大字體設定頁採完整捲動與自適應比較；預覽使用清楚的勾選框、渲染切換與單列搜尋控制。", "改善：放大字体设置页采用完整滚动与自适应比较；预览使用清楚的复选框、渲染切换与单行搜索控件。", "개선: 확대된 설정은 반응형 비교와 함께 한 페이지로 스크롤됩니다. 미리보기에는 읽기 쉬운 체크 표시, 렌더링 전환 및 한 줄 검색 컨트롤이 있습니다."),
     "Improved: Settings follows the interface reading size, with scrollable large-text previews and always-accessible action buttons.": ("改善：設定跟隨介面字級，大字預覽可捲動，操作按鈕維持可見。", "改善：设置跟随界面字号，大字预览可滚动，操作按钮保持可见。", "개선: 설정이 인터페이스 글자 크기를 따르고 큰 글자 미리보기는 스크롤되며 작업 버튼은 항상 표시됩니다."),
     "Added: Numbered panel-origin lines, named tab groups and synchronized tab-strip scrolling; groups persist across sessions and workspaces.": ("新增：頁籤來源面板編號細線、命名群組與同步捲動；群組隨設定及工作區保存。", "新增：标签页来源面板编号细线、命名分组与同步滚动；分组随设置及工作区保存。", "추가: 번호가 있는 원본 패널 구분선, 이름 있는 탭 그룹 및 동기 스크롤. 그룹은 세션과 작업 공간에 저장됩니다."),
     "Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.": ("設定使用介面的字型大小，套用後這裡也會同步更新。字型較大時可捲動查看所有選項。", "设置使用界面的字体大小，应用后这里也会同步更新。字体较大时可滚动查看所有选项。", "설정도 인터페이스 글자 크기를 따릅니다. 적용 후 함께 변경되며 큰 글자에서는 스크롤하여 모든 옵션을 확인하세요."),

@@ -1,5 +1,6 @@
 """A single clipped, font-sized moving name; file identities never change."""
 import time
+import os
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
@@ -34,6 +35,8 @@ class NameMarquee:
         self.item = ""
         self.suspended = False
         self.closed = False
+        self._forwarding_press = False
+        self._last_press = None
         self.canvas = tk.Canvas(self.tree, highlightthickness=0, borderwidth=0,
                                 takefocus=0, cursor="arrow")
         self.text_id = self.canvas.create_text(0, 0, anchor="w")
@@ -54,7 +57,44 @@ class NameMarquee:
             self.canvas.bind(sequence, lambda e, s=sequence: self._forward(e, s))
 
     def _forward(self, event, sequence):
-        return forward_tree_event(self.tree, event, sequence)
+        self._forwarding_press = sequence == '<ButtonPress-1>'
+        try:
+            return forward_tree_event(self.tree, event, sequence)
+        finally:
+            self._forwarding_press = False
+
+    def pointer_press(self, event):
+        """Bridge a double click that crosses the canvas/native row boundary.
+
+        The original canvas events interrupt Tk's native multi-click history.
+        Track only gestures involving that overlay; native rows keep Tk's own
+        double-click behavior. No synthetic Double event is generated.
+        """
+        previous = self._last_press
+        row = self.tree.identify_row(event.y)
+        self._last_press = (event.time, event.x_root, event.y_root, row,
+                            self._forwarding_press)
+        delay, distance_x, distance_y = 500, 5, 5
+        if os.name == 'nt':
+            import ctypes
+            delay = ctypes.windll.user32.GetDoubleClickTime()
+            distance_x = max(2, ctypes.windll.user32.GetSystemMetrics(36))
+            distance_y = max(2, ctypes.windll.user32.GetSystemMetrics(37))
+        if (previous and row and previous[3] == row
+                and (previous[4] or self._forwarding_press)
+                and 0 < (event.time-previous[0]) % (2**32) <= delay
+                and abs(event.x_root-previous[1]) <= distance_x
+                and abs(event.y_root-previous[2]) <= distance_y
+                and not event.state & (1 | 4)):
+            self._last_press = None
+            self.pane._drag_press_item = self.pane._drag_press_xy = None
+            self.pane._dragging = False
+            self.stop()
+            self.tree.selection_set(row)
+            self.tree.focus(row)
+            self.pane.open_selected()
+            return True
+        return False
 
     def request(self, _event=None):
         if self.closed:
