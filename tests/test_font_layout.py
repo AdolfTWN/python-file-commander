@@ -5,18 +5,14 @@ from pycommander.search import search_row_height
 
 
 class FontLayoutTests(unittest.TestCase):
-    def test_automatic_font_size_respects_window_and_panel_density(self):
-        self.assertEqual(automatic_font_size(1200, 720, 2), "medium")
-        self.assertEqual(automatic_font_size(1500, 900, 2), "large")
-        self.assertEqual(automatic_font_size(2000, 1050, 2), "xl")
-        self.assertEqual(automatic_font_size(2400, 1300, 2), "xxl")
-        self.assertEqual(automatic_font_size(1200, 900, 4), "small")
+    def test_automatic_font_size_uses_all_supported_steps_and_floor(self):
+        for limit, expected in ((0, 'small'), (1.4, 'medium'), (1.75, '175'),
+                                (2.25, '225'), (2.8, '275'), (4, '300')):
+            self.assertEqual(automatic_font_size(lambda scale: scale <= limit), expected)
 
-    def test_half_screen_high_dpi_window_stays_at_native_font_size(self):
-        self.assertEqual(automatic_font_size(2560, 2073, 2, 5120), "small")
-        self.assertEqual(automatic_font_size(3000, 1800, 2, 5120), "small")
-        self.assertEqual(automatic_font_size(3600, 1800, 2, 5120), "medium")
-        self.assertEqual(automatic_font_size(5120, 2073, 2, 5120), "xxl")
+    def test_both_panel_constraints_must_fit(self):
+        self.assertEqual(automatic_font_size(lambda scale: 200*scale <= 500 and
+                                             300*scale <= 525), '175')
 
     def test_extension_column_is_exactly_four_wide_latin_characters(self):
         measured = []

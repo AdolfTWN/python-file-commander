@@ -32,6 +32,7 @@ def main() -> None:
         app = None
         try:
             app = pfc.Commander(); app.withdraw(); app.update_idletasks(); app.update()
+            app.auto_font_size_var.set(False)  # Auto fitting has its own content/geometry matrix.
             assert [image.width() for image in app._app_icon_images] == [16, 32, 48, 64]
             assert [image.height() for image in app._app_icon_images] == [16, 32, 48, 64]
             assert all(tabs.current().quick_filter_bar.winfo_manager() == "pack"
@@ -98,6 +99,7 @@ def main() -> None:
             row = click_pane.tree.get_children()[0]
             box = click_pane.tree.bbox(row)
             click_pane._drag_press(SimpleNamespace(
+                time=1000, state=0,
                 x=box[0] + 4, y=box[1] + 4,
                 x_root=click_pane.tree.winfo_rootx() + box[0] + 4,
                 y_root=click_pane.tree.winfo_rooty() + box[1] + 4))
@@ -513,7 +515,7 @@ def main() -> None:
             app._exit_archive(source_pane); source_pane.navigate(quick_root); app.update()
             app.set_active(source_pane); app.search(); app.update()
             search_window = app.search_window
-            assert search_window is not None and search_window.progress.winfo_manager() == "grid"
+            assert search_window is not None and search_window.progress.winfo_viewable()
             search_window.start(); deadline = time.time() + 3
             while search_window.worker and search_window.worker.is_alive() and time.time() < deadline:
                 app.update(); time.sleep(0.01)
@@ -658,6 +660,7 @@ def main() -> None:
             blank_y = source_pane.tree.winfo_height() - 2
             assert not source_pane.tree.identify_row(blank_y)
             source_pane._drag_press(SimpleNamespace(
+                time=2000, state=0,
                 x=80, y=blank_y, x_root=source_pane.tree.winfo_rootx() + 80,
                 y_root=source_pane.tree.winfo_rooty() + blank_y))
             assert not source_pane.tree.selection()
@@ -692,7 +695,7 @@ def main() -> None:
                 assert folder_frame.diff_button.master is not folder_frame.center_header
             compare_window.apply_scale(2.0); app.update_idletasks()
             compare_style = pfc.ttk.Style(folder_frame)
-            assert int(compare_style.lookup("PFCCompare.Treeview", "rowheight")) > 30
+            assert int(compare_style.lookup("PFCCompare.Treeview", "rowheight")) >= pfc.tkfont.nametofont('TkDefaultFont').metrics('linespace') + 12
             assert len(folder_frame.tree.get_children()) == 2
             folder_frame.view_mode_var.set("differences"); folder_frame.populate()
             assert len(folder_frame.tree.get_children()) == 1

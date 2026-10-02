@@ -27,6 +27,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-startup-') as raw:
     app.active.navigate(target);app.panel_count_var.set(1);app.apply_panel_count()
     settle(app);app.save_config()
     for job in app.tk.call('after','info'):app.tk.call('after','cancel',job)
+    # Two Tk roots in one process share display scaling on X11. A real restart
+    # starts at native DPI, not the previous root's already-multiplied zoom.
+    app.tk.call('tk', 'scaling', app._base_tk_scaling)
     app.close_app()
     app=pfc.Commander();errors=[]
     app.report_callback_exception=lambda *exc:errors.append(str(exc))

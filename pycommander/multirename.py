@@ -8,6 +8,8 @@ import tkinter.font as tkfont
 from tkinter import messagebox, ttk
 from .i18n import retranslate_widgets, tr
 from .tabs import color_scheme
+from .tooltip import ToolTip
+from .settings import readable_check_style
 
 
 INVALID_NAME_CHARS = set('<>:"/\\|?*')
@@ -101,17 +103,17 @@ class MultiRenameWindow(tk.Toplevel):
         controls = ttk.Frame(self, padding=8); controls.pack(fill="x")
         ttk.Label(controls, text=tr("Name mask:")).grid(row=0, column=0, sticky="w")
         self.mask_entry = ttk.Entry(controls, textvariable=self.mask_var)
-        self.mask_entry.grid(row=0, column=1, columnspan=5, sticky="ew", padx=(4, 8))
-        ttk.Label(controls, text=tr("[N] original   [C] counter   [E] extension")).grid(
-            row=0, column=6, columnspan=3, sticky="w")
+        self.mask_entry.grid(row=0, column=1, columnspan=3, sticky="ew", padx=(4, 8))
+        ToolTip(self.mask_entry, lambda: tr('[N] original   [C] counter   [E] extension'))
         ttk.Label(controls, text=tr("Find:")).grid(row=1, column=0, sticky="w", pady=(6, 0))
-        ttk.Entry(controls, textvariable=self.find_var).grid(row=1, column=1, sticky="ew", padx=(4, 8), pady=(6, 0))
+        ttk.Entry(controls, textvariable=self.find_var, width=8).grid(row=1, column=1, sticky="ew", padx=(4, 8), pady=(6, 0))
         ttk.Label(controls, text=tr("Replace:")).grid(row=1, column=2, sticky="w", pady=(6, 0))
-        ttk.Entry(controls, textvariable=self.replace_var).grid(row=1, column=3, sticky="ew", padx=(4, 8), pady=(6, 0))
-        ttk.Checkbutton(controls, text=tr("Case sensitive"), variable=self.case_var,
-                        command=self.update_preview).grid(row=1, column=4, sticky="w", pady=(6, 0))
+        ttk.Entry(controls, textvariable=self.replace_var, width=8).grid(row=1, column=3, sticky="ew", padx=(4, 8), pady=(6, 0))
+        case = ttk.Checkbutton(controls, text='Aa', variable=self.case_var, command=self.update_preview)
+        case.grid(row=1, column=4, sticky="w", pady=(6, 0))
+        ToolTip(case, lambda: tr('Case sensitive'))
         ttk.Checkbutton(controls, text=tr("Keep extension"), variable=self.extension_var,
-                        command=self.update_preview).grid(row=1, column=5, sticky="w", pady=(6, 0))
+                        command=self.update_preview).grid(row=0, column=4, sticky="w")
         ttk.Label(controls, text=tr("Start:")).grid(row=2, column=0, sticky="w", pady=(6, 0))
         ttk.Spinbox(controls, from_=0, to=999999, textvariable=self.start_var, width=7,
                     command=self.update_preview).grid(row=2, column=1, sticky="w", padx=(4, 8), pady=(6, 0))
@@ -142,6 +144,13 @@ class MultiRenameWindow(tk.Toplevel):
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
+        bg = self.winfo_rgb(palette.get('window', '#eeeeee'))
+        style = readable_check_style(self, tkfont.nametofont('TkDefaultFont'),
+                                      sum(bg)/3 < 32768, prefix='RenameCheck')
+        pending = [self]
+        while pending:
+            widget = pending.pop(); pending.extend(widget.winfo_children())
+            if isinstance(widget, ttk.Checkbutton): widget.configure(style=style)
         self.configure(background=palette["window"])
         dark = palette["window"] == "#20262c"
         self.tree.tag_configure("error", foreground="#ff7770" if dark else "#a00000")

@@ -1,6 +1,18 @@
 # Python File Commander
 
-Current version: **v0.18.12**
+Current version: **v0.18.13**
+
+**Content-fit Auto zoom and compact dialogs:** Auto chooses the largest supported
+100–300% scale that fits up to 30 displayed-order names starting at the current
+scroll position in Panels 1–2 (One Panel: its visible file list). Panels 3–4 do not
+constrain it; empty lists retain the current size and overflow at 100% still uses
+marquee. Resize/navigation/scroll changes are debounced. The larger percentage has
+faint +/− controls above/below, revealed on pointer approach or keyboard focus.
+Search groups related criteria by row, with expandable size/date filters and a
+Results menu (Enter/F3/F9 remain available). Compare, rename, Markdown discovery
+and space-analysis controls are grouped by task. See the popup audit in
+[Settings design](docs/settings-design.md). Windows native verification remains
+blocked at guest execution; this release does not claim that environment is fixed.
 
 **Interaction and reading fixes:** Scrolling filenames accept double-clicks.
 Directory notifications have a periodic fallback (active local folder: 2 seconds

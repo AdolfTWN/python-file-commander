@@ -53,6 +53,7 @@ from .syncprogress import SyncProgress
 from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs
+from .columnsettings import font_snapshot
 from .actionbar import ActionBarLayout
 from .vcsui import VcsActions
 
@@ -139,6 +140,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.13", "2026/10/02", (
+        "Added: Auto Font Size fits sampled Panel 1–2 filenames at 100–300%, with compact hover-revealed zoom controls.",
+        "Improved: Grouped popup search, comparison, rename and folder controls preserve more content space.",
+    )),
     ("v0.18.12", "2026/10/01", (
         "Fixed: Double-click opens scrolling filenames across the text-overlay boundary.",
         "Fixed: Visible folders retain polling protection against lost change notifications and refresh errors.",
@@ -790,25 +795,12 @@ def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
     return max(24, font_linespace + vertical_space)
 
 
-def automatic_font_size(window_width: int, window_height: int, panel_count: int,
-                        screen_width: int | None = None) -> str:
-    """Choose the largest scale that keeps each visible file panel usable."""
-    per_panel = max(1, window_width) / max(1, panel_count)
-    height_level = (4 if window_height >= 1250 else 3 if window_height >= 1050
-                    else 2 if window_height >= 850 else 1 if window_height >= 650 else 0)
-    width_level = (4 if per_panel >= 1200 else 3 if per_panel >= 1000
-                   else 2 if per_panel >= 750 else 1 if per_panel >= 500 else 0)
-    level = min(height_level, width_level)
-    if screen_width and screen_width > 0:
-        occupied_width = max(0.0, window_width / screen_width)
-        # Native DPI scaling already keeps text readable. A snapped half-screen
-        # window must not be mistaken for an XXL layout merely because the
-        # monitor has a very high physical pixel count.
-        if occupied_width <= .60:
-            level = 0
-        elif occupied_width <= .75:
-            level = min(level, 1)
-    return ("small", "medium", "large", "xl", "xxl")[level]
+def automatic_font_size(fits, scales=None) -> str:
+    """Largest supported content-fitting scale; 100% remains the hard floor."""
+    for key, scale in reversed(tuple((scales or FONT_SCALES).items())):
+        if fits(scale):
+            return key
+    return "small"
 
 
 def extension_column_width(measure) -> int:
@@ -988,6 +980,9 @@ class FilePane(ttk.Frame):
             if changed and hasattr(self, "name_marquee"):
                 self.name_marquee.request()
                 self.size_units.request()
+                owner = self.winfo_toplevel()
+                if hasattr(owner, '_schedule_auto_font_size'):
+                    owner._schedule_auto_font_size()
         self.tree.configure(yscrollcommand=lambda *args: scrolled(scroll, *args),
                             xscrollcommand=lambda *args: scrolled(horizontal, *args))
         self.tree.bind("<Configure>", lambda _event: self._schedule_column_autosize())
@@ -1000,6 +995,7 @@ class FilePane(ttk.Frame):
         self.tree.bind("<ButtonPress-1>", self._drag_press, add="+")
         self.tree.bind("<B1-Motion>", self._drag_motion, add="+")
         self.tree.bind("<ButtonRelease-1>", self._drag_release, add="+")
+        self.tree.bind('<ButtonRelease-1>', lambda e: self.winfo_toplevel()._schedule_auto_font_size(), add='+')
         self.tree.bind("<ButtonRelease-3>", self._context_click)
         self.tree.bind("<Shift-F10>", self._context_keyboard)
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
@@ -1889,6 +1885,9 @@ class FilePane(ttk.Frame):
         self.tree.column("#0", width=max(120, available - fixed_total), minwidth=120,
                          stretch=True)
         self._fit_visible_names()
+        owner = self.winfo_toplevel()
+        if hasattr(owner, '_schedule_auto_font_size'):
+            owner._schedule_auto_font_size()
 
     @staticmethod
     def signature_for(entries) -> tuple:
@@ -2342,6 +2341,7 @@ class Commander(tk.Tk):
         self.onedrive_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','onedrive_overlay',fallback=True))
         self.vcs_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','vcs_overlay',fallback=True))
         self._auto_font_job = None
+        self._auto_font_verify_job = None
         self._last_auto_window_size = None
         saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
         if saved_scheme not in COLOR_SCHEMES:
@@ -2860,6 +2860,8 @@ class Commander(tk.Tk):
             self.after_cancel(self._clipboard_resize_job)
         if self._auto_font_job is not None:
             self.after_cancel(self._auto_font_job)
+        if self._auto_font_verify_job is not None:
+            self.after_cancel(self._auto_font_verify_job)
         if self._archive_open_poll_job is not None:
             self.after_cancel(self._archive_open_poll_job)
         if self._tray_poll_job is not None:
@@ -5253,6 +5255,10 @@ class Commander(tk.Tk):
 
     def select_manual_font_size(self) -> None:
         self.auto_font_size_var.set(False)
+        if self._auto_font_verify_job is not None:
+            self.after_cancel(self._auto_font_verify_job)
+            self._auto_font_verify_job = None
+        self._auto_font_busy = False
         self.apply_font_size()
 
     def set_long_name_scrolling(self) -> None:
@@ -5263,12 +5269,14 @@ class Commander(tk.Tk):
     def _build_zoom_controls(self, parent) -> None:
         self.zoom_frame = ttk.Frame(parent)
         self.zoom_frame.pack(side="right", padx=(2, 0))
-        # A small fixed-size status control must not consume the action bar at 300%.
+        # Larger percentage, vertically grouped hints: no width added on hover.
         self._zoom_font = tkfont.Font(family=tkfont.nametofont("TkDefaultFont").actual("family"),
-                                     size=-max(11, round(self._base_tk_scaling * 8)))
+                                     size=-max(16, round(self._base_tk_scaling * 11)))
+        self._zoom_hint_font = tkfont.Font(family=self._zoom_font.actual('family'), size=-12)
         style = ttk.Style(self)
-        for name in ("Zoom.TButton", "Zoom.TMenubutton"):
-            style.configure(name, font=self._zoom_font, padding=1)
+        style.configure('Zoom.TMenubutton', font=self._zoom_font, padding=0)
+        style.configure('Zoom.TButton', font=self._zoom_hint_font, padding=0, relief='flat')
+        style.map('Zoom.TButton', relief=[('active', 'raised'), ('focus', 'raised')])
         # Keep native Menubutton mouse/keyboard behavior, omit only its arrow.
         style.layout('Zoom.TMenubutton', [('Menubutton.border', {'sticky': 'nswe', 'children': [
             ('Menubutton.focus', {'sticky': 'nswe', 'children': [
@@ -5277,22 +5285,49 @@ class Commander(tk.Tk):
         self.zoom_percent_var = tk.StringVar()
         self.zoom_minus = ttk.Button(self.zoom_frame, text="−", width=1, style="Zoom.TButton",
                                      command=lambda: self.adjust_zoom(-1))
-        self.zoom_minus.pack(side="left")
+        self.zoom_minus.grid(row=2, column=0, sticky='ew')
         self.zoom_combo = ttk.Menubutton(self.zoom_frame, width=4,
                                       textvariable=self.zoom_percent_var, style="Zoom.TMenubutton")
-        self.zoom_combo.pack(side="left", padx=1)
+        self.zoom_combo.grid(row=1, column=0, sticky='ew')
         self.zoom_menu = tk.Menu(self.zoom_combo, tearoff=False, font="TkMenuFont")
         self.zoom_combo.configure(menu=self.zoom_menu)
         self._rebuild_zoom_menu()
         self.zoom_plus = ttk.Button(self.zoom_frame, text="+", width=1, style="Zoom.TButton",
                                     command=lambda: self.adjust_zoom(1))
-        self.zoom_plus.pack(side="left")
+        self.zoom_plus.grid(row=0, column=0, sticky='ew')
         for widget in (self.zoom_frame,self.zoom_minus,self.zoom_combo,self.zoom_plus):
+            widget.bind('<Enter>', lambda e: self._zoom_reveal(True), add='+')
+            widget.bind('<Motion>', lambda e: self._zoom_reveal(True), add='+')
+            widget.bind('<Leave>', lambda e: self.after_idle(self._zoom_leave), add='+')
+            widget.bind('<FocusIn>', lambda e: self._zoom_reveal(True), add='+')
+            widget.bind('<FocusOut>', lambda e: self.after_idle(self._zoom_leave), add='+')
             widget.bind('<Button-3>',lambda e:self._show_zoom_context(e))
             widget.bind('<Shift-F10>',lambda e:self._show_zoom_context(e))
             widget.bind('<KeyPress-Menu>',lambda e:self._show_zoom_context(e))
         ToolTip(self.zoom_combo, lambda: tr("Auto Font Size") + (" ✓" if self.auto_font_size_var.get() else " —"), delay=700)
+        ToolTip(self.zoom_plus, lambda: tr('Increase font size (manual)'))
+        ToolTip(self.zoom_minus, lambda: tr('Decrease font size (manual)'))
+        self._zoom_reveal(False)
         self._sync_zoom_controls()
+
+    def _zoom_reveal(self, active):
+        palette = getattr(self, 'palette', {})
+        fg, bg = palette.get('text', '#202020'), palette.get('window', '#eeeeee')
+        state = (active, fg, bg)
+        if getattr(self, '_zoom_hover_state', None) == state: return
+        self._zoom_hover_state = state
+        if not active:
+            a, b = self.winfo_rgb(fg), self.winfo_rgb(bg)
+            fg = '#'+''.join(f'{round((x*.35+y*.65)/257):02x}' for x, y in zip(a, b))
+        ttk.Style(self).configure('Zoom.TButton', foreground=fg,
+                                  relief='raised' if active else 'flat')
+
+    def _zoom_leave(self):
+        if not self.zoom_frame.winfo_exists(): return
+        target = self.winfo_containing(*self.winfo_pointerxy())
+        focus = self.focus_get()
+        prefix = str(self.zoom_frame)
+        self._zoom_reveal(any(w is not None and str(w).startswith(prefix) for w in (target, focus)))
 
     def _show_zoom_context(self,event):
         self.header_popup.show_at(event.widget.winfo_rootx(),event.widget.winfo_rooty(),self.font_size_menu)
@@ -5353,6 +5388,10 @@ class Commander(tk.Tk):
     def _schedule_auto_font_size(self, _event=None, delay: int = 180) -> None:
         if not getattr(self, "_ready", False) or not self.auto_font_size_var.get():
             return
+        if getattr(self, '_auto_font_busy', False):
+            return
+        if _event is not None and _event.widget is not self:
+            return  # Popup geometry must not resize the main interface.
         if self._auto_font_job is not None:
             try:
                 self.after_cancel(self._auto_font_job)
@@ -5360,20 +5399,100 @@ class Commander(tk.Tk):
                 pass
         self._auto_font_job = self.after(delay, self._apply_automatic_font_size)
 
-    def _apply_automatic_font_size(self) -> None:
+    def _apply_automatic_font_size(self, allow_settings=False) -> None:
         self._auto_font_job = None
         if not self.auto_font_size_var.get() or not self.winfo_exists():
             return
-        size = (self.winfo_width(), self.winfo_height(), self.panel_count_var.get(),
-                self.winfo_screenwidth())
-        if size == self._last_auto_window_size:
+        if not allow_settings and (self._settings_are_open() or self.grab_current()):
+            return  # Keep modal/draft controls stable while they are in use.
+        samples = self._auto_font_samples()
+        signature = self._auto_font_key(samples)
+        if not samples or signature == self._last_auto_window_size:
             return
-        self._last_auto_window_size = size
-        selected = automatic_font_size(*size)
+        self._last_auto_window_size = signature
+        current = self._font_scales.get(self.font_size_var.get(), 1.0)
+        default = tkfont.nametofont('TkDefaultFont')
+        font = tkfont.Font(self, **font_snapshot(default))
+        base = self._base_font_sizes['TkDefaultFont']
+        def fits(scale):
+            font.configure(size=-max(1, round(abs(base)*scale*(1 if base < 0 else self._base_tk_scaling))))
+            icon = max(16, round(scaled_tree_row_height(font.metrics('linespace'), scale)*.9))
+            for pane, rows in samples:
+                tree = pane.tree
+                fixed = sum(int(tree.column(c, 'width')) for c in tree.cget('displaycolumns'))
+                # Detail fields and native indent scale too; reserve a small
+                # rounding margin, then verify against actual post-layout bounds.
+                available = tree.winfo_width()-4-fixed*scale/current
+                if available < 120:
+                    return False
+                for iid, text, inset in rows:
+                    gap = max(0, inset-pane.icons.size)*scale/current+icon
+                    if font.measure(text)+gap+8 > available:
+                        return False
+            return True
+        selected = automatic_font_size(fits)
         if selected != self.font_size_var.get():
+            self._auto_font_busy = True
             self.font_size_var.set(selected)
-            self.apply_font_size(save=False)
+            try:
+                self.apply_font_size(save=False)
+            finally:
+                self._auto_font_verify_job = self.after(220, lambda: self._verify_auto_font(samples, 0))
+
+    def _auto_font_samples(self):
+        """No disk I/O: up to 30 displayed-order rows from the viewport top."""
+        samples = []
+        panes = self.visible_panes()[:2] if self.panel_count_var.get() != 1 else [self.active]
+        for pane in panes:
+            if pane is None or not pane.tree.winfo_ismapped(): continue
+            tree = pane.tree
+            iid = next((tree.identify_row(y) for y in range(1, tree.winfo_height())
+                        if tree.identify_row(y)), '')
+            rows = []
+            while iid and len(rows) < 30:
+                text = str(tree.item(iid, 'text'))
+                bounds, box = pane.name_marquee.text_bounds(iid), tree.bbox(iid, '#0')
+                depth, parent = 0, tree.parent(iid)
+                while parent:
+                    depth += 1; parent = tree.parent(parent)
+                inset = bounds[0]-box[0] if bounds and box else pane.icons.size+20*(depth+1)
+                if text and text != '[..]': rows.append((iid, text, inset))
+                children = tree.get_children(iid) if tree.item(iid, 'open') else ()
+                if children: iid = children[0]
+                else:
+                    while iid and not tree.next(iid): iid = tree.parent(iid)
+                    iid = tree.next(iid) if iid else ''
+            if rows: samples.append((pane, rows))
+        return samples
+
+    def _auto_font_key(self, samples):
+        return (self.winfo_width(), self.winfo_height(), self.winfo_screenwidth(),
+                self.winfo_screenheight(), self.panel_count_var.get(),
+                tuple((str(p.tree), p.tree.winfo_width(), p.tree.cget('displaycolumns'),
+                       tuple(p.tree.column(c, 'width') for c in p.tree.cget('displaycolumns')),
+                       tuple((i, t) for i, t, _ in rows)) for p, rows in samples))
+
+    def _verify_auto_font(self, samples, attempts):
+        """Bounded downward correction only; never chase our own Configure events."""
+        self._auto_font_verify_job = None
+        if not self.winfo_exists(): return
+        retry = False
+        try:
+            if not self.auto_font_size_var.get(): return
+            clipped = any(p.name_marquee.clipped(i)
+                          for p, rows in self._auto_font_samples() for i, _, _ in rows)
+            keys = list(self._font_scales)
+            index = keys.index(self.font_size_var.get())
+            if clipped and index > 0 and attempts < len(keys):
+                self.font_size_var.set(keys[index-1]); self.apply_font_size(save=False)
+                self._auto_font_verify_job = self.after(220, lambda: self._verify_auto_font(samples, attempts+1))
+                retry = True
+                return
+            self._last_auto_window_size = self._auto_font_key(self._auto_font_samples())
             self.save_config()
+        finally:
+            if not retry:
+                self._auto_font_busy = False
 
     def apply_font_size(self, save: bool = True) -> None:
         scale = self._font_scales.get(self.font_size_var.get(), 1.0)
@@ -5459,6 +5578,7 @@ class Commander(tk.Tk):
         self.configure(background=palette["window"])
         configure_ttk_theme(self, palette)
         if hasattr(self, "zoom_menu"):
+            self._zoom_reveal(False)
             self.zoom_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                                      activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
         style = ttk.Style(self)

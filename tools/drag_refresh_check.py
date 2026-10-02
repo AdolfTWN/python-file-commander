@@ -47,7 +47,7 @@ def main():
             pane.select_path(item)
             iid = pane.tree.selection()[0]
             box = pane.tree.bbox(iid)
-            press = SimpleNamespace(x=box[0]+25, y=box[1]+5,
+            press = SimpleNamespace(time=1000, x=box[0]+25, y=box[1]+5,
                                     x_root=pane.tree.winfo_rootx()+box[0]+25,
                                     y_root=pane.tree.winfo_rooty()+box[1]+5, state=256)
             pane._drag_press(press)

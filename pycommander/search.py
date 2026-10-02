@@ -12,9 +12,10 @@ import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import messagebox, ttk
 
-from .tooltip import install_button_tooltips
+from .tooltip import install_button_tooltips, ToolTip
 from .i18n import retranslate_widgets, tr
 from .tabs import color_scheme
+from .settings import readable_check_style
 
 
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
@@ -116,46 +117,62 @@ class SearchWindow(tk.Toplevel):
         self.bind("<F9>", lambda _e: self.compare_selected())
 
         form = ttk.Frame(self, padding=7); form.pack(fill="x")
+        self.form = form
+        self.query_rows = []
         self.mask_entry = None
         for row, (label, variable) in enumerate((("Start in:", self.path_var), ("Name/mask:", self.mask_var),
                                                  ("Containing text:", self.content_var))):
             ttk.Label(form, text=tr(label)).grid(row=row, column=0, sticky="w", padx=(0, 5), pady=2)
-            entry = ttk.Entry(form, textvariable=variable); entry.grid(row=row, column=1, columnspan=7, sticky="ew", pady=2)
+            group = ttk.Frame(form); group.grid(row=row, column=1, sticky='ew', pady=2)
+            related = ttk.Frame(group); related.pack(side='right', padx=(5, 0))
+            entry = ttk.Entry(group, textvariable=variable, width=10)
+            entry.pack(side='left', fill='x', expand=True)
+            self.query_rows.append((entry, related))
             entry.bind("<Return>", lambda _event: self.start())
             if row == 1: self.mask_entry = entry
-        options = ttk.Frame(form); options.grid(row=3, column=0, columnspan=8, sticky="ew", pady=(5, 2))
+        options = self.query_rows[0][1]
         ttk.Label(options, text=tr("Depth:")).pack(side="left")
-        self.depth_combo = ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=8,
+        self.depth_combo = ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=6,
                                         values=tuple(self.depth_values))
-        self.depth_combo.pack(side="left", padx=(3, 10))
+        self.depth_combo.pack(side="left", padx=(3, 0))
+        options = self.query_rows[1][1]
         ttk.Checkbutton(options, text=tr("Files"), variable=self.files_var).pack(side="left")
-        ttk.Checkbutton(options, text=tr("Folders"), variable=self.folders_var).pack(side="left", padx=(3, 10))
-        ttk.Checkbutton(options, text=tr("Case sensitive"), variable=self.case_var).pack(side="left")
-        advanced = ttk.Frame(form); advanced.grid(row=4, column=0, columnspan=8, sticky="ew", pady=2)
-        ttk.Label(advanced, text=tr("Size KB min:")).pack(side="left")
-        ttk.Entry(advanced, textvariable=self.min_size_var, width=9).pack(side="left", padx=(3, 8))
-        ttk.Label(advanced, text=tr("max:")).pack(side="left")
-        ttk.Entry(advanced, textvariable=self.max_size_var, width=9).pack(side="left", padx=(3, 12))
-        ttk.Label(advanced, text=tr("Modified within days:")).pack(side="left")
-        ttk.Entry(advanced, textvariable=self.days_var, width=7).pack(side="left", padx=3)
-        self.criteria_label = ttk.Label(form, anchor="w")
-        self.criteria_label.grid(row=5, column=0, columnspan=8, sticky="ew", pady=(4, 0))
-        actions = ttk.Frame(form); actions.grid(row=6, column=0, columnspan=8, sticky="ew", pady=(5, 0))
-        self.find_button = ttk.Button(actions, text=tr("Find"), command=self.start); self.find_button.pack(side="left")
-        self.cancel_button = ttk.Button(actions, text=tr("Cancel"), command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
-        ttk.Button(actions, text=tr("Clear Filters"), command=self.clear_filters).pack(side="left", padx=(3, 9))
-        ttk.Button(actions, text=tr("Go to File"), command=self.go_selected).pack(side="left", padx=(12, 3))
-        ttk.Button(actions, text=tr("Preview"), command=self.preview_selected).pack(side="left")
-        ttk.Button(actions, text=tr("Compare"), command=self.compare_selected).pack(side="left", padx=3)
-        ttk.Button(actions, text=tr("Send Listing to New Tab"),
-                   command=self.send_listing).pack(side="left", padx=(0, 3))
-        ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
-        self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
-        self.progress = ttk.Progressbar(form, mode="determinate", value=0)
-        self.progress.grid(row=7, column=0, columnspan=8, sticky="ew", pady=(5, 0))
-        self.progress_eta = ttk.Label(form, text=tr("Estimated time remaining: calculating…"), anchor="w")
-        self.progress_eta.grid(row=8, column=0, columnspan=8, sticky="ew", pady=(3, 0))
+        ttk.Checkbutton(options, text=tr("Folders"), variable=self.folders_var).pack(side="left", padx=(3, 0))
+        self.case_check = ttk.Checkbutton(self.query_rows[2][1], text=tr("Case sensitive"), variable=self.case_var)
+        self.case_check.pack(side="left")
+        ToolTip(self.case_check, lambda: tr('Case sensitive for both name and content'))
+        advanced = self.advanced = ttk.Frame(form)
+        for row, (label, variable) in enumerate((('Size KB min:', self.min_size_var),
+                ('max:', self.max_size_var), ('Modified within days:', self.days_var))):
+            ttk.Label(advanced, text=tr(label)).grid(row=row, column=0, sticky='w')
+            ttk.Entry(advanced, textvariable=variable, width=9).grid(row=row, column=1, sticky='ew', padx=5)
+        advanced.columnconfigure(1, weight=1)
+        actions = ttk.Frame(form); actions.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(3, 0))
+        self.find_button = ttk.Button(actions, text=tr("Find"), width=0, command=self.start); self.find_button.pack(side="left")
+        self.cancel_button = ttk.Button(actions, text=tr("Cancel"), width=0, command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
+        self.filters_button = ttk.Button(actions, text=tr('Filters')+' ▸', width=0, command=self.toggle_filters)
+        self.filters_button.pack(side='left', padx=3)
+        ttk.Button(actions, text=tr("Clear Filters"), width=0, command=self.clear_filters).pack(side="left", padx=3)
+        self.results_button = ttk.Menubutton(actions, text=tr('Results'), width=0)
+        self.results_menu = tk.Menu(self.results_button, tearoff=False, font='TkMenuFont')
+        for label, command in (('Go to File', self.go_selected), ('Preview', self.preview_selected),
+                ('Compare', self.compare_selected), ('Send Listing to New Tab', self.send_listing),
+                ('Copy Path', self.copy_paths)):
+            self.results_menu.add_command(label=tr(label), command=command)
+        self.results_button.configure(menu=self.results_menu); self.results_button.pack(side='right')
+        ToolTip(self.results_button, lambda: tr('Selected results: Enter opens, F3 previews, F9 compares'))
         form.columnconfigure(1, weight=1)
+
+        footer = ttk.Frame(self, padding=(7, 2)); footer.pack(side='bottom', fill='x')
+        self.status = ttk.Label(footer, anchor='e'); self.status.pack(side='right')
+        self.criteria_label = ttk.Label(footer, anchor='w', width=1)
+        self.criteria_label.pack(side='left', fill='x', expand=True)
+        ToolTip(self.criteria_label, lambda: self.criteria_label.cget('text'))
+        progress_row = ttk.Frame(self); progress_row.pack(side='bottom', fill='x', padx=7)
+        self.progress_eta = ttk.Label(progress_row, anchor='w', width=1)
+        self.progress_eta.pack(side='right', fill='x', expand=True, padx=4)
+        self.progress = ttk.Progressbar(progress_row, mode='determinate', value=0, length=100)
+        self.progress.pack(side='left')
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
         columns = ("folder", "size", "modified", "ext")
@@ -177,6 +194,13 @@ class SearchWindow(tk.Toplevel):
         self._update_criteria_summary()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def toggle_filters(self):
+        if self.advanced.winfo_manager():
+            self.advanced.grid_remove()
+        else:
+            self.advanced.grid(row=3, column=0, columnspan=2, sticky='ew', pady=3)
+        self._update_criteria_summary()
 
     def _reset_column_measurements(self) -> None:
         font = tkfont.nametofont("TkDefaultFont")
@@ -220,8 +244,19 @@ class SearchWindow(tk.Toplevel):
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
         self.configure(background=palette["window"])
+        self._style_checks()
+
+    def _style_checks(self):
+        bg = self.winfo_rgb(self.palette.get('window', '#eeeeee'))
+        style = readable_check_style(self, tkfont.nametofont('TkDefaultFont'),
+                                      sum(bg)/3 < 32768, prefix='SearchCheck')
+        pending = [self.form]
+        while pending:
+            widget = pending.pop(); pending.extend(widget.winfo_children())
+            if isinstance(widget, ttk.Checkbutton): widget.configure(style=style)
 
     def apply_scale(self, scale: float) -> None:
+        self._style_checks()
         style = ttk.Style(self)
         default_font = tkfont.nametofont("TkDefaultFont")
         style.configure("PFCSearch.Treeview", font=default_font,
@@ -301,6 +336,9 @@ class SearchWindow(tk.Toplevel):
         if self.case_var.get():
             parts.append(tr("Case sensitive"))
         self.criteria_label.configure(text=f"{tr('Filters:')} " + " · ".join(parts))
+        active = sum(bool(v.get().strip()) for v in (self.min_size_var, self.max_size_var, self.days_var))
+        suffix = f' ({active})' if active else ''
+        self.filters_button.configure(text=tr('Filters')+suffix+(' ▾' if self.advanced.winfo_manager() else ' ▸'))
 
     def clear_filters(self) -> None:
         self.mask_var.set("*")

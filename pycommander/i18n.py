@@ -11,6 +11,16 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Added: Auto Font Size fits sampled Panel 1–2 filenames at 100–300%, with compact hover-revealed zoom controls.': ('新增：自動字型依面板 1–2 抽樣檔名在 100–300% 間調整，搭配精簡的滑鼠靠近浮現縮放控制。', '新增：自动字体依面板 1–2 抽样文件名在 100–300% 间调整，搭配精简的鼠标靠近浮现缩放控件。', '추가: 패널 1–2의 파일명 표본에 맞춰 자동 글자 크기를 100–300%로 조절하고 마우스 접근 시 확대/축소 컨트롤을 표시합니다.'),
+    'Improved: Grouped popup search, comparison, rename and folder controls preserve more content space.': ('改善：彈出視窗的搜尋、比較、重新命名與資料夾控制依功能集中排列，保留更多內容空間。', '改善：弹出窗口的搜索、比较、重命名与文件夹控件按功能集中排列，保留更多内容空间。', '개선: 팝업의 검색, 비교, 이름 변경 및 폴더 컨트롤을 기능별로 묶어 콘텐츠 공간을 확보했습니다.'),
+    'Increase font size (manual)': ('放大字型（手動）', '放大字体（手动）', '글자 확대 (수동)'),
+    'Decrease font size (manual)': ('縮小字型（手動）', '缩小字体（手动）', '글자 축소 (수동)'),
+    'Filters': ('篩選', '筛选', '필터'),
+    'Results': ('結果操作', '结果操作', '결과 작업'),
+    'Case sensitive for both name and content': ('檔名與內容搜尋皆區分大小寫', '文件名与内容搜索均区分大小写', '이름과 내용 모두 대소문자 구분'),
+    'Selected results: Enter opens, F3 previews, F9 compares': ('選取結果：Enter 開啟、F3 預覽、F9 比較', '选取结果：Enter 打开、F3 预览、F9 比较', '선택 결과: Enter 열기, F3 미리보기, F9 비교'),
+    'Auto font · {percent}% reference; fits Panel 1–2 filenames': ('自動字型 · {percent}% 示意；依面板 1–2 檔名調整', '自动字体 · {percent}% 示意；依面板 1–2 文件名调整', '자동 글자 · {percent}% 예시; 패널 1–2 파일명에 맞춤'),
+    'Fits up to 30 filenames from the current scroll position in Panels 1–2. One Panel uses its visible file list. Range: 100–300%; Panels 3–4 are ignored.': ('依面板 1–2 目前捲動位置起算最多 30 筆檔名調整。單面板採目前檔案清單，範圍 100–300%；不考慮面板 3–4。', '依面板 1–2 当前滚动位置起算最多 30 个文件名调整。单面板采用当前文件列表，范围 100–300%；不考虑面板 3–4。', '패널 1–2의 현재 스크롤 위치부터 최대 30개 파일명에 맞춥니다. 단일 패널은 현재 파일 목록을 사용합니다. 범위 100–300%, 패널 3–4 제외.'),
     "Fixed: Double-click opens scrolling filenames across the text-overlay boundary.": ("修正：跨越捲動文字覆蓋層時仍可雙擊開啟檔案。", "修正：跨越滚动文字覆盖层时仍可双击打开文件。", "수정: 스크롤 파일명과 기본 행 사이에서도 두 번 클릭하여 파일을 열 수 있습니다."),
     "Fixed: Visible folders retain polling protection against lost change notifications and refresh errors.": ("修正：可見資料夾定期檢查變更，補足遺漏通知；更新錯誤不再停止後續檢查。", "修正：可见文件夹定期检查变更，补足遗漏通知；更新错误不再停止后续检查。", "수정: 표시된 폴더를 주기적으로 확인하여 누락된 변경 알림과 새로 고침 오류에 대비합니다."),
     "Improved: Scaled Settings scroll as one page with responsive comparisons; Preview has readable checkmarks, a Render toggle and one-row search controls.": ("改善：放大字體設定頁採完整捲動與自適應比較；預覽使用清楚的勾選框、渲染切換與單列搜尋控制。", "改善：放大字体设置页采用完整滚动与自适应比较；预览使用清楚的复选框、渲染切换与单行搜索控件。", "개선: 확대된 설정은 반응형 비교와 함께 한 페이지로 스크롤됩니다. 미리보기에는 읽기 쉬운 체크 표시, 렌더링 전환 및 한 줄 검색 컨트롤이 있습니다."),

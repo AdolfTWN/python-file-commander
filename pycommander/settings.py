@@ -353,6 +353,7 @@ class SettingsDialog(tk.Toplevel):
             if key=='auto_start' and os.name!='nt':
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
+                'auto_font_size':'Fits up to 30 filenames from the current scroll position in Panels 1–2. One Panel uses its visible file list. Range: 100–300%; Panels 3–4 are ignored.',
                 'font_size':'Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
@@ -559,7 +560,7 @@ class SettingsDialog(tk.Toplevel):
         if self.category=='appearance' and hasattr(self,'font_example') and self.font_example.winfo_exists():
             scale=self.app._font_scales[self.vars['font_size'].get()]
             self.sample_font.configure(family=self.font.actual('family'),size=-round(self._sample_pixels()*scale))
-            title='File text after Apply · {percent}%' if not self.vars['auto_font_size'].get() else 'Auto font · {percent}% reference; follows window width'
+            title='File text after Apply · {percent}%' if not self.vars['auto_font_size'].get() else 'Auto font · {percent}% reference; fits Panel 1–2 filenames'
             self.sample_title.configure(text=tr(title,percent=round(scale*100)))
             p=color_scheme(self.vars['color_scheme'].get())
             self.font_example.configure(bg=p['surface'],fg=p['text'])
@@ -613,7 +614,7 @@ class SettingsDialog(tk.Toplevel):
                 if self.app._auto_font_job is not None:
                     self.app.after_cancel(self.app._auto_font_job)
                     self.app._auto_font_job=None
-                self.app._apply_automatic_font_size()
+                self.app._apply_automatic_font_size(allow_settings=True)
             if prefixes!=self.prefix_original:self.app.set_home_prefixes(prefixes)
             self.app.save_config()
         except Exception as exc:
@@ -632,6 +633,7 @@ class SettingsDialog(tk.Toplevel):
         if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
         if self._page_top_job is not None:self.after_cancel(self._page_top_job);self._page_top_job=None
         self.grab_release();self.destroy()
+        self.app._schedule_auto_font_size()
 
     def _key_event(self,event):
         if event.keysym in ('Tab','ISO_Left_Tab'):

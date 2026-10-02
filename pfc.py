@@ -17,6 +17,16 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Added: Auto Font Size fits sampled Panel 1–2 filenames at 100–300%, with compact hover-revealed zoom controls.': ('新增：自動字型依面板 1–2 抽樣檔名在 100–300% 間調整，搭配精簡的滑鼠靠近浮現縮放控制。', '新增：自动字体依面板 1–2 抽样文件名在 100–300% 间调整，搭配精简的鼠标靠近浮现缩放控件。', '추가: 패널 1–2의 파일명 표본에 맞춰 자동 글자 크기를 100–300%로 조절하고 마우스 접근 시 확대/축소 컨트롤을 표시합니다.'),
+    'Improved: Grouped popup search, comparison, rename and folder controls preserve more content space.': ('改善：彈出視窗的搜尋、比較、重新命名與資料夾控制依功能集中排列，保留更多內容空間。', '改善：弹出窗口的搜索、比较、重命名与文件夹控件按功能集中排列，保留更多内容空间。', '개선: 팝업의 검색, 비교, 이름 변경 및 폴더 컨트롤을 기능별로 묶어 콘텐츠 공간을 확보했습니다.'),
+    'Increase font size (manual)': ('放大字型（手動）', '放大字体（手动）', '글자 확대 (수동)'),
+    'Decrease font size (manual)': ('縮小字型（手動）', '缩小字体（手动）', '글자 축소 (수동)'),
+    'Filters': ('篩選', '筛选', '필터'),
+    'Results': ('結果操作', '结果操作', '결과 작업'),
+    'Case sensitive for both name and content': ('檔名與內容搜尋皆區分大小寫', '文件名与内容搜索均区分大小写', '이름과 내용 모두 대소문자 구분'),
+    'Selected results: Enter opens, F3 previews, F9 compares': ('選取結果：Enter 開啟、F3 預覽、F9 比較', '选取结果：Enter 打开、F3 预览、F9 比较', '선택 결과: Enter 열기, F3 미리보기, F9 비교'),
+    'Auto font · {percent}% reference; fits Panel 1–2 filenames': ('自動字型 · {percent}% 示意；依面板 1–2 檔名調整', '自动字体 · {percent}% 示意；依面板 1–2 文件名调整', '자동 글자 · {percent}% 예시; 패널 1–2 파일명에 맞춤'),
+    'Fits up to 30 filenames from the current scroll position in Panels 1–2. One Panel uses its visible file list. Range: 100–300%; Panels 3–4 are ignored.': ('依面板 1–2 目前捲動位置起算最多 30 筆檔名調整。單面板採目前檔案清單，範圍 100–300%；不考慮面板 3–4。', '依面板 1–2 当前滚动位置起算最多 30 个文件名调整。单面板采用当前文件列表，范围 100–300%；不考虑面板 3–4。', '패널 1–2의 현재 스크롤 위치부터 최대 30개 파일명에 맞춥니다. 단일 패널은 현재 파일 목록을 사용합니다. 범위 100–300%, 패널 3–4 제외.'),
     "Fixed: Double-click opens scrolling filenames across the text-overlay boundary.": ("修正：跨越捲動文字覆蓋層時仍可雙擊開啟檔案。", "修正：跨越滚动文字覆盖层时仍可双击打开文件。", "수정: 스크롤 파일명과 기본 행 사이에서도 두 번 클릭하여 파일을 열 수 있습니다."),
     "Fixed: Visible folders retain polling protection against lost change notifications and refresh errors.": ("修正：可見資料夾定期檢查變更，補足遺漏通知；更新錯誤不再停止後續檢查。", "修正：可见文件夹定期检查变更，补足遗漏通知；更新错误不再停止后续检查。", "수정: 표시된 폴더를 주기적으로 확인하여 누락된 변경 알림과 새로 고침 오류에 대비합니다."),
     "Improved: Scaled Settings scroll as one page with responsive comparisons; Preview has readable checkmarks, a Render toggle and one-row search controls.": ("改善：放大字體設定頁採完整捲動與自適應比較；預覽使用清楚的勾選框、渲染切換與單列搜尋控制。", "改善：放大字体设置页采用完整滚动与自适应比较；预览使用清楚的复选框、渲染切换与单行搜索控件。", "개선: 확대된 설정은 반응형 비교와 함께 한 페이지로 스크롤됩니다. 미리보기에는 읽기 쉬운 체크 표시, 렌더링 전환 및 한 줄 검색 컨트롤이 있습니다."),
@@ -7666,6 +7676,7 @@ class SettingsDialog(tk.Toplevel):
             if key=='auto_start' and os.name!='nt':
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
+                'auto_font_size':'Fits up to 30 filenames from the current scroll position in Panels 1–2. One Panel uses its visible file list. Range: 100–300%; Panels 3–4 are ignored.',
                 'font_size':'Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
@@ -7872,7 +7883,7 @@ class SettingsDialog(tk.Toplevel):
         if self.category=='appearance' and hasattr(self,'font_example') and self.font_example.winfo_exists():
             scale=self.app._font_scales[self.vars['font_size'].get()]
             self.sample_font.configure(family=self.font.actual('family'),size=-round(self._sample_pixels()*scale))
-            title='File text after Apply · {percent}%' if not self.vars['auto_font_size'].get() else 'Auto font · {percent}% reference; follows window width'
+            title='File text after Apply · {percent}%' if not self.vars['auto_font_size'].get() else 'Auto font · {percent}% reference; fits Panel 1–2 filenames'
             self.sample_title.configure(text=tr(title,percent=round(scale*100)))
             p=color_scheme(self.vars['color_scheme'].get())
             self.font_example.configure(bg=p['surface'],fg=p['text'])
@@ -7926,7 +7937,7 @@ class SettingsDialog(tk.Toplevel):
                 if self.app._auto_font_job is not None:
                     self.app.after_cancel(self.app._auto_font_job)
                     self.app._auto_font_job=None
-                self.app._apply_automatic_font_size()
+                self.app._apply_automatic_font_size(allow_settings=True)
             if prefixes!=self.prefix_original:self.app.set_home_prefixes(prefixes)
             self.app.save_config()
         except Exception as exc:
@@ -7945,6 +7956,7 @@ class SettingsDialog(tk.Toplevel):
         if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
         if self._page_top_job is not None:self.after_cancel(self._page_top_job);self._page_top_job=None
         self.grab_release();self.destroy()
+        self.app._schedule_auto_font_size()
 
     def _key_event(self,event):
         if event.keysym in ('Tab','ISO_Left_Tab'):
@@ -9041,17 +9053,19 @@ class SideBySideText(ttk.Frame):
         diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
         self.diff_row = diff_row
         self.status_factory = status_factory or (lambda: status_text)
-        self.previous_button = ttk.Button(diff_row, text=f"F7 {tr('Diff <<')}", command=self.previous)
+        self.previous_button = ttk.Button(diff_row, text='F7 ◀', width=0, command=self.previous)
         self.previous_button.pack(side="left")
-        self.next_button = ttk.Button(diff_row, text=f"F8 {tr('Diff >>')}", command=self.next)
+        self.next_button = ttk.Button(diff_row, text='F8 ▶', width=0, command=self.next)
         self.next_button.pack(side="left", padx=3)
+        ToolTip(self.previous_button, lambda: tr('Diff <<'))
+        ToolTip(self.next_button, lambda: tr('Diff >>'))
         self.view_button = ttk.Menubutton(diff_row)
         self.view_menu = tk.Menu(self.view_button, tearoff=False)
         self.view_button.configure(menu=self.view_menu)
         self.view_button.pack(side="left", padx=(8, 0))
         self._build_view_menu()
-        self.diff_status = ttk.Label(diff_row, text=self.status_factory())
-        self.diff_status.pack(side="left", padx=10)
+        self.diff_status = ttk.Label(diff_row, text=self.status_factory(), width=1)
+        ToolTip(self.diff_status, lambda: self.diff_status.cget('text'))
         self.marker_button = ttk.Menubutton(diff_row)
         self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
         self.marker_button.configure(menu=self.marker_menu)
@@ -9064,18 +9078,23 @@ class SideBySideText(ttk.Frame):
                 diff_row, text=tr("Save Left"), command=lambda: self._save(self.left, self.save_left))
             self.save_left_button.pack(side="right")
         self._build_marker_menu(); self._update_marker_button()
+        self.diff_status.pack(side="left", fill='x', expand=True, padx=6)
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
-        self.search = ttk.Entry(find_row, textvariable=self.search_var)
-        self.search.pack(side="left", fill="x", expand=True, padx=(3, 4))
+        self.search = ttk.Entry(find_row, textvariable=self.search_var, width=10)
         self.search.bind("<Return>", lambda _event: self.find_next())
         self.search.bind("<Shift-Return>", lambda _event: self.find_previous())
-        ttk.Button(find_row, text=tr("Find Prev"), command=self.find_previous).pack(side="left")
-        ttk.Button(find_row, text=tr("Find Next"), command=self.find_next).pack(side="left", padx=(3, 0))
-        self.case_button = ttk.Button(find_row, command=self._toggle_case)
-        self.case_button.pack(side="left", padx=(8, 0))
-        self.find_status = ttk.Label(find_row, width=12, anchor="e")
-        self.find_status.pack(side="right", padx=(8, 3))
+        actions = ttk.Frame(find_row); actions.pack(side='right')
+        for glyph, label, callback in (('◀', 'Find Prev', self.find_previous), ('▶', 'Find Next', self.find_next)):
+            button = ttk.Button(actions, text=glyph, width=2, command=callback)
+            button.pack(side='left', padx=2); ToolTip(button, lambda s=label: tr(s))
+        self.case_button = ttk.Button(actions, width=3, command=self._toggle_case)
+        self.case_button.pack(side="left", padx=(4, 0))
+        ToolTip(self.case_button, lambda: tr('Case sensitive'))
+        self.find_status = ttk.Label(actions, width=7, anchor="e")
+        self.find_status.pack(side="right", padx=(4, 3))
+        ToolTip(self.find_status, lambda: self.find_status.cget('text'))
+        self.search.pack(side="left", fill="x", expand=True, padx=(3, 4))
         self._update_case_button()
         body = ttk.Frame(self); self.body = body
         body.pack(fill="both", expand=True, pady=(3, 0))
@@ -9265,7 +9284,7 @@ class SideBySideText(ttk.Frame):
 
     def _update_case_button(self):
         self.case_button.configure(
-            text=f"{'✓' if self.case_var.get() else '–'} {tr('Case sensitive')}")
+            text=f"{'✓' if self.case_var.get() else ''}Aa")
 
     def apply_scale(self, scale: float) -> None:
         self.difference_map.apply_scale(scale)
@@ -9309,8 +9328,8 @@ class SideBySideText(ttk.Frame):
         retranslate_widgets(self, old_language)
         self.left_path_label.configure(text=f"{tr('Left')}: {self.left_title}")
         self.right_path_label.configure(text=f"{tr('Right')}: {self.right_title}")
-        self.previous_button.configure(text=f"F7 {tr('Diff <<')}")
-        self.next_button.configure(text=f"F8 {tr('Diff >>')}")
+        self.previous_button.configure(text='F7 ◀')
+        self.next_button.configure(text='F8 ▶')
         self.diff_status.configure(text=self.status_factory())
         self._build_view_menu(); self._build_marker_menu(); self._update_marker_button()
         self._update_case_button()
@@ -10279,9 +10298,9 @@ class FolderCompare(_FolderCompareLogic):
         self._build_marker_menu(); self._update_marker_button()
 
         navigation = ttk.Frame(self.summary, padding=(3, 1)); navigation.pack(fill="x")
-        self.previous_button = ttk.Button(navigation, text='F7 ◀', width=5, command=self.previous)
+        self.previous_button = ttk.Button(options, text='F7 ◀', width=5, command=self.previous)
         self.previous_button.pack(side="left", padx=(0, 3))
-        self.next_button = ttk.Button(navigation, text='F8 ▶', width=5, command=self.next)
+        self.next_button = ttk.Button(options, text='F8 ▶', width=5, command=self.next)
         self.next_button.pack(side="left", padx=(0, 3))
         ToolTip(self.previous_button, lambda: tr('Diff <<')+' · '+self.diff_status.cget('text'))
         ToolTip(self.next_button, lambda: tr('Diff >>')+' · '+self.diff_status.cget('text'))
@@ -11552,20 +11571,24 @@ class MarkdownWorkspaceDialog(tk.Toplevel):
         ttk.Label(outer, text=tr('Project folder')).grid(row=0,column=0,sticky='w',padx=(0,8))
         self.scope = ttk.Entry(outer,textvariable=self.root_var,state='readonly')
         self.scope.grid(row=0,column=1,sticky='ew')
-        self.browse = ttk.Button(outer,text=tr('Browse')+'…',command=self.choose_root)
-        self.browse.grid(row=0,column=2,padx=(6,0))
-        self.mode = ttk.Combobox(outer,textvariable=self.mode_var,values=list(self.modes),state='readonly',width=28)
-        self.mode.grid(row=1,column=0,columnspan=2,sticky='ew',pady=8)
+        scope_tools = ttk.Frame(outer); scope_tools.grid(row=0,column=2,padx=(6,0))
+        self.browse = ttk.Button(scope_tools,text='…',width=2,command=self.choose_root)
+        self.browse.pack(side='left')
+        ToolTip(self.browse, lambda: tr('Browse'))
+        query_row = ttk.Frame(outer); query_row.grid(row=1,column=0,columnspan=3,sticky='ew',pady=4)
+        self.mode = ttk.Combobox(query_row,textvariable=self.mode_var,values=list(self.modes),state='readonly',width=18)
+        self.mode.pack(side='left',padx=(0,4))
+        ToolTip(self.mode, lambda: self.mode_var.get())
         self.mode.bind('<<ComboboxSelected>>',lambda e:self.changed())
-        depth = ttk.Frame(outer); depth.grid(row=1,column=2,padx=(8,0))
+        depth = ttk.Frame(scope_tools); depth.pack(side='left',padx=(6,0))
         ttk.Label(depth,text=tr('Depth')).pack(side='left')
         self.depth = ttk.Combobox(depth,textvariable=self.depth_var,values=('1','3','5','8'),state='readonly',width=3)
         self.depth.pack(side='left',padx=4)
         self.depth.bind('<<ComboboxSelected>>',lambda e:self.changed())
-        self.query = ttk.Entry(outer,textvariable=self.query_var)
-        self.query.grid(row=2,column=0,columnspan=2,sticky='ew')
-        self.search = ttk.Button(outer,text=tr('Search'),command=self.start)
-        self.search.grid(row=2,column=2,sticky='ew',padx=(8,0))
+        self.search = ttk.Button(query_row,text=tr('Search'),width=0,command=self.start)
+        self.search.pack(side='right',padx=(4,0))
+        self.query = ttk.Entry(query_row,textvariable=self.query_var,width=8)
+        self.query.pack(side='left',fill='x',expand=True)
         self.note = ttk.Label(outer,text=tr('No automatic index. Up to 5,000 entries / 3 seconds / 50 results. Excluded and unavailable folders are skipped.'),wraplength=790)
         self.note.grid(row=3,column=0,columnspan=3,sticky='ew',pady=8)
         listing = ttk.Frame(outer); listing.grid(row=4,column=0,columnspan=3,sticky='nsew')
@@ -13437,46 +13460,62 @@ class SearchWindow(tk.Toplevel):
         self.bind("<F9>", lambda _e: self.compare_selected())
 
         form = ttk.Frame(self, padding=7); form.pack(fill="x")
+        self.form = form
+        self.query_rows = []
         self.mask_entry = None
         for row, (label, variable) in enumerate((("Start in:", self.path_var), ("Name/mask:", self.mask_var),
                                                  ("Containing text:", self.content_var))):
             ttk.Label(form, text=tr(label)).grid(row=row, column=0, sticky="w", padx=(0, 5), pady=2)
-            entry = ttk.Entry(form, textvariable=variable); entry.grid(row=row, column=1, columnspan=7, sticky="ew", pady=2)
+            group = ttk.Frame(form); group.grid(row=row, column=1, sticky='ew', pady=2)
+            related = ttk.Frame(group); related.pack(side='right', padx=(5, 0))
+            entry = ttk.Entry(group, textvariable=variable, width=10)
+            entry.pack(side='left', fill='x', expand=True)
+            self.query_rows.append((entry, related))
             entry.bind("<Return>", lambda _event: self.start())
             if row == 1: self.mask_entry = entry
-        options = ttk.Frame(form); options.grid(row=3, column=0, columnspan=8, sticky="ew", pady=(5, 2))
+        options = self.query_rows[0][1]
         ttk.Label(options, text=tr("Depth:")).pack(side="left")
-        self.depth_combo = ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=8,
+        self.depth_combo = ttk.Combobox(options, textvariable=self.depth_var, state="readonly", width=6,
                                         values=tuple(self.depth_values))
-        self.depth_combo.pack(side="left", padx=(3, 10))
+        self.depth_combo.pack(side="left", padx=(3, 0))
+        options = self.query_rows[1][1]
         ttk.Checkbutton(options, text=tr("Files"), variable=self.files_var).pack(side="left")
-        ttk.Checkbutton(options, text=tr("Folders"), variable=self.folders_var).pack(side="left", padx=(3, 10))
-        ttk.Checkbutton(options, text=tr("Case sensitive"), variable=self.case_var).pack(side="left")
-        advanced = ttk.Frame(form); advanced.grid(row=4, column=0, columnspan=8, sticky="ew", pady=2)
-        ttk.Label(advanced, text=tr("Size KB min:")).pack(side="left")
-        ttk.Entry(advanced, textvariable=self.min_size_var, width=9).pack(side="left", padx=(3, 8))
-        ttk.Label(advanced, text=tr("max:")).pack(side="left")
-        ttk.Entry(advanced, textvariable=self.max_size_var, width=9).pack(side="left", padx=(3, 12))
-        ttk.Label(advanced, text=tr("Modified within days:")).pack(side="left")
-        ttk.Entry(advanced, textvariable=self.days_var, width=7).pack(side="left", padx=3)
-        self.criteria_label = ttk.Label(form, anchor="w")
-        self.criteria_label.grid(row=5, column=0, columnspan=8, sticky="ew", pady=(4, 0))
-        actions = ttk.Frame(form); actions.grid(row=6, column=0, columnspan=8, sticky="ew", pady=(5, 0))
-        self.find_button = ttk.Button(actions, text=tr("Find"), command=self.start); self.find_button.pack(side="left")
-        self.cancel_button = ttk.Button(actions, text=tr("Cancel"), command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
-        ttk.Button(actions, text=tr("Clear Filters"), command=self.clear_filters).pack(side="left", padx=(3, 9))
-        ttk.Button(actions, text=tr("Go to File"), command=self.go_selected).pack(side="left", padx=(12, 3))
-        ttk.Button(actions, text=tr("Preview"), command=self.preview_selected).pack(side="left")
-        ttk.Button(actions, text=tr("Compare"), command=self.compare_selected).pack(side="left", padx=3)
-        ttk.Button(actions, text=tr("Send Listing to New Tab"),
-                   command=self.send_listing).pack(side="left", padx=(0, 3))
-        ttk.Button(actions, text=tr("Copy Path"), command=self.copy_paths).pack(side="left", padx=3)
-        self.status = ttk.Label(actions, anchor="e"); self.status.pack(side="right", fill="x", expand=True)
-        self.progress = ttk.Progressbar(form, mode="determinate", value=0)
-        self.progress.grid(row=7, column=0, columnspan=8, sticky="ew", pady=(5, 0))
-        self.progress_eta = ttk.Label(form, text=tr("Estimated time remaining: calculating…"), anchor="w")
-        self.progress_eta.grid(row=8, column=0, columnspan=8, sticky="ew", pady=(3, 0))
+        ttk.Checkbutton(options, text=tr("Folders"), variable=self.folders_var).pack(side="left", padx=(3, 0))
+        self.case_check = ttk.Checkbutton(self.query_rows[2][1], text=tr("Case sensitive"), variable=self.case_var)
+        self.case_check.pack(side="left")
+        ToolTip(self.case_check, lambda: tr('Case sensitive for both name and content'))
+        advanced = self.advanced = ttk.Frame(form)
+        for row, (label, variable) in enumerate((('Size KB min:', self.min_size_var),
+                ('max:', self.max_size_var), ('Modified within days:', self.days_var))):
+            ttk.Label(advanced, text=tr(label)).grid(row=row, column=0, sticky='w')
+            ttk.Entry(advanced, textvariable=variable, width=9).grid(row=row, column=1, sticky='ew', padx=5)
+        advanced.columnconfigure(1, weight=1)
+        actions = ttk.Frame(form); actions.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(3, 0))
+        self.find_button = ttk.Button(actions, text=tr("Find"), width=0, command=self.start); self.find_button.pack(side="left")
+        self.cancel_button = ttk.Button(actions, text=tr("Cancel"), width=0, command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
+        self.filters_button = ttk.Button(actions, text=tr('Filters')+' ▸', width=0, command=self.toggle_filters)
+        self.filters_button.pack(side='left', padx=3)
+        ttk.Button(actions, text=tr("Clear Filters"), width=0, command=self.clear_filters).pack(side="left", padx=3)
+        self.results_button = ttk.Menubutton(actions, text=tr('Results'), width=0)
+        self.results_menu = tk.Menu(self.results_button, tearoff=False, font='TkMenuFont')
+        for label, command in (('Go to File', self.go_selected), ('Preview', self.preview_selected),
+                ('Compare', self.compare_selected), ('Send Listing to New Tab', self.send_listing),
+                ('Copy Path', self.copy_paths)):
+            self.results_menu.add_command(label=tr(label), command=command)
+        self.results_button.configure(menu=self.results_menu); self.results_button.pack(side='right')
+        ToolTip(self.results_button, lambda: tr('Selected results: Enter opens, F3 previews, F9 compares'))
         form.columnconfigure(1, weight=1)
+
+        footer = ttk.Frame(self, padding=(7, 2)); footer.pack(side='bottom', fill='x')
+        self.status = ttk.Label(footer, anchor='e'); self.status.pack(side='right')
+        self.criteria_label = ttk.Label(footer, anchor='w', width=1)
+        self.criteria_label.pack(side='left', fill='x', expand=True)
+        ToolTip(self.criteria_label, lambda: self.criteria_label.cget('text'))
+        progress_row = ttk.Frame(self); progress_row.pack(side='bottom', fill='x', padx=7)
+        self.progress_eta = ttk.Label(progress_row, anchor='w', width=1)
+        self.progress_eta.pack(side='right', fill='x', expand=True, padx=4)
+        self.progress = ttk.Progressbar(progress_row, mode='determinate', value=0, length=100)
+        self.progress.pack(side='left')
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
         columns = ("folder", "size", "modified", "ext")
@@ -13498,6 +13537,13 @@ class SearchWindow(tk.Toplevel):
         self._update_criteria_summary()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
+
+    def toggle_filters(self):
+        if self.advanced.winfo_manager():
+            self.advanced.grid_remove()
+        else:
+            self.advanced.grid(row=3, column=0, columnspan=2, sticky='ew', pady=3)
+        self._update_criteria_summary()
 
     def _reset_column_measurements(self) -> None:
         font = tkfont.nametofont("TkDefaultFont")
@@ -13541,8 +13587,19 @@ class SearchWindow(tk.Toplevel):
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
         self.configure(background=palette["window"])
+        self._style_checks()
+
+    def _style_checks(self):
+        bg = self.winfo_rgb(self.palette.get('window', '#eeeeee'))
+        style = readable_check_style(self, tkfont.nametofont('TkDefaultFont'),
+                                      sum(bg)/3 < 32768, prefix='SearchCheck')
+        pending = [self.form]
+        while pending:
+            widget = pending.pop(); pending.extend(widget.winfo_children())
+            if isinstance(widget, ttk.Checkbutton): widget.configure(style=style)
 
     def apply_scale(self, scale: float) -> None:
+        self._style_checks()
         style = ttk.Style(self)
         default_font = tkfont.nametofont("TkDefaultFont")
         style.configure("PFCSearch.Treeview", font=default_font,
@@ -13622,6 +13679,9 @@ class SearchWindow(tk.Toplevel):
         if self.case_var.get():
             parts.append(tr("Case sensitive"))
         self.criteria_label.configure(text=f"{tr('Filters:')} " + " · ".join(parts))
+        active = sum(bool(v.get().strip()) for v in (self.min_size_var, self.max_size_var, self.days_var))
+        suffix = f' ({active})' if active else ''
+        self.filters_button.configure(text=tr('Filters')+suffix+(' ▾' if self.advanced.winfo_manager() else ' ▸'))
 
     def clear_filters(self) -> None:
         self.mask_var.set("*")
@@ -13912,17 +13972,17 @@ class MultiRenameWindow(tk.Toplevel):
         controls = ttk.Frame(self, padding=8); controls.pack(fill="x")
         ttk.Label(controls, text=tr("Name mask:")).grid(row=0, column=0, sticky="w")
         self.mask_entry = ttk.Entry(controls, textvariable=self.mask_var)
-        self.mask_entry.grid(row=0, column=1, columnspan=5, sticky="ew", padx=(4, 8))
-        ttk.Label(controls, text=tr("[N] original   [C] counter   [E] extension")).grid(
-            row=0, column=6, columnspan=3, sticky="w")
+        self.mask_entry.grid(row=0, column=1, columnspan=3, sticky="ew", padx=(4, 8))
+        ToolTip(self.mask_entry, lambda: tr('[N] original   [C] counter   [E] extension'))
         ttk.Label(controls, text=tr("Find:")).grid(row=1, column=0, sticky="w", pady=(6, 0))
-        ttk.Entry(controls, textvariable=self.find_var).grid(row=1, column=1, sticky="ew", padx=(4, 8), pady=(6, 0))
+        ttk.Entry(controls, textvariable=self.find_var, width=8).grid(row=1, column=1, sticky="ew", padx=(4, 8), pady=(6, 0))
         ttk.Label(controls, text=tr("Replace:")).grid(row=1, column=2, sticky="w", pady=(6, 0))
-        ttk.Entry(controls, textvariable=self.replace_var).grid(row=1, column=3, sticky="ew", padx=(4, 8), pady=(6, 0))
-        ttk.Checkbutton(controls, text=tr("Case sensitive"), variable=self.case_var,
-                        command=self.update_preview).grid(row=1, column=4, sticky="w", pady=(6, 0))
+        ttk.Entry(controls, textvariable=self.replace_var, width=8).grid(row=1, column=3, sticky="ew", padx=(4, 8), pady=(6, 0))
+        case = ttk.Checkbutton(controls, text='Aa', variable=self.case_var, command=self.update_preview)
+        case.grid(row=1, column=4, sticky="w", pady=(6, 0))
+        ToolTip(case, lambda: tr('Case sensitive'))
         ttk.Checkbutton(controls, text=tr("Keep extension"), variable=self.extension_var,
-                        command=self.update_preview).grid(row=1, column=5, sticky="w", pady=(6, 0))
+                        command=self.update_preview).grid(row=0, column=4, sticky="w")
         ttk.Label(controls, text=tr("Start:")).grid(row=2, column=0, sticky="w", pady=(6, 0))
         ttk.Spinbox(controls, from_=0, to=999999, textvariable=self.start_var, width=7,
                     command=self.update_preview).grid(row=2, column=1, sticky="w", padx=(4, 8), pady=(6, 0))
@@ -13953,6 +14013,13 @@ class MultiRenameWindow(tk.Toplevel):
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
+        bg = self.winfo_rgb(palette.get('window', '#eeeeee'))
+        style = readable_check_style(self, tkfont.nametofont('TkDefaultFont'),
+                                      sum(bg)/3 < 32768, prefix='RenameCheck')
+        pending = [self]
+        while pending:
+            widget = pending.pop(); pending.extend(widget.winfo_children())
+            if isinstance(widget, ttk.Checkbutton): widget.configure(style=style)
         self.configure(background=palette["window"])
         dark = palette["window"] == "#20262c"
         self.tree.tag_configure("error", foreground="#ff7770" if dark else "#a00000")
@@ -14512,32 +14579,24 @@ class SpaceAnalyzerWindow(tk.Toplevel):
     def _build(self) -> None:
         toolbar = ttk.Frame(self, padding=(8, 7, 8, 3))
         toolbar.pack(fill="x")
-        ttk.Button(toolbar, text=tr("Back"), command=self.back).pack(side="left")
-        ttk.Button(toolbar, text=tr("Parent Folder"), command=self.parent_folder).pack(side="left", padx=4)
-        self.scan_button = ttk.Button(toolbar, text=tr("Analyze"), command=self.scan)
-        self.scan_button.pack(side="left", padx=(6, 3))
-        self.stop_button = ttk.Button(toolbar, text=tr("Stop"), command=self.stop)
-        self.stop_button.pack(side="left")
-        ttk.Button(toolbar, text=tr("Locate in PFC"),
-                   command=self.locate_selected).pack(side="right")
-
-        path_row = ttk.Frame(self, padding=(8, 3, 8, 5))
-        path_row.pack(fill="x")
-        ttk.Label(path_row, text=tr("Folder:")).pack(side="left", padx=(0, 5))
-        self.path_entry = ttk.Entry(path_row, textvariable=self.path_var)
+        for glyph, label, callback in (('←', 'Back', self.back), ('↑', 'Parent Folder', self.parent_folder)):
+            button = ttk.Button(toolbar, text=glyph, width=2, command=callback)
+            button.pack(side='left', padx=(0, 3)); ToolTip(button, lambda s=label: tr(s))
+        locate = ttk.Button(toolbar, text='↗', width=2, command=self.locate_selected)
+        locate.pack(side='right'); ToolTip(locate, lambda: tr('Locate in PFC'))
+        self.stop_button = ttk.Button(toolbar, text=tr("Stop"), width=0, command=self.stop)
+        self.stop_button.pack(side="right", padx=3)
+        self.scan_button = ttk.Button(toolbar, text=tr("Analyze"), width=0, command=self.scan)
+        self.scan_button.pack(side="right", padx=3)
+        self.path_entry = ttk.Entry(toolbar, textvariable=self.path_var, width=10)
         self.path_entry.pack(side="left", fill="x", expand=True)
         self.path_entry.bind("<Return>", lambda _event: self.scan())
-
-        info = ttk.Frame(self, padding=(8, 0, 8, 6))
-        info.pack(fill="x")
-        ttk.Label(
-            info,
-            text=tr("Block area is proportional to size. Click for Go to, double-click a folder to analyze, or right-click for delete options."),
-            anchor="w").pack(fill="x")
+        ToolTip(self.path_entry, lambda: tr('Folder:')+' '+self.path_var.get())
 
         self.canvas = tk.Canvas(self, highlightthickness=1, relief="sunken",
                                 background=palette_color(self.palette, "background", "#f2f2f2"))
         self.canvas.pack(fill="both", expand=True, padx=8)
+        ToolTip(self.canvas, lambda: tr('Block area is proportional to size. Click for Go to, double-click a folder to analyze, or right-click for delete options.'))
         self.canvas.bind("<Button-1>", self._click)
         self.canvas.bind("<Double-Button-1>", self._double_click)
         self.canvas.bind("<Button-3>", self._right_click)
@@ -15529,7 +15588,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.12"
+__version__ = "0.18.13"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -15612,8 +15671,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/01"
+BUILD_DATE = "2026/10/02"
 VERSION_HISTORY = (
+    ("v0.18.13", "2026/10/02", (
+        "Added: Auto Font Size fits sampled Panel 1–2 filenames at 100–300%, with compact hover-revealed zoom controls.",
+        "Improved: Grouped popup search, comparison, rename and folder controls preserve more content space.",
+    )),
     ("v0.18.12", "2026/10/01", (
         "Fixed: Double-click opens scrolling filenames across the text-overlay boundary.",
         "Fixed: Visible folders retain polling protection against lost change notifications and refresh errors.",
@@ -16265,25 +16328,12 @@ def scaled_tree_row_height(font_linespace: int, scale: float) -> int:
     return max(24, font_linespace + vertical_space)
 
 
-def automatic_font_size(window_width: int, window_height: int, panel_count: int,
-                        screen_width: int | None = None) -> str:
-    """Choose the largest scale that keeps each visible file panel usable."""
-    per_panel = max(1, window_width) / max(1, panel_count)
-    height_level = (4 if window_height >= 1250 else 3 if window_height >= 1050
-                    else 2 if window_height >= 850 else 1 if window_height >= 650 else 0)
-    width_level = (4 if per_panel >= 1200 else 3 if per_panel >= 1000
-                   else 2 if per_panel >= 750 else 1 if per_panel >= 500 else 0)
-    level = min(height_level, width_level)
-    if screen_width and screen_width > 0:
-        occupied_width = max(0.0, window_width / screen_width)
-        # Native DPI scaling already keeps text readable. A snapped half-screen
-        # window must not be mistaken for an XXL layout merely because the
-        # monitor has a very high physical pixel count.
-        if occupied_width <= .60:
-            level = 0
-        elif occupied_width <= .75:
-            level = min(level, 1)
-    return ("small", "medium", "large", "xl", "xxl")[level]
+def automatic_font_size(fits, scales=None) -> str:
+    """Largest supported content-fitting scale; 100% remains the hard floor."""
+    for key, scale in reversed(tuple((scales or FONT_SCALES).items())):
+        if fits(scale):
+            return key
+    return "small"
 
 
 def extension_column_width(measure) -> int:
@@ -16463,6 +16513,9 @@ class FilePane(ttk.Frame):
             if changed and hasattr(self, "name_marquee"):
                 self.name_marquee.request()
                 self.size_units.request()
+                owner = self.winfo_toplevel()
+                if hasattr(owner, '_schedule_auto_font_size'):
+                    owner._schedule_auto_font_size()
         self.tree.configure(yscrollcommand=lambda *args: scrolled(scroll, *args),
                             xscrollcommand=lambda *args: scrolled(horizontal, *args))
         self.tree.bind("<Configure>", lambda _event: self._schedule_column_autosize())
@@ -16475,6 +16528,7 @@ class FilePane(ttk.Frame):
         self.tree.bind("<ButtonPress-1>", self._drag_press, add="+")
         self.tree.bind("<B1-Motion>", self._drag_motion, add="+")
         self.tree.bind("<ButtonRelease-1>", self._drag_release, add="+")
+        self.tree.bind('<ButtonRelease-1>', lambda e: self.winfo_toplevel()._schedule_auto_font_size(), add='+')
         self.tree.bind("<ButtonRelease-3>", self._context_click)
         self.tree.bind("<Shift-F10>", self._context_keyboard)
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
@@ -17364,6 +17418,9 @@ class FilePane(ttk.Frame):
         self.tree.column("#0", width=max(120, available - fixed_total), minwidth=120,
                          stretch=True)
         self._fit_visible_names()
+        owner = self.winfo_toplevel()
+        if hasattr(owner, '_schedule_auto_font_size'):
+            owner._schedule_auto_font_size()
 
     @staticmethod
     def signature_for(entries) -> tuple:
@@ -17817,6 +17874,7 @@ class Commander(tk.Tk):
         self.onedrive_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','onedrive_overlay',fallback=True))
         self.vcs_overlay_var = tk.BooleanVar(value=self.config_data.getboolean('view','vcs_overlay',fallback=True))
         self._auto_font_job = None
+        self._auto_font_verify_job = None
         self._last_auto_window_size = None
         saved_scheme = self.config_data.get("view", "color_scheme", fallback="light")
         if saved_scheme not in COLOR_SCHEMES:
@@ -18335,6 +18393,8 @@ class Commander(tk.Tk):
             self.after_cancel(self._clipboard_resize_job)
         if self._auto_font_job is not None:
             self.after_cancel(self._auto_font_job)
+        if self._auto_font_verify_job is not None:
+            self.after_cancel(self._auto_font_verify_job)
         if self._archive_open_poll_job is not None:
             self.after_cancel(self._archive_open_poll_job)
         if self._tray_poll_job is not None:
@@ -20728,6 +20788,10 @@ class Commander(tk.Tk):
 
     def select_manual_font_size(self) -> None:
         self.auto_font_size_var.set(False)
+        if self._auto_font_verify_job is not None:
+            self.after_cancel(self._auto_font_verify_job)
+            self._auto_font_verify_job = None
+        self._auto_font_busy = False
         self.apply_font_size()
 
     def set_long_name_scrolling(self) -> None:
@@ -20738,12 +20802,14 @@ class Commander(tk.Tk):
     def _build_zoom_controls(self, parent) -> None:
         self.zoom_frame = ttk.Frame(parent)
         self.zoom_frame.pack(side="right", padx=(2, 0))
-        # A small fixed-size status control must not consume the action bar at 300%.
+        # Larger percentage, vertically grouped hints: no width added on hover.
         self._zoom_font = tkfont.Font(family=tkfont.nametofont("TkDefaultFont").actual("family"),
-                                     size=-max(11, round(self._base_tk_scaling * 8)))
+                                     size=-max(16, round(self._base_tk_scaling * 11)))
+        self._zoom_hint_font = tkfont.Font(family=self._zoom_font.actual('family'), size=-12)
         style = ttk.Style(self)
-        for name in ("Zoom.TButton", "Zoom.TMenubutton"):
-            style.configure(name, font=self._zoom_font, padding=1)
+        style.configure('Zoom.TMenubutton', font=self._zoom_font, padding=0)
+        style.configure('Zoom.TButton', font=self._zoom_hint_font, padding=0, relief='flat')
+        style.map('Zoom.TButton', relief=[('active', 'raised'), ('focus', 'raised')])
         # Keep native Menubutton mouse/keyboard behavior, omit only its arrow.
         style.layout('Zoom.TMenubutton', [('Menubutton.border', {'sticky': 'nswe', 'children': [
             ('Menubutton.focus', {'sticky': 'nswe', 'children': [
@@ -20752,22 +20818,49 @@ class Commander(tk.Tk):
         self.zoom_percent_var = tk.StringVar()
         self.zoom_minus = ttk.Button(self.zoom_frame, text="−", width=1, style="Zoom.TButton",
                                      command=lambda: self.adjust_zoom(-1))
-        self.zoom_minus.pack(side="left")
+        self.zoom_minus.grid(row=2, column=0, sticky='ew')
         self.zoom_combo = ttk.Menubutton(self.zoom_frame, width=4,
                                       textvariable=self.zoom_percent_var, style="Zoom.TMenubutton")
-        self.zoom_combo.pack(side="left", padx=1)
+        self.zoom_combo.grid(row=1, column=0, sticky='ew')
         self.zoom_menu = tk.Menu(self.zoom_combo, tearoff=False, font="TkMenuFont")
         self.zoom_combo.configure(menu=self.zoom_menu)
         self._rebuild_zoom_menu()
         self.zoom_plus = ttk.Button(self.zoom_frame, text="+", width=1, style="Zoom.TButton",
                                     command=lambda: self.adjust_zoom(1))
-        self.zoom_plus.pack(side="left")
+        self.zoom_plus.grid(row=0, column=0, sticky='ew')
         for widget in (self.zoom_frame,self.zoom_minus,self.zoom_combo,self.zoom_plus):
+            widget.bind('<Enter>', lambda e: self._zoom_reveal(True), add='+')
+            widget.bind('<Motion>', lambda e: self._zoom_reveal(True), add='+')
+            widget.bind('<Leave>', lambda e: self.after_idle(self._zoom_leave), add='+')
+            widget.bind('<FocusIn>', lambda e: self._zoom_reveal(True), add='+')
+            widget.bind('<FocusOut>', lambda e: self.after_idle(self._zoom_leave), add='+')
             widget.bind('<Button-3>',lambda e:self._show_zoom_context(e))
             widget.bind('<Shift-F10>',lambda e:self._show_zoom_context(e))
             widget.bind('<KeyPress-Menu>',lambda e:self._show_zoom_context(e))
         ToolTip(self.zoom_combo, lambda: tr("Auto Font Size") + (" ✓" if self.auto_font_size_var.get() else " —"), delay=700)
+        ToolTip(self.zoom_plus, lambda: tr('Increase font size (manual)'))
+        ToolTip(self.zoom_minus, lambda: tr('Decrease font size (manual)'))
+        self._zoom_reveal(False)
         self._sync_zoom_controls()
+
+    def _zoom_reveal(self, active):
+        palette = getattr(self, 'palette', {})
+        fg, bg = palette.get('text', '#202020'), palette.get('window', '#eeeeee')
+        state = (active, fg, bg)
+        if getattr(self, '_zoom_hover_state', None) == state: return
+        self._zoom_hover_state = state
+        if not active:
+            a, b = self.winfo_rgb(fg), self.winfo_rgb(bg)
+            fg = '#'+''.join(f'{round((x*.35+y*.65)/257):02x}' for x, y in zip(a, b))
+        ttk.Style(self).configure('Zoom.TButton', foreground=fg,
+                                  relief='raised' if active else 'flat')
+
+    def _zoom_leave(self):
+        if not self.zoom_frame.winfo_exists(): return
+        target = self.winfo_containing(*self.winfo_pointerxy())
+        focus = self.focus_get()
+        prefix = str(self.zoom_frame)
+        self._zoom_reveal(any(w is not None and str(w).startswith(prefix) for w in (target, focus)))
 
     def _show_zoom_context(self,event):
         self.header_popup.show_at(event.widget.winfo_rootx(),event.widget.winfo_rooty(),self.font_size_menu)
@@ -20828,6 +20921,10 @@ class Commander(tk.Tk):
     def _schedule_auto_font_size(self, _event=None, delay: int = 180) -> None:
         if not getattr(self, "_ready", False) or not self.auto_font_size_var.get():
             return
+        if getattr(self, '_auto_font_busy', False):
+            return
+        if _event is not None and _event.widget is not self:
+            return  # Popup geometry must not resize the main interface.
         if self._auto_font_job is not None:
             try:
                 self.after_cancel(self._auto_font_job)
@@ -20835,20 +20932,100 @@ class Commander(tk.Tk):
                 pass
         self._auto_font_job = self.after(delay, self._apply_automatic_font_size)
 
-    def _apply_automatic_font_size(self) -> None:
+    def _apply_automatic_font_size(self, allow_settings=False) -> None:
         self._auto_font_job = None
         if not self.auto_font_size_var.get() or not self.winfo_exists():
             return
-        size = (self.winfo_width(), self.winfo_height(), self.panel_count_var.get(),
-                self.winfo_screenwidth())
-        if size == self._last_auto_window_size:
+        if not allow_settings and (self._settings_are_open() or self.grab_current()):
+            return  # Keep modal/draft controls stable while they are in use.
+        samples = self._auto_font_samples()
+        signature = self._auto_font_key(samples)
+        if not samples or signature == self._last_auto_window_size:
             return
-        self._last_auto_window_size = size
-        selected = automatic_font_size(*size)
+        self._last_auto_window_size = signature
+        current = self._font_scales.get(self.font_size_var.get(), 1.0)
+        default = tkfont.nametofont('TkDefaultFont')
+        font = tkfont.Font(self, **font_snapshot(default))
+        base = self._base_font_sizes['TkDefaultFont']
+        def fits(scale):
+            font.configure(size=-max(1, round(abs(base)*scale*(1 if base < 0 else self._base_tk_scaling))))
+            icon = max(16, round(scaled_tree_row_height(font.metrics('linespace'), scale)*.9))
+            for pane, rows in samples:
+                tree = pane.tree
+                fixed = sum(int(tree.column(c, 'width')) for c in tree.cget('displaycolumns'))
+                # Detail fields and native indent scale too; reserve a small
+                # rounding margin, then verify against actual post-layout bounds.
+                available = tree.winfo_width()-4-fixed*scale/current
+                if available < 120:
+                    return False
+                for iid, text, inset in rows:
+                    gap = max(0, inset-pane.icons.size)*scale/current+icon
+                    if font.measure(text)+gap+8 > available:
+                        return False
+            return True
+        selected = automatic_font_size(fits)
         if selected != self.font_size_var.get():
+            self._auto_font_busy = True
             self.font_size_var.set(selected)
-            self.apply_font_size(save=False)
+            try:
+                self.apply_font_size(save=False)
+            finally:
+                self._auto_font_verify_job = self.after(220, lambda: self._verify_auto_font(samples, 0))
+
+    def _auto_font_samples(self):
+        """No disk I/O: up to 30 displayed-order rows from the viewport top."""
+        samples = []
+        panes = self.visible_panes()[:2] if self.panel_count_var.get() != 1 else [self.active]
+        for pane in panes:
+            if pane is None or not pane.tree.winfo_ismapped(): continue
+            tree = pane.tree
+            iid = next((tree.identify_row(y) for y in range(1, tree.winfo_height())
+                        if tree.identify_row(y)), '')
+            rows = []
+            while iid and len(rows) < 30:
+                text = str(tree.item(iid, 'text'))
+                bounds, box = pane.name_marquee.text_bounds(iid), tree.bbox(iid, '#0')
+                depth, parent = 0, tree.parent(iid)
+                while parent:
+                    depth += 1; parent = tree.parent(parent)
+                inset = bounds[0]-box[0] if bounds and box else pane.icons.size+20*(depth+1)
+                if text and text != '[..]': rows.append((iid, text, inset))
+                children = tree.get_children(iid) if tree.item(iid, 'open') else ()
+                if children: iid = children[0]
+                else:
+                    while iid and not tree.next(iid): iid = tree.parent(iid)
+                    iid = tree.next(iid) if iid else ''
+            if rows: samples.append((pane, rows))
+        return samples
+
+    def _auto_font_key(self, samples):
+        return (self.winfo_width(), self.winfo_height(), self.winfo_screenwidth(),
+                self.winfo_screenheight(), self.panel_count_var.get(),
+                tuple((str(p.tree), p.tree.winfo_width(), p.tree.cget('displaycolumns'),
+                       tuple(p.tree.column(c, 'width') for c in p.tree.cget('displaycolumns')),
+                       tuple((i, t) for i, t, _ in rows)) for p, rows in samples))
+
+    def _verify_auto_font(self, samples, attempts):
+        """Bounded downward correction only; never chase our own Configure events."""
+        self._auto_font_verify_job = None
+        if not self.winfo_exists(): return
+        retry = False
+        try:
+            if not self.auto_font_size_var.get(): return
+            clipped = any(p.name_marquee.clipped(i)
+                          for p, rows in self._auto_font_samples() for i, _, _ in rows)
+            keys = list(self._font_scales)
+            index = keys.index(self.font_size_var.get())
+            if clipped and index > 0 and attempts < len(keys):
+                self.font_size_var.set(keys[index-1]); self.apply_font_size(save=False)
+                self._auto_font_verify_job = self.after(220, lambda: self._verify_auto_font(samples, attempts+1))
+                retry = True
+                return
+            self._last_auto_window_size = self._auto_font_key(self._auto_font_samples())
             self.save_config()
+        finally:
+            if not retry:
+                self._auto_font_busy = False
 
     def apply_font_size(self, save: bool = True) -> None:
         scale = self._font_scales.get(self.font_size_var.get(), 1.0)
@@ -20934,6 +21111,7 @@ class Commander(tk.Tk):
         self.configure(background=palette["window"])
         configure_ttk_theme(self, palette)
         if hasattr(self, "zoom_menu"):
+            self._zoom_reveal(False)
             self.zoom_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                                      activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
         style = ttk.Style(self)

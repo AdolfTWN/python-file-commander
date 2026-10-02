@@ -1,5 +1,35 @@
 # PFC follow-ups
 
+## Content-aware Auto Font Size and compact popup chrome — v0.18.13
+
+- [x] Replace window-size thresholds with the largest supported UI font scale
+  at which all sampled filenames in Panel 1 and Panel 2 fit their actual Name
+  column widths without long-name marquee scrolling. Sample the currently
+  displayed filenames (typically the first 20–30 files); exclude Panels 3 and 4
+  from the fitting constraint. Keep 100% as the minimum, even if names still
+  overflow there. When Auto is enabled, increase the scale whenever space allows,
+  rather than only shrinking it.
+- [x] Recalculate on screen/display changes and window resizing; after geometry
+  settles, recheck the resulting scale against actual column widths. Debounce
+  and avoid resize/font feedback loops, flicker and repeated oscillation.
+- [x] Replace the bottom-right side-by-side + / − buttons with a larger scale
+  percentage, a faint + above it, and a faint light-grey − below it. On pointer
+  approach, reveal raised-looking controls so their interaction is discoverable.
+  Preserve keyboard access, tooltips and adequate click targets; check contrast
+  in light/dark themes and at enlarged UI scales.
+- [x] Sampling rule stated during implementation: up to 30 displayed-order rows
+  from the viewport top; One Panel uses its active visible list. Folder/tab,
+  scrolling and column changes also trigger a debounced check. Empty lists keep
+  the current scale; supported maximum is 300%, floor is 100%.
+- [x] Audit popup chrome by task. Group Search criteria/options; expand uncommon
+  filters on demand (active count remains visible); group Compare navigation,
+  rename template options, Markdown query controls and Space Analyzer toolbar.
+  Preserve Preview's one-row Find and Settings' required previews/fixed footer.
+  Source review and self-review boundaries: [Settings design](settings-design.md).
+- [ ] Native Windows acceptance remains blocked: QGA responds but guest execution
+  is unavailable. Test actual monitor/DPI transitions, pointer reveal and enlarged
+  popup controls when the VM execution gate is restored; no native pass claimed.
+
 ## Interaction, refresh and scaled dialogs — v0.18.12
 
 - [x] Reproduce lost double-clicks through the real marquee Canvas event route;

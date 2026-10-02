@@ -1,5 +1,55 @@
 # PFC Settings — v0.18.4
 
+## Content-fit zoom and popup chrome review (v0.18.13)
+
+Observable tasks: (1) enable Auto and read the sampled filenames without
+marquee, resize and navigate without repeated scale oscillation; (2) set a search
+query and its case/scope options in one place, then act on results; (3) find text
+or differences in a comparison without confusing the two navigation groups.
+
+Auto uses the displayed file list in One Panel, otherwise the visible lists of
+Panels 1 and 2 only. It samples up to 30 displayed-order rows starting at the
+viewport top, not 30 filesystem lookups. Closed branches and filtered-out entries
+are excluded. Geometry, scrolling, tab/folder and column changes schedule a
+debounced calculation. Candidate fonts are measured off-screen; the main UI is
+changed only for the chosen scale, with bounded post-layout correction if needed.
+The supported range is 100–300% in 25% steps. Overflow at 100% is unavoidable and
+still uses the existing marquee. Empty lists retain the current scale. Panels
+3–4 do not contribute filename constraints (their physical space still affects
+Panels 1–2). Modal/draft settings temporarily suppress unsolicited recalculation.
+
+The percentage is enlarged. The + and − hints are stacked above/below it, muted
+at rest, raised on pointer approach or keyboard focus. Native button activation,
+percentage menu, keyboard traversal and manual-mode behavior remain available;
+hover never changes geometry.
+
+| Popup family reviewed | Functional grouping / disposition |
+| --- | --- |
+| Search | Path + depth; name + file/folder scope; content + case; optional size/date filters expandable; results actions in one menu; progress/criteria at footer. |
+| Text/binary/table Compare | Difference controls together; text search + previous/next + case on one row; compact glyphs retain tooltips/keyboard shortcuts. |
+| Folder Compare | Difference navigation joins view/folder/map controls, separate from the text-search row; safety/sync controls remain in the footer. |
+| Multi-Rename | Keep-extension belongs next to name template, case next to find/replace; counter settings stay together; template syntax in tooltip. |
+| Space Analyzer | Parent/back, current folder, analyze/stop/locate in one toolbar; lengthy instructions moved to canvas tooltip. |
+| Markdown discovery | Scope + depth together; query mode + query + Search together; explicit bounded-search notice retained. |
+| Preview / Settings | Existing single-row find controls and scrollable preview/settings arrangement retained; do not remove the requested previews to save space. |
+| Workspaces / saved comparisons / command palette / custom prefixes | Existing task-local form or single query with list; no fragmented search suboptions identified in source review. |
+| Editor / conflict / dry-run / progress / operation report / Help / release notes | Existing single-purpose header; safety messages and confirmation controls retained rather than hidden for compactness. |
+
+Self-review evidence: Search at 150%, 1100×760 reduced the top controls from
+approximately 340 px to 177 px; the previous right-edge action clipping is gone.
+This is headless visual evidence, not user acceptance or native Windows proof.
+The Windows gate again reached QGA but returned `guest-exec-unavailable`; no
+guest test ran, networking stayed disabled and the lease was released.
+
+Validation: 289 unit tests (8 platform skips); the final settings/zoom group
+passed all 17 checks, and the final portable chrome/Auto/hover matrix passed.
+The broad inventory ran 87 checks: obsolete smoke-fixture assumptions were
+updated and its final rerun passed. The existing `folder_leaf` source Right-key
+timeout remains intermittent (portable and a serial diagnostic passed); the
+complete inventory is therefore not claimed fully green. The saved-startup test
+now restores native Tk scaling between in-process roots to model a real restart;
+it no longer compounds the previous root's zoom. No product tree fix is claimed.
+
 ## Scaled-layout correction (v0.18.12)
 
 This supersedes the fixed-top arrangement below: preview and options now share

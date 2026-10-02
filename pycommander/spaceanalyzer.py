@@ -11,6 +11,7 @@ from tkinter import messagebox, ttk
 
 from .fileops import format_size
 from .i18n import retranslate_widgets, tr
+from .tooltip import ToolTip
 
 
 @dataclass
@@ -134,32 +135,24 @@ class SpaceAnalyzerWindow(tk.Toplevel):
     def _build(self) -> None:
         toolbar = ttk.Frame(self, padding=(8, 7, 8, 3))
         toolbar.pack(fill="x")
-        ttk.Button(toolbar, text=tr("Back"), command=self.back).pack(side="left")
-        ttk.Button(toolbar, text=tr("Parent Folder"), command=self.parent_folder).pack(side="left", padx=4)
-        self.scan_button = ttk.Button(toolbar, text=tr("Analyze"), command=self.scan)
-        self.scan_button.pack(side="left", padx=(6, 3))
-        self.stop_button = ttk.Button(toolbar, text=tr("Stop"), command=self.stop)
-        self.stop_button.pack(side="left")
-        ttk.Button(toolbar, text=tr("Locate in PFC"),
-                   command=self.locate_selected).pack(side="right")
-
-        path_row = ttk.Frame(self, padding=(8, 3, 8, 5))
-        path_row.pack(fill="x")
-        ttk.Label(path_row, text=tr("Folder:")).pack(side="left", padx=(0, 5))
-        self.path_entry = ttk.Entry(path_row, textvariable=self.path_var)
+        for glyph, label, callback in (('←', 'Back', self.back), ('↑', 'Parent Folder', self.parent_folder)):
+            button = ttk.Button(toolbar, text=glyph, width=2, command=callback)
+            button.pack(side='left', padx=(0, 3)); ToolTip(button, lambda s=label: tr(s))
+        locate = ttk.Button(toolbar, text='↗', width=2, command=self.locate_selected)
+        locate.pack(side='right'); ToolTip(locate, lambda: tr('Locate in PFC'))
+        self.stop_button = ttk.Button(toolbar, text=tr("Stop"), width=0, command=self.stop)
+        self.stop_button.pack(side="right", padx=3)
+        self.scan_button = ttk.Button(toolbar, text=tr("Analyze"), width=0, command=self.scan)
+        self.scan_button.pack(side="right", padx=3)
+        self.path_entry = ttk.Entry(toolbar, textvariable=self.path_var, width=10)
         self.path_entry.pack(side="left", fill="x", expand=True)
         self.path_entry.bind("<Return>", lambda _event: self.scan())
-
-        info = ttk.Frame(self, padding=(8, 0, 8, 6))
-        info.pack(fill="x")
-        ttk.Label(
-            info,
-            text=tr("Block area is proportional to size. Click for Go to, double-click a folder to analyze, or right-click for delete options."),
-            anchor="w").pack(fill="x")
+        ToolTip(self.path_entry, lambda: tr('Folder:')+' '+self.path_var.get())
 
         self.canvas = tk.Canvas(self, highlightthickness=1, relief="sunken",
                                 background=palette_color(self.palette, "background", "#f2f2f2"))
         self.canvas.pack(fill="both", expand=True, padx=8)
+        ToolTip(self.canvas, lambda: tr('Block area is proportional to size. Click for Go to, double-click a folder to analyze, or right-click for delete options.'))
         self.canvas.bind("<Button-1>", self._click)
         self.canvas.bind("<Double-Button-1>", self._double_click)
         self.canvas.bind("<Button-3>", self._right_click)

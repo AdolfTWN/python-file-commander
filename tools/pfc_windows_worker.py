@@ -17,7 +17,7 @@ import time
 
 ALLOWED = {'tooltip_check.py', 'preview_tabs_check.py', 'settings_check.py',
            'folder_scroll_check.py', 'folder_navigation_check.py', 'settings_readability_groups_check.py',
-           'interaction_layout_check.py'}
+           'interaction_layout_check.py', 'compact_chrome_check.py'}
 
 
 def desktop_ready():

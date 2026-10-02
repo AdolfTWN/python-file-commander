@@ -8,6 +8,7 @@ from .i18n import tr, get_language
 from .mdjobs import MarkdownJobs
 from .mdworkspace import workspace_root, remember_markdown_workspace
 from .workflows import workflow_dialog_geometry, style_workflow_controls
+from .tooltip import ToolTip
 
 
 class MarkdownWorkspaceDialog(tk.Toplevel):
@@ -38,20 +39,24 @@ class MarkdownWorkspaceDialog(tk.Toplevel):
         ttk.Label(outer, text=tr('Project folder')).grid(row=0,column=0,sticky='w',padx=(0,8))
         self.scope = ttk.Entry(outer,textvariable=self.root_var,state='readonly')
         self.scope.grid(row=0,column=1,sticky='ew')
-        self.browse = ttk.Button(outer,text=tr('Browse')+'…',command=self.choose_root)
-        self.browse.grid(row=0,column=2,padx=(6,0))
-        self.mode = ttk.Combobox(outer,textvariable=self.mode_var,values=list(self.modes),state='readonly',width=28)
-        self.mode.grid(row=1,column=0,columnspan=2,sticky='ew',pady=8)
+        scope_tools = ttk.Frame(outer); scope_tools.grid(row=0,column=2,padx=(6,0))
+        self.browse = ttk.Button(scope_tools,text='…',width=2,command=self.choose_root)
+        self.browse.pack(side='left')
+        ToolTip(self.browse, lambda: tr('Browse'))
+        query_row = ttk.Frame(outer); query_row.grid(row=1,column=0,columnspan=3,sticky='ew',pady=4)
+        self.mode = ttk.Combobox(query_row,textvariable=self.mode_var,values=list(self.modes),state='readonly',width=18)
+        self.mode.pack(side='left',padx=(0,4))
+        ToolTip(self.mode, lambda: self.mode_var.get())
         self.mode.bind('<<ComboboxSelected>>',lambda e:self.changed())
-        depth = ttk.Frame(outer); depth.grid(row=1,column=2,padx=(8,0))
+        depth = ttk.Frame(scope_tools); depth.pack(side='left',padx=(6,0))
         ttk.Label(depth,text=tr('Depth')).pack(side='left')
         self.depth = ttk.Combobox(depth,textvariable=self.depth_var,values=('1','3','5','8'),state='readonly',width=3)
         self.depth.pack(side='left',padx=4)
         self.depth.bind('<<ComboboxSelected>>',lambda e:self.changed())
-        self.query = ttk.Entry(outer,textvariable=self.query_var)
-        self.query.grid(row=2,column=0,columnspan=2,sticky='ew')
-        self.search = ttk.Button(outer,text=tr('Search'),command=self.start)
-        self.search.grid(row=2,column=2,sticky='ew',padx=(8,0))
+        self.search = ttk.Button(query_row,text=tr('Search'),width=0,command=self.start)
+        self.search.pack(side='right',padx=(4,0))
+        self.query = ttk.Entry(query_row,textvariable=self.query_var,width=8)
+        self.query.pack(side='left',fill='x',expand=True)
         self.note = ttk.Label(outer,text=tr('No automatic index. Up to 5,000 entries / 3 seconds / 50 results. Excluded and unavailable folders are skipped.'),wraplength=790)
         self.note.grid(row=3,column=0,columnspan=3,sticky='ew',pady=8)
         listing = ttk.Frame(outer); listing.grid(row=4,column=0,columnspan=3,sticky='nsew')
