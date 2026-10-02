@@ -1,5 +1,41 @@
 # PFC follow-ups
 
+## Beyond Compare evaluation and comparison upgrade — v0.18.15
+
+- [x] Install the official BC trial in leased Windows, verify its signature and
+  observe synthetic large Markdown, Excel and ZIP/7z workflows. The first attempt
+  stopped at Windows recovery; after the user confirmed VM1 was repaired, testing
+  resumed. Official installers were staged from the host; guest network stayed off.
+- [x] Text/Markdown: 20 MiB per side, background alignment, virtualized wide-line
+  views, safe editing, per-difference review and optional synchronized MD preview.
+- [x] Read-only `.xlsx`/`.xlsm` multi-sheet values/formulas comparison; no macros,
+  recalculation, style comparison or workbook writes. Improve CSV/TSV grids too.
+- [x] ZIP/7z content comparison and explicitly reviewed writes: validated temporary
+  archive, external-change protection, atomic replacement and recoverable backup.
+- [x] Compare-specific native Windows usability/performance checks and source/
+  portable regression, including actual F3 / Shift+F3 / Ctrl+F routing. Final
+  screenshots show the current text, workbook and nested archive interfaces.
+- [x] Execute full regression: 298 unit tests passed (8 platform skips); 88 of
+  89 full checks passed. The existing portable folder-leaf expansion timeout
+  passed a standalone retry, but remains an intermittent follow-up, not fixed.
+
+Release delivery requires the recorded GitHub/private GitLab/update-source gate;
+test completion alone is not proof of publication.
+
+See [comparison usage, safety budgets and evidence](workflow-upgrade.md#comparison-review--v01815).
+Not full BC parity: Markdown is a synchronized excerpt; Excel is a readonly
+changed-cell grid; archives are fully staged within the stated budget. Larger
+inputs, semantic Markdown diffs, workbook writing and three-way merging remain
+outside the approved implementation scope.
+Tracking run: `08f60f7036a44bc5bac6e6e0e1095692`.
+
+- [ ] **Native Auto Font Size return-to-folder consistency** — The broader Windows
+  compact-chrome check observed a different automatic size after returning to the
+  same short-name fixture in two-panel mode (250% vs 225%). Compare-specific
+  native checks passed, but this is not a passing Auto Font Size acceptance test.
+  Investigate post-navigation column geometry and the one-way verification step;
+  do not weaken the assertion or claim the pre-existing zoom behavior is fixed.
+
 ## Content-aware Auto Font Size and compact popup chrome — v0.18.13
 
 - [x] Replace window-size thresholds with the largest supported UI font scale

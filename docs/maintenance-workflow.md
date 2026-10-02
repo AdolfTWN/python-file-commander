@@ -34,7 +34,7 @@ For a focused self-contained run use:
 python3 tools/pfc_workflow.py auto-test --profile preview --jobs 2
 ```
 
-Profiles: `tooltip`, `tree`, `preview`, `settings`, `tabs`, `vcs`, `workflow`, `full`.
+Profiles: `tooltip`, `tree`, `preview`, `settings`, `tabs`, `vcs`, `compare`, `workflow`, `full`.
 Except for the workflow tooling self-check, profiles include the entire unit
 suite and their selected GUI tests in source/portable forms where declared in
 the existing headless inventory. Full preserves all existing checks. No test
@@ -135,6 +135,13 @@ Sequence:
    dedicated PFC-Test account; no password, elevation, auto-login or network.
 5. The worker checks the real input desktop before any PFC import/test and during
    running checks. Locked/disconnected/unavailable desktops are blocked.
+   After desktop/artifact validation, it makes a thread-scoped display-awake
+   request while tests run, restoring the previous state in `finally`. This
+   requests visible output without changing the power plan or bypassing login.
+   A zero-distance pointer move wakes the verified test desktop without clicking
+   or changing its location; execution-state requests alone did not refresh the
+   virtual display. Screenshots still require visual inspection, not just a
+   successful capture API result. See [Microsoft's execution-state contract](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate).
 6. Atomic request-ID-bound reports distinguish starting/running/passed/failed/
    blocked. A passing report must contain every requested check with exit code 0.
 7. End unfinished own task, remove own task registration, disable network and

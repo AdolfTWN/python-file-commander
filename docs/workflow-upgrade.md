@@ -25,8 +25,8 @@ a different path or a partially reconstructed workspace.
 
 ## Safety and responsiveness
 
-- Text Compare loads at most 2 MiB and 20,000 lines per side. Above 4,000 lines it
-  explicitly labels positional comparison instead of running costly line alignment.
+- Small-file Text Compare loads at most 2 MiB; larger files, over 4,000 lines or
+  lines over 4,096 bytes automatically use the 20 MiB Review implementation below.
   Inline character matching is limited to 2,000 characters per line and 100,000
   characters per render. These are bounded approximations, not claimed optimal diffs.
 - Binary previews read at most 256 KiB per side and clearly distinguish a preview
@@ -85,3 +85,99 @@ backlink graphs, executable Markdown/Dataview, community plugins, automatic merg
 and sync deletion remain outside this batch.
 
 See the [three-round validation record](workflow-validation-2026-09-22.md).
+
+## Comparison review — v0.18.15
+
+### Text and Markdown
+
+F9 opens large/wide text in **Review**. On a small text comparison use
+**Review & Edit**. F7/F8 jump between difference blocks; arrows copy the current
+block into the opposite **draft**, not the original file. The checkmark records
+review status, not acceptance or saving. Actions groups editing, undo/redo,
+Save Left/Right, Save As, review JSON, report export and explicit disk reload.
+An external file change refuses overwrite and retains the draft. Reload asks
+before discarding an unsaved draft. Review markers are bound to both contents.
+Compare → Navigate lists its shortcuts: **F3** next search result,
+**Shift+F3** previous, **Ctrl+F** search, **F7/F8** previous/next difference.
+These keys route to the active comparison (including nested archive members),
+not the main Commander's Preview or VCS actions. Enter/Shift+Enter also search
+from the Find field. The readonly cell grid selects matching cells, not pages.
+
+- 20 MiB per source and encoded saved file. UTF BOM, encoding, original EOL and
+  final-newline behavior are preserved. Mixed EOL, unknown encoding and linked
+  sources remain readonly. No three-way or automatic merge.
+- Alignment runs in a cancellable process, 90-second timeout, 2 GiB memory ceiling.
+  Unique-line anchors plus bounded fine alignment avoid a positional fallback;
+  large ambiguous spans remain explicit replacement blocks, not an optimality claim.
+- Only 80 aligned rows and 2,048 characters per row enter Tk at once. Horizontal
+  scrolling reveals the full source width; difference navigation reveals the
+  first changed character, even in a million-character line. The source editor
+  pages through 32,000-character segments. These are viewing/editing pages, not
+  source truncation. Narrow windows stack the two sides without reducing fonts.
+- View → Markdown reading preview follows the active source side and location.
+  It is a readonly excerpt (up to 64,000 characters), not a full-document semantic
+  or rendered diff. A construct crossing the excerpt boundary may be incomplete.
+  Source comparison remains authoritative; no links, plugins or scripts execute.
+- HTML/text exports default to addresses and review status; content inclusion
+  requires a separate choice. Review JSON stores digests/marks, not source text.
+
+### Excel and tabular data
+
+`.xlsx` and `.xlsm` open a paged **changed-cell grid**, not an Excel editor.
+Choose a worksheet, then Rules → Values / Formulas / Both. Hidden sheets remain
+selectable. Double-click a cell row for its full value/formula. Row key columns
+align reordered records; missing/duplicate keys are refused rather than guessed.
+CSV/TSV use the same UI with their existing 2 MiB input limit.
+
+Stored formula results are read as saved; PFC does **not recalculate**, execute
+macros or follow external relationships. Missing cached results are labeled.
+Dates use the workbook's date system. Styles, charts, conditional formatting,
+macro contents, legacy `.xls`, encrypted books and writing Excel are outside this
+version. Limits: one million populated cells and 256 MiB of workbook XML.
+Reports cover the selected sheet and current filter; content inclusion is opt-in.
+
+### ZIP and 7z
+
+Archive comparison extracts into private temporary drafts in a background worker.
+By content starts enabled. Open members for nested comparison/editing, or use
+the existing confirmed copy plan between sides. Archive deletions require an
+explicit Draft actions command and can be undone before write-back.
+
+**Review archive changes…** lists adds, replacements and deletions. Save one
+archive at a time: revalidate the approved draft, rebuild beside the original,
+extract/verify the rebuilt contents, recheck the original's fingerprint, create
+a `.pfc-backup-…` sibling and atomically replace. Failure/cancellation before the
+replacement leaves the original intact. Backups are retained for manual recovery;
+recompression may change metadata/compression details and is not byte preservation.
+Local-folder counterparts still use normal confirmed file sync, not archive drafts.
+
+ZIP needs no extra program; 7z needs an installed/configured **7-Zip** executable.
+The safety budget is 100,000 members / 2 GiB expanded data, with free-space checks.
+This version stages the entire archive, not lazy individual-member extraction.
+Encrypted, linked, traversal, duplicate/case-colliding and ambiguous Windows names
+are refused. Archive source writes are never automatic; there is no recursive
+nested-archive write-back, password support or distributed transaction across sides.
+
+### Evidence and remaining limits
+
+Official Beyond Compare 5.2.6 was installed in the leased Windows VM solely for
+synthetic-data evaluation. Large Markdown, Excel sheet comparison and ZIP/7z
+member edit/save workflows were observed; PFC has no dependency on BC or its trial.
+Official 7-Zip ARM64 was installed for native 7z write-back tests. VM networking
+remained disabled; verified installers were staged through the leased channel.
+
+Windows 11 ARM64 portable tests exercised draft/cancel/save/conflict behavior,
+million-character lines, one million lines, sheets/formulas and archive backup
+write-back. The final candidate run loaded/aligned the ~20 MiB fixture in
+1.631 seconds and the million-line fixture in 4.679 seconds. These are synthetic
+observations, not performance guarantees or an apples-to-apples BC benchmark.
+Native screenshots covered text at 175%/760 px, the cell grid and archive review;
+automated geometry checks cover 100/150/175/200%. QGA retries remain recorded.
+The final native Compare check passed in 27.33 seconds. Its portable SHA-256 is
+`93775ee71b62edfc64a4dc988aa982a036e237cd86f6d00fb9328fc179ff1ab0`.
+Full source/portable regression took 376.42 seconds: 88 of 89 checks passed.
+The existing folder-leaf expansion timeout passed a 3.08-second standalone retry;
+this does not establish that intermittent issue is fixed. The 306-test unit suite
+completed with 298 passes and 8 platform skips. A separate native Auto Font Size return-to-folder
+check failed (250% versus 225%) and remains explicitly listed in TODO.
+There is no comparable full-task baseline; token usage is unknown.

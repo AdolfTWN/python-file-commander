@@ -82,6 +82,11 @@ def build() -> Path:
     compare = compare.replace("from __future__ import annotations\n\n", "", 1)
     compare = "\n".join(line for line in compare.splitlines() if not line.startswith("from .")) + "\n"
     compare = (ROOT / 'pycommander' / 'textio.py').read_text(encoding='utf-8') + '\n\n' + compare
+    review_sources=[]
+    for module in ('reviewcore','reviewstorage','workbook','reviewjobs','reviewui','workbookui','archivereview','archivereviewui'):
+        source=(ROOT/'pycommander'/(module+'.py')).read_text(encoding='utf-8')
+        review_sources.append('\n'.join(line for line in source.splitlines() if not line.startswith('from .')))
+    compare='\n\n'.join(review_sources)+'\n\n'+compare
     preview = preview.replace("from __future__ import annotations\n\n", "", 1)
     preview = "\n".join(line for line in preview.splitlines() if not line.startswith("from .")) + "\n"
     preview = (ROOT / 'pycommander' / 'markdownblocks.py').read_text(encoding='utf-8') + '\n\n' + preview

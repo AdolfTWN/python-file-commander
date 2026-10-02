@@ -275,5 +275,17 @@ class VmRunnerTests(unittest.TestCase):
             process.assert_not_called()
         self.assertEqual(json.loads((directory/'result.json').read_text())['reason'], 'interactive-desktop-unavailable')
 
+    def test_display_request_is_temporary_even_when_test_fails(self):
+        setter=MagicMock(return_value=0x80000000)
+        with self.assertRaisesRegex(ValueError,'test failure'):
+            with worker.visible_test_display(setter):raise ValueError('test failure')
+        self.assertEqual([c.args[0] for c in setter.call_args_list],[0x80000002,0x80000000])
+
+    def test_failed_display_request_does_not_run_test(self):
+        setter=MagicMock(return_value=0)
+        with self.assertRaises(OSError):
+            with worker.visible_test_display(setter):self.fail('must not enter')
+        setter.assert_called_once_with(0x80000002)
+
 
 if __name__ == '__main__': unittest.main()

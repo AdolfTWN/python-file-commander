@@ -14,10 +14,11 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 
 ALLOWED = {'tooltip_check.py', 'preview_tabs_check.py', 'settings_check.py',
            'folder_scroll_check.py', 'folder_navigation_check.py', 'settings_readability_groups_check.py',
-           'interaction_layout_check.py', 'compact_chrome_check.py'}
+           'interaction_layout_check.py', 'compact_chrome_check.py', 'review_compare_check.py'}
 
 
 def desktop_ready():
@@ -50,6 +51,29 @@ def atomic_report(path, record):
     tmp.replace(path)
 
 
+@contextmanager
+def visible_test_display(set_state=None):
+    """Keep only this verified interactive test's display awake, then restore.
+
+    CPU/Tk activity alone does not reset Windows' display idle timer. Without
+    this request a running test can capture an old DWM frame after monitor-off.
+    No power-plan, login, networking or VM lifecycle setting is changed.
+    """
+    if set_state is None:
+        set_state=ctypes.WinDLL('kernel32',use_last_error=True).SetThreadExecutionState
+        set_state.argtypes=[W.DWORD];set_state.restype=W.DWORD
+        # Some virtual display drivers do not repaint on an execution-state
+        # request alone. A zero-distance move wakes the verified test desktop;
+        # it clicks nothing and leaves the pointer location unchanged.
+        user=ctypes.WinDLL('user32',use_last_error=True)
+        user.mouse_event.argtypes=[W.DWORD,W.DWORD,W.DWORD,W.DWORD,ctypes.c_size_t]
+        user.mouse_event(0x0001,0,0,0,0)
+    previous=set_state(0x80000002)  # ES_CONTINUOUS | ES_DISPLAY_REQUIRED
+    if not previous:raise OSError('Cannot keep the validation display awake')
+    try:yield
+    finally:set_state(previous | 0x80000000)
+
+
 def execute(request_path):
     request_path = Path(request_path).resolve()
     directory = request_path.parent
@@ -73,6 +97,16 @@ def execute(request_path):
             return 2
     if any(name not in ALLOWED for name in request['checks']):
         raise ValueError('Unknown check')
+    try:
+        with visible_test_display():
+            return run_checks(directory,request,result,report)
+    except OSError:
+        result.update(status='blocked',stage='desktop',reason='display-request-unavailable')
+        atomic_report(report,result)
+        return 2
+
+
+def run_checks(directory,request,result,report):
     result.update(status='running', stage='tests')
     atomic_report(report, result)
     for name in request['checks']:

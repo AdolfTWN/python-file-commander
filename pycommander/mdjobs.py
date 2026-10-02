@@ -9,13 +9,12 @@ import threading
 import time
 
 
-def limit_markdown_worker_memory():
+def limit_markdown_worker_memory(limit=512*1024*1024):
     """Apply a 512 MiB OS limit to this private worker, never the GUI process.
 
     If the platform/policy cannot enforce it, the caller uses bounded plain
     source instead of the richer renderer. Not a general-purpose OS sandbox.
     """
-    limit=512*1024*1024
     try:
         if os.name!='nt':
             import resource

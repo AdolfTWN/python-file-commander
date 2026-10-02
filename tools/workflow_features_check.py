@@ -84,17 +84,20 @@ with tempfile.TemporaryDirectory(prefix='pfc-workflows-check-') as raw:
         empty.close(); app.compare_window = None
         app.font_size_var.set('small'); app.apply_font_size(save=False)
 
-        # Archive previews must not offer edits to disposable extracted files.
+        # Archive edits stay in explicit drafts until reviewed archive write-back.
         archive = root/'archive.zip'
         with zipfile.ZipFile(archive, 'w') as zipped: zipped.write(a, a.name)
         app.compare_paths(archive, right); cw = app.compare_window; fc = cw.current_comparison()
+        until(app, lambda: not fc.busy)
+        wrapper=fc;fc=wrapper.inner
+        assert fc is not None,wrapper.status.cget('text')
         until(app, lambda: not fc._scanning)
         fc.open_nested_detail(fc.left_root/a.name, b, a.name)
         detail = next(iter(fc.nested_details.values()))['detail']
-        assert detail.document_controls['Left'][0].instate(['disabled'])
+        assert detail.document_controls['Left'][0].instate(['!disabled'])
         assert detail.document_controls['Right'][0].instate(['!disabled'])
-        detail.edit('Left'); assert not getattr(cw, '_editors', None)
-        cw.close(); app.compare_window = None
+        with mock.patch.object(pfc.messagebox,'askyesno',return_value=True):cw.close()
+        app.compare_window = None
 
         app.compare_paths(left, right); cw = app.compare_window; fc = cw.current_comparison()
         until(app, lambda: not fc._scanning)

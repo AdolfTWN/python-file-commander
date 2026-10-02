@@ -22,12 +22,15 @@ from .archivefs import extract_archive_to
 from .textio import read_text_document
 from .workflowdata import WorkflowRecords, DEFAULT_COMPARE_EXCLUDES, compare_excluded, compare_sync_plans, comparison_report, write_comparison_report, compare_path_blocked
 from .workflows import WorkflowPicker
+from .reviewui import ReviewCompare
+from .workbookui import WorkbookCompare
+from .archivereviewui import ArchiveReviewCompare
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
                  ".ini", ".cfg", ".log", ".yaml", ".yml", ".sql", ".bat", ".ps1", ".c", ".h",
                  ".cpp", ".hpp", ".java", ".csv", ".tsv"}
-TABLE_SUFFIXES = {".csv", ".tsv"}
+TABLE_SUFFIXES = {".csv", ".tsv", ".xlsx", ".xlsm"}
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
 
 
@@ -745,7 +748,22 @@ class TextCompare(ttk.Frame):
             label.pack(side='left', fill='x', expand=True)
             ToolTip(label, document.description)
             self.document_controls[side] = (edit, label)
+        review = ttk.Button(self.view.diff_row, text=tr('Review & Edit'), command=self.open_review)
+        review.pack(side='right', padx=3)
         self.view.pack(fill="both", expand=True)
+
+    def open_review(self):
+        parent=self.master
+        while parent is not None:
+            if isinstance(parent,FolderCompare):
+                # Keep staged archive files within their owning comparison;
+                # an unrelated top-level tab could outlive its temporary root.
+                relative=self.left_path.relative_to(parent.left_root).as_posix()
+                return parent.open_nested_detail(self.left_path,self.right_path,relative,kind='Review')
+            parent=getattr(parent,'master',None)
+        owner=self.winfo_toplevel()
+        frame=owner.add(self.left_path,self.right_path,requested='Review')
+        if frame is not None:frame.set_read_only('Left' in self.read_only_sides,'Right' in self.read_only_sides)
 
     def edit(self, side):
         document = self.left_document if side == 'Left' else self.right_document
@@ -2177,8 +2195,8 @@ class FolderCompare(_FolderCompareLogic):
         self.session_tabs.select(self.summary)
         self.after_idle(self.left_tree.focus_set)
 
-    def open_nested_detail(self, left: Path, right: Path, relative: str):
-        key = (str(left), str(right))
+    def open_nested_detail(self, left: Path, right: Path, relative: str, kind=None):
+        key = (str(left), str(right), kind)
         for page, details in self.nested_details.items():
             if details["key"] == key:
                 self.session_tabs.select(page)
@@ -2197,9 +2215,10 @@ class FolderCompare(_FolderCompareLogic):
         host.pack(fill="both", expand=True)
         left_title = nested_source_label(self.left_label, relative)
         right_title = nested_source_label(self.right_label, relative)
+        options={'kind':kind} if kind is not None else {}
         kind, detail = self.open_detail(
-            host, left, right, left_title=left_title, right_title=right_title)
-        if type(detail) is TextCompare:
+            host, left, right, left_title=left_title, right_title=right_title,**options)
+        if hasattr(detail,'set_read_only'):
             detail.set_read_only(self.left_read_only, self.right_read_only)
         detail.pack(fill="both", expand=True)
         install_button_tooltips(page)
@@ -2228,10 +2247,18 @@ class FolderCompare(_FolderCompareLogic):
             return False
         if page not in self.nested_details:
             return False
+        detail=self.nested_details[page]['detail']
+        if hasattr(detail,'confirm_close') and not detail.confirm_close():return True
         self.session_tabs.forget(page)
         self.nested_details.pop(page, None)
         page.destroy()
         self._show_summary()
+        return True
+
+    def confirm_close(self):
+        for details in self.nested_details.values():
+            detail=details['detail']
+            if hasattr(detail,'confirm_close') and not detail.confirm_close():return False
         return True
 
     def next(self):
@@ -2252,6 +2279,14 @@ class FolderCompare(_FolderCompareLogic):
             return view.focus_search()
         self.search.focus_set(); self.search.selection_range(0, "end")
         return "break"
+
+    def find_next(self):
+        view=self._active_detail_view()
+        return view.find_next() if view is not None and hasattr(view,'find_next') else self._find(1)
+
+    def find_previous(self):
+        view=self._active_detail_view()
+        return view.find_previous() if view is not None and hasattr(view,'find_previous') else self._find(-1)
 
     def _open(self, _event=None):
         selected = self._selected_items()
@@ -2308,15 +2343,20 @@ class CompareWindow(tk.Toplevel):
         session_menu.add_command(label=tr('Close comparison'), command=self.close_active)
         session_button.configure(menu=session_menu); session_button.pack(side='left')
         ToolTip(session_button, tr('Named paths and rules · reopening never runs sync'))
+        navigation=ttk.Menubutton(session_bar,text=tr('Navigate'))
+        navigation_menu=tk.Menu(navigation,tearoff=False,font='TkMenuFont')
+        for label,key,method in [('Find:','Ctrl+F','focus_search'),('Find Next','F3','find_next'),
+                ('Find Prev','Shift+F3','find_previous'),('Diff <<','F7','previous'),('Diff >>','F8','next')]:
+            navigation_menu.add_command(label=tr(label),accelerator=key,
+                command=lambda m=method:self._shortcut(m))
+        navigation.configure(menu=navigation_menu);navigation.pack(side='left')
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.notebook.set_theme(self.palette)
         self.configure(background=self.palette["window"])
-        self.bind("<F7>", lambda _e: (self._navigate("previous"), "break")[1])
-        # F8 is the Explorer context menu in the main commander.  A Compare
-        # window owns it for next-difference navigation, so stop it before the
-        # application's bind_all handler can receive the same key event.
-        self.bind("<F8>", lambda _e: (self._navigate("next"), "break")[1])
-        self.bind("<Control-f>", lambda _e: self.focus_search())
+        # These belong only to Compare; never reach main-window Preview/VCS.
+        for sequence,method in [('<F3>','find_next'),('<Shift-F3>','find_previous'),
+                ('<F7>','previous'),('<F8>','next'),('<Control-f>','focus_search')]:
+            self.bind(sequence,lambda _e,m=method:self._shortcut(m))
         self.bind("<Escape>", lambda _e: self.close_active())
         install_button_tooltips(self)
         self._schedule_refresh()
@@ -2341,7 +2381,7 @@ class CompareWindow(tk.Toplevel):
         missing = [str(path) for path in (left, right) if not path.exists()]
         if missing: raise OSError(tr('Saved path is unavailable')+':\n'+'\n'.join(missing))
         kind = data.get('kind', 'Auto')
-        if kind not in {'Auto', 'Text', 'Table', 'Binary', 'Folder'}: kind = 'Auto'
+        if kind not in {'Auto', 'Text', 'Table', 'Binary', 'Folder', 'Review'}: kind = 'Auto'
         bases = data.get('bases', ['.', '.'])
         if not isinstance(bases, list) or len(bases) != 2 or any(
                 not isinstance(p, str) or Path(p).is_absolute() or '..' in Path(p).parts for p in bases):
@@ -2370,7 +2410,7 @@ class CompareWindow(tk.Toplevel):
 
     def export_report(self):
         frame = self.current_comparison()
-        if isinstance(frame, FolderCompare): frame.export_report()
+        if hasattr(frame, 'export_report'): frame.export_report()
         else:
             messagebox.showinfo(tr('Export report'), tr('Select a folder comparison to export its results.'), parent=self)
 
@@ -2413,6 +2453,9 @@ class CompareWindow(tk.Toplevel):
 
     def _make_frame(self, left: Path, right: Path, kind: str):
         if kind == "Folder":
+            if is_compare_archive(left) or is_compare_archive(right):
+                return ArchiveReviewCompare(self.notebook,left,right,FolderCompare,self._make_file_frame,self.sync_executor,
+                    marker_position=self.marker_position,marker_changed=self.set_marker_position)
             left_root, left_read_only = self._prepare_folder_source(left)
             right_root, right_read_only = self._prepare_folder_source(right)
             return FolderCompare(self.notebook, left_root, right_root, self._make_file_frame,
@@ -2432,10 +2475,20 @@ class CompareWindow(tk.Toplevel):
             "left_title": left_title,
             "right_title": right_title,
         }
+        use_review=kind=='Review'
+        if kind=='Text':
+            use_review=max(left.stat().st_size,right.stat().st_size)>2*1024*1024
+            if not use_review:
+                for path in (left,right):
+                    with path.open('rb') as stream:sample=stream.read(2*1024*1024+1)
+                    if sample.count(b'\n')>4000 or any(len(line)>4096 for line in sample.split(b'\n')):
+                        use_review=True;break
+        if use_review:
+            return 'Review', ReviewCompare(master,left,right,**options)
         if kind == "Text":
             return kind, TextCompare(master, left, right, **options)
         if kind == "Table":
-            return kind, TableCompare(master, left, right, **options)
+            return kind, WorkbookCompare(master, left, right, **options)
         return "Binary", BinaryCompare(master, left, right, **options)
 
     def _prepare_folder_source(self, path: Path):
@@ -2495,6 +2548,9 @@ class CompareWindow(tk.Toplevel):
             details = self.comparisons.get(frame)
             if details:
                 left, right, kind, previous = details
+                if isinstance(frame, (ReviewCompare, WorkbookCompare, ArchiveReviewCompare)):
+                    self._schedule_refresh()
+                    return
                 current = self._signature(left, right)
                 if current is not None and current != previous:
                     if type(frame) is TextCompare:
@@ -2532,6 +2588,13 @@ class CompareWindow(tk.Toplevel):
                 handler(); return
             pending.extend(widget.winfo_children())
 
+    def _shortcut(self,method):
+        grab=self.grab_current()
+        if grab is None or grab.winfo_toplevel() is self:
+            if method=='focus_search':self.focus_search()
+            else:self._navigate(method)
+        return 'break'
+
     def focus_search(self):
         if not self.notebook.tabs(): return 'break'
         frame = self.nametowidget(self.notebook.select())
@@ -2543,6 +2606,8 @@ class CompareWindow(tk.Toplevel):
         return "break"
 
     def close(self):
+        for frame in list(self.comparisons):
+            if hasattr(frame,'confirm_close') and not frame.confirm_close():return
         for editor in list(getattr(self, '_editors', ())):
             if not editor.close(): return
         if self._refresh_job is not None:
@@ -2569,6 +2634,7 @@ class CompareWindow(tk.Toplevel):
         if len(tabs) <= 1:
             self.close()
             return
+        if hasattr(widget,'confirm_close') and not widget.confirm_close():return
         self.notebook.forget(current)
         self.comparisons.pop(widget, None)
         widget.destroy()

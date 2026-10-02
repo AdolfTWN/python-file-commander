@@ -31,6 +31,7 @@ GROUPS = {
     'settings': ('settings', 'settings_previews', 'settings_layout', 'column_menu', 'settings_readability_groups', 'interaction_layout', 'compact_chrome', 'zoom'),
     'tabs': ('single_panel', 'tab_panel_drag', 'tab_lock', 'workflow_features'),
     'vcs': ('vcs_actions', 'vcs_gui'),
+    'compare': ('review_compare', 'workflow_features', 'compact_chrome'),
     'workflow': (),
 }
 

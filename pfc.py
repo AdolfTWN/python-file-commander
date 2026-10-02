@@ -17,6 +17,54 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Added: Background text/Markdown review up to 20 MiB per side, wide-line navigation, draft editing and reviewed differences.': ('新增：每側最高 20 MiB 的背景文字／Markdown 審閱、超寬行導覽、草稿編輯與差異檢查標記。', '新增：每侧最高 20 MiB 的后台文本／Markdown 审阅、超宽行导航、草稿编辑与差异检查标记。', '추가: 양쪽 각각 최대 20 MiB 텍스트/Markdown 백그라운드 검토, 긴 줄 탐색, 초안 편집 및 검토 표시.'),
+    'Added: Read-only Excel sheet, stored-value, formula and row-key comparison.': ('新增：唯讀 Excel 工作表、儲存值、公式及列識別欄位比較。', '新增：只读 Excel 工作表、存储值、公式及行标识字段比较。', '추가: 읽기 전용 Excel 시트, 저장된 값, 수식 및 행 키 비교.'),
+    'Added: ZIP/7z comparison drafts with explicit reviewed write-back, verification and backups.': ('新增：ZIP／7z 比較草稿，確認變更後才驗證、備份並寫回。', '新增：ZIP／7z 比较草稿，确认变更后才验证、备份并写回。', '추가: 검토 후 검증, 백업 및 명시적 저장을 지원하는 ZIP/7z 비교 초안.'),
+    'Maintenance: Prepare the dedicated Windows test desktop after guest execution readiness, including resumed VM sessions.': ('維護：確認客體可執行後準備專用 Windows 測試桌面，包含 VM 恢復情境。', '维护：确认客户机可执行后准备专用 Windows 测试桌面，包括 VM 恢复场景。', '유지 관리: 게스트 실행 준비 후 전용 Windows 테스트 데스크톱 준비, 재개된 VM 세션 포함.'),
+    'Navigate': ('導覽', '导航', '탐색'),
+    'Reload from disk': ('從磁碟重新載入', '从磁盘重新载入', '디스크에서 다시 불러오기'),
+    'Read-only excerpt': ('唯讀節錄', '只读节选', '읽기 전용 발췌'),
+    'Source comparison remains authoritative': ('以原始文字比較為準', '以原始文本比较为准', '원본 텍스트 비교를 기준으로 합니다'),
+    'Wide lines: use horizontal bar': ('超寬行：使用水平捲軸', '超宽行：使用水平滚动条', '긴 줄: 가로 스크롤 사용'),
+    'L Value / cached result': ('左側值／快取結果', '左侧值／缓存结果', '왼쪽 값 / 캐시 결과'),
+    'R Value / cached result': ('右側值／快取結果', '右侧值／缓存结果', '오른쪽 값 / 캐시 결과'),
+    'L Formula': ('左側公式', '左侧公式', '왼쪽 수식'),
+    'R Formula': ('右側公式', '右侧公式', '오른쪽 수식'),
+    'Read-only · formulas are not recalculated · double-click for full cell': ('唯讀・不重新計算公式・雙擊檢視完整儲存格', '只读・不重新计算公式・双击查看完整单元格', '읽기 전용 · 수식 재계산 없음 · 더블 클릭으로 전체 셀 보기'),
+    'Review': ('審閱', '审阅', '검토'),
+    'Review & Edit': ('審閱與編輯', '审阅与编辑', '검토 및 편집'),
+    'Edit Left': ('編輯左側', '编辑左侧', '왼쪽 편집'),
+    'Edit Right': ('編輯右側', '编辑右侧', '오른쪽 편집'),
+    'Save Left': ('儲存左側', '保存左侧', '왼쪽 저장'),
+    'Save Right': ('儲存右側', '保存右侧', '오른쪽 저장'),
+    'Save review': ('儲存審閱記錄', '保存审阅记录', '검토 기록 저장'),
+    'Open review': ('開啟審閱記錄', '打开审阅记录', '검토 기록 열기'),
+    'Recompare drafts': ('重新比較草稿', '重新比较草稿', '초안 다시 비교'),
+    'Draft': ('未儲存草稿', '未保存草稿', '초안'),
+    'Saved': ('已儲存', '已保存', '저장됨'),
+    'difference blocks': ('處差異', '处差异', '차이 블록'),
+    'reviewed': ('已檢查', '已检查', '검토됨'),
+    'Copy current difference to LEFT draft': ('將目前差異複製到左側草稿（尚未寫入檔案）', '将当前差异复制到左侧草稿（尚未写入文件）', '현재 차이를 왼쪽 초안에 복사'),
+    'Copy current difference to RIGHT draft': ('將目前差異複製到右側草稿（尚未寫入檔案）', '将当前差异复制到右侧草稿（尚未写入文件）', '현재 차이를 오른쪽 초안에 복사'),
+    'Toggle reviewed — does not accept or save changes': ('標記已檢查；不會接受差異或儲存檔案', '标记已检查；不会接受差异或保存文件', '검토 표시 전환 — 변경 수락/저장 아님'),
+    'Sync horizontal scrolling': ('同步水平捲動', '同步水平滚动', '가로 스크롤 동기화'),
+    'Markdown reading preview': ('Markdown 閱讀預覽', 'Markdown 阅读预览', 'Markdown 읽기 미리 보기'),
+    'Apply to draft': ('套用至草稿', '应用到草稿', '초안에 적용'),
+    'Write this draft to the original file?': ('將這份草稿寫入原始檔案？', '将这份草稿写入原始文件？', '이 초안을 원본 파일에 저장할까요?'),
+    'Discard unsaved comparison drafts?': ('放棄尚未儲存的比較草稿？', '放弃尚未保存的比较草稿？', '저장하지 않은 비교 초안을 버릴까요?'),
+    'Worksheet': ('工作表', '工作表', '워크시트'),
+    'Values': ('儲存值', '存储值', '값'),
+    'Formulas': ('公式', '公式', '수식'),
+    'Both': ('值與公式', '值与公式', '값과 수식'),
+    'Row key columns…': ('列識別欄位…', '行标识列…', '행 키 열…'),
+    'Review archive changes…': ('檢查壓縮檔變更…', '检查压缩文件变更…', '압축 변경 검토…'),
+    'Draft actions': ('草稿操作', '草稿操作', '초안 작업'),
+    'Delete selected from LEFT draft': ('從左側草稿移除選取項目', '从左侧草稿移除所选项目', '왼쪽 초안에서 선택 항목 삭제'),
+    'Delete selected from RIGHT draft': ('從右側草稿移除選取項目', '从右侧草稿移除所选项目', '오른쪽 초안에서 선택 항목 삭제'),
+    'Undo last LEFT deletion': ('還原左側上次移除', '撤消左侧上次移除', '왼쪽 삭제 취소'),
+    'Undo last RIGHT deletion': ('還原右側上次移除', '撤消右侧上次移除', '오른쪽 삭제 취소'),
+    'Save this archive': ('儲存此壓縮檔', '保存此压缩文件', '이 압축 파일 저장'),
+    'No archive changes': ('壓縮檔沒有變更', '压缩文件没有变更', '압축 파일 변경 없음'),
     'Added: Auto Font Size fits sampled Panel 1–2 filenames at 100–300%, with compact hover-revealed zoom controls.': ('新增：自動字型依面板 1–2 抽樣檔名在 100–300% 間調整，搭配精簡的滑鼠靠近浮現縮放控制。', '新增：自动字体依面板 1–2 抽样文件名在 100–300% 间调整，搭配精简的鼠标靠近浮现缩放控件。', '추가: 패널 1–2의 파일명 표본에 맞춰 자동 글자 크기를 100–300%로 조절하고 마우스 접근 시 확대/축소 컨트롤을 표시합니다.'),
     'Improved: Grouped popup search, comparison, rename and folder controls preserve more content space.': ('改善：彈出視窗的搜尋、比較、重新命名與資料夾控制依功能集中排列，保留更多內容空間。', '改善：弹出窗口的搜索、比较、重命名与文件夹控件按功能集中排列，保留更多内容空间。', '개선: 팝업의 검색, 비교, 이름 변경 및 폴더 컨트롤을 기능별로 묶어 콘텐츠 공간을 확보했습니다.'),
     'Increase font size (manual)': ('放大字型（手動）', '放大字体（手动）', '글자 확대 (수동)'),
@@ -8654,6 +8702,1554 @@ class VcsActions:
         except (OSError, ValueError) as exc:
             messagebox.showerror(tr('Version Control'), tr(str(exc)), parent=self.app)
 
+"""Comparison data, independent of Tk. No automatic writes to source files."""
+from array import array
+from bisect import bisect_right, bisect_left
+from collections import Counter
+import difflib
+import hashlib
+import json
+from pathlib import Path
+
+
+REVIEW_LIMIT = 20 * 1024 * 1024
+
+
+class LineIndex:
+    """Compact line offsets; unlike splitlines(), a million rows aren't objects."""
+    def __init__(self, text):
+        self.text = text
+        self.starts = array('I', [0])
+        start = 0
+        while True:
+            start = text.find('\n', start)
+            if start < 0: break
+            start += 1
+            self.starts.append(start)
+
+    def __len__(self):
+        return len(self.starts)
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return [self[i] for i in range(*key.indices(len(self))) ]
+        if key < 0: key += len(self)
+        if not 0 <= key < len(self): raise IndexError(key)
+        end = self.starts[key + 1] - 1 if key + 1 < len(self) else len(self.text)
+        return self.text[self.starts[key]:end]
+
+    def span(self, start, stop):
+        a = self.starts[start] if start < len(self) else len(self.text)
+        b = self.starts[stop] if stop < len(self) else len(self.text)
+        return a, b
+
+
+def review_opcodes(left, right):
+    """Patience anchors plus bounded fine alignment; coarse changes stay honest.
+
+    No positional fallback: an insertion never makes the remaining file differ.
+    Oversized ambiguous spans are a replace block, not an equality assertion.
+    """
+    a, b = LineIndex(left), LineIndex(right)
+    if left == right:
+        return [('equal', 0, len(a), 0, len(b))]
+    # Digest keys bound memory for wide lines. Equality is checked against source
+    # text before anchors are used, rather than trusting hash equality alone.
+    def keys(lines):
+        return [hashlib.blake2b(lines.text[slice(*lines.span(i,i+1))].encode('utf-8'), digest_size=16).digest()
+                for i in range(len(lines))]
+    ka, kb = keys(a), keys(b)
+    ca, cb = Counter(ka), Counter(kb)
+    positions = {key: i for i, key in enumerate(kb) if cb[key] == 1}
+    pairs = [(i, positions[key]) for i, key in enumerate(ka)
+             if ca[key] == 1 and key in positions and a[i] == b[positions[key]]]
+    tails, tail_indices, previous = [], [], []
+    for index, (_, j) in enumerate(pairs):
+        k = bisect_left(tails, j)
+        previous.append(tail_indices[k-1] if k else -1)
+        if k == len(tails): tails.append(j); tail_indices.append(index)
+        else: tails[k] = j; tail_indices[k] = index
+    anchors = []
+    node = tail_indices[-1] if tail_indices else -1
+    while node >= 0:
+        anchors.append(pairs[node]); node = previous[node]
+    anchors.reverse()
+    result = []
+    def emit(tag, i, x, j, y):
+        if i == x and j == y: return
+        if result and result[-1][0] == tag and result[-1][2] == i and result[-1][4] == j:
+            old = result.pop(); result.append((tag, old[1], x, old[3], y))
+        else: result.append((tag, i, x, j, y))
+    def gap(i, x, j, y):
+        while i < x and j < y and ka[i] == kb[j] and a[i] == b[j]:
+            emit('equal', i, i+1, j, j+1); i += 1; j += 1
+        end_x, end_y = x, y
+        while i < x and j < y and ka[x-1] == kb[y-1] and a[x-1] == b[y-1]: x -= 1; y -= 1
+        if i == x: emit('insert', i, x, j, y)
+        elif j == y: emit('delete', i, x, j, y)
+        elif (x-i)*(y-j) <= 1_000_000 and max(x-i, y-j) <= 4000:
+            ta=[a.text[slice(*a.span(n,n+1))] for n in range(i,x)]
+            tb=[b.text[slice(*b.span(n,n+1))] for n in range(j,y)]
+            for tag, p, q, r, s in difflib.SequenceMatcher(None, ta, tb, autojunk=False).get_opcodes():
+                emit(tag, i+p, i+q, j+r, j+s)
+        else: emit('replace', i, x, j, y)
+        emit('equal', x, end_x, y, end_y)
+    i = j = 0
+    for x, y in anchors:
+        gap(i, x, j, y); emit('equal', x, x+1, y, y+1); i, j = x+1, y+1
+    gap(i, len(a), j, len(b))
+    return result
+
+
+class ReviewAlignment:
+    def __init__(self, left, right, opcodes):
+        self.lines = (LineIndex(left), LineIndex(right))
+        self.opcodes = opcodes
+        self.starts = [0]
+        self.differences = []
+        for n, (tag, a, b, c, d) in enumerate(opcodes):
+            if tag != 'equal': self.differences.append(n)
+            self.starts.append(self.starts[-1] + max(b-a, d-c))
+
+    def row(self, number):
+        block = min(len(self.opcodes)-1, bisect_right(self.starts, number)-1)
+        tag, a, b, c, d = self.opcodes[block]
+        offset = number-self.starts[block]
+        return block, (a+offset if a+offset < b else None), (c+offset if c+offset < d else None)
+
+    def block_key(self, index):
+        tag, a, b, c, d = self.opcodes[index]
+        return hashlib.sha256(json.dumps([tag, a, b, c, d,
+            self.lines[0].text[slice(*self.lines[0].span(a,b))],
+            self.lines[1].text[slice(*self.lines[1].span(c,d))]], ensure_ascii=False).encode()).hexdigest()
+
+    def take(self, index, source):
+        tag, a, b, c, d = self.opcodes[index]
+        spans = (self.lines[0].span(a,b), self.lines[1].span(c,d))
+        target = 1-source; lo, hi = spans[target]
+        chunk = self.lines[source].text[slice(*spans[source])]
+        return self.lines[target].text[:lo] + chunk + self.lines[target].text[hi:]
+
+
+def review_state(texts, checked):
+    return {'format': 'pfc-review-1',
+            'digests': [hashlib.sha256(t.encode()).hexdigest() for t in texts],
+            'checked': sorted(checked)}
+
+
+def restore_review_state(record, texts):
+    expected = review_state(texts, ())
+    if record.get('format') != expected['format'] or record.get('digests') != expected['digests']:
+        raise ValueError('Review belongs to different document contents; no marks restored.')
+    checked = record.get('checked')
+    if not isinstance(checked, list) or len(checked) > 1_000_000 or any(
+            not isinstance(k, str) or len(k) != 64 for k in checked):
+        raise ValueError('Invalid review marks')
+    return set(checked)
+
+"""Atomic auxiliary review exports that cannot replace a compared source."""
+import os
+from pathlib import Path
+import tempfile
+
+
+def safe_review_write(target,data,sources):
+    target=Path(target)
+    if target.is_symlink():raise OSError('Linked destinations are not supported')
+    for source in sources:
+        if target.resolve()==Path(source).resolve() or (target.exists() and Path(source).exists() and os.path.samefile(target,source)):
+            raise OSError('An export cannot overwrite a compared source')
+    if target.exists() and target.stat().st_nlink>1:raise OSError('Hard-linked destinations are not supported')
+    before=target.stat() if target.exists() else None
+    fd,name=tempfile.mkstemp(prefix='.pfc-review-',dir=target.parent)
+    try:
+        with os.fdopen(fd,'wb') as stream:stream.write(data);stream.flush();os.fsync(stream.fileno())
+        after=target.lstat() if target.exists() or target.is_symlink() else None
+        identity=lambda info:None if info is None else (info.st_dev,info.st_ino,info.st_mtime_ns,info.st_size,info.st_nlink)
+        if target.is_symlink() or identity(before)!=identity(after):raise OSError('Export destination changed; no overwrite')
+        os.replace(name,target)
+    finally:
+        if os.path.exists(name):os.unlink(name)
+
+"""Read-only Office Open XML values/formulas. Never starts Excel or a macro."""
+import csv
+from datetime import datetime, timedelta
+from decimal import Decimal, InvalidOperation
+import io
+import posixpath
+import re
+import zipfile
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+
+WORKBOOK_XML_LIMIT = 256 * 1024 * 1024
+WORKBOOK_CELL_LIMIT = 1_000_000
+_WB_MAIN = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
+_WB_REL = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
+
+
+def excel_date(serial,date1904):
+    value=float(serial)
+    if not date1904 and 60<=value<61:
+        return '1900-02-29 (Excel leap-day compatibility) '+str(value-60)
+    epoch=datetime(1904,1,1) if date1904 else datetime(1899,12,31) if value<60 else datetime(1899,12,30)
+    return (epoch+timedelta(days=value)).isoformat(timespec='milliseconds')
+
+
+def cell_values_equal(a,b,mode='Both'):
+    if a is None or b is None:return a==b
+    if mode=='Formulas':return a[2]==b[2]
+    def normalized(cell):
+        kind,value,_=cell
+        if kind in ('s','inlineStr','str','text'):kind='text'
+        if kind=='n' and value is not None:
+            try:value=Decimal(value)
+            except InvalidOperation:pass
+        return kind,value
+    equal=normalized(a)==normalized(b)
+    return equal if mode=='Values' else equal and a[2]==b[2]
+
+
+def cell_position(ref):
+    match = re.fullmatch(r'([A-Z]+)([1-9][0-9]*)', ref or '')
+    if not match: raise ValueError('Invalid cell address')
+    column = 0
+    for ch in match[1]: column = column * 26 + ord(ch)-64
+    row = int(match[2])
+    if column > 16384 or row > 1048576: raise ValueError('Cell address outside Excel bounds')
+    return row, column
+
+
+def cell_address(row, col):
+    letters = ''
+    while col:
+        col, rem = divmod(col-1,26); letters = chr(65+rem)+letters
+    return letters+str(row)
+
+
+def shared_formula(formula, anchor, target):
+    ar, ac = cell_position(anchor); tr, tc = cell_position(target)
+    # Skip Excel string literals and quoted sheet names. References outside
+    # literals retain absolute components; no formula is evaluated.
+    tokens = re.split(r'("(?:[^"]|"")*"|\x27(?:[^\x27]|\x27\x27)*\x27|\[[^]]*\])', formula)
+    pattern = re.compile(r'(?<![A-Za-z0-9_.])([$]?)([A-Z]{1,3})([$]?)([1-9][0-9]*)(?![A-Za-z0-9_(])')
+    def shift(m):
+        r,c = cell_position(m[2]+m[4])
+        r += 0 if m[3] else tr-ar; c += 0 if m[1] else tc-ac
+        if r < 1 or c < 1 or r > 1048576 or c > 16384: return '#REF!'
+        address = cell_address(r,c); letters = address.rstrip('0123456789')
+        return m[1]+letters+m[3]+str(r)
+    return ''.join(token if n%2 else pattern.sub(shift,token) for n,token in enumerate(tokens))
+
+
+def read_workbook(path):
+    """Sparse sheets, each cell = (kind, cached value or None, formula)."""
+    path = Path(path)
+    if path.suffix.lower() in ('.csv','.tsv'):
+        text = read_text_document(path).text
+        cells = {}
+        for row, values in enumerate(csv.reader(io.StringIO(text), delimiter='\t' if path.suffix.lower()=='.tsv' else ','),1):
+            for col,value in enumerate(values,1):
+                if len(cells) >= WORKBOOK_CELL_LIMIT: raise ValueError('Table exceeds 1,000,000 populated cells')
+                cells[cell_address(row,col)] = ('text',value,'')
+        return {'date1904':False,'sheets':[{'name':'Table','state':'visible','cells':cells,'merged':[]}]}
+    if path.suffix.lower() not in ('.xlsx','.xlsm'):
+        raise ValueError('Supported workbooks: .xlsx / .xlsm (read-only)')
+    try:
+        with zipfile.ZipFile(path) as z:
+            infos=z.infolist()
+            if len(infos)>100000 or len({i.filename for i in infos})!=len(infos):
+                raise ValueError('Invalid or oversized workbook package')
+            if any(i.flag_bits&1 for i in infos): raise ValueError('Encrypted workbooks are not supported')
+            total=0
+            def xml(name):
+                nonlocal total
+                info=z.getinfo(name); total+=info.file_size
+                if info.file_size>WORKBOOK_XML_LIMIT or total>WORKBOOK_XML_LIMIT:
+                    raise ValueError('Workbook XML exceeds 256 MiB safety budget')
+                data=z.read(name)
+                safe=data.replace(b'\x00',b'').upper()
+                if b'<!DOCTYPE' in safe or b'<!ENTITY' in safe:
+                    raise ValueError('DTD/entity declarations are not allowed')
+                return ET.fromstring(data)
+            def sheet_elements(name):
+                nonlocal total
+                info=z.getinfo(name);total+=info.file_size
+                if info.file_size>WORKBOOK_XML_LIMIT or total>WORKBOOK_XML_LIMIT:
+                    raise ValueError('Workbook XML exceeds 256 MiB safety budget')
+                class CheckedReader:
+                    def __init__(self,stream):self.stream=stream;self.tail=b'';self.count=0
+                    def read(self,size):
+                        chunk=self.stream.read(size);self.count+=len(chunk)
+                        safe=(self.tail+chunk).replace(b'\x00',b'').upper()
+                        if self.count>WORKBOOK_XML_LIMIT or b'<!DOCTYPE' in safe or b'<!ENTITY' in safe:
+                            raise ValueError('Unsafe or oversized worksheet XML')
+                        self.tail=chunk[-64:];return chunk
+                with z.open(name) as stream:
+                    stack=[]
+                    for event,element in ET.iterparse(CheckedReader(stream),events=('start','end')):
+                        if event=='start':stack.append(element);continue
+                        if element.tag in (_WB_MAIN+'c',_WB_MAIN+'mergeCell'):
+                            yield element
+                            element.clear()
+                        elif element.tag==_WB_MAIN+'row':
+                            element.clear()
+                            if len(stack)>1:stack[-2].remove(element)
+                        stack.pop()
+            book=xml('xl/workbook.xml')
+            links=xml('xl/_rels/workbook.xml.rels')
+            targets={r.get('Id'):r.get('Target') for r in links if r.get('TargetMode')!='External'}
+            strings=[]
+            if 'xl/sharedStrings.xml' in z.namelist():
+                for si in xml('xl/sharedStrings.xml'):
+                    strings.append(''.join(t.text or '' for t in si.iter(_WB_MAIN+'t')))
+            prop=book.find(_WB_MAIN+'workbookPr')
+            result={'date1904':prop is not None and prop.get('date1904') in ('1','true'),'sheets':[]}
+            date_styles=set()
+            if 'xl/styles.xml' in z.namelist():
+                styles=xml('xl/styles.xml');formats={}
+                for fmt in styles.findall(_WB_MAIN+'numFmts/'+_WB_MAIN+'numFmt'):
+                    code=re.sub(r'"[^"]*"|\\.|\[[^]]*\]','',fmt.get('formatCode','')).lower()
+                    formats[int(fmt.get('numFmtId'))]=bool(re.search(r'[ymdhs]',code))
+                for index,style in enumerate(styles.findall(_WB_MAIN+'cellXfs/'+_WB_MAIN+'xf')):
+                    number=int(style.get('numFmtId','0'))
+                    if number in set(range(14,23))|{45,46,47} or formats.get(number,False):date_styles.add(index)
+            count=0
+            for element in book.findall(_WB_MAIN+'sheets/'+_WB_MAIN+'sheet'):
+                name=element.get('name')
+                if not name or any(s['name']==name for s in result['sheets']):raise ValueError('Missing or duplicate worksheet name')
+                target=targets.get(element.get(_WB_REL+'id'))
+                if not target: raise ValueError('Missing or external worksheet relationship')
+                target=posixpath.normpath(target.lstrip('/') if target.startswith('/') else 'xl/'+target)
+                if not target.startswith('xl/') or '..' in target.split('/'):
+                    raise ValueError('Unsafe worksheet relationship')
+                cells={}; formulas={}; pending=[];merged=[]
+                for c in sheet_elements(target):
+                    if c.tag==_WB_MAIN+'mergeCell':merged.append(c.get('ref'));continue
+                    count+=1
+                    if count>WORKBOOK_CELL_LIMIT: raise ValueError('Workbook exceeds 1,000,000 populated cells')
+                    ref=c.get('r'); cell_position(ref)
+                    if ref in cells: raise ValueError('Duplicate cell address')
+                    typ=c.get('t','n'); v=c.find(_WB_MAIN+'v'); f=c.find(_WB_MAIN+'f')
+                    value=v.text if v is not None else None
+                    if typ=='s':
+                        string_index=int(value)
+                        if not 0<=string_index<len(strings):raise ValueError('Invalid shared-string index')
+                        value=strings[string_index]
+                    if typ=='inlineStr': value=''.join(t.text or '' for t in c.iter(_WB_MAIN+'t'))
+                    if typ=='n' and value is not None and int(c.get('s','0')) in date_styles:
+                        try:value=excel_date(value,result['date1904']);typ='date'
+                        except (ValueError,OverflowError):pass
+                    formula=f.text or '' if f is not None else ''
+                    if f is not None and f.get('t')=='shared':
+                        key=f.get('si')
+                        if formula: formulas[key]=(ref,formula)
+                        else: pending.append((ref,key))
+                    cells[ref]=(typ,value,formula)
+                for ref,key in pending:
+                    if key not in formulas: raise ValueError('Missing shared formula anchor')
+                    anchor,formula=formulas[key]
+                    typ,value,_=cells[ref];cells[ref]=(typ,value,shared_formula(formula,anchor,ref))
+                result['sheets'].append({'name':element.get('name'), 'state':element.get('state','visible'),
+                                         'cells':cells,'merged':merged})
+            return result
+    except (zipfile.BadZipFile, KeyError, ET.ParseError, IndexError, TypeError) as exc:
+        raise ValueError('Unreadable, encrypted or invalid Excel workbook: '+str(exc)) from exc
+
+
+def workbook_rows(left, right, key_columns=(), header_row=1):
+    """Pair sparse cells, optionally align unique row keys. Never guess duplicates."""
+    a=left['cells'] if left else {}; b=right['cells'] if right else {}
+    if not key_columns:
+        return [(ref,ref,a.get(ref),b.get(ref)) for ref in sorted(set(a)|set(b),key=cell_position)]
+    def keyed(cells):
+        rows={}
+        for ref,value in cells.items():
+            r,c=cell_position(ref); rows.setdefault(r,{})[c]=(ref,value)
+        index={}
+        for r,values in rows.items():
+            if r<=header_row: key=('header',r)
+            else:
+                key=tuple(values.get(c,('',('n',None,'')))[1][1] for c in key_columns)
+                if all(v in (None,'') for v in key): raise ValueError('Key columns contain an empty row key')
+            if key in index: raise ValueError('Duplicate row key; use coordinate alignment or unique keys')
+            index[key]=values
+        return index
+    la,rb=keyed(a),keyed(b); out=[]
+    for key in list(la)+[key for key in rb if key not in la]:
+        l,r=la.get(key,{}),rb.get(key,{})
+        for col in sorted(set(l)|set(r)):
+            ar,av=l.get(col,('',None));br,bv=r.get(col,('',None));out.append((ar,br,av,bv))
+    return out
+
+"""Cancelable process-isolated comparison jobs. UI never waits for diff work."""
+import dataclasses
+import json
+import os
+from pathlib import Path
+import queue
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+
+
+def comparison_worker_main():
+    try:
+        if not limit_markdown_worker_memory(2*1024*1024*1024):
+            raise OSError('Cannot enforce comparison worker memory budget')
+        request = json.load(sys.stdin)
+        mode = request['mode']
+        if mode == 'load':
+            docs = [read_text_document(Path(p), limit=20*1024*1024) for p in request['paths']]
+            result = {'documents': [dict(text=d.text, encoding=d.encoding, bom=d.bom.hex(),
+                       ending=d.ending,digest=d.digest,reason=d.reason) for d in docs]}
+            result['opcodes'] = review_opcodes(docs[0].text,docs[1].text)
+        elif mode == 'diff':
+            if len(request['texts'])!=2 or any(len(t)>20*1024*1024 for t in request['texts']):
+                raise ValueError('Comparison exceeds 20 MiB per side')
+            result = {'opcodes': review_opcodes(*request['texts'])}
+        elif mode == 'workbook': result = {'books': [read_workbook(Path(p)) for p in request['paths']]}
+        elif mode == 'preview':
+            if len(request['text'])>64000:raise ValueError('Reading excerpt exceeds limit')
+            content,spans=render_markdown(request['text'])
+            result={'content':content,'spans':spans}
+        else: raise ValueError('Unknown comparison request')
+    except MemoryError: result = {'error':'Comparison exceeded the 2 GiB worker memory budget; sources unchanged'}
+    except Exception as exc: result = {'error': str(exc)}
+    json.dump(result,sys.stdout,ensure_ascii=True)
+
+
+class ComparisonJobs:
+    def __init__(self):
+        self.serial=0; self.results=queue.Queue(); self.process=None; self.lock=threading.Lock()
+
+    def submit(self, request):
+        self.cancel(); serial=self.serial
+        if __package__:
+            args=[sys.executable,'-c','from pycommander.reviewjobs import comparison_worker_main; comparison_worker_main()']
+            cwd=str(Path(__file__).resolve().parents[1])
+        else:
+            args=[sys.executable,'-c',"import runpy,sys; runpy.run_path(sys.argv[1],run_name='pfc_compare_worker')['comparison_worker_main']()",str(Path(__file__).resolve())]
+            cwd=str(Path(__file__).resolve().parent)
+        def work():
+            process=None
+            try:
+                with self.lock:
+                    if serial!=self.serial: return
+                    process=subprocess.Popen(args,cwd=cwd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,creationflags=0x08000000 if os.name=='nt' else 0)
+                    self.process=process
+                out,err=process.communicate(json.dumps(request).encode(),timeout=5 if request['mode']=='preview' else 90)
+                result=json.loads(out) if process.returncode==0 else {'error':'Comparison worker exited without a result'}
+            except Exception as exc:
+                if process and process.poll() is None: process.kill(); process.communicate()
+                result={'error':str(exc)}
+            if serial==self.serial: self.results.put((serial,result))
+        threading.Thread(target=work,daemon=True).start()
+        return serial
+
+    def cancel(self):
+        with self.lock:
+            self.serial+=1
+            if self.process and self.process.poll() is None: self.process.terminate()
+            self.process=None
+
+"""Paged source review: bounded Tk content, explicit drafts and safe saves."""
+import bisect
+import hashlib
+import html
+import json
+from pathlib import Path
+import queue
+import threading
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox, simpledialog
+from tkinter import font as tkfont
+
+
+class ReviewCompare(ttk.Frame):
+    PAGE = 80
+    WIDTH = 2048
+
+    def __init__(self, master, left, right, **options):
+        super().__init__(master)
+        self.paths = [Path(left),Path(right)]; self.view=self
+        self.documents=[]; self.texts=[]; self.alignment=None; self.checked=set()
+        self.top=0; self.column=[0,0]; self.active_side=0; self.block=None
+        self.jobs=ComparisonJobs(); self.serial=None; self.busy=False; self._poll_job=None
+        self._saving=False;self._saved=queue.Queue()
+        self.history=[]; self.future=[]; self.read_only_sides=set(); self._editors=[]
+        self.preview=None; self.palette=None; self.matches=[]; self.find_index=-1
+        self.preview_jobs=ComparisonJobs();self._preview_timer=None;self._preview_poll=None
+        self.wrap=tk.BooleanVar(value=False); self.sync_x=tk.BooleanVar(value=True)
+        self.only_diffs=tk.BooleanVar(value=False); self.case=tk.BooleanVar(value=False)
+        self.search_var=tk.StringVar(); self.find_status=tk.StringVar()
+        bar=ttk.Frame(self);bar.pack(fill='x',padx=4,pady=3)
+        actions=ttk.Menubutton(bar,text=tr('Actions'));actions.pack(side='left')
+        menu=tk.Menu(actions,tearoff=False);actions.configure(menu=menu)
+        for label,cmd in [('Edit Left',lambda:self.edit(0)),('Edit Right',lambda:self.edit(1)),
+                          ('Save Left',lambda:self.save_side(0)),('Save Right',lambda:self.save_side(1)),
+                          ('Save As',self.save_as),('Undo',self.undo),('Redo',self.redo),
+                          ('Save review',self.save_review),('Open review',self.open_review),
+                          ('Export report',self.export_report),('Recompare drafts',self.recompare),
+                          ('Reload from disk',self.reload_sources)]:
+            menu.add_command(label=tr(label),command=cmd)
+        for label,cmd in [('←',lambda:self.take(1)),('→',lambda:self.take(0)),
+                          ('✓',self.mark_reviewed),('F7 ◀',self.previous),('F8 ▶',self.next)]:
+            b=ttk.Button(bar,text=label,width=0,command=cmd);b.pack(side='left',padx=2)
+            ToolTip(b,{'←':tr('Copy current difference to LEFT draft'), '→':tr('Copy current difference to RIGHT draft'),
+                       '✓':tr('Toggle reviewed — does not accept or save changes')}.get(label,label))
+        view=ttk.Menubutton(bar,text=tr('View'));view.pack(side='left',padx=3)
+        vm=tk.Menu(view,tearoff=False);view.configure(menu=vm)
+        for label,var,cmd in [('Wrap',self.wrap,self.render),('Sync horizontal scrolling',self.sync_x,self.render),
+                             ('Differences only',self.only_diffs,self.filter_changed)]:
+            vm.add_checkbutton(label=tr(label),variable=var,command=cmd)
+        vm.add_command(label=tr('Markdown reading preview'),command=self.toggle_preview)
+        vm.add_command(label=tr('Go to line'),command=self.goto_line)
+        ttk.Button(bar,text=tr('Cancel'),width=0,command=self.cancel).pack(side='right')
+        find=ttk.Frame(self);find.pack(fill='x',padx=4,pady=2)
+        ttk.Label(find,text=tr('Find:')).pack(side='left')
+        self.search=ttk.Entry(find,textvariable=self.search_var,width=8);self.search.pack(side='left',fill='x',expand=True)
+        for label,cmd in [('◀',lambda:self.find(-1)),('▶',lambda:self.find(1))]:
+            button=ttk.Button(find,text=label,width=0,command=cmd);button.pack(side='left',padx=2)
+            ToolTip(button,tr('Find Prev' if label=='◀' else 'Find Next')+(' · Shift+F3' if label=='◀' else ' · F3'))
+        self.case_button=ttk.Checkbutton(find,text='Aa',variable=self.case,
+                                       command=lambda:setattr(self,'_find_offset',-1))
+        self.case_button.pack(side='left',padx=2);ToolTip(self.case_button,tr('Case sensitive'))
+        ttk.Button(find,text=tr('Replace'),width=0,command=self.replace).pack(side='left',padx=2)
+        self.search.bind('<Return>',lambda e:self.find(1))
+        self.search.bind('<Shift-Return>',lambda e:self.find(-1))
+        self.body=tk.PanedWindow(self,orient='horizontal',sashwidth=5,borderwidth=0);self.body.pack(fill='both',expand=True)
+        self.frames=[];self.headers=[];self.widgets=[];self.xbars=[]
+        for side in (0,1):
+            frame=ttk.Frame(self.body);self.body.add(frame,stretch='always');self.frames.append(frame)
+            frame.columnconfigure(0,weight=1);frame.rowconfigure(1,weight=1)
+            title=str(options.get(('left_title','right_title')[side]) or self.paths[side])
+            header=ttk.Label(frame,text=('L · ' if side==0 else 'R · ')+title,anchor='w',width=1)
+            header.grid(row=0,column=0,sticky='ew');ToolTip(header,title);self.headers.append(header)
+            text=tk.Text(frame,wrap='none',height=12,undo=False,font='TkFixedFont',takefocus=True)
+            text.grid(row=1,column=0,sticky='nsew');text.configure(state='disabled');self.widgets.append(text)
+            xbar=ttk.Scrollbar(frame,orient='horizontal',command=lambda *args,s=side:self.xscroll(s,*args))
+            xbar.grid(row=2,column=0,sticky='ew');self.xbars.append(xbar)
+            text.bind('<ButtonRelease-1>',lambda e,s=side:self.select_row(s,e))
+            text.bind('<FocusIn>',lambda e,s=side:setattr(self,'active_side',s))
+            text.bind('<Double-Button-1>',lambda e,s=side:self.edit(s))
+            text.bind('<MouseWheel>',lambda e:self.scroll('scroll',-3 if e.delta>0 else 3,'units'))
+            text.bind('<Button-4>',lambda e:self.scroll('scroll',-3,'units'))
+            text.bind('<Button-5>',lambda e:self.scroll('scroll',3,'units'))
+            text.bind('<Next>',lambda e:self.scroll('scroll',1,'pages'))
+            text.bind('<Prior>',lambda e:self.scroll('scroll',-1,'pages'))
+            text.bind('<Control-s>',lambda e,s=side:self.save_side(s))
+        self.scrollbar=ttk.Scrollbar(self,command=self.scroll);self.scrollbar.pack(side='right',fill='y',before=self.body)
+        self.status=ttk.Label(self,text=tr('Loading comparison…'),anchor='w',width=1);self.status.pack(fill='x',padx=4)
+        self.bind('<Configure>',self.resize,add='+')
+        self.bind('<Destroy>',self._destroyed,add='+')
+        self._orientation='horizontal'
+        self.apply_color_scheme({'content':'#ffffff','text':'#202020'})
+        self.apply_scale(1)
+        self.start({'mode':'load','paths':[str(p) for p in self.paths]})
+
+    def resize(self,event):
+        if event.widget is not self: return
+        orientation='vertical' if event.width<900 else 'horizontal'
+        if orientation!=self._orientation:
+            self._orientation=orientation;self.body.configure(orient=orientation)
+        if self.block is not None and self.current_alignment():self.jump_block(self.block)
+
+    def visible_columns(self,side):
+        text=self.widgets[side];font=tkfont.Font(font=text.cget('font'))
+        return max(8,int((text.winfo_width()-18)/max(1,font.measure('M')))-9)
+
+    def start(self,request):
+        self.busy=True; self.status.configure(text=tr('Comparing… drafts retained; Cancel is available'))
+        self.serial=self.jobs.submit(request)
+        if self._poll_job is None:self._poll_job=self.after(40,self.poll)
+
+    def poll(self):
+        self._poll_job=None
+        if self._saving:
+            try:error=self._saved.get_nowait()
+            except queue.Empty:self._poll_job=self.after(40,self.poll);return
+            self._saving=False;self.busy=False;self.render()
+            if error:messagebox.showerror(tr('Save failed'),error,parent=self)
+            return
+        try:
+            serial,result=self.jobs.results.get_nowait()
+        except queue.Empty:
+            if self.busy:self._poll_job=self.after(40,self.poll)
+            return
+        if serial!=self.serial:
+            if self.busy:self._poll_job=self.after(40,self.poll)
+            return
+        self.busy=False
+        if 'error' in result:self.status.configure(text=result['error']);return
+        if 'documents' in result:
+            self.documents=[TextDocument(p,**dict(d,bom=bytes.fromhex(d['bom']),limit=REVIEW_LIMIT))
+                            for p,d in zip(self.paths,result['documents'])]
+            self.texts=[d.text for d in self.documents]
+            self.history.clear();self.future.clear();self.checked.clear();self.top=0;self.column=[0,0]
+        self.alignment=ReviewAlignment(*self.texts,result['opcodes'])
+        self.block=None;self.rebuild_visible();self.render()
+
+    def cancel(self):
+        if self._saving:self.status.configure(text=tr('Finishing atomic save; please wait'));return
+        self.jobs.cancel();self.busy=False;self.status.configure(text=tr('Cancelled — drafts retained; use Actions to save'))
+
+    def recompare(self):
+        if self._editors or self._saving:return
+        self.start({'mode':'diff','texts':self.texts} if self.documents else
+                   {'mode':'load','paths':[str(p) for p in self.paths]})
+
+    def reload_sources(self):
+        if self.busy or self._editors:return
+        if any(t!=d.text for t,d in zip(self.texts,self.documents)) and not messagebox.askyesno(
+                tr('Reload from disk'),tr('Discard unsaved comparison drafts?'),default='no',parent=self):return
+        # Keep current drafts until both files have loaded successfully.
+        self.start({'mode':'load','paths':[str(p) for p in self.paths]})
+
+    def current_alignment(self):
+        return bool(self.alignment) and not self.busy and all(
+            lines.text==text for lines,text in zip(self.alignment.lines,self.texts))
+
+    def rebuild_visible(self):
+        # Compact ranges, not one object per source/aligned row.
+        ops=self.alignment.opcodes;self.ranges=[];self.range_ends=[];total=0
+        for n,op in enumerate(ops):
+            if self.only_diffs.get() and op[0]=='equal':continue
+            count=self.alignment.starts[n+1]-self.alignment.starts[n]
+            self.ranges.append((total,self.alignment.starts[n]));total+=count;self.range_ends.append(total)
+        self.total=total;self.top=min(self.top,max(0,total-1))
+
+    def actual_row(self,row):
+        n=bisect.bisect_right(self.range_ends,row)
+        start,actual=self.ranges[n];return actual+row-start
+
+    def filter_changed(self):
+        if not self.current_alignment():return
+        self.top=0;self.rebuild_visible();self.render()
+
+    def render(self):
+        if not self.current_alignment():return
+        end=min(self.total,self.top+self.PAGE); rendered=[[],[]];self.row_blocks=[];maxwidth=[1,1];reviewed={}
+        for row in range(self.top,end):
+            block,a,b=self.alignment.row(self.actual_row(row));self.row_blocks.append(block)
+            if block not in reviewed:reviewed[block]=bool(self.checked) and self.alignment.block_key(block) in self.checked
+            for side,index in enumerate((a,b)):
+                line=self.alignment.lines[side][index] if index is not None else ''
+                maxwidth[side]=max(maxwidth[side],len(line))
+                segment=line[self.column[side]:self.column[side]+self.WIDTH]
+                mark='✓' if reviewed[block] else ' '
+                rendered[side].append(f'{mark}{index+1:>7} {segment}' if index is not None else '         ')
+        for side,text in enumerate(self.widgets):
+            text.configure(state='normal',wrap='word' if self.wrap.get() else 'none')
+            text.delete('1.0','end');text.insert('1.0','\n'.join(rendered[side]))
+            for i,block in enumerate(self.row_blocks,1):
+                if self.alignment.opcodes[block][0]!='equal':text.tag_add('diff',f'{i}.0',f'{i}.end')
+                if block==self.block:text.tag_add('current',f'{i}.0',f'{i}.end')
+            text.configure(state='disabled');text.yview_moveto(0);text.xview_moveto(0)
+            self.xbars[side].set(min(1,self.column[side]/maxwidth[side]),min(1,(self.column[side]+self.visible_columns(side))/maxwidth[side]))
+            dirty=self.documents and self.texts[side]!=self.documents[side].text
+            state=tr('Read-only') if side in self.read_only_sides or (self.documents and self.documents[side].reason) else (tr('Draft') if dirty else tr('Saved'))
+            self.headers[side].configure(text=f'{"L" if side==0 else "R"} · {self.paths[side].name} · {state}')
+        self.maxwidth=maxwidth
+        self.scrollbar.set(self.top/max(1,self.total),end/max(1,self.total))
+        self.status.configure(text=f'{len(self.alignment.differences)} '+tr('difference blocks')+
+            f' · {len(self.checked)} '+tr('reviewed')+f' · {self.top+1}–{end}/{self.total} · '+
+            tr('Column')+f' {self.column[self.active_side]+1}–{self.column[self.active_side]+self.WIDTH} · '+tr('Wide lines: use horizontal bar'))
+        self.update_preview()
+
+    def scroll(self,*args):
+        if not self.current_alignment():return 'break'
+        self.top=(int(float(args[1])*self.total) if args[0]=='moveto' else
+                  self.top+int(args[1])*(self.PAGE if args[2]=='pages' else 1))
+        self.top=max(0,min(max(0,self.total-1),self.top));self.render();return 'break'
+
+    def xscroll(self,side,*args):
+        self.active_side=side
+        value=int(float(args[1])*self.maxwidth[side]) if args[0]=='moveto' else self.column[side]+int(args[1])*(self.visible_columns(side) if args[2]=='pages' else 4)
+        value=max(0,min(max(0,self.maxwidth[side]-1),value))
+        for s in ((0,1) if self.sync_x.get() else (side,)):self.column[s]=value
+        self.render()
+
+    def select_row(self,side,event):
+        self.active_side=side
+        if self.busy or not self.alignment:return
+        row=int(self.widgets[side].index(f'@{event.x},{event.y}').split('.')[0])-1
+        if row<len(self.row_blocks):self.block=self.row_blocks[row];self.render()
+
+    def jump_block(self,block):
+        self.block=block;actual=self.alignment.starts[block]
+        for n,(start,source) in enumerate(self.ranges):
+            if source<=actual<source+self.range_ends[n]-start:
+                self.top=start+actual-source;break
+        # Reveal the first changed character even in a million-character line.
+        _,a,b,c,d=self.alignment.opcodes[block]
+        left=self.alignment.lines[0][a] if a<b else '';right=self.alignment.lines[1][c] if c<d else ''
+        prefix=0
+        for x,y in zip(left,right):
+            if x!=y:break
+            prefix+=1
+        context=min(20,min(self.visible_columns(0),self.visible_columns(1))//3)
+        self.column=[max(0,prefix-context)]*2;self.render()
+
+    def next(self,direction=1):
+        if not self.current_alignment() or not self.alignment.differences:return
+        items=self.alignment.differences
+        index=items.index(self.block) if self.block in items else (-1 if direction>0 else 0)
+        self.jump_block(items[(index+direction)%len(items)])
+
+    def previous(self):self.next(-1)
+
+    def mark_reviewed(self):
+        if not self.current_alignment() or self.block is None or self.block not in self.alignment.differences:return
+        key=self.alignment.block_key(self.block)
+        if key in self.checked:self.checked.remove(key)
+        else:self.checked.add(key)
+        self.render()
+
+    def writable(self,side):
+        return bool(self.documents) and side not in self.read_only_sides and not self.documents[side].reason
+
+    def change(self,side,text):
+        if self.busy or not self.writable(side):return False
+        doc=self.documents[side]
+        try:encoded=doc.bom+text.replace('\n',doc.ending).encode(doc.encoding)
+        except UnicodeError as exc:
+            messagebox.showerror(tr('Compare'),str(exc),parent=self);return False
+        if len(encoded)>REVIEW_LIMIT:
+            messagebox.showerror(tr('Compare'),tr('Draft exceeds 20 MiB; no change applied'),parent=self);return False
+        if text==self.texts[side]:return True
+        self.history.append((side,self.texts[side]));self.future.clear()
+        while sum(len(t) for _,t in self.history)>100*1024*1024 and len(self.history)>1:self.history.pop(0)
+        self.texts[side]=text;self.checked.clear()
+        self._find_offset=-1
+        self.start({'mode':'diff','texts':self.texts})
+        return True
+
+    def take(self,source):
+        if self._editors or not self.current_alignment() or self.block is None or not self.writable(1-source):return
+        self.change(1-source,self.alignment.take(self.block,source))
+
+    def undo(self):
+        if self.busy or self._editors or not self.history:return
+        side,text=self.history.pop();self.future.append((side,self.texts[side]));self.texts[side]=text
+        self.checked.clear();self.start({'mode':'diff','texts':self.texts})
+
+    def redo(self):
+        if self.busy or self._editors or not self.future:return
+        side,text=self.future.pop();self.history.append((side,self.texts[side]));self.texts[side]=text
+        self.checked.clear();self.start({'mode':'diff','texts':self.texts})
+
+    def edit(self,side):
+        if self._editors:self._editors[0].lift();self._editors[0].focus_set();return
+        if not self.current_alignment() or not self.writable(side):return
+        index=0
+        if self.total:
+            _,a,b=self.alignment.row(self.actual_row(self.top));index=(a,b)[side] or 0
+        start=self.alignment.lines[side].starts[index]+self.column[side]
+        ReviewDraftEditor(self,side,min(start,len(self.texts[side])))
+
+    def save_side(self,side):
+        if self.busy or self._editors or not self.writable(side) or not self.texts:return 'break'
+        if self.texts[side]==self.documents[side].text:return 'break'
+        if not messagebox.askyesno(tr('Save'),tr('Write this draft to the original file?')+'\n'+str(self.paths[side]),parent=self):return 'break'
+        self.busy=True;self._saving=True;draft=self.texts[side]
+        self.status.configure(text=tr('Saving verified draft…'))
+        def save():
+            try:self.documents[side].save(draft);error=None
+            except Exception as exc:error=str(exc)
+            self._saved.put(error)
+        threading.Thread(target=save,daemon=True).start()
+        if self._poll_job is None:self._poll_job=self.after(40,self.poll)
+        return 'break'
+
+    def save_as(self):
+        if self.busy or self._editors or not self.documents:return
+        side=self.active_side;path=filedialog.asksaveasfilename(parent=self,initialfile=self.paths[side].name)
+        if not path:return
+        target=Path(path)
+        if target.resolve() in [p.resolve() for p in self.paths]:
+            messagebox.showerror(tr('Save As'),tr('Use Save Left/Right to overwrite a compared source'),parent=self);return
+        doc=self.documents[side]
+        if doc.reason:messagebox.showerror(tr('Save As'),doc.reason,parent=self);return
+        try:
+            data=doc.bom+self.texts[side].replace('\n',doc.ending).encode(doc.encoding)
+            if len(data)>REVIEW_LIMIT:raise OSError('Encoded draft exceeds 20 MiB')
+            safe_review_write(target,data,self.paths)
+        except OSError as exc:messagebox.showerror(tr('Save failed'),str(exc),parent=self)
+
+    def find(self,direction):
+        if not self.current_alignment() or not self.search_var.get():return None
+        side=self.active_side;needle=self.search_var.get();text=self.texts[side]
+        import re
+        # Regex IGNORECASE preserves source offsets (casefold can change length).
+        pattern=re.compile(re.escape(needle),0 if self.case.get() else re.IGNORECASE)
+        signature=(side,needle,self.case.get(),text)
+        current=getattr(self,'_find_offset',-1) if getattr(self,'_find_signature',None)==signature else -1
+        self._find_signature=signature
+        found=None
+        if direction>0:found=pattern.search(text,current+1) or pattern.search(text)
+        else:
+            for match in pattern.finditer(text,0,max(0,current)) :found=match
+            if found is None:
+                for match in pattern.finditer(text):found=match
+        if not found:self._find_offset=-1;self.status.configure(text=tr('No matches'));return None
+        self._find_offset=found.start();lines=self.alignment.lines[side]
+        line=bisect.bisect_right(lines.starts,found.start())-1
+        self.jump_line(side,line);self.column[side]=max(0,found.start()-lines.starts[line]-20)
+        self.render();self.status.configure(text=tr('Match at line')+f' {line+1}, '+tr('column')+f' {found.start()-lines.starts[line]+1}')
+        return found.span()
+
+    def find_next(self):return self.find(1)
+    def find_previous(self):return self.find(-1)
+
+    def replace(self):
+        if self._editors or not self.current_alignment() or not self.writable(self.active_side) or not self.search_var.get():return
+        match=self.find(1)
+        if match is None:return
+        replacement=simpledialog.askstring(tr('Replace'),tr('Replace current match with:'),parent=self)
+        if replacement is None:return
+        side=self.active_side;lo,hi=match
+        self.change(side,self.texts[side][:lo]+replacement+self.texts[side][hi:])
+
+    def jump_line(self,side,line):
+        self.only_diffs.set(False);self.rebuild_visible()
+        for n,op in enumerate(self.alignment.opcodes):
+            start,end=(op[1],op[2]) if side==0 else (op[3],op[4])
+            if start<=line<end:self.top=self.alignment.starts[n]+line-start;self.block=n;break
+
+    def goto_line(self):
+        if not self.alignment:return
+        number=simpledialog.askinteger(tr('Go to line'),tr('Source line number'),parent=self,minvalue=1,maxvalue=len(self.alignment.lines[self.active_side]))
+        if number:self.jump_line(self.active_side,number-1);self.column=[0,0];self.render()
+
+    def save_review(self):
+        if self.busy or not self.texts:return
+        path=filedialog.asksaveasfilename(parent=self,defaultextension='.pfc-review.json')
+        if path:
+            try:
+                data=json.dumps(review_state(self.texts,self.checked)).encode()
+                if len(data)>8*1024*1024:raise OSError('Review file exceeds 8 MiB safety limit')
+                safe_review_write(Path(path),data,self.paths)
+            except OSError as exc:messagebox.showerror(tr('Save failed'),str(exc),parent=self)
+
+    def open_review(self):
+        if self.busy or not self.texts:return
+        path=filedialog.askopenfilename(parent=self,filetypes=[('PFC review','*.pfc-review.json')])
+        if path:
+            try:
+                if Path(path).stat().st_size>8*1024*1024:raise ValueError('Review file exceeds safety limit')
+                self.checked=restore_review_state(json.loads(Path(path).read_text()),self.texts);self.render()
+            except (OSError,ValueError) as exc:messagebox.showerror(tr('Open review'),str(exc),parent=self)
+
+    def export_report(self):
+        if not self.current_alignment():return
+        path=filedialog.asksaveasfilename(parent=self,defaultextension='.html',filetypes=[('HTML','*.html'),('Text','*.txt')])
+        if not path:return
+        content=messagebox.askyesno(tr('Export report'),tr('Include source text in this report? Choose No for summary only.'),default='no',parent=self)
+        parts=[f'{self.paths[0].name} ↔ {self.paths[1].name}',f'{len(self.alignment.differences)} difference blocks']
+        for n in self.alignment.differences:
+            tag,a,b,c,d=self.alignment.opcodes[n];checked=self.alignment.block_key(n) in self.checked
+            parts.append(f'{tag}: L {a+1}–{b}, R {c+1}–{d} · {"reviewed" if checked else "unreviewed"}')
+            if content:
+                for side,lo,hi in ((0,a,b),(1,c,d)):
+                    parts.append(('LEFT\n' if side==0 else 'RIGHT\n')+self.texts[side][slice(*self.alignment.lines[side].span(lo,hi))])
+        output='\n\n'.join(parts)
+        if Path(path).suffix.lower()=='.html':output='<!doctype html><meta charset="utf-8"><title>PFC review</title><pre>'+html.escape(output)+'</pre>'
+        try:
+            safe_review_write(Path(path),output.encode(),self.paths)
+        except OSError as exc:messagebox.showerror(tr('Export report'),str(exc),parent=self)
+
+    def toggle_preview(self):
+        if self.preview is not None:
+            self.preview_jobs.cancel()
+            for job in (self._preview_timer,self._preview_poll):
+                if job is not None:self.after_cancel(job)
+            self._preview_timer=self._preview_poll=None
+            self.preview.destroy();self.preview=None;return
+        if not any(p.suffix.lower()=='.md' for p in self.paths):return
+        self.preview=tk.Toplevel(self);self.preview.title(tr('Markdown reading preview'))
+        self.preview.geometry('800x600');self.preview.protocol('WM_DELETE_WINDOW',self.toggle_preview)
+        self.preview.bind('<KeyPress>',lambda e:'break')
+        self.preview.bind('<Escape>',lambda e:self.toggle_preview())
+        self.preview_caption=ttk.Label(self.preview,text=tr('Current source segment · follows active side · read-only'),width=1)
+        self.preview_caption.pack(fill='x')
+        body=ttk.Frame(self.preview);body.pack(fill='both',expand=True)
+        body.rowconfigure(0,weight=1);body.columnconfigure(0,weight=1)
+        self.preview_text=tk.Text(body,wrap='none',font='TkFixedFont');self.preview_text.grid(row=0,column=0,sticky='nsew')
+        x=ttk.Scrollbar(body,orient='horizontal',command=self.preview_text.xview);x.grid(row=1,column=0,sticky='ew');self.preview_text.configure(xscrollcommand=x.set)
+        y=ttk.Scrollbar(body,command=self.preview_text.yview);y.grid(row=0,column=1,sticky='ns');self.preview_text.configure(yscrollcommand=y.set)
+        self._preview_fonts=[]
+        for name,scale,weight in (('h1',1.5,'bold'),('h2',1.3,'bold'),('h3',1.15,'bold'),('bold',1,'bold'),('italic',1,'normal')):
+            f=tkfont.Font(font='TkFixedFont');size=f.cget('size')
+            f.configure(size=(-1 if size<0 else 1)*max(8,round(abs(size)*scale)),weight=weight,slant='italic' if name=='italic' else 'roman')
+            self._preview_fonts.append(f);self.preview_text.tag_configure('markdown_'+name,font=f)
+        self.preview_text.tag_configure('markdown_link',foreground='#2380bd',underline=True)
+        self.preview_text.tag_configure('markdown_code',background='#e6e9ed',foreground='#20303a')
+        self.update_preview()
+
+    def update_preview(self):
+        if self.preview is None or not self.alignment or not self.total:return
+        if self._preview_timer is not None:self.after_cancel(self._preview_timer)
+        self._preview_timer=self.after(150,self.prepare_preview)
+
+    def prepare_preview(self):
+        self._preview_timer=None
+        if self.preview is None or not self.current_alignment() or not self.total:return
+        side=self.active_side;_,a,b=self.alignment.row(self.actual_row(self.top));line=(a,b)[side] or 0
+        index=self.alignment.lines[side];first=max(0,line-20);last=min(len(index),line+self.PAGE)
+        lo,hi=index.span(first,last)
+        if len(index[line])>64000:
+            lo=index.starts[line]+self.column[side];first=line
+        self._preview_fragment=self.texts[side][lo:min(hi,lo+64000)]
+        self.preview_caption.configure(text=f'{"L" if side==0 else "R"} · '+tr('Read-only excerpt')+f' · {first+1}–{last} · '+tr('Source comparison remains authoritative'))
+        self._preview_serial=self.preview_jobs.submit({'mode':'preview','text':self._preview_fragment})
+        if self._preview_poll is None:self._preview_poll=self.after(40,self.poll_preview)
+
+    def poll_preview(self):
+        self._preview_poll=None
+        if self.preview is None:return
+        try:serial,result=self.preview_jobs.results.get_nowait()
+        except queue.Empty:self._preview_poll=self.after(40,self.poll_preview);return
+        if serial!=self._preview_serial:self._preview_poll=self.after(40,self.poll_preview);return
+        rendered=result.get('content',self._preview_fragment)
+        self.preview_text.configure(state='normal');self.preview_text.delete('1.0','end');self.preview_text.insert('1.0',rendered)
+        for lo,hi,tag in result.get('spans',[]):self.preview_text.tag_add(tag,f'1.0+{lo}c',f'1.0+{hi}c')
+        self.preview_text.configure(state='disabled')
+        if 'error' in result:self.preview_caption.configure(text=tr('Rendering unavailable; showing source excerpt'))
+
+    def set_read_only(self,left=False,right=False):
+        self.read_only_sides={s for s,v in enumerate((left,right)) if v};self.render()
+
+    def focus_search(self):self.search.focus_set();return 'break'
+    def apply_scale(self,scale):
+        dark=sum(int(self.palette['content'][i:i+2],16) for i in (1,3,5))<330
+        self.case_button.configure(style=readable_check_style(self,tkfont.nametofont('TkDefaultFont'),dark,'Review'))
+    def apply_language(self,old):pass
+
+    def apply_color_scheme(self,palette):
+        self.palette=palette
+        for text in self.widgets:
+            text.configure(background=palette['content'],foreground=palette['text'],insertbackground=palette['text'])
+            text.tag_configure('diff',background='#6a4b16' if palette.get('content')=='#202124' else '#efc879',foreground='#181818')
+            text.tag_configure('current',background='#1878bc',foreground='white')
+
+    def confirm_close(self):
+        if self._saving:self.status.configure(text=tr('Finishing atomic save; please wait'));return False
+        for editor in list(self._editors):
+            if not editor.close():return False
+        dirty=any(t!=d.text for t,d in zip(self.texts,self.documents))
+        return not dirty or messagebox.askyesno(tr('Unsaved changes'),tr('Discard unsaved comparison drafts?'),parent=self)
+
+    def _destroyed(self,event):
+        if event.widget is not self:return
+        self.jobs.cancel()
+        self.preview_jobs.cancel()
+        for job in (self._preview_timer,self._preview_poll):
+            if job is not None:self.after_cancel(job)
+        if self._poll_job is not None:self.after_cancel(self._poll_job)
+        if self.preview is not None:self.preview.destroy()
+        # Release Tk resources on the UI thread, not later when a worker's
+        # allocations happen to trigger cyclic garbage collection.
+        self.wrap=self.sync_x=self.only_diffs=self.case=self.search_var=self.find_status=None
+        self._preview_fonts=[]
+
+
+class ReviewDraftEditor(tk.Toplevel):
+    """Edit bounded source segments, never alignment padding or display prefixes."""
+    CHUNK=32000
+    def __init__(self,owner,side,start):
+        super().__init__(owner);self.owner=owner;self.side=side;self.draft=owner.texts[side];self.start=start
+        owner._editors.append(self);self.title(tr('Edit draft')+' · '+owner.paths[side].name);self.geometry('1000x650')
+        bar=ttk.Frame(self);bar.pack(fill='x')
+        for label,cmd in [('◀',lambda:self.page(-1)),('▶',lambda:self.page(1)),('Undo',lambda:self.text.edit_undo()),
+                          ('Redo',lambda:self.text.edit_redo()),('Apply to draft',self.apply)]:
+            ttk.Button(bar,text=tr(label),width=0,command=cmd).pack(side='left',padx=2)
+        self.position=ttk.Label(bar,width=1);self.position.pack(side='left',fill='x',expand=True)
+        self.text=tk.Text(self,wrap='word',undo=True,font='TkFixedFont');self.text.pack(fill='both',expand=True)
+        scroll=ttk.Scrollbar(self,command=self.text.yview);scroll.pack(side='right',fill='y');self.text.configure(yscrollcommand=scroll.set)
+        self.protocol('WM_DELETE_WINDOW',self.close);self.load()
+        self.bind('<KeyPress>',lambda e:'break')
+        self.bind('<Escape>',lambda e:self.close())
+
+    def load(self):
+        self.end=min(len(self.draft),self.start+self.CHUNK);self.original=self.draft[self.start:self.end]
+        self.text.delete('1.0','end');self.text.insert('1.0',self.original);self.text.edit_reset()
+        self.position.configure(text=f'{self.start+1}–{self.end} / {len(self.draft)} '+tr('characters'))
+
+    def capture(self):
+        value=self.text.get('1.0','end-1c');self.draft=self.draft[:self.start]+value+self.draft[self.end:];self.end=self.start+len(value)
+
+    def page(self,direction):
+        self.capture();self.start=max(0,self.start-self.CHUNK) if direction<0 else min(len(self.draft),self.end);self.load()
+
+    def apply(self):
+        self.capture()
+        if self.owner.change(self.side,self.draft):self.owner._editors.remove(self);self.destroy()
+
+    def close(self):
+        self.capture()
+        if self.draft!=self.owner.texts[self.side] and not messagebox.askyesno(tr('Unsaved changes'),tr('Discard these editor changes?'),parent=self):return False
+        self.owner._editors.remove(self);self.destroy();return True
+
+"""Read-only, paged worksheet cell comparisons; no Office automation."""
+import html
+import json
+from pathlib import Path
+import queue
+import threading
+import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog, filedialog
+
+
+class WorkbookCompare(ttk.Frame):
+    PAGE=200
+    def __init__(self,master,left,right,**options):
+        super().__init__(master);self.view=self;self.paths=[Path(left),Path(right)]
+        self.jobs=ComparisonJobs();self.books=None;self.rows=[];self.filtered=[];self.top=0;self._job=None
+        self._generation=0;self._row_results=queue.Queue();self._rows_job=None
+        self.sheet=tk.StringVar();self.only=tk.BooleanVar(value=True);self.search_var=tk.StringVar()
+        self.keys=();self.header_row=1;self.cell_mode=tk.StringVar(value='Both')
+        self._filter_needle='';self._pending_find=None
+        bar=ttk.Frame(self);bar.pack(fill='x',padx=4,pady=3)
+        ttk.Label(bar,text=tr('Worksheet')).pack(side='left')
+        self.sheets=ttk.Combobox(bar,state='readonly',textvariable=self.sheet,width=20)
+        self.sheets.pack(side='left',fill='x',expand=True);self.sheets.bind('<<ComboboxSelected>>',lambda e:self.load_sheet())
+        menu_button=ttk.Menubutton(bar,text=tr('Rules'));menu_button.pack(side='left')
+        menu=tk.Menu(menu_button,tearoff=False);menu_button.configure(menu=menu)
+        menu.add_checkbutton(label=tr('Differences only'),variable=self.only,command=self.filter)
+        for value in ('Both','Values','Formulas'):
+            menu.add_radiobutton(label=tr(value),value=value,variable=self.cell_mode,command=self.filter)
+        menu.add_command(label=tr('Row key columns…'),command=self.set_keys)
+        ttk.Button(bar,text=tr('Export report'),command=self.export_report).pack(side='left',padx=2)
+        ttk.Button(bar,text=tr('Cancel'),command=self.cancel).pack(side='left')
+        find=ttk.Frame(self);find.pack(fill='x',padx=4)
+        ttk.Label(find,text=tr('Find:')).pack(side='left')
+        self.search=ttk.Entry(find,textvariable=self.search_var,width=8);self.search.pack(side='left',fill='x',expand=True)
+        self.search.bind('<Return>',lambda e:self.find_next())
+        self.search.bind('<Shift-Return>',lambda e:self.find_previous())
+        for label,cmd in [('Find',self.filter),('◀',self.find_previous),('▶',self.find_next)]:
+            button=ttk.Button(find,text=tr(label),width=0,command=cmd);button.pack(side='left',padx=2)
+            ToolTip(button,tr('Find Prev')+' · Shift+F3' if label=='◀' else tr('Find Next')+' · F3' if label=='▶' else tr('Find:'))
+        self.tree=ttk.Treeview(self,columns=('status','left','value_l','formula_l','right','value_r','formula_r'),show='headings')
+        for name,title,width in [('status','Status',90),('left','L Cell',70),('value_l','L Value / cached result',220),
+                                 ('formula_l','L Formula',220),('right','R Cell',70),('value_r','R Value / cached result',220),('formula_r','R Formula',220)]:
+            self.tree.heading(name,text=tr(title));self.tree.column(name,width=width,minwidth=60,stretch=name in ('value_l','value_r'))
+        self.tree.pack(fill='both',expand=True)
+        x=ttk.Scrollbar(self,orient='horizontal',command=self.tree.xview);x.pack(fill='x');self.tree.configure(xscrollcommand=x.set)
+        self.scrollbar=ttk.Scrollbar(self,command=self.scroll);self.scrollbar.pack(side='right',fill='y',before=self.tree)
+        self.tree.bind('<Double-Button-1>',self.show_cell)
+        self.tree.bind('<MouseWheel>',lambda e:self.scroll('scroll',-3 if e.delta>0 else 3,'units'))
+        self.tree.bind('<Button-4>',lambda e:self.scroll('scroll',-3,'units'))
+        self.tree.bind('<Button-5>',lambda e:self.scroll('scroll',3,'units'))
+        self.status=ttk.Label(self,text=tr('Loading workbook…'),width=1);self.status.pack(fill='x')
+        ToolTip(self.status,lambda:self.status.cget('text'))
+        self.bind('<Destroy>',self.destroyed,add='+')
+        self.serial=self.jobs.submit({'mode':'workbook','paths':[str(p) for p in self.paths]});self._job=self.after(40,self.poll)
+
+    def poll(self):
+        self._job=None
+        try:serial,result=self.jobs.results.get_nowait()
+        except queue.Empty:self._job=self.after(40,self.poll);return
+        if serial!=self.serial:return
+        if 'error' in result:self.status.configure(text=result['error']);return
+        self.books=result['books'];names=[]
+        for book in self.books:
+            for sheet in book['sheets']:
+                if sheet['name'] not in names:names.append(sheet['name'])
+        self.sheets.configure(values=names)
+        if names:self.sheet.set(names[0]);self.load_sheet()
+        else:self.status.configure(text=tr('Workbook has no worksheets'))
+
+    def load_sheet(self):
+        if not self.books:return
+        self.selected=[next((s for s in b['sheets'] if s['name']==self.sheet.get()),None) for b in self.books]
+        self.filter(rebuild=True)
+
+    def equal(self,a,b):
+        return cell_values_equal(a,b,self.cell_mode.get())
+
+    def filter(self,rebuild=False):
+        if not self.books:return
+        self._generation+=1;serial=self._generation
+        needle=self.search_var.get().casefold();only=self.only.get();mode=self.cell_mode.get()
+        self._filter_needle=needle
+        selected=list(self.selected);keys=self.keys;header=self.header_row
+        self.rows=[];self.filtered=[];self.tree.delete(*self.tree.get_children())
+        self.status.configure(text=tr('Comparing worksheet…'))
+        def work():
+            try:
+                rows=workbook_rows(*selected,keys,header);filtered=[]
+                for n,(ar,br,a,b) in enumerate(rows):
+                    if serial!=self._generation:return
+                    if (not only or not cell_values_equal(a,b,mode)) and (not needle or needle in (ar+' '+br+' '+str(a)+' '+str(b)).casefold()):filtered.append(n)
+                self._row_results.put((serial,rows,filtered,None))
+            except Exception as exc:self._row_results.put((serial,[],[],str(exc)))
+        threading.Thread(target=work,daemon=True).start()
+        if self._rows_job is None:self._rows_job=self.after(40,self.poll_rows)
+
+    def poll_rows(self):
+        self._rows_job=None
+        try:serial,rows,filtered,error=self._row_results.get_nowait()
+        except queue.Empty:self._rows_job=self.after(40,self.poll_rows);return
+        if serial!=self._generation:self._rows_job=self.after(40,self.poll_rows);return
+        self.rows=rows;self.filtered=filtered;self.top=0;self.render()
+        if error:self.status.configure(text=error)
+        elif self._pending_find is not None:
+            direction=self._pending_find;self._pending_find=None;self._move_result(direction)
+
+    @staticmethod
+    def value(cell):
+        if cell is None:return '—',''
+        typ,value,formula=cell
+        return (('[cached result unavailable]' if formula else '[blank]') if value is None else str(value)),formula
+
+    def render(self):
+        self.tree.delete(*self.tree.get_children())
+        end=min(len(self.filtered),self.top+self.PAGE)
+        for n in self.filtered[self.top:end]:
+            ar,br,a,b=self.rows[n];av,af=self.value(a);bv,bf=self.value(b)
+            status='Same' if self.equal(a,b) else ('Right only' if a is None else 'Left only' if b is None else 'Changed')
+            self.tree.insert('', 'end',iid=str(n),values=(tr(status),ar,av[:2000],af[:2000],br,bv[:2000],bf[:2000]),tags=(status,))
+        self.scrollbar.set(self.top/max(1,len(self.filtered)),end/max(1,len(self.filtered)))
+        meta=' · '.join(('L' if n==0 else 'R')+': '+(s['state']+f', {len(s["merged"])} merged ranges' if s else 'sheet missing') for n,s in enumerate(self.selected)) if self.books else ''
+        dates=' · '+tr('Different Excel date systems') if self.books and self.books[0]['date1904']!=self.books[1]['date1904'] else ''
+        self.status.configure(text=f'{self.top+1 if end else 0}–{end}/{len(self.filtered)} · '+tr('Read-only · formulas are not recalculated · double-click for full cell')+' · '+meta+dates)
+
+    def scroll(self,*args):
+        self.top=int(float(args[1])*len(self.filtered)) if args[0]=='moveto' else self.top+int(args[1])*(self.PAGE if args[2]=='pages' else 1)
+        self.top=max(0,min(max(0,len(self.filtered)-1),self.top));self.render();return 'break'
+
+    def _move_result(self,direction,differences=False):
+        if self._rows_job is not None:return
+        rows=[n for n in self.filtered if not differences or not self.equal(*self.rows[n][2:])]
+        if not rows:return
+        selection=self.tree.selection();current=int(selection[0]) if selection else None
+        index=rows.index(current) if current in rows else (-1 if direction>0 else 0)
+        target=rows[(index+direction)%len(rows)]
+        self.top=(self.filtered.index(target)//self.PAGE)*self.PAGE;self.render()
+        self.tree.selection_set(str(target));self.tree.focus(str(target));self.tree.see(str(target))
+
+    def find_next(self):return self._find(1)
+    def find_previous(self):return self._find(-1)
+    def _find(self,direction):
+        if not self.search_var.get():return self.focus_search()
+        if self._filter_needle!=self.search_var.get().casefold():
+            self._pending_find=direction;self.filter()
+        else:self._move_result(direction)
+        return 'break'
+
+    def next(self):self._move_result(1,True)
+    def previous(self):self._move_result(-1,True)
+    def focus_search(self):self.search.focus_set();return 'break'
+    def set_read_only(self,*args,**kwargs):pass
+    def apply_scale(self,scale):pass
+    def apply_language(self,old):pass
+    def apply_color_scheme(self,palette):
+        self.tree.tag_configure('Changed',background='#e9be65',foreground='#141414')
+        self.tree.tag_configure('Left only',background='#b8dced',foreground='#141414')
+        self.tree.tag_configure('Right only',background='#bce2c2',foreground='#141414')
+
+    def set_keys(self):
+        value=simpledialog.askstring(tr('Row key columns'),tr('Column letters separated by commas (e.g. A,C). Empty = cell coordinates.'),parent=self)
+        if value is None:return
+        try:keys=tuple(cell_position(v.strip().upper()+'1')[1] for v in value.split(',') if v.strip())
+        except ValueError as exc:messagebox.showerror(tr('Rules'),str(exc),parent=self);return
+        header=simpledialog.askinteger(tr('Header row'),tr('Rows at/before this number are headers; 0 = none'),parent=self,minvalue=0,maxvalue=1048576,initialvalue=self.header_row) if keys else 1
+        if header is None:return
+        self.keys=keys;self.header_row=header;self.load_sheet()
+
+    def show_cell(self,event=None):
+        selected=self.tree.selection()
+        if not selected:return
+        ar,br,a,b=self.rows[int(selected[0])]
+        dialog=tk.Toplevel(self);dialog.title(f'{ar} ↔ {br}');dialog.geometry('900x500')
+        dialog.bind('<KeyPress>',lambda e:'break')
+        scroll=ttk.Scrollbar(dialog);scroll.pack(side='right',fill='y')
+        text=tk.Text(dialog,wrap='word',font='TkFixedFont',yscrollcommand=scroll.set);text.pack(fill='both',expand=True)
+        scroll.configure(command=text.yview)
+        text.insert('1.0',f'LEFT · {ar}\n{self.value(a)[0]}\nFormula: {self.value(a)[1]}\n\nRIGHT · {br}\n{self.value(b)[0]}\nFormula: {self.value(b)[1]}');text.configure(state='disabled')
+
+    def export_report(self):
+        if not self.books:return
+        path=filedialog.asksaveasfilename(parent=self,defaultextension='.html')
+        if not path:return
+        include=messagebox.askyesno(tr('Export report'),tr('Include cell values/formulas? No exports addresses/status only.'),default='no',parent=self)
+        lines=[self.sheet.get()+' · '+self.cell_mode.get()+' · no recalculation']
+        for n in self.filtered:
+            ar,br,a,b=self.rows[n];lines.append(f'{ar} ↔ {br}: '+('same' if self.equal(a,b) else 'different'))
+            if include:lines.append(str(a)+'\n'+str(b))
+        data='<!doctype html><meta charset="utf-8"><title>PFC workbook comparison</title><pre>'+html.escape('\n'.join(lines))+'</pre>'
+        try:safe_review_write(Path(path),data.encode(),self.paths)
+        except OSError as exc:messagebox.showerror(tr('Export report'),str(exc),parent=self)
+
+    def cancel(self):
+        self._generation+=1
+        if self._rows_job is not None:self.after_cancel(self._rows_job);self._rows_job=None
+        self.jobs.cancel()
+        if self._job is not None:self.after_cancel(self._job);self._job=None
+        self.status.configure(text=tr('Cancelled'))
+
+    def destroyed(self,event):
+        if event.widget is self:
+            self._generation+=1
+            if self._rows_job is not None:self.after_cancel(self._rows_job);self._rows_job=None
+            self.jobs.cancel()
+            if self._job is not None:self.after_cancel(self._job);self._job=None
+            self.sheet=self.only=self.search_var=self.cell_mode=None
+
+"""Transactional archive comparison drafts; originals change only on commit."""
+import hashlib
+import os
+from pathlib import Path, PurePosixPath
+import shutil
+import stat
+import subprocess
+import tempfile
+import threading
+import time
+import uuid
+import zipfile
+
+
+ARCHIVE_REVIEW_BUDGET = 2 * 1024 * 1024 * 1024
+
+
+def archive_digest(path,cancel=None):
+    digest=hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        for block in iter(lambda:stream.read(1024*1024),b''):
+            if cancel and cancel.is_set():raise ArchiveCancelled('Archive operation cancelled')
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def checked_archive_members(path):
+    """Reject dangerous members before extraction, including Windows aliases."""
+    records=[]; path=Path(path)
+    if path.suffix.lower()=='.zip':
+        with zipfile.ZipFile(path) as z:
+            for i in z.infolist():
+                if i.flag_bits&1:raise OSError('Encrypted archives are read-only in Compare')
+                mode=i.external_attr>>16
+                if stat.S_ISLNK(mode) or (stat.S_IFMT(mode) not in (0,stat.S_IFREG,stat.S_IFDIR)):
+                    raise OSError('Archive contains links or special files')
+                records.append((i.filename,i.file_size,i.is_dir()))
+    else:
+        exe=_seven_zip_executable()
+        if not exe:raise OSError('Install or configure 7-Zip to compare 7z archives')
+        result=subprocess.run([exe,'l','-slt','--',str(path)],stdin=subprocess.DEVNULL,capture_output=True,
+                              text=True,errors='replace',timeout=30,**_hidden_process_options())
+        if result.returncode:raise OSError('Cannot list archive; encrypted or unsupported archive')
+        body=result.stdout.partition('----------')[2]
+        for block in body.replace('\r\n','\n').split('\n\n'):
+            fields=dict(line.split(' = ',1) for line in block.splitlines() if ' = ' in line)
+            if 'Path' not in fields:continue
+            if fields.get('Encrypted')=='+':raise OSError('Encrypted archives are read-only in Compare')
+            if fields.get('Symbolic Link') or fields.get('Hard Link') or 'Reparse' in fields.get('Attributes',''):
+                raise OSError('Archive contains links')
+            records.append((fields['Path'],int(fields.get('Size','0')),fields.get('Folder')=='+'))
+    names=set();total=0; files=set()
+    reserved={'CON','PRN','AUX','NUL'}|{f'{prefix}{n}' for prefix in ('COM','LPT') for n in range(1,10)}
+    for name,size,isdir in records:
+        p=PurePosixPath(name.replace('\\','/'));parts=p.parts
+        if not parts or p.is_absolute() or '..' in parts or any(
+                ':' in part or part.endswith((' ','.')) or part.split('.')[0].upper() in reserved or '\x00' in part for part in parts):
+            raise OSError('Unsafe archive member: '+name)
+        key=p.as_posix().rstrip('/').casefold()
+        if key in names:raise OSError('Duplicate or case-colliding archive member: '+name)
+        names.add(key)
+        if not isdir:files.add(key)
+        total+=size
+        if len(names)>100000 or total>ARCHIVE_REVIEW_BUDGET:raise OSError('Archive exceeds 100,000 members / 2 GiB expanded safety budget')
+    for name in names:
+        if any(parent.as_posix().casefold() in files for parent in PurePosixPath(name).parents if str(parent)!='.'):
+            raise OSError('Archive file/folder path collision')
+    return records,total
+
+
+def archive_manifest(root,cancel=None):
+    result={};pending=[Path(root)];total=0
+    while pending:
+        directory=pending.pop()
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                if cancel and cancel.is_set():raise ArchiveCancelled('Archive operation cancelled')
+                path=Path(entry.path);info=entry.stat(follow_symlinks=False)
+                if entry.is_symlink() or getattr(info,'st_file_attributes',0)&0x400 or (stat.S_ISREG(info.st_mode) and info.st_nlink>1):
+                    raise OSError('Archive draft contains links')
+                relative=path.relative_to(root).as_posix()
+                if stat.S_ISDIR(info.st_mode):result[relative+'/']=None;pending.append(path)
+                elif stat.S_ISREG(info.st_mode):
+                    total+=info.st_size
+                    if total>ARCHIVE_REVIEW_BUDGET:raise OSError('Archive draft exceeds 2 GiB budget')
+                    result[relative]=archive_digest(path,cancel)
+                else:raise OSError('Archive draft contains a special file')
+                if len(result)>100000:raise OSError('Archive draft exceeds 100,000 members')
+    return result
+
+
+class ArchiveReviewSession:
+    def __init__(self,path,cancel=None):
+        self.path=Path(path).absolute(); self.cancel=cancel or threading.Event();self.backup=None
+        if self.path.is_symlink() or self.path.stat().st_nlink>1:raise OSError('Linked archives are read-only')
+        self.records,self.expanded=checked_archive_members(self.path)
+        if shutil.disk_usage(tempfile.gettempdir()).free<self.expanded*2+64*1024*1024:
+            raise OSError('Insufficient temporary space for safe archive comparison')
+        self.digest=archive_digest(self.path)
+        self.session=ArchiveSession(self.path,cancel_event=self.cancel);self.root=self.session.root
+        try:
+            self.original=archive_manifest(self.root,self.cancel)
+            if archive_digest(self.path)!=self.digest:raise OSError('Archive changed while opening')
+        except Exception:self.session.close();raise
+        self.removed=tempfile.TemporaryDirectory(prefix='pfc-archive-removed-');self.deletions=[]
+
+    def delete_from_draft(self,names):
+        targets=[]
+        for name in names:
+            relative=PurePosixPath(name)
+            if relative.is_absolute() or '..' in relative.parts or not relative.parts:raise OSError('Invalid draft path')
+            path=self.root.joinpath(*relative.parts)
+            if path.is_symlink() or self.root not in path.resolve().parents:raise OSError('Invalid draft destination')
+            if path.exists():targets.append(path)
+        for path in sorted(set(targets),key=lambda p:len(p.parts)):
+            if not path.exists():continue  # Already included in a selected parent.
+            backup=Path(self.removed.name)/uuid.uuid4().hex
+            path.rename(backup);self.deletions.append((path,backup))
+
+    def undo_delete(self):
+        if not self.deletions:return
+        path,backup=self.deletions[-1]
+        if path.exists():raise OSError('A new item now occupies the deleted path; no overwrite')
+        path.parent.mkdir(parents=True,exist_ok=True);backup.rename(path);self.deletions.pop()
+
+    def changes(self):
+        current=archive_manifest(self.root,self.cancel)
+        return [(name,'Add' if name not in self.original else 'Delete' if name not in current else 'Replace')
+                for name in sorted(set(current)|set(self.original)) if current.get(name,'missing')!=self.original.get(name,'missing')]
+
+    def commit(self,approved=None):
+        if self.cancel.is_set():raise ArchiveCancelled('Cancelled')
+        if self.path.is_symlink() or self.path.stat().st_nlink>1 or archive_digest(self.path)!=self.digest:
+            raise OSError('Original archive changed; draft retained, no overwrite')
+        expected=archive_manifest(self.root,self.cancel)
+        if approved is not None and expected!=approved:raise OSError('Draft changed after review; no archive write')
+        if not self.changes():return None
+        expanded=sum((self.root/name).stat().st_size for name in expected if not name.endswith('/'))
+        if expanded>ARCHIVE_REVIEW_BUDGET or len(expected)>100000:raise OSError('Archive draft exceeds safety budget')
+        if shutil.disk_usage(self.path.parent).free<expanded+self.path.stat().st_size*2+64*1024*1024:
+            raise OSError('Insufficient space for archive staging and backup')
+        fd,raw=tempfile.mkstemp(prefix='.pfc-archive-review-',suffix=self.path.suffix,dir=self.path.parent);os.close(fd)
+        staging=Path(raw);backup=self.path.with_name(self.path.name+'.pfc-backup-'+uuid.uuid4().hex[:10])
+        try:
+            if self.path.suffix.lower()=='.zip':
+                with zipfile.ZipFile(self.path) as original,zipfile.ZipFile(staging,'w') as output:
+                    infos={i.filename.replace('\\','/'):i for i in original.infolist()}
+                    output.comment=original.comment
+                    for name in expected:
+                        if self.cancel.is_set():raise ArchiveCancelled('Cancelled')
+                        old=infos.get(name)
+                        if old is not None:
+                            if name.endswith('/'):output.writestr(old,b'')
+                            else:
+                                with output.open(old,'w') as dst, (self.root/name).open('rb') as src:shutil.copyfileobj(src,dst,1024*1024)
+                        elif name.endswith('/'):output.writestr(name,b'')
+                        else:output.write(self.root/name,name,compress_type=zipfile.ZIP_DEFLATED)
+            else:
+                staging.unlink()
+                process=subprocess.Popen([_seven_zip_executable(),'a','-t7z','-mx=5','--',str(staging),'.'],cwd=self.root,
+                    stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,**_hidden_process_options())
+                started=time.monotonic()
+                try:
+                    while process.poll() is None:
+                        if self.cancel.wait(.05):raise ArchiveCancelled('Cancelled')
+                        if time.monotonic()-started>180:raise OSError('7-Zip compression timed out')
+                    if process.returncode:raise OSError('7-Zip could not build the staged archive')
+                finally:
+                    if process.poll() is None:process.terminate();process.wait(timeout=5)
+            checked_archive_members(staging)
+            verify=ArchiveSession(staging,cancel_event=self.cancel)
+            try:
+                if archive_manifest(verify.root,self.cancel)!=expected:raise OSError('Archive verification failed; original untouched')
+            finally:verify.close()
+            if self.cancel.is_set():raise ArchiveCancelled('Cancelled')
+            if self.path.is_symlink() or self.path.stat().st_nlink>1 or archive_digest(self.path)!=self.digest:raise OSError('Archive changed during save; original untouched')
+            with backup.open('xb') as dst,self.path.open('rb') as src:
+                shutil.copyfileobj(src,dst,1024*1024);dst.flush();os.fsync(dst.fileno())
+            shutil.copystat(self.path,backup)
+            if archive_digest(backup)!=self.digest or archive_digest(self.path)!=self.digest:
+                raise OSError('Archive changed during backup; no overwrite')
+            shutil.copystat(self.path,staging)
+            if os.name=='nt':
+                import ctypes
+                from ctypes import wintypes
+                replace=ctypes.WinDLL('kernel32',use_last_error=True).ReplaceFileW
+                replace.argtypes=[wintypes.LPCWSTR,wintypes.LPCWSTR,wintypes.LPCWSTR,wintypes.DWORD,ctypes.c_void_p,ctypes.c_void_p]
+                replace.restype=wintypes.BOOL
+                if not replace(str(self.path),str(staging),None,0,None,None):raise ctypes.WinError(ctypes.get_last_error())
+            else:os.replace(staging,self.path)
+            self.digest=archive_digest(self.path);self.original=expected;self.backup=backup
+            return backup
+        finally:staging.unlink(missing_ok=True)
+
+    def cleanup(self):self.cancel.set();self.session.close();self.removed.cleanup()
+
+"""Background archive staging and explicit reviewed commit around Folder Compare."""
+from pathlib import Path
+import queue
+import threading
+import tkinter as tk
+from tkinter import ttk,messagebox
+
+
+class ArchiveReviewCompare(ttk.Frame):
+    def __init__(self,master,left,right,folder_factory,file_factory,sync_executor,**options):
+        super().__init__(master);self.view=self;self.paths=[Path(left),Path(right)]
+        self.sessions=[None,None];self.inner=None;self.cancel_event=threading.Event();self.results=queue.Queue()
+        self.busy=False;self._job=None;self.closed=False;self.palette=None
+        self.folder_factory=folder_factory;self.file_factory=file_factory;self.sync_executor=sync_executor;self.options=options
+        bar=ttk.Frame(self);bar.pack(fill='x')
+        ttk.Button(bar,text=tr('Review archive changes…'),command=self.review_changes).pack(side='left')
+        actions=ttk.Menubutton(bar,text=tr('Draft actions'));actions.pack(side='left')
+        menu=tk.Menu(actions,tearoff=False);actions.configure(menu=menu)
+        for side in (0,1):
+            menu.add_command(label=tr('Delete selected from LEFT draft' if side==0 else 'Delete selected from RIGHT draft'),command=lambda s=side:self.delete_selected(s))
+            menu.add_command(label=tr('Undo last LEFT deletion' if side==0 else 'Undo last RIGHT deletion'),command=lambda s=side:self.undo_delete(s))
+        ttk.Button(bar,text=tr('Cancel'),command=self.cancel_scan).pack(side='left')
+        self.status=ttk.Label(bar,text=tr('Preparing isolated archive drafts…'),width=1);self.status.pack(side='left',fill='x',expand=True)
+        self.bind('<Destroy>',self.destroyed,add='+')
+        self.run('open',self.prepare)
+
+    def prepare(self):
+        roots=[];sessions=[None,None]
+        try:
+            for i,p in enumerate(self.paths):
+                if p.suffix.lower() in ('.zip','.7z') and p.is_file():
+                    sessions[i]=ArchiveReviewSession(p,self.cancel_event);roots.append(sessions[i].root)
+                else:roots.append(p)
+            return roots,sessions
+        except Exception:
+            for s in sessions:
+                if s:s.cleanup()
+            raise
+
+    def run(self,action,callback):
+        if self.busy:return
+        self.cancel_event.clear()
+        self.busy=True;self.status.configure(text=tr('Working… original archives unchanged until verified save'))
+        def worker():
+            try:result=callback();error=None
+            except Exception as exc:result=None;error=str(exc)
+            self.results.put((action,result,error))
+        threading.Thread(target=worker,daemon=True).start();self._job=self.after(50,self.poll)
+
+    def poll(self):
+        self._job=None
+        try:action,result,error=self.results.get_nowait()
+        except queue.Empty:self._job=self.after(50,self.poll);return
+        self.busy=False
+        if error:self.status.configure(text=error);return
+        if action=='open':
+            roots,self.sessions=result
+            self.inner=self.folder_factory(self,*roots,self.file_factory,self.sync_executor,
+                left_label=self.paths[0],right_label=self.paths[1],left_read_only=False,right_read_only=False,**self.options)
+            self.inner.content_var.set(True);self.inner.start_scan()
+            self.inner.pack(fill='both',expand=True)
+            if self.palette:self.apply_color_scheme(self.palette)
+            self.status.configure(text=tr('Archive sides are drafts · Review archive changes to save · local folders use normal confirmed sync'))
+        elif action=='review':self.show_review(result)
+        else:self.status.configure(text=tr('Archive saved; backup: ')+str(result))
+
+    def review_changes(self):
+        if self.busy or not self.inner:return
+        if any(getattr(d['detail'],'busy',False) or getattr(d['detail'],'_editors',None) or
+               (hasattr(d['detail'],'texts') and any(t!=doc.text for t,doc in zip(d['detail'].texts,d['detail'].documents)))
+               for d in self.inner.nested_details.values()):
+            self.status.configure(text=tr('Save or discard nested file drafts before reviewing the archive'));return
+        self.run('review',lambda:[(i,s.changes(),archive_manifest(s.root,self.cancel_event)) for i,s in enumerate(self.sessions) if s])
+
+    def delete_selected(self,side):
+        if self.busy or not self.inner or not self.sessions[side]:return
+        if self.inner.nested_details:
+            self.status.configure(text=tr('Close nested file tabs before deleting archive members'));return
+        session=self.sessions[side];names=[]
+        for iid in self.inner._selected_items():
+            path=self.inner.item_paths.get(iid,(None,None))[side]
+            if path:names.append(path.relative_to(session.root).as_posix())
+        if not names:return
+        if not messagebox.askyesno(tr('Delete from draft'),tr('Only the archive draft changes; review is required before saving.')+'\n'+'\n'.join(names[:15]),default='no',parent=self):return
+        try:session.delete_from_draft(names);self.inner.start_scan()
+        except OSError as exc:messagebox.showerror(tr('Archive draft'),str(exc),parent=self)
+
+    def undo_delete(self,side):
+        if self.busy or not self.inner or not self.sessions[side]:return
+        try:self.sessions[side].undo_delete();self.inner.start_scan()
+        except OSError as exc:messagebox.showerror(tr('Archive draft'),str(exc),parent=self)
+
+    def show_review(self,items):
+        changes=[(i,rows,manifest) for i,rows,manifest in items if rows]
+        if not changes:self.status.configure(text=tr('No archive changes'));return
+        # Each side is a separate transaction: never claim a two-file atomic save.
+        dialog=tk.Toplevel(self);dialog.title(tr('Review archive changes'));dialog.geometry('950x580')
+        ttk.Label(dialog,text=tr('Select one archive to save. Adds, replacements and explicit deletions are listed below.')).pack(fill='x')
+        tabs=ttk.Notebook(dialog);tabs.pack(fill='both',expand=True)
+        for i,rows,manifest in changes:
+            frame=ttk.Frame(tabs);tabs.add(frame,text=('L · ' if i==0 else 'R · ')+self.paths[i].name)
+            tree=ttk.Treeview(frame,columns=('action','member'),show='headings');tree.heading('action',text=tr('Action'));tree.heading('member',text=tr('Member'))
+            tree.column('action',width=100,stretch=False);tree.column('member',width=600);tree.pack(fill='both',expand=True)
+            for name,action in rows:tree.insert('','end',values=(tr(action),name))
+            def save(side=i,approved=manifest):
+                if not messagebox.askyesno(tr('Save'),tr('Write exactly these changes? A backup will be retained.')+'\n'+str(self.paths[side]),parent=dialog):return
+                dialog.destroy()
+                def commit():
+                    if archive_manifest(self.sessions[side].root,self.cancel_event)!=approved:raise OSError('Draft changed after review; review again before saving')
+                    return self.sessions[side].commit(approved)
+                self.run('save',commit)
+            ttk.Button(frame,text=tr('Save this archive'),command=save).pack(side='right')
+        ttk.Button(dialog,text=tr('Cancel'),command=dialog.destroy).pack(side='right')
+
+    def cancel_scan(self):
+        if self.busy:self.cancel_event.set();self.status.configure(text=tr('Cancelling…'));return True
+        if self.inner:return self.inner.cancel_scan()
+        return False
+
+    def export_report(self):
+        if self.inner:self.inner.export_report()
+
+    def next(self):
+        if self.inner:self.inner.next()
+    def previous(self):
+        if self.inner:self.inner.previous()
+    def focus_search(self):
+        if self.inner:return self.inner.focus_search()
+    def find_next(self):
+        if self.inner:return self.inner.find_next()
+    def find_previous(self):
+        if self.inner:return self.inner.find_previous()
+    def close_nested_detail(self):
+        return bool(self.inner and self.inner.close_nested_detail())
+    def apply_scale(self,scale):
+        if self.inner:self.inner.apply_scale(scale)
+    def apply_color_scheme(self,palette):
+        self.palette=palette
+        if self.inner:self.inner.apply_color_scheme(palette)
+
+    def confirm_close(self):
+        if self.busy:self.cancel_scan();return False
+        if self.inner and not self.inner.confirm_close():return False
+        if any(self.sessions) and not messagebox.askyesno(tr('Close comparison'),tr('Close archive drafts? Any changes not saved to the archives will be discarded.'),parent=self):return False
+        return True
+
+    def destroyed(self,event):
+        if event.widget is not self:return
+        self.closed=True;self.cancel_event.set()
+        if self._job is not None:self.after_cancel(self._job)
+        for session in self.sessions:
+            if session:session.cleanup()
+
 """Bounded, lossless text loading and conflict-checked editing for Compare."""
 import codecs
 import hashlib
@@ -8676,6 +10272,7 @@ class TextDocument:
     ending: str
     digest: str
     reason: str = ''
+    limit: int = TEXT_EDIT_LIMIT
 
     @property
     def description(self):
@@ -8688,15 +10285,15 @@ class TextDocument:
             raise OSError(self.reason)
         if self.path.is_symlink():
             raise OSError('Symbolic links are read-only in Compare.')
-        current = read_text_document(self.path)
+        current = read_text_document(self.path, limit=self.limit)
         if current.reason:
             raise OSError(current.reason)
         if current.digest != self.digest:
             raise OSError('The file changed on disk. Reopen it before editing; your text has not been discarded.')
         normalized = text.replace('\r\n', '\n').replace('\r', '\n')
         data = self.bom + normalized.replace('\n', self.ending).encode(self.encoding, errors='strict')
-        if len(data) > TEXT_EDIT_LIMIT:
-            raise OSError('The edited file exceeds the 2 MiB text limit. Your draft has not been discarded.')
+        if len(data) > self.limit:
+            raise OSError(f'The edited file exceeds the {self.limit // (1024*1024)} MiB text limit. Your draft has not been discarded.')
         mode = stat.S_IMODE(self.path.stat().st_mode)
         # Same-directory replacement avoids a partially written original on an
         # interrupted save. Refuse hard links: replacement would split the link.
@@ -8709,7 +10306,7 @@ class TextDocument:
                 stream.flush()
                 os.fsync(stream.fileno())
             os.chmod(name, mode)
-            if read_text_document(self.path).digest != self.digest:
+            if read_text_document(self.path, limit=self.limit).digest != self.digest:
                 raise OSError('The file changed during save. No overwrite was performed.')
             if os.name == 'nt':
                 import ctypes
@@ -8734,15 +10331,15 @@ class TextDocument:
         self.digest = hashlib.sha256(data).hexdigest()
 
 
-def read_text_document(path):
+def read_text_document(path, limit=TEXT_EDIT_LIMIT):
     path = Path(path)
     info = path.stat()
     if not stat.S_ISREG(info.st_mode):
         raise OSError('Text Compare requires an ordinary file.')
     with path.open('rb') as stream:
-        data = stream.read(TEXT_EDIT_LIMIT + 1)
-    if len(data) > TEXT_EDIT_LIMIT:
-        raise OSError('Text Compare is limited to 2 MiB per file. Use folder content comparison for larger files.')
+        data = stream.read(limit + 1)
+    if len(data) > limit:
+        raise OSError(f'Text Compare is limited to {limit // (1024*1024)} MiB per file. Use folder content comparison for larger files.')
     encoding, bom, reason = 'utf-8', b'', ''
     for marker, codec in ((codecs.BOM_UTF32_LE, 'utf-32-le'), (codecs.BOM_UTF32_BE, 'utf-32-be'),
                           (codecs.BOM_UTF8, 'utf-8'), (codecs.BOM_UTF16_LE, 'utf-16-le'),
@@ -8770,7 +10367,7 @@ def read_text_document(path):
     elif not info.st_mode & 0o222 or getattr(info, 'st_file_attributes', 0) & 1:
         reason = 'Read-only file'
     return TextDocument(path, text.replace('\r\n', '\n').replace('\r', '\n'), encoding, bom,
-                        ending, hashlib.sha256(data).hexdigest(), reason)
+                        ending, hashlib.sha256(data).hexdigest(), reason, limit)
 
 
 import csv
@@ -8793,7 +10390,7 @@ from tkinter import font as tkfont, messagebox, ttk, filedialog, simpledialog
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
                  ".ini", ".cfg", ".log", ".yaml", ".yml", ".sql", ".bat", ".ps1", ".c", ".h",
                  ".cpp", ".hpp", ".java", ".csv", ".tsv"}
-TABLE_SUFFIXES = {".csv", ".tsv"}
+TABLE_SUFFIXES = {".csv", ".tsv", ".xlsx", ".xlsm"}
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
 
 
@@ -9511,7 +11108,22 @@ class TextCompare(ttk.Frame):
             label.pack(side='left', fill='x', expand=True)
             ToolTip(label, document.description)
             self.document_controls[side] = (edit, label)
+        review = ttk.Button(self.view.diff_row, text=tr('Review & Edit'), command=self.open_review)
+        review.pack(side='right', padx=3)
         self.view.pack(fill="both", expand=True)
+
+    def open_review(self):
+        parent=self.master
+        while parent is not None:
+            if isinstance(parent,FolderCompare):
+                # Keep staged archive files within their owning comparison;
+                # an unrelated top-level tab could outlive its temporary root.
+                relative=self.left_path.relative_to(parent.left_root).as_posix()
+                return parent.open_nested_detail(self.left_path,self.right_path,relative,kind='Review')
+            parent=getattr(parent,'master',None)
+        owner=self.winfo_toplevel()
+        frame=owner.add(self.left_path,self.right_path,requested='Review')
+        if frame is not None:frame.set_read_only('Left' in self.read_only_sides,'Right' in self.read_only_sides)
 
     def edit(self, side):
         document = self.left_document if side == 'Left' else self.right_document
@@ -10943,8 +12555,8 @@ class FolderCompare(_FolderCompareLogic):
         self.session_tabs.select(self.summary)
         self.after_idle(self.left_tree.focus_set)
 
-    def open_nested_detail(self, left: Path, right: Path, relative: str):
-        key = (str(left), str(right))
+    def open_nested_detail(self, left: Path, right: Path, relative: str, kind=None):
+        key = (str(left), str(right), kind)
         for page, details in self.nested_details.items():
             if details["key"] == key:
                 self.session_tabs.select(page)
@@ -10963,9 +12575,10 @@ class FolderCompare(_FolderCompareLogic):
         host.pack(fill="both", expand=True)
         left_title = nested_source_label(self.left_label, relative)
         right_title = nested_source_label(self.right_label, relative)
+        options={'kind':kind} if kind is not None else {}
         kind, detail = self.open_detail(
-            host, left, right, left_title=left_title, right_title=right_title)
-        if type(detail) is TextCompare:
+            host, left, right, left_title=left_title, right_title=right_title,**options)
+        if hasattr(detail,'set_read_only'):
             detail.set_read_only(self.left_read_only, self.right_read_only)
         detail.pack(fill="both", expand=True)
         install_button_tooltips(page)
@@ -10994,10 +12607,18 @@ class FolderCompare(_FolderCompareLogic):
             return False
         if page not in self.nested_details:
             return False
+        detail=self.nested_details[page]['detail']
+        if hasattr(detail,'confirm_close') and not detail.confirm_close():return True
         self.session_tabs.forget(page)
         self.nested_details.pop(page, None)
         page.destroy()
         self._show_summary()
+        return True
+
+    def confirm_close(self):
+        for details in self.nested_details.values():
+            detail=details['detail']
+            if hasattr(detail,'confirm_close') and not detail.confirm_close():return False
         return True
 
     def next(self):
@@ -11018,6 +12639,14 @@ class FolderCompare(_FolderCompareLogic):
             return view.focus_search()
         self.search.focus_set(); self.search.selection_range(0, "end")
         return "break"
+
+    def find_next(self):
+        view=self._active_detail_view()
+        return view.find_next() if view is not None and hasattr(view,'find_next') else self._find(1)
+
+    def find_previous(self):
+        view=self._active_detail_view()
+        return view.find_previous() if view is not None and hasattr(view,'find_previous') else self._find(-1)
 
     def _open(self, _event=None):
         selected = self._selected_items()
@@ -11074,15 +12703,20 @@ class CompareWindow(tk.Toplevel):
         session_menu.add_command(label=tr('Close comparison'), command=self.close_active)
         session_button.configure(menu=session_menu); session_button.pack(side='left')
         ToolTip(session_button, tr('Named paths and rules · reopening never runs sync'))
+        navigation=ttk.Menubutton(session_bar,text=tr('Navigate'))
+        navigation_menu=tk.Menu(navigation,tearoff=False,font='TkMenuFont')
+        for label,key,method in [('Find:','Ctrl+F','focus_search'),('Find Next','F3','find_next'),
+                ('Find Prev','Shift+F3','find_previous'),('Diff <<','F7','previous'),('Diff >>','F8','next')]:
+            navigation_menu.add_command(label=tr(label),accelerator=key,
+                command=lambda m=method:self._shortcut(m))
+        navigation.configure(menu=navigation_menu);navigation.pack(side='left')
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.notebook.set_theme(self.palette)
         self.configure(background=self.palette["window"])
-        self.bind("<F7>", lambda _e: (self._navigate("previous"), "break")[1])
-        # F8 is the Explorer context menu in the main commander.  A Compare
-        # window owns it for next-difference navigation, so stop it before the
-        # application's bind_all handler can receive the same key event.
-        self.bind("<F8>", lambda _e: (self._navigate("next"), "break")[1])
-        self.bind("<Control-f>", lambda _e: self.focus_search())
+        # These belong only to Compare; never reach main-window Preview/VCS.
+        for sequence,method in [('<F3>','find_next'),('<Shift-F3>','find_previous'),
+                ('<F7>','previous'),('<F8>','next'),('<Control-f>','focus_search')]:
+            self.bind(sequence,lambda _e,m=method:self._shortcut(m))
         self.bind("<Escape>", lambda _e: self.close_active())
         install_button_tooltips(self)
         self._schedule_refresh()
@@ -11107,7 +12741,7 @@ class CompareWindow(tk.Toplevel):
         missing = [str(path) for path in (left, right) if not path.exists()]
         if missing: raise OSError(tr('Saved path is unavailable')+':\n'+'\n'.join(missing))
         kind = data.get('kind', 'Auto')
-        if kind not in {'Auto', 'Text', 'Table', 'Binary', 'Folder'}: kind = 'Auto'
+        if kind not in {'Auto', 'Text', 'Table', 'Binary', 'Folder', 'Review'}: kind = 'Auto'
         bases = data.get('bases', ['.', '.'])
         if not isinstance(bases, list) or len(bases) != 2 or any(
                 not isinstance(p, str) or Path(p).is_absolute() or '..' in Path(p).parts for p in bases):
@@ -11136,7 +12770,7 @@ class CompareWindow(tk.Toplevel):
 
     def export_report(self):
         frame = self.current_comparison()
-        if isinstance(frame, FolderCompare): frame.export_report()
+        if hasattr(frame, 'export_report'): frame.export_report()
         else:
             messagebox.showinfo(tr('Export report'), tr('Select a folder comparison to export its results.'), parent=self)
 
@@ -11179,6 +12813,9 @@ class CompareWindow(tk.Toplevel):
 
     def _make_frame(self, left: Path, right: Path, kind: str):
         if kind == "Folder":
+            if is_compare_archive(left) or is_compare_archive(right):
+                return ArchiveReviewCompare(self.notebook,left,right,FolderCompare,self._make_file_frame,self.sync_executor,
+                    marker_position=self.marker_position,marker_changed=self.set_marker_position)
             left_root, left_read_only = self._prepare_folder_source(left)
             right_root, right_read_only = self._prepare_folder_source(right)
             return FolderCompare(self.notebook, left_root, right_root, self._make_file_frame,
@@ -11198,10 +12835,20 @@ class CompareWindow(tk.Toplevel):
             "left_title": left_title,
             "right_title": right_title,
         }
+        use_review=kind=='Review'
+        if kind=='Text':
+            use_review=max(left.stat().st_size,right.stat().st_size)>2*1024*1024
+            if not use_review:
+                for path in (left,right):
+                    with path.open('rb') as stream:sample=stream.read(2*1024*1024+1)
+                    if sample.count(b'\n')>4000 or any(len(line)>4096 for line in sample.split(b'\n')):
+                        use_review=True;break
+        if use_review:
+            return 'Review', ReviewCompare(master,left,right,**options)
         if kind == "Text":
             return kind, TextCompare(master, left, right, **options)
         if kind == "Table":
-            return kind, TableCompare(master, left, right, **options)
+            return kind, WorkbookCompare(master, left, right, **options)
         return "Binary", BinaryCompare(master, left, right, **options)
 
     def _prepare_folder_source(self, path: Path):
@@ -11261,6 +12908,9 @@ class CompareWindow(tk.Toplevel):
             details = self.comparisons.get(frame)
             if details:
                 left, right, kind, previous = details
+                if isinstance(frame, (ReviewCompare, WorkbookCompare, ArchiveReviewCompare)):
+                    self._schedule_refresh()
+                    return
                 current = self._signature(left, right)
                 if current is not None and current != previous:
                     if type(frame) is TextCompare:
@@ -11298,6 +12948,13 @@ class CompareWindow(tk.Toplevel):
                 handler(); return
             pending.extend(widget.winfo_children())
 
+    def _shortcut(self,method):
+        grab=self.grab_current()
+        if grab is None or grab.winfo_toplevel() is self:
+            if method=='focus_search':self.focus_search()
+            else:self._navigate(method)
+        return 'break'
+
     def focus_search(self):
         if not self.notebook.tabs(): return 'break'
         frame = self.nametowidget(self.notebook.select())
@@ -11309,6 +12966,8 @@ class CompareWindow(tk.Toplevel):
         return "break"
 
     def close(self):
+        for frame in list(self.comparisons):
+            if hasattr(frame,'confirm_close') and not frame.confirm_close():return
         for editor in list(getattr(self, '_editors', ())):
             if not editor.close(): return
         if self._refresh_job is not None:
@@ -11335,6 +12994,7 @@ class CompareWindow(tk.Toplevel):
         if len(tabs) <= 1:
             self.close()
             return
+        if hasattr(widget,'confirm_close') and not widget.confirm_close():return
         self.notebook.forget(current)
         self.comparisons.pop(widget, None)
         widget.destroy()
@@ -11863,13 +13523,12 @@ import threading
 import time
 
 
-def limit_markdown_worker_memory():
+def limit_markdown_worker_memory(limit=512*1024*1024):
     """Apply a 512 MiB OS limit to this private worker, never the GUI process.
 
     If the platform/policy cannot enforce it, the caller uses bounded plain
     source instead of the richer renderer. Not a general-purpose OS sandbox.
     """
-    limit=512*1024*1024
     try:
         if os.name!='nt':
             import resource
@@ -15588,7 +17247,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.14"
+__version__ = "0.18.15"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -15673,6 +17332,14 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/02"
 VERSION_HISTORY = (
+    ("v0.18.15", "2026/10/02", (
+        "Added: Background text/Markdown review up to 20 MiB per side, wide-line navigation, draft editing and reviewed differences.",
+        "Added: Read-only Excel sheet, stored-value, formula and row-key comparison.",
+        "Added: ZIP/7z comparison drafts with explicit reviewed write-back, verification and backups.",
+    )),
+    ("v0.18.14", "2026/10/02", (
+        "Maintenance: Prepare the dedicated Windows test desktop after guest execution readiness, including resumed VM sessions.",
+    )),
     ("v0.18.13", "2026/10/02", (
         "Added: Auto Font Size fits sampled Panel 1–2 filenames at 100–300%, with compact hover-revealed zoom controls.",
         "Improved: Grouped popup search, comparison, rename and folder controls preserve more content space.",

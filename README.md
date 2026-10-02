@@ -1,6 +1,13 @@
 # Python File Commander
 
-Current version: **v0.18.14**
+Current version: **v0.18.15**
+
+**Expanded F9 comparison:** Text/Markdown review supports 20 MiB per side with
+background alignment, paged wide-line viewing, take-left/right drafts, undo/redo,
+reviewed markers and conflict-checked saves. Excel `.xlsx`/`.xlsm` comparison is
+read-only across sheets, stored values/formulas and optional row keys. ZIP/7z edits
+stay in isolated drafts until an explicit reviewed, verified write-back with a
+backup. PFC does not require Beyond Compare. See [usage and limits](docs/workflow-upgrade.md#comparison-review--v01815).
 
 **Windows validation readiness:** The leased test runner now prepares the
 dedicated test desktop after QGA execution is ready, before staging GUI tests.
@@ -277,12 +284,14 @@ second item and pressing F9 compares the pair. Two selected items compare immedi
 no selection compares the current panel folders. Text comparison has read-only
 aligned views, source line numbers and inline character differences. Edit Left/Right
 opens original source with Undo, encoding/EOL preservation and conflict-checked save.
-Text/CSV/TSV input is bounded to 2 MiB per side; large line sets use a labeled
-positional comparison. Binary hex is a 256 KiB preview, not a full-file equality
-claim. External refresh pauses while a text editor is open.
+Large or wide text automatically opens Review (20 MiB per side); small text
+offers **Review & Edit**. CSV/TSV retain a 2 MiB input bound. Excel opens a readonly
+changed-cell grid with worksheet selection. Binary hex is a 256 KiB preview, not
+a full-file equality claim. Review retains drafts until explicit reload/save.
 
-Folder Compare accepts folders, ZIP and 7z in any pairing; archive sides and nested
-archive files stay read-only. Its background scan supports cancellation, masks,
+Folder Compare accepts folders, ZIP and 7z in any pairing. Archive sides are
+isolated editable drafts; **Review archive changes…** is required to save the
+original archive, with verification and a backup. Its background scan supports cancellation, masks,
 exclusions and optional streamed SHA-256. **Rules** groups Recursive, By content,
 Text equivalent and Exclusions. Text equivalent ignores representation differences
 such as BOM, EOL and trailing space, not actual words. **Folders** holds base-folder,

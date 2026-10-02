@@ -42,7 +42,10 @@ class Guest:
         self.assert_owner()  # every guest read/write/exec, not just entry
         request = {'execute': execute, 'arguments': arguments}
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
-            client.settimeout(5)
+            # A newly active Windows guest can take >5 s to answer one QGA
+            # request even though the bounded readiness probe just succeeded.
+            # Do not retry non-idempotent writes/exec after an ambiguous reply.
+            client.settimeout(15)
             client.connect(str(self.spec.qga_socket))
             client.sendall((json.dumps(request)+'\n').encode())
             data = b''

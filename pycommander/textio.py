@@ -20,6 +20,7 @@ class TextDocument:
     ending: str
     digest: str
     reason: str = ''
+    limit: int = TEXT_EDIT_LIMIT
 
     @property
     def description(self):
@@ -32,15 +33,15 @@ class TextDocument:
             raise OSError(self.reason)
         if self.path.is_symlink():
             raise OSError('Symbolic links are read-only in Compare.')
-        current = read_text_document(self.path)
+        current = read_text_document(self.path, limit=self.limit)
         if current.reason:
             raise OSError(current.reason)
         if current.digest != self.digest:
             raise OSError('The file changed on disk. Reopen it before editing; your text has not been discarded.')
         normalized = text.replace('\r\n', '\n').replace('\r', '\n')
         data = self.bom + normalized.replace('\n', self.ending).encode(self.encoding, errors='strict')
-        if len(data) > TEXT_EDIT_LIMIT:
-            raise OSError('The edited file exceeds the 2 MiB text limit. Your draft has not been discarded.')
+        if len(data) > self.limit:
+            raise OSError(f'The edited file exceeds the {self.limit // (1024*1024)} MiB text limit. Your draft has not been discarded.')
         mode = stat.S_IMODE(self.path.stat().st_mode)
         # Same-directory replacement avoids a partially written original on an
         # interrupted save. Refuse hard links: replacement would split the link.
@@ -53,7 +54,7 @@ class TextDocument:
                 stream.flush()
                 os.fsync(stream.fileno())
             os.chmod(name, mode)
-            if read_text_document(self.path).digest != self.digest:
+            if read_text_document(self.path, limit=self.limit).digest != self.digest:
                 raise OSError('The file changed during save. No overwrite was performed.')
             if os.name == 'nt':
                 import ctypes
@@ -78,15 +79,15 @@ class TextDocument:
         self.digest = hashlib.sha256(data).hexdigest()
 
 
-def read_text_document(path):
+def read_text_document(path, limit=TEXT_EDIT_LIMIT):
     path = Path(path)
     info = path.stat()
     if not stat.S_ISREG(info.st_mode):
         raise OSError('Text Compare requires an ordinary file.')
     with path.open('rb') as stream:
-        data = stream.read(TEXT_EDIT_LIMIT + 1)
-    if len(data) > TEXT_EDIT_LIMIT:
-        raise OSError('Text Compare is limited to 2 MiB per file. Use folder content comparison for larger files.')
+        data = stream.read(limit + 1)
+    if len(data) > limit:
+        raise OSError(f'Text Compare is limited to {limit // (1024*1024)} MiB per file. Use folder content comparison for larger files.')
     encoding, bom, reason = 'utf-8', b'', ''
     for marker, codec in ((codecs.BOM_UTF32_LE, 'utf-32-le'), (codecs.BOM_UTF32_BE, 'utf-32-be'),
                           (codecs.BOM_UTF8, 'utf-8'), (codecs.BOM_UTF16_LE, 'utf-16-le'),
@@ -114,4 +115,4 @@ def read_text_document(path):
     elif not info.st_mode & 0o222 or getattr(info, 'st_file_attributes', 0) & 1:
         reason = 'Read-only file'
     return TextDocument(path, text.replace('\r\n', '\n').replace('\r', '\n'), encoding, bom,
-                        ending, hashlib.sha256(data).hexdigest(), reason)
+                        ending, hashlib.sha256(data).hexdigest(), reason, limit)
