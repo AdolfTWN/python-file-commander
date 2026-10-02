@@ -15588,7 +15588,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.13"
+__version__ = "0.18.14"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")

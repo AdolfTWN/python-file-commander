@@ -164,7 +164,9 @@ class VmRunnerTests(unittest.TestCase):
         self.leases.wait_for_lease.return_value = {'result':'waiting'}
         self.leases.cancel.return_value = {'result':'cancelled'}
         self.specs = MagicMock(); self.specs.VM_SPECS = {'vm2':MagicMock(vm_id='vm2')}
-        self.modules = patch.object(vm.importlib, 'import_module', side_effect=lambda name: self.leases if name == 'vm_lease' else self.specs)
+        self.desktop = MagicMock()
+        modules = {'vm_lease': self.leases, 'vm_pool_config': self.specs, 'vm_desktop': self.desktop}
+        self.modules = patch.object(vm.importlib, 'import_module', side_effect=modules.__getitem__)
         self.modules.start(); self.addCleanup(self.modules.stop)
 
     def test_qga_failure_blocks_before_deploy_and_releases(self):
@@ -175,6 +177,7 @@ class VmRunnerTests(unittest.TestCase):
             self.assertEqual(result['status'], 'blocked')
             self.assertEqual(result['reason'], 'guest-exec-unavailable')
             guest.return_value.put.assert_not_called()
+            self.desktop.prepare_desktop.assert_not_called()
             self.leases.release.assert_called_once_with('fixture')
             self.assertEqual(guest.call_args.args[1].vm_id, 'vm2')
 
@@ -184,7 +187,7 @@ class VmRunnerTests(unittest.TestCase):
             result = vm.run_vm(self.store, self.run, ['tooltip_check.py'])
             guest.assert_not_called()
             self.leases.cancel.assert_called_once_with('queued')
-            self.leases.wait_for_lease.assert_called_once_with('queued', 45)
+            self.leases.wait_for_lease.assert_called_once_with('queued', 60)
             self.leases.release.assert_not_called()
             self.assertEqual(result['reason'], 'vm-pool-busy')
 
@@ -240,6 +243,17 @@ class VmRunnerTests(unittest.TestCase):
         self.assertIn('InteractiveToken', xml)
         self.assertIn('LeastPrivilege', xml)
         self.assertNotIn('Password', xml)
+
+    def test_desktop_preparation_failure_blocks_staging_and_releases(self):
+        self.desktop.prepare_desktop.side_effect = RuntimeError('desktop-owned-by-other-account')
+        with patch.object(vm, 'Guest') as guest, patch.object(vm.subprocess, 'run') as command:
+            command.return_value.returncode = 0
+            result = vm.run_vm(self.store, self.run, ['tooltip_check.py'])
+            self.assertEqual(result['status'], 'blocked')
+            self.assertIn('desktop-owned-by-other-account', result['reason'])
+            self.desktop.prepare_desktop.assert_called_once_with(guest.return_value, timeout=120)
+            guest.return_value.put.assert_not_called()
+            self.leases.release.assert_called_once_with('fixture')
 
     def test_task_registration_failure_preserves_cleanup_errors(self):
         guest = MagicMock()

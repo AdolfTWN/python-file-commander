@@ -116,12 +116,21 @@ routes all QGA calls using the returned VM ID. A busy pool waits for promotion
 for up to the readiness timeout (capped at 60 seconds), without touching either
 desktop. On timeout it cancels only this invocation's request, recovering and
 releasing its lease if promotion raced cancellation. Retry later explicitly.
+QGA and desktop readiness each default to a bounded 120 seconds: the former
+45-second QGA default expired during a real VM1 resume. Queue waiting remains
+capped at 60 seconds; no desktop is touched while waiting for a lease.
 
 Sequence:
 
 1. Lease → bounded QGA readiness wait → read-only Python execution probe.
 2. If guest execution is unavailable, stop **before artifact writes or UI input**.
-3. Stage a fresh request-specific directory, exact hashes and selected checks.
+3. Ask the host's lease-aware `vm_desktop` module to prepare the dedicated test
+   desktop. It checks the console account through WTS, recognizes the selected
+   test-account password field, and uses the existing protected host credential
+   for one login attempt only when needed. Another console user, lost lease,
+   unknown screen, or unconfirmed login blocks staging. No persistent autologon,
+   password reset, credential logging, or guest networking is involved.
+   Then stage a fresh request-specific directory, exact hashes and selected checks.
 4. Register a uniquely named, least-privilege **InteractiveToken** task for the
    dedicated PFC-Test account; no password, elevation, auto-login or network.
 5. The worker checks the real input desktop before any PFC import/test and during
@@ -134,16 +143,25 @@ Sequence:
 
 Only the newly generated task is removed; staged fixtures/logs are retained in
 the disposable VM for diagnosis. The tool does not delete user files, reset
-accounts, unlock Windows or reset the VM. If host execution is abruptly killed,
+accounts or reset the VM. Desktop preparation can unlock only the dedicated test
+account under the runner's lease. If host execution is abruptly killed,
 the existing lease expiry/network manager remains the fallback; do not promise
 that Python `finally` runs after SIGKILL or host power loss.
 
-The VM requires an already usable interactive test session. Restoring the broken
-QGA/login environment is separate maintenance, not a silent password-reset step.
-The first live v0.18.10 runner attempt stopped at `qga-not-ready` and released the
-lease without input or credential access. Host/worker safety paths are covered
-by mocked tests; **the full scheduled-task Windows execution path is not yet
-accepted on the live VM**. Keep that boundary in future reports.
+The host must provide `/srv/yoder-ai/vm-management/vm_desktop.py`, Pillow and
+Tesseract in addition to the existing lease manager. A working QGA execution
+channel is required; repairing QGA remains separate environment maintenance.
+The first v0.18.10 run stopped at `qga-not-ready`; VM1's missing GLib helpers were
+later restored. The scheduled-task settings/readability/grouping test passed
+on VM1, while a tooltip check timed out and a resume cycle showed stop 0x7A.
+Do not generalize individual passing tests to full application or VM stability.
+The runner records whether desktop preparation performed a login for each run.
+For v0.18.14, two independent VM1 runs starting from confirmed hibernation
+prepared the login automatically and passed `settings_readability_groups_check.py`
+in 25.885 and 25.093 seconds (GUI test time), with clean task/network/lease
+cleanup. The second passing run used the corrected defaults. The intervening
+old-default attempt expired at QGA readiness; it remains in the trace as a
+failed attempt rather than a successful native test.
 
 References: [Interactive tasks](https://learn.microsoft.com/en-us/windows/win32/taskschd/schtasks),
 [input desktop](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-openinputdesktop),

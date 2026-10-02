@@ -1,6 +1,12 @@
 # Python File Commander
 
-Current version: **v0.18.13**
+Current version: **v0.18.14**
+
+**Windows validation readiness:** The leased test runner now prepares the
+dedicated test desktop after QGA execution is ready, before staging GUI tests.
+This supports testing after VM resume without a separate manual login. Other
+console accounts remain untouched; the worker still checks the actual input
+desktop. See [maintenance workflow](docs/maintenance-workflow.md).
 
 **Content-fit Auto zoom and compact dialogs:** Auto chooses the largest supported
 100–300% scale that fits up to 30 displayed-order names starting at the current
@@ -11,8 +17,8 @@ faint +/− controls above/below, revealed on pointer approach or keyboard focus
 Search groups related criteria by row, with expandable size/date filters and a
 Results menu (Enter/F3/F9 remain available). Compare, rename, Markdown discovery
 and space-analysis controls are grouped by task. See the popup audit in
-[Settings design](docs/settings-design.md). Windows native verification remains
-blocked at guest execution; this release does not claim that environment is fixed.
+[Settings design](docs/settings-design.md). The earlier guest-execution blocker
+was repaired on VM1; acceptance remains specific to the Windows checks run.
 
 **Interaction and reading fixes:** Scrolling filenames accept double-clicks.
 Directory notifications have a periodic fallback (active local folder: 2 seconds
@@ -21,7 +27,7 @@ Settings previews and options scroll together; narrow comparisons stack vertical
 F3 uses readable Wrap/Rendered checkmarks and a single search row. Narrow windows
 use arrow buttons and `Aa` with full tooltips, without reducing the chosen font.
 Package/portable checks cover these paths. Windows native acceptance remains
-pending: QGA was ready but refused guest execution; no network/account change was made.
+pending for these particular checks; VM1's former QGA execution failure is repaired.
 
 **Readable settings and tab groups:** Settings inherits the main interface text
 size on opening and after Apply. Large-text pages scroll, with preview first and

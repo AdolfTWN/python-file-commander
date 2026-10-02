@@ -26,8 +26,11 @@ For every PFC feature, repair, update, validation or release task:
    Do not repeatedly read complete logs; inspect the named private failure log.
 3. For GB10 Windows checks use `python3 tools/pfc_vm_runner.py --run ID --checks ...`.
    It owns its lease, routes by returned VM ID, checks readiness and releases in
-   finally. Do not call temporary VM1-only VNC/CMD helpers or type passwords to
-   work around a blocked readiness gate. Environment repair is separate work.
+   finally. After QGA execution is ready, it invokes the host's `vm_desktop`
+   preparation step for the dedicated test account; do not ask the user to
+   manually pre-login after each VM resume. Do not call temporary VM1-only
+   VNC/CMD helpers or type passwords to work around a blocked readiness gate.
+   Environment repair is separate work.
 4. Import available official `codex exec --json` usage via `usage --run ID --events FILE`;
    mark full coverage only for an exact completed task trace. Without counters,
    report token usage unknown. Tool/output-byte counts are not token estimates.
