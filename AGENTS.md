@@ -1,5 +1,8 @@
 # PFC delivery default
 
+Use PFC's own feature descriptions in release notes, documentation and context
+notes. Do not name third-party comparison applications used as design references.
+
 After implementing and validating a requested PFC change, increment the patch
 version (for example 0.17.20 -> 0.17.21), regenerate the portable pfc.py, and push
 main plus the version tag. Verify the app's Check for Updates source contains the

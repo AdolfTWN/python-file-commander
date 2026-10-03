@@ -6,6 +6,7 @@ passes. The worker still verifies the real input desktop before importing PFC.
 from __future__ import annotations
 import argparse
 import base64
+from contextlib import contextmanager
 import importlib
 import json
 from pathlib import Path
@@ -32,6 +33,25 @@ class Blocked(RuntimeError):
 class Guest:
     def __init__(self, lease, spec, leases):
         self.lease, self.spec, self.leases = lease, spec, leases
+        self._client = None
+
+    def close(self):
+        if self._client is not None:
+            self._client.close()
+            self._client = None
+
+    @contextmanager
+    def connection(self):
+        fresh = self._client is None
+        try:
+            if fresh:
+                self._client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                self._client.settimeout(30)
+                self._client.connect(str(self.spec.qga_socket))
+            yield self._client, fresh
+        except BaseException:
+            self.close()
+            raise
 
     def assert_owner(self):
         active = self.leases.snapshot()['vms'][self.spec.vm_id]['active']
@@ -39,22 +59,63 @@ class Guest:
             raise Blocked('lease-lost')
 
     def call(self, execute, **arguments):
+        # A timed-out synchronization handshake has not sent the requested
+        # command yet, so reconnecting is safe. Never replay an ambiguous exec
+        # or write response. Bound retries independently of readiness polling.
+        for attempt in range(3):
+            try:
+                return self._call(execute, **arguments)
+            except Blocked as exc:
+                if str(exc) != 'qga-response-timeout: guest-sync-delimited' or attempt == 2:
+                    raise
+                print('Windows: reconnecting test channel before command dispatch', flush=True)
+                time.sleep(.2)
+
+    def _call(self, execute, **arguments):
         self.assert_owner()  # every guest read/write/exec, not just entry
-        request = {'execute': execute, 'arguments': arguments}
-        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        token = uuid.uuid4().hex
+        request = {'execute': execute, 'arguments': arguments, 'id': token}
+        with self.connection() as (client, fresh):
             # A newly active Windows guest can take >5 s to answer one QGA
             # request even though the bounded readiness probe just succeeded.
             # Do not retry non-idempotent writes/exec after an ambiguous reply.
-            client.settimeout(15)
-            client.connect(str(self.spec.qga_socket))
+            client.settimeout(30)
+            def receive(expected, operation):
+                data = b''
+                deadline = time.monotonic()+(5 if operation == 'guest-sync-delimited' else 30)
+                while True:
+                    client.settimeout(max(.001, deadline-time.monotonic()))
+                    try:
+                        chunk = client.recv(65536)
+                    except TimeoutError:
+                        raise Blocked('qga-response-timeout: '+operation) from None
+                    if not chunk or len(data) > 2*1024*1024:
+                        raise Blocked('qga-invalid-response')
+                    data += chunk
+                    if b'\xff' in data: data = data.rsplit(b'\xff', 1)[1]
+                    while b'\n' in data:
+                        line, data = data.split(b'\n', 1)
+                        try:
+                            candidate = json.loads(line)
+                        except ValueError:
+                            continue
+                        if isinstance(candidate, dict) and candidate.get('id') == expected:
+                            return candidate
+                    if time.monotonic() >= deadline:
+                        raise Blocked('qga-response-timeout: '+operation)
+            # QGA requires a synchronization barrier on EVERY new connection,
+            # not just matching IDs. Flush partial input/output from old clients
+            # before issuing the command (especially following a timeout).
+            if fresh:
+                nonce = time.time_ns() & ((1 << 63)-1)
+                sync_id = token+'-sync'
+                sync = {'execute':'guest-sync-delimited', 'arguments':{'id':nonce}, 'id':sync_id}
+                client.sendall(b'\xff'+(json.dumps(sync)+'\n').encode())
+                if receive(sync_id, 'guest-sync-delimited').get('return') != nonce:
+                    raise Blocked('qga-sync-mismatch')
+            self.assert_owner()
             client.sendall((json.dumps(request)+'\n').encode())
-            data = b''
-            while b'\n' not in data:
-                chunk = client.recv(65536)
-                if not chunk or len(data) > 2*1024*1024:
-                    raise Blocked('qga-invalid-response')
-                data += chunk
-        result = json.loads(data.split(b'\n', 1)[0])
+            result = receive(token, execute)
         if 'error' in result:
             raise Blocked(execute+'-unavailable')
         return result.get('return', {})
@@ -72,31 +133,40 @@ class Guest:
         raise Blocked('guest-command-timeout')
 
     def put(self, data, remote):
-        handle = self.call('guest-file-open', path=remote, mode='wb')
-        try:
-            for start in range(0, len(data), 48*1024):
-                chunk = data[start:start+48*1024]
-                reply = self.call('guest-file-write', handle=handle,
-                                  **{'buf-b64': base64.b64encode(chunk).decode()})
-                if reply['count'] != len(chunk):
-                    raise Blocked('guest-short-write')
-            self.call('guest-file-flush', handle=handle)
-        finally:
-            self.call('guest-file-close', handle=handle)
+        # Stage only the new request directory through verified Python. Keeping
+        # each encoded argument under 16 KiB respects Windows command-line limits
+        # and avoids the same intermittent QGA file-channel stall as report reads.
+        script = ('import base64,sys; '
+                  'f=open(sys.argv[1],"wb" if int(sys.argv[2])==0 else "r+b"); '
+                  'f.seek(int(sys.argv[2])); f.write(base64.b64decode(sys.argv[3])); f.close()')
+        for start in range(0, max(1, len(data)), 12*1024):
+            chunk = base64.b64encode(data[start:start+12*1024]).decode()
+            self.execute(PYTHON, ['-c', script, remote, str(start), chunk])
 
-    def read(self, remote):
-        handle = self.call('guest-file-open', path=remote, mode='rb')
-        try:
-            data = b''
-            while True:
-                result = self.call('guest-file-read', handle=handle, count=65536)
-                data += base64.b64decode(result.get('buf-b64', ''))
-                if len(data) > 1024*1024:
-                    raise Blocked('guest-report-too-large')
-                if result.get('eof') or not result.get('count'):
-                    return data
-        finally:
-            self.call('guest-file-close', handle=handle)
+    def read(self, remote, limit=1024*1024):
+        # The Windows QGA regular-file channel intermittently hangs while
+        # polling atomically replaced reports. Use the already-verified Python
+        # execution channel for bounded, read-only chunks; never replay a write.
+        data = b''
+        chunk_size = 256*1024
+        script = ('import pathlib,sys; p=pathlib.Path(sys.argv[1]); '
+                  'f=p.open("rb"); f.seek(int(sys.argv[2])); '
+                  'sys.stdout.buffer.write(f.read(int(sys.argv[3])))')
+        while True:
+            try:
+                result = self.execute(PYTHON, ['-c', script, remote, str(len(data)), str(chunk_size)])
+            except Blocked as exc:
+                if str(exc) == 'guest-command-failed':
+                    raise Blocked('guest-file-open-unavailable') from None
+                raise
+            if result.get('out-truncated'):
+                raise Blocked('guest-report-truncated')
+            chunk = base64.b64decode(result.get('out-data', ''))
+            data += chunk
+            if len(data) > limit:
+                raise Blocked('guest-report-too-large')
+            if len(chunk) < chunk_size:
+                return data
 
 
 def task_xml(directory):
@@ -125,12 +195,42 @@ def validate_result(result, request_id, checks):
     return result
 
 
-def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None):
+def stop_request_checks(guest, directory, checks):
+    # Ending a scheduled task can leave its GUI children alive. Match only the
+    # exact commands staged by this request, never all Python/PFC processes.
+    expected = [subprocess.list2cmdline([PYTHON, directory+'\\'+name, 'pfc']) for name in checks]
+    commands = ','.join("'"+item.replace("'", "''")+"'" for item in expected)
+    script = ("$ErrorActionPreference='Stop'; $expected=@("+commands+"); "
+              "$children=@(Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | "
+              "Where-Object {$expected -contains $_.CommandLine}); "
+              "foreach($child in $children) { & taskkill.exe /PID $child.ProcessId /T /F | Out-Null }; "
+              "if(Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | "
+              "Where-Object {$expected -contains $_.CommandLine}) {throw 'request-child-still-running'}")
+    guest.execute(r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',
+                  ['-NoProfile', '-NonInteractive', '-Command', script], timeout=30)
+
+
+def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evidence_dir=None):
     # A cheap, read-only execution probe comes before staging or UI interaction.
+    print('Windows: checking Python execution', flush=True)
     guest.execute(PYTHON, ['-c', 'import sys; assert sys.version_info >= (3, 10)'])
+    print('Windows: preparing leased test desktop', flush=True)
     try:
         desktop = importlib.import_module('vm_desktop')
         desktop_status = desktop.prepare_desktop(guest, timeout=ready_timeout)
+        # An unlocked console can still have a powered-off display after S4.
+        # Wake only the verified test account, through the same leased helper;
+        # never type into an unknown account or bypass desktop readiness.
+        kind, _, _ = desktop.inspect_login_screen(guest)
+        if kind == 'blank':
+            if not desktop.session_status(guest).get('ready'):
+                raise Blocked('desktop-not-ready-for-display-wake')
+            with desktop.Keyboard(guest) as keyboard:
+                keyboard.press(0xffe1)
+            time.sleep(.5)
+            if desktop.inspect_login_screen(guest)[0] == 'blank':
+                raise Blocked('desktop-display-remains-blank')
+            desktop_status['display_woken'] = True
     except (ImportError, OSError, RuntimeError, subprocess.SubprocessError) as exc:
         if isinstance(exc, Blocked):
             raise
@@ -138,6 +238,7 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None):
         reason = str(exc) if isinstance(exc, RuntimeError) else type(exc).__name__
         raise Blocked('desktop-preparation-failed: '+reason) from None
     request_id = uuid.uuid4().hex
+    print('Windows: desktop ready; staging verified candidate', flush=True)
     directory = 'C:\\PFC-Test\\workflow\\'+request_id
     guest.execute(PYTHON, ['-c', 'import pathlib,sys; pathlib.Path(sys.argv[1]).mkdir(parents=True)', directory])
     files = {'pfc.py': ROOT/'pfc.py', 'pfc_windows_worker.py': ROOT/'tools/pfc_windows_worker.py'}
@@ -146,6 +247,7 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None):
     files['folder_native_test_support.py'] = ROOT/'tools/folder_native_test_support.py'
     hashes = {}
     for name, path in files.items():
+        print('Windows: staging '+name, flush=True)
         data = path.read_bytes(); hashes[name] = digest(data)
         guest.put(data, directory+'\\'+name)
     request = dict(request_id=request_id, checks=checks, files=hashes, test_timeout=test_timeout)
@@ -159,6 +261,7 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None):
         created = True
         guest.execute(SCHTASKS, ['/Create', '/TN', task, '/XML', directory+'\\task.xml'])
         guest.execute(SCHTASKS, ['/Run', '/TN', task])
+        print('Windows: native checks started', flush=True)
         deadline = time.monotonic()+ready_timeout
         began_tests = False
         while time.monotonic() < deadline:
@@ -176,6 +279,18 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None):
             time.sleep(1)
         else:
             raise Blocked('test-timeout' if began_tests else 'interactive-session-not-ready')
+        if evidence_dir is not None:
+            evidence_dir = evidence_dir/request_id
+            evidence_dir.mkdir(parents=True, exist_ok=True)
+            for test in result.get('tests', []):
+                name = test['check']
+                (evidence_dir/(name+'.log')).write_bytes(guest.read(directory+'\\'+name+'.log'))
+            if result['status']=='passed' and 'review_compare_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('text-light','text-dark','workbook','workbook-empty','folder-pair','archive-draft'):
+                    data=guest.read(directory+'\\evidence-'+name+'.bmp', limit=16*1024*1024)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/(name+'.png'))
         return {**result, 'artifact_sha256': hashes['pfc.py'],
                 'desktop_preparation': desktop_status, 'cleanup': cleanup}
     finally:
@@ -186,6 +301,10 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None):
                     guest.execute(SCHTASKS, ['/End', '/TN', task])
                 except (Blocked, OSError):
                     cleanup.append('task-stop-unconfirmed')
+            try:
+                stop_request_checks(guest, directory, checks)
+            except (Blocked, OSError):
+                cleanup.append('test-child-stop-unconfirmed')
             try:
                 guest.execute(SCHTASKS, ['/Delete', '/TN', task, '/F'])
             except (Blocked, OSError):
@@ -206,6 +325,7 @@ def run_vm(store, run_id, selected, ready_timeout=120, test_timeout=180, manager
     lease = None
     queued_request = None
     heartbeat = None
+    guest = None
     started = time.monotonic()
     output = {'status': 'blocked', 'stage': 'lease', 'cleanup': []}
     try:
@@ -238,12 +358,15 @@ def run_vm(store, run_id, selected, ready_timeout=120, test_timeout=180, manager
                     raise Blocked('qga-not-ready') from exc
                 time.sleep(1)
         output['stage'] = 'execution-readiness'
-        output.update(windows_checks(guest, selected, ready_timeout, test_timeout, output['cleanup']))
+        output.update(windows_checks(guest, selected, ready_timeout, test_timeout, output['cleanup'],
+                                     store.directory/run_id/'windows-evidence'))
     except (Blocked, OSError, ValueError, KeyError) as exc:
         output.update(status='blocked', reason=str(exc) if isinstance(exc, Blocked) else type(exc).__name__)
     except KeyboardInterrupt:
         output.update(status='blocked', reason='interrupted')
     finally:
+        if guest is not None:
+            guest.close()
         stop.set()
         if heartbeat:
             heartbeat.join(timeout=6)

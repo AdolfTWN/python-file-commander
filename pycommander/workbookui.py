@@ -5,12 +5,14 @@ from pathlib import Path
 import queue
 import threading
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog, filedialog
+from tkinter import ttk, messagebox, simpledialog, filedialog, font as tkfont
 from .reviewjobs import ComparisonJobs
 from .workbook import workbook_rows, cell_position, cell_values_equal
 from .reviewstorage import safe_review_write
 from .i18n import tr
 from .tooltip import ToolTip
+from .settings import readable_check_style
+from .comparecolors import comparison_colors
 
 
 class WorkbookCompare(ttk.Frame):
@@ -19,9 +21,9 @@ class WorkbookCompare(ttk.Frame):
         super().__init__(master);self.view=self;self.paths=[Path(left),Path(right)]
         self.jobs=ComparisonJobs();self.books=None;self.rows=[];self.filtered=[];self.top=0;self._job=None
         self._generation=0;self._row_results=queue.Queue();self._rows_job=None
-        self.sheet=tk.StringVar();self.only=tk.BooleanVar(value=True);self.search_var=tk.StringVar()
+        self.sheet=tk.StringVar();self.only=tk.BooleanVar(value=False);self.search_var=tk.StringVar()
         self.keys=();self.header_row=1;self.cell_mode=tk.StringVar(value='Both')
-        self._filter_needle='';self._pending_find=None
+        self._filter_needle='';self._pending_find=None;self.difference_count=0
         bar=ttk.Frame(self);bar.pack(fill='x',padx=4,pady=3)
         ttk.Label(bar,text=tr('Worksheet')).pack(side='left')
         self.sheets=ttk.Combobox(bar,state='readonly',textvariable=self.sheet,width=20)
@@ -39,14 +41,22 @@ class WorkbookCompare(ttk.Frame):
         self.search=ttk.Entry(find,textvariable=self.search_var,width=8);self.search.pack(side='left',fill='x',expand=True)
         self.search.bind('<Return>',lambda e:self.find_next())
         self.search.bind('<Shift-Return>',lambda e:self.find_previous())
+        self.only_button=ttk.Checkbutton(find,text=tr('Differences only'),variable=self.only,command=self.filter,
+            style=readable_check_style(self,tkfont.nametofont('TkDefaultFont'),prefix='Workbook'))
+        self.only_button.pack(side='right',padx=4)
         for label,cmd in [('Find',self.filter),('◀',self.find_previous),('▶',self.find_next)]:
             button=ttk.Button(find,text=tr(label),width=0,command=cmd);button.pack(side='left',padx=2)
             ToolTip(button,tr('Find Prev')+' · Shift+F3' if label=='◀' else tr('Find Next')+' · F3' if label=='▶' else tr('Find:'))
-        self.tree=ttk.Treeview(self,columns=('status','left','value_l','formula_l','right','value_r','formula_r'),show='headings')
+        self.tree=ttk.Treeview(self,columns=('status','left','value_l','formula_l','right','value_r','formula_r'),show='headings',style='Workbook.Treeview')
+        self.apply_scale(1)
         for name,title,width in [('status','Status',90),('left','L Cell',70),('value_l','L Value / cached result',220),
                                  ('formula_l','L Formula',220),('right','R Cell',70),('value_r','R Value / cached result',220),('formula_r','R Formula',220)]:
             self.tree.heading(name,text=tr(title));self.tree.column(name,width=width,minwidth=60,stretch=name in ('value_l','value_r'))
         self.tree.pack(fill='both',expand=True)
+        self.empty=ttk.Frame(self.tree,padding=12)
+        self.empty_text=ttk.Label(self.empty,text='',anchor='center',wraplength=520)
+        self.empty_text.pack()
+        self.show_all_button=ttk.Button(self.empty,text=tr('Show all cells'),command=self.show_all)
         x=ttk.Scrollbar(self,orient='horizontal',command=self.tree.xview);x.pack(fill='x');self.tree.configure(xscrollcommand=x.set)
         self.scrollbar=ttk.Scrollbar(self,command=self.scroll);self.scrollbar.pack(side='right',fill='y',before=self.tree)
         self.tree.bind('<Double-Button-1>',self.show_cell)
@@ -63,14 +73,16 @@ class WorkbookCompare(ttk.Frame):
         try:serial,result=self.jobs.results.get_nowait()
         except queue.Empty:self._job=self.after(40,self.poll);return
         if serial!=self.serial:return
-        if 'error' in result:self.status.configure(text=result['error']);return
+        if 'error' in result:
+            self.status.configure(text=result['error']);self.show_empty(tr('Workbook could not be read')+'\n'+result['error']);return
         self.books=result['books'];names=[]
         for book in self.books:
             for sheet in book['sheets']:
                 if sheet['name'] not in names:names.append(sheet['name'])
         self.sheets.configure(values=names)
         if names:self.sheet.set(names[0]);self.load_sheet()
-        else:self.status.configure(text=tr('Workbook has no worksheets'))
+        else:
+            self.status.configure(text=tr('Workbook has no worksheets'));self.show_empty(tr('Workbook has no worksheets'))
 
     def load_sheet(self):
         if not self.books:return
@@ -87,25 +99,27 @@ class WorkbookCompare(ttk.Frame):
         self._filter_needle=needle
         selected=list(self.selected);keys=self.keys;header=self.header_row
         self.rows=[];self.filtered=[];self.tree.delete(*self.tree.get_children())
+        self.show_empty(tr('Comparing worksheet…'))
         self.status.configure(text=tr('Comparing worksheet…'))
         def work():
             try:
-                rows=workbook_rows(*selected,keys,header);filtered=[]
+                rows=workbook_rows(*selected,keys,header);filtered=[];differences=0
                 for n,(ar,br,a,b) in enumerate(rows):
                     if serial!=self._generation:return
-                    if (not only or not cell_values_equal(a,b,mode)) and (not needle or needle in (ar+' '+br+' '+str(a)+' '+str(b)).casefold()):filtered.append(n)
-                self._row_results.put((serial,rows,filtered,None))
-            except Exception as exc:self._row_results.put((serial,[],[],str(exc)))
+                    different=not cell_values_equal(a,b,mode);differences+=different
+                    if (not only or different) and (not needle or needle in (ar+' '+br+' '+str(a)+' '+str(b)).casefold()):filtered.append(n)
+                self._row_results.put((serial,rows,filtered,None,differences))
+            except Exception as exc:self._row_results.put((serial,[],[],str(exc),0))
         threading.Thread(target=work,daemon=True).start()
         if self._rows_job is None:self._rows_job=self.after(40,self.poll_rows)
 
     def poll_rows(self):
         self._rows_job=None
-        try:serial,rows,filtered,error=self._row_results.get_nowait()
+        try:serial,rows,filtered,error,differences=self._row_results.get_nowait()
         except queue.Empty:self._rows_job=self.after(40,self.poll_rows);return
         if serial!=self._generation:self._rows_job=self.after(40,self.poll_rows);return
-        self.rows=rows;self.filtered=filtered;self.top=0;self.render()
-        if error:self.status.configure(text=error)
+        self.rows=rows;self.filtered=filtered;self.difference_count=differences;self.top=0;self.render()
+        if error:self.status.configure(text=error);self.show_empty(error)
         elif self._pending_find is not None:
             direction=self._pending_find;self._pending_find=None;self._move_result(direction)
 
@@ -125,7 +139,23 @@ class WorkbookCompare(ttk.Frame):
         self.scrollbar.set(self.top/max(1,len(self.filtered)),end/max(1,len(self.filtered)))
         meta=' · '.join(('L' if n==0 else 'R')+': '+(s['state']+f', {len(s["merged"])} merged ranges' if s else 'sheet missing') for n,s in enumerate(self.selected)) if self.books else ''
         dates=' · '+tr('Different Excel date systems') if self.books and self.books[0]['date1904']!=self.books[1]['date1904'] else ''
-        self.status.configure(text=f'{self.top+1 if end else 0}–{end}/{len(self.filtered)} · '+tr('Read-only · formulas are not recalculated · double-click for full cell')+' · '+meta+dates)
+        summary=tr('{cells} cells compared · {diffs} differences · {sheets} worksheets',
+                   cells=len(self.rows),diffs=self.difference_count,sheets=len(self.sheets.cget('values')))
+        self.status.configure(text=summary+f' · {self.top+1 if end else 0}–{end}/{len(self.filtered)} · '+tr('Read-only · formulas are not recalculated · double-click for full cell')+' · '+meta+dates)
+        if not self.filtered:
+            reason=(tr('No cells match the current filter') if self._filter_needle else
+                    tr('No value/formula differences in this worksheet') if self.rows else
+                    tr('This worksheet contains no stored cell values or formulas'))
+            self.show_empty(reason+'\n'+summary+'\n'+tr('Other worksheets may differ. Formatting, pictures and charts are not compared.'),bool(self.rows))
+        else:self.empty.place_forget()
+
+    def show_empty(self,text,show_all=False):
+        self.empty_text.configure(text=text)
+        self.show_all_button.pack(pady=(8,0)) if show_all else self.show_all_button.pack_forget()
+        self.empty.place(relx=.5,rely=.5,anchor='center')
+
+    def show_all(self):
+        self.only.set(False);self.search_var.set('');self.filter()
 
     def scroll(self,*args):
         self.top=int(float(args[1])*len(self.filtered)) if args[0]=='moveto' else self.top+int(args[1])*(self.PAGE if args[2]=='pages' else 1)
@@ -154,12 +184,17 @@ class WorkbookCompare(ttk.Frame):
     def previous(self):self._move_result(-1,True)
     def focus_search(self):self.search.focus_set();return 'break'
     def set_read_only(self,*args,**kwargs):pass
-    def apply_scale(self,scale):pass
+    def apply_scale(self,scale):
+        face=tkfont.nametofont('TkDefaultFont')
+        ttk.Style(self).configure('Workbook.Treeview',font=face,rowheight=face.metrics('linespace')+8)
+        self.only_button.configure(style=readable_check_style(self,face,
+            getattr(self,'_dark',False),'Workbook'))
     def apply_language(self,old):pass
     def apply_color_scheme(self,palette):
-        self.tree.tag_configure('Changed',background='#e9be65',foreground='#141414')
-        self.tree.tag_configure('Left only',background='#b8dced',foreground='#141414')
-        self.tree.tag_configure('Right only',background='#bce2c2',foreground='#141414')
+        colors=comparison_colors(palette)
+        self._dark=colors['base']!='#ffffff';self.apply_scale(1)
+        for tag,color in [('Changed','line'),('Left only','orphan'),('Right only','orphan')]:
+            self.tree.tag_configure(tag,background=colors[color],foreground=colors['text'])
 
     def set_keys(self):
         value=simpledialog.askstring(tr('Row key columns'),tr('Column letters separated by commas (e.g. A,C). Empty = cell coordinates.'),parent=self)

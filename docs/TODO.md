@@ -1,8 +1,34 @@
 # PFC follow-ups
 
-## Beyond Compare evaluation and comparison upgrade — v0.18.15
+## Comparison visibility and independent pairing — v0.18.16
 
-- [x] Install the official BC trial in leased Windows, verify its signature and
+- [x] Show loaded Excel cells by default; expose Differences only beside Find and
+  distinguish no differences, no matching filter, empty sheet and read errors.
+  Add Strict OOXML namespaces and reject unknown XML instead of silently empty data.
+- [x] Independent left/right file choices and right-click per-side Base Folder,
+  parent and reset actions for folders, ZIP and 7z; preserve logical member paths.
+- [x] Separate line/character/search/selection colors with readable light/dark
+  contrast. Fix 7z directory attributes and draft side ownership after swaps.
+- [x] Use PFC feature descriptions in current documentation and context notes.
+- [x] Fix intermittent folder-tree expansion after zoom: transient old row heights
+  could give icon copies negative coordinates and abort the scan polling callback.
+  Clip icons/badges to the current row; five consecutive source regressions pass.
+- [x] Complete v0.18.16 Windows Compare, compact-chrome and folder-leaf acceptance
+  on the exact portable build, plus all 89 source/portable checks. Retake and
+  review screenshots after fixing enlarged workbook row heights and cleaning
+  verified stale test windows. Publication still requires the recorded release
+  gate, including the private mirror and exact updater bytes.
+  VM2 was retired by operator decision on 2026-10-03; do not repair or recreate it.
+- [ ] Reporter Excel files have not been provided: verify the exact worksheet/cell
+  discrepancy with sanitized originals if the issue persists. Synthetic fixtures
+  can verify supported formats and UI states, not establish the original cause.
+
+Validation evidence is recorded in the maintenance trace; this checklist is not
+a claim that the reporter's original Excel pair has been reproduced.
+
+## Comparison review upgrade — v0.18.15
+
+- [x] Install a reference comparison application in leased Windows, verify its signature and
   observe synthetic large Markdown, Excel and ZIP/7z workflows. The first attempt
   stopped at Windows recovery; after the user confirmed VM1 was repaired, testing
   resumed. Official installers were staged from the host; guest network stayed off.
@@ -23,18 +49,18 @@ Release delivery requires the recorded GitHub/private GitLab/update-source gate;
 test completion alone is not proof of publication.
 
 See [comparison usage, safety budgets and evidence](workflow-upgrade.md#comparison-review--v01815).
-Not full BC parity: Markdown is a synchronized excerpt; Excel is a readonly
+Scope limits: Markdown is a synchronized excerpt; Excel is a readonly
 changed-cell grid; archives are fully staged within the stated budget. Larger
 inputs, semantic Markdown diffs, workbook writing and three-way merging remain
 outside the approved implementation scope.
 Tracking run: `08f60f7036a44bc5bac6e6e0e1095692`.
 
-- [ ] **Native Auto Font Size return-to-folder consistency** — The broader Windows
+- [x] **Native Auto Font Size return-to-folder consistency (v0.18.16)** — The broader Windows
   compact-chrome check observed a different automatic size after returning to the
   same short-name fixture in two-panel mode (250% vs 225%). Compare-specific
   native checks passed, but this is not a passing Auto Font Size acceptance test.
-  Investigate post-navigation column geometry and the one-way verification step;
-  do not weaken the assertion or claim the pre-existing zoom behavior is fixed.
+  Fixed double-scaling of native fixed-pixel insets. Source, portable and Windows
+  compact-chrome checks pass with the original consistency assertion intact.
 
 ## Content-aware Auto Font Size and compact popup chrome — v0.18.13
 
@@ -106,16 +132,20 @@ Tracking run: `08f60f7036a44bc5bac6e6e0e1095692`.
 - [x] Lease-ID-routed Windows runner, execution/desktop readiness checks,
   request-bound results, heartbeat and fail-safe cleanup; no credential typing.
 - [x] Read-only release verification of commit/tag, actual updater and mirror proof.
-- [ ] Restore and accept the live Windows QGA/interactive session and then run the
+- [x] Restore and accept the live Windows QGA/interactive session and then run the
   scheduled-task worker end to end. First live gate attempt returned qga-not-ready
   and safely released; mocked safety tests do not replace native acceptance.
+  Completed on VM1: the final v0.18.16 portable passed the real scheduled-task
+  worker with native screenshots and verified child/network/lease cleanup.
 - [ ] Accumulate representative same-scope successful runs and complete official
   usage traces before claiming real end-to-end or token savings.
-- [ ] Investigate intermittent `folder_leaf_check.py` Right-key expansion timeout
+- [x] Investigate intermittent `folder_leaf_check.py` Right-key expansion timeout
   in both source and portable headless tests. Full inventory: 78/80 GUI checks
   passed; the two leaf checks failed, and serial isolation also failed. A later
-  tree-group run passed, so this is not resolved or attributed to parallelism.
+  tree-group run passed, which did not establish a fix or implicate parallelism.
   A focus-readiness experiment did not reliably fix it and was not retained.
+  v0.18.16 resolved the actual transient negative image-copy coordinates;
+  repeated source/portable and native Windows acceptance now pass.
   Details: [maintenance workflow](maintenance-workflow.md).
 
 ## Tooltip lifetime — v0.18.9

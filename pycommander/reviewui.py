@@ -2,6 +2,7 @@
 import bisect
 import hashlib
 import html
+import difflib
 import json
 from pathlib import Path
 import queue
@@ -15,6 +16,7 @@ from .textio import TextDocument
 from .reviewstorage import safe_review_write
 from .tooltip import ToolTip
 from .settings import readable_check_style
+from .comparecolors import style_comparison_text
 from .i18n import tr
 
 
@@ -196,12 +198,28 @@ class ReviewCompare(ttk.Frame):
             text.delete('1.0','end');text.insert('1.0','\n'.join(rendered[side]))
             for i,block in enumerate(self.row_blocks,1):
                 if self.alignment.opcodes[block][0]!='equal':text.tag_add('diff',f'{i}.0',f'{i}.end')
+                if not rendered[side][i-1].strip():text.tag_add('gap',f'{i}.0',f'{i}.end')
                 if block==self.block:text.tag_add('current',f'{i}.0',f'{i}.end')
             text.configure(state='disabled');text.yview_moveto(0);text.xview_moveto(0)
             self.xbars[side].set(min(1,self.column[side]/maxwidth[side]),min(1,(self.column[side]+self.visible_columns(side))/maxwidth[side]))
             dirty=self.documents and self.texts[side]!=self.documents[side].text
             state=tr('Read-only') if side in self.read_only_sides or (self.documents and self.documents[side].reason) else (tr('Draft') if dirty else tr('Saved'))
             self.headers[side].configure(text=f'{"L" if side==0 else "R"} · {self.paths[side].name} · {state}')
+        budget=100000
+        for row,block in enumerate(self.row_blocks,1):
+            if self.alignment.opcodes[block][0]=='equal':continue
+            _,a,b=self.alignment.row(self.actual_row(self.top+row-1))
+            if a is None or b is None:
+                self.widgets[0 if a is not None else 1].tag_add('orphan',f'{row}.0',f'{row}.end')
+                continue
+            left,right=self.alignment.lines[0][a],self.alignment.lines[1][b]
+            if max(len(left),len(right))>2000 or len(left)+len(right)>budget:continue
+            budget-=len(left)+len(right)
+            for tag,a0,a1,b0,b1 in difflib.SequenceMatcher(None,left,right,autojunk=True).get_opcodes():
+                if tag=='equal':continue
+                for side,lo,hi in ((0,a0,a1),(1,b0,b1)):
+                    lo=max(0,lo-self.column[side]);hi=min(self.WIDTH,hi-self.column[side])
+                    if hi>lo:self.widgets[side].tag_add('inline_diff',f'{row}.{lo+9}',f'{row}.{hi+9}')
         self.maxwidth=maxwidth
         self.scrollbar.set(self.top/max(1,self.total),end/max(1,self.total))
         self.status.configure(text=f'{len(self.alignment.differences)} '+tr('difference blocks')+
@@ -481,9 +499,7 @@ class ReviewCompare(ttk.Frame):
     def apply_color_scheme(self,palette):
         self.palette=palette
         for text in self.widgets:
-            text.configure(background=palette['content'],foreground=palette['text'],insertbackground=palette['text'])
-            text.tag_configure('diff',background='#6a4b16' if palette.get('content')=='#202124' else '#efc879',foreground='#181818')
-            text.tag_configure('current',background='#1878bc',foreground='white')
+            style_comparison_text(text,palette)
 
     def confirm_close(self):
         if self._saving:self.status.configure(text=tr('Finishing atomic save; please wait'));return False

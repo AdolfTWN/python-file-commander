@@ -461,15 +461,26 @@ class RootFolderTree(ttk.Frame):
                 for x in range(round(x1), round(x2)+1, 3):
                     image.put(muted, (x, round(y1)))
         center, mid = round((len(flags)-.5)*indent), height//2
-        self.tk.call(str(image), 'copy', str(self._icons[kind]), '-to',
-                     center-icon_size//2, mid-icon_size//2, '-compositingrule', 'overlay')
+        # Tk can report the previous row height while a new font/icon size is
+        # already active. Clip that transitional frame instead of passing a
+        # negative destination to PhotoImage.copy and stopping the scan poller.
+        icon = self._icons[kind]
+        left, top = center-icon_size//2, mid-icon_size//2
+        x0, y0 = max(0, -left), max(0, -top)
+        x1, y1 = min(icon.width(), image.width()-left), min(icon.height(), height-top)
+        if x1 > x0 and y1 > y0:
+            self.tk.call(str(image), 'copy', str(icon), '-from', x0, y0, x1, y1,
+                         '-to', max(0, left), max(0, top), '-compositingrule', 'overlay')
         if expandable:
             r = max(3, min(5, round(indent*.13)))
             px, py = center+round(icon_size*.28), mid+round(icon_size*.26)
-            image.put(muted, (px-r, py-r, px+r+1, py+r+1))
-            image.put(bg, (px-r+1, py-r+1, px+r, py+r))
-            image.put(fg, (px-r+2, py, px+r-1, py+1))
-            image.put(fg, (px, py-r+2, px+1, py+r-1))
+            for color, box in ((muted, (px-r, py-r, px+r+1, py+r+1)),
+                               (bg, (px-r+1, py-r+1, px+r, py+r)),
+                               (fg, (px-r+2, py, px+r-1, py+1)),
+                               (fg, (px, py-r+2, px+1, py+r-1))):
+                a, b, c, d = box
+                a, b, c, d = max(0, a), max(0, b), min(image.width(), c), min(height, d)
+                if c > a and d > b: image.put(color, (a, b, c, d))
         return image
 
     def _has_branch(self, iid):

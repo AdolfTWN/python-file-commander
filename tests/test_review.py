@@ -15,6 +15,7 @@ from pycommander.textio import read_text_document
 from pycommander.workbook import read_workbook, workbook_rows, shared_formula, cell_values_equal, excel_date
 from pycommander.archivereview import ArchiveReviewSession, archive_manifest, checked_archive_members
 from pycommander.reviewstorage import safe_review_write
+from pycommander.comparecolors import comparison_colors
 
 
 class ReviewTests(unittest.TestCase):
@@ -139,8 +140,57 @@ class ArchiveReviewTests(unittest.TestCase):
                 finally:check.cleanup()
             finally:s.cleanup()
 
+    @unittest.skipUnless(shutil.which('7z') or shutil.which('7zz'),'7-Zip unavailable')
+    def test_seven_zip_explicit_directories_not_file_collisions(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw);(root/'nested').mkdir();(root/'nested/a.md').write_text('before')
+            path=root/'nested.7z'
+            subprocess.run([shutil.which('7z') or shutil.which('7zz'),'a',str(path),'nested'],cwd=root,check=True,stdout=subprocess.DEVNULL)
+            records,_=checked_archive_members(path)
+            self.assertTrue(next(isdir for name,_,isdir in records if name=='nested'))
+            session=ArchiveReviewSession(path)
+            try:
+                (session.root/'nested/a.md').write_text('after');session.commit(archive_manifest(session.root))
+                check=ArchiveReviewSession(path)
+                try:self.assertEqual((check.root/'nested/a.md').read_text(),'after')
+                finally:check.cleanup()
+            finally:session.cleanup()
+
 
 class WorkbookTests(unittest.TestCase):
+    def test_strict_workbook_strings_merged_cells_and_formula(self):
+        with tempfile.TemporaryDirectory() as raw:
+            path=Path(raw)/'strict.xlsx'
+            main='http://purl.oclc.org/ooxml/spreadsheetml/main'
+            rel='http://purl.oclc.org/ooxml/officeDocument/relationships'
+            with zipfile.ZipFile(path,'w') as z:
+                z.writestr('xl/workbook.xml',f'<workbook xmlns="{main}" xmlns:r="{rel}"><sheets><sheet name="Data" r:id="one"/></sheets></workbook>')
+                z.writestr('xl/_rels/workbook.xml.rels','<Relationships><Relationship Id="one" Target="worksheets/sheet1.xml"/></Relationships>')
+                z.writestr('xl/sharedStrings.xml',f'<sst xmlns="{main}"><si><r><t>Monitor </t></r><r><t>list</t></r></si></sst>')
+                z.writestr('xl/worksheets/sheet1.xml',f'<worksheet xmlns="{main}"><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="inlineStr"><is><t>資料</t></is></c><c r="C1"><f>1+2</f><v>3</v></c></row></sheetData><mergeCells><mergeCell ref="A2:C2"/></mergeCells></worksheet>')
+            sheet=read_workbook(path)['sheets'][0]
+            self.assertEqual(sheet['cells']['A1'],('s','Monitor list',''))
+            self.assertEqual(sheet['cells']['B1'],('inlineStr','資料',''))
+            self.assertEqual(sheet['cells']['C1'],('n','3','1+2'))
+            self.assertEqual(sheet['merged'],['A2:C2'])
+
+    def test_unknown_namespace_is_error_not_empty_success(self):
+        with tempfile.TemporaryDirectory() as raw:
+            path=Path(raw)/'bad.xlsx'
+            with zipfile.ZipFile(path,'w') as z:z.writestr('xl/workbook.xml','<workbook xmlns="urn:unknown"/>')
+            with self.assertRaisesRegex(ValueError,'Unsupported workbook'):read_workbook(path)
+
+    def test_comparison_highlights_have_readable_contrast(self):
+        def luminance(color):
+            rgb=[int(color[i:i+2],16)/255 for i in (1,3,5)]
+            rgb=[c/12.92 if c<=.04045 else ((c+.055)/1.055)**2.4 for c in rgb]
+            return sum(c*w for c,w in zip(rgb,(.2126,.7152,.0722)))
+        for content in ('#ffffff','#dedede','#202124','#20262c'):
+            colors=comparison_colors({'content':content})
+            for bg,fg in [(k,'text') for k in ('base','line','inline','orphan','gap')]+[('match','match_text'),('current','current_text')]:
+                a,b=sorted((luminance(colors[bg]),luminance(colors[fg])))
+                self.assertGreaterEqual((b+.05)/(a+.05),4.5,(content,bg))
+
     def test_numeric_representation_and_date_epochs(self):
         self.assertTrue(cell_values_equal(('n','1',''),('n','1.00','')))
         self.assertFalse(cell_values_equal(('text','1',''),('n','1','')))

@@ -83,7 +83,7 @@ def build() -> Path:
     compare = "\n".join(line for line in compare.splitlines() if not line.startswith("from .")) + "\n"
     compare = (ROOT / 'pycommander' / 'textio.py').read_text(encoding='utf-8') + '\n\n' + compare
     review_sources=[]
-    for module in ('reviewcore','reviewstorage','workbook','reviewjobs','reviewui','workbookui','archivereview','archivereviewui'):
+    for module in ('comparecolors','reviewcore','reviewstorage','workbook','reviewjobs','reviewui','workbookui','archivereview','archivereviewui'):
         source=(ROOT/'pycommander'/(module+'.py')).read_text(encoding='utf-8')
         review_sources.append('\n'.join(line for line in source.splitlines() if not line.startswith('from .')))
     compare='\n\n'.join(review_sources)+'\n\n'+compare

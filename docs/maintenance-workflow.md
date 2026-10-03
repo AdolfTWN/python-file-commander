@@ -116,6 +116,10 @@ routes all QGA calls using the returned VM ID. A busy pool waits for promotion
 for up to the readiness timeout (capped at 60 seconds), without touching either
 desktop. On timeout it cancels only this invocation's request, recovering and
 releasing its lease if promotion raced cancellation. Retry later explicitly.
+Since 2026-10-03 the host uses only VM1. All work shares its lease queue; VM2
+has been retired by operator decision. Do not repair or recreate it as a fallback.
+VM1's recovery hold was cleared after separate host lifecycle validation on
+2026-10-03. The readiness gates still apply; host recovery is not PFC acceptance.
 QGA and desktop readiness each default to a bounded 120 seconds: the former
 45-second QGA default expired during a real VM1 resume. Queue waiting remains
 capped at 60 seconds; no desktop is touched while waiting for a lease.
@@ -147,6 +151,30 @@ Sequence:
 7. End unfinished own task, remove own task registration, disable network and
    release lease in cleanup. Renew the lease every minute and check ownership
    before every guest operation. Cleanup uncertainty overrides a pass.
+
+The runner prints preparation/staging/test milestones without credentials. QGA
+replies are matched to request IDs; new connections use the required
+`guest-sync-delimited` barrier. A lease-local connection is retained until
+cleanup instead of repeatedly reconnecting during transfers. Only an uncompleted
+synchronization handshake (before dispatch) may be retried, at most twice;
+ambiguous commands are not replayed. See the
+[QGA protocol](https://www.qemu.org/docs/master/interop/qemu-ga-ref.html).
+During the 2026-10-04 candidate validation,
+the Windows QGA file channel intermittently timed out on both reads and writes,
+while Python execution remained available. Staging and bounded report/evidence
+reads now use that already-verified execution channel. Upload chunks respect the
+Windows command-line limit; artifact hashes are still verified before tests.
+No ambiguous execution is automatically replayed. Logs and native screenshots
+are retained in the private trace directory, never in the repository.
+An unlocked but black display is given one non-text wake key through the leased
+desktop helper, only after rechecking test-account readiness. A still-black
+display blocks staging; it is not treated as GUI acceptance.
+
+Ending a scheduled task alone is insufficient: its GUI children may survive.
+Cleanup also matches the exact executable/check arguments under this request's
+unique staging directory, ends those child process trees and verifies none remain.
+An unconfirmed child cleanup prevents a passing run. No wildcard Python/PFC
+process termination or other task's session cleanup is used.
 
 Only the newly generated task is removed; staged fixtures/logs are retained in
 the disposable VM for diagnosis. The tool does not delete user files, reset
@@ -188,5 +216,7 @@ Environment safety and failed-test details take precedence over a speed target.
 Initial validation: all 80 GUI checks were executed, with 78 passing and two
 `folder_leaf_check.py` Right-key expansion timeouts (source and portable).
 Serial reruns also failed intermittently; a later tree-group rerun passed.
-This remains a follow-up, not a demonstrated parallel-runner regression or a
-fixed PFC keyboard bug. The trace retains the failed full run and all retries.
+This was not a demonstrated parallel-runner regression. In v0.18.16 it was
+reproduced as a negative image-copy destination during transient font/row-height
+changes, which aborted the tree scan poller. Clipped drawing passed five source,
+five portable and a native Windows run. The trace retains the original failures.

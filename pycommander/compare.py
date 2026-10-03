@@ -25,6 +25,7 @@ from .workflows import WorkflowPicker
 from .reviewui import ReviewCompare
 from .workbookui import WorkbookCompare
 from .archivereviewui import ArchiveReviewCompare
+from .comparecolors import comparison_colors, style_comparison_text
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -402,19 +403,12 @@ class SideBySideText(ttk.Frame):
         self.right_path_label.configure(background=palette["right_header"], foreground="#ffffff")
         self.map_header.configure(background=palette["map_header"], foreground="#ffffff")
         for widget in (self.left, self.right):
-            widget.configure(background=palette["content"], foreground=palette["text"],
-                             insertbackground=palette["text"],
-                             selectbackground=palette["selection"], selectforeground="#ffffff")
-            widget.tag_configure("diff", background=palette["diff"], foreground=palette["text"])
-            widget.tag_configure("inline_diff", background=palette["current_diff"], foreground="#ffffff")
-            widget.tag_configure("current", background=palette["current_diff"], foreground="#ffffff")
-            widget.tag_configure("match", background=palette["match"], foreground=palette["text"])
-            widget.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
+            colors=style_comparison_text(widget,palette)
         for widget in (self.left_numbers, self.right_numbers):
-            widget.configure(background=palette["gutter"], foreground=palette["gutter_text"],
+            widget.configure(background=colors['gutter'], foreground=colors['muted'],
                              selectbackground=palette["selection"], selectforeground="#ffffff")
-            widget.tag_configure("diff", background=palette["diff"], foreground=palette["gutter_text"])
-            widget.tag_configure("current", background=palette["current_diff"], foreground="#ffffff")
+            widget.tag_configure("diff", background=colors['line'], foreground=colors['text'])
+            widget.tag_configure("current", background=colors['current'], foreground=colors['current_text'])
         self.difference_map.apply_color_scheme(palette)
 
     def populate(self):
@@ -438,6 +432,11 @@ class SideBySideText(ttk.Frame):
                 tag = "diff" if output_row in difference_set else ""
                 number_widget.insert("end", f"{number_text:>5}\n", tag)
                 widget.insert("end", f"{line}\n", tag)
+                if source_number is None:widget.tag_add('gap',f'{output_row}.0',f'{output_row+1}.0')
+                else:
+                    counterpart=(self.all_right_lines if widget is self.left else self.all_left_lines)[source_row-1]
+                    if isinstance(counterpart,tuple) and counterpart[0] is None:
+                        widget.tag_add('orphan',f'{output_row}.0',f'{output_row+1}.0')
             widget.configure(state="normal" if self.editable else "disabled")
             number_widget.configure(state="disabled")
         self.difference_map.set_rows(self.differences, len(visible_rows))
@@ -758,7 +757,7 @@ class TextCompare(ttk.Frame):
             if isinstance(parent,FolderCompare):
                 # Keep staged archive files within their owning comparison;
                 # an unrelated top-level tab could outlive its temporary root.
-                relative=self.left_path.relative_to(parent.left_root).as_posix()
+                relative=self.left_path.relative_to(parent.left_base_root).as_posix()
                 return parent.open_nested_detail(self.left_path,self.right_path,relative,kind='Review')
             parent=getattr(parent,'master',None)
         owner=self.winfo_toplevel()
@@ -1489,6 +1488,7 @@ class FolderCompare(_FolderCompareLogic):
         self._syncing_selection = False
         self._syncing_scroll = False
         self._syncing_open = False
+        self._active_side = 'left'
         self.matches, self.match_index = [], -1
         self.difference_items, self.difference_index = [], -1
         self._scan_queue, self._cancel_event, self._scanning = queue.Queue(), threading.Event(), False
@@ -1544,6 +1544,9 @@ class FolderCompare(_FolderCompareLogic):
                                  ('Set Base Folder',self.set_base_folder),('Swap Sides',self.swap_sides)):
             folder_menu.add_command(label=tr(label),command=callback)
         folder_button.configure(menu=folder_menu);folder_button.pack(side='left',padx=(0,4))
+        self.pair_button=ttk.Button(options,text=tr('Compare selected files'),command=self.compare_selected_files)
+        self.pair_button.pack(side='left',padx=(0,4))
+        ToolTip(self.pair_button,tr('Select one file on each side, then compare. Names may differ.'))
         self.marker_button = ttk.Menubutton(options)
         self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
         self.marker_button.configure(menu=self.marker_menu); self.marker_button.pack(side="left")
@@ -1594,6 +1597,7 @@ class FolderCompare(_FolderCompareLogic):
         self.map_header.pack(side="top", fill="x")
         for side, label in (('left', self.left_path_label), ('right', self.right_path_label)):
             label.bind('<Configure>', lambda e: self._update_path_labels())
+            label.bind('<Button-3>',lambda e,s=side:self.open_context_menu(e,s,header=True))
             ToolTip(label, lambda side=side: str(self._base_label(side)))
         self._update_path_labels()
         self.left_frame = ttk.Frame(self.body); self.right_frame = ttk.Frame(self.body)
@@ -1620,6 +1624,10 @@ class FolderCompare(_FolderCompareLogic):
             tree.column("detail", width=205, minwidth=95, stretch=False)
             tree.grid(row=0, column=0, sticky="nsew")
             tree.bind("<<TreeviewSelect>>", lambda event, source=tree: self._sync_selection(source))
+            tree.bind('<FocusIn>',lambda e,t=tree:self._set_active_side(t))
+            tree.bind('<Button-1>',lambda e,t=tree:self._set_active_side(t),add='+')
+            tree.bind('<Button-3>',lambda e,t=tree:self.open_context_menu(e,'left' if t is self.left_tree else 'right'))
+            tree.bind('<Shift-F10>',lambda e,t=tree:self.open_context_menu(e,'left' if t is self.left_tree else 'right',keyboard=True))
             tree.bind("<<TreeviewOpen>>", lambda event, source=tree: self._sync_open(source, True))
             tree.bind("<<TreeviewClose>>", lambda event, source=tree: self._sync_open(source, False))
             tree.bind("<Double-1>", self._open); tree.bind("<Return>", self._open)
@@ -1661,6 +1669,7 @@ class FolderCompare(_FolderCompareLogic):
         spec = (width, self.scale, compact)
         if spec == self._column_layout_spec: return
         self._column_layout_spec = spec
+        self.pair_button.configure(text=tr('Pair files') if self.winfo_width()<1000 else tr('Compare selected files'))
         changed = compact != self._compact_details
         self._compact_details = compact
         action = max(32, round(38*self.scale))
@@ -1807,22 +1816,66 @@ class FolderCompare(_FolderCompareLogic):
             text=f"{tr('Map:')} {tr(labels.get(self.marker_position_var.get(), 'Middle'))}")
 
     def _selected_items(self):
-        return self.left_tree.selection() or self.right_tree.selection()
+        tree=self.left_tree if self._active_side=='left' else self.right_tree
+        return tree.selection()
+
+    def _set_active_side(self,tree):
+        self._active_side='left' if tree is self.left_tree else 'right'
 
     def _sync_selection(self, source):
-        if self._syncing_selection:
-            return
-        self._syncing_selection = True
-        try:
-            target = self.right_tree if source is self.left_tree else self.left_tree
-            selected = source.selection()
-            if tuple(target.selection()) != tuple(selected):
-                target.selection_set(selected)
-            focus = source.focus()
-            if focus and target.focus() != focus:
-                target.focus(focus); target.see(focus)
-        finally:
-            self._syncing_selection = False
+        # Scroll/row alignment stays synchronized, but the two choices must not
+        # overwrite one another when comparing differently named files.
+        if not self._syncing_selection and self.focus_get() is source:self._set_active_side(source)
+        self.pair_button.configure(state='normal' if self.selected_file_pair() else 'disabled')
+
+    def selected_file_pair(self):
+        if self._scanning:return None
+        paths=[]
+        for side,tree in enumerate(self._trees()):
+            chosen=tree.selection()
+            if len(chosen)!=1:return None
+            path=self.item_paths.get(chosen[0],(None,None))[side]
+            if path is None or not path.is_file() or compare_path_blocked(path):return None
+            paths.append(path)
+        return tuple(paths)
+
+    def compare_selected_files(self):
+        pair=self.selected_file_pair()
+        if not pair:
+            self.scan_status.configure(text=tr('Select one file on each side, then compare. Names may differ.'))
+            return 'break'
+        return self.open_nested_detail(*pair,'')
+
+    def open_context_menu(self,event,side,header=False,keyboard=False):
+        tree=self.left_tree if side=='left' else self.right_tree
+        self._set_active_side(tree)
+        if not header:
+            iid=tree.focus() if keyboard else tree.identify_row(event.y)
+            if iid and iid not in tree.selection():tree.selection_set(iid)
+            if iid:tree.focus(iid)
+            elif not keyboard:tree.selection_remove(tree.selection())
+            tree.focus_set()
+        old=getattr(self,'_context_menu',None)
+        if old is not None:old.destroy()
+        menu=tk.Menu(self,tearoff=False,font='TkMenuFont');self._context_menu=menu
+        chosen=tree.selection();path=self.item_paths.get(chosen[0],(None,None))[0 if side=='left' else 1] if len(chosen)==1 else None
+        root=getattr(self,side+'_root');initial=getattr(self,side+'_base_root')
+        menu.add_command(label=tr('Set Base Folder')+' · '+tr(side.title()),
+            state='normal' if not header and path and path.is_dir() and not compare_path_blocked(path) else 'disabled',
+            command=lambda:self.set_base_folder(side))
+        menu.add_command(label=tr('Base Folder: Up one level')+' · '+tr(side.title()),
+            state='normal' if root!=initial else 'disabled',command=lambda:self.change_base(side,root.parent))
+        menu.add_command(label=tr('Reset Base Folder')+' · '+tr(side.title()),
+            state='normal' if root!=initial else 'disabled',command=lambda:self.change_base(side,initial))
+        menu.add_separator()
+        menu.add_command(label=tr('Compare selected files'),state='normal' if self.selected_file_pair() else 'disabled',
+                         command=self.compare_selected_files)
+        menu.configure(background=self.palette['menu'],foreground=self.palette['menu_text'],
+                       activebackground=self.palette['menu_active'],activeforeground=self.palette['menu_active_text'])
+        x,y=(tree.winfo_rootx()+30,tree.winfo_rooty()+40) if keyboard else (event.x_root,event.y_root)
+        try:menu.tk_popup(x,y)
+        finally:menu.grab_release()
+        return 'break'
 
     def _sync_open(self, source, opened):
         if self._syncing_open:
@@ -1925,15 +1978,16 @@ class FolderCompare(_FolderCompareLogic):
                                   activeforeground=palette["menu_active_text"])
         self.difference_map.apply_color_scheme(palette)
         dark = palette["window"] == "#20262c"
+        colors=comparison_colors(palette)
         for tree in self._trees():
-            tree.tag_configure("find_match", background=palette["match"], foreground=palette["text"])
-            tree.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
+            tree.tag_configure("find_match", background=colors['match'], foreground=colors['match_text'])
+            tree.tag_configure("current_match", background=colors['match'], foreground=colors['match_text'])
             tree.tag_configure("different", foreground="#ff7770" if dark else "#a00000")
             tree.tag_configure("newer_left", foreground="#ff7770" if dark else "#a00000")
             tree.tag_configure("newer_right", foreground="#ff7770" if dark else "#a00000")
             tree.tag_configure("orphan_left", foreground="#c391ff" if dark else "#7137a8")
             tree.tag_configure("orphan_right", foreground="#c391ff" if dark else "#7137a8")
-            tree.tag_configure("identical", foreground=palette["muted"])
+            tree.tag_configure("identical", foreground=palette["text"])
         self._build_diff_menu()
         self.diff_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                                  activebackground=palette["menu_active"],
@@ -2152,18 +2206,40 @@ class FolderCompare(_FolderCompareLogic):
                 self.right_tree.set(iid, 'action', '←' if choice == 'left' else tr('Skip') if choice == 'skip' else '')
         return "break"
 
-    def set_base_folder(self):
-        selected = self._selected_items()
+    def set_base_folder(self,side=None):
+        side=side or self._active_side
+        tree=self.left_tree if side=='left' else self.right_tree
+        selected = tree.selection()
         if not selected:
             messagebox.showinfo(tr("Set Base Folder"), tr("Select a folder row first."), parent=self)
             return "break"
-        left, right = self.item_paths.get(selected[0], (None, None)); changed = False
-        if left is not None and left.is_dir(): self.left_root = left; changed = True
-        if right is not None and right.is_dir(): self.right_root = right; changed = True
-        if not changed:
+        path = self.item_paths.get(selected[0], (None, None))[0 if side=='left' else 1]
+        if path is None or not path.is_dir():
             messagebox.showinfo(tr("Set Base Folder"), tr("The selected row is not a folder."), parent=self)
             return "break"
-        self._update_path_labels(); self.start_scan(); return "break"
+        return self.change_base(side,path)
+
+    def change_base(self,side,path):
+        initial=getattr(self,side+'_base_root')
+        try:path.resolve().relative_to(initial.resolve())
+        except ValueError:return 'break'
+        if not path.is_dir() or compare_path_blocked(path):return 'break'
+        # Nested sessions retain absolute paths and their original logical labels;
+        # changing the scan base must not change their save/commit ownership.
+        setattr(self,side+'_root',path);self.actions={}
+        self._update_path_labels();self.start_scan();return 'break'
+
+    def swap_sides(self):
+        # An existing editable nested session must not inherit swapped ownership.
+        guard=getattr(self,'can_swap',None)
+        if guard and not guard():return 'break'
+        if not self.confirm_close():return 'break'
+        for page in list(self.nested_details):
+            self.session_tabs.forget(page);page.destroy()
+        self.nested_details.clear();self._show_summary()
+        callback=getattr(self,'on_swap',None)
+        if callback:callback()
+        return super().swap_sides()
 
     def _update_path_labels(self):
         for side, label in (('left', self.left_path_label), ('right', self.right_path_label)):
@@ -2213,8 +2289,8 @@ class FolderCompare(_FolderCompareLogic):
         caption.pack(side="left")
         host = ttk.Frame(page)
         host.pack(fill="both", expand=True)
-        left_title = nested_source_label(self.left_label, relative)
-        right_title = nested_source_label(self.right_label, relative)
+        left_title = nested_source_label(self.left_label, left.relative_to(self.left_base_root).as_posix())
+        right_title = nested_source_label(self.right_label, right.relative_to(self.right_base_root).as_posix())
         options={'kind':kind} if kind is not None else {}
         kind, detail = self.open_detail(
             host, left, right, left_title=left_title, right_title=right_title,**options)
@@ -2350,6 +2426,9 @@ class CompareWindow(tk.Toplevel):
             navigation_menu.add_command(label=tr(label),accelerator=key,
                 command=lambda m=method:self._shortcut(m))
         navigation.configure(menu=navigation_menu);navigation.pack(side='left')
+        navigation_menu.add_separator()
+        navigation_menu.add_command(label=tr('Comparison color legend'),command=lambda:messagebox.showinfo(
+            tr('Comparison color legend'),tr('Neutral: unchanged · Pale red: changed line · Strong red: changed characters\nPurple: one side only · Grey: missing counterpart\nUnderline: current difference · Yellow: search match · Blue: your selection'),parent=self))
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.notebook.set_theme(self.palette)
         self.configure(background=self.palette["window"])

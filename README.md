@@ -1,13 +1,24 @@
 # Python File Commander
 
-Current version: **v0.18.15**
+Current version: **v0.18.16**
+
+**Compare usability:** Excel shows all loaded cells by default, including Strict
+workbooks; empty/filter results explain what was compared. In folder/ZIP/7z
+comparisons, select one file independently on each side and choose **Compare
+selected files** (or **Pair files** in a narrow window). Right-click a folder to
+set only that side's Base Folder; right-click its path header to go up/reset.
+Changed lines, changed characters, searches and selection have distinct colors
+in light/dark themes. Navigate → Comparison color legend explains them.
+Enlarged workbook text keeps a matching row height. Auto zoom no longer scales
+native fixed-pixel insets twice, and transient icon/row-size changes no longer
+abort folder-tree scan polling.
 
 **Expanded F9 comparison:** Text/Markdown review supports 20 MiB per side with
 background alignment, paged wide-line viewing, take-left/right drafts, undo/redo,
 reviewed markers and conflict-checked saves. Excel `.xlsx`/`.xlsm` comparison is
 read-only across sheets, stored values/formulas and optional row keys. ZIP/7z edits
 stay in isolated drafts until an explicit reviewed, verified write-back with a
-backup. PFC does not require Beyond Compare. See [usage and limits](docs/workflow-upgrade.md#comparison-review--v01815).
+backup. No third-party comparison application is required. See [usage and limits](docs/workflow-upgrade.md#comparison-review--v01815).
 
 **Windows validation readiness:** The leased test runner now prepares the
 dedicated test desktop after QGA execution is ready, before staging GUI tests.

@@ -7,11 +7,17 @@ import sys
 import tempfile
 import time
 import tkinter as tk
-from tkinter import font, messagebox, simpledialog
+from tkinter import font, messagebox, simpledialog, ttk
 from unittest import mock
 import zipfile
 import subprocess
 import configparser
+from types import SimpleNamespace
+import shutil
+
+if os.name == 'nt':
+    import faulthandler
+    faulthandler.dump_traceback_later(45, repeat=True)
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 portable=len(sys.argv)>1 and sys.argv[1]=='pfc'
@@ -20,6 +26,7 @@ tables=api if portable else importlib.import_module('pycommander.workbookui')
 compare=api if portable else importlib.import_module('pycommander.compare')
 app=tk.Tk();app.geometry('1360x850+0+0');errors=[];timings={}
 app.report_callback_exception=lambda *args:errors.append(str(args))
+print('Compare fixture: Tk ready', flush=True)
 
 
 def pump(seconds=.1):
@@ -34,10 +41,44 @@ def until(predicate,seconds=90):
         pump(.025)
 
 
+def open_context(widget, x, y):
+    # Windows tk_popup enters a native modal loop. A statement after
+    # event_generate cannot dismiss it; send Escape from a bounded timer like
+    # the existing native menu fixtures, then inspect/invoke its real commands.
+    timer = None
+    done = None
+    if os.name == 'nt':
+        import ctypes
+        from ctypes import wintypes
+        import threading
+        thread_id = ctypes.windll.kernel32.GetCurrentThreadId()
+        user = ctypes.WinDLL('user32')
+        callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+        user.EnumThreadWindows.argtypes = [wintypes.DWORD, callback_type, wintypes.LPARAM]
+        user.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+        done = threading.Event()
+        def dismiss():
+            # Target only this fixture's UI thread. Synthetic global Escape can
+            # be delivered to Explorer instead of a background scheduled task.
+            @callback_type
+            def cancel(hwnd, _):
+                user.PostMessageW(hwnd, 0x001F, 0, 0)  # WM_CANCELMODE
+                return True
+            for _ in range(20):
+                if done.wait(.15): return
+                user.EnumThreadWindows(thread_id, cancel, 0)
+        timer = threading.Thread(target=dismiss, daemon=True)
+        timer.start()
+    widget.event_generate('<Button-3>', x=x, y=y)
+    if timer is not None:
+        done.set(); timer.join()
+    pump()
+
+
 def shot(name):
     app.lift();app.focus_force();pump(.3)
     if os.name=='nt':
-        if name not in ('text-1.75-760','workbook','archive-draft'):return
+        if name not in ('text-1.75-760','workbook','archive-draft','folder-pair','text-light','text-dark','workbook-empty'):return
         import ctypes as c
         from ctypes import wintypes as w
         import struct
@@ -77,9 +118,11 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     assert len(text.encode())<=20*1024*1024
     a.write_bytes(text.encode());b.write_bytes(text.replace('100000 | Project review','100000 | CHANGED').encode())
     before=(a.read_bytes(),b.read_bytes());started=time.monotonic()
+    print('Compare fixture: large text loading', flush=True)
     view=api.ReviewCompare(app,a,b);view.pack(fill='both',expand=True)
     until(lambda:not view.busy)
     assert view.alignment,view.status.cget('text')
+    print('Compare fixture: large text aligned', flush=True)
     timings['20MiB_load_diff_seconds']=round(time.monotonic()-started,3)
     assert len(view.alignment.differences)==1
     started=time.monotonic();view.next();pump()
@@ -169,12 +212,29 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
         assert not leaked,leaked
         cw.close();pump()
     app.unbind_all('<F3>');app.unbind_all('<F8>')
+    # Real text tags: readable dark/light highlights and selection precedence.
+    colors=api if portable else importlib.import_module('pycommander.tabs')
+    a.write_text('# Monitor review\nModel: Alpha 100\nunchanged\nleft-only note\n',encoding='utf-8')
+    b.write_text('# Monitor review\nModel: Alpha 200\nunchanged\n',encoding='utf-8')
+    text_view=compare.TextCompare(app,a,b);text_view.pack(fill='both',expand=True)
+    for theme in ('light','dark'):
+        text_view.view.apply_color_scheme(colors.color_scheme(theme));text_view.view.next();pump()
+        text=text_view.view.left
+        assert text.tag_cget('inline_diff','foreground')!='#ffffff'
+        assert not text.tag_cget('current','background')
+        assert text.tag_ranges('inline_diff')
+        assert text.tag_ranges('orphan') and text_view.view.right.tag_ranges('gap')
+        assert text.tag_names()[-1]=='sel'
+        shot('text-'+theme)
+    text_view.destroy();pump()
     # Read-only workbook UI exposes the change, full cell and rule modes.
     ca=root/'left.csv';cb=root/'right.csv'
     ca.write_text('id,value\none,10\ntwo,20\n');cb.write_text('id,value\none,11\ntwo,21\n')
     grid=tables.WorkbookCompare(app,ca,cb);grid.pack(fill='both',expand=True)
     until(lambda:grid.books is not None and grid._rows_job is None)
-    assert len(grid.filtered)==2,grid.status.cget('text')
+    assert len(grid.filtered)==6 and grid.difference_count==2,grid.status.cget('text')
+    grid.only.set(True);grid.filter();until(lambda:grid._rows_job is None)
+    assert len(grid.filtered)==2
     assert grid.rows[grid.filtered[0]][0]=='B2';shot('workbook')
     grid.search_var.set('B');grid.find_next();until(lambda:grid._rows_job is None)
     first=grid.tree.selection();grid.find_next();assert grid.tree.selection()!=first
@@ -193,8 +253,114 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     assert grid.selected[0]['state']=='hidden'
     shot('workbook')
     grid.cell_mode.set('Formulas');grid.filter();until(lambda:grid._rows_job is None)
-    assert not grid.filtered
+    assert grid.filtered and grid.difference_count==0
+    grid.only.set(True);grid.filter();until(lambda:grid._rows_job is None)
+    assert not grid.filtered and grid.empty.winfo_ismapped()
+    assert 'No value/formula differences' in grid.empty_text.cget('text')
+    shot('workbook-empty')
+    grid.show_all_button.invoke();until(lambda:grid._rows_job is None)
+    assert grid.filtered and not grid.empty.winfo_ismapped()
     grid.destroy();pump()
+    # Strict OOXML is not an empty workbook; equal first sheets stay inspectable.
+    for p in (root/'strict-left.xlsx',root/'strict-right.xlsx'):
+        with zipfile.ZipFile(p,'w') as z:
+            z.writestr('xl/workbook.xml','<workbook xmlns="http://purl.oclc.org/ooxml/spreadsheetml/main" xmlns:r="http://purl.oclc.org/ooxml/officeDocument/relationships"><sheets><sheet name="Monitor list" r:id="one"/></sheets></workbook>')
+            z.writestr('xl/_rels/workbook.xml.rels','<Relationships><Relationship Id="one" Target="worksheets/sheet1.xml"/></Relationships>')
+            z.writestr('xl/worksheets/sheet1.xml','<worksheet xmlns="http://purl.oclc.org/ooxml/spreadsheetml/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Monitor 型號</t></is></c><c r="B1"><v>200</v></c></row></sheetData><mergeCells><mergeCell ref="A2:C2"/></mergeCells></worksheet>')
+    grid=tables.WorkbookCompare(app,root/'strict-left.xlsx',root/'strict-right.xlsx');grid.pack(fill='both',expand=True)
+    until(lambda:grid.books is not None and grid._rows_job is None)
+    assert len(grid.rows)==2 and len(grid.filtered)==2 and grid.difference_count==0
+    assert grid.selected[0]['merged']==['A2:C2']
+    for name in ('TkDefaultFont','TkTextFont','TkFixedFont','TkMenuFont','TkHeadingFont'):font.nametofont(name).configure(size=18)
+    app.geometry('950x850+0+0');grid.apply_scale(1.75);pump()
+    assert grid.search.winfo_width()>100 and grid.only_button.winfo_ismapped()
+    assert grid.tree.winfo_height()>600
+    assert grid.tree.bbox(grid.tree.get_children()[0])[3]>=font.nametofont('TkDefaultFont').metrics('linespace')+6
+    shot('workbook');grid.destroy();pump()
+    for name in ('TkDefaultFont','TkTextFont','TkFixedFont','TkMenuFont','TkHeadingFont'):font.nametofont(name).configure(size=11)
+    app.geometry('1360x850+0+0')
+    # Folder/ZIP/7z: right-click bases are side-specific; files are selected
+    # independently, and nested labels retain both different logical names.
+    roots=[root/'source-left',root/'source-right']
+    for r,version,name,value in ((roots[0],'version-a','old name.md','left'),(roots[1],'version-b','new name.md','right')):
+        (r/version).mkdir(parents=True);(r/version/name).write_text(value)
+    def pair_factory(host,l,r,**kw):return 'Text',compare.TextCompare(host,l,r,**kw)
+    containers=[tuple(roots)]
+    for suffix in ('zip','7z'):
+        seven=shutil.which('7z') or shutil.which('7zz')
+        if os.name=='nt' and not seven:
+            candidate=Path(os.environ.get('ProgramFiles',r'C:\Program Files'))/'7-Zip/7z.exe'
+            if candidate.is_file():seven=str(candidate)
+        if suffix=='7z' and not seven:continue
+        archives=[]
+        for r in roots:
+            path=root/(r.name+'.'+suffix)
+            if suffix=='zip':
+                with zipfile.ZipFile(path,'w') as z:
+                    for f in r.rglob('*.md'):z.write(f,f.relative_to(r).as_posix())
+            else:subprocess.run([seven,'a',str(path),'.'],cwd=r,check=True,stdout=subprocess.DEVNULL)
+            archives.append(path)
+        containers.append(tuple(archives))
+    for left,right in containers:
+        wrapped=left.is_file()
+        parent=(compare.ArchiveReviewCompare(app,left,right,compare.FolderCompare,pair_factory,None) if wrapped else
+                compare.FolderCompare(app,left,right,pair_factory))
+        parent.pack(fill='both',expand=True)
+        if wrapped:until(lambda:not parent.busy);folder=parent.inner;assert folder,parent.status.cget('text')
+        else:folder=parent
+        until(lambda:not folder._scanning);pump()
+        for side,version in (('left','version-a'),('right','version-b')):
+            tree=getattr(folder,side+'_tree');other='right' if side=='left' else 'left'
+            other_root=getattr(folder,other+'_root')
+            iid=next(i for i,key in folder.item_keys.items() if key==version)
+            tree.see(iid);tree.selection_set(iid);tree.focus(iid);tree.focus_force();pump()
+            x,y,w,h=tree.bbox(iid);open_context(tree,x+20,y+h//2)
+            menu=folder._context_menu;assert menu.entrycget(0,'state')=='normal'
+            menu.invoke(0);menu.unpost();until(lambda:not folder._scanning);pump()
+            assert getattr(folder,side+'_root').name==version
+            assert getattr(folder,other+'_root')==other_root
+        choices=[]
+        for side,name in (('left','old name.md'),('right','new name.md')):
+            tree=getattr(folder,side+'_tree');iid=next(i for i,key in folder.item_keys.items() if key==name)
+            tree.see(iid);pump();x,y,w,h=tree.bbox(iid)
+            tree.event_generate('<Button-1>',x=x+20,y=y+h//2);tree.event_generate('<ButtonRelease-1>',x=x+20,y=y+h//2);pump()
+            choices.append(iid)
+        assert folder.left_tree.selection()==(choices[0],)
+        assert folder.right_tree.selection()==(choices[1],)
+        assert folder.pair_button.instate(['!disabled'])
+        folder.pair_button.invoke();pump()
+        detail=list(folder.nested_details.values())[-1]['detail']
+        assert 'version-a' in detail.view.left_title and 'old name.md' in detail.view.left_title
+        assert 'version-b' in detail.view.right_title and 'new name.md' in detail.view.right_title
+        folder._show_summary();pump();shot('folder-pair')
+        tree=folder.right_tree;x,y,w,h=tree.bbox(choices[1])
+        open_context(tree,x+20,y+h//2)
+        assert folder._context_menu.entrycget(4,'state')=='normal'
+        folder._context_menu.invoke(4);folder._context_menu.unpost();pump()
+        assert len(folder.nested_details)==1,'context pairing must reuse the same session'
+        folder._show_summary();pump()
+        # Reset only the right base using its header context menu.
+        label=folder.right_path_label;open_context(label,10,10)
+        folder._context_menu.invoke(2);folder._context_menu.unpost();until(lambda:not folder._scanning)
+        assert folder.right_root==folder.right_base_root and folder.left_root.name=='version-a'
+        folder.change_base('left',folder.left_base_root.parent)
+        assert folder.left_root.name=='version-a','must not escape source/archive root'
+        folder.swap_sides();until(lambda:not folder._scanning);pump()
+        assert not folder.nested_details
+        if wrapped:
+            assert parent.sessions[0].root==folder.left_base_root
+            assert parent.sessions[1].root==folder.right_base_root
+            selected_paths=[]
+            for side,tree in enumerate(folder._trees()):
+                iid=next(i for i,paths in folder.item_paths.items() if paths[side] and paths[side].is_file())
+                tree.selection_set(iid);tree.focus(iid);selected_paths.append(folder.item_paths[iid][side])
+            folder.left_tree.focus_force();pump()
+            with mock.patch.object(messagebox,'askyesno',return_value=True):parent.delete_selected(1)
+            until(lambda:not folder._scanning)
+            assert selected_paths[0].is_file() and not selected_paths[1].exists()
+            parent.undo_delete(1);until(lambda:not folder._scanning)
+            assert selected_paths[1].is_file()
+        parent.destroy();pump()
     # Archive drafts are editable but original archive never changes implicitly.
     za=root/'left.zip';zb=root/'right.zip'
     for p,value in ((za,'left'),(zb,'right')):
@@ -208,7 +374,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     assert archive.inner,archive.status.cget('text')
     until(lambda:not archive.inner._scanning)
     archive.inner.open_nested_detail(archive.sessions[0].root/'note.md',archive.sessions[1].root/'note.md','note.md')
-    legacy=next(iter(archive.inner.nested_details.values()))['detail'];legacy.open_review()
+    legacy=next(iter(archive.inner.nested_details.values()))['detail']
+    legacy.busy=lambda:None  # Tkinter 3.13+ inherited method is not a worker flag.
+    legacy.open_review()
     assert len(archive.inner.nested_details)==2
     detail=list(archive.inner.nested_details.values())[-1]['detail'];until(lambda:not detail.busy)
     detail.search_var.set('right');detail.active_side=1;archive.find_next();assert detail._find_offset==0
@@ -219,9 +387,22 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     assert (za.read_bytes(),zb.read_bytes())==originals
     assert archive.sessions[1].changes()==[('note.md','Replace')]
     archive.review_changes();until(lambda:not archive.busy)
+    assert getattr(archive, '_review_dialog', None), (archive.status.cget('text'), errors)
     pump();shot('archive-draft')
-    for child in archive.winfo_children():
-        if isinstance(child,tk.Toplevel):child.destroy()
+    dialog=archive._review_dialog;assert dialog.grab_current() is dialog
+    before=list(archive.paths);archive.inner.swap_sides();assert archive.paths==before
+    cancel=next(w for w in dialog.winfo_children() if isinstance(w,ttk.Button))
+    cancel.focus_force();pump()
+    expected=str(cancel.tk.call('tk_focusNext',str(cancel)))
+    cancel.event_generate('<Tab>');pump();assert str(app.focus_get())==expected
+    leaked=[]
+    app.bind_all('<F3>',lambda e:leaked.append('main preview'))
+    app.bind_all('<F8>',lambda e:leaked.append('main VCS'))
+    target=app.focus_get();target.event_generate('<F3>');target.event_generate('<F8>');pump()
+    assert not leaked
+    target.event_generate('<Escape>');pump()
+    assert archive._review_dialog is None and not dialog.winfo_exists()
+    app.unbind_all('<F3>');app.unbind_all('<F8>')
     session=archive.sessions[1];backup=session.commit()
     assert backup.read_bytes()==originals[1]
     with zipfile.ZipFile(zb) as z:assert z.read('note.md')==b'left'

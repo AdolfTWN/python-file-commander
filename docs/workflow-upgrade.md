@@ -123,7 +123,7 @@ from the Find field. The readonly cell grid selects matching cells, not pages.
 
 ### Excel and tabular data
 
-`.xlsx` and `.xlsm` open a paged **changed-cell grid**, not an Excel editor.
+`.xlsx` and `.xlsm` open a paged **cell comparison grid**, not an Excel editor.
 Choose a worksheet, then Rules → Values / Formulas / Both. Hidden sheets remain
 selectable. Double-click a cell row for its full value/formula. Row key columns
 align reordered records; missing/duplicate keys are refused rather than guessed.
@@ -135,6 +135,36 @@ Dates use the workbook's date system. Styles, charts, conditional formatting,
 macro contents, legacy `.xls`, encrypted books and writing Excel are outside this
 version. Limits: one million populated cells and 256 MiB of workbook XML.
 Reports cover the selected sheet and current filter; content inclusion is opt-in.
+
+Since v0.18.16 the default is all loaded cells, with **Differences only** beside
+Find. The footer states the compared cell count, difference count and available
+worksheet count; these are for the currently selected sheet/rules, not proof that
+the entire workbook is identical. Empty results explain the reason and offer
+Show all cells when filters hide data. Strict and Transitional OOXML are supported;
+unsupported XML formats produce an explicit error. Missing cached formula results
+remain unknown, not recalculated values. The reporter's original workbook pair
+was not supplied, so its precise cause is not asserted from a photograph alone.
+
+### Independent folder/archive pairing — v0.18.16
+
+Select one real file in each pane, even with different names, then choose
+**Compare selected files** from either pane's context menu or the compact toolbar.
+The same action is labeled **Pair files** in narrow windows. Selection is independent;
+scrolling and corresponding rows remain aligned. Copy arrows still target the
+same relative-path row, not the manually paired file: pairing only opens a comparison.
+
+Right-click a folder → **Set Base Folder · Left/Right** changes only that side.
+Right-click the path header → **Up one level** or **Reset Base Folder** restores
+the side within its original source. Archive bases cannot escape the staging root.
+Nested tabs retain both original logical source paths. Swapping sides closes
+confirmed nested drafts and updates archive ownership; explicit archive review
+remains required for write-back. 7z listing accepts directory flags and attributes.
+
+Neutral content, pale changed-line backgrounds and stronger changed-character
+backgrounds keep the text readable. Purple identifies one-sided content; grey
+identifies a missing counterpart. The current difference is underlined instead
+of painted as a text selection. Yellow is search, blue is manual selection.
+**Navigate → Comparison color legend** provides a textual guide.
 
 ### ZIP and 7z
 
@@ -158,11 +188,119 @@ Encrypted, linked, traversal, duplicate/case-colliding and ambiguous Windows nam
 are refused. Archive source writes are never automatic; there is no recursive
 nested-archive write-back, password support or distributed transaction across sides.
 
-### Evidence and remaining limits
+### v0.18.16 candidate validation
 
-Official Beyond Compare 5.2.6 was installed in the leased Windows VM solely for
+Synthetic source/portable checks cover Strict Excel strings/formulas/merged
+cells, visible all-cell defaults and filter recovery, independent mouse/context
+menu pairing for folders/ZIP/7z, per-side base changes and reset, archive swap
+ownership and undo, and light/dark highlighting with text contrast of at least
+4.5:1. Linux Tk screenshots were inspected; these are not Windows acceptance.
+
+Native acceptance was initially blocked: VM1 was reserved for an unrelated recovery
+diagnosis. A separately leased VM2 passed QGA ping, but its process-launch probe
+fails with `Failed to execute helper program (Invalid argument)`. The test
+Python executable exists; the two expected QGA helper executables could not be
+opened. No PFC test was staged or launched through this failed readiness gate.
+Leases were released and networking remained disabled. The operator subsequently
+retired VM2 on 2026-10-03 instead of authorizing its repair. Native validation must
+use VM1; do not recreate VM2. VM1 was subsequently recovered by separate host
+maintenance. These are historical failures, not the final acceptance result below.
+
+The full source/portable run completed 89 checks in 743.10 seconds with two
+isolated workers: 87 passed, and both existing folder-leaf Right-key expansion
+checks timed out. An attempted focus-wait change did not resolve this and was
+removed. The earlier four-worker run had 88 passes and one occurrence of the
+same timeout. These failures remain recorded, not silently converted to passes.
+The 312-test unit suite completed with 304 passes and 8 platform skips.
+Archive review keyboard isolation was subsequently narrowed so Tab traversal and
+Escape cancellation work; this change is covered by the final focused Compare
+source/portable rerun. No comparable whole-task baseline is available and token
+usage is unknown; different worker counts are not an optimization comparison.
+That final focused run passed all 7 checks in 95.48 seconds (source Compare
+26.91 seconds, portable Compare 30.02 seconds), including real Tab, Escape and
+F3/F8 isolation events. Candidate portable SHA-256:
+`20e0c69d60101df79710922812203c04c41e25dee453cdbb297a6248f340128b`.
+
+Follow-up validation on 2026-10-04 uses maintenance run
+`4c6e485ac3784104bf7c6538cc25c7ec`. The folder-leaf failure was reproduced with a
+Tk negative image-copy destination during transient font/row-height changes;
+clipping icon and badge drawing to the current row avoids aborting the scan
+poller. Five consecutive source runs and five portable runs passed. Auto zoom's
+native fixed-pixel inset is no longer multiplied by the previous scale ratio;
+source and portable compact-chrome tests passed. Windows return-to-folder
+consistency subsequently passed without weakening the assertion.
+
+The first follow-up full suite executed all 89 checks successfully in 381.02 s,
+but correctly failed its source-stability gate because the Windows harness was
+being repaired concurrently. This is not acceptance of one frozen final build.
+The Windows attempts and their failures remain in the trace. QGA channel
+timeouts and native comparison-test timeouts initially prevented acceptance;
+an unlocked console also produced a black display capture.
+The harness now checks display wake readiness, correlates and
+synchronizes QGA requests, and keeps bounded execution-channel staging/reads and
+private diagnostic logs. Native popup tests dismiss only their own UI thread's
+modal menu rather than waiting for a statement that cannot execute until the
+menu returns. A separate real Python 3.13 compatibility bug was fixed: inherited
+Tkinter `Widget.busy` is callable, not PFC's boolean worker flag, and must not
+prevent archive review after opening a small text member.
+
+An intermediate portable passed all three Windows checks (Compare 41.201 s,
+compact chrome 48.027 s, folder leaf 3.416 s), and a frozen 89-check full suite
+also passed. Visual inspection nevertheless rejected those screenshots: earlier
+failed test children had survived scheduled-task termination and obscured the
+new window with a menu; enlarged workbook fonts also exceeded the default row
+height. The old request-specific test processes were verified and closed, with
+no user files removed. The runner now verifies cleanup of exact request-bound
+test commands, not all Python processes. Workbook rows use measured font height
+plus padding, with a geometry regression assertion. The final build is tested
+again; earlier screenshots/results are retained as historical evidence rather
+than silently relabeled as final acceptance.
+
+The corrected frozen build passed all **89 source/portable checks in 380.07 s**,
+including the 318-test unit suite (310 passed, 8 platform skips). The same
+portable bytes passed Windows 11 ARM64 / Python 3.13.15: comparison 42.647 s,
+compact chrome 47.911 s and folder leaf 3.433 s. Total leased runner time was
+170.89 s including staging, evidence transfer and verified cleanup. SHA-256:
+`d2ed8a3989eba10fdc0f3dc94540469d6d1e961d2b62c78278164a98dc9934fb`.
+
+Visual/task self-review, not independent user acceptance:
+
+- Light/dark text shows readable changed characters on a softer line highlight;
+  the current difference uses an underline rather than painting all text selected.
+  The opposite-side blank is grey and the one-sided text purple.
+- Folder/ZIP panes retain two independently selected different filenames and
+  explicitly labeled left/right base paths. Pairing opens a named nested tab;
+  it does not retarget a copy action.
+- At 175% the worksheet rows now fully contain their enlarged text. Long cell
+  values remain horizontally clipped by their columns; double-click exposes the
+  full value. The visible filter and explicit empty-state recovery prevent an
+  equal/filtered worksheet from resembling an unreadable workbook.
+- Archive review names the changed member and archive side, with visible Save
+  and Cancel controls. Tab/Escape and comparison shortcut isolation pass.
+- Retaken screenshots have no stale popup obstruction. Evidence is private under
+  the run's `windows-evidence/ca0b0532bf0d4d4b8ea9e50654064007` directory.
+
+The rebuilt Windows guest initially lacked 7-Zip; that optional branch was not
+counted as native 7z acceptance. 7-Zip 26.03 ARM64 was subsequently downloaded
+from the [official download page](https://www.7-zip.org/download.html) on the host,
+matched to the official release asset's SHA-256
+`e22ce71c11dcf503c448fe51e56f41830eb4e1344fa5c7731ae63bce533a8e8e`, staged and
+installed offline under the VM1 lease. The unchanged final portable then passed
+Compare again in **45.456 s**, with `seven_zip_available: true`, including actual
+7z base selection, independent file pairing and verified archive rewrite.
+Request `b12174e390e243cb829567b6d172346d` retains the native 7z screenshot and log;
+its two selected files and per-side archive/base labels were visually reviewed.
+Guest networking stayed off, cleanup passed and all leases were released.
+
+No comparable whole-task baseline is available. Official token counters are
+unavailable, so token usage and token savings remain unknown. These timings are
+not a claimed improvement over differently scoped runs or failed readiness checks.
+
+### v0.18.15 evidence and remaining limits
+
+An official reference comparison application was installed in the leased Windows VM solely for
 synthetic-data evaluation. Large Markdown, Excel sheet comparison and ZIP/7z
-member edit/save workflows were observed; PFC has no dependency on BC or its trial.
+member edit/save workflows were observed; PFC has no dependency on that application.
 Official 7-Zip ARM64 was installed for native 7z write-back tests. VM networking
 remained disabled; verified installers were staged through the leased channel.
 
@@ -170,7 +308,7 @@ Windows 11 ARM64 portable tests exercised draft/cancel/save/conflict behavior,
 million-character lines, one million lines, sheets/formulas and archive backup
 write-back. The final candidate run loaded/aligned the ~20 MiB fixture in
 1.631 seconds and the million-line fixture in 4.679 seconds. These are synthetic
-observations, not performance guarantees or an apples-to-apples BC benchmark.
+observations, not performance guarantees or a cross-product benchmark.
 Native screenshots covered text at 175%/760 px, the cell grid and archive review;
 automated geometry checks cover 100/150/175/200%. QGA retries remain recorded.
 The final native Compare check passed in 27.33 seconds. Its portable SHA-256 is

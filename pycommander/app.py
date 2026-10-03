@@ -140,6 +140,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.16", "2026/10/04", (
+        "Fixed: Excel comparison shows loaded cells, explicit empty states and Strict workbook support.",
+        "Added: Independent left/right file pairing and per-side Base Folder context actions for folders and archives.",
+        "Improved: Readable comparison highlights separate changed lines, changed characters, search and selection.",
+        "Fixed: 7z directory attributes and archive draft side ownership.",
+        "Fixed: Folder tree polling survives font changes while row geometry settles.",
+    )),
     ("v0.18.15", "2026/10/02", (
         "Added: Background text/Markdown review up to 20 MiB per side, wide-line navigation, draft editing and reviewed differences.",
         "Added: Read-only Excel sheet, stored-value, formula and row-key comparison.",
@@ -5434,7 +5441,10 @@ class Commander(tk.Tk):
                 if available < 120:
                     return False
                 for iid, text, inset in rows:
-                    gap = max(0, inset-pane.icons.size)*scale/current+icon
+                    # Native Treeview indentation/padding is measured in pixels,
+                    # not scaled with the font. Scaling it again made the chosen
+                    # maximum depend on the previously active zoom.
+                    gap = max(0, inset-pane.icons.size)+icon
                     if font.measure(text)+gap+8 > available:
                         return False
             return True

@@ -165,6 +165,7 @@ class VmRunnerTests(unittest.TestCase):
         self.leases.cancel.return_value = {'result':'cancelled'}
         self.specs = MagicMock(); self.specs.VM_SPECS = {'vm2':MagicMock(vm_id='vm2')}
         self.desktop = MagicMock()
+        self.desktop.inspect_login_screen.return_value = ('unknown', None, None)
         modules = {'vm_lease': self.leases, 'vm_pool_config': self.specs, 'vm_desktop': self.desktop}
         self.modules = patch.object(vm.importlib, 'import_module', side_effect=modules.__getitem__)
         self.modules.start(); self.addCleanup(self.modules.stop)
@@ -244,6 +245,63 @@ class VmRunnerTests(unittest.TestCase):
         self.assertIn('LeastPrivilege', xml)
         self.assertNotIn('Password', xml)
 
+    def test_qga_matches_reply_id_and_discards_stale_frames(self):
+        self.leases.snapshot.return_value = {'vms':{'vm2':{'active':{'lease_id':'fixture'}}}}
+        guest = vm.Guest({'lease_id':'fixture'}, self.specs.VM_SPECS['vm2'], self.leases)
+        with patch.object(vm.socket, 'socket') as sock, patch.object(vm.uuid, 'uuid4') as uid, patch.object(vm.time, 'time_ns', return_value=7):
+            uid.return_value.hex = 'expected'
+            client = sock.return_value
+            client.recv.side_effect = [b'partial stale\xff{"id":"expected-sync","return":7}\n',
+                                      b'{"id":"old","return":{}}\n',
+                                      b'{"id":"expected","return":{"pid":42}}\n']
+            self.assertEqual(guest.call('guest-exec', path='fixture'), {'pid':42})
+            request = json.loads(client.sendall.call_args.args[0])
+            self.assertEqual(request['id'], 'expected')
+            self.assertEqual(client.sendall.call_count, 2)
+
+    def test_qga_timeout_never_replays_execution(self):
+        self.leases.snapshot.return_value = {'vms':{'vm2':{'active':{'lease_id':'fixture'}}}}
+        guest = vm.Guest({'lease_id':'fixture'}, self.specs.VM_SPECS['vm2'], self.leases)
+        with patch.object(vm.socket, 'socket') as sock, patch.object(vm.uuid, 'uuid4') as uid, patch.object(vm.time, 'time_ns', return_value=7):
+            uid.return_value.hex = 'expected'
+            client = sock.return_value
+            client.recv.side_effect = [b'\xff{"id":"expected-sync","return":7}\n', TimeoutError]
+            with self.assertRaisesRegex(vm.Blocked, 'qga-response-timeout: guest-exec'):
+                guest.call('guest-exec', path='fixture')
+            self.assertEqual(client.sendall.call_count, 2)
+
+    def test_only_undispatched_sync_timeout_is_retried(self):
+        guest = vm.Guest({'lease_id':'fixture'}, self.specs.VM_SPECS['vm2'], self.leases)
+        with patch.object(vm.time, 'sleep'), patch.object(guest, '_call', side_effect=[
+                vm.Blocked('qga-response-timeout: guest-sync-delimited'), {'pid':42}]) as call:
+            self.assertEqual(guest.call('guest-exec', path='fixture'), {'pid':42})
+            self.assertEqual(call.call_count, 2)
+        with patch.object(guest, '_call', side_effect=vm.Blocked('qga-response-timeout: guest-exec')) as call:
+            with self.assertRaises(vm.Blocked):guest.call('guest-exec', path='fixture')
+            self.assertEqual(call.call_count, 1)
+
+    def test_report_read_uses_bounded_read_only_execution_channel(self):
+        guest = vm.Guest({'lease_id':'fixture'}, self.specs.VM_SPECS['vm2'], self.leases)
+        with patch.object(guest, 'execute', return_value={'out-data':'YWJj'}) as execute:
+            self.assertEqual(guest.read('fixture.json'), b'abc')
+            self.assertEqual(execute.call_count, 1)
+            self.assertEqual(execute.call_args.args[1][-3:], ['fixture.json','0',str(256*1024)])
+        with patch.object(guest, 'execute', return_value={'out-data':'YWJj','out-truncated':True}):
+            with self.assertRaisesRegex(vm.Blocked,'guest-report-truncated'):guest.read('fixture.json')
+        with patch.object(guest, 'execute', return_value={'out-data':'YWJj'}):
+            with self.assertRaisesRegex(vm.Blocked,'guest-report-too-large'):guest.read('fixture.json',limit=2)
+
+    def test_staging_is_chunked_below_windows_command_line_limit(self):
+        guest = vm.Guest({'lease_id':'fixture'}, self.specs.VM_SPECS['vm2'], self.leases)
+        with patch.object(guest, 'execute') as execute:
+            guest.put(b'x'*(12*1024+1), 'fixture.py')
+            args = [c.args[1] for c in execute.call_args_list]
+            self.assertEqual([a[-2] for a in args], ['0', str(12*1024)])
+            self.assertLessEqual(max(len(a[-1]) for a in args), 16*1024)
+        with patch.object(guest, 'execute') as execute:
+            guest.put(b'', 'empty.py')
+            self.assertEqual(execute.call_args.args[1][-2:], ['0',''])
+
     def test_desktop_preparation_failure_blocks_staging_and_releases(self):
         self.desktop.prepare_desktop.side_effect = RuntimeError('desktop-owned-by-other-account')
         with patch.object(vm, 'Guest') as guest, patch.object(vm.subprocess, 'run') as command:
@@ -265,6 +323,34 @@ class VmRunnerTests(unittest.TestCase):
         with self.assertRaises(vm.Blocked):
             vm.windows_checks(guest, ['tooltip_check.py'], 5, 5, cleanup)
         self.assertEqual(cleanup, ['task-stop-unconfirmed','task-removal-unconfirmed'])
+
+    def test_child_cleanup_is_bound_to_exact_request_commands(self):
+        guest = MagicMock()
+        vm.stop_request_checks(guest, r'C:\PFC-Test\workflow\fixture', ['review_compare_check.py'])
+        args = guest.execute.call_args.args[1]
+        script = args[-1]
+        self.assertIn(r'C:\PFC-Test\workflow\fixture\review_compare_check.py pfc', script)
+        self.assertIn('$expected -contains $_.CommandLine', script)
+        self.assertNotIn('/IM', script)
+        self.assertNotIn('Stop-Process -Name', script)
+
+    def test_blank_display_does_not_wake_an_unverified_desktop(self):
+        guest = MagicMock()
+        self.desktop.inspect_login_screen.return_value = ('blank', None, None)
+        self.desktop.session_status.return_value = {'ready':False, 'account':'other'}
+        with self.assertRaisesRegex(vm.Blocked, 'desktop-not-ready-for-display-wake'):
+            vm.windows_checks(guest, ['tooltip_check.py'], 5, 5)
+        self.desktop.Keyboard.assert_not_called()
+        guest.put.assert_not_called()
+
+    def test_persistently_blank_display_blocks_before_staging(self):
+        guest = MagicMock()
+        self.desktop.inspect_login_screen.return_value = ('blank', None, None)
+        self.desktop.session_status.return_value = {'ready':True, 'account':'test'}
+        with patch.object(vm.time, 'sleep'), self.assertRaisesRegex(vm.Blocked, 'desktop-display-remains-blank'):
+            vm.windows_checks(guest, ['tooltip_check.py'], 5, 5)
+        self.desktop.Keyboard.return_value.__enter__.return_value.press.assert_called_once_with(0xffe1)
+        guest.put.assert_not_called()
 
     def test_worker_blocks_before_importing_pfc(self):
         directory = Path(self.temp.name)

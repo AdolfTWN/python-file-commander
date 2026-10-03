@@ -2,7 +2,7 @@
 
 Scope: the eight approved reading, comparison and navigation tools plus the
 Markdown shutdown TODO and compact typography. This is not a claim of complete
-IDE, Obsidian or Beyond Compare compatibility.
+IDE, note-taking or external comparison application compatibility.
 
 Candidate portable SHA-256:
 

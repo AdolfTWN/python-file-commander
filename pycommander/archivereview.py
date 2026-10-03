@@ -49,7 +49,10 @@ def checked_archive_members(path):
             if fields.get('Encrypted')=='+':raise OSError('Encrypted archives are read-only in Compare')
             if fields.get('Symbolic Link') or fields.get('Hard Link') or 'Reparse' in fields.get('Attributes',''):
                 raise OSError('Archive contains links')
-            records.append((fields['Path'],int(fields.get('Size','0')),fields.get('Folder')=='+'))
+            # 7-Zip versions differ: some emit Folder=+, others only the DOS
+            # D attribute. A real directory must not become a colliding file.
+            directory=fields.get('Folder')=='+' or 'D' in fields.get('Attributes','')
+            records.append((fields['Path'],int(fields.get('Size','0')),directory))
     names=set();total=0; files=set()
     reserved={'CON','PRN','AUX','NUL'}|{f'{prefix}{n}' for prefix in ('COM','LPT') for n in range(1,10)}
     for name,size,isdir in records:

@@ -60,6 +60,8 @@ class ArchiveReviewCompare(ttk.Frame):
             self.inner=self.folder_factory(self,*roots,self.file_factory,self.sync_executor,
                 left_label=self.paths[0],right_label=self.paths[1],left_read_only=False,right_read_only=False,**self.options)
             self.inner.content_var.set(True);self.inner.start_scan()
+            self.inner.can_swap=lambda:not self.busy and not getattr(self,'_review_dialog',None)
+            self.inner.on_swap=self.swap_session_sides
             self.inner.pack(fill='both',expand=True)
             if self.palette:self.apply_color_scheme(self.palette)
             self.status.configure(text=tr('Archive sides are drafts · Review archive changes to save · local folders use normal confirmed sync'))
@@ -68,7 +70,10 @@ class ArchiveReviewCompare(ttk.Frame):
 
     def review_changes(self):
         if self.busy or not self.inner:return
-        if any(getattr(d['detail'],'busy',False) or getattr(d['detail'],'_editors',None) or
+        # Newer Tkinter versions expose a callable Widget.busy method. Only our
+        # explicit boolean worker flag means an unfinished comparison; a legacy
+        # TextCompare inheriting that method must not block archive review.
+        if any(getattr(d['detail'],'busy',False) is True or getattr(d['detail'],'_editors',None) or
                (hasattr(d['detail'],'texts') and any(t!=doc.text for t,doc in zip(d['detail'].texts,d['detail'].documents)))
                for d in self.inner.nested_details.values()):
             self.status.configure(text=tr('Save or discard nested file drafts before reviewing the archive'));return
@@ -79,7 +84,8 @@ class ArchiveReviewCompare(ttk.Frame):
         if self.inner.nested_details:
             self.status.configure(text=tr('Close nested file tabs before deleting archive members'));return
         session=self.sessions[side];names=[]
-        for iid in self.inner._selected_items():
+        tree=self.inner.left_tree if side==0 else self.inner.right_tree
+        for iid in tree.selection():
             path=self.inner.item_paths.get(iid,(None,None))[side]
             if path:names.append(path.relative_to(session.root).as_posix())
         if not names:return
@@ -92,11 +98,21 @@ class ArchiveReviewCompare(ttk.Frame):
         try:self.sessions[side].undo_delete();self.inner.start_scan()
         except OSError as exc:messagebox.showerror(tr('Archive draft'),str(exc),parent=self)
 
+    def swap_session_sides(self):
+        self.sessions.reverse();self.paths.reverse()
+
     def show_review(self,items):
         changes=[(i,rows,manifest) for i,rows,manifest in items if rows]
         if not changes:self.status.configure(text=tr('No archive changes'));return
         # Each side is a separate transaction: never claim a two-file atomic save.
         dialog=tk.Toplevel(self);dialog.title(tr('Review archive changes'));dialog.geometry('950x580')
+        self._review_dialog=dialog
+        dialog.transient(self.winfo_toplevel());dialog.grab_set()
+        dialog.bind('<Destroy>',lambda e:setattr(self,'_review_dialog',None) if e.widget is dialog else None)
+        # Isolate comparison commands without swallowing native Tab traversal.
+        for key in ('<F3>','<Shift-F3>','<F7>','<F8>','<Control-f>'):
+            dialog.bind(key,lambda e:'break')
+        dialog.bind('<Escape>',lambda e:dialog.destroy() or 'break')
         ttk.Label(dialog,text=tr('Select one archive to save. Adds, replacements and explicit deletions are listed below.')).pack(fill='x')
         tabs=ttk.Notebook(dialog);tabs.pack(fill='both',expand=True)
         for i,rows,manifest in changes:

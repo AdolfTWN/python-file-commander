@@ -17,6 +17,20 @@ _WB_MAIN = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
 _WB_REL = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
 
 
+def workbook_normalize_element(element):
+    # Strict OOXML uses different namespaces from the more common Transitional
+    # format. Normalize identifiers only; never silently return an empty book.
+    namespaces = {
+        '{http://purl.oclc.org/ooxml/spreadsheetml/main}': _WB_MAIN,
+        '{http://purl.oclc.org/ooxml/officeDocument/relationships}': _WB_REL,
+    }
+    for source, target in namespaces.items():
+        if element.tag.startswith(source):element.tag=target+element.tag[len(source):]
+        for key in list(element.attrib):
+            if key.startswith(source):element.set(target+key[len(source):],element.attrib.pop(key))
+    return element
+
+
 def excel_date(serial,date1904):
     value=float(serial)
     if not date1904 and 60<=value<61:
@@ -100,7 +114,9 @@ def read_workbook(path):
                 safe=data.replace(b'\x00',b'').upper()
                 if b'<!DOCTYPE' in safe or b'<!ENTITY' in safe:
                     raise ValueError('DTD/entity declarations are not allowed')
-                return ET.fromstring(data)
+                root=ET.fromstring(data)
+                for element in root.iter():workbook_normalize_element(element)
+                return root
             def sheet_elements(name):
                 nonlocal total
                 info=z.getinfo(name);total+=info.file_size
@@ -117,7 +133,11 @@ def read_workbook(path):
                 with z.open(name) as stream:
                     stack=[]
                     for event,element in ET.iterparse(CheckedReader(stream),events=('start','end')):
-                        if event=='start':stack.append(element);continue
+                        if event=='start':
+                            workbook_normalize_element(element)
+                            if not stack and element.tag!=_WB_MAIN+'worksheet':
+                                raise ValueError('Unsupported worksheet XML namespace or type')
+                            stack.append(element);continue
                         if element.tag in (_WB_MAIN+'c',_WB_MAIN+'mergeCell'):
                             yield element
                             element.clear()
@@ -126,6 +146,7 @@ def read_workbook(path):
                             if len(stack)>1:stack[-2].remove(element)
                         stack.pop()
             book=xml('xl/workbook.xml')
+            if book.tag!=_WB_MAIN+'workbook':raise ValueError('Unsupported workbook XML namespace')
             links=xml('xl/_rels/workbook.xml.rels')
             targets={r.get('Id'):r.get('Target') for r in links if r.get('TargetMode')!='External'}
             strings=[]

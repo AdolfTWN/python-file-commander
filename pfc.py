@@ -17,6 +17,26 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Excel comparison shows loaded cells, explicit empty states and Strict workbook support.': ('修正：Excel 比較顯示已讀取的儲存格、明確的空白原因，並支援 Strict 格式。', '修正：Excel 比较显示已读取的单元格、明确的空白原因，并支持 Strict 格式。', '수정: Excel 비교의 셀 표시, 빈 결과 안내 및 Strict 형식 지원.'),
+    'Added: Independent left/right file pairing and per-side Base Folder context actions for folders and archives.': ('新增：資料夾與壓縮檔可獨立選取左右檔案配對，右鍵可設定各側基準資料夾。', '新增：文件夹与压缩包可独立选择左右文件配对，右键可设置各侧基准文件夹。', '추가: 폴더와 압축 파일에서 양쪽 파일 개별 선택 및 기준 폴더 메뉴.'),
+    'Improved: Readable comparison highlights separate changed lines, changed characters, search and selection.': ('改善：比較高亮清楚區分變更行、變更字元、搜尋結果與選取範圍。', '改善：比较高亮清楚区分变更行、变更字符、搜索结果与选择范围。', '개선: 변경된 줄, 문자, 검색 결과 및 선택 영역을 구분하는 강조 색상.'),
+    'Fixed: 7z directory attributes and archive draft side ownership.': ('修正：7z 目錄屬性辨識與壓縮檔草稿的左右側對應。', '修正：7z 目录属性识别与压缩包草稿的左右侧对应。', '수정: 7z 디렉터리 속성 및 압축 초안의 좌우 연결.'),
+    'Fixed: Folder tree polling survives font changes while row geometry settles.': ('修正：字型切換、列高調整期間，資料夾樹不再中斷更新。', '修正：字体切换、行高调整期间，文件夹树不再中断更新。', '수정: 글꼴 및 행 높이 변경 중에도 폴더 트리 업데이트가 유지됩니다.'),
+    'Compare selected files': ('比較左右選取的檔案', '比较左右选择的文件', '선택한 파일 비교'),
+    'Pair files': ('配對比較', '配对比较', '파일 짝 비교'),
+    'Select one file on each side, then compare. Names may differ.': ('左右各選一個檔案再比較，檔名不必相同。', '左右各选一个文件再比较，文件名不必相同。', '양쪽에서 파일 하나씩 선택한 뒤 비교합니다. 이름은 달라도 됩니다.'),
+    'Base Folder: Up one level': ('基準資料夾：上一層', '基准文件夹：上一层', '기준 폴더: 상위로'),
+    'Reset Base Folder': ('重設基準資料夾', '重设基准文件夹', '기준 폴더 초기화'),
+    'Show all cells': ('顯示所有儲存格', '显示所有单元格', '모든 셀 표시'),
+    'Workbook could not be read': ('無法讀取活頁簿', '无法读取工作簿', '통합 문서를 읽을 수 없습니다'),
+    'Workbook has no worksheets': ('活頁簿沒有工作表', '工作簿没有工作表', '워크시트가 없습니다'),
+    'No cells match the current filter': ('沒有符合目前篩選的儲存格', '没有符合当前筛选的单元格', '현재 필터에 맞는 셀이 없습니다'),
+    'No value/formula differences in this worksheet': ('這張工作表的儲存值／公式沒有差異', '这张工作表的存储值／公式没有差异', '이 시트의 저장 값/수식에 차이가 없습니다'),
+    'This worksheet contains no stored cell values or formulas': ('這張工作表沒有儲存格值或公式', '这张工作表没有单元格值或公式', '이 시트에 저장된 셀 값이나 수식이 없습니다'),
+    'Other worksheets may differ. Formatting, pictures and charts are not compared.': ('其他工作表仍可能不同；不比較格式、圖片及圖表。', '其他工作表仍可能不同；不比较格式、图片及图表。', '다른 시트에는 차이가 있을 수 있습니다. 서식, 그림 및 차트는 비교하지 않습니다.'),
+    '{cells} cells compared · {diffs} differences · {sheets} worksheets': ('已比較 {cells} 格 · {diffs} 處差異 · {sheets} 張工作表', '已比较 {cells} 格 · {diffs} 处差异 · {sheets} 张工作表', '셀 {cells}개 비교 · 차이 {diffs}개 · 시트 {sheets}개'),
+    'Comparison color legend': ('比較配色說明', '比较配色说明', '비교 색상 범례'),
+    'Neutral: unchanged · Pale red: changed line · Strong red: changed characters\nPurple: one side only · Grey: missing counterpart\nUnderline: current difference · Yellow: search match · Blue: your selection': ('一般底色：相同 · 淺紅：變更行 · 深紅：變更字元\n紫色：單側存在 · 灰色：另一側缺少\n底線：目前差異 · 黃色：搜尋結果 · 藍色：手動選取', '一般底色：相同 · 浅红：变更行 · 深红：变更字符\n紫色：单侧存在 · 灰色：另一侧缺少\n下划线：当前差异 · 黄色：搜索结果 · 蓝色：手动选择', '기본색: 동일 · 연한 빨강: 변경 줄 · 진한 빨강: 변경 문자\n보라: 한쪽에만 존재 · 회색: 대응 항목 없음\n밑줄: 현재 차이 · 노랑: 검색 결과 · 파랑: 선택 영역'),
     'Added: Background text/Markdown review up to 20 MiB per side, wide-line navigation, draft editing and reviewed differences.': ('新增：每側最高 20 MiB 的背景文字／Markdown 審閱、超寬行導覽、草稿編輯與差異檢查標記。', '新增：每侧最高 20 MiB 的后台文本／Markdown 审阅、超宽行导航、草稿编辑与差异检查标记。', '추가: 양쪽 각각 최대 20 MiB 텍스트/Markdown 백그라운드 검토, 긴 줄 탐색, 초안 편집 및 검토 표시.'),
     'Added: Read-only Excel sheet, stored-value, formula and row-key comparison.': ('新增：唯讀 Excel 工作表、儲存值、公式及列識別欄位比較。', '新增：只读 Excel 工作表、存储值、公式及行标识字段比较。', '추가: 읽기 전용 Excel 시트, 저장된 값, 수식 및 행 키 비교.'),
     'Added: ZIP/7z comparison drafts with explicit reviewed write-back, verification and backups.': ('新增：ZIP／7z 比較草稿，確認變更後才驗證、備份並寫回。', '新增：ZIP／7z 比较草稿，确认变更后才验证、备份并写回。', '추가: 검토 후 검증, 백업 및 명시적 저장을 지원하는 ZIP/7z 비교 초안.'),
@@ -5898,15 +5918,26 @@ class RootFolderTree(ttk.Frame):
                 for x in range(round(x1), round(x2)+1, 3):
                     image.put(muted, (x, round(y1)))
         center, mid = round((len(flags)-.5)*indent), height//2
-        self.tk.call(str(image), 'copy', str(self._icons[kind]), '-to',
-                     center-icon_size//2, mid-icon_size//2, '-compositingrule', 'overlay')
+        # Tk can report the previous row height while a new font/icon size is
+        # already active. Clip that transitional frame instead of passing a
+        # negative destination to PhotoImage.copy and stopping the scan poller.
+        icon = self._icons[kind]
+        left, top = center-icon_size//2, mid-icon_size//2
+        x0, y0 = max(0, -left), max(0, -top)
+        x1, y1 = min(icon.width(), image.width()-left), min(icon.height(), height-top)
+        if x1 > x0 and y1 > y0:
+            self.tk.call(str(image), 'copy', str(icon), '-from', x0, y0, x1, y1,
+                         '-to', max(0, left), max(0, top), '-compositingrule', 'overlay')
         if expandable:
             r = max(3, min(5, round(indent*.13)))
             px, py = center+round(icon_size*.28), mid+round(icon_size*.26)
-            image.put(muted, (px-r, py-r, px+r+1, py+r+1))
-            image.put(bg, (px-r+1, py-r+1, px+r, py+r))
-            image.put(fg, (px-r+2, py, px+r-1, py+1))
-            image.put(fg, (px, py-r+2, px+1, py+r-1))
+            for color, box in ((muted, (px-r, py-r, px+r+1, py+r+1)),
+                               (bg, (px-r+1, py-r+1, px+r, py+r)),
+                               (fg, (px-r+2, py, px+r-1, py+1)),
+                               (fg, (px, py-r+2, px+1, py+r-1))):
+                a, b, c, d = box
+                a, b, c, d = max(0, a), max(0, b), min(image.width(), c), min(height, d)
+                if c > a and d > b: image.put(color, (a, b, c, d))
         return image
 
     def _has_branch(self, iid):
@@ -8702,6 +8733,34 @@ class VcsActions:
         except (OSError, ValueError) as exc:
             messagebox.showerror(tr('Version Control'), tr(str(exc)), parent=self.app)
 
+"""Shared comparison semantics, independent of application accent colors."""
+
+
+def comparison_colors(palette):
+    color=palette.get('content','#ffffff').lstrip('#')
+    dark=len(color)==6 and sum(int(color[n:n+2],16) for n in (0,2,4))<384
+    if dark:
+        return dict(base='#23282e',text='#f1f3f5',line='#513238',inline='#81454c',
+                    orphan='#403452',gap='#30363e',gutter='#2b323a',muted='#bcc5cf',
+                    match='#66561b',match_text='#fff2b0',current='#284d70',current_text='#ffffff')
+    return dict(base='#ffffff',text='#202830',line='#fde9e7',inline='#f4b8b2',
+                orphan='#eee6f7',gap='#edf0f3',gutter='#f2f4f6',muted='#56616d',
+                match='#fff0a6',match_text='#292600',current='#d5e8fa',current_text='#153955')
+
+
+def style_comparison_text(widget,palette):
+    colors=comparison_colors(palette)
+    widget.configure(background=colors['base'],foreground=colors['text'],insertbackground=colors['text'],
+                     selectbackground='#245e91',selectforeground='#ffffff')
+    for tag,key in [('diff','line'),('inline_diff','inline'),('orphan','orphan'),('gap','gap')]:
+        widget.tag_configure(tag,background=colors[key],foreground=colors['text'])
+    # Current difference is a navigation cue, not selection of every character.
+    widget.tag_configure('current',background='',foreground='',underline=True)
+    widget.tag_configure('match',background=colors['match'],foreground=colors['match_text'])
+    widget.tag_configure('current_match',background=colors['match'],foreground=colors['match_text'],underline=True)
+    for tag in ('diff','orphan','gap','inline_diff','current','match','current_match','sel'):widget.tag_raise(tag)
+    return colors
+
 """Comparison data, independent of Tk. No automatic writes to source files."""
 from array import array
 from bisect import bisect_right, bisect_left
@@ -8889,6 +8948,20 @@ _WB_MAIN = '{http://schemas.openxmlformats.org/spreadsheetml/2006/main}'
 _WB_REL = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
 
 
+def workbook_normalize_element(element):
+    # Strict OOXML uses different namespaces from the more common Transitional
+    # format. Normalize identifiers only; never silently return an empty book.
+    namespaces = {
+        '{http://purl.oclc.org/ooxml/spreadsheetml/main}': _WB_MAIN,
+        '{http://purl.oclc.org/ooxml/officeDocument/relationships}': _WB_REL,
+    }
+    for source, target in namespaces.items():
+        if element.tag.startswith(source):element.tag=target+element.tag[len(source):]
+        for key in list(element.attrib):
+            if key.startswith(source):element.set(target+key[len(source):],element.attrib.pop(key))
+    return element
+
+
 def excel_date(serial,date1904):
     value=float(serial)
     if not date1904 and 60<=value<61:
@@ -8972,7 +9045,9 @@ def read_workbook(path):
                 safe=data.replace(b'\x00',b'').upper()
                 if b'<!DOCTYPE' in safe or b'<!ENTITY' in safe:
                     raise ValueError('DTD/entity declarations are not allowed')
-                return ET.fromstring(data)
+                root=ET.fromstring(data)
+                for element in root.iter():workbook_normalize_element(element)
+                return root
             def sheet_elements(name):
                 nonlocal total
                 info=z.getinfo(name);total+=info.file_size
@@ -8989,7 +9064,11 @@ def read_workbook(path):
                 with z.open(name) as stream:
                     stack=[]
                     for event,element in ET.iterparse(CheckedReader(stream),events=('start','end')):
-                        if event=='start':stack.append(element);continue
+                        if event=='start':
+                            workbook_normalize_element(element)
+                            if not stack and element.tag!=_WB_MAIN+'worksheet':
+                                raise ValueError('Unsupported worksheet XML namespace or type')
+                            stack.append(element);continue
                         if element.tag in (_WB_MAIN+'c',_WB_MAIN+'mergeCell'):
                             yield element
                             element.clear()
@@ -8998,6 +9077,7 @@ def read_workbook(path):
                             if len(stack)>1:stack[-2].remove(element)
                         stack.pop()
             book=xml('xl/workbook.xml')
+            if book.tag!=_WB_MAIN+'workbook':raise ValueError('Unsupported workbook XML namespace')
             links=xml('xl/_rels/workbook.xml.rels')
             targets={r.get('Id'):r.get('Target') for r in links if r.get('TargetMode')!='External'}
             strings=[]
@@ -9161,6 +9241,7 @@ class ComparisonJobs:
 import bisect
 import hashlib
 import html
+import difflib
 import json
 from pathlib import Path
 import queue
@@ -9348,12 +9429,28 @@ class ReviewCompare(ttk.Frame):
             text.delete('1.0','end');text.insert('1.0','\n'.join(rendered[side]))
             for i,block in enumerate(self.row_blocks,1):
                 if self.alignment.opcodes[block][0]!='equal':text.tag_add('diff',f'{i}.0',f'{i}.end')
+                if not rendered[side][i-1].strip():text.tag_add('gap',f'{i}.0',f'{i}.end')
                 if block==self.block:text.tag_add('current',f'{i}.0',f'{i}.end')
             text.configure(state='disabled');text.yview_moveto(0);text.xview_moveto(0)
             self.xbars[side].set(min(1,self.column[side]/maxwidth[side]),min(1,(self.column[side]+self.visible_columns(side))/maxwidth[side]))
             dirty=self.documents and self.texts[side]!=self.documents[side].text
             state=tr('Read-only') if side in self.read_only_sides or (self.documents and self.documents[side].reason) else (tr('Draft') if dirty else tr('Saved'))
             self.headers[side].configure(text=f'{"L" if side==0 else "R"} · {self.paths[side].name} · {state}')
+        budget=100000
+        for row,block in enumerate(self.row_blocks,1):
+            if self.alignment.opcodes[block][0]=='equal':continue
+            _,a,b=self.alignment.row(self.actual_row(self.top+row-1))
+            if a is None or b is None:
+                self.widgets[0 if a is not None else 1].tag_add('orphan',f'{row}.0',f'{row}.end')
+                continue
+            left,right=self.alignment.lines[0][a],self.alignment.lines[1][b]
+            if max(len(left),len(right))>2000 or len(left)+len(right)>budget:continue
+            budget-=len(left)+len(right)
+            for tag,a0,a1,b0,b1 in difflib.SequenceMatcher(None,left,right,autojunk=True).get_opcodes():
+                if tag=='equal':continue
+                for side,lo,hi in ((0,a0,a1),(1,b0,b1)):
+                    lo=max(0,lo-self.column[side]);hi=min(self.WIDTH,hi-self.column[side])
+                    if hi>lo:self.widgets[side].tag_add('inline_diff',f'{row}.{lo+9}',f'{row}.{hi+9}')
         self.maxwidth=maxwidth
         self.scrollbar.set(self.top/max(1,self.total),end/max(1,self.total))
         self.status.configure(text=f'{len(self.alignment.differences)} '+tr('difference blocks')+
@@ -9633,9 +9730,7 @@ class ReviewCompare(ttk.Frame):
     def apply_color_scheme(self,palette):
         self.palette=palette
         for text in self.widgets:
-            text.configure(background=palette['content'],foreground=palette['text'],insertbackground=palette['text'])
-            text.tag_configure('diff',background='#6a4b16' if palette.get('content')=='#202124' else '#efc879',foreground='#181818')
-            text.tag_configure('current',background='#1878bc',foreground='white')
+            style_comparison_text(text,palette)
 
     def confirm_close(self):
         if self._saving:self.status.configure(text=tr('Finishing atomic save; please wait'));return False
@@ -9702,7 +9797,7 @@ from pathlib import Path
 import queue
 import threading
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog, filedialog
+from tkinter import ttk, messagebox, simpledialog, filedialog, font as tkfont
 
 
 class WorkbookCompare(ttk.Frame):
@@ -9711,9 +9806,9 @@ class WorkbookCompare(ttk.Frame):
         super().__init__(master);self.view=self;self.paths=[Path(left),Path(right)]
         self.jobs=ComparisonJobs();self.books=None;self.rows=[];self.filtered=[];self.top=0;self._job=None
         self._generation=0;self._row_results=queue.Queue();self._rows_job=None
-        self.sheet=tk.StringVar();self.only=tk.BooleanVar(value=True);self.search_var=tk.StringVar()
+        self.sheet=tk.StringVar();self.only=tk.BooleanVar(value=False);self.search_var=tk.StringVar()
         self.keys=();self.header_row=1;self.cell_mode=tk.StringVar(value='Both')
-        self._filter_needle='';self._pending_find=None
+        self._filter_needle='';self._pending_find=None;self.difference_count=0
         bar=ttk.Frame(self);bar.pack(fill='x',padx=4,pady=3)
         ttk.Label(bar,text=tr('Worksheet')).pack(side='left')
         self.sheets=ttk.Combobox(bar,state='readonly',textvariable=self.sheet,width=20)
@@ -9731,14 +9826,22 @@ class WorkbookCompare(ttk.Frame):
         self.search=ttk.Entry(find,textvariable=self.search_var,width=8);self.search.pack(side='left',fill='x',expand=True)
         self.search.bind('<Return>',lambda e:self.find_next())
         self.search.bind('<Shift-Return>',lambda e:self.find_previous())
+        self.only_button=ttk.Checkbutton(find,text=tr('Differences only'),variable=self.only,command=self.filter,
+            style=readable_check_style(self,tkfont.nametofont('TkDefaultFont'),prefix='Workbook'))
+        self.only_button.pack(side='right',padx=4)
         for label,cmd in [('Find',self.filter),('◀',self.find_previous),('▶',self.find_next)]:
             button=ttk.Button(find,text=tr(label),width=0,command=cmd);button.pack(side='left',padx=2)
             ToolTip(button,tr('Find Prev')+' · Shift+F3' if label=='◀' else tr('Find Next')+' · F3' if label=='▶' else tr('Find:'))
-        self.tree=ttk.Treeview(self,columns=('status','left','value_l','formula_l','right','value_r','formula_r'),show='headings')
+        self.tree=ttk.Treeview(self,columns=('status','left','value_l','formula_l','right','value_r','formula_r'),show='headings',style='Workbook.Treeview')
+        self.apply_scale(1)
         for name,title,width in [('status','Status',90),('left','L Cell',70),('value_l','L Value / cached result',220),
                                  ('formula_l','L Formula',220),('right','R Cell',70),('value_r','R Value / cached result',220),('formula_r','R Formula',220)]:
             self.tree.heading(name,text=tr(title));self.tree.column(name,width=width,minwidth=60,stretch=name in ('value_l','value_r'))
         self.tree.pack(fill='both',expand=True)
+        self.empty=ttk.Frame(self.tree,padding=12)
+        self.empty_text=ttk.Label(self.empty,text='',anchor='center',wraplength=520)
+        self.empty_text.pack()
+        self.show_all_button=ttk.Button(self.empty,text=tr('Show all cells'),command=self.show_all)
         x=ttk.Scrollbar(self,orient='horizontal',command=self.tree.xview);x.pack(fill='x');self.tree.configure(xscrollcommand=x.set)
         self.scrollbar=ttk.Scrollbar(self,command=self.scroll);self.scrollbar.pack(side='right',fill='y',before=self.tree)
         self.tree.bind('<Double-Button-1>',self.show_cell)
@@ -9755,14 +9858,16 @@ class WorkbookCompare(ttk.Frame):
         try:serial,result=self.jobs.results.get_nowait()
         except queue.Empty:self._job=self.after(40,self.poll);return
         if serial!=self.serial:return
-        if 'error' in result:self.status.configure(text=result['error']);return
+        if 'error' in result:
+            self.status.configure(text=result['error']);self.show_empty(tr('Workbook could not be read')+'\n'+result['error']);return
         self.books=result['books'];names=[]
         for book in self.books:
             for sheet in book['sheets']:
                 if sheet['name'] not in names:names.append(sheet['name'])
         self.sheets.configure(values=names)
         if names:self.sheet.set(names[0]);self.load_sheet()
-        else:self.status.configure(text=tr('Workbook has no worksheets'))
+        else:
+            self.status.configure(text=tr('Workbook has no worksheets'));self.show_empty(tr('Workbook has no worksheets'))
 
     def load_sheet(self):
         if not self.books:return
@@ -9779,25 +9884,27 @@ class WorkbookCompare(ttk.Frame):
         self._filter_needle=needle
         selected=list(self.selected);keys=self.keys;header=self.header_row
         self.rows=[];self.filtered=[];self.tree.delete(*self.tree.get_children())
+        self.show_empty(tr('Comparing worksheet…'))
         self.status.configure(text=tr('Comparing worksheet…'))
         def work():
             try:
-                rows=workbook_rows(*selected,keys,header);filtered=[]
+                rows=workbook_rows(*selected,keys,header);filtered=[];differences=0
                 for n,(ar,br,a,b) in enumerate(rows):
                     if serial!=self._generation:return
-                    if (not only or not cell_values_equal(a,b,mode)) and (not needle or needle in (ar+' '+br+' '+str(a)+' '+str(b)).casefold()):filtered.append(n)
-                self._row_results.put((serial,rows,filtered,None))
-            except Exception as exc:self._row_results.put((serial,[],[],str(exc)))
+                    different=not cell_values_equal(a,b,mode);differences+=different
+                    if (not only or different) and (not needle or needle in (ar+' '+br+' '+str(a)+' '+str(b)).casefold()):filtered.append(n)
+                self._row_results.put((serial,rows,filtered,None,differences))
+            except Exception as exc:self._row_results.put((serial,[],[],str(exc),0))
         threading.Thread(target=work,daemon=True).start()
         if self._rows_job is None:self._rows_job=self.after(40,self.poll_rows)
 
     def poll_rows(self):
         self._rows_job=None
-        try:serial,rows,filtered,error=self._row_results.get_nowait()
+        try:serial,rows,filtered,error,differences=self._row_results.get_nowait()
         except queue.Empty:self._rows_job=self.after(40,self.poll_rows);return
         if serial!=self._generation:self._rows_job=self.after(40,self.poll_rows);return
-        self.rows=rows;self.filtered=filtered;self.top=0;self.render()
-        if error:self.status.configure(text=error)
+        self.rows=rows;self.filtered=filtered;self.difference_count=differences;self.top=0;self.render()
+        if error:self.status.configure(text=error);self.show_empty(error)
         elif self._pending_find is not None:
             direction=self._pending_find;self._pending_find=None;self._move_result(direction)
 
@@ -9817,7 +9924,23 @@ class WorkbookCompare(ttk.Frame):
         self.scrollbar.set(self.top/max(1,len(self.filtered)),end/max(1,len(self.filtered)))
         meta=' · '.join(('L' if n==0 else 'R')+': '+(s['state']+f', {len(s["merged"])} merged ranges' if s else 'sheet missing') for n,s in enumerate(self.selected)) if self.books else ''
         dates=' · '+tr('Different Excel date systems') if self.books and self.books[0]['date1904']!=self.books[1]['date1904'] else ''
-        self.status.configure(text=f'{self.top+1 if end else 0}–{end}/{len(self.filtered)} · '+tr('Read-only · formulas are not recalculated · double-click for full cell')+' · '+meta+dates)
+        summary=tr('{cells} cells compared · {diffs} differences · {sheets} worksheets',
+                   cells=len(self.rows),diffs=self.difference_count,sheets=len(self.sheets.cget('values')))
+        self.status.configure(text=summary+f' · {self.top+1 if end else 0}–{end}/{len(self.filtered)} · '+tr('Read-only · formulas are not recalculated · double-click for full cell')+' · '+meta+dates)
+        if not self.filtered:
+            reason=(tr('No cells match the current filter') if self._filter_needle else
+                    tr('No value/formula differences in this worksheet') if self.rows else
+                    tr('This worksheet contains no stored cell values or formulas'))
+            self.show_empty(reason+'\n'+summary+'\n'+tr('Other worksheets may differ. Formatting, pictures and charts are not compared.'),bool(self.rows))
+        else:self.empty.place_forget()
+
+    def show_empty(self,text,show_all=False):
+        self.empty_text.configure(text=text)
+        self.show_all_button.pack(pady=(8,0)) if show_all else self.show_all_button.pack_forget()
+        self.empty.place(relx=.5,rely=.5,anchor='center')
+
+    def show_all(self):
+        self.only.set(False);self.search_var.set('');self.filter()
 
     def scroll(self,*args):
         self.top=int(float(args[1])*len(self.filtered)) if args[0]=='moveto' else self.top+int(args[1])*(self.PAGE if args[2]=='pages' else 1)
@@ -9846,12 +9969,17 @@ class WorkbookCompare(ttk.Frame):
     def previous(self):self._move_result(-1,True)
     def focus_search(self):self.search.focus_set();return 'break'
     def set_read_only(self,*args,**kwargs):pass
-    def apply_scale(self,scale):pass
+    def apply_scale(self,scale):
+        face=tkfont.nametofont('TkDefaultFont')
+        ttk.Style(self).configure('Workbook.Treeview',font=face,rowheight=face.metrics('linespace')+8)
+        self.only_button.configure(style=readable_check_style(self,face,
+            getattr(self,'_dark',False),'Workbook'))
     def apply_language(self,old):pass
     def apply_color_scheme(self,palette):
-        self.tree.tag_configure('Changed',background='#e9be65',foreground='#141414')
-        self.tree.tag_configure('Left only',background='#b8dced',foreground='#141414')
-        self.tree.tag_configure('Right only',background='#bce2c2',foreground='#141414')
+        colors=comparison_colors(palette)
+        self._dark=colors['base']!='#ffffff';self.apply_scale(1)
+        for tag,color in [('Changed','line'),('Left only','orphan'),('Right only','orphan')]:
+            self.tree.tag_configure(tag,background=colors[color],foreground=colors['text'])
 
     def set_keys(self):
         value=simpledialog.askstring(tr('Row key columns'),tr('Column letters separated by commas (e.g. A,C). Empty = cell coordinates.'),parent=self)
@@ -9951,7 +10079,10 @@ def checked_archive_members(path):
             if fields.get('Encrypted')=='+':raise OSError('Encrypted archives are read-only in Compare')
             if fields.get('Symbolic Link') or fields.get('Hard Link') or 'Reparse' in fields.get('Attributes',''):
                 raise OSError('Archive contains links')
-            records.append((fields['Path'],int(fields.get('Size','0')),fields.get('Folder')=='+'))
+            # 7-Zip versions differ: some emit Folder=+, others only the DOS
+            # D attribute. A real directory must not become a colliding file.
+            directory=fields.get('Folder')=='+' or 'D' in fields.get('Attributes','')
+            records.append((fields['Path'],int(fields.get('Size','0')),directory))
     names=set();total=0; files=set()
     reserved={'CON','PRN','AUX','NUL'}|{f'{prefix}{n}' for prefix in ('COM','LPT') for n in range(1,10)}
     for name,size,isdir in records:
@@ -10157,6 +10288,8 @@ class ArchiveReviewCompare(ttk.Frame):
             self.inner=self.folder_factory(self,*roots,self.file_factory,self.sync_executor,
                 left_label=self.paths[0],right_label=self.paths[1],left_read_only=False,right_read_only=False,**self.options)
             self.inner.content_var.set(True);self.inner.start_scan()
+            self.inner.can_swap=lambda:not self.busy and not getattr(self,'_review_dialog',None)
+            self.inner.on_swap=self.swap_session_sides
             self.inner.pack(fill='both',expand=True)
             if self.palette:self.apply_color_scheme(self.palette)
             self.status.configure(text=tr('Archive sides are drafts · Review archive changes to save · local folders use normal confirmed sync'))
@@ -10165,7 +10298,10 @@ class ArchiveReviewCompare(ttk.Frame):
 
     def review_changes(self):
         if self.busy or not self.inner:return
-        if any(getattr(d['detail'],'busy',False) or getattr(d['detail'],'_editors',None) or
+        # Newer Tkinter versions expose a callable Widget.busy method. Only our
+        # explicit boolean worker flag means an unfinished comparison; a legacy
+        # TextCompare inheriting that method must not block archive review.
+        if any(getattr(d['detail'],'busy',False) is True or getattr(d['detail'],'_editors',None) or
                (hasattr(d['detail'],'texts') and any(t!=doc.text for t,doc in zip(d['detail'].texts,d['detail'].documents)))
                for d in self.inner.nested_details.values()):
             self.status.configure(text=tr('Save or discard nested file drafts before reviewing the archive'));return
@@ -10176,7 +10312,8 @@ class ArchiveReviewCompare(ttk.Frame):
         if self.inner.nested_details:
             self.status.configure(text=tr('Close nested file tabs before deleting archive members'));return
         session=self.sessions[side];names=[]
-        for iid in self.inner._selected_items():
+        tree=self.inner.left_tree if side==0 else self.inner.right_tree
+        for iid in tree.selection():
             path=self.inner.item_paths.get(iid,(None,None))[side]
             if path:names.append(path.relative_to(session.root).as_posix())
         if not names:return
@@ -10189,11 +10326,21 @@ class ArchiveReviewCompare(ttk.Frame):
         try:self.sessions[side].undo_delete();self.inner.start_scan()
         except OSError as exc:messagebox.showerror(tr('Archive draft'),str(exc),parent=self)
 
+    def swap_session_sides(self):
+        self.sessions.reverse();self.paths.reverse()
+
     def show_review(self,items):
         changes=[(i,rows,manifest) for i,rows,manifest in items if rows]
         if not changes:self.status.configure(text=tr('No archive changes'));return
         # Each side is a separate transaction: never claim a two-file atomic save.
         dialog=tk.Toplevel(self);dialog.title(tr('Review archive changes'));dialog.geometry('950x580')
+        self._review_dialog=dialog
+        dialog.transient(self.winfo_toplevel());dialog.grab_set()
+        dialog.bind('<Destroy>',lambda e:setattr(self,'_review_dialog',None) if e.widget is dialog else None)
+        # Isolate comparison commands without swallowing native Tab traversal.
+        for key in ('<F3>','<Shift-F3>','<F7>','<F8>','<Control-f>'):
+            dialog.bind(key,lambda e:'break')
+        dialog.bind('<Escape>',lambda e:dialog.destroy() or 'break')
         ttk.Label(dialog,text=tr('Select one archive to save. Adds, replacements and explicit deletions are listed below.')).pack(fill='x')
         tabs=ttk.Notebook(dialog);tabs.pack(fill='both',expand=True)
         for i,rows,manifest in changes:
@@ -10762,19 +10909,12 @@ class SideBySideText(ttk.Frame):
         self.right_path_label.configure(background=palette["right_header"], foreground="#ffffff")
         self.map_header.configure(background=palette["map_header"], foreground="#ffffff")
         for widget in (self.left, self.right):
-            widget.configure(background=palette["content"], foreground=palette["text"],
-                             insertbackground=palette["text"],
-                             selectbackground=palette["selection"], selectforeground="#ffffff")
-            widget.tag_configure("diff", background=palette["diff"], foreground=palette["text"])
-            widget.tag_configure("inline_diff", background=palette["current_diff"], foreground="#ffffff")
-            widget.tag_configure("current", background=palette["current_diff"], foreground="#ffffff")
-            widget.tag_configure("match", background=palette["match"], foreground=palette["text"])
-            widget.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
+            colors=style_comparison_text(widget,palette)
         for widget in (self.left_numbers, self.right_numbers):
-            widget.configure(background=palette["gutter"], foreground=palette["gutter_text"],
+            widget.configure(background=colors['gutter'], foreground=colors['muted'],
                              selectbackground=palette["selection"], selectforeground="#ffffff")
-            widget.tag_configure("diff", background=palette["diff"], foreground=palette["gutter_text"])
-            widget.tag_configure("current", background=palette["current_diff"], foreground="#ffffff")
+            widget.tag_configure("diff", background=colors['line'], foreground=colors['text'])
+            widget.tag_configure("current", background=colors['current'], foreground=colors['current_text'])
         self.difference_map.apply_color_scheme(palette)
 
     def populate(self):
@@ -10798,6 +10938,11 @@ class SideBySideText(ttk.Frame):
                 tag = "diff" if output_row in difference_set else ""
                 number_widget.insert("end", f"{number_text:>5}\n", tag)
                 widget.insert("end", f"{line}\n", tag)
+                if source_number is None:widget.tag_add('gap',f'{output_row}.0',f'{output_row+1}.0')
+                else:
+                    counterpart=(self.all_right_lines if widget is self.left else self.all_left_lines)[source_row-1]
+                    if isinstance(counterpart,tuple) and counterpart[0] is None:
+                        widget.tag_add('orphan',f'{output_row}.0',f'{output_row+1}.0')
             widget.configure(state="normal" if self.editable else "disabled")
             number_widget.configure(state="disabled")
         self.difference_map.set_rows(self.differences, len(visible_rows))
@@ -11118,7 +11263,7 @@ class TextCompare(ttk.Frame):
             if isinstance(parent,FolderCompare):
                 # Keep staged archive files within their owning comparison;
                 # an unrelated top-level tab could outlive its temporary root.
-                relative=self.left_path.relative_to(parent.left_root).as_posix()
+                relative=self.left_path.relative_to(parent.left_base_root).as_posix()
                 return parent.open_nested_detail(self.left_path,self.right_path,relative,kind='Review')
             parent=getattr(parent,'master',None)
         owner=self.winfo_toplevel()
@@ -11849,6 +11994,7 @@ class FolderCompare(_FolderCompareLogic):
         self._syncing_selection = False
         self._syncing_scroll = False
         self._syncing_open = False
+        self._active_side = 'left'
         self.matches, self.match_index = [], -1
         self.difference_items, self.difference_index = [], -1
         self._scan_queue, self._cancel_event, self._scanning = queue.Queue(), threading.Event(), False
@@ -11904,6 +12050,9 @@ class FolderCompare(_FolderCompareLogic):
                                  ('Set Base Folder',self.set_base_folder),('Swap Sides',self.swap_sides)):
             folder_menu.add_command(label=tr(label),command=callback)
         folder_button.configure(menu=folder_menu);folder_button.pack(side='left',padx=(0,4))
+        self.pair_button=ttk.Button(options,text=tr('Compare selected files'),command=self.compare_selected_files)
+        self.pair_button.pack(side='left',padx=(0,4))
+        ToolTip(self.pair_button,tr('Select one file on each side, then compare. Names may differ.'))
         self.marker_button = ttk.Menubutton(options)
         self.marker_menu = tk.Menu(self.marker_button, tearoff=False)
         self.marker_button.configure(menu=self.marker_menu); self.marker_button.pack(side="left")
@@ -11954,6 +12103,7 @@ class FolderCompare(_FolderCompareLogic):
         self.map_header.pack(side="top", fill="x")
         for side, label in (('left', self.left_path_label), ('right', self.right_path_label)):
             label.bind('<Configure>', lambda e: self._update_path_labels())
+            label.bind('<Button-3>',lambda e,s=side:self.open_context_menu(e,s,header=True))
             ToolTip(label, lambda side=side: str(self._base_label(side)))
         self._update_path_labels()
         self.left_frame = ttk.Frame(self.body); self.right_frame = ttk.Frame(self.body)
@@ -11980,6 +12130,10 @@ class FolderCompare(_FolderCompareLogic):
             tree.column("detail", width=205, minwidth=95, stretch=False)
             tree.grid(row=0, column=0, sticky="nsew")
             tree.bind("<<TreeviewSelect>>", lambda event, source=tree: self._sync_selection(source))
+            tree.bind('<FocusIn>',lambda e,t=tree:self._set_active_side(t))
+            tree.bind('<Button-1>',lambda e,t=tree:self._set_active_side(t),add='+')
+            tree.bind('<Button-3>',lambda e,t=tree:self.open_context_menu(e,'left' if t is self.left_tree else 'right'))
+            tree.bind('<Shift-F10>',lambda e,t=tree:self.open_context_menu(e,'left' if t is self.left_tree else 'right',keyboard=True))
             tree.bind("<<TreeviewOpen>>", lambda event, source=tree: self._sync_open(source, True))
             tree.bind("<<TreeviewClose>>", lambda event, source=tree: self._sync_open(source, False))
             tree.bind("<Double-1>", self._open); tree.bind("<Return>", self._open)
@@ -12021,6 +12175,7 @@ class FolderCompare(_FolderCompareLogic):
         spec = (width, self.scale, compact)
         if spec == self._column_layout_spec: return
         self._column_layout_spec = spec
+        self.pair_button.configure(text=tr('Pair files') if self.winfo_width()<1000 else tr('Compare selected files'))
         changed = compact != self._compact_details
         self._compact_details = compact
         action = max(32, round(38*self.scale))
@@ -12167,22 +12322,66 @@ class FolderCompare(_FolderCompareLogic):
             text=f"{tr('Map:')} {tr(labels.get(self.marker_position_var.get(), 'Middle'))}")
 
     def _selected_items(self):
-        return self.left_tree.selection() or self.right_tree.selection()
+        tree=self.left_tree if self._active_side=='left' else self.right_tree
+        return tree.selection()
+
+    def _set_active_side(self,tree):
+        self._active_side='left' if tree is self.left_tree else 'right'
 
     def _sync_selection(self, source):
-        if self._syncing_selection:
-            return
-        self._syncing_selection = True
-        try:
-            target = self.right_tree if source is self.left_tree else self.left_tree
-            selected = source.selection()
-            if tuple(target.selection()) != tuple(selected):
-                target.selection_set(selected)
-            focus = source.focus()
-            if focus and target.focus() != focus:
-                target.focus(focus); target.see(focus)
-        finally:
-            self._syncing_selection = False
+        # Scroll/row alignment stays synchronized, but the two choices must not
+        # overwrite one another when comparing differently named files.
+        if not self._syncing_selection and self.focus_get() is source:self._set_active_side(source)
+        self.pair_button.configure(state='normal' if self.selected_file_pair() else 'disabled')
+
+    def selected_file_pair(self):
+        if self._scanning:return None
+        paths=[]
+        for side,tree in enumerate(self._trees()):
+            chosen=tree.selection()
+            if len(chosen)!=1:return None
+            path=self.item_paths.get(chosen[0],(None,None))[side]
+            if path is None or not path.is_file() or compare_path_blocked(path):return None
+            paths.append(path)
+        return tuple(paths)
+
+    def compare_selected_files(self):
+        pair=self.selected_file_pair()
+        if not pair:
+            self.scan_status.configure(text=tr('Select one file on each side, then compare. Names may differ.'))
+            return 'break'
+        return self.open_nested_detail(*pair,'')
+
+    def open_context_menu(self,event,side,header=False,keyboard=False):
+        tree=self.left_tree if side=='left' else self.right_tree
+        self._set_active_side(tree)
+        if not header:
+            iid=tree.focus() if keyboard else tree.identify_row(event.y)
+            if iid and iid not in tree.selection():tree.selection_set(iid)
+            if iid:tree.focus(iid)
+            elif not keyboard:tree.selection_remove(tree.selection())
+            tree.focus_set()
+        old=getattr(self,'_context_menu',None)
+        if old is not None:old.destroy()
+        menu=tk.Menu(self,tearoff=False,font='TkMenuFont');self._context_menu=menu
+        chosen=tree.selection();path=self.item_paths.get(chosen[0],(None,None))[0 if side=='left' else 1] if len(chosen)==1 else None
+        root=getattr(self,side+'_root');initial=getattr(self,side+'_base_root')
+        menu.add_command(label=tr('Set Base Folder')+' · '+tr(side.title()),
+            state='normal' if not header and path and path.is_dir() and not compare_path_blocked(path) else 'disabled',
+            command=lambda:self.set_base_folder(side))
+        menu.add_command(label=tr('Base Folder: Up one level')+' · '+tr(side.title()),
+            state='normal' if root!=initial else 'disabled',command=lambda:self.change_base(side,root.parent))
+        menu.add_command(label=tr('Reset Base Folder')+' · '+tr(side.title()),
+            state='normal' if root!=initial else 'disabled',command=lambda:self.change_base(side,initial))
+        menu.add_separator()
+        menu.add_command(label=tr('Compare selected files'),state='normal' if self.selected_file_pair() else 'disabled',
+                         command=self.compare_selected_files)
+        menu.configure(background=self.palette['menu'],foreground=self.palette['menu_text'],
+                       activebackground=self.palette['menu_active'],activeforeground=self.palette['menu_active_text'])
+        x,y=(tree.winfo_rootx()+30,tree.winfo_rooty()+40) if keyboard else (event.x_root,event.y_root)
+        try:menu.tk_popup(x,y)
+        finally:menu.grab_release()
+        return 'break'
 
     def _sync_open(self, source, opened):
         if self._syncing_open:
@@ -12285,15 +12484,16 @@ class FolderCompare(_FolderCompareLogic):
                                   activeforeground=palette["menu_active_text"])
         self.difference_map.apply_color_scheme(palette)
         dark = palette["window"] == "#20262c"
+        colors=comparison_colors(palette)
         for tree in self._trees():
-            tree.tag_configure("find_match", background=palette["match"], foreground=palette["text"])
-            tree.tag_configure("current_match", background=palette["current_diff"], foreground="#ffffff")
+            tree.tag_configure("find_match", background=colors['match'], foreground=colors['match_text'])
+            tree.tag_configure("current_match", background=colors['match'], foreground=colors['match_text'])
             tree.tag_configure("different", foreground="#ff7770" if dark else "#a00000")
             tree.tag_configure("newer_left", foreground="#ff7770" if dark else "#a00000")
             tree.tag_configure("newer_right", foreground="#ff7770" if dark else "#a00000")
             tree.tag_configure("orphan_left", foreground="#c391ff" if dark else "#7137a8")
             tree.tag_configure("orphan_right", foreground="#c391ff" if dark else "#7137a8")
-            tree.tag_configure("identical", foreground=palette["muted"])
+            tree.tag_configure("identical", foreground=palette["text"])
         self._build_diff_menu()
         self.diff_menu.configure(background=palette["menu"], foreground=palette["menu_text"],
                                  activebackground=palette["menu_active"],
@@ -12512,18 +12712,40 @@ class FolderCompare(_FolderCompareLogic):
                 self.right_tree.set(iid, 'action', '←' if choice == 'left' else tr('Skip') if choice == 'skip' else '')
         return "break"
 
-    def set_base_folder(self):
-        selected = self._selected_items()
+    def set_base_folder(self,side=None):
+        side=side or self._active_side
+        tree=self.left_tree if side=='left' else self.right_tree
+        selected = tree.selection()
         if not selected:
             messagebox.showinfo(tr("Set Base Folder"), tr("Select a folder row first."), parent=self)
             return "break"
-        left, right = self.item_paths.get(selected[0], (None, None)); changed = False
-        if left is not None and left.is_dir(): self.left_root = left; changed = True
-        if right is not None and right.is_dir(): self.right_root = right; changed = True
-        if not changed:
+        path = self.item_paths.get(selected[0], (None, None))[0 if side=='left' else 1]
+        if path is None or not path.is_dir():
             messagebox.showinfo(tr("Set Base Folder"), tr("The selected row is not a folder."), parent=self)
             return "break"
-        self._update_path_labels(); self.start_scan(); return "break"
+        return self.change_base(side,path)
+
+    def change_base(self,side,path):
+        initial=getattr(self,side+'_base_root')
+        try:path.resolve().relative_to(initial.resolve())
+        except ValueError:return 'break'
+        if not path.is_dir() or compare_path_blocked(path):return 'break'
+        # Nested sessions retain absolute paths and their original logical labels;
+        # changing the scan base must not change their save/commit ownership.
+        setattr(self,side+'_root',path);self.actions={}
+        self._update_path_labels();self.start_scan();return 'break'
+
+    def swap_sides(self):
+        # An existing editable nested session must not inherit swapped ownership.
+        guard=getattr(self,'can_swap',None)
+        if guard and not guard():return 'break'
+        if not self.confirm_close():return 'break'
+        for page in list(self.nested_details):
+            self.session_tabs.forget(page);page.destroy()
+        self.nested_details.clear();self._show_summary()
+        callback=getattr(self,'on_swap',None)
+        if callback:callback()
+        return super().swap_sides()
 
     def _update_path_labels(self):
         for side, label in (('left', self.left_path_label), ('right', self.right_path_label)):
@@ -12573,8 +12795,8 @@ class FolderCompare(_FolderCompareLogic):
         caption.pack(side="left")
         host = ttk.Frame(page)
         host.pack(fill="both", expand=True)
-        left_title = nested_source_label(self.left_label, relative)
-        right_title = nested_source_label(self.right_label, relative)
+        left_title = nested_source_label(self.left_label, left.relative_to(self.left_base_root).as_posix())
+        right_title = nested_source_label(self.right_label, right.relative_to(self.right_base_root).as_posix())
         options={'kind':kind} if kind is not None else {}
         kind, detail = self.open_detail(
             host, left, right, left_title=left_title, right_title=right_title,**options)
@@ -12710,6 +12932,9 @@ class CompareWindow(tk.Toplevel):
             navigation_menu.add_command(label=tr(label),accelerator=key,
                 command=lambda m=method:self._shortcut(m))
         navigation.configure(menu=navigation_menu);navigation.pack(side='left')
+        navigation_menu.add_separator()
+        navigation_menu.add_command(label=tr('Comparison color legend'),command=lambda:messagebox.showinfo(
+            tr('Comparison color legend'),tr('Neutral: unchanged · Pale red: changed line · Strong red: changed characters\nPurple: one side only · Grey: missing counterpart\nUnderline: current difference · Yellow: search match · Blue: your selection'),parent=self))
         self.notebook = ChamferNotebook(self); self.notebook.pack(fill="both", expand=True)
         self.notebook.set_theme(self.palette)
         self.configure(background=self.palette["window"])
@@ -17247,7 +17472,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.15"
+__version__ = "0.18.16"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -17330,8 +17555,15 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/02"
+BUILD_DATE = "2026/10/04"
 VERSION_HISTORY = (
+    ("v0.18.16", "2026/10/04", (
+        "Fixed: Excel comparison shows loaded cells, explicit empty states and Strict workbook support.",
+        "Added: Independent left/right file pairing and per-side Base Folder context actions for folders and archives.",
+        "Improved: Readable comparison highlights separate changed lines, changed characters, search and selection.",
+        "Fixed: 7z directory attributes and archive draft side ownership.",
+        "Fixed: Folder tree polling survives font changes while row geometry settles.",
+    )),
     ("v0.18.15", "2026/10/02", (
         "Added: Background text/Markdown review up to 20 MiB per side, wide-line navigation, draft editing and reviewed differences.",
         "Added: Read-only Excel sheet, stored-value, formula and row-key comparison.",
@@ -22626,7 +22858,10 @@ class Commander(tk.Tk):
                 if available < 120:
                     return False
                 for iid, text, inset in rows:
-                    gap = max(0, inset-pane.icons.size)*scale/current+icon
+                    # Native Treeview indentation/padding is measured in pixels,
+                    # not scaled with the font. Scaling it again made the chosen
+                    # maximum depend on the previously active zoom.
+                    gap = max(0, inset-pane.icons.size)+icon
                     if font.measure(text)+gap+8 > available:
                         return False
             return True

@@ -24,7 +24,8 @@ def settle(seconds=.15):
 def wait_for(condition):
     deadline = time.monotonic()+8
     while not condition() and time.monotonic() < deadline: settle(.02)
-    assert condition(), 'Folder hint check timed out'
+    assert condition(), ('Folder hint check timed out', errors, nav.pending, nav.failed,
+                         nav.results.qsize(), nav._poll_job)
 
 with tempfile.TemporaryDirectory(prefix='pfc-leaf-') as raw:
     root = Path(raw)
@@ -106,6 +107,12 @@ with tempfile.TemporaryDirectory(prefix='pfc-leaf-') as raw:
             tree.event_generate('<KeyPress-Right>')
             wait_for(lambda: branch in nav.loaded); settle()
             assert tree.item(branch, 'open') and node(root/'Projects'/'Child') in tree.get_children(branch)
+            # A font change can precede Tk's row-height update. Both plain icons
+            # and expansion badges must stay inside that transient short row.
+            for expandable in (False, True):
+                image = nav._prefix_image((False, True), False, expandable,
+                                          'folder', 20, 8, nav._icon_size, '#ffffff', '#202020')
+                assert image.width() == 40 and image.height() == 8
             # Unknown/error rows remain accessible via normal selection.
             tree.selection_set(unknown); wait_for(lambda: unknown in nav.loaded)
             assert not tree.get_children(unknown) and not nav._has_branch(unknown)
