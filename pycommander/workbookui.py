@@ -13,6 +13,7 @@ from .i18n import tr
 from .tooltip import ToolTip
 from .settings import readable_check_style
 from .comparecolors import comparison_colors
+from .tabs import add_scaled_checkbutton, add_scaled_radiobutton
 
 
 class WorkbookCompare(ttk.Frame):
@@ -30,9 +31,9 @@ class WorkbookCompare(ttk.Frame):
         self.sheets.pack(side='left',fill='x',expand=True);self.sheets.bind('<<ComboboxSelected>>',lambda e:self.load_sheet())
         menu_button=ttk.Menubutton(bar,text=tr('Rules'));menu_button.pack(side='left')
         menu=tk.Menu(menu_button,tearoff=False);menu_button.configure(menu=menu)
-        menu.add_checkbutton(label=tr('Differences only'),variable=self.only,command=self.filter)
+        add_scaled_checkbutton(menu, tr('Differences only'), self.only, command=self.filter)
         for value in ('Both','Values','Formulas'):
-            menu.add_radiobutton(label=tr(value),value=value,variable=self.cell_mode,command=self.filter)
+            add_scaled_radiobutton(menu, tr(value), value, self.cell_mode, command=self.filter)
         menu.add_command(label=tr('Row key columns…'),command=self.set_keys)
         ttk.Button(bar,text=tr('Export report'),command=self.export_report).pack(side='left',padx=2)
         ttk.Button(bar,text=tr('Cancel'),command=self.cancel).pack(side='left')

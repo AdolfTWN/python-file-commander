@@ -18,12 +18,12 @@ class SettingsLayoutPreview(ttk.Frame):
     def __init__(self, parent, font, *, before=False, height=None):
         super().__init__(parent)
         self.before = before
-        self.font = tkfont.Font(self, **font_snapshot(font, size=-max(12, min(14, abs(font.cget('size'))))))
+        self.font = tkfont.Font(self, **font_snapshot(font, size=-max(12, round(abs(font.cget('size'))*.85))))
         self.bold = tkfont.Font(self, **font_snapshot(self.font, weight='bold'))
         self.line = max(22, self.font.metrics('linespace') + 4)
         self.title = ttk.Label(self, style='PrefsTitle.TLabel')
         self.title.pack(anchor='w', pady=(2, 4))
-        self.canvas = tk.Canvas(self, width=1, height=height or 7*self.line, highlightthickness=1, takefocus=False)
+        self.canvas = tk.Canvas(self, width=1, height=max(height or 0, 7*self.line), highlightthickness=1, takefocus=False)
         self.canvas.pack(fill='x')
         self.description = ttk.Label(self, style='Prefs.TLabel', wraplength=300)
         self.description.pack(fill='x', pady=(4, 0))

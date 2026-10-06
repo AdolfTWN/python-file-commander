@@ -186,7 +186,10 @@ def _register_scaled_indicator(menu: tk.Menu, variable, value) -> None:
     if not hasattr(menu, "_pfc_scaled_indicators"):
         menu._pfc_scaled_indicators = []
         menu.configure(postcommand=lambda target=menu: _refresh_scaled_indicators(target))
-    menu._pfc_scaled_indicators.append((menu.index("end"), variable, value))
+    index = menu.index('end')
+    menu._pfc_scaled_indicators = [entry for entry in menu._pfc_scaled_indicators
+                                   if entry[0] < index]
+    menu._pfc_scaled_indicators.append((index, variable, value))
     _refresh_scaled_indicators(menu)
 
 

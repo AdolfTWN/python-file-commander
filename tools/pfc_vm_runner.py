@@ -16,6 +16,7 @@ import sys
 import threading
 import time
 import uuid
+import zlib
 from xml.sax.saxutils import escape
 
 from pfc_workflow import ROOT, Store, digest
@@ -168,6 +169,28 @@ class Guest:
             if len(chunk) < chunk_size:
                 return data
 
+    def image_data(self, remote, limit=16*1024*1024):
+        # Screenshots are highly compressible. Transfer ASCII JSON in one
+        # bounded command rather than many raw binary stdout chunks; verify
+        # the original byte count and checksum before decoding on the host.
+        script = ('import pathlib,sys,base64,zlib,hashlib,json; '
+                  'd=pathlib.Path(sys.argv[1]).read_bytes(); '
+                  'assert len(d)<=int(sys.argv[2]); '
+                  'print(json.dumps({"size":len(d),"sha256":hashlib.sha256(d).hexdigest(),'
+                  '"data":base64.b64encode(zlib.compress(d)).decode()}))')
+        reply = self.execute(PYTHON, ['-c', script, remote, str(limit)])
+        if reply.get('out-truncated'): raise Blocked('image-transfer-truncated')
+        try:
+            payload = json.loads(base64.b64decode(reply.get('out-data', '')))
+            if not 0 <= payload['size'] <= limit: raise ValueError('size')
+            decoder = zlib.decompressobj()
+            data = decoder.decompress(base64.b64decode(payload['data'], validate=True), limit+1)
+            if not decoder.eof or len(data) != payload['size'] or digest(data) != payload['sha256']:
+                raise ValueError('integrity')
+            return data
+        except (ValueError, KeyError, TypeError, zlib.error):
+            raise Blocked('image-transfer-integrity-failed') from None
+
 
 def task_xml(directory):
     # InteractiveToken: no password, service desktop, admin elevation or login.
@@ -289,8 +312,16 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                 from PIL import Image
                 import io
                 for name in ('text-light','text-dark','workbook','workbook-empty','folder-pair','archive-draft'):
-                    data=guest.read(directory+'\\evidence-'+name+'.bmp', limit=16*1024*1024)
+                    data=guest.image_data(directory+'\\evidence-'+name+'.bmp')
+                    (evidence_dir/(name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/(name+'.png'))
+            if result['status']=='passed' and 'control_scaling_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('compare-200', 'rename-200', 'settings-appearance-200', 'settings-layout-200', 'confirmation-200'):
+                    data=guest.image_data(directory+'\\evidence-control-'+name+'.bmp')
+                    (evidence_dir/('control-'+name+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('control-'+name+'.png'))
         return {**result, 'artifact_sha256': hashes['pfc.py'],
                 'desktop_preparation': desktop_status, 'cleanup': cleanup}
     finally:

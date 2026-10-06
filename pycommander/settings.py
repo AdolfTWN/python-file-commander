@@ -14,6 +14,7 @@ from .columnsettings import modified_text, font_snapshot
 from .homeprefix import PREFIX_ICONS, prefix_icon
 from .settingsshots import SETTINGS_SHOTS
 from .settingspreview import SettingsSamplePreview, SettingsLayoutPreview
+from .windowplacement import popup_work_area, position_popup_in_work_area
 from .icons import _distance_to_segment, _hex_rgba, _rgba_png_downsample
 
 
@@ -54,30 +55,83 @@ def settings_check_icon_png(size, selected, disabled, dark):
 
 def readable_check_style(owner, font, dark=False, prefix='Prefs'):
     """Shared scalable tick indicators, owned by the Tk root across dialogs."""
+    return _readable_choice_style(owner, font, dark, prefix, 'Checkbutton')
+
+
+@lru_cache(maxsize=48)
+def settings_radio_icon_png(size, selected, disabled, dark):
+    """Round radio indicator with a distinct dot, at the text's reading scale."""
+    supersample = 4; extent = size * supersample; unit = extent / 20
+    pixels = bytearray(extent * extent * 4)
+    edge, face, ink = (('#657380', '#394550', '#a3afba') if dark else
+                       ('#aeb8c2', '#e2e6ea', '#657380')) if disabled else (
+                      ('#a9bbc9', '#252d35', '#8bc8ff') if dark else
+                      ('#5b6c7b', '#ffffff', '#176fbc'))
+    edge, face, ink = map(_hex_rgba, (edge, face, ink))
+    for y in range(extent):
+        for x in range(extent):
+            distance = math.hypot((x+.5)/unit-10, (y+.5)/unit-10)
+            if distance > 9: continue
+            color = ink if selected and distance <= 4.5 else face if distance <= 7.8 else edge
+            start = (y*extent+x)*4; pixels[start:start+4] = bytes(color)
+    return _rgba_png_downsample(pixels, size, supersample)
+
+
+def _readable_choice_style(owner, font, dark, prefix, kind):
     root = owner._root()
-    size = max(18, min(48, font.metrics('linespace')))
+    size = max(18, font.metrics('linespace'))
     style = ttk.Style(owner)
     cache = getattr(root, '_readable_check_images', {})
     root._readable_check_images = cache
-    key = (prefix, size, dark)
+    fonts = getattr(root, '_readable_choice_fonts', {})
+    root._readable_choice_fonts = fonts
+    fonts[prefix, kind] = font
+    key = (prefix, size, dark) if kind == 'Checkbutton' else (prefix, kind, size, dark)
+    render = settings_check_icon_png if kind == 'Checkbutton' else settings_radio_icon_png
     if key not in cache:
         cache[key] = {state: tk.PhotoImage(master=root,
-            data=settings_check_icon_png(size, *state, dark), format='png')
+            data=render(size, *state, dark), format='png')
             for state in ((False, False), (True, False), (False, True), (True, True))}
     images = cache[key]
-    name = f'{prefix}.Checkbutton.{size}.{int(dark)}.indicator'
+    name = f'PFC.{prefix}.{kind}.{size}.{int(dark)}.indicator'
+    gap = max(4, round(size*.3))
     if name not in style.element_names():
         style.element_create(name, 'image', images[False, False],
             ('disabled', 'selected', images[True, True]),
             ('disabled', '!selected', images[False, True]),
-            ('selected', images[True, False]), width=size+7, sticky='w')
+            ('selected', images[True, False]), width=size+gap, sticky='w')
+    layouts = getattr(root, '_readable_choice_layouts', {})
+    root._readable_choice_layouts = layouts
+    layouts.setdefault(kind, style.layout('T'+kind))
     def replace(layout):
-        return [(name if element.endswith('Checkbutton.indicator') else element,
+        return [(name if element.endswith('.indicator') else element,
                  {key: replace(value) if key == 'children' else value
                   for key, value in options.items()}) for element, options in layout]
-    style.layout(prefix+'.TCheckbutton', replace(style.layout('TCheckbutton')))
-    style.configure(prefix+'.TCheckbutton', font=font, padding=(2, 3))
-    return prefix+'.TCheckbutton'
+    target = (prefix+'.' if prefix else '')+'T'+kind
+    style.layout(target, replace(layouts[kind]))
+    style.configure(target, font=font, padding=(max(2, size//10), max(3, size//8)), indicatorsize=size)
+    return target
+
+
+def refresh_control_styles(owner, dark=False):
+    """Refresh both existing and newly opened dialogs when interface zoom changes."""
+    root = owner._root(); base = tkfont.nametofont('TkDefaultFont', root=root)
+    for role, font in getattr(root, '_workflow_fonts', {}).items():
+        font.configure(**font_snapshot(base, weight='bold' if role == 'heading' else 'normal'))
+    chrome = getattr(root, '_compare_chrome_font', None)
+    if chrome is not None: chrome.configure(**font_snapshot(base))
+    _readable_choice_style(root, base, dark, '', 'Checkbutton')
+    _readable_choice_style(root, base, dark, '', 'Radiobutton')
+    for (prefix, kind), font in list(root._readable_choice_fonts.items()):
+        _readable_choice_style(root, font, dark, prefix, kind)
+    line = base.metrics('linespace'); padding = max(2, round(line*.12))
+    style = ttk.Style(root)
+    style.configure('PFCWorkflow.Treeview', rowheight=line+8)
+    for kind in ('TButton', 'TMenubutton', 'TSpinbox', 'TCombobox', 'TEntry'):
+        style.configure(kind, font=base, padding=padding, arrowsize=max(10, round(line*.6)))
+    style.configure('TScrollbar', arrowsize=max(12, round(line*.65)))
+    root.option_add('*Menu.font', 'TkMenuFont')
+    root.option_add('*TCombobox*Listbox.font', 'TkTextFont')
 
 
 def preference_specs(app):
@@ -147,10 +201,11 @@ class SettingsDialog(tk.Toplevel):
         self._shot_job = None
         self._page_top_job = None
         self._build()
-        sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
+        self._work_area = area = popup_work_area(app)
+        sw, sh = area[2]-area[0], area[3]-area[1]
         ratio=max(1,self.font.metrics('linespace')/20)
         width, height = min(round(1180*ratio), sw-48), min(round(720*ratio), sh-80)
-        self.geometry(f'{width}x{height}+{max(0,min(app.winfo_rootx()+30,sw-width-24))}+{max(0,min(app.winfo_rooty()+30,sh-height-40))}')
+        self.geometry(f'{width}x{height}')
         self.minsize(min(720,width), min(560,height))
         self.protocol('WM_DELETE_WINDOW', self.cancel)
         self.bind('<Escape>', lambda _e: self.cancel())
@@ -165,6 +220,7 @@ class SettingsDialog(tk.Toplevel):
         self.bind('<Button-5>', lambda _e: self._scroll(3))
         self.bind('<FocusIn>', self._reveal_focus, add='+')
         self.deiconify()
+        position_popup_in_work_area(self, app, self._work_area)
         self.grab_set()
         self.nav.focus_set()
 
@@ -200,14 +256,16 @@ class SettingsDialog(tk.Toplevel):
                               selectbackground=p['selection'], selectforeground='#ffffff',
                               selectmode='browse')
         self.nav.pack(side='left', fill='y', padx=(0,14))
-        body.bind('<Configure>', lambda e:self.nav.configure(
-            width=max(8,min(18,int(e.width*.24/max(1,self.font.measure('0')))))))
+        self.compact_nav = ttk.Combobox(body, state='readonly', font=self.font,
+            style='Prefs.TCombobox', values=[tr(label) for _,label in SETTINGS_CATEGORIES], width=1)
+        self.compact_nav.bind('<<ComboboxSelected>>', lambda _e:
+            self.show_page(SETTINGS_CATEGORIES[self.compact_nav.current()][0]))
+        self._compact_navigation = False
+        body.bind('<Configure>', self._layout_navigation)
         for _key, label in SETTINGS_CATEGORIES: self.nav.insert('end', tr(label))
         self.nav.bind('<<ListboxSelect>>', self._select)
         right = ttk.Frame(body); right.pack(fill='both', expand=True)
         self.title_label = ttk.Label(right, style='PrefsTitle.TLabel'); self.title_label.pack(anchor='w', pady=(0,6))
-        self.intro = ttk.Label(right, text=tr('Changes take effect only after Apply or OK.'), style='Prefs.TLabel', wraplength=500)
-        self.intro.pack(anchor='w', pady=(0,12))
         # At large reading scales let preview + controls scroll together. A fixed
         # preview must never consume the whole viewport and hide every setting.
         self._whole_page_scroll = True
@@ -224,47 +282,71 @@ class SettingsDialog(tk.Toplevel):
         if self._whole_page_scroll:
             self.comparison = ttk.Frame(self.sheet)
             self.comparison.pack(fill='x', pady=(0,8))
+        self.intro = ttk.Label(self.sheet, text=tr('Changes take effect only after Apply or OK.'), style='Prefs.TLabel', wraplength=500)
+        self.intro.pack(fill='x', pady=(0,8))
         self.comparison.bind('<Configure>', lambda _e:self._schedule_shots())
         self.page = ttk.Frame(self.sheet, padding=(2,0,12,10))
         self.page.pack(fill='x')
-        self.sheet.bind('<Configure>', lambda _e:self.canvas.configure(scrollregion=self.canvas.bbox('all')))
+        self.sheet.bind('<Configure>', lambda _e:self._scroll_region())
         self.canvas.bind('<Configure>', self._resize)
         index = [key for key,_label in SETTINGS_CATEGORIES].index(self.category)
         self.nav.selection_set(index); self.nav.activate(index)
         self.show_page(self.category)
 
+    def _layout_navigation(self, event):
+        if event.widget is not self.nav.master: return
+        longest = max(self.font.measure(tr(label)) for _,label in SETTINGS_CATEGORIES)
+        compact = longest > event.width*.26
+        if compact != self._compact_navigation:
+            self._compact_navigation = compact
+            if compact:
+                self.nav.pack_forget()
+                self.compact_nav.pack(side='top', fill='x', pady=(0,8), before=self.title_label.master)
+            else:
+                self.compact_nav.pack_forget()
+                self.nav.pack(side='left', fill='y', padx=(0,14), before=self.title_label.master)
+        if not compact:
+            self.nav.configure(width=max(8,min(24,round((longest+18)/max(1,self.font.measure('0'))))))
+
     def _checkbutton_style(self, style):
         # Ttk elements retain image names after the dialog closes. Own these four
         # images on the application, reuse them on Apply/reopen, and keep the
         # native checkbutton's focus, mouse and Space-key behavior intact.
-        images=getattr(self.app,'_settings_check_images',None)
-        if images is None:
-            images={state:tk.PhotoImage(master=self.app) for state in
-                    ((False,False),(True,False),(False,True),(True,True))}
-            self.app._settings_check_images=images
-        size=max(18,min(48,self.font.metrics('linespace')))
         dark=self.app.color_scheme_var.get()=='dark'
-        for (selected,disabled),image in images.items():
-            image.configure(data=settings_check_icon_png(size,selected,disabled,dark),format='png')
-        name=f'Prefs.Checkbutton.{size}.indicator'
-        if name not in style.element_names():
-            style.element_create(name,'image',images[False,False],
-                ('disabled','selected',images[True,True]),
-                ('disabled','!selected',images[False,True]),
-                ('selected',images[True,False]),width=size+7,sticky='w')
-        def replace(layout):
-            return [(name if element=='Checkbutton.indicator' else element,
-                     {key:replace(value) if key=='children' else value for key,value in options.items()})
-                    for element,options in layout]
-        style.layout('Prefs.TCheckbutton',replace(style.layout('TCheckbutton')))
+        readable_check_style(self, self.font, dark, 'Prefs')
 
     def _resize(self, event):
         self.canvas.itemconfigure(self.page_id,width=event.width)
+        self._scroll_region()
         self.intro.configure(wraplength=max(100,event.width-12))
         for label in getattr(self,'wrap_labels',[]):
             label.configure(wraplength=max(140,event.width-36))
         self._schedule_shots()
         self._layout_cards(event.width)
+
+    def _scroll_region(self):
+        bounds = self.canvas.bbox('all')
+        if bounds:
+            self.canvas.configure(scrollregion=(0, 0, max(bounds[2], self.canvas.winfo_width()),
+                                                 max(bounds[3], self.canvas.winfo_height())))
+
+    def apply_scale(self, _scale=None):
+        self.font.configure(**font_snapshot(tkfont.nametofont('TkDefaultFont')))
+        self.heading_font.configure(**font_snapshot(self.font, weight='bold'))
+        self.small_font.configure(**font_snapshot(self.font))
+        self._checkbutton_style(ttk.Style(self))
+        for sample, _ in self.layout_examples:
+            sample.font.configure(**font_snapshot(self.font, size=-max(12, round(abs(self.font.cget('size'))*.85))))
+            sample.bold.configure(**font_snapshot(sample.font, weight='bold'))
+            sample.line = max(22, sample.font.metrics('linespace')+4)
+            sample.canvas.configure(height=7*sample.line); sample._key = None; sample._schedule()
+        sample = self.page_preview
+        if sample is not None:
+            sample.font.configure(**font_snapshot(self.font))
+            sample.bold.configure(**font_snapshot(self.font, weight='bold'))
+            sample.line = max(23, sample.font.metrics('linespace')+5)
+            sample.canvas.configure(height=8*sample.line); sample._key = None; sample._schedule()
+        self._schedule_shots()
 
     def _layout_cards(self, width):
         cards = getattr(self, '_comparison_cards', [])
@@ -300,6 +382,7 @@ class SettingsDialog(tk.Toplevel):
     def show_page(self, category):
         self.category=category
         index=[key for key,_label in SETTINGS_CATEGORIES].index(category)
+        self.compact_nav.current(index)
         if self.nav.curselection()!=(index,):
             self.nav.selection_clear(0,'end');self.nav.selection_set(index);self.nav.activate(index)
         for child in self.page.winfo_children():child.destroy()
@@ -318,7 +401,7 @@ class SettingsDialog(tk.Toplevel):
             'general':'Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.',
         }
         self.intro.configure(text=tr(notes[category]))
-        self.comparison.pack(before=self.page if self._whole_page_scroll else self.canvas.master,fill='x',pady=(0,8))
+        self.comparison.pack(before=self.intro if self._whole_page_scroll else self.canvas.master,fill='x',pady=(0,8))
         if category in ('appearance','layout'):
             self._previews()
         else:
@@ -526,14 +609,15 @@ class SettingsDialog(tk.Toplevel):
             icon=ttk.Combobox(row,values=[tr(PREFIX_ICONS[k]) for k in keys],state='readonly',font=self.font,style='Prefs.TCombobox',width=12)
             self._prepare_combo(icon)
             icon.current(keys.index(item['icon']));icon.pack(side='left')
-            img=prefix_icon(self,item['icon'],20);self.images.append(img)
+            icon_size=max(16,self.font.metrics('linespace'))
+            img=prefix_icon(self,item['icon'],icon_size);self.images.append(img)
             picture=ttk.Label(row,image=img);picture.pack(side='left',padx=4)
             path=tk.StringVar(self,value=item['path'])
             entry=ttk.Entry(self.page,textvariable=path,font=self.font);entry.pack(fill='x',pady=(0,5))
-            def update(_e=None,i=index,c=icon,v=path,p=picture):
+            def update(_e=None,i=index,c=icon,v=path,p=picture,size=icon_size):
                 self.prefix_draft[i]={'icon':keys[c.current()],'path':v.get()}
                 if getattr(p,'icon_key',None)!=keys[c.current()]:
-                    p.image=prefix_icon(self,keys[c.current()],20);p.configure(image=p.image)
+                    p.image=prefix_icon(self,keys[c.current()],size);p.configure(image=p.image)
                     p.icon_key=keys[c.current()]
                 self._changed()
             icon.bind('<<ComboboxSelected>>',update)

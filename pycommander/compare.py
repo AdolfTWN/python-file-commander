@@ -15,7 +15,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import font as tkfont, messagebox, ttk, filedialog, simpledialog
 
-from .tabs import ChamferNotebook, color_scheme
+from .tabs import ChamferNotebook, color_scheme, add_scaled_checkbutton, add_scaled_radiobutton
 from .tooltip import ToolTip, install_button_tooltips
 from .i18n import retranslate_widgets, tr
 from .archivefs import extract_archive_to
@@ -26,6 +26,7 @@ from .reviewui import ReviewCompare
 from .workbookui import WorkbookCompare
 from .archivereviewui import ArchiveReviewCompare
 from .comparecolors import comparison_colors, style_comparison_text
+from .columnsettings import font_snapshot
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -41,12 +42,12 @@ def compact_compare_font(widget):
         root._compare_chrome_font = tkfont.Font(root)
     base = tkfont.nametofont('TkDefaultFont', root=root)
     font = root._compare_chrome_font
-    font.configure(family=base.actual('family'), size=-min(24, abs(int(base.cget('size')))))
+    font.configure(**font_snapshot(base))
     return font
 
 
 def style_compare_chrome(widget):
-    """Bound controls, not document text, when extreme zoom meets a small window."""
+    """Keep comparison controls at the same reading scale as the interface."""
     font = compact_compare_font(widget)
     style = ttk.Style(widget)
     kinds = ('TButton', 'TMenubutton', 'TEntry', 'TLabel')
@@ -1119,9 +1120,8 @@ class _FolderCompareLogic(ttk.Frame):
     def _build_diff_menu(self):
         self.diff_menu.delete(0, "end")
         for key in self.DIFF_FILTERS:
-            self.diff_menu.add_radiobutton(label=tr(self.DIFF_LABELS[key]), value=key,
-                                           variable=self.view_mode_var,
-                                           command=self._set_diff_filter)
+            add_scaled_radiobutton(self.diff_menu, tr(self.DIFF_LABELS[key]), key,
+                                   self.view_mode_var, command=self._set_diff_filter)
         self._update_diff_button()
 
     def _update_diff_button(self):
@@ -1521,7 +1521,7 @@ class FolderCompare(_FolderCompareLogic):
         self.rules_button.configure(menu=self.rules_menu); self.rules_button.pack(side='right', padx=(4,0))
         for label, variable in (('Recursive',self.recursive_var),('By content',self.content_var),
                                  ('Text equivalent',self.text_equivalent_var)):
-            self.rules_menu.add_checkbutton(label=tr(label),variable=variable,
+            add_scaled_checkbutton(self.rules_menu, tr(label), variable,
                 command=lambda:self.scan_status.configure(text=tr('Rules changed — press Compare')))
         self.rules_menu.add_separator()
         self.rules_menu.add_command(label=tr('Exclusions')+'…',command=self.edit_exclusions)
@@ -1584,9 +1584,9 @@ class FolderCompare(_FolderCompareLogic):
 
         self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
-        self.left_path_label = tk.Label(self.body, anchor="w", background="#2d668f",
+        self.left_path_label = tk.Label(self.body, anchor="w", width=1, background="#2d668f",
                                         foreground="white", font="TkHeadingFont", padx=6, pady=3)
-        self.right_path_label = tk.Label(self.body, anchor="w", background="#9b5d2e",
+        self.right_path_label = tk.Label(self.body, anchor="w", width=1, background="#9b5d2e",
                                          foreground="white", font="TkHeadingFont", padx=6, pady=3)
         self.map_header = tk.Button(self.center_header, text="⇄", command=self.swap_sides,
                                     background="#263d4c", foreground="white",

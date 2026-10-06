@@ -239,6 +239,22 @@ class VmRunnerTests(unittest.TestCase):
             guest.call('guest-ping')
         sock.assert_not_called()
 
+    def test_compressed_image_transfer_checks_original_bytes(self):
+        import base64
+        import zlib
+        data = b'BM'+bytes(range(256))*100
+        guest = vm.Guest({'lease_id':'fixture'}, self.specs.VM_SPECS['vm2'], self.leases)
+        payload = dict(size=len(data), sha256=workflow.digest(data),
+                       data=base64.b64encode(zlib.compress(data)).decode())
+        def reply(): return dict(**{'out-data':base64.b64encode(json.dumps(payload).encode()).decode()})
+        with patch.object(guest, 'execute', return_value=reply()):
+            self.assertEqual(guest.image_data('fixture.bmp'), data)
+        payload['sha256'] = 'wrong'
+        with patch.object(guest, 'execute', return_value=reply()), self.assertRaises(vm.Blocked):
+            guest.image_data('fixture.bmp')
+        with patch.object(guest, 'execute', return_value={'out-truncated':True}), self.assertRaises(vm.Blocked):
+            guest.image_data('fixture.bmp')
+
     def test_no_credentials_in_interactive_task(self):
         xml = vm.task_xml('C:\\PFC-Test\\workflow\\fixture').decode('utf-16')
         self.assertIn('InteractiveToken', xml)

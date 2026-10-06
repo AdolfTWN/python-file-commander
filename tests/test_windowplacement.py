@@ -1,11 +1,19 @@
 import unittest
 from unittest.mock import Mock
 
-from pycommander.windowplacement import WindowVisibilityGuard, visible_window_target
+from pycommander.windowplacement import WindowVisibilityGuard, visible_window_target, popup_work_area
 
 
 class WindowPlacementTests(unittest.TestCase):
     primary = (0, 0, 1920, 1040)
+
+    def test_popup_uses_owner_monitor_work_area_not_full_screen(self):
+        owner = Mock()
+        owner._root.return_value = owner
+        secondary = (-1920, 0, 0, 1000)
+        owner._window_visibility.backend.snapshot.return_value = (
+            (-1800, 40, -400, 900), (self.primary, secondary), 8)
+        self.assertEqual(popup_work_area(owner), secondary)
 
     def test_disconnected_right_display_returns_to_center(self):
         self.assertEqual(visible_window_target((2100, 100, 3300, 820), [self.primary]),

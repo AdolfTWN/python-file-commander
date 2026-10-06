@@ -127,13 +127,18 @@ class MultiRenameWindow(tk.Toplevel):
         self.tree.tag_configure("error", foreground="#a00000")
         self.tree.tag_configure("ok", foreground="#006c3b")
         self.tree.pack(fill="both", expand=True, padx=8)
-        bottom = ttk.Frame(self, padding=8); bottom.pack(fill="x")
-        self.status = ttk.Label(bottom, anchor="w"); self.status.pack(side="left", fill="x", expand=True)
-        self.undo_button = ttk.Button(bottom, text=tr("Ctrl+Z Undo"), command=self.undo)
+        bottom = ttk.Frame(self, padding=8); bottom.pack(side='bottom', fill="x", before=controls)
+        self.status = ttk.Label(bottom, anchor="w", width=1); self.status.pack(side="left", fill="x", expand=True)
+        ToolTip(self.status, lambda: self.status.cget('text'))
+        self.undo_button = ttk.Button(bottom, text=tr("Ctrl+Z Undo"), width=0, command=self.undo)
         self.undo_button.pack(side="right")
-        ttk.Button(bottom, text=tr("Close"), command=self.destroy).pack(side="right", padx=4)
-        self.apply_button = ttk.Button(bottom, text=tr("Ctrl+Enter Rename"), command=self.apply)
+        self.close_button = ttk.Button(bottom, text=tr("Close"), width=0, command=self.destroy)
+        self.close_button.pack(side="right", padx=4)
+        self.apply_button = ttk.Button(bottom, text=tr("Ctrl+Enter Rename"), width=0, command=self.apply)
         self.apply_button.pack(side="right")
+        ToolTip(self.apply_button, lambda: tr('Ctrl+Enter Rename'))
+        ToolTip(self.undo_button, lambda: tr('Ctrl+Z Undo'))
+        bottom.bind('<Configure>', self._layout_actions)
         for variable in (self.mask_var, self.find_var, self.replace_var, self.start_var, self.digits_var):
             variable.trace_add("write", lambda *_args: self.after_idle(self.update_preview))
         self.bind("<Escape>", lambda _event: self.destroy())
@@ -155,6 +160,13 @@ class MultiRenameWindow(tk.Toplevel):
         dark = palette["window"] == "#20262c"
         self.tree.tag_configure("error", foreground="#ff7770" if dark else "#a00000")
         self.tree.tag_configure("ok", foreground="#73d6a1" if dark else "#006c3b")
+
+    def _layout_actions(self, event):
+        font = tkfont.nametofont('TkDefaultFont')
+        needed = sum(font.measure(tr(label)) for label in ('Ctrl+Enter Rename', 'Ctrl+Z Undo', 'Close'))+100
+        compact = event.width < needed
+        self.apply_button.configure(text=tr('Rename' if compact else 'Ctrl+Enter Rename'))
+        self.undo_button.configure(text=tr('Undo' if compact else 'Ctrl+Z Undo'))
 
     def _activate(self):
         self.deiconify(); self.lift(); self.focus_force(); self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end")

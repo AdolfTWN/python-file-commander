@@ -17,6 +17,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Folder comparison path headers no longer cause repeated layout redraws after swapping sides.': ('修正：資料夾比較交換左右兩側後，路徑標題不再造成反覆排版重繪。', '修正：文件夹比较交换左右两侧后，路径标题不再造成反复布局重绘。', '수정: 폴더 비교에서 좌우 교환 후 경로 제목의 반복적인 레이아웃 갱신을 방지합니다.'),
+    'Fixed: Checkboxes, radio buttons and menu selection marks follow the interface reading scale.': ('修正：勾選框、單選按鈕與選單選取標記隨介面閱讀比例縮放。', '修正：勾选框、单选按钮与菜单选择标记随界面阅读比例缩放。', '수정: 체크박스, 라디오 버튼 및 메뉴 선택 표시가 인터페이스 배율을 따릅니다.'),
+    'Fixed: Comparison, workflow and confirmation dialogs retain the selected text size, including open windows.': ('修正：比較、工作流程與確認視窗維持選定字型大小，已開啟視窗也會更新。', '修正：比较、工作流程与确认窗口保持所选字体大小，已打开窗口也会更新。', '수정: 비교, 작업 및 확인 대화상자가 선택한 글자 크기를 유지하며 열린 창도 갱신됩니다.'),
+    'Improved: Settings navigation, top previews and action rows remain readable at enlarged scales and narrow widths.': ('改善：放大比例與窄視窗下，設定導覽、頂部預覽及操作列保持可讀。', '改善：放大比例与窄窗口下，设置导航、顶部预览及操作栏保持可读。', '개선: 높은 배율과 좁은 창에서도 설정 탐색, 상단 미리보기 및 작업 버튼을 읽을 수 있습니다.'),
+    'Improved: Batch rename reserves its footer and uses compact action labels without shrinking text.': ('改善：批次重新命名保留底部操作空間，以精簡標籤取代縮小文字。', '改善：批量重命名保留底部操作空间，以精简标签代替缩小文字。', '개선: 일괄 이름 변경은 하단 버튼 공간을 확보하고 글자를 줄이지 않고 간결한 표시를 사용합니다.'),
     'Fixed: Excel comparison shows loaded cells, explicit empty states and Strict workbook support.': ('修正：Excel 比較顯示已讀取的儲存格、明確的空白原因，並支援 Strict 格式。', '修正：Excel 比较显示已读取的单元格、明确的空白原因，并支持 Strict 格式。', '수정: Excel 비교의 셀 표시, 빈 결과 안내 및 Strict 형식 지원.'),
     'Added: Independent left/right file pairing and per-side Base Folder context actions for folders and archives.': ('新增：資料夾與壓縮檔可獨立選取左右檔案配對，右鍵可設定各側基準資料夾。', '新增：文件夹与压缩包可独立选择左右文件配对，右键可设置各侧基准文件夹。', '추가: 폴더와 압축 파일에서 양쪽 파일 개별 선택 및 기준 폴더 메뉴.'),
     'Improved: Readable comparison highlights separate changed lines, changed characters, search and selection.': ('改善：比較高亮清楚區分變更行、變更字元、搜尋結果與選取範圍。', '改善：比较高亮清楚区分变更行、变更字符、搜索结果与选择范围。', '개선: 변경된 줄, 문자, 검색 결과 및 선택 영역을 구분하는 강조 색상.'),
@@ -3470,7 +3475,10 @@ def _register_scaled_indicator(menu: tk.Menu, variable, value) -> None:
     if not hasattr(menu, "_pfc_scaled_indicators"):
         menu._pfc_scaled_indicators = []
         menu.configure(postcommand=lambda target=menu: _refresh_scaled_indicators(target))
-    menu._pfc_scaled_indicators.append((menu.index("end"), variable, value))
+    index = menu.index('end')
+    menu._pfc_scaled_indicators = [entry for entry in menu._pfc_scaled_indicators
+                                   if entry[0] < index]
+    menu._pfc_scaled_indicators.append((index, variable, value))
     _refresh_scaled_indicators(menu)
 
 
@@ -6316,6 +6324,38 @@ import os
 import tkinter as tk
 
 
+def popup_work_area(owner):
+    """Use the owner's monitor work area, excluding native taskbars/docks."""
+    root = owner._root()
+    guard = getattr(root, '_window_visibility', None)
+    backend = getattr(guard, 'backend', None)
+    if backend is not None:
+        try:
+            state = backend.snapshot()
+            if state:
+                rect, areas, _margin = state
+                cx, cy = (rect[0]+rect[2])/2, (rect[1]+rect[3])/2
+                return next((a for a in areas if a[0] <= cx < a[2] and a[1] <= cy < a[3]), areas[0])
+        except (OSError, tk.TclError, IndexError):
+            pass
+    return (0, 0, owner.winfo_screenwidth(), owner.winfo_screenheight())
+
+
+def position_popup_in_work_area(widget, owner, area):
+    """Place the complete native frame, not just its client content."""
+    widget.update_idletasks()
+    backend = WindowsWindowPlacement(widget) if os.name == 'nt' else None
+    state = backend.snapshot() if backend is not None else None
+    width = state[0][2]-state[0][0] if state else widget.winfo_width()
+    height = state[0][3]-state[0][1] if state else widget.winfo_height()
+    x = max(area[0]+8, min(owner.winfo_rootx()+30, area[2]-width-8))
+    y = max(area[1]+8, min(owner.winfo_rooty()+30, area[3]-height-8))
+    if state:
+        backend.move((x, y, width, height))
+    else:
+        widget.geometry(f'{x:+d}{y:+d}')
+
+
 def visible_window_target(rect, work_areas, frame_margin=8):
     """Return a centered (x, y, width, height), or None if the title is reachable.
 
@@ -6639,6 +6679,95 @@ def resolve_reading_anchor(model, saved, signature):
     return ('fraction', 0., True)
 
 
+"""PFC message dialogs that inherit interface fonts and preserve modal ownership."""
+import tkinter as tk
+import math
+from tkinter import ttk, messagebox, font as tkfont
+
+_NativeMessage = messagebox.Message
+
+
+class ScaledMessageDialog(tk.Toplevel):
+    CHOICES = {'ok': ('ok',), 'okcancel': ('ok', 'cancel'),
+               'yesno': ('yes', 'no'), 'yesnocancel': ('yes', 'no', 'cancel'),
+               'retrycancel': ('retry', 'cancel'), 'abortretryignore': ('abort', 'retry', 'ignore')}
+
+    def __init__(self, parent, options):
+        super().__init__(parent); self.withdraw(); self.transient(parent.winfo_toplevel())
+        self._pfc_message_dialog = True; self.result = None
+        self.title(options.get('title') or 'PFC')
+        palette = getattr(parent._root(), 'palette', {})
+        background, foreground = palette.get('window', '#eeeeee'), palette.get('text', '#101010')
+        self.configure(background=background)
+        font = tkfont.nametofont('TkDefaultFont', root=self)
+        line = font.metrics('linespace'); ratio = max(1, line/20)
+        pad = max(10, round(line*.5))
+        area = popup_work_area(parent)
+        width = min(area[2]-area[0]-48, round(620*ratio))
+        footer = ttk.Frame(self, padding=pad); footer.pack(side='bottom', fill='x')
+        body = ttk.Frame(self, padding=pad); body.pack(fill='both', expand=True)
+        scroll = ttk.Scrollbar(body); scroll.pack(side='right', fill='y')
+        self.text = tk.Text(body, font='TkDefaultFont', wrap='word', borderwidth=0,
+                            highlightthickness=0, background=background, foreground=foreground,
+                            yscrollcommand=scroll.set, cursor='arrow', takefocus=False)
+        self.text.pack(fill='both', expand=True); scroll.configure(command=self.text.yview)
+        message = str(options.get('message') or '')
+        if options.get('detail'): message += '\n\n'+str(options['detail'])
+        # Fit short confirmations instead of enlarging a mostly empty window.
+        # Long details remain scrollable within the screen-height budget.
+        available = max(80, width-2*pad-30)
+        rows = sum(max(1, math.ceil(font.measure(part)/available)) for part in message.split('\n'))
+        height = min(area[3]-area[1]-80, (max(2, min(12, rows))+2)*line+4*pad)
+        self.text.insert('1.0', message); self.text.configure(state='disabled')
+        kind = str(options.get('type') or 'ok')
+        choices = self.CHOICES.get(kind, ('ok',))
+        default = str(options.get('default') or choices[0])
+        self.buttons = {}
+        for index, choice in enumerate(choices):
+            button = ttk.Button(footer, text=tr(choice.title()), command=lambda c=choice: self.choose(c))
+            button.grid(row=0, column=index, padx=(0, pad//2), sticky='e')
+            self.buttons[choice] = button
+        footer.columnconfigure(0, weight=1)
+        self.cancel_value = 'cancel' if 'cancel' in choices else 'no' if 'no' in choices else choices[0]
+        self.bind('<Escape>', lambda _e: self.choose(self.cancel_value))
+        self.bind('<Return>', lambda _e: self.choose(default if default in choices else choices[0]))
+        self.protocol('WM_DELETE_WINDOW', lambda: self.choose(self.cancel_value))
+        self.geometry(f'{width}x{height}')
+        self.update_idletasks()
+        self.minsize(min(width, footer.winfo_reqwidth()+2*pad), min(height, 5*line))
+        self.deiconify(); position_popup_in_work_area(self, parent, area); self.lift()
+        self.buttons.get(default, self.buttons[choices[0]]).focus_force()
+
+    def choose(self, value):
+        self.result = value; self.destroy()
+
+
+class _ScaledMessage(_NativeMessage):
+    _pfc_scaled_message = True
+
+    def show(self, **options):
+        values = dict(self.options, **options)
+        parent = values.get('parent') or self.master or tk._default_root
+        if parent is None or not getattr(parent._root(), '_pfc_scaled_messages', False):
+            return super().show(**options)
+        previous = parent.grab_current(); focus = parent.focus_get()
+        dialog = ScaledMessageDialog(parent, values)
+        try:
+            dialog.grab_set(); parent.wait_window(dialog)
+            return dialog.result
+        finally:
+            if dialog.winfo_exists(): dialog.destroy()
+            if previous is not None and previous.winfo_exists(): previous.grab_set()
+            if focus is not None and focus.winfo_exists(): focus.focus_set()
+
+
+def install_scaled_messageboxes(root):
+    # Keep the public messagebox API, result values and existing test mocks.
+    # Other Tk roots and external file pickers continue using their own dialogs.
+    root._pfc_scaled_messages = True
+    if not getattr(messagebox.Message, '_pfc_scaled_message', False):
+        messagebox.Message = _ScaledMessage
+
 """Compact, keyboard-first workflow pickers; no indexing or background polling."""
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, font as tkfont
@@ -6670,8 +6799,7 @@ def style_workflow_controls(window):
     if not hasattr(root, '_workflow_fonts'):
         root._workflow_fonts = {name: tkfont.Font(root) for name in ('body', 'heading')}
     for name, font in root._workflow_fonts.items():
-        font.configure(family=base.actual('family'), size=-min(22, max(14, abs(int(base.cget('size'))))),
-                       weight='bold' if name == 'heading' else 'normal')
+        font.configure(**font_snapshot(base, weight='bold' if name == 'heading' else 'normal'))
     font = root._workflow_fonts['body']; heading = root._workflow_fonts['heading']
     style = ttk.Style(root)
     for kind in ('TLabel', 'TButton', 'TEntry', 'Treeview'):
@@ -7085,12 +7213,12 @@ class SettingsLayoutPreview(ttk.Frame):
     def __init__(self, parent, font, *, before=False, height=None):
         super().__init__(parent)
         self.before = before
-        self.font = tkfont.Font(self, **font_snapshot(font, size=-max(12, min(14, abs(font.cget('size'))))))
+        self.font = tkfont.Font(self, **font_snapshot(font, size=-max(12, round(abs(font.cget('size'))*.85))))
         self.bold = tkfont.Font(self, **font_snapshot(self.font, weight='bold'))
         self.line = max(22, self.font.metrics('linespace') + 4)
         self.title = ttk.Label(self, style='PrefsTitle.TLabel')
         self.title.pack(anchor='w', pady=(2, 4))
-        self.canvas = tk.Canvas(self, width=1, height=height or 7*self.line, highlightthickness=1, takefocus=False)
+        self.canvas = tk.Canvas(self, width=1, height=max(height or 0, 7*self.line), highlightthickness=1, takefocus=False)
         self.canvas.pack(fill='x')
         self.description = ttk.Label(self, style='Prefs.TLabel', wraplength=300)
         self.description.pack(fill='x', pady=(4, 0))
@@ -7456,30 +7584,83 @@ def settings_check_icon_png(size, selected, disabled, dark):
 
 def readable_check_style(owner, font, dark=False, prefix='Prefs'):
     """Shared scalable tick indicators, owned by the Tk root across dialogs."""
+    return _readable_choice_style(owner, font, dark, prefix, 'Checkbutton')
+
+
+@lru_cache(maxsize=48)
+def settings_radio_icon_png(size, selected, disabled, dark):
+    """Round radio indicator with a distinct dot, at the text's reading scale."""
+    supersample = 4; extent = size * supersample; unit = extent / 20
+    pixels = bytearray(extent * extent * 4)
+    edge, face, ink = (('#657380', '#394550', '#a3afba') if dark else
+                       ('#aeb8c2', '#e2e6ea', '#657380')) if disabled else (
+                      ('#a9bbc9', '#252d35', '#8bc8ff') if dark else
+                      ('#5b6c7b', '#ffffff', '#176fbc'))
+    edge, face, ink = map(_hex_rgba, (edge, face, ink))
+    for y in range(extent):
+        for x in range(extent):
+            distance = math.hypot((x+.5)/unit-10, (y+.5)/unit-10)
+            if distance > 9: continue
+            color = ink if selected and distance <= 4.5 else face if distance <= 7.8 else edge
+            start = (y*extent+x)*4; pixels[start:start+4] = bytes(color)
+    return _rgba_png_downsample(pixels, size, supersample)
+
+
+def _readable_choice_style(owner, font, dark, prefix, kind):
     root = owner._root()
-    size = max(18, min(48, font.metrics('linespace')))
+    size = max(18, font.metrics('linespace'))
     style = ttk.Style(owner)
     cache = getattr(root, '_readable_check_images', {})
     root._readable_check_images = cache
-    key = (prefix, size, dark)
+    fonts = getattr(root, '_readable_choice_fonts', {})
+    root._readable_choice_fonts = fonts
+    fonts[prefix, kind] = font
+    key = (prefix, size, dark) if kind == 'Checkbutton' else (prefix, kind, size, dark)
+    render = settings_check_icon_png if kind == 'Checkbutton' else settings_radio_icon_png
     if key not in cache:
         cache[key] = {state: tk.PhotoImage(master=root,
-            data=settings_check_icon_png(size, *state, dark), format='png')
+            data=render(size, *state, dark), format='png')
             for state in ((False, False), (True, False), (False, True), (True, True))}
     images = cache[key]
-    name = f'{prefix}.Checkbutton.{size}.{int(dark)}.indicator'
+    name = f'PFC.{prefix}.{kind}.{size}.{int(dark)}.indicator'
+    gap = max(4, round(size*.3))
     if name not in style.element_names():
         style.element_create(name, 'image', images[False, False],
             ('disabled', 'selected', images[True, True]),
             ('disabled', '!selected', images[False, True]),
-            ('selected', images[True, False]), width=size+7, sticky='w')
+            ('selected', images[True, False]), width=size+gap, sticky='w')
+    layouts = getattr(root, '_readable_choice_layouts', {})
+    root._readable_choice_layouts = layouts
+    layouts.setdefault(kind, style.layout('T'+kind))
     def replace(layout):
-        return [(name if element.endswith('Checkbutton.indicator') else element,
+        return [(name if element.endswith('.indicator') else element,
                  {key: replace(value) if key == 'children' else value
                   for key, value in options.items()}) for element, options in layout]
-    style.layout(prefix+'.TCheckbutton', replace(style.layout('TCheckbutton')))
-    style.configure(prefix+'.TCheckbutton', font=font, padding=(2, 3))
-    return prefix+'.TCheckbutton'
+    target = (prefix+'.' if prefix else '')+'T'+kind
+    style.layout(target, replace(layouts[kind]))
+    style.configure(target, font=font, padding=(max(2, size//10), max(3, size//8)), indicatorsize=size)
+    return target
+
+
+def refresh_control_styles(owner, dark=False):
+    """Refresh both existing and newly opened dialogs when interface zoom changes."""
+    root = owner._root(); base = tkfont.nametofont('TkDefaultFont', root=root)
+    for role, font in getattr(root, '_workflow_fonts', {}).items():
+        font.configure(**font_snapshot(base, weight='bold' if role == 'heading' else 'normal'))
+    chrome = getattr(root, '_compare_chrome_font', None)
+    if chrome is not None: chrome.configure(**font_snapshot(base))
+    _readable_choice_style(root, base, dark, '', 'Checkbutton')
+    _readable_choice_style(root, base, dark, '', 'Radiobutton')
+    for (prefix, kind), font in list(root._readable_choice_fonts.items()):
+        _readable_choice_style(root, font, dark, prefix, kind)
+    line = base.metrics('linespace'); padding = max(2, round(line*.12))
+    style = ttk.Style(root)
+    style.configure('PFCWorkflow.Treeview', rowheight=line+8)
+    for kind in ('TButton', 'TMenubutton', 'TSpinbox', 'TCombobox', 'TEntry'):
+        style.configure(kind, font=base, padding=padding, arrowsize=max(10, round(line*.6)))
+    style.configure('TScrollbar', arrowsize=max(12, round(line*.65)))
+    root.option_add('*Menu.font', 'TkMenuFont')
+    root.option_add('*TCombobox*Listbox.font', 'TkTextFont')
 
 
 def preference_specs(app):
@@ -7549,10 +7730,11 @@ class SettingsDialog(tk.Toplevel):
         self._shot_job = None
         self._page_top_job = None
         self._build()
-        sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
+        self._work_area = area = popup_work_area(app)
+        sw, sh = area[2]-area[0], area[3]-area[1]
         ratio=max(1,self.font.metrics('linespace')/20)
         width, height = min(round(1180*ratio), sw-48), min(round(720*ratio), sh-80)
-        self.geometry(f'{width}x{height}+{max(0,min(app.winfo_rootx()+30,sw-width-24))}+{max(0,min(app.winfo_rooty()+30,sh-height-40))}')
+        self.geometry(f'{width}x{height}')
         self.minsize(min(720,width), min(560,height))
         self.protocol('WM_DELETE_WINDOW', self.cancel)
         self.bind('<Escape>', lambda _e: self.cancel())
@@ -7567,6 +7749,7 @@ class SettingsDialog(tk.Toplevel):
         self.bind('<Button-5>', lambda _e: self._scroll(3))
         self.bind('<FocusIn>', self._reveal_focus, add='+')
         self.deiconify()
+        position_popup_in_work_area(self, app, self._work_area)
         self.grab_set()
         self.nav.focus_set()
 
@@ -7602,14 +7785,16 @@ class SettingsDialog(tk.Toplevel):
                               selectbackground=p['selection'], selectforeground='#ffffff',
                               selectmode='browse')
         self.nav.pack(side='left', fill='y', padx=(0,14))
-        body.bind('<Configure>', lambda e:self.nav.configure(
-            width=max(8,min(18,int(e.width*.24/max(1,self.font.measure('0')))))))
+        self.compact_nav = ttk.Combobox(body, state='readonly', font=self.font,
+            style='Prefs.TCombobox', values=[tr(label) for _,label in SETTINGS_CATEGORIES], width=1)
+        self.compact_nav.bind('<<ComboboxSelected>>', lambda _e:
+            self.show_page(SETTINGS_CATEGORIES[self.compact_nav.current()][0]))
+        self._compact_navigation = False
+        body.bind('<Configure>', self._layout_navigation)
         for _key, label in SETTINGS_CATEGORIES: self.nav.insert('end', tr(label))
         self.nav.bind('<<ListboxSelect>>', self._select)
         right = ttk.Frame(body); right.pack(fill='both', expand=True)
         self.title_label = ttk.Label(right, style='PrefsTitle.TLabel'); self.title_label.pack(anchor='w', pady=(0,6))
-        self.intro = ttk.Label(right, text=tr('Changes take effect only after Apply or OK.'), style='Prefs.TLabel', wraplength=500)
-        self.intro.pack(anchor='w', pady=(0,12))
         # At large reading scales let preview + controls scroll together. A fixed
         # preview must never consume the whole viewport and hide every setting.
         self._whole_page_scroll = True
@@ -7626,47 +7811,71 @@ class SettingsDialog(tk.Toplevel):
         if self._whole_page_scroll:
             self.comparison = ttk.Frame(self.sheet)
             self.comparison.pack(fill='x', pady=(0,8))
+        self.intro = ttk.Label(self.sheet, text=tr('Changes take effect only after Apply or OK.'), style='Prefs.TLabel', wraplength=500)
+        self.intro.pack(fill='x', pady=(0,8))
         self.comparison.bind('<Configure>', lambda _e:self._schedule_shots())
         self.page = ttk.Frame(self.sheet, padding=(2,0,12,10))
         self.page.pack(fill='x')
-        self.sheet.bind('<Configure>', lambda _e:self.canvas.configure(scrollregion=self.canvas.bbox('all')))
+        self.sheet.bind('<Configure>', lambda _e:self._scroll_region())
         self.canvas.bind('<Configure>', self._resize)
         index = [key for key,_label in SETTINGS_CATEGORIES].index(self.category)
         self.nav.selection_set(index); self.nav.activate(index)
         self.show_page(self.category)
 
+    def _layout_navigation(self, event):
+        if event.widget is not self.nav.master: return
+        longest = max(self.font.measure(tr(label)) for _,label in SETTINGS_CATEGORIES)
+        compact = longest > event.width*.26
+        if compact != self._compact_navigation:
+            self._compact_navigation = compact
+            if compact:
+                self.nav.pack_forget()
+                self.compact_nav.pack(side='top', fill='x', pady=(0,8), before=self.title_label.master)
+            else:
+                self.compact_nav.pack_forget()
+                self.nav.pack(side='left', fill='y', padx=(0,14), before=self.title_label.master)
+        if not compact:
+            self.nav.configure(width=max(8,min(24,round((longest+18)/max(1,self.font.measure('0'))))))
+
     def _checkbutton_style(self, style):
         # Ttk elements retain image names after the dialog closes. Own these four
         # images on the application, reuse them on Apply/reopen, and keep the
         # native checkbutton's focus, mouse and Space-key behavior intact.
-        images=getattr(self.app,'_settings_check_images',None)
-        if images is None:
-            images={state:tk.PhotoImage(master=self.app) for state in
-                    ((False,False),(True,False),(False,True),(True,True))}
-            self.app._settings_check_images=images
-        size=max(18,min(48,self.font.metrics('linespace')))
         dark=self.app.color_scheme_var.get()=='dark'
-        for (selected,disabled),image in images.items():
-            image.configure(data=settings_check_icon_png(size,selected,disabled,dark),format='png')
-        name=f'Prefs.Checkbutton.{size}.indicator'
-        if name not in style.element_names():
-            style.element_create(name,'image',images[False,False],
-                ('disabled','selected',images[True,True]),
-                ('disabled','!selected',images[False,True]),
-                ('selected',images[True,False]),width=size+7,sticky='w')
-        def replace(layout):
-            return [(name if element=='Checkbutton.indicator' else element,
-                     {key:replace(value) if key=='children' else value for key,value in options.items()})
-                    for element,options in layout]
-        style.layout('Prefs.TCheckbutton',replace(style.layout('TCheckbutton')))
+        readable_check_style(self, self.font, dark, 'Prefs')
 
     def _resize(self, event):
         self.canvas.itemconfigure(self.page_id,width=event.width)
+        self._scroll_region()
         self.intro.configure(wraplength=max(100,event.width-12))
         for label in getattr(self,'wrap_labels',[]):
             label.configure(wraplength=max(140,event.width-36))
         self._schedule_shots()
         self._layout_cards(event.width)
+
+    def _scroll_region(self):
+        bounds = self.canvas.bbox('all')
+        if bounds:
+            self.canvas.configure(scrollregion=(0, 0, max(bounds[2], self.canvas.winfo_width()),
+                                                 max(bounds[3], self.canvas.winfo_height())))
+
+    def apply_scale(self, _scale=None):
+        self.font.configure(**font_snapshot(tkfont.nametofont('TkDefaultFont')))
+        self.heading_font.configure(**font_snapshot(self.font, weight='bold'))
+        self.small_font.configure(**font_snapshot(self.font))
+        self._checkbutton_style(ttk.Style(self))
+        for sample, _ in self.layout_examples:
+            sample.font.configure(**font_snapshot(self.font, size=-max(12, round(abs(self.font.cget('size'))*.85))))
+            sample.bold.configure(**font_snapshot(sample.font, weight='bold'))
+            sample.line = max(22, sample.font.metrics('linespace')+4)
+            sample.canvas.configure(height=7*sample.line); sample._key = None; sample._schedule()
+        sample = self.page_preview
+        if sample is not None:
+            sample.font.configure(**font_snapshot(self.font))
+            sample.bold.configure(**font_snapshot(self.font, weight='bold'))
+            sample.line = max(23, sample.font.metrics('linespace')+5)
+            sample.canvas.configure(height=8*sample.line); sample._key = None; sample._schedule()
+        self._schedule_shots()
 
     def _layout_cards(self, width):
         cards = getattr(self, '_comparison_cards', [])
@@ -7702,6 +7911,7 @@ class SettingsDialog(tk.Toplevel):
     def show_page(self, category):
         self.category=category
         index=[key for key,_label in SETTINGS_CATEGORIES].index(category)
+        self.compact_nav.current(index)
         if self.nav.curselection()!=(index,):
             self.nav.selection_clear(0,'end');self.nav.selection_set(index);self.nav.activate(index)
         for child in self.page.winfo_children():child.destroy()
@@ -7720,7 +7930,7 @@ class SettingsDialog(tk.Toplevel):
             'general':'Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.',
         }
         self.intro.configure(text=tr(notes[category]))
-        self.comparison.pack(before=self.page if self._whole_page_scroll else self.canvas.master,fill='x',pady=(0,8))
+        self.comparison.pack(before=self.intro if self._whole_page_scroll else self.canvas.master,fill='x',pady=(0,8))
         if category in ('appearance','layout'):
             self._previews()
         else:
@@ -7928,14 +8138,15 @@ class SettingsDialog(tk.Toplevel):
             icon=ttk.Combobox(row,values=[tr(PREFIX_ICONS[k]) for k in keys],state='readonly',font=self.font,style='Prefs.TCombobox',width=12)
             self._prepare_combo(icon)
             icon.current(keys.index(item['icon']));icon.pack(side='left')
-            img=prefix_icon(self,item['icon'],20);self.images.append(img)
+            icon_size=max(16,self.font.metrics('linespace'))
+            img=prefix_icon(self,item['icon'],icon_size);self.images.append(img)
             picture=ttk.Label(row,image=img);picture.pack(side='left',padx=4)
             path=tk.StringVar(self,value=item['path'])
             entry=ttk.Entry(self.page,textvariable=path,font=self.font);entry.pack(fill='x',pady=(0,5))
-            def update(_e=None,i=index,c=icon,v=path,p=picture):
+            def update(_e=None,i=index,c=icon,v=path,p=picture,size=icon_size):
                 self.prefix_draft[i]={'icon':keys[c.current()],'path':v.get()}
                 if getattr(p,'icon_key',None)!=keys[c.current()]:
-                    p.image=prefix_icon(self,keys[c.current()],20);p.configure(image=p.image)
+                    p.image=prefix_icon(self,keys[c.current()],size);p.configure(image=p.image)
                     p.icon_key=keys[c.current()]
                 self._changed()
             icon.bind('<<ComboboxSelected>>',update)
@@ -9287,7 +9498,7 @@ class ReviewCompare(ttk.Frame):
         vm=tk.Menu(view,tearoff=False);view.configure(menu=vm)
         for label,var,cmd in [('Wrap',self.wrap,self.render),('Sync horizontal scrolling',self.sync_x,self.render),
                              ('Differences only',self.only_diffs,self.filter_changed)]:
-            vm.add_checkbutton(label=tr(label),variable=var,command=cmd)
+            add_scaled_checkbutton(vm, tr(label), var, command=cmd)
         vm.add_command(label=tr('Markdown reading preview'),command=self.toggle_preview)
         vm.add_command(label=tr('Go to line'),command=self.goto_line)
         ttk.Button(bar,text=tr('Cancel'),width=0,command=self.cancel).pack(side='right')
@@ -9815,9 +10026,9 @@ class WorkbookCompare(ttk.Frame):
         self.sheets.pack(side='left',fill='x',expand=True);self.sheets.bind('<<ComboboxSelected>>',lambda e:self.load_sheet())
         menu_button=ttk.Menubutton(bar,text=tr('Rules'));menu_button.pack(side='left')
         menu=tk.Menu(menu_button,tearoff=False);menu_button.configure(menu=menu)
-        menu.add_checkbutton(label=tr('Differences only'),variable=self.only,command=self.filter)
+        add_scaled_checkbutton(menu, tr('Differences only'), self.only, command=self.filter)
         for value in ('Both','Values','Formulas'):
-            menu.add_radiobutton(label=tr(value),value=value,variable=self.cell_mode,command=self.filter)
+            add_scaled_radiobutton(menu, tr(value), value, self.cell_mode, command=self.filter)
         menu.add_command(label=tr('Row key columns…'),command=self.set_keys)
         ttk.Button(bar,text=tr('Export report'),command=self.export_report).pack(side='left',padx=2)
         ttk.Button(bar,text=tr('Cancel'),command=self.cancel).pack(side='left')
@@ -10547,12 +10758,12 @@ def compact_compare_font(widget):
         root._compare_chrome_font = tkfont.Font(root)
     base = tkfont.nametofont('TkDefaultFont', root=root)
     font = root._compare_chrome_font
-    font.configure(family=base.actual('family'), size=-min(24, abs(int(base.cget('size')))))
+    font.configure(**font_snapshot(base))
     return font
 
 
 def style_compare_chrome(widget):
-    """Bound controls, not document text, when extreme zoom meets a small window."""
+    """Keep comparison controls at the same reading scale as the interface."""
     font = compact_compare_font(widget)
     style = ttk.Style(widget)
     kinds = ('TButton', 'TMenubutton', 'TEntry', 'TLabel')
@@ -11625,9 +11836,8 @@ class _FolderCompareLogic(ttk.Frame):
     def _build_diff_menu(self):
         self.diff_menu.delete(0, "end")
         for key in self.DIFF_FILTERS:
-            self.diff_menu.add_radiobutton(label=tr(self.DIFF_LABELS[key]), value=key,
-                                           variable=self.view_mode_var,
-                                           command=self._set_diff_filter)
+            add_scaled_radiobutton(self.diff_menu, tr(self.DIFF_LABELS[key]), key,
+                                   self.view_mode_var, command=self._set_diff_filter)
         self._update_diff_button()
 
     def _update_diff_button(self):
@@ -12027,7 +12237,7 @@ class FolderCompare(_FolderCompareLogic):
         self.rules_button.configure(menu=self.rules_menu); self.rules_button.pack(side='right', padx=(4,0))
         for label, variable in (('Recursive',self.recursive_var),('By content',self.content_var),
                                  ('Text equivalent',self.text_equivalent_var)):
-            self.rules_menu.add_checkbutton(label=tr(label),variable=variable,
+            add_scaled_checkbutton(self.rules_menu, tr(label), variable,
                 command=lambda:self.scan_status.configure(text=tr('Rules changed — press Compare')))
         self.rules_menu.add_separator()
         self.rules_menu.add_command(label=tr('Exclusions')+'…',command=self.edit_exclusions)
@@ -12090,9 +12300,9 @@ class FolderCompare(_FolderCompareLogic):
 
         self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
-        self.left_path_label = tk.Label(self.body, anchor="w", background="#2d668f",
+        self.left_path_label = tk.Label(self.body, anchor="w", width=1, background="#2d668f",
                                         foreground="white", font="TkHeadingFont", padx=6, pady=3)
-        self.right_path_label = tk.Label(self.body, anchor="w", background="#9b5d2e",
+        self.right_path_label = tk.Label(self.body, anchor="w", width=1, background="#9b5d2e",
                                          foreground="white", font="TkHeadingFont", padx=6, pady=3)
         self.map_header = tk.Button(self.center_header, text="⇄", command=self.swap_sides,
                                     background="#263d4c", foreground="white",
@@ -15880,13 +16090,18 @@ class MultiRenameWindow(tk.Toplevel):
         self.tree.tag_configure("error", foreground="#a00000")
         self.tree.tag_configure("ok", foreground="#006c3b")
         self.tree.pack(fill="both", expand=True, padx=8)
-        bottom = ttk.Frame(self, padding=8); bottom.pack(fill="x")
-        self.status = ttk.Label(bottom, anchor="w"); self.status.pack(side="left", fill="x", expand=True)
-        self.undo_button = ttk.Button(bottom, text=tr("Ctrl+Z Undo"), command=self.undo)
+        bottom = ttk.Frame(self, padding=8); bottom.pack(side='bottom', fill="x", before=controls)
+        self.status = ttk.Label(bottom, anchor="w", width=1); self.status.pack(side="left", fill="x", expand=True)
+        ToolTip(self.status, lambda: self.status.cget('text'))
+        self.undo_button = ttk.Button(bottom, text=tr("Ctrl+Z Undo"), width=0, command=self.undo)
         self.undo_button.pack(side="right")
-        ttk.Button(bottom, text=tr("Close"), command=self.destroy).pack(side="right", padx=4)
-        self.apply_button = ttk.Button(bottom, text=tr("Ctrl+Enter Rename"), command=self.apply)
+        self.close_button = ttk.Button(bottom, text=tr("Close"), width=0, command=self.destroy)
+        self.close_button.pack(side="right", padx=4)
+        self.apply_button = ttk.Button(bottom, text=tr("Ctrl+Enter Rename"), width=0, command=self.apply)
         self.apply_button.pack(side="right")
+        ToolTip(self.apply_button, lambda: tr('Ctrl+Enter Rename'))
+        ToolTip(self.undo_button, lambda: tr('Ctrl+Z Undo'))
+        bottom.bind('<Configure>', self._layout_actions)
         for variable in (self.mask_var, self.find_var, self.replace_var, self.start_var, self.digits_var):
             variable.trace_add("write", lambda *_args: self.after_idle(self.update_preview))
         self.bind("<Escape>", lambda _event: self.destroy())
@@ -15908,6 +16123,13 @@ class MultiRenameWindow(tk.Toplevel):
         dark = palette["window"] == "#20262c"
         self.tree.tag_configure("error", foreground="#ff7770" if dark else "#a00000")
         self.tree.tag_configure("ok", foreground="#73d6a1" if dark else "#006c3b")
+
+    def _layout_actions(self, event):
+        font = tkfont.nametofont('TkDefaultFont')
+        needed = sum(font.measure(tr(label)) for label in ('Ctrl+Enter Rename', 'Ctrl+Z Undo', 'Close'))+100
+        compact = event.width < needed
+        self.apply_button.configure(text=tr('Rename' if compact else 'Ctrl+Enter Rename'))
+        self.undo_button.configure(text=tr('Undo' if compact else 'Ctrl+Z Undo'))
 
     def _activate(self):
         self.deiconify(); self.lift(); self.focus_force(); self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end")
@@ -17472,7 +17694,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.16"
+__version__ = "0.18.17"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -17555,8 +17777,15 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/04"
+BUILD_DATE = "2026/10/06"
 VERSION_HISTORY = (
+    ("v0.18.17", "2026/10/06", (
+        "Fixed: Checkboxes, radio buttons and menu selection marks follow the interface reading scale.",
+        "Fixed: Comparison, workflow and confirmation dialogs retain the selected text size, including open windows.",
+        "Improved: Settings navigation, top previews and action rows remain readable at enlarged scales and narrow widths.",
+        "Improved: Batch rename reserves its footer and uses compact action labels without shrinking text.",
+        "Fixed: Folder comparison path headers no longer cause repeated layout redraws after swapping sides.",
+    )),
     ("v0.18.16", "2026/10/04", (
         "Fixed: Excel comparison shows loaded cells, explicit empty states and Strict workbook support.",
         "Added: Independent left/right file pairing and per-side Base Folder context actions for folders and archives.",
@@ -18500,8 +18729,8 @@ class FilePane(ttk.Frame):
                            activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
         self._view_mode_selection = selected = tk.StringVar(value=self.view_mode)
         for mode, label in (("list", "List"), ("folder", "Folder tree"), ("file", "File tree")):
-            menu.add_radiobutton(label=tr(label), value=mode, variable=selected,
-                                 command=lambda m=mode: self.set_view_mode(m))
+            add_scaled_radiobutton(menu, tr(label), mode, selected,
+                                   command=lambda m=mode: self.set_view_mode(m))
         try:
             menu.tk_popup(self.view_mode_button.winfo_rootx(),
                           self.view_mode_button.winfo_rooty() + self.view_mode_button.winfo_height())
@@ -19693,6 +19922,7 @@ class Commander(tk.Tk):
         enable_windows_dpi_awareness()
         super().__init__()
         configure_native_fonts(self)
+        install_scaled_messageboxes(self)
         self._app_icon_images = [create_pfc_icon(size) for size in (16, 32, 48, 64)]
         self.iconphoto(True, *self._app_icon_images)
         self._ready = False
@@ -22767,12 +22997,12 @@ class Commander(tk.Tk):
 
     def _rebuild_zoom_menu(self) -> None:
         self.zoom_menu.delete(0, "end")
-        self.zoom_menu.add_checkbutton(label=tr("Auto Font Size"), variable=self.auto_font_size_var,
-                                       command=self.set_auto_font_size)
+        add_scaled_checkbutton(self.zoom_menu, tr("Auto Font Size"), self.auto_font_size_var,
+                               command=self.set_auto_font_size)
         self.zoom_menu.add_separator()
         for key, scale in FONT_SCALES.items():
-            self.zoom_menu.add_radiobutton(label=f"{round(scale * 100)}%", value=key,
-                                           variable=self.font_size_var, command=self.select_manual_font_size)
+            add_scaled_radiobutton(self.zoom_menu, f"{round(scale * 100)}%", key,
+                                   self.font_size_var, command=self.select_manual_font_size)
 
     def _sync_zoom_controls(self) -> None:
         if not hasattr(self, "zoom_percent_var"):
@@ -22959,6 +23189,7 @@ class Commander(tk.Tk):
         style.configure("TEntry", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
         style.configure("TCombobox", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
         style.configure("TButton", font=tkfont.nametofont("TkDefaultFont"), padding=control_padding)
+        refresh_control_styles(self, self.color_scheme_var.get() == 'dark')
         menu_linespace = tkfont.nametofont("TkMenuFont").metrics("linespace")
         clipboard_icon_size = max(16, round(menu_linespace * 0.9))
         if clipboard_icon_size != self._clipboard_icon_size:
@@ -22976,6 +23207,8 @@ class Commander(tk.Tk):
         if hasattr(self, 'action_bar'): self.action_bar.schedule()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
+        settings = getattr(self, 'settings_window', None)
+        if settings is not None and settings.winfo_exists(): settings.apply_scale(scale)
         preferences = getattr(self, "_prefix_preferences", None)
         if preferences is not None and preferences.winfo_exists():
             preferences.apply_scale()
@@ -23012,6 +23245,7 @@ class Commander(tk.Tk):
         palette = self.palette
         self.configure(background=palette["window"])
         configure_ttk_theme(self, palette)
+        refresh_control_styles(self, scheme == 'dark')
         if hasattr(self, "zoom_menu"):
             self._zoom_reveal(False)
             self.zoom_menu.configure(background=palette["menu"], foreground=palette["menu_text"],

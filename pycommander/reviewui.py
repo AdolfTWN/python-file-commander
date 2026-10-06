@@ -18,6 +18,7 @@ from .tooltip import ToolTip
 from .settings import readable_check_style
 from .comparecolors import style_comparison_text
 from .i18n import tr
+from .tabs import add_scaled_checkbutton
 
 
 class ReviewCompare(ttk.Frame):
@@ -56,7 +57,7 @@ class ReviewCompare(ttk.Frame):
         vm=tk.Menu(view,tearoff=False);view.configure(menu=vm)
         for label,var,cmd in [('Wrap',self.wrap,self.render),('Sync horizontal scrolling',self.sync_x,self.render),
                              ('Differences only',self.only_diffs,self.filter_changed)]:
-            vm.add_checkbutton(label=tr(label),variable=var,command=cmd)
+            add_scaled_checkbutton(vm, tr(label), var, command=cmd)
         vm.add_command(label=tr('Markdown reading preview'),command=self.toggle_preview)
         vm.add_command(label=tr('Go to line'),command=self.goto_line)
         ttk.Button(bar,text=tr('Cancel'),width=0,command=self.cancel).pack(side='right')

@@ -1,6 +1,13 @@
 # Python File Commander
 
-Current version: **v0.18.16**
+Current version: **v0.18.17**
+
+**Reading-scale controls:** PFC checkboxes, radio buttons, menu selection marks
+and application dialogs follow the selected interface scale. Settings keeps its
+preview first and uses a category dropdown when a full sidebar cannot fit.
+Open workflow and comparison windows refresh their controls without reducing
+your selected text size. Windows-owned file choosers and title bars use the
+operating system's accessibility/display settings instead.
 
 **Compare usability:** Excel shows all loaded cells by default, including Strict
 workbooks; empty/filter results explain what was compared. In folder/ZIP/7z

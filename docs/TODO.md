@@ -1,5 +1,25 @@
 # PFC follow-ups
 
+## Reading-scale controls — v0.18.17
+
+- [x] Audit PFC-owned menu selection marks, checkbox/radio indicators and popup
+  fonts; remove fixed reading-size caps in comparison and workflow windows.
+- [x] Refresh persistent popup controls after interface scale changes; preserve
+  modal confirmation return values and focus/grab restoration.
+- [x] Keep Settings previews first, use readable compact category navigation,
+  scale diagram text and retain visible batch-rename actions without tiny fonts.
+- [ ] Investigate an intermittent Windows native comparison-fixture access
+  violation during folder-row population. The same release build passes an
+  isolated repeat; this does not establish the crash's cause or claim a fix.
+- [x] Complete 91-check regression, then final 19-check Settings/scale regression
+  after the workflow row-height and work-area refinements. Four leased offline
+  Windows scale/layout checks pass on the exact portable artifact; screenshots
+  confirm readable controls and footer actions clear of the taskbar.
+
+Publication is complete only when the maintenance release gate verifies matching
+GitHub/private GitLab references and the actual updater bytes.
+
+
 ## Comparison visibility and independent pairing — v0.18.16
 
 - [x] Show loaded Excel cells by default; expose Differences only beside Find and

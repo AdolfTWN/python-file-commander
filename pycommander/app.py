@@ -52,7 +52,8 @@ from .workspaces import show_workspaces, restore_workspace
 from .syncprogress import SyncProgress
 from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard
-from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs
+from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
+from .dialogs import install_scaled_messageboxes
 from .columnsettings import font_snapshot
 from .actionbar import ActionBarLayout
 from .vcsui import VcsActions
@@ -140,6 +141,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.17", "2026/10/06", (
+        "Fixed: Checkboxes, radio buttons and menu selection marks follow the interface reading scale.",
+        "Fixed: Comparison, workflow and confirmation dialogs retain the selected text size, including open windows.",
+        "Improved: Settings navigation, top previews and action rows remain readable at enlarged scales and narrow widths.",
+        "Improved: Batch rename reserves its footer and uses compact action labels without shrinking text.",
+        "Fixed: Folder comparison path headers no longer cause repeated layout redraws after swapping sides.",
+    )),
     ("v0.18.16", "2026/10/04", (
         "Fixed: Excel comparison shows loaded cells, explicit empty states and Strict workbook support.",
         "Added: Independent left/right file pairing and per-side Base Folder context actions for folders and archives.",
@@ -1083,8 +1091,8 @@ class FilePane(ttk.Frame):
                            activebackground=palette["menu_active"], activeforeground=palette["menu_active_text"])
         self._view_mode_selection = selected = tk.StringVar(value=self.view_mode)
         for mode, label in (("list", "List"), ("folder", "Folder tree"), ("file", "File tree")):
-            menu.add_radiobutton(label=tr(label), value=mode, variable=selected,
-                                 command=lambda m=mode: self.set_view_mode(m))
+            add_scaled_radiobutton(menu, tr(label), mode, selected,
+                                   command=lambda m=mode: self.set_view_mode(m))
         try:
             menu.tk_popup(self.view_mode_button.winfo_rootx(),
                           self.view_mode_button.winfo_rooty() + self.view_mode_button.winfo_height())
@@ -2276,6 +2284,7 @@ class Commander(tk.Tk):
         enable_windows_dpi_awareness()
         super().__init__()
         configure_native_fonts(self)
+        install_scaled_messageboxes(self)
         self._app_icon_images = [create_pfc_icon(size) for size in (16, 32, 48, 64)]
         self.iconphoto(True, *self._app_icon_images)
         self._ready = False
@@ -5350,12 +5359,12 @@ class Commander(tk.Tk):
 
     def _rebuild_zoom_menu(self) -> None:
         self.zoom_menu.delete(0, "end")
-        self.zoom_menu.add_checkbutton(label=tr("Auto Font Size"), variable=self.auto_font_size_var,
-                                       command=self.set_auto_font_size)
+        add_scaled_checkbutton(self.zoom_menu, tr("Auto Font Size"), self.auto_font_size_var,
+                               command=self.set_auto_font_size)
         self.zoom_menu.add_separator()
         for key, scale in FONT_SCALES.items():
-            self.zoom_menu.add_radiobutton(label=f"{round(scale * 100)}%", value=key,
-                                           variable=self.font_size_var, command=self.select_manual_font_size)
+            add_scaled_radiobutton(self.zoom_menu, f"{round(scale * 100)}%", key,
+                                   self.font_size_var, command=self.select_manual_font_size)
 
     def _sync_zoom_controls(self) -> None:
         if not hasattr(self, "zoom_percent_var"):
@@ -5542,6 +5551,7 @@ class Commander(tk.Tk):
         style.configure("TEntry", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
         style.configure("TCombobox", font=tkfont.nametofont("TkTextFont"), padding=control_padding)
         style.configure("TButton", font=tkfont.nametofont("TkDefaultFont"), padding=control_padding)
+        refresh_control_styles(self, self.color_scheme_var.get() == 'dark')
         menu_linespace = tkfont.nametofont("TkMenuFont").metrics("linespace")
         clipboard_icon_size = max(16, round(menu_linespace * 0.9))
         if clipboard_icon_size != self._clipboard_icon_size:
@@ -5559,6 +5569,8 @@ class Commander(tk.Tk):
         if hasattr(self, 'action_bar'): self.action_bar.schedule()
         if self.compare_window is not None and self.compare_window.winfo_exists():
             self.compare_window.apply_scale(scale)
+        settings = getattr(self, 'settings_window', None)
+        if settings is not None and settings.winfo_exists(): settings.apply_scale(scale)
         preferences = getattr(self, "_prefix_preferences", None)
         if preferences is not None and preferences.winfo_exists():
             preferences.apply_scale()
@@ -5595,6 +5607,7 @@ class Commander(tk.Tk):
         palette = self.palette
         self.configure(background=palette["window"])
         configure_ttk_theme(self, palette)
+        refresh_control_styles(self, scheme == 'dark')
         if hasattr(self, "zoom_menu"):
             self._zoom_reveal(False)
             self.zoom_menu.configure(background=palette["menu"], foreground=palette["menu_text"],

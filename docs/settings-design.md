@@ -1,5 +1,29 @@
 # PFC Settings — v0.18.4
 
+## Reading-scale controls — v0.18.17
+
+PFC-owned checkboxes and radio buttons use retained high-resolution indicators
+matched to the current font line height. Menu selections use readable check
+marks rather than fixed-size native indicators. Text, dropdown arrows and
+control padding follow the interface scale; open Settings, workflow and
+comparison windows refresh their fonts too. Confirmation/error dialogs inherit
+the same reading size and preserve the standard OK/Cancel/Yes/No semantics.
+
+Settings keeps the preview at the scrollable page top. At constrained widths,
+the category sidebar becomes a full-label dropdown rather than clipped text.
+Preview diagrams grow with their text. Batch rename reserves its action footer
+and abbreviates button labels only when necessary, with full shortcut tooltips.
+Folder comparison path headers have stable requested widths: ellipsizing long
+paths cannot feed back into pane geometry after a side swap.
+Native Windows file/folder choosers and title bars remain controlled by Windows.
+Settings and PFC confirmations fit the owning monitor's work area, reserving
+space for the native frame and taskbar so enlarged footer actions stay usable.
+
+Acceptance includes 100/150/175/200/300% changes with persistent windows,
+all six Settings pages, keyboard selection, modal cancellation, bounded footer
+geometry and original-size visual captures. Evidence belongs to the maintenance
+trace; passing layout checks does not replace real-user usability feedback.
+
 ## Content-fit zoom and popup chrome review (v0.18.13)
 
 Observable tasks: (1) enable Auto and read the sampled filenames without

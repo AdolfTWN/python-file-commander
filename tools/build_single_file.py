@@ -66,6 +66,8 @@ def build() -> Path:
     tooltip += '\n\n' + (ROOT / 'pycommander' / 'windowplacement.py').read_text(encoding='utf-8')
     tooltip += '\n\n' + (ROOT / 'pycommander' / 'settingsshots.py').read_text(encoding='utf-8')
     tooltip += '\n\n' + (ROOT / 'pycommander' / 'workflowdata.py').read_text(encoding='utf-8')
+    dialogs = (ROOT / 'pycommander' / 'dialogs.py').read_text(encoding='utf-8')
+    tooltip += '\n\n' + '\n'.join(line for line in dialogs.splitlines() if not line.startswith('from .'))
     workflows = (ROOT / 'pycommander' / 'workflows.py').read_text(encoding='utf-8')
     tooltip += '\n\n' + '\n'.join(line for line in workflows.splitlines() if not line.startswith('from .'))
     workspaces = (ROOT / 'pycommander' / 'workspaces.py').read_text(encoding='utf-8')

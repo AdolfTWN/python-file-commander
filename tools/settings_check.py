@@ -30,7 +30,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
         import tkinter.ttk as ttk
         style=ttk.Style(d)
         assert 'Prefs.Checkbutton.' in str(style.layout('Prefs.TCheckbutton'))
-        check_images=dict(app._settings_check_images)
+        check_key=('Prefs', max(18, d.font.metrics('linespace')), False)
+        check_images=dict(app._readable_check_images[check_key])
         assert len(check_images)==4 and all(18<=img.width()<=24 for img in check_images.values())
         checkbox=d.controls['auto_font_size'];checkbox.focus_force()
         checkbox.event_generate('<KeyPress-space>');checkbox.event_generate('<KeyRelease-space>');settle(app)
@@ -93,7 +94,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-check-') as raw:
         assert app.color_scheme_var.get()=='dark' and app.tab_style_var.get()=='rounded'
         assert app._single_layout
         assert d.apply_button.instate(['disabled'])
-        assert all(app._settings_check_images[state] is image for state,image in check_images.items()), 'Apply must reuse checkbox images'
+        assert all(app._readable_check_images[check_key][state] is image for state,image in check_images.items()), 'Root must retain checkbox images across Apply/reopen'
         d.vars['color_scheme'].set('light');d.cancel()
         assert app.color_scheme_var.get()=='dark','Cancel after Apply keeps applied settings'
         # Scope is the original tab, not a new active tab selected by layout.

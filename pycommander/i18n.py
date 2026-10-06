@@ -11,6 +11,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Folder comparison path headers no longer cause repeated layout redraws after swapping sides.': ('修正：資料夾比較交換左右兩側後，路徑標題不再造成反覆排版重繪。', '修正：文件夹比较交换左右两侧后，路径标题不再造成反复布局重绘。', '수정: 폴더 비교에서 좌우 교환 후 경로 제목의 반복적인 레이아웃 갱신을 방지합니다.'),
+    'Fixed: Checkboxes, radio buttons and menu selection marks follow the interface reading scale.': ('修正：勾選框、單選按鈕與選單選取標記隨介面閱讀比例縮放。', '修正：勾选框、单选按钮与菜单选择标记随界面阅读比例缩放。', '수정: 체크박스, 라디오 버튼 및 메뉴 선택 표시가 인터페이스 배율을 따릅니다.'),
+    'Fixed: Comparison, workflow and confirmation dialogs retain the selected text size, including open windows.': ('修正：比較、工作流程與確認視窗維持選定字型大小，已開啟視窗也會更新。', '修正：比较、工作流程与确认窗口保持所选字体大小，已打开窗口也会更新。', '수정: 비교, 작업 및 확인 대화상자가 선택한 글자 크기를 유지하며 열린 창도 갱신됩니다.'),
+    'Improved: Settings navigation, top previews and action rows remain readable at enlarged scales and narrow widths.': ('改善：放大比例與窄視窗下，設定導覽、頂部預覽及操作列保持可讀。', '改善：放大比例与窄窗口下，设置导航、顶部预览及操作栏保持可读。', '개선: 높은 배율과 좁은 창에서도 설정 탐색, 상단 미리보기 및 작업 버튼을 읽을 수 있습니다.'),
+    'Improved: Batch rename reserves its footer and uses compact action labels without shrinking text.': ('改善：批次重新命名保留底部操作空間，以精簡標籤取代縮小文字。', '改善：批量重命名保留底部操作空间，以精简标签代替缩小文字。', '개선: 일괄 이름 변경은 하단 버튼 공간을 확보하고 글자를 줄이지 않고 간결한 표시를 사용합니다.'),
     'Fixed: Excel comparison shows loaded cells, explicit empty states and Strict workbook support.': ('修正：Excel 比較顯示已讀取的儲存格、明確的空白原因，並支援 Strict 格式。', '修正：Excel 比较显示已读取的单元格、明确的空白原因，并支持 Strict 格式。', '수정: Excel 비교의 셀 표시, 빈 결과 안내 및 Strict 형식 지원.'),
     'Added: Independent left/right file pairing and per-side Base Folder context actions for folders and archives.': ('新增：資料夾與壓縮檔可獨立選取左右檔案配對，右鍵可設定各側基準資料夾。', '新增：文件夹与压缩包可独立选择左右文件配对，右键可设置各侧基准文件夹。', '추가: 폴더와 압축 파일에서 양쪽 파일 개별 선택 및 기준 폴더 메뉴.'),
     'Improved: Readable comparison highlights separate changed lines, changed characters, search and selection.': ('改善：比較高亮清楚區分變更行、變更字元、搜尋結果與選取範圍。', '改善：比较高亮清楚区分变更行、变更字符、搜索结果与选择范围。', '개선: 변경된 줄, 문자, 검색 결과 및 선택 영역을 구분하는 강조 색상.'),

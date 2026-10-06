@@ -309,6 +309,10 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
         if wrapped:until(lambda:not parent.busy);folder=parent.inner;assert folder,parent.status.cget('text')
         else:folder=parent
         until(lambda:not folder._scanning);pump()
+        # Ellipsized header text must not change requested pane widths and
+        # trigger native Configure/repaint oscillation after side swaps.
+        assert int(folder.left_path_label.cget('width')) == 1
+        assert int(folder.right_path_label.cget('width')) == 1
         for side,version in (('left','version-a'),('right','version-b')):
             tree=getattr(folder,side+'_tree');other='right' if side=='left' else 'left'
             other_root=getattr(folder,other+'_root')

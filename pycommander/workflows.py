@@ -5,6 +5,7 @@ from tkinter import ttk, messagebox, simpledialog, font as tkfont
 from .i18n import tr
 from .workflowdata import WorkflowRecords
 from .tooltip import ToolTip
+from .columnsettings import font_snapshot
 
 
 def workflow_dialog_geometry(window, master, width=650, height=420):
@@ -32,8 +33,7 @@ def style_workflow_controls(window):
     if not hasattr(root, '_workflow_fonts'):
         root._workflow_fonts = {name: tkfont.Font(root) for name in ('body', 'heading')}
     for name, font in root._workflow_fonts.items():
-        font.configure(family=base.actual('family'), size=-min(22, max(14, abs(int(base.cget('size'))))),
-                       weight='bold' if name == 'heading' else 'normal')
+        font.configure(**font_snapshot(base, weight='bold' if name == 'heading' else 'normal'))
     font = root._workflow_fonts['body']; heading = root._workflow_fonts['heading']
     style = ttk.Style(root)
     for kind in ('TLabel', 'TButton', 'TEntry', 'Treeview'):

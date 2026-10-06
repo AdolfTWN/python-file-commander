@@ -5,6 +5,38 @@ import os
 import tkinter as tk
 
 
+def popup_work_area(owner):
+    """Use the owner's monitor work area, excluding native taskbars/docks."""
+    root = owner._root()
+    guard = getattr(root, '_window_visibility', None)
+    backend = getattr(guard, 'backend', None)
+    if backend is not None:
+        try:
+            state = backend.snapshot()
+            if state:
+                rect, areas, _margin = state
+                cx, cy = (rect[0]+rect[2])/2, (rect[1]+rect[3])/2
+                return next((a for a in areas if a[0] <= cx < a[2] and a[1] <= cy < a[3]), areas[0])
+        except (OSError, tk.TclError, IndexError):
+            pass
+    return (0, 0, owner.winfo_screenwidth(), owner.winfo_screenheight())
+
+
+def position_popup_in_work_area(widget, owner, area):
+    """Place the complete native frame, not just its client content."""
+    widget.update_idletasks()
+    backend = WindowsWindowPlacement(widget) if os.name == 'nt' else None
+    state = backend.snapshot() if backend is not None else None
+    width = state[0][2]-state[0][0] if state else widget.winfo_width()
+    height = state[0][3]-state[0][1] if state else widget.winfo_height()
+    x = max(area[0]+8, min(owner.winfo_rootx()+30, area[2]-width-8))
+    y = max(area[1]+8, min(owner.winfo_rooty()+30, area[3]-height-8))
+    if state:
+        backend.move((x, y, width, height))
+    else:
+        widget.geometry(f'{x:+d}{y:+d}')
+
+
 def visible_window_target(rect, work_areas, frame_margin=8):
     """Return a centered (x, y, width, height), or None if the title is reachable.
 
