@@ -51,7 +51,7 @@ from .workflows import CommandPalette
 from .workspaces import show_workspaces, restore_workspace
 from .syncprogress import SyncProgress
 from .singlepanel import RootFolderTree, SharedTabBar
-from .windowplacement import WindowVisibilityGuard
+from .windowplacement import WindowVisibilityGuard, popup_work_area
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
 from .dialogs import install_scaled_messageboxes
 from .columnsettings import font_snapshot
@@ -141,6 +141,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.18", "2026/10/06", (
+        "Fixed: Auto Font Size stays stable while changing folders, tabs, selections and scrolling.",
+        "Improved: Auto fitting runs after settled window-width, monitor or explicit layout changes, without measuring filenames during browsing.",
+    )),
     ("v0.18.17", "2026/10/06", (
         "Fixed: Checkboxes, radio buttons and menu selection marks follow the interface reading scale.",
         "Fixed: Comparison, workflow and confirmation dialogs retain the selected text size, including open windows.",
@@ -1003,9 +1007,6 @@ class FilePane(ttk.Frame):
             if changed and hasattr(self, "name_marquee"):
                 self.name_marquee.request()
                 self.size_units.request()
-                owner = self.winfo_toplevel()
-                if hasattr(owner, '_schedule_auto_font_size'):
-                    owner._schedule_auto_font_size()
         self.tree.configure(yscrollcommand=lambda *args: scrolled(scroll, *args),
                             xscrollcommand=lambda *args: scrolled(horizontal, *args))
         self.tree.bind("<Configure>", lambda _event: self._schedule_column_autosize())
@@ -1018,7 +1019,8 @@ class FilePane(ttk.Frame):
         self.tree.bind("<ButtonPress-1>", self._drag_press, add="+")
         self.tree.bind("<B1-Motion>", self._drag_motion, add="+")
         self.tree.bind("<ButtonRelease-1>", self._drag_release, add="+")
-        self.tree.bind('<ButtonRelease-1>', lambda e: self.winfo_toplevel()._schedule_auto_font_size(), add='+')
+        self.tree.bind('<ButtonPress-1>', self._auto_font_column_press, add='+')
+        self.tree.bind('<ButtonRelease-1>', self._auto_font_column_release, add='+')
         self.tree.bind("<ButtonRelease-3>", self._context_click)
         self.tree.bind("<Shift-F10>", self._context_keyboard)
         self.tree.bind("<KeyPress-Menu>", self._context_keyboard)
@@ -1909,7 +1911,19 @@ class FilePane(ttk.Frame):
                          stretch=True)
         self._fit_visible_names()
         owner = self.winfo_toplevel()
-        if hasattr(owner, '_schedule_auto_font_size'):
+        if hasattr(owner, '_schedule_auto_font_size') and owner._last_auto_window_size is None:
+            owner._schedule_auto_font_size()
+
+    def _auto_font_column_press(self, event):
+        self._auto_column_widths = (tuple(self.tree.column(c, 'width') for c in
+            ('#0', *self.columns)) if self.tree.identify_region(event.x, event.y) == 'separator' else None)
+
+    def _auto_font_column_release(self, _event):
+        before = getattr(self, '_auto_column_widths', None)
+        self._auto_column_widths = None
+        if before is not None and before != tuple(self.tree.column(c, 'width') for c in ('#0', *self.columns)):
+            owner = self.winfo_toplevel()
+            owner._last_auto_window_size = None
             owner._schedule_auto_font_size()
 
     @staticmethod
@@ -2464,6 +2478,8 @@ class Commander(tk.Tk):
         self.single_tabs = SharedTabBar(self, self)
         self.folder_tree = RootFolderTree(split, self._tree_navigate, self._tree_context)
         split.bind('<ButtonRelease-1>', self._remember_tree_ratio, add='+')
+        split.bind('<ButtonPress-1>', self._auto_font_sash_press, add='+')
+        split.bind('<ButtonRelease-1>', self._auto_font_sash_release, add='+')
         split.bind('<Configure>', lambda _e:self.after_idle(self._place_tree_sash), add='+')
         try:
             order = json.loads(self.config_data.get('state', 'single_tab_order', fallback='[]'))
@@ -3603,6 +3619,15 @@ class Commander(tk.Tk):
         if self._single_layout and len(self.split.panes()) == 2:
             self._tree_ratio = max(.15, min(.65, self.split.sashpos(0)/max(1,self.split.winfo_width())))
             self.save_config(record_recent=False)
+
+    def _auto_font_sash_press(self, _event=None):
+        self._auto_sash_positions = tuple(self.split.sashpos(i) for i in range(len(self.split.panes())-1))
+
+    def _auto_font_sash_release(self, _event=None):
+        positions = tuple(self.split.sashpos(i) for i in range(len(self.split.panes())-1))
+        if getattr(self, '_auto_sash_positions', positions) != positions:
+            self._last_auto_window_size = None
+            self._schedule_auto_font_size()
 
     def _sync_single_workspace(self):
         if not self._single_layout or self._single_busy: return
@@ -5148,6 +5173,8 @@ class Commander(tk.Tk):
         for pane in self.all_panes():
             pane.apply_column_settings()
         self._update_cloud_icons(self._visible_cloud_rows(self.visible_panes()))
+        self._last_auto_window_size = None
+        self._schedule_auto_font_size()
         self.save_config()
 
     def set_vcs_overlay(self):
@@ -5409,13 +5436,15 @@ class Commander(tk.Tk):
             self._schedule_auto_font_size(delay=0)
         self.save_config()
 
-    def _schedule_auto_font_size(self, _event=None, delay: int = 180) -> None:
+    def _schedule_auto_font_size(self, _event=None, delay: int = 400) -> None:
         if not getattr(self, "_ready", False) or not self.auto_font_size_var.get():
             return
         if getattr(self, '_auto_font_busy', False):
             return
         if _event is not None and _event.widget is not self:
             return  # Popup geometry must not resize the main interface.
+        if self._auto_font_key() == self._last_auto_window_size:
+            return  # No filename sampling during browsing, scrolling or refresh.
         if self._auto_font_job is not None:
             try:
                 self.after_cancel(self._auto_font_job)
@@ -5429,9 +5458,11 @@ class Commander(tk.Tk):
             return
         if not allow_settings and (self._settings_are_open() or self.grab_current()):
             return  # Keep modal/draft controls stable while they are in use.
+        signature = self._auto_font_key()
+        if signature == self._last_auto_window_size:
+            return
         samples = self._auto_font_samples()
-        signature = self._auto_font_key(samples)
-        if not samples or signature == self._last_auto_window_size:
+        if not samples:
             return
         self._last_auto_window_size = signature
         current = self._font_scales.get(self.font_size_var.get(), 1.0)
@@ -5492,12 +5523,12 @@ class Commander(tk.Tk):
             if rows: samples.append((pane, rows))
         return samples
 
-    def _auto_font_key(self, samples):
-        return (self.winfo_width(), self.winfo_height(), self.winfo_screenwidth(),
-                self.winfo_screenheight(), self.panel_count_var.get(),
-                tuple((str(p.tree), p.tree.winfo_width(), p.tree.cget('displaycolumns'),
-                       tuple(p.tree.column(c, 'width') for c in p.tree.cget('displaycolumns')),
-                       tuple((i, t) for i, t, _ in rows)) for p, rows in samples))
+    def _auto_font_key(self, samples=None):
+        """External layout only; never depend on paths, rows or auto-sized columns."""
+        backend = getattr(getattr(self, '_window_visibility', None), 'backend', None)
+        dpi = backend.user.GetDpiForWindow(backend.handle()) if backend is not None else 0
+        return (self.winfo_width(), self.winfo_screenwidth(), self.winfo_screenheight(),
+                popup_work_area(self), dpi, self.panel_count_var.get())
 
     def _verify_auto_font(self, samples, attempts):
         """Bounded downward correction only; never chase our own Configure events."""
@@ -5506,8 +5537,11 @@ class Commander(tk.Tk):
         retry = False
         try:
             if not self.auto_font_size_var.get(): return
-            clipped = any(p.name_marquee.clipped(i)
-                          for p, rows in self._auto_font_samples() for i, _, _ in rows)
+            # Verify the original snapshot only. Navigation during this short
+            # settle window must not introduce another folder's filename sample.
+            clipped = any(p.name_marquee.clipped(i) for p, rows in samples
+                          for i, text, _ in rows if p.tree.winfo_exists() and p.tree.exists(i)
+                          and str(p.tree.item(i, 'text')) == text)
             keys = list(self._font_scales)
             index = keys.index(self.font_size_var.get())
             if clipped and index > 0 and attempts < len(keys):
@@ -5515,11 +5549,11 @@ class Commander(tk.Tk):
                 self._auto_font_verify_job = self.after(220, lambda: self._verify_auto_font(samples, attempts+1))
                 retry = True
                 return
-            self._last_auto_window_size = self._auto_font_key(self._auto_font_samples())
             self.save_config()
         finally:
             if not retry:
                 self._auto_font_busy = False
+                self._schedule_auto_font_size()
 
     def apply_font_size(self, save: bool = True) -> None:
         scale = self._font_scales.get(self.font_size_var.get(), 1.0)

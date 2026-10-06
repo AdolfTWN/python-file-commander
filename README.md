@@ -1,6 +1,12 @@
 # Python File Commander
 
-Current version: **v0.18.17**
+Current version: **v0.18.18**
+
+**Stable Auto Font Size:** Folder/tab navigation, scrolling, selection and file
+refresh keep the chosen text size. Fitting runs when enabled and after settled
+window-width/monitor changes or a manually adjusted panel divider/column width.
+It samples up to 30 filenames in Panels 1–2 at 100–300%; subsequent long names
+use the existing scrolling behavior instead of resizing the whole interface.
 
 **Reading-scale controls:** PFC checkboxes, radio buttons, menu selection marks
 and application dialogs follow the selected interface scale. Settings keeps its

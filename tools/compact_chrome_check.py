@@ -16,6 +16,15 @@ def pump(app, seconds=.4):
         time.sleep(.01)
 
 
+def auto_settle(app):
+    """Wait for the bounded fit/verification, not a machine-speed assumption."""
+    pump(app, .5)
+    deadline = time.monotonic()+8
+    while app._auto_font_job is not None or app._auto_font_busy:
+        assert time.monotonic() < deadline, 'Auto did not finish its bounded fit'
+        pump(app, .1)
+
+
 def shot(win, name):
     if '--screenshots' in sys.argv or '--before' in sys.argv:
         from PIL import ImageGrab
@@ -105,17 +114,53 @@ with tempfile.TemporaryDirectory(prefix='pfc-chrome-') as raw:
             for count in (1, 2, 3, 4):
                 app.panel_count_var.set(count); app.apply_panel_count(save=False)
                 for pane in app.visible_panes(): pane.navigate(short)
-                app.set_auto_font_size(); pump(app, 2)
+                app.set_auto_font_size(); auto_settle(app)
                 chosen = app.font_size_var.get()
                 assert app._font_scales[chosen] >= 1
                 if count >= 3:
                     for pane in app.visible_panes()[2:]: pane.navigate(long)
                     pump(app, 1)
                     assert app.font_size_var.get() == chosen, 'Panel 3/4 must not constrain Auto'
-                pane = app.visible_panes()[0]; pane.navigate(long); pump(app, 2)
-                assert app.font_size_var.get() == 'small', ('100% floor', count, app.font_size_var.get())
+                # No sampling or global font redraw is allowed during browsing.
+                sample_calls, apply_calls = [], []
+                original_sample, original_apply = app._auto_font_samples, app.apply_font_size
+                def sampled():
+                    sample_calls.append(1)
+                    return original_sample()
+                def applied(*args, **kw):
+                    apply_calls.append(1)
+                    return original_apply(*args, **kw)
+                app._auto_font_samples, app.apply_font_size = sampled, applied
+                pane = app.visible_panes()[0]; pane.navigate(long); pump(app, 1)
+                assert app.font_size_var.get() == chosen, ('navigation must stay stable', count)
+                pane.tree.yview_moveto(1); pane.tree.event_generate('<ButtonRelease-1>', x=20, y=65)
+                pane.refresh(); pump(app, 1)
                 pane.navigate(short); pump(app, 2)
-                assert app.font_size_var.get() == chosen, ('grow again', count, chosen, app.font_size_var.get())
+                pane.tree.yview_moveto(.5); pump(app, .5)
+                tabs = app._tabs_for(pane)
+                tabs.add_tab(long); pump(app, .6)
+                tabs.select(pane); pump(app, .6)
+                assert app.font_size_var.get() == chosen
+                assert not sample_calls and not apply_calls, (count, sample_calls, apply_calls)
+                # Height-only and same-monitor moves must not inspect filenames.
+                app.geometry('1760x800+10+10'); pump(app, 1)
+                assert not sample_calls and not apply_calls, ('height/move', count)
+                app._auto_font_samples, app.apply_font_size = original_sample, original_apply
+                pane.navigate(long); pump(app, .5)
+                app.set_auto_font_size(); auto_settle(app)
+                assert app.font_size_var.get() == 'small', ('explicit refit floor', count)
+                pane.navigate(short); pump(app, .5)
+                app.set_auto_font_size(); auto_settle(app)
+                # Width changes remain real fit triggers; navigation does not.
+                app._auto_font_samples = sampled
+                sample_calls.clear()
+                app.geometry('1450x800+10+10'); auto_settle(app)
+                assert not app._auto_font_busy
+                assert sample_calls, ('width must refit', count)
+                app._auto_font_samples = original_sample
+                app.geometry('1760x950+0+0'); auto_settle(app)
+                print('PASS: stable Auto browsing/scroll/refresh/tab/height; width refit; panels', count,
+                      'navigation sample calls', 0, 'global font applies', 0)
             app.auto_font_size_var.set(False)
             app.font_size_var.set('large'); app.apply_font_size(save=False)
             for lang, theme in (('zh_TW', 'dark'), ('zh_CN', 'light')):

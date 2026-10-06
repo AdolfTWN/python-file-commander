@@ -1,5 +1,18 @@
 # PFC follow-ups
 
+## Stable Auto Font Size — v0.18.18
+
+- [x] Separate external layout triggers from filename/content updates; keep
+  folder/tab navigation, selection, scrolling and refresh at a stable scale.
+- [x] Debounce external width/monitor changes and verify the original sample,
+  not a newly navigated folder. Preserve the 100% floor and manual divider/column fitting.
+- [x] Complete 19 source/portable Settings/scale regression checks, including
+  zero browsing-time filename samples/global font applies in 1–4 panels.
+  Leased offline Windows navigation/layout and Settings checks pass on the exact
+  portable artifact. Native acceptance covers the VM display; physical monitor
+  switching still benefits from reporter testing. Publication is subject to the
+  matching GitHub/private GitLab references and updater-byte release gate.
+
 ## Reading-scale controls — v0.18.17
 
 - [x] Audit PFC-owned menu selection marks, checkbox/radio indicators and popup

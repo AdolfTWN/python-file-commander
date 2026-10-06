@@ -436,7 +436,7 @@ class SettingsDialog(tk.Toplevel):
             if key=='auto_start' and os.name!='nt':
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
-                'auto_font_size':'Fits up to 30 filenames from the current scroll position in Panels 1–2. One Panel uses its visible file list. Range: 100–300%; Panels 3–4 are ignored.',
+                'auto_font_size':'Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.',
                 'font_size':'Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
@@ -644,7 +644,7 @@ class SettingsDialog(tk.Toplevel):
         if self.category=='appearance' and hasattr(self,'font_example') and self.font_example.winfo_exists():
             scale=self.app._font_scales[self.vars['font_size'].get()]
             self.sample_font.configure(family=self.font.actual('family'),size=-round(self._sample_pixels()*scale))
-            title='File text after Apply · {percent}%' if not self.vars['auto_font_size'].get() else 'Auto font · {percent}% reference; fits Panel 1–2 filenames'
+            title='File text after Apply · {percent}%' if not self.vars['auto_font_size'].get() else 'Auto font · {percent}% reference; follows window width'
             self.sample_title.configure(text=tr(title,percent=round(scale*100)))
             p=color_scheme(self.vars['color_scheme'].get())
             self.font_example.configure(bg=p['surface'],fg=p['text'])

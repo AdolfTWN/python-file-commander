@@ -1,5 +1,15 @@
 # PFC Settings — v0.18.4
 
+## Stable auto reading scale — v0.18.18
+
+Auto Font Size fits once when enabled or after settled external window width,
+monitor/DPI or explicit panel/column layout changes. Folder/tab switches,
+selection, scrolling, directory refresh and content-driven column autosizing
+must neither sample filenames nor apply global fonts. Height-only resizing or
+moving inside the same monitor is not a trigger. The fitting/verification uses
+one snapshot (up to 30 rows in Panels 1–2, 100–300%); later long filenames keep
+their scrolling behavior. Root Configure is debounced by 400 ms.
+
 ## Reading-scale controls — v0.18.17
 
 PFC-owned checkboxes and radio buttons use retained high-resolution indicators

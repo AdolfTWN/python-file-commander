@@ -11,6 +11,9 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Auto Font Size stays stable while changing folders, tabs, selections and scrolling.': ('修正：自動字級在切換資料夾、分頁、選取與捲動時保持固定。', '修正：自动字号在切换文件夹、分页、选择和滚动时保持固定。', '수정: 폴더, 탭, 선택 및 스크롤 변경 중 자동 글자 크기를 유지합니다.'),
+    'Improved: Auto fitting runs after settled window-width, monitor or explicit layout changes, without measuring filenames during browsing.': ('改善：視窗寬度、螢幕或手動版面調整穩定後才適配，瀏覽時不再量測檔名。', '改善：窗口宽度、屏幕或手动布局调整稳定后才适配，浏览时不再测量文件名。', '개선: 창 너비, 모니터 또는 수동 배치 변경이 안정된 뒤에만 맞추며 탐색 중 파일명을 측정하지 않습니다.'),
+    'Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.': ('啟用時或視窗寬度、螢幕、手動版面變更後，依面板 1–2 最多 30 筆檔名適配。切換資料夾、分頁及捲動時保持字級。範圍 100–300%；不考慮面板 3–4。', '启用时或窗口宽度、屏幕、手动布局变化后，依面板 1–2 最多 30 个文件名适配。切换文件夹、分页及滚动时保持字号。范围 100–300%；不考虑面板 3–4。', '활성화 또는 창 너비, 모니터, 수동 배치 변경 시 패널 1–2의 파일명 최대 30개에 맞춥니다. 폴더, 탭, 스크롤 변경 중 배율을 유지합니다. 범위 100–300%, 패널 3–4 제외.'),
     'Fixed: Folder comparison path headers no longer cause repeated layout redraws after swapping sides.': ('修正：資料夾比較交換左右兩側後，路徑標題不再造成反覆排版重繪。', '修正：文件夹比较交换左右两侧后，路径标题不再造成反复布局重绘。', '수정: 폴더 비교에서 좌우 교환 후 경로 제목의 반복적인 레이아웃 갱신을 방지합니다.'),
     'Fixed: Checkboxes, radio buttons and menu selection marks follow the interface reading scale.': ('修正：勾選框、單選按鈕與選單選取標記隨介面閱讀比例縮放。', '修正：勾选框、单选按钮与菜单选择标记随界面阅读比例缩放。', '수정: 체크박스, 라디오 버튼 및 메뉴 선택 표시가 인터페이스 배율을 따릅니다.'),
     'Fixed: Comparison, workflow and confirmation dialogs retain the selected text size, including open windows.': ('修正：比較、工作流程與確認視窗維持選定字型大小，已開啟視窗也會更新。', '修正：比较、工作流程与确认窗口保持所选字体大小，已打开窗口也会更新。', '수정: 비교, 작업 및 확인 대화상자가 선택한 글자 크기를 유지하며 열린 창도 갱신됩니다.'),
