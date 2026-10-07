@@ -1138,10 +1138,16 @@ class PreviewWindow(tk.Toplevel):
                 ('<Alt-Left>', lambda: self.active_page.markdown_back() if self.active_page._md_history else self.active_page.previous_file()),
                 ('<Alt-Right>', lambda: self.active_page.next_file()),
                 ('<Control-Tab>', lambda: self.cycle(1)),
-                ('<Control-Shift-Tab>', lambda: self.cycle(-1)),
-                ('<Control-ISO_Left_Tab>', lambda: self.cycle(-1))):
+                ('<Control-Shift-Tab>', lambda: self.cycle(-1))):
             self.bind(sequence, lambda e, fn=action: (fn(), 'break')[1])
         try:
+            # X11 emits this keysym for Shift+Tab; Windows Tk may reject it.
+            # An optional platform alias must never prevent document loading.
+            try:
+                self.bind('<Control-ISO_Left_Tab>', lambda e: (self.cycle(-1), 'break')[1])
+            except tk.TclError as exc:
+                preview_diagnostic(self, 'preview.binding.unsupported', exc=exc,
+                                   sequence='Control-ISO_Left_Tab')
             self.show(files, selected)
         except Exception as exc:
             preview_diagnostic(self,'preview.window.construct.failed',exc=exc)

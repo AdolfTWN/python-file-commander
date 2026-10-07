@@ -142,6 +142,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.20", "2026/10/07", (
+        "Fixed: Unsupported platform-specific Preview tab shortcuts no longer prevent files from opening on Windows.",
+    )),
     ("v0.18.19", "2026/10/07", (
         "Added: Help Debug mode records private, bounded Preview diagnostics without document contents or filenames.",
         "Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.",

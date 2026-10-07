@@ -52,6 +52,26 @@ with tempfile.TemporaryDirectory() as raw:
         assert 'preview.page.construct.failed' in diagnostic
         assert 'preview.request.failed' in diagnostic
         assert 'PRIVATE CONTENT' not in diagnostic and str(md) not in diagnostic
+        # Reproduce Windows Tk rejecting an X11-only keysym before MD loading.
+        original_bind = module.PreviewWindow.bind
+        def platform_bind(widget, sequence=None, *args, **kwargs):
+            if sequence == '<Control-ISO_Left_Tab>':
+                raise pfc.tk.TclError('bad event type or keysym "ISO_Left_Tab"')
+            return original_bind(widget, sequence, *args, **kwargs)
+        with patch.object(module.PreviewWindow, 'bind', platform_bind):
+            with patch.object(pfc.messagebox, 'showerror') as notice:
+                app.preview_paths([md, second], md)
+                app.preview_window.open_paths([md, second], [md, second], md)
+                settle(app)
+                assert not notice.called
+        recovered = app.preview_window
+        assert len(recovered.pages) == 2
+        for path in (md, second):
+            recovered.show([md, second], path); settle(app)
+            assert recovered.text.get('1.0', 'end-1c').strip()
+        assert recovered.bind('<Control-Shift-Tab>')
+        assert 'preview.binding.unsupported' in app.debug_log.snapshot()
+        recovered.close(); app.preview_window = None
         app.show_debug_log();app.update()
         viewer=next(w for w in app.winfo_children() if isinstance(w,pfc.tk.Toplevel))
         app.font_size_var.set('xl');app.apply_font_size(save=False);app.update()

@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.19**
+Current version: **v0.18.20**
 
 **Preview diagnostics:** Enable **Help → Debug mode**, reproduce with F3, then
 choose **Help → View debug log → Save debug log**. Logging is off by default,

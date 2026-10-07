@@ -1,5 +1,20 @@
 # PFC follow-ups
 
+## Preview platform shortcut compatibility — v0.18.20
+
+- [x] Reporter diagnostics from two MD requests both stop at the same Preview
+  constructor binding, before any document read. The recorded portable line
+  identifies the `Control-ISO_Left_Tab` alias, which is not supported by all Tk
+  platforms. Treat alias rejection as optional and retain Ctrl+Shift+Tab.
+- [x] Inject TclError for that exact alias in source and portable tests; both MD
+  tabs open and display text, and the standard reverse-tab shortcut remains bound.
+  All seven Preview regression checks pass, including the full unit suite.
+- [ ] Confirm the reporter's original MD files after updating; the source files
+  are unavailable and fault injection is not native Windows acceptance.
+- [ ] Native Windows check: this release's leased attempt stopped at QGA
+  readiness before guest staging; no guest login, network enablement or VM repair
+  was performed. Native acceptance remains pending.
+
 ## Preview diagnostics — v0.18.19
 
 - [x] Opt-in Help Debug mode, bounded local logs and readable view/save actions.

@@ -11,6 +11,7 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Unsupported platform-specific Preview tab shortcuts no longer prevent files from opening on Windows.': ('修正：Windows 不支援的預覽頁籤快捷鍵不再阻止文件開啟。', '修正：Windows 不支持的预览页签快捷键不再阻止文件打开。', '수정: Windows에서 지원하지 않는 미리보기 탭 단축키가 파일 열기를 차단하지 않습니다.'),
     'Added: Help Debug mode records private, bounded Preview diagnostics without document contents or filenames.': ('新增：Help 的 Debug mode 記錄有限大小的本機預覽診斷，不含文件內容或檔名。', '新增：Help 的 Debug mode 记录有限大小的本地预览诊断，不含文件内容或文件名。', '추가: 도움말의 디버그 모드는 문서 내용이나 파일명 없이 제한된 로컬 미리보기 진단을 기록합니다.'),
     'Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.': ('改善：預覽建立失敗時顯示錯誤，不再留下空視窗；診斷紀錄可檢視與儲存。', '改善：预览创建失败时显示错误，不再留下空窗口；诊断记录可查看与保存。', '개선: 미리보기 초기화 실패 시 빈 창 대신 오류를 표시하며 진단 로그를 확인하고 저장할 수 있습니다.'),
     'Debug mode': ('除錯模式', '调试模式', '디버그 모드'),
