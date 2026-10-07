@@ -54,6 +54,7 @@ from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard, popup_work_area
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
 from .dialogs import install_scaled_messageboxes
+from .debuglog import DiagnosticLog
 from .columnsettings import font_snapshot
 from .actionbar import ActionBarLayout
 from .vcsui import VcsActions
@@ -141,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.19", "2026/10/07", (
+        "Added: Help Debug mode records private, bounded Preview diagnostics without document contents or filenames.",
+        "Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.",
+    )),
     ("v0.18.18", "2026/10/06", (
         "Fixed: Auto Font Size stays stable while changing folders, tabs, selections and scrolling.",
         "Improved: Auto fitting runs after settled window-width, monitor or explicit layout changes, without measuring filenames during browsing.",
@@ -2307,6 +2312,9 @@ class Commander(tk.Tk):
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
+        self.debug_mode_var = tk.BooleanVar(value=self.config_data.getboolean('debug', 'enabled', fallback=False))
+        self.debug_log = DiagnosticLog(__version__)
+        if not self.debug_log.set_enabled(self.debug_mode_var.get()): self.debug_mode_var.set(False)
         self.home_prefixes = discover_home_prefixes()
         self.cloud_status = CloudStatusCache([p for p, kind in self.home_prefixes if kind == 'cloud']
                                             if os.name == 'nt' else [])
@@ -2922,6 +2930,7 @@ class Commander(tk.Tk):
         for session in list(self._archive_sessions):
             self._close_archive_session(session, retries=0)
         self._archive_sessions.clear()
+        self.debug_log.set_enabled(False)
         self.destroy()
 
     def _sync_auto_start(self, show_error: bool = True) -> bool:
@@ -3268,6 +3277,9 @@ class Commander(tk.Tk):
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
         versions.add_command(label=tr("Current version: v{version}", version=__version__), state="disabled")
         versions.add_command(label=tr("Check Update"), command=self.check_update)
+        versions.add_separator()
+        add_scaled_checkbutton(versions, tr('Debug mode'), self.debug_mode_var, self.set_debug_mode)
+        versions.add_command(label=tr('View debug log')+'…', command=self.show_debug_log)
         versions.add_separator()
         version_series = []
         for version, build_date, notes in VERSION_HISTORY:
@@ -5016,12 +5028,60 @@ class Commander(tk.Tk):
         self.preview_paths(ordered or items, items[0], items)
 
     def preview_paths(self, paths, selected, selected_paths=None) -> None:
-        if self.preview_window is None or not self.preview_window.winfo_exists():
-            self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected,
-                                                self.extension_effect_var.get())
-        else: self.preview_window.show(paths, selected)
-        if selected_paths:
-            self.preview_window.open_paths(paths, selected_paths, selected)
+        self.debug_log.file('preview.request', selected, extension_effect=self.extension_effect_var.get(),
+                            scale=self.font_size_var.get(), tk=self.tk.call('info','patchlevel'))
+        try:
+            if self.preview_window is None or not self.preview_window.winfo_exists():
+                self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected,
+                                                    self.extension_effect_var.get())
+            else: self.preview_window.show(paths, selected)
+            if selected_paths:
+                self.preview_window.open_paths(paths, selected_paths, selected)
+            self.debug_log.event('preview.window.ready', tabs=len(self.preview_window.pages))
+        except Exception as exc:
+            self.debug_log.exception('preview.request.failed', exc)
+            messagebox.showerror(tr('PFC Preview'), tr('Cannot preview file')+'\n'+
+                tr('Enable Help > Debug mode, retry F3, then save the debug log.'), parent=self)
+
+    def report_callback_exception(self, kind, exc, tb):
+        log = getattr(self, 'debug_log', None)
+        if log: log.exception('tk.callback.failed', exc.with_traceback(tb))
+        super().report_callback_exception(kind, exc, tb)
+
+    def set_debug_mode(self):
+        if not self.debug_log.set_enabled(self.debug_mode_var.get()):
+            self.debug_mode_var.set(False)
+            messagebox.showerror(tr('Debug mode'), tr('Cannot write diagnostic log.'), parent=self)
+        if not self.config_data.has_section('debug'): self.config_data.add_section('debug')
+        self.config_data.set('debug','enabled',str(self.debug_mode_var.get()).lower())
+        self.save_config()
+        if self.debug_mode_var.get():
+            messagebox.showinfo(tr('Debug mode'), tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')+'\n\n'+str(self.debug_log.path), parent=self)
+
+    def show_debug_log(self):
+        win = tk.Toplevel(self); win.title(tr('View debug log')); win.geometry('900x600')
+        bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
+        ttk.Label(bar, text=tr('Debug mode')+(' ✓' if self.debug_mode_var.get() else ' —')).pack(side='left')
+        footer = ttk.Label(win,text=tr('Recent diagnostics only; no document contents or filenames.'),wraplength=800)
+        footer.pack(side='bottom',fill='x',padx=6,pady=6)
+        win.bind('<Configure>',lambda e:footer.configure(wraplength=max(100,win.winfo_width()-12)) if e.widget is win else None,add='+')
+        body = ttk.Frame(win); body.pack(fill='both',expand=True)
+        text = tk.Text(body, wrap='word', font='TkTextFont'); text.pack(side='left',fill='both',expand=True)
+        scroll = ttk.Scrollbar(body,command=text.yview); scroll.pack(side='right',fill='y')
+        text.configure(yscrollcommand=scroll.set)
+        def refresh():
+            try: content=self.debug_log.snapshot() or tr('No diagnostic log yet. Enable Debug mode and retry F3.')
+            except OSError: content=tr('Cannot read diagnostic log.')
+            text.configure(state='normal');text.delete('1.0','end');text.insert('1.0',content);text.configure(state='disabled');text.see('end')
+        def save():
+            destination=filedialog.asksaveasfilename(parent=win,defaultextension='.jsonl',initialfile='pfc-debug.jsonl')
+            if destination:
+                try:
+                    if Path(destination).resolve()!=self.debug_log.path.resolve(): shutil.copyfile(self.debug_log.path,destination)
+                except OSError: messagebox.showerror(tr('Debug mode'),tr('Cannot save diagnostic log.'),parent=win)
+        ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
+        ttk.Button(bar,text=tr('Save debug log'),command=save).pack(side='right',padx=6)
+        win.bind('<Escape>',lambda e:win.destroy());refresh()
 
     def search(self) -> None:
         source, _ = self.panes()

@@ -1,5 +1,21 @@
 # PFC follow-ups
 
+## Preview diagnostics — v0.18.19
+
+- [x] Opt-in Help Debug mode, bounded local logs and readable view/save actions.
+- [x] Trace F3 request, window/page construction, tab creation, file loading,
+  Markdown worker, insertion and callback failures without document contents,
+  filenames or full paths. Clean up failed preview-window/page construction.
+- [ ] Diagnose the reporter's blank Markdown Preview from a reproduced debug log;
+  the original file is unavailable and this release does not claim a root-cause fix.
+- [x] Seven source/portable Preview checks, including the full unit suite, pass.
+  Injected page-construction errors leave no orphan window and produce private
+  diagnostic frames; viewing/export at 200% keeps actions and disclosure visible.
+- [ ] Native Windows validation: two leased attempts blocked before guest staging
+  at QGA readiness while the VM manager reports startup failure. This diagnostic
+  release is source/portable-tested, not a claim of Windows acceptance. No VM
+  recovery, account change, network enablement or disk modification was performed.
+
 ## Stable Auto Font Size — v0.18.18
 
 - [x] Separate external layout triggers from filename/content updates; keep

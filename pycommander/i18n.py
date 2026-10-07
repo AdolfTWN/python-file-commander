@@ -11,6 +11,19 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Added: Help Debug mode records private, bounded Preview diagnostics without document contents or filenames.': ('新增：Help 的 Debug mode 記錄有限大小的本機預覽診斷，不含文件內容或檔名。', '新增：Help 的 Debug mode 记录有限大小的本地预览诊断，不含文件内容或文件名。', '추가: 도움말의 디버그 모드는 문서 내용이나 파일명 없이 제한된 로컬 미리보기 진단을 기록합니다.'),
+    'Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.': ('改善：預覽建立失敗時顯示錯誤，不再留下空視窗；診斷紀錄可檢視與儲存。', '改善：预览创建失败时显示错误，不再留下空窗口；诊断记录可查看与保存。', '개선: 미리보기 초기화 실패 시 빈 창 대신 오류를 표시하며 진단 로그를 확인하고 저장할 수 있습니다.'),
+    'Debug mode': ('除錯模式', '调试模式', '디버그 모드'),
+    'View debug log': ('檢視除錯紀錄', '查看调试记录', '디버그 로그 보기'),
+    'Save debug log': ('儲存除錯紀錄', '保存调试记录', '디버그 로그 저장'),
+    'Refresh log': ('更新紀錄', '更新记录', '로그 새로고침'),
+    'Enable Help > Debug mode, retry F3, then save the debug log.': ('請啟用 Help → 除錯模式，重試 F3，再儲存除錯紀錄。', '请启用 Help → 调试模式，重试 F3，再保存调试记录。', '도움말 → 디버그 모드를 켜고 F3를 다시 누른 뒤 로그를 저장하세요.'),
+    'Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.': ('已啟用除錯紀錄。請重現問題，再由 Help → 檢視除錯紀錄儲存檔案。不記錄文件內容或檔名。', '已启用调试记录。请重现问题，再由 Help → 查看调试记录保存文件。不记录文件内容或文件名。', '디버그 기록이 켜졌습니다. 문제를 재현한 뒤 도움말 → 디버그 로그 보기에서 저장하세요. 문서 내용과 파일명은 기록하지 않습니다.'),
+    'Recent diagnostics only; no document contents or filenames.': ('僅顯示近期診斷；不含文件內容或檔名。', '仅显示近期诊断；不含文件内容或文件名。', '최근 진단만 표시하며 문서 내용이나 파일명은 포함하지 않습니다.'),
+    'No diagnostic log yet. Enable Debug mode and retry F3.': ('尚無診斷紀錄，請啟用除錯模式並重試 F3。', '暂无诊断记录，请启用调试模式并重试 F3。', '진단 로그가 없습니다. 디버그 모드를 켜고 F3를 다시 누르세요.'),
+    'Cannot write diagnostic log.': ('無法寫入診斷紀錄。', '无法写入诊断记录。', '진단 로그를 기록할 수 없습니다.'),
+    'Cannot read diagnostic log.': ('無法讀取診斷紀錄。', '无法读取诊断记录。', '진단 로그를 읽을 수 없습니다.'),
+    'Cannot save diagnostic log.': ('無法儲存診斷紀錄。', '无法保存诊断记录。', '진단 로그를 저장할 수 없습니다.'),
     'Fixed: Auto Font Size stays stable while changing folders, tabs, selections and scrolling.': ('修正：自動字級在切換資料夾、分頁、選取與捲動時保持固定。', '修正：自动字号在切换文件夹、分页、选择和滚动时保持固定。', '수정: 폴더, 탭, 선택 및 스크롤 변경 중 자동 글자 크기를 유지합니다.'),
     'Improved: Auto fitting runs after settled window-width, monitor or explicit layout changes, without measuring filenames during browsing.': ('改善：視窗寬度、螢幕或手動版面調整穩定後才適配，瀏覽時不再量測檔名。', '改善：窗口宽度、屏幕或手动布局调整稳定后才适配，浏览时不再测量文件名。', '개선: 창 너비, 모니터 또는 수동 배치 변경이 안정된 뒤에만 맞추며 탐색 중 파일명을 측정하지 않습니다.'),
     'Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.': ('啟用時或視窗寬度、螢幕、手動版面變更後，依面板 1–2 最多 30 筆檔名適配。切換資料夾、分頁及捲動時保持字級。範圍 100–300%；不考慮面板 3–4。', '启用时或窗口宽度、屏幕、手动布局变化后，依面板 1–2 最多 30 个文件名适配。切换文件夹、分页及滚动时保持字号。范围 100–300%；不考虑面板 3–4。', '활성화 또는 창 너비, 모니터, 수동 배치 변경 시 패널 1–2의 파일명 최대 30개에 맞춥니다. 폴더, 탭, 스크롤 변경 중 배율을 유지합니다. 범위 100–300%, 패널 3–4 제외.'),

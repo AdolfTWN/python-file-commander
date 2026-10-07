@@ -1,6 +1,13 @@
 # Python File Commander
 
-Current version: **v0.18.18**
+Current version: **v0.18.19**
+
+**Preview diagnostics:** Enable **Help → Debug mode**, reproduce with F3, then
+choose **Help → View debug log → Save debug log**. Logging is off by default,
+local only and bounded to three 1 MiB files. The log contains runtime metadata,
+anonymous file IDs, sizes and error frame locations—not document contents,
+filenames or full paths. Disable Debug mode after reproducing the problem.
+This diagnostic release does not claim the reported Markdown failure is fixed.
 
 **Stable Auto Font Size:** Folder/tab navigation, scrolling, selection and file
 refresh keep the chosen text size. Fitting runs when enabled and after settled

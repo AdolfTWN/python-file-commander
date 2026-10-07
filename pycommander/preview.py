@@ -320,10 +320,19 @@ def render_hex(data: bytes) -> str:
     return "".join(lines)
 
 
+def preview_diagnostic(widget, event, *, path=None, exc=None, **metadata):
+    log = getattr(widget._root(), 'debug_log', None)
+    if log is None: return
+    if exc is not None: log.exception(event, exc)
+    elif path is not None: log.file(event, path, **metadata)
+    else: log.event(event, **metadata)
+
+
 class PreviewPage(tk.Frame):
     def __init__(self, master, config, save_config, files, selected,
                  extension_effect: bool = True, *, host, lazy=False) -> None:
         super().__init__(master)
+        preview_diagnostic(self, 'preview.page.construct.start', path=selected, lazy=lazy)
         self.host = host
         self._loaded = not lazy
         self.config_data, self.save_config = config, save_config
@@ -352,6 +361,7 @@ class PreviewPage(tk.Frame):
         self._md_auto_suspended=False
         self.bind('<Destroy>',lambda e:self._md_jobs.close() if e.widget is self else None,add='+')
         self.title(tr("PFC Preview"))
+        preview_diagnostic(self, 'preview.page.state.ready')
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
         file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
@@ -440,6 +450,7 @@ class PreviewPage(tk.Frame):
         if not lazy: self.load()
         self._schedule_refresh()
         self._md_poll_job=self.after(40,self._poll_markdown)
+        preview_diagnostic(self,'preview.page.construct.complete')
 
     def title(self, value):
         self.page_title = value
@@ -500,6 +511,8 @@ class PreviewPage(tk.Frame):
         if self._span_job is not None:
             self.after_cancel(self._span_job);self._span_job=None
         path=Path(path or self.path)
+        if not probe: preview_diagnostic(self,'preview.markdown.queued',path=path,
+            rendered=self.markdown_values.get(self.markdown_var.get())=='rendered')
         request={'path':str(path),'action':'stat' if probe else 'load','language':get_language(),
                  'highlight':self.extension_effect,
                  'rendered':self.extension_effect and self.markdown_values.get(self.markdown_var.get())=='rendered'}
@@ -534,9 +547,13 @@ class PreviewPage(tk.Frame):
                 context=self._md_queued
                 if self._md_jobs.submit(context['request']):
                     self._md_request=context;self._md_queued=None
+                    if not context['probe']: preview_diagnostic(self,'preview.worker.submitted',pid=self._md_jobs.process.pid)
             result=self._md_jobs.poll()
             if result is not None and self._md_request is not None:
                 context=self._md_request;self._md_request=None
+                if not context['probe']:
+                    preview_diagnostic(self,'preview.worker.result',worker_error=bool(result.get('error')),
+                        error_type=result.get('error_type'),characters=len(result.get('content','')),encoding=result.get('encoding'))
                 self.md_cancel.state(['disabled'])
                 if 'error' in result:
                     self.status.configure(text=(tr('Automatic refresh paused; use F5') if context['probe']
@@ -549,14 +566,18 @@ class PreviewPage(tk.Frame):
                 else:
                     self._begin_markdown_result(result,context)
             if self._md_jobs.pending and time.monotonic()-self._md_jobs.started>5:
+                preview_diagnostic(self,'preview.worker.timeout')
                 self.cancel_markdown()
                 self.status.configure(text=tr('Preview timed out; press F5 to retry'))
             if self._md_insert: self._insert_markdown_chunk()
         except (OSError,ValueError) as exc:
+            preview_diagnostic(self,'preview.markdown.failed',exc=exc)
             self.cancel_markdown();self.status.configure(text=str(exc))
         if self.winfo_exists(): self._md_poll_job=self.after(40,self._poll_markdown)
 
     def _begin_markdown_result(self,result,context):
+        preview_diagnostic(self,'preview.markdown.insert.start',characters=len(result.get('content','')),
+                           spans=len(result.get('spans',[])),headings=len(result.get('headings',[])))
         # Do not replace the old document until the worker has succeeded.
         self._remember_markdown_position()
         if context['navigation']:
@@ -588,6 +609,7 @@ class PreviewPage(tk.Frame):
         self.text.configure(state='disabled');job['offset']+=65536
         if job['offset']<len(content): return
         self._md_insert=None
+        preview_diagnostic(self,'preview.markdown.insert.complete',characters=len(content))
         self.md_cancel.state(['disabled'])
         # Text's '+Nc' modifier counts Unicode characters, unlike Tcl string
         # length / Text.count, which can count UTF-16 units. Keep Python offsets.
@@ -942,6 +964,8 @@ class PreviewPage(tk.Frame):
 
     def load(self) -> None:
         path = self.path
+        preview_diagnostic(self,'preview.load.start',path=path,mode=self.mode_values.get(self.mode_var.get(),'Auto'),
+                           markdown=self.markdown_values.get(self.markdown_var.get(),'rendered'))
         if self._markdown_mode():
             self._queue_markdown();return
         self._remember_markdown_position()
@@ -984,6 +1008,7 @@ class PreviewPage(tk.Frame):
                     content = render_hex(data); shown_mode = tr("Hex")
                 size = path.stat().st_size
             self.text.insert("1.0", content)
+            preview_diagnostic(self,'preview.text.insert.complete',characters=len(content),encoding=encoding,truncated=truncated)
             self._apply_spans(spans)
             show_markdown = (path.is_file() and path.suffix.casefold() == ".md"
                              and chosen == "Text" and self.extension_effect)
@@ -997,6 +1022,7 @@ class PreviewPage(tk.Frame):
             if truncated: detail += "   Preview truncated"
             self.status.configure(text=f"{detail}   {path}")
         except OSError as exc:
+            preview_diagnostic(self,'preview.read.failed',exc=exc)
             self.text.insert("1.0", f"{tr('Cannot preview file')}:\n{exc}")
             self.status.configure(text=str(path))
         self.text.configure(state="disabled")
@@ -1115,7 +1141,12 @@ class PreviewWindow(tk.Toplevel):
                 ('<Control-Shift-Tab>', lambda: self.cycle(-1)),
                 ('<Control-ISO_Left_Tab>', lambda: self.cycle(-1))):
             self.bind(sequence, lambda e, fn=action: (fn(), 'break')[1])
-        self.show(files, selected)
+        try:
+            self.show(files, selected)
+        except Exception as exc:
+            preview_diagnostic(self,'preview.window.construct.failed',exc=exc)
+            self.destroy()
+            raise
 
     def __getattr__(self, name):
         # Preserve Preview's active-document interface for callers and tools.
@@ -1147,12 +1178,19 @@ class PreviewWindow(tk.Toplevel):
                     break
                 navigation = list(files)
                 if path not in navigation: navigation.append(path)
-                page = PreviewPage(self.notebook, self.config_data, self.save_config,
-                                   navigation, path, self.extension_effect, host=self, lazy=True)
+                before = set(self.notebook.winfo_children())
+                try:
+                    page = PreviewPage(self.notebook, self.config_data, self.save_config,
+                                       navigation, path, self.extension_effect, host=self, lazy=True)
+                except Exception as exc:
+                    preview_diagnostic(self,'preview.page.construct.failed',exc=exc)
+                    for child in set(self.notebook.winfo_children())-before: child.destroy()
+                    raise
                 self.pages[key] = page
                 label = path.name or str(path)
                 if len(label)>38: label=label[:24]+'…'+label[-10:]
                 self.notebook.add(page, text=label)
+                preview_diagnostic(self,'preview.tab.added',path=path,tabs=len(self.pages))
             else:
                 page.files = list(files)
                 if path not in page.files: page.files.append(path)
@@ -1175,7 +1213,13 @@ class PreviewWindow(tk.Toplevel):
                 previous._md_jobs.close()
             self.active_page = page
         if not page._loaded:
-            page._loaded = True; page.load()
+            page._loaded = True
+            try: page.load()
+            except Exception as exc:
+                preview_diagnostic(self,'preview.page.load.failed',exc=exc)
+                page._loaded = False
+                page.status.configure(text=tr('Cannot preview file')+' — '+tr('Enable Help > Debug mode, retry F3, then save the debug log.'))
+                raise
         self.title(getattr(page, 'page_title', tr('PFC Preview')))
         self.path_label.configure(text=str(page.path))
 

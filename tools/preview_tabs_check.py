@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import tempfile
 import time
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 pfc = importlib.import_module(sys.argv[1] if len(sys.argv)>1 else 'pycommander.app')
@@ -23,8 +24,12 @@ with tempfile.TemporaryDirectory() as raw:
     pfc.Commander._sync_auto_start = lambda self, **kw:True
     pfc.Commander._start_windows_tray = lambda self:None
     app = pfc.Commander(); errors=[]
+    app.debug_log = pfc.DiagnosticLog(pfc.__version__, root/'diagnostics')
     app.report_callback_exception = lambda *exc:errors.append(str(exc))
     try:
+        app.debug_mode_var.set(True)
+        with patch.object(pfc.messagebox,'showinfo'): app.set_debug_mode()
+        assert app.config_data.getboolean('debug','enabled')
         paths=[]
         for suffix in ('.yaml','.yml','.py','.json','.xml','.ps1','.txt'):
             path=root/('sample'+suffix)
@@ -33,6 +38,31 @@ with tempfile.TemporaryDirectory() as raw:
         utf16=root/'wide.yaml'; utf16.write_text('name: 中文測試\n',encoding='utf-16');paths.append(utf16)
         md=root/'Notes.md';md.write_text('# Notes\n\n'+'Paragraph\n\n'*100,encoding='utf-8');paths.append(md)
         second=root/'other'/'Notes.md';second.parent.mkdir();second.write_text('# Other\n',encoding='utf-8');paths.append(second)
+        # Inject the same failure shape as the report: window exists, page
+        # construction aborts. Verify diagnostic frames and no orphan window.
+        module = pfc if pfc.__name__=='pfc' else importlib.import_module('pycommander.preview')
+        before=set(app.winfo_children())
+        with patch.object(module.PreviewPage,'__init__',side_effect=RuntimeError('PRIVATE CONTENT')):
+            with patch.object(pfc.messagebox,'showerror') as notice:
+                app.preview_paths([md],md)
+                assert notice.called
+        assert app.preview_window is None
+        assert not set(app.winfo_children())-before, 'Failed construction left an empty window'
+        diagnostic=app.debug_log.snapshot()
+        assert 'preview.page.construct.failed' in diagnostic
+        assert 'preview.request.failed' in diagnostic
+        assert 'PRIVATE CONTENT' not in diagnostic and str(md) not in diagnostic
+        app.show_debug_log();app.update()
+        viewer=next(w for w in app.winfo_children() if isinstance(w,pfc.tk.Toplevel))
+        app.font_size_var.set('xl');app.apply_font_size(save=False);app.update()
+        export=root/'shared-debug.jsonl'
+        bar=next(w for w in viewer.winfo_children() if isinstance(w,pfc.ttk.Frame))
+        save=next(w for w in bar.winfo_children() if isinstance(w,pfc.ttk.Button) and w.cget('text')==pfc.tr('Save debug log'))
+        with patch.object(pfc.filedialog,'asksaveasfilename',return_value=str(export)):save.invoke()
+        assert export.read_text(encoding='utf-8')==app.debug_log.snapshot()
+        footer=next(w for w in viewer.winfo_children() if isinstance(w,pfc.ttk.Label))
+        assert footer.winfo_ismapped() and footer.winfo_y()+footer.winfo_height()<=viewer.winfo_height()
+        viewer.destroy();app.font_size_var.set('small');app.apply_font_size(save=False)
         app.active.navigate(root);app.update()
         # Actual multiselect -> F3, not merely a direct PreviewWindow call.
         app.active.tree.selection_set(*(iid for iid in app.active.tree.get_children()
@@ -41,6 +71,7 @@ with tempfile.TemporaryDirectory() as raw:
         app.preview();settle(app)
         win=app.preview_window
         assert len(win.pages)==3
+        assert 'preview.tab.added' in app.debug_log.snapshot()
         app.search();search=app.search_window
         rows=[search.tree.insert('', 'end', values=(path.name,), tags=(str(path),)) for path in (md,second)]
         search.tree.selection_set(*rows);search.preview_selected();settle(app)
@@ -55,6 +86,8 @@ with tempfile.TemporaryDirectory() as raw:
         for path in paths:
             win.show(paths,path);settle(app)
             assert win.text.get('1.0','end-1c').strip(),path
+            if path.suffix=='.md':
+                assert 'preview.markdown.insert.complete' in app.debug_log.snapshot()
             if path.suffix!='.md':
                 assert 'name:' in win.text.get('1.0','end-1c')
                 win.mode_var.set(pfc.tr('Text'));win.load();settle(app)

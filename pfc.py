@@ -17,6 +17,19 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Added: Help Debug mode records private, bounded Preview diagnostics without document contents or filenames.': ('新增：Help 的 Debug mode 記錄有限大小的本機預覽診斷，不含文件內容或檔名。', '新增：Help 的 Debug mode 记录有限大小的本地预览诊断，不含文件内容或文件名。', '추가: 도움말의 디버그 모드는 문서 내용이나 파일명 없이 제한된 로컬 미리보기 진단을 기록합니다.'),
+    'Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.': ('改善：預覽建立失敗時顯示錯誤，不再留下空視窗；診斷紀錄可檢視與儲存。', '改善：预览创建失败时显示错误，不再留下空窗口；诊断记录可查看与保存。', '개선: 미리보기 초기화 실패 시 빈 창 대신 오류를 표시하며 진단 로그를 확인하고 저장할 수 있습니다.'),
+    'Debug mode': ('除錯模式', '调试模式', '디버그 모드'),
+    'View debug log': ('檢視除錯紀錄', '查看调试记录', '디버그 로그 보기'),
+    'Save debug log': ('儲存除錯紀錄', '保存调试记录', '디버그 로그 저장'),
+    'Refresh log': ('更新紀錄', '更新记录', '로그 새로고침'),
+    'Enable Help > Debug mode, retry F3, then save the debug log.': ('請啟用 Help → 除錯模式，重試 F3，再儲存除錯紀錄。', '请启用 Help → 调试模式，重试 F3，再保存调试记录。', '도움말 → 디버그 모드를 켜고 F3를 다시 누른 뒤 로그를 저장하세요.'),
+    'Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.': ('已啟用除錯紀錄。請重現問題，再由 Help → 檢視除錯紀錄儲存檔案。不記錄文件內容或檔名。', '已启用调试记录。请重现问题，再由 Help → 查看调试记录保存文件。不记录文件内容或文件名。', '디버그 기록이 켜졌습니다. 문제를 재현한 뒤 도움말 → 디버그 로그 보기에서 저장하세요. 문서 내용과 파일명은 기록하지 않습니다.'),
+    'Recent diagnostics only; no document contents or filenames.': ('僅顯示近期診斷；不含文件內容或檔名。', '仅显示近期诊断；不含文件内容或文件名。', '최근 진단만 표시하며 문서 내용이나 파일명은 포함하지 않습니다.'),
+    'No diagnostic log yet. Enable Debug mode and retry F3.': ('尚無診斷紀錄，請啟用除錯模式並重試 F3。', '暂无诊断记录，请启用调试模式并重试 F3。', '진단 로그가 없습니다. 디버그 모드를 켜고 F3를 다시 누르세요.'),
+    'Cannot write diagnostic log.': ('無法寫入診斷紀錄。', '无法写入诊断记录。', '진단 로그를 기록할 수 없습니다.'),
+    'Cannot read diagnostic log.': ('無法讀取診斷紀錄。', '无法读取诊断记录。', '진단 로그를 읽을 수 없습니다.'),
+    'Cannot save diagnostic log.': ('無法儲存診斷紀錄。', '无法保存诊断记录。', '진단 로그를 저장할 수 없습니다.'),
     'Fixed: Auto Font Size stays stable while changing folders, tabs, selections and scrolling.': ('修正：自動字級在切換資料夾、分頁、選取與捲動時保持固定。', '修正：自动字号在切换文件夹、分页、选择和滚动时保持固定。', '수정: 폴더, 탭, 선택 및 스크롤 변경 중 자동 글자 크기를 유지합니다.'),
     'Improved: Auto fitting runs after settled window-width, monitor or explicit layout changes, without measuring filenames during browsing.': ('改善：視窗寬度、螢幕或手動版面調整穩定後才適配，瀏覽時不再量測檔名。', '改善：窗口宽度、屏幕或手动布局调整稳定后才适配，浏览时不再测量文件名。', '개선: 창 너비, 모니터 또는 수동 배치 변경이 안정된 뒤에만 맞추며 탐색 중 파일명을 측정하지 않습니다.'),
     'Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.': ('啟用時或視窗寬度、螢幕、手動版面變更後，依面板 1–2 最多 30 筆檔名適配。切換資料夾、分頁及捲動時保持字級。範圍 100–300%；不考慮面板 3–4。', '启用时或窗口宽度、屏幕、手动布局变化后，依面板 1–2 最多 30 个文件名适配。切换文件夹、分页及滚动时保持字号。范围 100–300%；不考虑面板 3–4。', '활성화 또는 창 너비, 모니터, 수동 배치 변경 시 패널 1–2의 파일명 최대 30개에 맞춥니다. 폴더, 탭, 스크롤 변경 중 배율을 유지합니다. 범위 100–300%, 패널 3–4 제외.'),
@@ -6680,6 +6693,85 @@ def resolve_reading_anchor(model, saved, signature):
     if len(matches) == 1:
         return ('offset', matches[0]['start'], True)
     return ('fraction', 0., True)
+
+
+"""Opt-in local diagnostics: metadata only, bounded files, no document content."""
+from datetime import datetime, timezone
+import hashlib
+import json
+import logging
+from logging.handlers import RotatingFileHandler
+import os
+from pathlib import Path
+import platform
+import traceback
+import uuid
+
+
+class DiagnosticLog:
+    def __init__(self, version, directory=None):
+        base = Path(os.environ.get('LOCALAPPDATA') or os.environ.get('XDG_CACHE_HOME') or Path.home()/'.cache')
+        self.path = Path(directory or base/'PFC'/'logs')/'pfc-debug.jsonl'
+        self.version, self.session = version, uuid.uuid4().hex[:12]
+        self.handler = None
+        self.error = None
+
+    def set_enabled(self, enabled):
+        if not enabled:
+            self.event('debug.disabled')
+            if self.handler: self.handler.close()
+            self.handler = None
+            return True
+        if self.handler: return True
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.handler = RotatingFileHandler(self.path, maxBytes=1024*1024, backupCount=2, encoding='utf-8')
+            self.handler.setFormatter(logging.Formatter('%(message)s'))
+            self.error = None
+            self.event('debug.enabled', python=platform.python_version(), platform=platform.system(), version=self.version)
+            return True
+        except OSError as exc:
+            self.error = type(exc).__name__
+            self.handler = None
+            return False
+
+    def event(self, event, **metadata):
+        if self.handler is None: return
+        try:
+            payload = json.dumps(dict(time=datetime.now(timezone.utc).isoformat(), session=self.session,
+                                      event=event, **metadata), ensure_ascii=True)
+            # Write directly: logging.handleError can leak raw exception text
+            # to stderr; diagnostic I/O failure must not interrupt Preview.
+            if self.handler.shouldRollover(logging.makeLogRecord({'msg':payload})):
+                self.handler.doRollover()
+            self.handler.stream.write(payload+'\n'); self.handler.flush()
+        except (OSError, ValueError):
+            self.error = 'diagnostic-write-failed'
+
+    def file(self, event, path, **metadata):
+        if self.handler is None: return
+        path = Path(path)
+        # Match events for one file without exposing personal paths/names.
+        metadata.update(file_id=hashlib.sha256(os.fsencode(os.path.abspath(path))).hexdigest()[:16],
+                        suffix=path.suffix.lower()[:16])
+        try:
+            stat = path.stat(); metadata.update(bytes=stat.st_size, modified_ns=stat.st_mtime_ns)
+        except OSError as exc: metadata['stat_error'] = type(exc).__name__
+        self.event(event, **metadata)
+
+    def exception(self, event, exc):
+        frames = [dict(module=Path(f.filename).name, line=f.lineno, function=f.name)
+                  for f in traceback.extract_tb(exc.__traceback__)[-16:]]
+        data = dict(error=type(exc).__name__, frames=frames)
+        if isinstance(exc, OSError): data.update(errno=exc.errno, winerror=getattr(exc,'winerror',None))
+        if isinstance(exc, NameError) and getattr(exc,'name',None): data['name'] = exc.name
+        self.event(event, **data)
+
+    def snapshot(self):
+        if not self.path.exists(): return ''
+        with self.path.open('rb') as stream:
+            stream.seek(max(0, self.path.stat().st_size-128*1024))
+            return stream.read(128*1024).decode('utf-8', errors='replace')
 
 
 """PFC message dialogs that inherit interface fonts and preserve modal ownership."""
@@ -14535,10 +14627,19 @@ def render_hex(data: bytes) -> str:
     return "".join(lines)
 
 
+def preview_diagnostic(widget, event, *, path=None, exc=None, **metadata):
+    log = getattr(widget._root(), 'debug_log', None)
+    if log is None: return
+    if exc is not None: log.exception(event, exc)
+    elif path is not None: log.file(event, path, **metadata)
+    else: log.event(event, **metadata)
+
+
 class PreviewPage(tk.Frame):
     def __init__(self, master, config, save_config, files, selected,
                  extension_effect: bool = True, *, host, lazy=False) -> None:
         super().__init__(master)
+        preview_diagnostic(self, 'preview.page.construct.start', path=selected, lazy=lazy)
         self.host = host
         self._loaded = not lazy
         self.config_data, self.save_config = config, save_config
@@ -14567,6 +14668,7 @@ class PreviewPage(tk.Frame):
         self._md_auto_suspended=False
         self.bind('<Destroy>',lambda e:self._md_jobs.close() if e.widget is self else None,add='+')
         self.title(tr("PFC Preview"))
+        preview_diagnostic(self, 'preview.page.state.ready')
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
         file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
@@ -14655,6 +14757,7 @@ class PreviewPage(tk.Frame):
         if not lazy: self.load()
         self._schedule_refresh()
         self._md_poll_job=self.after(40,self._poll_markdown)
+        preview_diagnostic(self,'preview.page.construct.complete')
 
     def title(self, value):
         self.page_title = value
@@ -14715,6 +14818,8 @@ class PreviewPage(tk.Frame):
         if self._span_job is not None:
             self.after_cancel(self._span_job);self._span_job=None
         path=Path(path or self.path)
+        if not probe: preview_diagnostic(self,'preview.markdown.queued',path=path,
+            rendered=self.markdown_values.get(self.markdown_var.get())=='rendered')
         request={'path':str(path),'action':'stat' if probe else 'load','language':get_language(),
                  'highlight':self.extension_effect,
                  'rendered':self.extension_effect and self.markdown_values.get(self.markdown_var.get())=='rendered'}
@@ -14749,9 +14854,13 @@ class PreviewPage(tk.Frame):
                 context=self._md_queued
                 if self._md_jobs.submit(context['request']):
                     self._md_request=context;self._md_queued=None
+                    if not context['probe']: preview_diagnostic(self,'preview.worker.submitted',pid=self._md_jobs.process.pid)
             result=self._md_jobs.poll()
             if result is not None and self._md_request is not None:
                 context=self._md_request;self._md_request=None
+                if not context['probe']:
+                    preview_diagnostic(self,'preview.worker.result',worker_error=bool(result.get('error')),
+                        error_type=result.get('error_type'),characters=len(result.get('content','')),encoding=result.get('encoding'))
                 self.md_cancel.state(['disabled'])
                 if 'error' in result:
                     self.status.configure(text=(tr('Automatic refresh paused; use F5') if context['probe']
@@ -14764,14 +14873,18 @@ class PreviewPage(tk.Frame):
                 else:
                     self._begin_markdown_result(result,context)
             if self._md_jobs.pending and time.monotonic()-self._md_jobs.started>5:
+                preview_diagnostic(self,'preview.worker.timeout')
                 self.cancel_markdown()
                 self.status.configure(text=tr('Preview timed out; press F5 to retry'))
             if self._md_insert: self._insert_markdown_chunk()
         except (OSError,ValueError) as exc:
+            preview_diagnostic(self,'preview.markdown.failed',exc=exc)
             self.cancel_markdown();self.status.configure(text=str(exc))
         if self.winfo_exists(): self._md_poll_job=self.after(40,self._poll_markdown)
 
     def _begin_markdown_result(self,result,context):
+        preview_diagnostic(self,'preview.markdown.insert.start',characters=len(result.get('content','')),
+                           spans=len(result.get('spans',[])),headings=len(result.get('headings',[])))
         # Do not replace the old document until the worker has succeeded.
         self._remember_markdown_position()
         if context['navigation']:
@@ -14803,6 +14916,7 @@ class PreviewPage(tk.Frame):
         self.text.configure(state='disabled');job['offset']+=65536
         if job['offset']<len(content): return
         self._md_insert=None
+        preview_diagnostic(self,'preview.markdown.insert.complete',characters=len(content))
         self.md_cancel.state(['disabled'])
         # Text's '+Nc' modifier counts Unicode characters, unlike Tcl string
         # length / Text.count, which can count UTF-16 units. Keep Python offsets.
@@ -15157,6 +15271,8 @@ class PreviewPage(tk.Frame):
 
     def load(self) -> None:
         path = self.path
+        preview_diagnostic(self,'preview.load.start',path=path,mode=self.mode_values.get(self.mode_var.get(),'Auto'),
+                           markdown=self.markdown_values.get(self.markdown_var.get(),'rendered'))
         if self._markdown_mode():
             self._queue_markdown();return
         self._remember_markdown_position()
@@ -15199,6 +15315,7 @@ class PreviewPage(tk.Frame):
                     content = render_hex(data); shown_mode = tr("Hex")
                 size = path.stat().st_size
             self.text.insert("1.0", content)
+            preview_diagnostic(self,'preview.text.insert.complete',characters=len(content),encoding=encoding,truncated=truncated)
             self._apply_spans(spans)
             show_markdown = (path.is_file() and path.suffix.casefold() == ".md"
                              and chosen == "Text" and self.extension_effect)
@@ -15212,6 +15329,7 @@ class PreviewPage(tk.Frame):
             if truncated: detail += "   Preview truncated"
             self.status.configure(text=f"{detail}   {path}")
         except OSError as exc:
+            preview_diagnostic(self,'preview.read.failed',exc=exc)
             self.text.insert("1.0", f"{tr('Cannot preview file')}:\n{exc}")
             self.status.configure(text=str(path))
         self.text.configure(state="disabled")
@@ -15330,7 +15448,12 @@ class PreviewWindow(tk.Toplevel):
                 ('<Control-Shift-Tab>', lambda: self.cycle(-1)),
                 ('<Control-ISO_Left_Tab>', lambda: self.cycle(-1))):
             self.bind(sequence, lambda e, fn=action: (fn(), 'break')[1])
-        self.show(files, selected)
+        try:
+            self.show(files, selected)
+        except Exception as exc:
+            preview_diagnostic(self,'preview.window.construct.failed',exc=exc)
+            self.destroy()
+            raise
 
     def __getattr__(self, name):
         # Preserve Preview's active-document interface for callers and tools.
@@ -15362,12 +15485,19 @@ class PreviewWindow(tk.Toplevel):
                     break
                 navigation = list(files)
                 if path not in navigation: navigation.append(path)
-                page = PreviewPage(self.notebook, self.config_data, self.save_config,
-                                   navigation, path, self.extension_effect, host=self, lazy=True)
+                before = set(self.notebook.winfo_children())
+                try:
+                    page = PreviewPage(self.notebook, self.config_data, self.save_config,
+                                       navigation, path, self.extension_effect, host=self, lazy=True)
+                except Exception as exc:
+                    preview_diagnostic(self,'preview.page.construct.failed',exc=exc)
+                    for child in set(self.notebook.winfo_children())-before: child.destroy()
+                    raise
                 self.pages[key] = page
                 label = path.name or str(path)
                 if len(label)>38: label=label[:24]+'…'+label[-10:]
                 self.notebook.add(page, text=label)
+                preview_diagnostic(self,'preview.tab.added',path=path,tabs=len(self.pages))
             else:
                 page.files = list(files)
                 if path not in page.files: page.files.append(path)
@@ -15390,7 +15520,13 @@ class PreviewWindow(tk.Toplevel):
                 previous._md_jobs.close()
             self.active_page = page
         if not page._loaded:
-            page._loaded = True; page.load()
+            page._loaded = True
+            try: page.load()
+            except Exception as exc:
+                preview_diagnostic(self,'preview.page.load.failed',exc=exc)
+                page._loaded = False
+                page.status.configure(text=tr('Cannot preview file')+' — '+tr('Enable Help > Debug mode, retry F3, then save the debug log.'))
+                raise
         self.title(getattr(page, 'page_title', tr('PFC Preview')))
         self.path_label.configure(text=str(page.path))
 
@@ -17697,7 +17833,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.18"
+__version__ = "0.18.19"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -17780,8 +17916,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/06"
+BUILD_DATE = "2026/10/07"
 VERSION_HISTORY = (
+    ("v0.18.19", "2026/10/07", (
+        "Added: Help Debug mode records private, bounded Preview diagnostics without document contents or filenames.",
+        "Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.",
+    )),
     ("v0.18.18", "2026/10/06", (
         "Fixed: Auto Font Size stays stable while changing folders, tabs, selections and scrolling.",
         "Improved: Auto fitting runs after settled window-width, monitor or explicit layout changes, without measuring filenames during browsing.",
@@ -19948,6 +20088,9 @@ class Commander(tk.Tk):
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
+        self.debug_mode_var = tk.BooleanVar(value=self.config_data.getboolean('debug', 'enabled', fallback=False))
+        self.debug_log = DiagnosticLog(__version__)
+        if not self.debug_log.set_enabled(self.debug_mode_var.get()): self.debug_mode_var.set(False)
         self.home_prefixes = discover_home_prefixes()
         self.cloud_status = CloudStatusCache([p for p, kind in self.home_prefixes if kind == 'cloud']
                                             if os.name == 'nt' else [])
@@ -20563,6 +20706,7 @@ class Commander(tk.Tk):
         for session in list(self._archive_sessions):
             self._close_archive_session(session, retries=0)
         self._archive_sessions.clear()
+        self.debug_log.set_enabled(False)
         self.destroy()
 
     def _sync_auto_start(self, show_error: bool = True) -> bool:
@@ -20909,6 +21053,9 @@ class Commander(tk.Tk):
         versions = tk.Menu(versions_button, tearoff=False, font=menu_font)
         versions.add_command(label=tr("Current version: v{version}", version=__version__), state="disabled")
         versions.add_command(label=tr("Check Update"), command=self.check_update)
+        versions.add_separator()
+        add_scaled_checkbutton(versions, tr('Debug mode'), self.debug_mode_var, self.set_debug_mode)
+        versions.add_command(label=tr('View debug log')+'…', command=self.show_debug_log)
         versions.add_separator()
         version_series = []
         for version, build_date, notes in VERSION_HISTORY:
@@ -22657,12 +22804,60 @@ class Commander(tk.Tk):
         self.preview_paths(ordered or items, items[0], items)
 
     def preview_paths(self, paths, selected, selected_paths=None) -> None:
-        if self.preview_window is None or not self.preview_window.winfo_exists():
-            self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected,
-                                                self.extension_effect_var.get())
-        else: self.preview_window.show(paths, selected)
-        if selected_paths:
-            self.preview_window.open_paths(paths, selected_paths, selected)
+        self.debug_log.file('preview.request', selected, extension_effect=self.extension_effect_var.get(),
+                            scale=self.font_size_var.get(), tk=self.tk.call('info','patchlevel'))
+        try:
+            if self.preview_window is None or not self.preview_window.winfo_exists():
+                self.preview_window = PreviewWindow(self, self.config_data, self.save_config, paths, selected,
+                                                    self.extension_effect_var.get())
+            else: self.preview_window.show(paths, selected)
+            if selected_paths:
+                self.preview_window.open_paths(paths, selected_paths, selected)
+            self.debug_log.event('preview.window.ready', tabs=len(self.preview_window.pages))
+        except Exception as exc:
+            self.debug_log.exception('preview.request.failed', exc)
+            messagebox.showerror(tr('PFC Preview'), tr('Cannot preview file')+'\n'+
+                tr('Enable Help > Debug mode, retry F3, then save the debug log.'), parent=self)
+
+    def report_callback_exception(self, kind, exc, tb):
+        log = getattr(self, 'debug_log', None)
+        if log: log.exception('tk.callback.failed', exc.with_traceback(tb))
+        super().report_callback_exception(kind, exc, tb)
+
+    def set_debug_mode(self):
+        if not self.debug_log.set_enabled(self.debug_mode_var.get()):
+            self.debug_mode_var.set(False)
+            messagebox.showerror(tr('Debug mode'), tr('Cannot write diagnostic log.'), parent=self)
+        if not self.config_data.has_section('debug'): self.config_data.add_section('debug')
+        self.config_data.set('debug','enabled',str(self.debug_mode_var.get()).lower())
+        self.save_config()
+        if self.debug_mode_var.get():
+            messagebox.showinfo(tr('Debug mode'), tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')+'\n\n'+str(self.debug_log.path), parent=self)
+
+    def show_debug_log(self):
+        win = tk.Toplevel(self); win.title(tr('View debug log')); win.geometry('900x600')
+        bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
+        ttk.Label(bar, text=tr('Debug mode')+(' ✓' if self.debug_mode_var.get() else ' —')).pack(side='left')
+        footer = ttk.Label(win,text=tr('Recent diagnostics only; no document contents or filenames.'),wraplength=800)
+        footer.pack(side='bottom',fill='x',padx=6,pady=6)
+        win.bind('<Configure>',lambda e:footer.configure(wraplength=max(100,win.winfo_width()-12)) if e.widget is win else None,add='+')
+        body = ttk.Frame(win); body.pack(fill='both',expand=True)
+        text = tk.Text(body, wrap='word', font='TkTextFont'); text.pack(side='left',fill='both',expand=True)
+        scroll = ttk.Scrollbar(body,command=text.yview); scroll.pack(side='right',fill='y')
+        text.configure(yscrollcommand=scroll.set)
+        def refresh():
+            try: content=self.debug_log.snapshot() or tr('No diagnostic log yet. Enable Debug mode and retry F3.')
+            except OSError: content=tr('Cannot read diagnostic log.')
+            text.configure(state='normal');text.delete('1.0','end');text.insert('1.0',content);text.configure(state='disabled');text.see('end')
+        def save():
+            destination=filedialog.asksaveasfilename(parent=win,defaultextension='.jsonl',initialfile='pfc-debug.jsonl')
+            if destination:
+                try:
+                    if Path(destination).resolve()!=self.debug_log.path.resolve(): shutil.copyfile(self.debug_log.path,destination)
+                except OSError: messagebox.showerror(tr('Debug mode'),tr('Cannot save diagnostic log.'),parent=win)
+        ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
+        ttk.Button(bar,text=tr('Save debug log'),command=save).pack(side='right',padx=6)
+        win.bind('<Escape>',lambda e:win.destroy());refresh()
 
     def search(self) -> None:
         source, _ = self.panes()
