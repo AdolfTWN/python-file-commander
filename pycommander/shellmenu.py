@@ -38,10 +38,10 @@ IID_ICONTEXTMENU = _GUID(
 
 def context_menu_paths(paths) -> list[Path]:
     """Validate that selected local items can share one Shell context menu."""
-    items = [Path(path).resolve() for path in paths]
+    items = [Path(os.path.abspath(path)) for path in paths]
     if not items:
         raise OSError("Select one or more local files or folders first.")
-    if any(not path.exists() for path in items):
+    if any(not os.path.lexists(path) for path in items):
         raise OSError("A selected file or folder no longer exists.")
     parents = {os.path.normcase(str(path.parent)) for path in items}
     if len(parents) != 1:

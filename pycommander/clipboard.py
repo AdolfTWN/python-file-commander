@@ -5,8 +5,10 @@ import os
 import shutil
 import struct
 import time
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from .fileops import unique_target
 
 
 CF_HDROP = 15
@@ -56,7 +58,9 @@ def _register_clipboard_format(name: str) -> int:
 
 def _safe_virtual_name(value: str) -> str:
     name = value.replace("\\", "/").split("/")[-1].strip().rstrip(". ")
-    if not name or name in {".", ".."}:
+    reserved = {"CON", "PRN", "AUX", "NUL"} | {f"{prefix}{n}" for prefix in ("COM", "LPT") for n in "123456789¹²³"}
+    if (not name or name in {".", ".."} or any(ord(char) < 32 or char in '<>:"|?*' for char in name)
+            or name.split(".")[0].upper() in reserved):
         raise OSError("Outlook supplied an invalid attachment name.")
     return name
 
@@ -206,20 +210,39 @@ def extract_virtual_files_from_data_object(
     descriptors = _virtual_descriptors_from_object(data_object)
     content_format = _register_clipboard_format("FileContents")
     for index, descriptor in enumerate(descriptors):
-        target = destination / descriptor.name
-        if target.exists():
-            target = target.with_name(f"{target.stem} ({index + 2}){target.suffix}")
         medium = None
+        staging = target = None
         try:
+            name = _safe_virtual_name(descriptor.name)
             medium = _get_medium(data_object, content_format, index,
                                  TYMED_ISTREAM | TYMED_HGLOBAL | TYMED_FILE)
-            _write_virtual_medium(medium, target, descriptor.size)
+            fd, raw = tempfile.mkstemp(prefix=".pfc-attachment-", dir=destination)
+            os.close(fd)
+            staging = Path(raw)
+            _write_virtual_medium(medium, staging, descriptor.size)
+            if descriptor.size and staging.stat().st_size != descriptor.size:
+                raise OSError("The attachment stream is incomplete.")
+            for _attempt in range(10000):
+                candidate = unique_target(destination / name)
+                try:
+                    with candidate.open("xb"):
+                        pass
+                except FileExistsError:
+                    continue
+                target = candidate  # Only a file reserved by this operation may be cleaned up.
+                break
+            else:
+                raise OSError("Cannot reserve an attachment filename.")
+            os.replace(staging, target)
             extracted.append(target)
+            target = None
         except OSError as exc:
             failures.append((descriptor.name, str(exc)))
-            try: target.unlink(missing_ok=True)
-            except OSError: pass
         finally:
+            for owned in (staging, target):
+                if owned is not None:
+                    try: owned.unlink(missing_ok=True)
+                    except OSError: pass
             if medium is not None: _release_medium(medium)
     return extracted, failures
 
@@ -269,10 +292,10 @@ def set_file_clipboard(paths: list[Path], cut: bool = False) -> None:
     """Publish files in the same clipboard formats used by File Explorer."""
     if os.name != "nt":
         global _portable_paths, _portable_cut
-        _portable_paths = [path.resolve() for path in paths]
+        _portable_paths = [Path(os.path.abspath(path)) for path in paths]
         _portable_cut = cut
         return
-    resolved = [str(path.resolve()) for path in paths]
+    resolved = [os.path.abspath(path) for path in paths]
     if not resolved:
         return
     dropfiles = struct.pack("<IiiII", 20, 0, 0, 0, 1)

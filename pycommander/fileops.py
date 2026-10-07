@@ -43,17 +43,19 @@ class OperationResult:
 
 
 def unique_target(target: Path) -> Path:
-    if not target.exists():
+    if not os.path.lexists(filesystem_path(target)):
         return target
     for number in range(2, 10000):
         candidate = target.with_name(f"{target.stem} ({number}){target.suffix}")
-        if not candidate.exists():
+        if not os.path.lexists(filesystem_path(candidate)):
             return candidate
     raise FileExistsError(f"Cannot find an available name for {target.name}")
 
 
 def _remove_existing(path: Path) -> None:
-    if path.is_dir() and not path.is_symlink():
+    if _is_junction(filesystem_path(path)):
+        os.rmdir(filesystem_path(path))
+    elif path.is_dir() and not path.is_symlink():
         shutil.rmtree(path)
     else:
         path.unlink()
@@ -61,7 +63,13 @@ def _remove_existing(path: Path) -> None:
 
 def _is_junction(path: str) -> bool:
     is_junction = getattr(os.path, "isjunction", None)
-    return bool(is_junction and is_junction(path))
+    if is_junction is not None:
+        return bool(is_junction(path))
+    # Python 3.11 exposes reparse tags but has no os.path.isjunction.
+    try:
+        return getattr(os.lstat(path), "st_reparse_tag", 0) == 0xA0000003
+    except OSError:
+        return False
 
 
 def _is_linklike(path: str) -> bool:
@@ -86,7 +94,7 @@ def _replace_transactional(source: Path, target: Path, move: bool) -> None:
         _copy_or_move(source, target, move)
     except (OSError, shutil.Error):
         try:
-            if target.exists(): _remove_existing(target)
+            if os.path.lexists(filesystem_path(target)): _remove_existing(target)
             backup.rename(target)
         except OSError:
             pass
@@ -109,7 +117,7 @@ def transfer_items(items: list[Path], destination: Path, move: bool = False,
             replace = False
             if source.is_dir() and source_resolved in target_resolved.parents:
                 raise OSError("A folder cannot be copied or moved into itself.")
-            if target.exists():
+            if os.path.lexists(filesystem_path(target)):
                 action = resolve_conflict(source, target) if resolve_conflict else "replace"
                 if action == "cancel":
                     result.skipped.extend(items[index:])
@@ -236,7 +244,7 @@ def recycle_items(items: list[Path], continue_on_error: bool = True,
             try:
                 if progress:
                     progress(0, 0, item.name)
-                original = item.resolve()
+                original = Path(os.path.abspath(item))
                 target = unique_target(files_root / item.name)
                 shutil.move(str(item), str(target))
                 info = info_root / f"{target.name}.trashinfo"
@@ -249,7 +257,7 @@ def recycle_items(items: list[Path], continue_on_error: bool = True,
                 if progress:
                     progress(index + 1, len(items), item.name)
             except (OSError, shutil.Error) as exc:
-                if target is not None and target.exists() and not item.exists():
+                if target is not None and os.path.lexists(target) and not os.path.lexists(item):
                     try:
                         shutil.move(str(target), str(item))
                     except (OSError, shutil.Error):
@@ -275,7 +283,7 @@ def recycle_items(items: list[Path], continue_on_error: bool = True,
                 result.skipped.extend(items[index + 1:])
                 break
             continue
-        operation = _SHFILEOPSTRUCTW(None, 3, str(item.resolve()) + "\0\0", None,
+        operation = _SHFILEOPSTRUCTW(None, 3, os.path.abspath(item) + "\0\0", None,
                                      0x40 | 0x10 | 0x04 | 0x400, 0, None, None)
         code = shell32.SHFileOperationW(ctypes.byref(operation))
         if code == 0 and not operation.fAnyOperationsAborted:

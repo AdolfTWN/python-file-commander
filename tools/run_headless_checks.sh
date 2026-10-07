@@ -16,6 +16,8 @@ command -v xvfb-run >/dev/null 2>&1 || {
 exec python3 tools/pfc_workflow.py auto-test --profile full --jobs 2 "$@"
 
 python3 -m unittest discover -s tests -v
+xvfb-run -a python3 tools/reliability_check.py
+xvfb-run -a python3 tools/reliability_check.py pfc
 xvfb-run -a python3 tools/control_scaling_check.py
 xvfb-run -a python3 tools/control_scaling_check.py pfc
 xvfb-run -a python3 tools/review_compare_check.py

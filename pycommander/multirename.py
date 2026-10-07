@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import os
 import uuid
 from pathlib import Path
 import tkinter as tk
@@ -34,24 +35,33 @@ def render_rename(path: Path, mask: str, find: str = "", replace: str = "",
 
 
 def validate_rename_plan(paths: list[Path], names: list[str]):
+    if len(paths) != len(names):
+        raise ValueError("Each selected item requires exactly one new name.")
+    def invalid(name):
+        reserved = {"CON", "PRN", "AUX", "NUL"} | {f"{p}{n}" for p in ("COM", "LPT") for n in "123456789¹²³"}
+        return (not name or name in {".", ".."} or
+                any(c in INVALID_NAME_CHARS or ord(c) < 32 for c in name) or
+                name.split(".")[0].upper() in reserved)
     selected = {str(path).casefold() for path in paths}
     duplicate_counts = {}
     for path, name in zip(paths, names):
+        if invalid(name):
+            continue
         key = str(path.with_name(name)).casefold()
         duplicate_counts[key] = duplicate_counts.get(key, 0) + 1
     result = []
     for path, name in zip(paths, names):
-        target = path.with_name(name) if name else path
+        target = path if invalid(name) else path.with_name(name)
         error = ""
         if not name:
             error = "Empty name"
-        elif name in {".", ".."} or any(char in INVALID_NAME_CHARS for char in name):
+        elif invalid(name):
             error = "Invalid name"
         elif name.endswith((" ", ".")):
             error = "Trailing space/dot"
         elif duplicate_counts.get(str(target).casefold(), 0) > 1:
             error = "Duplicate target"
-        elif target.exists() and str(target).casefold() not in selected and target != path:
+        elif os.path.lexists(target) and str(target).casefold() not in selected and target != path:
             error = "Target exists"
         elif target == path:
             error = "Unchanged"
@@ -61,6 +71,12 @@ def validate_rename_plan(paths: list[Path], names: list[str]):
 
 def execute_rename_pairs(pairs: list[tuple[Path, Path]]) -> list[tuple[Path, Path]]:
     """Rename as one batch via temporary names; restore originals if any step fails."""
+    if any(source.parent != target.parent for source, target in pairs):
+        raise OSError("Batch rename cannot change the parent folder.")
+    plan = validate_rename_plan([source for source, _ in pairs], [target.name for _, target in pairs])
+    errors = [error for _, _, error in plan if error and error != "Unchanged"]
+    if errors:
+        raise OSError(errors[0])
     records = []
     try:
         for source, target in pairs:
@@ -68,13 +84,15 @@ def execute_rename_pairs(pairs: list[tuple[Path, Path]]) -> list[tuple[Path, Pat
             source.rename(temporary)
             records.append({"source": source, "target": target, "current": temporary})
         for record in records:
+            if os.path.lexists(record["target"]):
+                raise OSError("A rename target appeared after the preview.")
             record["current"].rename(record["target"])
             record["current"] = record["target"]
     except OSError:
         rollback = []
         for record in records:
             current = record["current"]
-            if current.exists():
+            if os.path.lexists(current):
                 temporary = current.with_name(f".{current.name}.pfc-rollback-{uuid.uuid4().hex}")
                 try:
                     current.rename(temporary); rollback.append((temporary, record["source"]))
@@ -82,6 +100,8 @@ def execute_rename_pairs(pairs: list[tuple[Path, Path]]) -> list[tuple[Path, Pat
                     pass
         for temporary, original in rollback:
             try:
+                if os.path.lexists(original):
+                    continue  # Preserve an externally created file and the recovery copy.
                 temporary.rename(original)
             except OSError:
                 pass

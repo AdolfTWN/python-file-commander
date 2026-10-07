@@ -1,13 +1,21 @@
 # Python File Commander
 
-Current version: **v0.18.20**
+Current version: **v0.18.21**
+
+**Reliability hardening:** Link/junction deletion and Shell operations preserve
+the selected path. Attachments use collision-safe staging; interrupted ZIP
+creation/extraction preserves prior files, and archive drafts refuse externally
+changed originals. Settings saves use independent temporary files. Rename/search
+inputs are validated, Office content reads are bounded, and version-control
+overlays coalesce rapid navigation. See the [audit and remaining risks](docs/reliability-audit-20261008.md).
 
 **Preview diagnostics:** Enable **Help → Debug mode**, reproduce with F3, then
 choose **Help → View debug log → Save debug log**. Logging is off by default,
 local only and bounded to three 1 MiB files. The log contains runtime metadata,
 anonymous file IDs, sizes and error frame locations—not document contents,
 filenames or full paths. Disable Debug mode after reproducing the problem.
-This diagnostic release does not claim the reported Markdown failure is fixed.
+v0.18.20 corrected unsupported Windows Preview tab shortcut bindings. Debug mode
+remains available to diagnose other opening/rendering failures.
 
 **Stable Auto Font Size:** Folder/tab navigation, scrolling, selection and file
 refresh keep the chosen text size. Fitting runs when enabled and after settled

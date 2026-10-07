@@ -3,24 +3,41 @@ from __future__ import annotations
 import os
 import subprocess
 import time
+import threading
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from .vcsactions import vcs_cli
 
 
 _CACHE: dict[str, tuple[float, dict[str, str]]] = {}
+_VCS_CACHE_LOCK = threading.Lock()
+_VCS_CACHE_EPOCH = 0
 _CACHE_SECONDS = 3.0
+_VCS_CACHE_LIMIT = 128
 _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
 
 
 def invalidate_vcs_cache():
     """A client dialog finished; the next overlay request must use fresh metadata."""
-    _CACHE.clear()
+    global _VCS_CACHE_EPOCH
+    with _VCS_CACHE_LOCK:
+        _VCS_CACHE_EPOCH += 1
+        _CACHE.clear()
 
 
 def _run_options() -> dict:
     """Keep background VCS commands invisible in Windows GUI launches."""
-    return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+    env = os.environ.copy()
+    env.update(GIT_TERMINAL_PROMPT="0", GIT_OPTIONAL_LOCKS="0")
+    return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0), "env": env}
+
+
+def _overlay_cli(kind: str) -> str:
+    executable = vcs_cli(kind)
+    if executable is None:
+        raise OSError("Version control command-line tool is unavailable.")
+    return executable
 
 
 def _merge(statuses: dict[str, str], path: Path, status: str, root: Path) -> None:
@@ -65,7 +82,7 @@ def _git_root_summary(root: Path) -> str | None:
     """Return one overlay state for a repository root shown from its parent."""
     try:
         result = subprocess.run(
-            ["git", "-C", str(root), "status", "--porcelain=v1", "--branch", "-z",
+            [_overlay_cli("git"), "-C", str(root), "status", "--porcelain=v1", "--branch", "-z",
              "--untracked-files=all"], capture_output=True, timeout=4, **_run_options())
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
         return None
@@ -95,11 +112,14 @@ def _git_root_summary(root: Path) -> str | None:
 def _child_repository_statuses(folder: Path) -> dict[str, str]:
     """Expose direct child repository roots without recursively scanning folders."""
     statuses: dict[str, str] = {}
+    deadline = time.monotonic() + 8.0
     try:
         children = tuple(folder.iterdir())
     except OSError:
         return statuses
     for child in children:
+        if time.monotonic() >= deadline:
+            break  # Unqueried repositories remain unknown, not clean.
         try:
             if not child.is_dir():
                 continue
@@ -107,7 +127,7 @@ def _child_repository_statuses(folder: Path) -> dict[str, str]:
                 status = _git_root_summary(child)
             elif (child / ".svn").exists():
                 nested = _svn_status(child)
-                status = status_for(nested or {}, child) or "clean"
+                status = status_for(nested or {}, child)
             else:
                 continue
             if status is not None:
@@ -122,13 +142,13 @@ def _git_status(folder: Path) -> dict[str, str] | None:
     if root is None:
         return None
     relative = os.path.relpath(folder, root)
-    command = ["git", "-C", str(root), "status", "--porcelain=v1", "-z",
+    command = [_overlay_cli("git"), "-C", str(root), "status", "--porcelain=v1", "-z",
                "--untracked-files=all", "--", relative]
     result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
     if result.returncode:
         return {}
     statuses: dict[str, str] = {}
-    tracked = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", relative],
+    tracked = subprocess.run([_overlay_cli("git"), "-C", str(root), "ls-files", "-z", "--", relative],
                              capture_output=True, timeout=4, **_run_options())
     if tracked.returncode == 0:
         for raw_path in tracked.stdout.split(b"\0"):
@@ -156,7 +176,7 @@ def _svn_status(folder: Path) -> dict[str, str] | None:
     if root is None:
         return None
     try:
-        result = subprocess.run(["svn", "status", "-v", "--xml", str(folder)],
+        result = subprocess.run([_overlay_cli("svn"), "status", "-v", "--xml", str(folder)],
                                 capture_output=True, text=True, errors="replace", timeout=4,
                                 **_run_options())
     except (OSError, subprocess.TimeoutExpired):
@@ -186,7 +206,9 @@ def folder_statuses(folder: Path) -> dict[str, str]:
     if is_metadata_path(folder):
         return {}
     key = os.path.normcase(str(folder.resolve()))
-    cached = _CACHE.get(key)
+    with _VCS_CACHE_LOCK:
+        cached = _CACHE.get(key)
+        epoch = _VCS_CACHE_EPOCH
     now = time.monotonic()
     if cached and now - cached[0] < _CACHE_SECONDS:
         return cached[1]
@@ -194,8 +216,6 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         statuses = _git_status(folder)
         if statuses is None:
             statuses = _svn_status(folder)
-        if statuses is None:
-            statuses = _child_repository_statuses(folder)
         value = statuses or {}
         # A directly contained repository remains its own status boundary even
         # when the folder being viewed is itself inside another work tree.
@@ -204,7 +224,16 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         value.update(_child_repository_statuses(folder))
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
         value = {}
-    _CACHE[key] = (now, value)
+    with _VCS_CACHE_LOCK:
+        if epoch == _VCS_CACHE_EPOCH:
+            completed = time.monotonic()
+            for old_key, (timestamp, _) in list(_CACHE.items()):
+                if completed - timestamp >= _CACHE_SECONDS:
+                    del _CACHE[old_key]
+            _CACHE[key] = (completed, value)
+            while len(_CACHE) > _VCS_CACHE_LIMIT:
+                oldest = min(_CACHE, key=lambda item: _CACHE[item][0])
+                del _CACHE[oldest]
     return value
 
 

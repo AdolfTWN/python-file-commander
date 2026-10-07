@@ -17,6 +17,12 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Link and junction operations preserve the selected item, including deletion on Python 3.11.': ('修正：連結與接合點操作保留所選項目的路徑，包含 Python 3.11 的刪除流程。', '修正：链接与联接点操作保留所选项目的路径，包括 Python 3.11 的删除流程。', '수정: Python 3.11 삭제를 포함하여 링크와 정션 작업이 선택한 항목의 경로를 유지합니다.'),
+    'Fixed: Attachment collisions, interrupted archives and stale archive drafts no longer overwrite existing data silently.': ('修正：附件名稱碰撞、壓縮作業中斷與過期草稿不再默默覆寫既有資料。', '修正：附件名称冲突、压缩操作中断与过期草稿不再静默覆盖现有数据。', '수정: 첨부 파일 이름 충돌, 압축 작업 중단 및 오래된 초안이 기존 데이터를 덮어쓰지 않습니다.'),
+    'Fixed: Concurrent settings saves and invalid rename or search inputs are handled safely.': ('修正：安全處理設定同時儲存，以及無效的重新命名或搜尋輸入。', '修正：安全处理设置同时保存，以及无效的重命名或搜索输入。', '수정: 동시 설정 저장 및 잘못된 이름 변경과 검색 입력을 안전하게 처리합니다.'),
+    'Improved: Version control queries are bounded, discard stale results and never mark a failed query as clean.': ('改善：限制版本控制查詢數量、丟棄過期結果，不再將查詢失敗標成乾淨。', '改善：限制版本控制查询数量、丢弃过期结果，不再将查询失败标为干净。', '개선: 버전 관리 조회를 제한하고 오래된 결과를 버리며 실패한 조회를 정상 상태로 표시하지 않습니다.'),
+    'Enter a finite, non-negative number.': ('請輸入有限且不小於零的數值。', '请输入有限且不小于零的数值。', '유한한 0 이상의 숫자를 입력하세요.'),
+    'Minimum size cannot exceed maximum size.': ('最小大小不能超過最大大小。', '最小大小不能超过最大大小。', '최소 크기는 최대 크기를 초과할 수 없습니다.'),
     'Fixed: Unsupported platform-specific Preview tab shortcuts no longer prevent files from opening on Windows.': ('修正：Windows 不支援的預覽頁籤快捷鍵不再阻止文件開啟。', '修正：Windows 不支持的预览页签快捷键不再阻止文件打开。', '수정: Windows에서 지원하지 않는 미리보기 탭 단축키가 파일 열기를 차단하지 않습니다.'),
     'Added: Help Debug mode records private, bounded Preview diagnostics without document contents or filenames.': ('新增：Help 的 Debug mode 記錄有限大小的本機預覽診斷，不含文件內容或檔名。', '新增：Help 的 Debug mode 记录有限大小的本地预览诊断，不含文件内容或文件名。', '추가: 도움말의 디버그 모드는 문서 내용이나 파일명 없이 제한된 로컬 미리보기 진단을 기록합니다.'),
     'Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.': ('改善：預覽建立失敗時顯示錯誤，不再留下空視窗；診斷紀錄可檢視與儲存。', '改善：预览创建失败时显示错误，不再留下空窗口；诊断记录可查看与保存。', '개선: 미리보기 초기화 실패 시 빈 창 대신 오류를 표시하며 진단 로그를 확인하고 저장할 수 있습니다.'),
@@ -1451,17 +1457,19 @@ class OperationResult:
 
 
 def unique_target(target: Path) -> Path:
-    if not target.exists():
+    if not os.path.lexists(filesystem_path(target)):
         return target
     for number in range(2, 10000):
         candidate = target.with_name(f"{target.stem} ({number}){target.suffix}")
-        if not candidate.exists():
+        if not os.path.lexists(filesystem_path(candidate)):
             return candidate
     raise FileExistsError(f"Cannot find an available name for {target.name}")
 
 
 def _remove_existing(path: Path) -> None:
-    if path.is_dir() and not path.is_symlink():
+    if _is_junction(filesystem_path(path)):
+        os.rmdir(filesystem_path(path))
+    elif path.is_dir() and not path.is_symlink():
         shutil.rmtree(path)
     else:
         path.unlink()
@@ -1469,7 +1477,13 @@ def _remove_existing(path: Path) -> None:
 
 def _is_junction(path: str) -> bool:
     is_junction = getattr(os.path, "isjunction", None)
-    return bool(is_junction and is_junction(path))
+    if is_junction is not None:
+        return bool(is_junction(path))
+    # Python 3.11 exposes reparse tags but has no os.path.isjunction.
+    try:
+        return getattr(os.lstat(path), "st_reparse_tag", 0) == 0xA0000003
+    except OSError:
+        return False
 
 
 def _is_linklike(path: str) -> bool:
@@ -1494,7 +1508,7 @@ def _replace_transactional(source: Path, target: Path, move: bool) -> None:
         _copy_or_move(source, target, move)
     except (OSError, shutil.Error):
         try:
-            if target.exists(): _remove_existing(target)
+            if os.path.lexists(filesystem_path(target)): _remove_existing(target)
             backup.rename(target)
         except OSError:
             pass
@@ -1517,7 +1531,7 @@ def transfer_items(items: list[Path], destination: Path, move: bool = False,
             replace = False
             if source.is_dir() and source_resolved in target_resolved.parents:
                 raise OSError("A folder cannot be copied or moved into itself.")
-            if target.exists():
+            if os.path.lexists(filesystem_path(target)):
                 action = resolve_conflict(source, target) if resolve_conflict else "replace"
                 if action == "cancel":
                     result.skipped.extend(items[index:])
@@ -1644,7 +1658,7 @@ def recycle_items(items: list[Path], continue_on_error: bool = True,
             try:
                 if progress:
                     progress(0, 0, item.name)
-                original = item.resolve()
+                original = Path(os.path.abspath(item))
                 target = unique_target(files_root / item.name)
                 shutil.move(str(item), str(target))
                 info = info_root / f"{target.name}.trashinfo"
@@ -1657,7 +1671,7 @@ def recycle_items(items: list[Path], continue_on_error: bool = True,
                 if progress:
                     progress(index + 1, len(items), item.name)
             except (OSError, shutil.Error) as exc:
-                if target is not None and target.exists() and not item.exists():
+                if target is not None and os.path.lexists(target) and not os.path.lexists(item):
                     try:
                         shutil.move(str(target), str(item))
                     except (OSError, shutil.Error):
@@ -1683,7 +1697,7 @@ def recycle_items(items: list[Path], continue_on_error: bool = True,
                 result.skipped.extend(items[index + 1:])
                 break
             continue
-        operation = _SHFILEOPSTRUCTW(None, 3, str(item.resolve()) + "\0\0", None,
+        operation = _SHFILEOPSTRUCTW(None, 3, os.path.abspath(item) + "\0\0", None,
                                      0x40 | 0x10 | 0x04 | 0x400, 0, None, None)
         code = shell32.SHFileOperationW(ctypes.byref(operation))
         if code == 0 and not operation.fAnyOperationsAborted:
@@ -1747,6 +1761,7 @@ import os
 import shutil
 import struct
 import time
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -1798,7 +1813,9 @@ def _register_clipboard_format(name: str) -> int:
 
 def _safe_virtual_name(value: str) -> str:
     name = value.replace("\\", "/").split("/")[-1].strip().rstrip(". ")
-    if not name or name in {".", ".."}:
+    reserved = {"CON", "PRN", "AUX", "NUL"} | {f"{prefix}{n}" for prefix in ("COM", "LPT") for n in "123456789¹²³"}
+    if (not name or name in {".", ".."} or any(ord(char) < 32 or char in '<>:"|?*' for char in name)
+            or name.split(".")[0].upper() in reserved):
         raise OSError("Outlook supplied an invalid attachment name.")
     return name
 
@@ -1948,20 +1965,39 @@ def extract_virtual_files_from_data_object(
     descriptors = _virtual_descriptors_from_object(data_object)
     content_format = _register_clipboard_format("FileContents")
     for index, descriptor in enumerate(descriptors):
-        target = destination / descriptor.name
-        if target.exists():
-            target = target.with_name(f"{target.stem} ({index + 2}){target.suffix}")
         medium = None
+        staging = target = None
         try:
+            name = _safe_virtual_name(descriptor.name)
             medium = _get_medium(data_object, content_format, index,
                                  TYMED_ISTREAM | TYMED_HGLOBAL | TYMED_FILE)
-            _write_virtual_medium(medium, target, descriptor.size)
+            fd, raw = tempfile.mkstemp(prefix=".pfc-attachment-", dir=destination)
+            os.close(fd)
+            staging = Path(raw)
+            _write_virtual_medium(medium, staging, descriptor.size)
+            if descriptor.size and staging.stat().st_size != descriptor.size:
+                raise OSError("The attachment stream is incomplete.")
+            for _attempt in range(10000):
+                candidate = unique_target(destination / name)
+                try:
+                    with candidate.open("xb"):
+                        pass
+                except FileExistsError:
+                    continue
+                target = candidate  # Only a file reserved by this operation may be cleaned up.
+                break
+            else:
+                raise OSError("Cannot reserve an attachment filename.")
+            os.replace(staging, target)
             extracted.append(target)
+            target = None
         except OSError as exc:
             failures.append((descriptor.name, str(exc)))
-            try: target.unlink(missing_ok=True)
-            except OSError: pass
         finally:
+            for owned in (staging, target):
+                if owned is not None:
+                    try: owned.unlink(missing_ok=True)
+                    except OSError: pass
             if medium is not None: _release_medium(medium)
     return extracted, failures
 
@@ -2011,10 +2047,10 @@ def set_file_clipboard(paths: list[Path], cut: bool = False) -> None:
     """Publish files in the same clipboard formats used by File Explorer."""
     if os.name != "nt":
         global _portable_paths, _portable_cut
-        _portable_paths = [path.resolve() for path in paths]
+        _portable_paths = [Path(os.path.abspath(path)) for path in paths]
         _portable_cut = cut
         return
-    resolved = [str(path.resolve()) for path in paths]
+    resolved = [os.path.abspath(path) for path in paths]
     if not resolved:
         return
     dropfiles = struct.pack("<IiiII", 20, 0, 0, 0, 1)
@@ -3032,24 +3068,40 @@ class DirectoryWatchManager:
 import os
 import subprocess
 import time
+import threading
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
 _CACHE: dict[str, tuple[float, dict[str, str]]] = {}
+_VCS_CACHE_LOCK = threading.Lock()
+_VCS_CACHE_EPOCH = 0
 _CACHE_SECONDS = 3.0
+_VCS_CACHE_LIMIT = 128
 _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
 
 
 def invalidate_vcs_cache():
     """A client dialog finished; the next overlay request must use fresh metadata."""
-    _CACHE.clear()
+    global _VCS_CACHE_EPOCH
+    with _VCS_CACHE_LOCK:
+        _VCS_CACHE_EPOCH += 1
+        _CACHE.clear()
 
 
 def _run_options() -> dict:
     """Keep background VCS commands invisible in Windows GUI launches."""
-    return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+    env = os.environ.copy()
+    env.update(GIT_TERMINAL_PROMPT="0", GIT_OPTIONAL_LOCKS="0")
+    return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0), "env": env}
+
+
+def _overlay_cli(kind: str) -> str:
+    executable = vcs_cli(kind)
+    if executable is None:
+        raise OSError("Version control command-line tool is unavailable.")
+    return executable
 
 
 def _merge(statuses: dict[str, str], path: Path, status: str, root: Path) -> None:
@@ -3094,7 +3146,7 @@ def _git_root_summary(root: Path) -> str | None:
     """Return one overlay state for a repository root shown from its parent."""
     try:
         result = subprocess.run(
-            ["git", "-C", str(root), "status", "--porcelain=v1", "--branch", "-z",
+            [_overlay_cli("git"), "-C", str(root), "status", "--porcelain=v1", "--branch", "-z",
              "--untracked-files=all"], capture_output=True, timeout=4, **_run_options())
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
         return None
@@ -3124,11 +3176,14 @@ def _git_root_summary(root: Path) -> str | None:
 def _child_repository_statuses(folder: Path) -> dict[str, str]:
     """Expose direct child repository roots without recursively scanning folders."""
     statuses: dict[str, str] = {}
+    deadline = time.monotonic() + 8.0
     try:
         children = tuple(folder.iterdir())
     except OSError:
         return statuses
     for child in children:
+        if time.monotonic() >= deadline:
+            break  # Unqueried repositories remain unknown, not clean.
         try:
             if not child.is_dir():
                 continue
@@ -3136,7 +3191,7 @@ def _child_repository_statuses(folder: Path) -> dict[str, str]:
                 status = _git_root_summary(child)
             elif (child / ".svn").exists():
                 nested = _svn_status(child)
-                status = status_for(nested or {}, child) or "clean"
+                status = status_for(nested or {}, child)
             else:
                 continue
             if status is not None:
@@ -3151,13 +3206,13 @@ def _git_status(folder: Path) -> dict[str, str] | None:
     if root is None:
         return None
     relative = os.path.relpath(folder, root)
-    command = ["git", "-C", str(root), "status", "--porcelain=v1", "-z",
+    command = [_overlay_cli("git"), "-C", str(root), "status", "--porcelain=v1", "-z",
                "--untracked-files=all", "--", relative]
     result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
     if result.returncode:
         return {}
     statuses: dict[str, str] = {}
-    tracked = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", relative],
+    tracked = subprocess.run([_overlay_cli("git"), "-C", str(root), "ls-files", "-z", "--", relative],
                              capture_output=True, timeout=4, **_run_options())
     if tracked.returncode == 0:
         for raw_path in tracked.stdout.split(b"\0"):
@@ -3185,7 +3240,7 @@ def _svn_status(folder: Path) -> dict[str, str] | None:
     if root is None:
         return None
     try:
-        result = subprocess.run(["svn", "status", "-v", "--xml", str(folder)],
+        result = subprocess.run([_overlay_cli("svn"), "status", "-v", "--xml", str(folder)],
                                 capture_output=True, text=True, errors="replace", timeout=4,
                                 **_run_options())
     except (OSError, subprocess.TimeoutExpired):
@@ -3215,7 +3270,9 @@ def folder_statuses(folder: Path) -> dict[str, str]:
     if is_metadata_path(folder):
         return {}
     key = os.path.normcase(str(folder.resolve()))
-    cached = _CACHE.get(key)
+    with _VCS_CACHE_LOCK:
+        cached = _CACHE.get(key)
+        epoch = _VCS_CACHE_EPOCH
     now = time.monotonic()
     if cached and now - cached[0] < _CACHE_SECONDS:
         return cached[1]
@@ -3223,8 +3280,6 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         statuses = _git_status(folder)
         if statuses is None:
             statuses = _svn_status(folder)
-        if statuses is None:
-            statuses = _child_repository_statuses(folder)
         value = statuses or {}
         # A directly contained repository remains its own status boundary even
         # when the folder being viewed is itself inside another work tree.
@@ -3233,7 +3288,16 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         value.update(_child_repository_statuses(folder))
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
         value = {}
-    _CACHE[key] = (now, value)
+    with _VCS_CACHE_LOCK:
+        if epoch == _VCS_CACHE_EPOCH:
+            completed = time.monotonic()
+            for old_key, (timestamp, _) in list(_CACHE.items()):
+                if completed - timestamp >= _CACHE_SECONDS:
+                    del _CACHE[old_key]
+            _CACHE[key] = (completed, value)
+            while len(_CACHE) > _VCS_CACHE_LIMIT:
+                oldest = min(_CACHE, key=lambda item: _CACHE[item][0])
+                del _CACHE[oldest]
     return value
 
 
@@ -15593,6 +15657,8 @@ import queue
 import threading
 import time
 import zipfile
+import zlib
+import math
 from datetime import datetime, timedelta
 from pathlib import Path
 import tkinter as tk
@@ -15648,20 +15714,32 @@ def content_matches(path: Path, needle: str, case_sensitive: bool) -> bool:
     try:
         if path.suffix.casefold() in OFFICE_XML and zipfile.is_zipfile(path):
             with zipfile.ZipFile(path) as archive:
-                chunks = []
+                chunks, remaining = [], CONTENT_LIMIT
                 for info in archive.infolist():
-                    if info.filename.endswith(".xml") and sum(map(len, chunks)) < CONTENT_LIMIT:
-                        chunks.append(archive.read(info)[:CONTENT_LIMIT])
-                data = b" ".join(chunks)[:CONTENT_LIMIT]
+                    if remaining <= 0:
+                        break
+                    if info.filename.endswith(".xml"):
+                        if chunks:
+                            remaining -= 1
+                        if remaining <= 0:
+                            break
+                        with archive.open(info) as stream:
+                            chunk = stream.read(remaining)
+                        chunks.append(chunk)
+                        remaining -= len(chunk)
+                data = b" ".join(chunks)
         else:
             with path.open("rb") as stream: data = stream.read(CONTENT_LIMIT)
-        if b"\x00" in data[:4096] and not data.startswith((b"\xff\xfe", b"\xfe\xff")): return False
-        if data.startswith((b"\xff\xfe", b"\xfe\xff")): text = data.decode("utf-16", errors="replace")
+        utf32 = data.startswith((b"\xff\xfe\x00\x00", b"\x00\x00\xfe\xff"))
+        utf16 = data.startswith((b"\xff\xfe", b"\xfe\xff"))
+        if b"\x00" in data[:4096] and not (utf32 or utf16): return False
+        if utf32: text = data.decode("utf-32", errors="replace")
+        elif utf16: text = data.decode("utf-16", errors="replace")
         else:
             try: text = data.decode("utf-8-sig")
             except UnicodeDecodeError: text = data.decode("cp1252", errors="replace")
         return target in (text if case_sensitive else text.casefold())
-    except (OSError, zipfile.BadZipFile):
+    except (OSError, zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError, zlib.error):
         return False
 
 
@@ -15956,20 +16034,34 @@ class SearchWindow(tk.Toplevel):
 
     def criteria(self):
         def number(value, factor=1):
-            try: return float(value) * factor if value.strip() else None
-            except ValueError: return None
+            if not value.strip():
+                return None
+            try:
+                result = float(value) * factor
+            except ValueError as exc:
+                raise ValueError("Enter a finite, non-negative number.") from exc
+            if not math.isfinite(result) or result < 0:
+                raise ValueError("Enter a finite, non-negative number.")
+            return result
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
         max_depth = None if depth == "All" else (0 if depth == "Current" else int(depth))
         days = number(self.days_var.get())
+        minimum, maximum = number(self.min_size_var.get(), 1024), number(self.max_size_var.get(), 1024)
+        if minimum is not None and maximum is not None and minimum > maximum:
+            raise ValueError("Minimum size cannot exceed maximum size.")
         return dict(root=Path(self.path_var.get().strip().strip('"')), masks=self.mask_var.get(), content=self.content_var.get(),
                     case=self.case_var.get(), max_depth=max_depth, files=self.files_var.get(), folders=self.folders_var.get(),
-                    min_size=number(self.min_size_var.get(), 1024), max_size=number(self.max_size_var.get(), 1024),
+                    min_size=minimum, max_size=maximum,
                     since=datetime.now() - timedelta(days=days) if days is not None else None)
 
     def start(self):
         if getattr(self, '_reset_job', None) is not None: return
         if self.worker and self.worker.is_alive(): return
-        criteria = self.criteria()
+        try:
+            criteria = self.criteria()
+        except (ValueError, OverflowError) as exc:
+            messagebox.showerror(tr("Search"), tr(str(exc)), parent=self)
+            return
         if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self._reset_column_measurements()
@@ -15983,7 +16075,7 @@ class SearchWindow(tk.Toplevel):
         count = 0; processed_folders = 0; discovered_folders = 1
         try:
             for current, dirs, files in os.walk(c["root"]):
-                if self.cancel_event.is_set(): break
+                if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
                 depth = len(Path(current).relative_to(c["root"]).parts)
                 folder_names = list(dirs)
                 if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
@@ -16109,11 +16201,12 @@ class SearchWindow(tk.Toplevel):
                            ("files", str(self.files_var.get()).lower()), ("folders", str(self.folders_var.get()).lower()),
                            ("min_size_kb", self.min_size_var.get()), ("max_size_kb", self.max_size_var.get()),
                            ("modified_days", self.days_var.get())):
-            self.config_data.set("search", key, value)
+            self.config_data.set("search", key, value.replace("%", "%%"))
         self.save_config(); self.destroy()
 
 
 import re
+import os
 import uuid
 from pathlib import Path
 import tkinter as tk
@@ -16143,24 +16236,33 @@ def render_rename(path: Path, mask: str, find: str = "", replace: str = "",
 
 
 def validate_rename_plan(paths: list[Path], names: list[str]):
+    if len(paths) != len(names):
+        raise ValueError("Each selected item requires exactly one new name.")
+    def invalid(name):
+        reserved = {"CON", "PRN", "AUX", "NUL"} | {f"{p}{n}" for p in ("COM", "LPT") for n in "123456789¹²³"}
+        return (not name or name in {".", ".."} or
+                any(c in INVALID_NAME_CHARS or ord(c) < 32 for c in name) or
+                name.split(".")[0].upper() in reserved)
     selected = {str(path).casefold() for path in paths}
     duplicate_counts = {}
     for path, name in zip(paths, names):
+        if invalid(name):
+            continue
         key = str(path.with_name(name)).casefold()
         duplicate_counts[key] = duplicate_counts.get(key, 0) + 1
     result = []
     for path, name in zip(paths, names):
-        target = path.with_name(name) if name else path
+        target = path if invalid(name) else path.with_name(name)
         error = ""
         if not name:
             error = "Empty name"
-        elif name in {".", ".."} or any(char in INVALID_NAME_CHARS for char in name):
+        elif invalid(name):
             error = "Invalid name"
         elif name.endswith((" ", ".")):
             error = "Trailing space/dot"
         elif duplicate_counts.get(str(target).casefold(), 0) > 1:
             error = "Duplicate target"
-        elif target.exists() and str(target).casefold() not in selected and target != path:
+        elif os.path.lexists(target) and str(target).casefold() not in selected and target != path:
             error = "Target exists"
         elif target == path:
             error = "Unchanged"
@@ -16170,6 +16272,12 @@ def validate_rename_plan(paths: list[Path], names: list[str]):
 
 def execute_rename_pairs(pairs: list[tuple[Path, Path]]) -> list[tuple[Path, Path]]:
     """Rename as one batch via temporary names; restore originals if any step fails."""
+    if any(source.parent != target.parent for source, target in pairs):
+        raise OSError("Batch rename cannot change the parent folder.")
+    plan = validate_rename_plan([source for source, _ in pairs], [target.name for _, target in pairs])
+    errors = [error for _, _, error in plan if error and error != "Unchanged"]
+    if errors:
+        raise OSError(errors[0])
     records = []
     try:
         for source, target in pairs:
@@ -16177,13 +16285,15 @@ def execute_rename_pairs(pairs: list[tuple[Path, Path]]) -> list[tuple[Path, Pat
             source.rename(temporary)
             records.append({"source": source, "target": target, "current": temporary})
         for record in records:
+            if os.path.lexists(record["target"]):
+                raise OSError("A rename target appeared after the preview.")
             record["current"].rename(record["target"])
             record["current"] = record["target"]
     except OSError:
         rollback = []
         for record in records:
             current = record["current"]
-            if current.exists():
+            if os.path.lexists(current):
                 temporary = current.with_name(f".{current.name}.pfc-rollback-{uuid.uuid4().hex}")
                 try:
                     current.rename(temporary); rollback.append((temporary, record["source"]))
@@ -16191,6 +16301,8 @@ def execute_rename_pairs(pairs: list[tuple[Path, Path]]) -> list[tuple[Path, Pat
                     pass
         for temporary, original in rollback:
             try:
+                if os.path.lexists(original):
+                    continue  # Preserve an externally created file and the recovery copy.
                 temporary.rename(original)
             except OSError:
                 pass
@@ -16353,6 +16465,8 @@ import subprocess
 import tempfile
 import threading
 import zipfile
+import hashlib
+import stat
 from pathlib import Path, PurePosixPath
 from typing import Callable
 
@@ -16416,7 +16530,8 @@ def archive_item_counts(path: Path) -> tuple[int, int]:
     executable = _seven_zip_executable()
     if executable is None:
         raise OSError("7z listing requires the 7-Zip command-line tool (7z or 7zz).")
-    listing = subprocess.run([executable, "l", "-slt", str(path)], capture_output=True,
+    listing = subprocess.run([executable, "l", "-slt", "--", str(path)], capture_output=True,
+                             stdin=subprocess.DEVNULL, timeout=30,
                              text=True, errors="replace", **_hidden_process_options())
     if listing.returncode:
         raise OSError(listing.stderr.strip() or listing.stdout.strip() or
@@ -16441,35 +16556,83 @@ def create_zip_archive(items, target: Path,
     paths = [Path(item) for item in items]
     if not paths:
         raise OSError("No items are selected for compression.")
+    target = Path(target).absolute()
+    for item in paths:
+        if not item.exists():
+            raise OSError("A selected compression item no longer exists.")
+        if (target.resolve() == item.resolve() or
+                (item.is_dir() and item.resolve() in target.resolve().parents) or
+                (target.exists() and item.is_file() and os.path.samefile(item, target))):
+            raise OSError("The output archive cannot replace or be inside a selected input.")
+    expected = _archive_destination_state(target)
     target.parent.mkdir(parents=True, exist_ok=True)
-    files = [child for item in paths for child in
-             ([item] if item.is_file() else [p for p in item.rglob("*") if p.is_file()])]
+    entries = [(item, sorted(item.rglob("*")) if item.is_dir() else []) for item in paths]
+    records = []
+    for item, descendants in entries:
+        records.append((item.name, 0, item.is_dir(), 0))
+        for child in descendants:
+            records.append(((Path(item.name) / child.relative_to(item)).as_posix(), 0, child.is_dir(), 0))
+    _validate_archive_records(records)
+    files = [child for item, descendants in entries for child in
+             ([item] if item.is_file() else [p for p in descendants if p.is_file()])]
     total = max(1, sum(path.stat().st_size for path in files))
     completed = 0
-    with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for item in paths:
-            if item.is_dir():
-                descendants = sorted(item.rglob("*"))
-                if not descendants:
-                    archive.writestr(item.name.rstrip("/") + "/", b"")
-                for child in descendants:
-                    relative = Path(item.name) / child.relative_to(item)
-                    if child.is_dir():
-                        if not any(child.iterdir()):
-                            archive.writestr(relative.as_posix().rstrip("/") + "/", b"")
-                    else:
-                        archive.write(child, relative.as_posix())
-                        completed += child.stat().st_size
-                        if progress:
-                            progress(completed, total, child.name)
-            else:
-                archive.write(item, item.name)
-                completed += item.stat().st_size
-                if progress:
-                    progress(completed, total, item.name)
+    fd, raw = tempfile.mkstemp(prefix=".pfc-zip-", dir=target.parent)
+    os.close(fd)
+    staging = Path(raw)
+    try:
+        with zipfile.ZipFile(staging, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for item, descendants in entries:
+                if item.is_dir():
+                    if not descendants:
+                        archive.writestr(item.name.rstrip("/") + "/", b"")
+                    for child in descendants:
+                        relative = Path(item.name) / child.relative_to(item)
+                        if child.is_dir():
+                            if not any(child.iterdir()):
+                                archive.writestr(relative.as_posix().rstrip("/") + "/", b"")
+                        else:
+                            archive.write(child, relative.as_posix())
+                            completed += child.stat().st_size
+                            if progress:
+                                progress(completed, total, child.name)
+                else:
+                    archive.write(item, item.name)
+                    completed += item.stat().st_size
+                    if progress:
+                        progress(completed, total, item.name)
+        with staging.open("rb+") as stream:
+            os.fsync(stream.fileno())
+        if _archive_destination_state(target) != expected:
+            raise OSError("The output archive changed during compression; it was not overwritten.")
+        os.replace(staging, target)
+    finally:
+        staging.unlink(missing_ok=True)
     if progress:
         progress(total, total, target.name)
     return target
+
+
+def _archive_destination_state(path: Path):
+    if not os.path.lexists(path):
+        return None
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink > 1:
+        raise OSError("An archive output must be a regular, unlinked file.")
+    return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns
+
+
+def _archive_fingerprint(path: Path):
+    state = _archive_destination_state(path)
+    if state is None:
+        raise OSError("The original archive no longer exists.")
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    if _archive_destination_state(path) != state:
+        raise OSError("The archive changed while it was being read.")
+    return state, digest.digest()
 
 
 def extract_archive_to(archive_path: Path, destination: Path,
@@ -16480,67 +16643,74 @@ def extract_archive_to(archive_path: Path, destination: Path,
     if archive_path.suffix.casefold() == ".zip":
         with zipfile.ZipFile(archive_path) as archive:
             members = archive.infolist()
+            _validate_archive_records([(i.filename, i.file_size, i.is_dir(), i.external_attr >> 16)
+                                       for i in members])
+            targets = [_safe_destination(destination.resolve(), info.filename) for info in members]
+            if any(target == archive_path for target in targets):
+                raise OSError("Extraction cannot replace the archive being read.")
             total = max(1, sum(info.file_size for info in members if not info.is_dir()))
             completed = 0
-            for info in members:
-                target = _safe_destination(destination.resolve(), info.filename)
+            for info, target in zip(members, targets):
                 if info.is_dir():
                     _mkdir(target)
                     continue
                 _mkdir(target.parent)
-                with archive.open(info) as source, open(filesystem_path(target), "wb") as output:
-                    while True:
-                        chunk = source.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        output.write(chunk)
-                        completed += len(chunk)
-                        if progress:
-                            progress(completed, total, Path(info.filename).name)
+                fd, raw = tempfile.mkstemp(prefix=".pfc-extract-", dir=filesystem_path(target.parent))
+                staging = Path(raw)
+                try:
+                    with os.fdopen(fd, "wb") as output, archive.open(info) as source:
+                        while True:
+                            chunk = source.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            output.write(chunk)
+                            completed += len(chunk)
+                            if progress:
+                                progress(completed, total, Path(info.filename).name)
+                        output.flush()
+                        os.fsync(output.fileno())
+                    os.replace(staging, filesystem_path(target))
+                finally:
+                    staging.unlink(missing_ok=True)
         if progress:
             progress(total, total, archive_path.name)
         return destination
-    executable = _seven_zip_executable()
-    if executable is None:
-        raise OSError("7z extraction requires the 7-Zip command-line tool (7z or 7zz).")
-    listing = subprocess.run([executable, "l", "-slt", str(archive_path)],
-                             capture_output=True, text=True, errors="replace",
-                             **_hidden_process_options())
-    if listing.returncode:
-        raise OSError(listing.stderr.strip() or listing.stdout.strip() or "Unable to read 7z archive.")
-    members = [line[7:] for line in listing.stdout.splitlines() if line.startswith("Path = ")][1:]
-    for member in members:
-        _safe_destination(destination.resolve(), member)
-    process = subprocess.Popen(
-        [executable, "x", "-y", "-bso0", "-bse1", "-bsp1",
-         f"-o{filesystem_path(destination)}", str(archive_path)],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace",
-        **_hidden_process_options())
-    output = ""
-    assert process.stdout is not None
-    while True:
-        character = process.stdout.read(1)
-        if not character:
-            break
-        output = (output + character)[-200:]
-        if character in {"%", "\r", "\n"}:
-            import re
-            matches = re.findall(r"(\d{1,3})%", output)
-            if matches and progress:
-                percent = min(100, int(matches[-1]))
-                progress(percent, 100, archive_path.name)
-    _stdout, stderr = process.communicate()
-    if process.returncode:
-        raise OSError(stderr.strip() or output.strip() or "7z extraction failed.")
-    if progress:
-        progress(100, 100, archive_path.name)
-    return destination
+    # External extractors operate only inside an owned workspace. Publication
+    # uses the same validated destinations and per-file staging as ZIP.
+    session = ArchiveSession(archive_path, progress=progress)
+    try:
+        children = sorted(session.root.rglob("*"))
+        targets = [(source, _safe_destination(destination.resolve(), source.relative_to(session.root).as_posix()))
+                   for source in children]
+        if any(target == archive_path for _, target in targets):
+            raise OSError("Extraction cannot replace the archive being read.")
+        for source, target in targets:
+            if source.is_dir():
+                _mkdir(target)
+            else:
+                _mkdir(target.parent)
+                fd, raw = tempfile.mkstemp(prefix=".pfc-extract-", dir=filesystem_path(target.parent))
+                os.close(fd)
+                staging = Path(raw)
+                try:
+                    shutil.copyfile(source, staging)
+                    os.replace(staging, filesystem_path(target))
+                finally:
+                    staging.unlink(missing_ok=True)
+        return destination
+    finally:
+        session.close()
 
 
 def _seven_zip_executable() -> str | None:
     candidates = ("7z", "7zz", "7za")
     for name in candidates:
-        executable = shutil.which(name)
+        if os.name == "nt":
+            executable = next((found for entry in os.environ.get("PATH", "").split(os.pathsep)
+                               if entry and Path(entry).is_absolute()
+                               for found in [shutil.which(str(Path(entry) / (name + ".exe")))] if found), None)
+        else:
+            executable = shutil.which(name)
         if executable:
             return executable
     if os.name == "nt":
@@ -16551,14 +16721,66 @@ def _seven_zip_executable() -> str | None:
     return None
 
 
-def _safe_destination(root: Path, member_name: str) -> Path:
+def _safe_member_parts(member_name: str):
     member = PurePosixPath(member_name.replace("\\", "/"))
-    if member.is_absolute() or ".." in member.parts:
+    reserved = {"CON", "PRN", "AUX", "NUL"} | {f"{p}{n}" for p in ("COM", "LPT") for n in "123456789¹²³"}
+    if (member.is_absolute() or ".." in member.parts or not member.parts or
+            any(part.endswith((".", " ")) or part.split(".")[0].upper() in reserved or
+                any(ord(c) < 32 or c in '<>:"|?*' for c in part) for part in member.parts)):
         raise OSError(f"Unsafe archive item: {member_name}")
-    destination = root.joinpath(*member.parts).resolve()
+    return member.parts
+
+
+def _safe_destination(root: Path, member_name: str) -> Path:
+    destination = root.joinpath(*_safe_member_parts(member_name)).resolve()
     if destination != root and root not in destination.parents:
         raise OSError(f"Unsafe archive item: {member_name}")
     return destination
+
+
+def _validate_archive_records(records) -> None:
+    names, files = set(), set()
+    for name, size, directory, mode in records:
+        _safe_member_parts(name)
+        if size < 0 or stat.S_IFMT(mode) not in (0, stat.S_IFREG, stat.S_IFDIR):
+            raise OSError("Archive contains links or special files.")
+        key = PurePosixPath(name.replace("\\", "/")).as_posix().rstrip("/").casefold()
+        if key in names:
+            raise OSError("Duplicate or case-colliding archive member.")
+        names.add(key)
+        if not directory:
+            files.add(key)
+    for name in names:
+        if any(parent.as_posix().casefold() in files for parent in PurePosixPath(name).parents if str(parent) != "."):
+            raise OSError("Archive contains a file/folder path collision.")
+
+
+def _validated_seven_zip_members(path: Path, executable: str) -> None:
+    try:
+        listing = subprocess.run([executable, "l", "-slt", "--", str(path)], stdin=subprocess.DEVNULL,
+                                 capture_output=True, text=True, errors="replace", timeout=30,
+                                 **_hidden_process_options())
+    except subprocess.TimeoutExpired as exc:
+        raise OSError("Archive listing timed out.") from exc
+    if listing.returncode:
+        raise OSError("Cannot list this archive; encrypted or unsupported archives cannot be opened.")
+    body = listing.stdout.partition("----------")[2]
+    if not body:
+        raise OSError("Cannot validate the archive member listing.")
+    records = []
+    for block in body.replace("\r\n", "\n").split("\n\n"):
+        fields = dict(line.split(" = ", 1) for line in block.splitlines() if " = " in line)
+        if "Path" not in fields:
+            continue
+        if (fields.get("Encrypted") == "+" or fields.get("Symbolic Link") or
+                fields.get("Hard Link") or "Reparse" in fields.get("Attributes", "")):
+            raise OSError("Archive contains encryption or links.")
+        try:
+            size = int(fields.get("Size", "0"))
+        except ValueError as exc:
+            raise OSError("Invalid archive member size.") from exc
+        records.append((fields["Path"], size, fields.get("Folder") == "+" or "D" in fields.get("Attributes", ""), 0))
+    _validate_archive_records(records)
 
 
 class ArchiveSession:
@@ -16567,7 +16789,10 @@ class ArchiveSession:
     def __init__(self, archive_path: Path,
                  cancel_event: threading.Event | None = None,
                  progress: ProgressCallback | None = None) -> None:
-        self.archive_path = archive_path.expanduser().resolve()
+        selected = archive_path.expanduser().absolute()
+        if selected.is_symlink():
+            raise OSError("Linked archives cannot be edited in place.")
+        self.archive_path = selected.resolve()
         self.cancel_event = cancel_event
         self.progress = progress
         if not is_browsable_archive(self.archive_path):
@@ -16575,7 +16800,9 @@ class ArchiveSession:
         self._temporary = tempfile.TemporaryDirectory(prefix="pfc-archive-")
         self.root = Path(self._temporary.name).resolve()
         try:
+            self._original_fingerprint = _archive_fingerprint(self.archive_path)
             self._extract()
+            self._check_original()
         except Exception:
             self._temporary.cleanup()
             raise
@@ -16602,6 +16829,8 @@ class ArchiveSession:
         if self.kind == ".zip":
             with zipfile.ZipFile(self.archive_path) as archive:
                 members = archive.infolist()
+                _validate_archive_records([(i.filename, i.file_size, i.is_dir(), i.external_attr >> 16)
+                                           for i in members])
                 total = max(1, sum(info.file_size for info in members if not info.is_dir()))
                 completed = 0
                 for info in members:
@@ -16627,34 +16856,33 @@ class ArchiveSession:
         executable = _seven_zip_executable()
         if executable is None:
             raise OSError("7z browsing requires the 7-Zip command-line tool (7z or 7zz).")
+        _validated_seven_zip_members(self.archive_path, executable)
+        self._check_cancelled()
         process = subprocess.Popen(
             [executable, "x", "-y", "-bso0", "-bsp0", "-bse1",
              f"-o{filesystem_path(self.root)}", str(self.archive_path)],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace",
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace",
             **_hidden_process_options())
         started = __import__("time").monotonic()
-        last_percent = 0
-        if self.progress:
-            self.progress(1, 100, self.archive_path.name)
-        while True:
-            try:
-                stdout, stderr = process.communicate(timeout=0.15)
-                break
-            except subprocess.TimeoutExpired:
-                if self.progress:
-                    elapsed = __import__("time").monotonic() - started
-                    percent = min(90, 1 + int(elapsed * 2))
-                    if percent > last_percent:
-                        last_percent = percent
-                        self.progress(percent, 100, self.archive_path.name)
-                if self.cancel_event is not None and self.cancel_event.is_set():
-                    process.terminate()
-                    try:
-                        process.communicate(timeout=2)
-                    except subprocess.TimeoutExpired:
-                        process.kill()
-                        process.communicate()
-                    raise ArchiveCancelled("Archive opening cancelled.")
+        try:
+            if self.progress:
+                self.progress(0, 0, self.archive_path.name)
+            while True:
+                try:
+                    stdout, stderr = process.communicate(timeout=0.15)
+                    break
+                except subprocess.TimeoutExpired:
+                    if ((self.cancel_event is not None and self.cancel_event.is_set()) or
+                            __import__("time").monotonic() - started > 180):
+                        raise ArchiveCancelled("Archive opening cancelled or timed out.")
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.communicate(timeout=2)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.communicate()
         if process.returncode:
             raise OSError(stderr.strip() or stdout.strip() or "7z extraction failed.")
         if self.progress:
@@ -16665,6 +16893,23 @@ class ArchiveSession:
             raise ArchiveCancelled("Archive opening cancelled.")
 
     def commit(self) -> None:
+        self._check_original()
+        # A draft is owned temporary storage, never a gateway to external links.
+        entries, pending = [], [self.root]
+        while pending:
+            directory = pending.pop()
+            with os.scandir(directory) as children:
+                for child in children:
+                    info = child.stat(follow_symlinks=False)
+                    if (child.is_symlink() or getattr(info, "st_file_attributes", 0) & 0x400 or
+                            (stat.S_ISREG(info.st_mode) and info.st_nlink > 1) or
+                            not (stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode))):
+                        raise OSError("Archive drafts cannot contain links or special files.")
+                    path = Path(child.path)
+                    entries.append(path)
+                    if stat.S_ISDIR(info.st_mode):
+                        pending.append(path)
+        _validate_archive_records([(path.relative_to(self.root).as_posix(), 0, path.is_dir(), 0) for path in entries])
         suffix = self.archive_path.suffix
         descriptor, raw_temporary = tempfile.mkstemp(
             prefix=f".{self.archive_path.stem}.pfc-", suffix=suffix,
@@ -16675,7 +16920,7 @@ class ArchiveSession:
         try:
             if self.kind == ".zip":
                 with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-                    for path in sorted(self.root.rglob("*")):
+                    for path in sorted(entries):
                         relative = path.relative_to(self.root).as_posix()
                         if path.is_dir():
                             if not any(path.iterdir()):
@@ -16688,12 +16933,19 @@ class ArchiveSession:
                     raise OSError("7z writing requires the 7-Zip command-line tool (7z or 7zz).")
                 result = subprocess.run(
                     [executable, "a", "-t7z", "-mx=5", str(temporary), "."],
-                    cwd=self.root, capture_output=True, text=True, errors="replace")
+                    cwd=self.root, stdin=subprocess.DEVNULL, timeout=180,
+                    capture_output=True, text=True, errors="replace", **_hidden_process_options())
                 if result.returncode:
                     raise OSError(result.stderr.strip() or result.stdout.strip() or "7z update failed.")
+            self._check_original()
             os.replace(temporary, self.archive_path)
+            self._original_fingerprint = _archive_fingerprint(self.archive_path)
         finally:
             temporary.unlink(missing_ok=True)
+
+    def _check_original(self) -> None:
+        if _archive_fingerprint(self.archive_path) != self._original_fingerprint:
+            raise OSError("The original archive changed outside PFC. The draft was preserved; reopen before saving.")
 
     def close(self) -> None:
         self._temporary.cleanup()
@@ -16721,9 +16973,14 @@ class SpaceNode:
 def scan_space(path: Path, cancel_event: threading.Event | None = None) -> SpaceNode:
     """Return a best-effort, symlink-safe disk usage tree."""
     cancel_event = cancel_event or threading.Event()
-    path = path.expanduser().resolve()
+    path = path.expanduser().absolute()
     if cancel_event.is_set():
         raise InterruptedError
+    if _is_linklike(str(path)):
+        try:
+            return SpaceNode(path, path.lstat().st_size, False)
+        except OSError:
+            return SpaceNode(path, 0, False)
     try:
         is_dir = path.is_dir()
     except OSError:
@@ -16743,7 +17000,7 @@ def scan_space(path: Path, cancel_event: threading.Event | None = None) -> Space
             raise InterruptedError
         child = Path(entry.path)
         try:
-            if entry.is_symlink():
+            if _is_linklike(entry.path):
                 size = entry.stat(follow_symlinks=False).st_size
                 children.append(SpaceNode(child, size, False))
             elif entry.is_dir(follow_symlinks=False):
@@ -17234,13 +17491,13 @@ class ShellDataObject:
     def __init__(self, paths) -> None:
         if os.name != "nt":
             raise OSError("Windows Shell drag-and-drop is available only on Windows.")
-        self.paths = [Path(value).resolve() for value in paths]
+        self.paths = [Path(os.path.abspath(value)) for value in paths]
         if not self.paths:
             raise OSError("No files are selected for dragging.")
         parents = {os.path.normcase(str(path.parent)) for path in self.paths}
         if len(parents) != 1:
             raise OSError("Shell drag items must come from the same folder.")
-        if any(not path.exists() for path in self.paths):
+        if any(not os.path.lexists(path) for path in self.paths):
             raise OSError("A selected drag item no longer exists.")
         self.pointer = 0
         self._pidls: list[int] = []
@@ -17708,10 +17965,10 @@ IID_ICONTEXTMENU = _GUID(
 
 def context_menu_paths(paths) -> list[Path]:
     """Validate that selected local items can share one Shell context menu."""
-    items = [Path(path).resolve() for path in paths]
+    items = [Path(os.path.abspath(path)) for path in paths]
     if not items:
         raise OSError("Select one or more local files or folders first.")
-    if any(not path.exists() for path in items):
+    if any(not os.path.lexists(path) for path in items):
         raise OSError("A selected file or folder no longer exists.")
     parents = {os.path.normcase(str(path.parent)) for path in items}
     if len(parents) != 1:
@@ -17840,7 +18097,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.20"
+__version__ = "0.18.21"
 
 
 PANEL_SECTIONS = ("left", "right", "panel3", "panel4")
@@ -17923,8 +18180,14 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/07"
+BUILD_DATE = "2026/10/08"
 VERSION_HISTORY = (
+    ("v0.18.21", "2026/10/08", (
+        "Fixed: Link and junction operations preserve the selected item, including deletion on Python 3.11.",
+        "Fixed: Attachment collisions, interrupted archives and stale archive drafts no longer overwrite existing data silently.",
+        "Fixed: Concurrent settings saves and invalid rename or search inputs are handled safely.",
+        "Improved: Version control queries are bounded, discard stale results and never mark a failed query as clean.",
+    )),
     ("v0.18.20", "2026/10/07", (
         "Fixed: Unsupported platform-specific Preview tab shortcuts no longer prevent files from opening on Windows.",
     )),
@@ -18348,15 +18611,17 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
 
 
 def write_config_atomic(config: configparser.ConfigParser, path: Path) -> None:
-    temporary = path.with_suffix(path.suffix + ".tmp")
+    descriptor, name = tempfile.mkstemp(prefix=".pfc-config-", suffix=".tmp", dir=path.parent)
+    temporary = Path(name)
     try:
-        with temporary.open("w", encoding="utf-8") as stream:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
             config.write(stream)
+            stream.flush()
+            os.fsync(stream.fileno())
         temporary.replace(path)
-    except OSError:
+    finally:
         try: temporary.unlink(missing_ok=True)
         except OSError: pass
-        raise
 
 
 def config_json(value, **kwargs) -> str:
@@ -18740,6 +19005,7 @@ class FilePane(ttk.Frame):
         self._vcs_requested_at = 0.0
         self._vcs_generation = 0
         self._vcs_loading = False
+        self._vcs_inflight = None
         self._vcs_results = queue.Queue()
 
         # Keep the command target visible even when the panel has no selected row.
@@ -19082,7 +19348,9 @@ class FilePane(ttk.Frame):
             self._vcs_path = None; self._vcs_statuses = {}
             return
         now, path = time.monotonic(), self.path
-        if self._vcs_loading and self._vcs_path == path:
+        if self._vcs_path != path:
+            self._vcs_statuses = {}
+        if self._vcs_inflight is not None:
             return
         if self._vcs_path == path and now - self._vcs_requested_at < 10.0:
             return
@@ -19092,20 +19360,35 @@ class FilePane(ttk.Frame):
         self._vcs_generation += 1
         self._vcs_loading = True
         generation = self._vcs_generation
+        self._vcs_inflight = generation
         def load():
-            self._vcs_results.put((generation, path, folder_statuses(path)))
-        threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
+            try:
+                statuses = folder_statuses(path)
+            except Exception:
+                statuses = {}
+            self._vcs_results.put((generation, path, statuses))
+        try:
+            threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
+        except RuntimeError:
+            self._vcs_inflight = None
+            self._vcs_loading = False
+            self._vcs_path = None
 
     def _poll_vcs_results(self) -> None:
         try:
             while True:
                 generation, path, statuses = self._vcs_results.get_nowait()
-                if generation == self._vcs_generation and path == self.path:
+                if generation == self._vcs_inflight:
+                    self._vcs_inflight = None
                     self._vcs_loading = False
+                if (generation == self._vcs_generation and path == self.path and
+                        self.archive_session is None and self.winfo_toplevel().vcs_overlay_var.get()):
                     previous = self._vcs_statuses
                     if statuses != previous:
                         self._vcs_statuses = statuses
                         self._apply_vcs_icons(previous)
+                else:
+                    self._request_vcs_statuses()
         except queue.Empty:
             pass
         try:
@@ -23718,6 +24001,9 @@ class Commander(tk.Tk):
             if not name:
                 return None
             try:
+                plan = validate_rename_plan([source.path / ".pfc-new-folder"], [name])
+                if plan[0][2] and plan[0][2] != "Unchanged":
+                    raise OSError(plan[0][2])
                 created = source.path / name
                 created.mkdir()
                 if (source.quick_filter_var.get().strip() and
@@ -23743,8 +24029,10 @@ class Commander(tk.Tk):
             if not name or name == original.name:
                 return original
             try:
-                renamed = original.with_name(name)
-                original.rename(renamed)
+                _, renamed, error = validate_rename_plan([original], [name])[0]
+                if error:
+                    raise OSError(error)
+                execute_rename_pairs([(original, renamed)])
                 self._commit_archive_changes([renamed])
                 source.on_change()
                 return renamed

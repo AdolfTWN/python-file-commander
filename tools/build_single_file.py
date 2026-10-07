@@ -43,10 +43,12 @@ def build() -> Path:
     i18n = i18n.replace("from __future__ import annotations\n\n", "", 1)
     fileops = fileops.replace("from __future__ import annotations\n\n", "", 1)
     clipboard = clipboard.replace("from __future__ import annotations\n\n", "", 1)
+    clipboard = "\n".join(line for line in clipboard.splitlines() if not line.startswith("from .")) + "\n"
     icons = icons.replace("from __future__ import annotations\n\n", "", 1)
     startup = startup.replace("from __future__ import annotations\n\n", "", 1)
     dirwatch = dirwatch.replace("from __future__ import annotations\n\n", "", 1)
     vcs = vcs.replace("from __future__ import annotations\n\n", "", 1)
+    vcs = "\n".join(line for line in vcs.splitlines() if not line.startswith("from .")) + "\n"
     tabs = tabs.replace("from __future__ import annotations\n\n", "", 1)
     tabs = "\n".join(line for line in tabs.splitlines() if not line.startswith("from .")) + "\n"
     tabicons = (ROOT / "pycommander" / "tabicons.py").read_text(encoding="utf-8")

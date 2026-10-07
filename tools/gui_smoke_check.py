@@ -274,7 +274,7 @@ def main() -> None:
                               if app.versions_menu.type(index) in {"command", "cascade"}]
             expected_series = ("v0.18.x", "v0.17.x", "v0.16.x", "v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
                                "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
-            assert version_labels == ([f"Current version: v{pfc.__version__}", "Check Update"] +
+            assert version_labels == ([f"Current version: v{pfc.__version__}", "Check Update", "View debug log…"] +
                                       [f"{series} Changes" for series in expected_series] +
                                       ["Yoda — Portable App Advocate"])
             assert app.version_series == expected_series

@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-from .fileops import format_size
+from .fileops import format_size, _is_linklike
 from .i18n import retranslate_widgets, tr
 from .tooltip import ToolTip
 
@@ -25,9 +25,14 @@ class SpaceNode:
 def scan_space(path: Path, cancel_event: threading.Event | None = None) -> SpaceNode:
     """Return a best-effort, symlink-safe disk usage tree."""
     cancel_event = cancel_event or threading.Event()
-    path = path.expanduser().resolve()
+    path = path.expanduser().absolute()
     if cancel_event.is_set():
         raise InterruptedError
+    if _is_linklike(str(path)):
+        try:
+            return SpaceNode(path, path.lstat().st_size, False)
+        except OSError:
+            return SpaceNode(path, 0, False)
     try:
         is_dir = path.is_dir()
     except OSError:
@@ -47,7 +52,7 @@ def scan_space(path: Path, cancel_event: threading.Event | None = None) -> Space
             raise InterruptedError
         child = Path(entry.path)
         try:
-            if entry.is_symlink():
+            if _is_linklike(entry.path):
                 size = entry.stat(follow_symlinks=False).st_size
                 children.append(SpaceNode(child, size, False))
             elif entry.is_dir(follow_symlinks=False):

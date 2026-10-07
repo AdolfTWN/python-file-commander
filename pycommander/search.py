@@ -6,6 +6,8 @@ import queue
 import threading
 import time
 import zipfile
+import zlib
+import math
 from datetime import datetime, timedelta
 from pathlib import Path
 import tkinter as tk
@@ -65,20 +67,32 @@ def content_matches(path: Path, needle: str, case_sensitive: bool) -> bool:
     try:
         if path.suffix.casefold() in OFFICE_XML and zipfile.is_zipfile(path):
             with zipfile.ZipFile(path) as archive:
-                chunks = []
+                chunks, remaining = [], CONTENT_LIMIT
                 for info in archive.infolist():
-                    if info.filename.endswith(".xml") and sum(map(len, chunks)) < CONTENT_LIMIT:
-                        chunks.append(archive.read(info)[:CONTENT_LIMIT])
-                data = b" ".join(chunks)[:CONTENT_LIMIT]
+                    if remaining <= 0:
+                        break
+                    if info.filename.endswith(".xml"):
+                        if chunks:
+                            remaining -= 1
+                        if remaining <= 0:
+                            break
+                        with archive.open(info) as stream:
+                            chunk = stream.read(remaining)
+                        chunks.append(chunk)
+                        remaining -= len(chunk)
+                data = b" ".join(chunks)
         else:
             with path.open("rb") as stream: data = stream.read(CONTENT_LIMIT)
-        if b"\x00" in data[:4096] and not data.startswith((b"\xff\xfe", b"\xfe\xff")): return False
-        if data.startswith((b"\xff\xfe", b"\xfe\xff")): text = data.decode("utf-16", errors="replace")
+        utf32 = data.startswith((b"\xff\xfe\x00\x00", b"\x00\x00\xfe\xff"))
+        utf16 = data.startswith((b"\xff\xfe", b"\xfe\xff"))
+        if b"\x00" in data[:4096] and not (utf32 or utf16): return False
+        if utf32: text = data.decode("utf-32", errors="replace")
+        elif utf16: text = data.decode("utf-16", errors="replace")
         else:
             try: text = data.decode("utf-8-sig")
             except UnicodeDecodeError: text = data.decode("cp1252", errors="replace")
         return target in (text if case_sensitive else text.casefold())
-    except (OSError, zipfile.BadZipFile):
+    except (OSError, zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError, zlib.error):
         return False
 
 
@@ -373,20 +387,34 @@ class SearchWindow(tk.Toplevel):
 
     def criteria(self):
         def number(value, factor=1):
-            try: return float(value) * factor if value.strip() else None
-            except ValueError: return None
+            if not value.strip():
+                return None
+            try:
+                result = float(value) * factor
+            except ValueError as exc:
+                raise ValueError("Enter a finite, non-negative number.") from exc
+            if not math.isfinite(result) or result < 0:
+                raise ValueError("Enter a finite, non-negative number.")
+            return result
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
         max_depth = None if depth == "All" else (0 if depth == "Current" else int(depth))
         days = number(self.days_var.get())
+        minimum, maximum = number(self.min_size_var.get(), 1024), number(self.max_size_var.get(), 1024)
+        if minimum is not None and maximum is not None and minimum > maximum:
+            raise ValueError("Minimum size cannot exceed maximum size.")
         return dict(root=Path(self.path_var.get().strip().strip('"')), masks=self.mask_var.get(), content=self.content_var.get(),
                     case=self.case_var.get(), max_depth=max_depth, files=self.files_var.get(), folders=self.folders_var.get(),
-                    min_size=number(self.min_size_var.get(), 1024), max_size=number(self.max_size_var.get(), 1024),
+                    min_size=minimum, max_size=maximum,
                     since=datetime.now() - timedelta(days=days) if days is not None else None)
 
     def start(self):
         if getattr(self, '_reset_job', None) is not None: return
         if self.worker and self.worker.is_alive(): return
-        criteria = self.criteria()
+        try:
+            criteria = self.criteria()
+        except (ValueError, OverflowError) as exc:
+            messagebox.showerror(tr("Search"), tr(str(exc)), parent=self)
+            return
         if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self._reset_column_measurements()
@@ -400,7 +428,7 @@ class SearchWindow(tk.Toplevel):
         count = 0; processed_folders = 0; discovered_folders = 1
         try:
             for current, dirs, files in os.walk(c["root"]):
-                if self.cancel_event.is_set(): break
+                if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
                 depth = len(Path(current).relative_to(c["root"]).parts)
                 folder_names = list(dirs)
                 if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
@@ -526,5 +554,5 @@ class SearchWindow(tk.Toplevel):
                            ("files", str(self.files_var.get()).lower()), ("folders", str(self.folders_var.get()).lower()),
                            ("min_size_kb", self.min_size_var.get()), ("max_size_kb", self.max_size_var.get()),
                            ("modified_days", self.days_var.get())):
-            self.config_data.set("search", key, value)
+            self.config_data.set("search", key, value.replace("%", "%%"))
         self.save_config(); self.destroy()

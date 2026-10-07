@@ -11,6 +11,12 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Link and junction operations preserve the selected item, including deletion on Python 3.11.': ('修正：連結與接合點操作保留所選項目的路徑，包含 Python 3.11 的刪除流程。', '修正：链接与联接点操作保留所选项目的路径，包括 Python 3.11 的删除流程。', '수정: Python 3.11 삭제를 포함하여 링크와 정션 작업이 선택한 항목의 경로를 유지합니다.'),
+    'Fixed: Attachment collisions, interrupted archives and stale archive drafts no longer overwrite existing data silently.': ('修正：附件名稱碰撞、壓縮作業中斷與過期草稿不再默默覆寫既有資料。', '修正：附件名称冲突、压缩操作中断与过期草稿不再静默覆盖现有数据。', '수정: 첨부 파일 이름 충돌, 압축 작업 중단 및 오래된 초안이 기존 데이터를 덮어쓰지 않습니다.'),
+    'Fixed: Concurrent settings saves and invalid rename or search inputs are handled safely.': ('修正：安全處理設定同時儲存，以及無效的重新命名或搜尋輸入。', '修正：安全处理设置同时保存，以及无效的重命名或搜索输入。', '수정: 동시 설정 저장 및 잘못된 이름 변경과 검색 입력을 안전하게 처리합니다.'),
+    'Improved: Version control queries are bounded, discard stale results and never mark a failed query as clean.': ('改善：限制版本控制查詢數量、丟棄過期結果，不再將查詢失敗標成乾淨。', '改善：限制版本控制查询数量、丢弃过期结果，不再将查询失败标为干净。', '개선: 버전 관리 조회를 제한하고 오래된 결과를 버리며 실패한 조회를 정상 상태로 표시하지 않습니다.'),
+    'Enter a finite, non-negative number.': ('請輸入有限且不小於零的數值。', '请输入有限且不小于零的数值。', '유한한 0 이상의 숫자를 입력하세요.'),
+    'Minimum size cannot exceed maximum size.': ('最小大小不能超過最大大小。', '最小大小不能超过最大大小。', '최소 크기는 최대 크기를 초과할 수 없습니다.'),
     'Fixed: Unsupported platform-specific Preview tab shortcuts no longer prevent files from opening on Windows.': ('修正：Windows 不支援的預覽頁籤快捷鍵不再阻止文件開啟。', '修正：Windows 不支持的预览页签快捷键不再阻止文件打开。', '수정: Windows에서 지원하지 않는 미리보기 탭 단축키가 파일 열기를 차단하지 않습니다.'),
     'Added: Help Debug mode records private, bounded Preview diagnostics without document contents or filenames.': ('新增：Help 的 Debug mode 記錄有限大小的本機預覽診斷，不含文件內容或檔名。', '新增：Help 的 Debug mode 记录有限大小的本地预览诊断，不含文件内容或文件名。', '추가: 도움말의 디버그 모드는 문서 내용이나 파일명 없이 제한된 로컬 미리보기 진단을 기록합니다.'),
     'Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.': ('改善：預覽建立失敗時顯示錯誤，不再留下空視窗；診斷紀錄可檢視與儲存。', '改善：预览创建失败时显示错误，不再留下空窗口；诊断记录可查看与保存。', '개선: 미리보기 초기화 실패 시 빈 창 대신 오류를 표시하며 진단 로그를 확인하고 저장할 수 있습니다.'),

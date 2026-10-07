@@ -30,7 +30,7 @@ from .vcs import folder_statuses, status_for
 from .compare import CompareWindow, is_compare_container
 from .preview import PreviewWindow
 from .search import SearchWindow
-from .multirename import MultiRenameWindow
+from .multirename import MultiRenameWindow, validate_rename_plan, execute_rename_pairs
 from .archivefs import ArchiveCancelled, ArchiveSession, archive_item_counts, create_zip_archive, extract_archive_to, is_browsable_archive
 from .spaceanalyzer import SpaceAnalyzerWindow
 from .shelldnd import DROPEFFECT_COPY, DROPEFFECT_MOVE, ShellFileDropTarget, point_belongs_to_process, start_shell_drag
@@ -142,6 +142,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.21", "2026/10/08", (
+        "Fixed: Link and junction operations preserve the selected item, including deletion on Python 3.11.",
+        "Fixed: Attachment collisions, interrupted archives and stale archive drafts no longer overwrite existing data silently.",
+        "Fixed: Concurrent settings saves and invalid rename or search inputs are handled safely.",
+        "Improved: Version control queries are bounded, discard stale results and never mark a failed query as clean.",
+    )),
     ("v0.18.20", "2026/10/07", (
         "Fixed: Unsupported platform-specific Preview tab shortcuts no longer prevent files from opening on Windows.",
     )),
@@ -565,15 +571,17 @@ def ensure_config_defaults(config: configparser.ConfigParser) -> None:
 
 
 def write_config_atomic(config: configparser.ConfigParser, path: Path) -> None:
-    temporary = path.with_suffix(path.suffix + ".tmp")
+    descriptor, name = tempfile.mkstemp(prefix=".pfc-config-", suffix=".tmp", dir=path.parent)
+    temporary = Path(name)
     try:
-        with temporary.open("w", encoding="utf-8") as stream:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
             config.write(stream)
+            stream.flush()
+            os.fsync(stream.fileno())
         temporary.replace(path)
-    except OSError:
+    finally:
         try: temporary.unlink(missing_ok=True)
         except OSError: pass
-        raise
 
 
 def config_json(value, **kwargs) -> str:
@@ -957,6 +965,7 @@ class FilePane(ttk.Frame):
         self._vcs_requested_at = 0.0
         self._vcs_generation = 0
         self._vcs_loading = False
+        self._vcs_inflight = None
         self._vcs_results = queue.Queue()
 
         # Keep the command target visible even when the panel has no selected row.
@@ -1299,7 +1308,9 @@ class FilePane(ttk.Frame):
             self._vcs_path = None; self._vcs_statuses = {}
             return
         now, path = time.monotonic(), self.path
-        if self._vcs_loading and self._vcs_path == path:
+        if self._vcs_path != path:
+            self._vcs_statuses = {}
+        if self._vcs_inflight is not None:
             return
         if self._vcs_path == path and now - self._vcs_requested_at < 10.0:
             return
@@ -1309,20 +1320,35 @@ class FilePane(ttk.Frame):
         self._vcs_generation += 1
         self._vcs_loading = True
         generation = self._vcs_generation
+        self._vcs_inflight = generation
         def load():
-            self._vcs_results.put((generation, path, folder_statuses(path)))
-        threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
+            try:
+                statuses = folder_statuses(path)
+            except Exception:
+                statuses = {}
+            self._vcs_results.put((generation, path, statuses))
+        try:
+            threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
+        except RuntimeError:
+            self._vcs_inflight = None
+            self._vcs_loading = False
+            self._vcs_path = None
 
     def _poll_vcs_results(self) -> None:
         try:
             while True:
                 generation, path, statuses = self._vcs_results.get_nowait()
-                if generation == self._vcs_generation and path == self.path:
+                if generation == self._vcs_inflight:
+                    self._vcs_inflight = None
                     self._vcs_loading = False
+                if (generation == self._vcs_generation and path == self.path and
+                        self.archive_session is None and self.winfo_toplevel().vcs_overlay_var.get()):
                     previous = self._vcs_statuses
                     if statuses != previous:
                         self._vcs_statuses = statuses
                         self._apply_vcs_icons(previous)
+                else:
+                    self._request_vcs_statuses()
         except queue.Empty:
             pass
         try:
@@ -5935,6 +5961,9 @@ class Commander(tk.Tk):
             if not name:
                 return None
             try:
+                plan = validate_rename_plan([source.path / ".pfc-new-folder"], [name])
+                if plan[0][2] and plan[0][2] != "Unchanged":
+                    raise OSError(plan[0][2])
                 created = source.path / name
                 created.mkdir()
                 if (source.quick_filter_var.get().strip() and
@@ -5960,8 +5989,10 @@ class Commander(tk.Tk):
             if not name or name == original.name:
                 return original
             try:
-                renamed = original.with_name(name)
-                original.rename(renamed)
+                _, renamed, error = validate_rename_plan([original], [name])[0]
+                if error:
+                    raise OSError(error)
+                execute_rename_pairs([(original, renamed)])
                 self._commit_archive_changes([renamed])
                 source.on_change()
                 return renamed

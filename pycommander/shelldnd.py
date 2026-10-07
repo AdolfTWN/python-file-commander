@@ -126,13 +126,13 @@ class ShellDataObject:
     def __init__(self, paths) -> None:
         if os.name != "nt":
             raise OSError("Windows Shell drag-and-drop is available only on Windows.")
-        self.paths = [Path(value).resolve() for value in paths]
+        self.paths = [Path(os.path.abspath(value)) for value in paths]
         if not self.paths:
             raise OSError("No files are selected for dragging.")
         parents = {os.path.normcase(str(path.parent)) for path in self.paths}
         if len(parents) != 1:
             raise OSError("Shell drag items must come from the same folder.")
-        if any(not path.exists() for path in self.paths):
+        if any(not os.path.lexists(path) for path in self.paths):
             raise OSError("A selected drag item no longer exists.")
         self.pointer = 0
         self._pidls: list[int] = []
