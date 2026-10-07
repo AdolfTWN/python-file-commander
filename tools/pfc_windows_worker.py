@@ -16,7 +16,7 @@ import sys
 import time
 from contextlib import contextmanager
 
-ALLOWED = {'reliability_check.py', 'tooltip_check.py', 'preview_tabs_check.py', 'settings_check.py',
+ALLOWED = {'architecture_check.py', 'reliability_check.py', 'tooltip_check.py', 'preview_tabs_check.py', 'settings_check.py',
            'folder_scroll_check.py', 'folder_navigation_check.py', 'folder_leaf_check.py', 'settings_readability_groups_check.py',
            'interaction_layout_check.py', 'compact_chrome_check.py', 'review_compare_check.py', 'control_scaling_check.py'}
 

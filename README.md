@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.21**
+Current version: **v0.18.22**
 
 **Reliability hardening:** Link/junction deletion and Shell operations preserve
 the selected path. Attachments use collision-safe staging; interrupted ZIP

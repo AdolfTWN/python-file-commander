@@ -21,6 +21,33 @@ def is_local_watch_path(path: Path) -> bool:
     return os.name == "nt" and not str(path).startswith("\\\\")
 
 
+class _DirectoryEventQueue(queue.Queue):
+    """An unbounded Queue with at most one pending invalidation per directory.
+
+    Events request a directory rescan, not individual file-change replay. Merge
+    duplicates before the GUI drains them, under the same mutex used by get().
+    A notification arriving after get() is queued again and cannot be lost.
+    """
+    def __init__(self):
+        super().__init__()
+        self._pending_keys = set()
+
+    def put(self, path, block=True, timeout=None):
+        key = directory_key(path)
+        with self.not_full:
+            if key in self._pending_keys:
+                return
+            self._put((key, path))
+            self._pending_keys.add(key)
+            self.unfinished_tasks += 1
+            self.not_empty.notify()
+
+    def _get(self):
+        key, path = super()._get()
+        self._pending_keys.remove(key)
+        return path
+
+
 class _WindowsDirectoryWatcher:
     _FILE_LIST_DIRECTORY = 0x0001
     _SHARE_ALL = 0x00000001 | 0x00000002 | 0x00000004
@@ -101,7 +128,7 @@ class DirectoryWatchManager:
     """Keep one native watcher per unique visible directory."""
 
     def __init__(self, watcher_factory=None, supported: bool | None = None) -> None:
-        self.events: queue.Queue = queue.Queue()
+        self.events: queue.Queue = _DirectoryEventQueue()
         self.supported = os.name == "nt" if supported is None else supported
         self._factory = watcher_factory or _WindowsDirectoryWatcher
         self._watchers = {}
@@ -131,12 +158,16 @@ class DirectoryWatchManager:
         return set(self._watchers)
 
     def drain(self) -> set[str]:
+        # Process one snapshot, not an endlessly refilled queue. New events
+        # stay pending for the next GUI tick, avoiding notification starvation.
         changed = set()
         try:
-            while True:
+            for _ in range(self.events.qsize()):
                 changed.add(directory_key(self.events.get_nowait()))
+                self.events.task_done()
         except queue.Empty:
             return changed
+        return changed
 
     def close(self) -> None:
         for watcher in list(self._watchers.values()):

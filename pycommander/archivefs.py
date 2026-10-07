@@ -10,6 +10,7 @@ import hashlib
 import stat
 from pathlib import Path, PurePosixPath
 from typing import Callable
+from .fileops import filesystem_path
 
 
 ARCHIVE_SUFFIXES = {".zip", ".7z"}
@@ -18,16 +19,6 @@ ProgressCallback = Callable[[int, int, str], None]
 
 class ArchiveCancelled(OSError):
     pass
-
-
-def filesystem_path(path: Path) -> str:
-    """Return a Windows extended-length path without changing its logical value."""
-    raw = str(Path(path).absolute())
-    if os.name != "nt" or raw.startswith("\\\\?\\"):
-        return raw
-    if raw.startswith("\\\\"):
-        return "\\\\?\\UNC\\" + raw[2:]
-    return "\\\\?\\" + raw
 
 
 def _mkdir(path: Path) -> None:
@@ -91,6 +82,33 @@ def _hidden_process_options() -> dict:
             if os.name == "nt" else {})
 
 
+def _zip_input_manifest(paths):
+    """Snapshot metadata once per operation, retaining selected-root order.
+
+    The manifest is not a cross-operation cache. ZipFile.write still stats and
+    reads each file freshly; content is never cached. Directory emptiness is
+    inferred from enumeration where possible, with a fallback for directory
+    links that rglob does not descend into.
+    """
+    records, writable, total = [], [], 0
+    for item in paths:
+        info = item.stat()
+        is_folder = stat.S_ISDIR(info.st_mode)
+        descendants = sorted(item.rglob("*")) if is_folder else []
+        parents = {child.parent for child in descendants}
+        entries = [(item, item.name, info)]
+        entries.extend((child, (Path(item.name) / child.relative_to(item)).as_posix(), child.stat())
+                       for child in descendants)
+        for path, name, metadata in entries:
+            folder = stat.S_ISDIR(metadata.st_mode)
+            records.append((name, 0, folder, 0))
+            if stat.S_ISREG(metadata.st_mode):
+                total += metadata.st_size
+            if not folder or (path not in parents and not any(path.iterdir())):
+                writable.append((path, name, folder))
+    return records, writable, max(1, total)
+
+
 def create_zip_archive(items, target: Path,
                        progress: ProgressCallback | None = None) -> Path:
     """Create a ZIP containing each selected item under its own display name."""
@@ -107,41 +125,22 @@ def create_zip_archive(items, target: Path,
             raise OSError("The output archive cannot replace or be inside a selected input.")
     expected = _archive_destination_state(target)
     target.parent.mkdir(parents=True, exist_ok=True)
-    entries = [(item, sorted(item.rglob("*")) if item.is_dir() else []) for item in paths]
-    records = []
-    for item, descendants in entries:
-        records.append((item.name, 0, item.is_dir(), 0))
-        for child in descendants:
-            records.append(((Path(item.name) / child.relative_to(item)).as_posix(), 0, child.is_dir(), 0))
+    records, writable, total = _zip_input_manifest(paths)
     _validate_archive_records(records)
-    files = [child for item, descendants in entries for child in
-             ([item] if item.is_file() else [p for p in descendants if p.is_file()])]
-    total = max(1, sum(path.stat().st_size for path in files))
     completed = 0
     fd, raw = tempfile.mkstemp(prefix=".pfc-zip-", dir=target.parent)
     os.close(fd)
     staging = Path(raw)
     try:
         with zipfile.ZipFile(staging, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for item, descendants in entries:
-                if item.is_dir():
-                    if not descendants:
-                        archive.writestr(item.name.rstrip("/") + "/", b"")
-                    for child in descendants:
-                        relative = Path(item.name) / child.relative_to(item)
-                        if child.is_dir():
-                            if not any(child.iterdir()):
-                                archive.writestr(relative.as_posix().rstrip("/") + "/", b"")
-                        else:
-                            archive.write(child, relative.as_posix())
-                            completed += child.stat().st_size
-                            if progress:
-                                progress(completed, total, child.name)
+            for path, name, is_folder in writable:
+                if is_folder:
+                    archive.writestr(name.rstrip("/") + "/", b"")
                 else:
-                    archive.write(item, item.name)
-                    completed += item.stat().st_size
+                    archive.write(path, name)
+                    completed += archive.getinfo(name).file_size
                     if progress:
-                        progress(completed, total, item.name)
+                        progress(completed, total, path.name)
         with staging.open("rb+") as stream:
             os.fsync(stream.fileno())
         if _archive_destination_state(target) != expected:

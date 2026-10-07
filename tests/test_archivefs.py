@@ -4,6 +4,7 @@ import threading
 import unittest
 import zipfile
 import subprocess
+from unittest.mock import patch
 from pathlib import Path
 
 from pycommander.archivefs import (ArchiveCancelled, ArchiveSession, archive_item_counts,
@@ -12,6 +13,54 @@ from pycommander.archivefs import (ArchiveCancelled, ArchiveSession, archive_ite
 
 
 class ArchiveSessionTests(unittest.TestCase):
+    def test_zip_manifest_preserves_root_order_nested_empty_directories_and_progress(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            folder = root / "folder"; folder.mkdir()
+            (folder / "empty").mkdir()
+            (folder / "nested").mkdir()
+            (folder / "nested" / "empty").mkdir()
+            (folder / "nested" / "a.md").write_bytes(b"abc")
+            single = root / "single.md"; single.write_bytes(b"12345")
+            empty = root / "empty-root"; empty.mkdir()
+            updates = []
+            target = root / "out.zip"
+            create_zip_archive([single, folder, empty], target,
+                               lambda *args: updates.append(args))
+            with zipfile.ZipFile(target) as archive:
+                self.assertEqual(archive.namelist(), ["single.md", "folder/empty/",
+                    "folder/nested/a.md", "folder/nested/empty/", "empty-root/"])
+                self.assertEqual(archive.read("folder/nested/a.md"), b"abc")
+            self.assertEqual(updates, [(5, 8, "single.md"), (8, 8, "a.md"), (8, 8, "out.zip")])
+
+    def test_zip_manifest_is_refreshed_on_every_operation(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            file = root / "file.md"; file.write_bytes(b"one")
+            target = root / "out.zip"
+            create_zip_archive([file], target)
+            file.write_bytes(b"new and longer")
+            updates = []
+            create_zip_archive([file], target, lambda *args: updates.append(args))
+            with zipfile.ZipFile(target) as archive:
+                self.assertEqual(archive.read("file.md"), b"new and longer")
+            self.assertEqual(updates[0][:2], (14, 14))
+
+    def test_zip_write_failure_preserves_target_and_cleans_staging(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            file = root / "file.md"; file.write_bytes(b"one")
+            target = root / "out.zip"; target.write_bytes(b"old archive")
+            with patch("zipfile.ZipFile.write", side_effect=OSError("read failed")):
+                with self.assertRaises(OSError):
+                    create_zip_archive([file], target)
+            self.assertEqual(target.read_bytes(), b"old archive")
+            self.assertFalse(list(root.glob(".pfc-zip-*")))
+
+    def test_archive_reexports_shared_extended_path_helper(self):
+        from pycommander import fileops, archivefs
+        self.assertIs(archivefs.filesystem_path, fileops.filesystem_path)
+
     def test_archive_item_counts_describe_only_the_root_layout(self):
         with tempfile.TemporaryDirectory() as raw:
             archive_path = Path(raw) / "counts.zip"

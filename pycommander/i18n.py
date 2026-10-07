@@ -11,6 +11,9 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: ZIP creation reuses operation-local file metadata while preserving archive layout and progress reporting.': ('改善：ZIP 建立流程重用本次作業的檔案資訊，保留壓縮檔配置與進度回報。', '改善：ZIP 创建流程复用本次操作的文件信息，保留压缩包布局与进度报告。', '개선: ZIP 생성 시 작업 내 파일 정보를 재사용하며 압축 구성과 진행 보고를 유지합니다.'),
+    'Improved: Repeated folder-change notifications are merged before reaching the interface, without losing later changes.': ('改善：重複的資料夾變更通知在送達介面前合併，不遺漏後續變更。', '改善：重复的文件夹变更通知在到达界面前合并，不遗漏后续变更。', '개선: 반복되는 폴더 변경 알림을 인터페이스에 전달하기 전에 병합하고 이후 변경은 보존합니다.'),
+    'Improved: Portable builds use one checked module manifest with syntax-aware import handling and source markers.': ('改善：portable 打包使用統一且受檢查的模組清單，以語法分析處理匯入並標記來源。', '改善：portable 打包使用统一且经过检查的模块清单，通过语法分析处理导入并标记来源。', '개선: 휴대용 빌드는 검증된 단일 모듈 목록과 구문 기반 가져오기 처리 및 소스 표시를 사용합니다.'),
     'Fixed: Link and junction operations preserve the selected item, including deletion on Python 3.11.': ('修正：連結與接合點操作保留所選項目的路徑，包含 Python 3.11 的刪除流程。', '修正：链接与联接点操作保留所选项目的路径，包括 Python 3.11 的删除流程。', '수정: Python 3.11 삭제를 포함하여 링크와 정션 작업이 선택한 항목의 경로를 유지합니다.'),
     'Fixed: Attachment collisions, interrupted archives and stale archive drafts no longer overwrite existing data silently.': ('修正：附件名稱碰撞、壓縮作業中斷與過期草稿不再默默覆寫既有資料。', '修正：附件名称冲突、压缩操作中断与过期草稿不再静默覆盖现有数据。', '수정: 첨부 파일 이름 충돌, 압축 작업 중단 및 오래된 초안이 기존 데이터를 덮어쓰지 않습니다.'),
     'Fixed: Concurrent settings saves and invalid rename or search inputs are handled safely.': ('修正：安全處理設定同時儲存，以及無效的重新命名或搜尋輸入。', '修正：安全处理设置同时保存，以及无效的重命名或搜索输入。', '수정: 동시 설정 저장 및 잘못된 이름 변경과 검색 입력을 안전하게 처리합니다.'),

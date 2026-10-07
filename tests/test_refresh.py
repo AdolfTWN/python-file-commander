@@ -77,6 +77,65 @@ class _FakeWatcher:
 
 
 class DirectoryWatchManagerTests(unittest.TestCase):
+    def test_duplicate_storm_keeps_only_one_pending_rescan_per_directory(self):
+        manager = DirectoryWatchManager(supported=False)
+        paths = [Path("alpha"), Path("beta")]
+        for _ in range(10000):
+            for path in paths:
+                manager.events.put(path)
+        self.assertEqual(manager.events.qsize(), 2)
+        self.assertEqual(manager.drain(), {directory_key(p) for p in paths})
+        self.assertEqual(manager.drain(), set())
+
+    def test_consumed_directory_can_be_invalidated_again(self):
+        manager = DirectoryWatchManager(supported=False)
+        path = Path("alpha")
+        manager.events.put(path)
+        self.assertEqual(manager.events.get_nowait(), path)
+        manager.events.task_done()
+        manager.events.put(path)
+        self.assertEqual(manager.drain(), {directory_key(path)})
+
+    def test_notifications_arriving_during_drain_remain_for_next_tick(self):
+        from unittest.mock import patch
+        manager = DirectoryWatchManager(supported=False)
+        first, later = Path("first"), Path("later")
+        manager.events.put(first)
+        real_get = manager.events.get_nowait
+        def get_and_notify():
+            result = real_get()
+            manager.events.put(later)
+            return result
+        with patch.object(manager.events, "get_nowait", get_and_notify):
+            self.assertEqual(manager.drain(), {directory_key(first)})
+        self.assertEqual(manager.events.qsize(), 1)
+        self.assertEqual(manager.drain(), {directory_key(later)})
+        manager.events.join()
+
+    def test_coalescing_queue_preserves_join_and_first_pending_path(self):
+        manager = DirectoryWatchManager(supported=False)
+        path = Path("alpha")
+        manager.events.put(path)
+        manager.events.put(path.absolute())
+        self.assertEqual(manager.events.unfinished_tasks, 1)
+        self.assertEqual(manager.events.get_nowait(), path)
+        manager.events.task_done()
+        manager.events.join()
+
+    def test_concurrent_producers_preserve_every_distinct_directory(self):
+        import threading
+        manager = DirectoryWatchManager(supported=False)
+        def produce(index):
+            for _ in range(2000):
+                manager.events.put(Path(f"folder-{index}"))
+                manager.events.put(Path("shared"))
+        threads = [threading.Thread(target=produce, args=(index,)) for index in range(4)]
+        for thread in threads: thread.start()
+        for thread in threads: thread.join()
+        self.assertEqual(manager.events.qsize(), 5)
+        self.assertEqual(manager.drain(), {directory_key(Path(f"folder-{i}")) for i in range(4)}
+                         | {directory_key(Path("shared"))})
+
     def test_deduplicates_paths_and_reports_changes(self):
         manager = DirectoryWatchManager(_FakeWatcher, supported=True)
         with tempfile.TemporaryDirectory() as raw:
