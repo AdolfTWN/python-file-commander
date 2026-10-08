@@ -104,6 +104,11 @@ with tempfile.TemporaryDirectory(prefix='pfc-control-scale-') as raw:
         for i, path in enumerate(files): path.write_text('# Notes\n\nvalue '+str(i)+'\n')
         app.active.navigate(root)
         app.font_size_var.set('small'); app.apply_font_size(save=False); settle(app)
+        for tabs in app.panel_tabs:
+            assert not tabs.bar.bind('<FocusIn>')
+            tabs.bar.focus_force(); settle(app, .02)
+            assert int(tabs.bar.cget('highlightthickness')) == 2
+            app.active.focus_file_list(); settle(app, .02)
         app.search(); search = app.search_window
         search.geometry('1100x760+0+0')
         rename = pfc.MultiRenameWindow(app, files, [], lambda: None); windows.append(rename)

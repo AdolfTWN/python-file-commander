@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.23", "2026/10/08", (
+        "Fixed: Concurrent Windows settings saves retry temporary sharing conflicts without discarding the previous configuration.",
+        "Fixed: Tab focus uses the native border without a redundant redraw callback when returning from dialogs.",
+    )),
     ("v0.18.22", "2026/10/08", (
         "Improved: ZIP creation reuses operation-local file metadata while preserving archive layout and progress reporting.",
         "Improved: Repeated folder-change notifications are merged before reaching the interface, without losing later changes.",
@@ -583,7 +587,18 @@ def write_config_atomic(config: configparser.ConfigParser, path: Path) -> None:
             config.write(stream)
             stream.flush()
             os.fsync(stream.fileno())
-        temporary.replace(path)
+        # Windows can briefly deny replacement while another atomic writer
+        # finishes closing/publishing its file. Never delete the destination to
+        # force success, and never retry unrelated or persistent I/O failures.
+        delays = (0.01, 0.02, 0.04, 0.08)
+        for attempt in range(len(delays) + 1):
+            try:
+                temporary.replace(path)
+                break
+            except PermissionError as exc:
+                if getattr(exc, "winerror", None) not in (5, 32, 33) or attempt == len(delays):
+                    raise
+                time.sleep(delays[attempt])
     finally:
         try: temporary.unlink(missing_ok=True)
         except OSError: pass

@@ -51,6 +51,14 @@ with tempfile.TemporaryDirectory(prefix='pfc-workflows-check-') as raw:
         app.font_size_var.set('small'); app.apply_font_size(save=False)
         for tabs in app.panel_tabs: tabs.current().navigate(left)
         app.active = app.left_tabs.current(); app.active.focus_file_list(); settle(app)
+        # Canvas owns the focus border; no Python FocusIn callback is needed.
+        for tabs in app.panel_tabs:
+            bar = tabs.bar
+            assert not bar.bind('<FocusIn>')
+            for _ in range(3):
+                bar.focus_force(); settle(app, .02)
+                assert int(bar.cget('highlightthickness')) == 2
+                app.active.focus_file_list(); settle(app, .02)
         app.compare_paths(a, b); settle(app)
         cw = app.compare_window; frame = cw.current_comparison()
         assert frame.view.left.cget('state') == 'disabled'

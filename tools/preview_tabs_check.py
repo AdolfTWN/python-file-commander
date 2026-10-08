@@ -79,7 +79,9 @@ with tempfile.TemporaryDirectory() as raw:
         bar=next(w for w in viewer.winfo_children() if isinstance(w,pfc.ttk.Frame))
         save=next(w for w in bar.winfo_children() if isinstance(w,pfc.ttk.Button) and w.cget('text')==pfc.tr('Save debug log'))
         with patch.object(pfc.filedialog,'asksaveasfilename',return_value=str(export)):save.invoke()
-        assert export.read_text(encoding='utf-8')==app.debug_log.snapshot()
+        # Export copies the complete log bytes. read_text normalizes Windows
+        # CRLF, whereas snapshot intentionally returns the raw bounded tail.
+        assert export.read_bytes()==app.debug_log.path.read_bytes()
         footer=next(w for w in viewer.winfo_children() if isinstance(w,pfc.ttk.Label))
         assert footer.winfo_ismapped() and footer.winfo_y()+footer.winfo_height()<=viewer.winfo_height()
         viewer.destroy();app.font_size_var.set('small');app.apply_font_size(save=False)
@@ -137,4 +139,8 @@ with tempfile.TemporaryDirectory() as raw:
         assert not errors,errors
         win.close()
         print('PASS: actual multi-select F3; syntax/UTF-16 text; lazy/deduplicated tabs; independent scroll/find/wrap; close/cycle; errors')
-    finally: app.destroy()
+    finally:
+        # destroy() bypasses Commander._quit's shutdown path. Release the log
+        # handle even after an assertion so Windows can remove this fixture.
+        app.debug_log.set_enabled(False)
+        app.destroy()

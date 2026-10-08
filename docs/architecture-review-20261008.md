@@ -135,3 +135,34 @@ token counters are unavailable, so token usage and savings are unknown.
 - The previous 93-check suite took 423.57 seconds. This release has a different
   95-check scope, so the smaller total is **not** a controlled test-runner speed
   improvement. Only the fixed workloads above support optimization claims.
+
+### Native backfill — 2026-10-08
+
+The originally blocked attempt is historical. Tests now use the restored **VM**
+with 8 GiB, Windows 10.0.28000 ARM64 and Python 3.13.15, through the leased runner.
+The unchanged v0.18.22 portable artifact has SHA-256
+`71c6707fe7108a124325c64269e31ea90f91feb8a214c4f4bd3278e121db98e1`.
+
+- All six native architecture fixtures pass (0.809 s), covering archive metadata
+  reuse, notification coalescing and portable/source helper behavior.
+- Reliability, 200% control scaling and large text/workbook/archive comparisons
+  also pass in that run (0.409 s, 25.739 s and 46.478 s respectively). Four
+  symlink-privilege cases are skipped; the native junction fixture executes.
+- Native screenshots were inspected for scaled settings, readable light/dark
+  diff highlighting, individual archive file pairing and visible worksheet
+  content. This is fixture coverage, not a claim about every user document.
+- Backfill additionally discovers a Windows simultaneous INI replacement race
+  in the shared v0.18.21/v0.18.22 code. The consolidated v0.18.23 fix and repeated
+  acceptance are described in the reliability audit. A single v0.18.22 pass
+  does not establish that the probabilistic race was absent.
+
+Trace: `a4571af10e3249749de6e9bc1c9b61f2`. No controlled Windows performance
+baseline or official token counters are available; token savings are unknown.
+The VM NIC remains disabled and each runner releases its lease.
+
+The consolidated v0.18.23 candidate then passes two native repetitions, including
+settings contention and dialog-return tab focus checks. Its final immutable
+source/portable full inventory passes all 95 checks in 441.01 seconds (387 unit
+tests, nine Linux platform-specific skips). See the reliability audit for exact
+candidate hashes, native timings and the unconfirmed historical Tk crash. These
+backfill timings are not a new controlled architecture benchmark.

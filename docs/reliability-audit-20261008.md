@@ -56,6 +56,100 @@ round trip. Search also tests BOM-marked UTF-32 in both byte orders.
 - Run ID: `d6c9bd4c07454e84a389b5dd62ec5b09`. Logs remain private outside Git.
   Timing comparisons come from the tracker; token counters are unavailable.
 
+## Native backfill — 2026-10-08 / consolidated v0.18.23
+
+The originally blocked Windows attempt above is historical. Native backfill was
+performed later on 2026-10-08 with the restored **VM**, configured for 8 GiB,
+Windows 10.0.28000 ARM64 and Python 3.13.15. The lease identifier remains `vm1`.
+The original v0.18.21 portable artifact (SHA-256
+`82321d218a4121df4698b22a82bb016c5d66e5d274093294708ef8f835486acf`)
+was used without rebuilding its application code.
+
+- Native junction protection, the 200% control/settings fixture and Preview
+  tabs pass. Four symlink fixtures skip because the test account lacks symlink
+  privilege; these are not counted as executed native coverage.
+- A barrier-coordinated simultaneous INI save reproduces Windows access denial
+  during atomic replacement. Unique staging preserves data, but one writer can
+  fail. v0.18.23 adds at most four retries for Windows errors 5/32/33, totaling
+  150 ms of delay. Other errors fail immediately. Persistent errors preserve
+  the previous configuration and remove only the writer's staging file.
+- The shared regression now performs 50 synchronized writer pairs, plus injected
+  transient failures, exhaustion and nonretryable errors. Last complete writer
+  still wins; no setting merge or all-process serialization is implied.
+- Two Preview fixture defects were repaired, not application export semantics:
+  text-mode reading normalized Windows CRLF when comparing an exact log copy,
+  and direct test teardown left the diagnostic file handle open. The fixture
+  now compares bytes and closes the log before destroying its window.
+- One historical compare run terminated with Windows access-violation code
+  `0xC0000005`, with a Python/Tk event-callback stack. An immediate rerun of the
+  same artifact and fixture passed. No root cause or speculative application
+  fix is claimed; repeat results and final acceptance are recorded below.
+
+Backfill trace: `a4571af10e3249749de6e9bc1c9b61f2`. Raw diagnostics and screenshots
+remain private. Native runners never enabled networking and release their lease
+after checks. Live OneDrive sync is outside this offline acceptance.
+
+### First consolidated candidate acceptance
+
+v0.18.23 portable SHA-256:
+`4bbd0fe3bd0c3328dfdda16ed9198c2e2a4d97bcaa3a24a68df7999795390454`.
+Two consecutive native runs pass with no cleanup warnings:
+
+| Check | First run (s) | Repeat (s) |
+| --- | ---: | ---: |
+| Reliability (39 cases, four explicit symlink-privilege skips) | 1.219 | 1.216 |
+| Architecture (six cases) | 0.411 | — |
+| Preview tabs and diagnostic export | 8.450 | — |
+| Control/settings scaling | 25.762 | — |
+| Large text, workbook and archive comparison | 47.020 | 46.620 |
+| Folder scrolling/selection surface | — | 24.102 |
+
+Together the reliability repetitions execute 100 synchronized writer pairs.
+After the historical compare crash, its unchanged artifact rerun and both
+candidate compare runs pass. This does not establish the crash's root cause.
+Keep the event open for recurrence; no speculative Tk change is included.
+Full regression then found an additional tab FocusIn callback error: its unused
+required event argument can be absent while dialog focus is changing. The canvas
+already has a two-pixel native focus border, so the redundant reconfiguration
+binding was removed rather than masking callback errors. Source/portable workflow
+fixtures now switch focus repeatedly and assert the retained border and absence
+of that binding. The native control fixture checks the same invariant.
+
+The test's 45-second traceback timer may emit a diagnostic during a successful
+large comparison; its report exit status, not that timer alone, determines pass.
+
+Linux unit discovery passes 387 tests with nine platform-specific skips. The
+complete source/portable inventory and release verification are recorded in the
+same maintenance trace. Stage durations overlap and must not be summed as total
+task time. There is no comparable successful native-backfill task baseline and
+official token usage remains unknown.
+
+### Final candidate after the focus correction
+
+Portable SHA-256:
+`e7731aa0d0c539e3f3cfd0eb0e620c866beb8115a950c3cdd525f745f6761632`.
+Its native reliability, architecture, Preview, control/focus and comparison
+checks pass in 1.213 / 0.207 / 8.862 / 26.152 / 47.011 seconds respectively.
+The control fixture includes the new native canvas-focus assertions; program
+and test source hashes are verified before guest execution. No cleanup warning
+was reported. Repeated final-candidate checks and full-inventory results are
+recorded in the same trace before publication.
+
+The final candidate's repeat passes reliability, control/focus, comparison and
+folder scrolling in 1.818 / 29.811 / 50.454 / 26.561 seconds. Both final native
+runs use the hash above, and together execute another 100 synchronized writer
+pairs. All cleanup reports are empty. The historical compare crash has not
+recurred in five subsequent native comparisons across the old and corrected
+artifacts; its root cause remains unconfirmed.
+
+Final immutable full inventory: **95 checks passed in 441.01 seconds**, including
+387 unit tests (nine Linux platform-specific skips), source and portable workflow
+focus regressions, and portable parity. The before/after source fingerprint
+matches. The prior candidate's 416.30-second failed suite is retained in the
+trace; only this final clean run is release acceptance. Fixture definitions and
+simultaneous native VM load changed, so these timings do not demonstrate a
+controlled speed improvement.
+
 ## Remaining risks / deliberately unclaimed coverage
 
 - Live OneDrive hydration, concurrent provider transitions and real account sync

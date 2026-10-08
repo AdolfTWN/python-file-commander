@@ -590,7 +590,9 @@ class ChamferNotebook(ttk.Frame):
             widget.bind('<Button-4>',lambda e:self._wheel_tabs(-1))
             widget.bind('<Button-5>',lambda e:self._wheel_tabs(1))
         self.bar.bind("<ButtonPress-1>", self._tab_press)
-        self.bar.bind("<FocusIn>", lambda _event: self.bar.configure(highlightthickness=2))
+        # Canvas already keeps its configured focus border and changes its
+        # color natively. Reconfiguring on FocusIn is redundant and can enqueue
+        # another redraw while modal windows are returning focus.
         self.bar.bind("<B1-Motion>", self._tab_motion)
         self.bar.bind("<ButtonRelease-1>", self._tab_release)
         self.bar.bind("<Button-3>", self._popup)

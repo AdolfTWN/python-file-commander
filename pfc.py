@@ -20,6 +20,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Tab focus uses the native border without a redundant redraw callback when returning from dialogs.': ('修正：頁籤焦點使用原生框線，從對話框返回時不再觸發多餘的重繪回呼。', '修正：页签焦点使用原生边框，从对话框返回时不再触发多余的重绘回调。', '수정: 대화 상자에서 돌아올 때 탭 포커스가 불필요한 다시 그리기 콜백 없이 기본 테두리를 사용합니다.'),
+    'Fixed: Concurrent Windows settings saves retry temporary sharing conflicts without discarding the previous configuration.': ('修正：Windows 設定同時儲存遇到暫時共用衝突時有限重試，不丟棄原有設定。', '修正：Windows 设置同时保存遇到暂时共享冲突时有限重试，不丢弃原有设置。', '수정: Windows 동시 설정 저장 시 일시적인 공유 충돌을 제한적으로 재시도하며 기존 설정을 보존합니다.'),
     'Improved: ZIP creation reuses operation-local file metadata while preserving archive layout and progress reporting.': ('改善：ZIP 建立流程重用本次作業的檔案資訊，保留壓縮檔配置與進度回報。', '改善：ZIP 创建流程复用本次操作的文件信息，保留压缩包布局与进度报告。', '개선: ZIP 생성 시 작업 내 파일 정보를 재사용하며 압축 구성과 진행 보고를 유지합니다.'),
     'Improved: Repeated folder-change notifications are merged before reaching the interface, without losing later changes.': ('改善：重複的資料夾變更通知在送達介面前合併，不遺漏後續變更。', '改善：重复的文件夹变更通知在到达界面前合并，不遗漏后续变更。', '개선: 반복되는 폴더 변경 알림을 인터페이스에 전달하기 전에 병합하고 이후 변경은 보존합니다.'),
     'Improved: Portable builds use one checked module manifest with syntax-aware import handling and source markers.': ('改善：portable 打包使用統一且受檢查的模組清單，以語法分析處理匯入並標記來源。', '改善：portable 打包使用统一且经过检查的模块清单，通过语法分析处理导入并标记来源。', '개선: 휴대용 빌드는 검증된 단일 모듈 목록과 구문 기반 가져오기 처리 및 소스 표시를 사용합니다.'),
@@ -4026,7 +4028,9 @@ class ChamferNotebook(ttk.Frame):
             widget.bind('<Button-4>',lambda e:self._wheel_tabs(-1))
             widget.bind('<Button-5>',lambda e:self._wheel_tabs(1))
         self.bar.bind("<ButtonPress-1>", self._tab_press)
-        self.bar.bind("<FocusIn>", lambda _event: self.bar.configure(highlightthickness=2))
+        # Canvas already keeps its configured focus border and changes its
+        # color natively. Reconfiguring on FocusIn is redundant and can enqueue
+        # another redraw while modal windows are returning focus.
         self.bar.bind("<B1-Motion>", self._tab_motion)
         self.bar.bind("<ButtonRelease-1>", self._tab_release)
         self.bar.bind("<Button-3>", self._popup)
@@ -18362,7 +18366,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.22"
+__version__ = "0.18.23"
 
 
 
@@ -18482,6 +18486,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/08"
 VERSION_HISTORY = (
+    ("v0.18.23", "2026/10/08", (
+        "Fixed: Concurrent Windows settings saves retry temporary sharing conflicts without discarding the previous configuration.",
+        "Fixed: Tab focus uses the native border without a redundant redraw callback when returning from dialogs.",
+    )),
     ("v0.18.22", "2026/10/08", (
         "Improved: ZIP creation reuses operation-local file metadata while preserving archive layout and progress reporting.",
         "Improved: Repeated folder-change notifications are merged before reaching the interface, without losing later changes.",
@@ -18923,7 +18931,18 @@ def write_config_atomic(config: configparser.ConfigParser, path: Path) -> None:
             config.write(stream)
             stream.flush()
             os.fsync(stream.fileno())
-        temporary.replace(path)
+        # Windows can briefly deny replacement while another atomic writer
+        # finishes closing/publishing its file. Never delete the destination to
+        # force success, and never retry unrelated or persistent I/O failures.
+        delays = (0.01, 0.02, 0.04, 0.08)
+        for attempt in range(len(delays) + 1):
+            try:
+                temporary.replace(path)
+                break
+            except PermissionError as exc:
+                if getattr(exc, "winerror", None) not in (5, 32, 33) or attempt == len(delays):
+                    raise
+                time.sleep(delays[attempt])
     finally:
         try: temporary.unlink(missing_ok=True)
         except OSError: pass

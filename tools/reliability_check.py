@@ -444,15 +444,61 @@ class ReliabilityTests(unittest.TestCase):
                 app.write_config_atomic(config, target)
             except Exception as exc:
                 errors.append(exc)
-        threads = [threading.Thread(target=save, args=(value,)) for value in ("one", "two")]
-        for thread in threads: thread.start()
-        for thread in threads: thread.join(timeout=10)
-        self.assertFalse(any(thread.is_alive() for thread in threads))
-        self.assertFalse(errors)
-        restored = configparser.ConfigParser()
-        restored.read(target, encoding="utf-8")
-        self.assertIn(restored.get("state", "value"), {"one", "two"})
-        self.assertFalse(list(self.root.glob(".pfc-config-*")))
+        for iteration in range(50):
+            with self.subTest(iteration=iteration):
+                threads = [threading.Thread(target=save, args=(value,)) for value in ("one", "two")]
+                for thread in threads: thread.start()
+                for thread in threads: thread.join(timeout=10)
+                self.assertFalse(any(thread.is_alive() for thread in threads))
+                self.assertFalse(errors)
+                restored = configparser.ConfigParser()
+                restored.read(target, encoding="utf-8")
+                self.assertIn(restored.get("state", "value"), {"one", "two"})
+                self.assertFalse(list(self.root.glob(".pfc-config-*")))
+
+    def test_config_replace_retries_only_transient_windows_errors(self):
+        config = configparser.ConfigParser()
+        config.read_dict({"state": {"value": "new"}})
+        target = self.root / "pfc.ini"
+        original_replace = Path.replace
+        for code in (5, 32, 33):
+            with self.subTest(winerror=code):
+                error = PermissionError("temporary sharing conflict")
+                error.winerror = code
+                attempts = []
+                def replace(temporary, destination):
+                    attempts.append(temporary)
+                    if len(attempts) < 3:
+                        raise error
+                    return original_replace(temporary, destination)
+                with patch.object(Path, "replace", autospec=True, side_effect=replace), \
+                        patch.object(app.time, "sleep") as sleep:
+                    app.write_config_atomic(config, target)
+                self.assertEqual(len(attempts), 3)
+                self.assertEqual([call.args[0] for call in sleep.call_args_list], [.01, .02])
+                self.assertIn("value = new", target.read_text(encoding="utf-8"))
+                self.assertFalse(list(self.root.glob(".pfc-config-*")))
+
+    def test_config_replace_retry_exhaustion_preserves_previous_file(self):
+        target = self.root / "pfc.ini"
+        previous = b"[state]\nvalue = existing\n"
+        config = configparser.ConfigParser()
+        config.read_dict({"state": {"value": "new"}})
+        for code, count in ((32, 5), (87, 1), (None, 1)):
+            with self.subTest(winerror=code):
+                target.write_bytes(previous)
+                error = PermissionError("persistent failure")
+                if code is not None:
+                    error.winerror = code
+                with patch.object(Path, "replace", side_effect=error) as replace, \
+                        patch.object(app.time, "sleep") as sleep:
+                    with self.assertRaises(PermissionError):
+                        app.write_config_atomic(config, target)
+                self.assertEqual(replace.call_count, count)
+                self.assertEqual(sleep.call_count, count - 1)
+                self.assertLessEqual(sum(call.args[0] for call in sleep.call_args_list), .15 + 1e-9)
+                self.assertEqual(target.read_bytes(), previous)
+                self.assertFalse(list(self.root.glob(".pfc-config-*")))
 
     def test_config_serialization_failure_cleans_only_owned_temp(self):
         target = self.root / "pfc.ini"
