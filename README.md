@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.24**
+Current version: **v0.18.25**
 
 **Reliability hardening:** Link/junction deletion and Shell operations preserve
 the selected path. Attachments use collision-safe staging; interrupted ZIP
@@ -9,9 +9,22 @@ changed originals. Settings saves use independent temporary files. Rename/search
 inputs are validated, Office content reads are bounded, and version-control
 overlays coalesce rapid navigation. See the [audit and remaining risks](docs/reliability-audit-20261008.md).
 
+**Automatic Error/Warning log:** **Help → Error / Warning log** shows the current
+version, session ID and file location. On Windows, errors are saved automatically
+to `%LOCALAPPDATA%\PFC\logs\pfc-errors.jsonl`; rotated history is `.1` and `.2`.
+Each entry identifies the emitting PFC version, local system time with timezone,
+UTC, severity and session, so older failures are distinguishable after upgrading.
+It observes Tk callbacks, unhandled Python/thread exceptions, emitted Python/logging
+warnings and instrumented Preview/operation failures. It is not an audit of every
+handled condition or a guarantee of detecting every bug; forced termination and
+failures before application initialization may leave no entry. Storage failures
+must not interrupt normal file operations. Records omit raw messages and document
+contents; source module/line, exception type and OS error codes identify failures.
+
 **Preview diagnostics:** Enable **Help → Debug mode**, reproduce with F3, then
-choose **Help → View debug log → Save debug log**. Logging is off by default,
-local only and bounded to three 1 MiB files. The log contains runtime metadata,
+choose **Help → Error / Warning log → Save debug log**. Detailed Debug logging is
+off by default; automatic errors remain active when Debug is off. Each log stream
+is local only and bounded to three 1 MiB files. Debug contains runtime metadata,
 anonymous file IDs, sizes and error frame locations—not document contents,
 filenames or full paths. Disable Debug mode after reproducing the problem.
 v0.18.20 corrected unsupported Windows Preview tab shortcut bindings. Debug mode

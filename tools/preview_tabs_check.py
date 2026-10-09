@@ -24,7 +24,19 @@ with tempfile.TemporaryDirectory() as raw:
     pfc.Commander._sync_auto_start = lambda self, **kw:True
     pfc.Commander._start_windows_tray = lambda self:None
     app = pfc.Commander(); errors=[]
-    app.debug_log = pfc.DiagnosticLog(pfc.__version__, root/'diagnostics')
+    app.debug_log.close()
+    app.debug_log = pfc.DiagnosticLog(pfc.__version__, root/'diagnostics', automatic=True)
+    app.debug_log.install_hooks()
+    import json, logging
+    logging.getLogger('pfc.validation').warning('PRIVATE CONTENT')
+    records=[json.loads(line) for line in app.debug_log.snapshot(automatic=True).splitlines()]
+    assert records[-1]['version']==pfc.__version__ and records[-1]['severity']=='WARNING'
+    assert 'PRIVATE CONTENT' not in app.debug_log.snapshot(automatic=True)
+    app.show_debug_log(); app.update()
+    log_windows=[w for w in app.winfo_children() if isinstance(w,pfc.tk.Toplevel)]
+    assert log_windows and log_windows[-1].title() == pfc.tr('Error / Warning log')
+    log_windows[-1].destroy()
+    app.bind('<Destroy>',lambda event:app.debug_log.close() if event.widget is app else None,add='+')
     app.report_callback_exception = lambda *exc:errors.append(str(exc))
     try:
         app.debug_mode_var.set(True)
@@ -79,9 +91,19 @@ with tempfile.TemporaryDirectory() as raw:
         bar=next(w for w in viewer.winfo_children() if isinstance(w,pfc.ttk.Frame))
         save=next(w for w in bar.winfo_children() if isinstance(w,pfc.ttk.Button) and w.cget('text')==pfc.tr('Save debug log'))
         with patch.object(pfc.filedialog,'asksaveasfilename',return_value=str(export)):save.invoke()
-        # Export copies the complete log bytes. read_text normalizes Windows
-        # CRLF, whereas snapshot intentionally returns the raw bounded tail.
-        assert export.read_bytes()==app.debug_log.path.read_bytes()
+        # Export preserves bounded tails from both streams without translating
+        # their Windows CRLF a second time.
+        assert export.read_bytes() == (app.debug_log.snapshot(automatic=True)+'\n'+app.debug_log.snapshot()).encode('utf-8')
+        for widget in bar.winfo_children():
+            assert widget.winfo_x()+widget.winfo_width() <= viewer.winfo_width(), 'Log actions clipped at 200%'
+        x,y=viewer.winfo_rootx(),viewer.winfo_rooty()
+        evidence=Path(__file__).parent/'evidence-preview_tabs_check.py.bmp' if sys.platform=='win32' else Path('/tmp/pfc-diagnostics-200.png')
+        if sys.platform=='win32':
+            from folder_native_test_support import capture_window
+            capture_window(viewer,evidence)
+        else:
+            from PIL import ImageGrab
+            ImageGrab.grab((x,y,x+viewer.winfo_width(),y+viewer.winfo_height())).save(evidence)
         footer=next(w for w in viewer.winfo_children() if isinstance(w,pfc.ttk.Label))
         assert footer.winfo_ismapped() and footer.winfo_y()+footer.winfo_height()<=viewer.winfo_height()
         viewer.destroy();app.font_size_var.set('small');app.apply_font_size(save=False)

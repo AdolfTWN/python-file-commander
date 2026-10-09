@@ -323,7 +323,7 @@ def render_hex(data: bytes) -> str:
 def preview_diagnostic(widget, event, *, path=None, exc=None, **metadata):
     log = getattr(widget._root(), 'debug_log', None)
     if log is None: return
-    if exc is not None: log.exception(event, exc)
+    if exc is not None: log.exception(event, exc, severity=metadata.pop('severity','ERROR'))
     elif path is not None: log.file(event, path, **metadata)
     else: log.event(event, **metadata)
 
@@ -553,6 +553,7 @@ class PreviewPage(tk.Frame):
                 context=self._md_request;self._md_request=None
                 if not context['probe']:
                     preview_diagnostic(self,'preview.worker.result',worker_error=bool(result.get('error')),
+                        severity='ERROR' if result.get('error') else 'INFO',
                         error_type=result.get('error_type'),characters=len(result.get('content','')),encoding=result.get('encoding'))
                 self.md_cancel.state(['disabled'])
                 if 'error' in result:
@@ -566,7 +567,7 @@ class PreviewPage(tk.Frame):
                 else:
                     self._begin_markdown_result(result,context)
             if self._md_jobs.pending and time.monotonic()-self._md_jobs.started>5:
-                preview_diagnostic(self,'preview.worker.timeout')
+                preview_diagnostic(self,'preview.worker.timeout',severity='WARNING')
                 self.cancel_markdown()
                 self.status.configure(text=tr('Preview timed out; press F5 to retry'))
             if self._md_insert: self._insert_markdown_chunk()
@@ -1147,6 +1148,7 @@ class PreviewWindow(tk.Toplevel):
                 self.bind('<Control-ISO_Left_Tab>', lambda e: (self.cycle(-1), 'break')[1])
             except tk.TclError as exc:
                 preview_diagnostic(self, 'preview.binding.unsupported', exc=exc,
+                                   severity='WARNING',
                                    sequence='Control-ISO_Left_Tab')
             self.show(files, selected)
         except Exception as exc:

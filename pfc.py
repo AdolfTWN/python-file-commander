@@ -38,6 +38,12 @@ _SINGLE_PANEL_TRANSLATIONS = {
     'Improved: Preview setup failures show an error instead of leaving an empty window; diagnostic logs can be viewed and saved.': ('改善：預覽建立失敗時顯示錯誤，不再留下空視窗；診斷紀錄可檢視與儲存。', '改善：预览创建失败时显示错误，不再留下空窗口；诊断记录可查看与保存。', '개선: 미리보기 초기화 실패 시 빈 창 대신 오류를 표시하며 진단 로그를 확인하고 저장할 수 있습니다.'),
     'Debug mode': ('除錯模式', '调试模式', '디버그 모드'),
     'View debug log': ('檢視除錯紀錄', '查看调试记录', '디버그 로그 보기'),
+    'Error / Warning log': ('錯誤／警告紀錄', '错误／警告记录', '오류 / 경고 기록'),
+    'Automatic Error / Warning log': ('自動記錄錯誤／警告', '自动记录错误／警告', '자동 오류 / 경고 기록'),
+    'Current session': ('目前執行階段', '当前运行会话', '현재 세션'),
+    'No diagnostic log yet.': ('尚無診斷紀錄。', '尚无诊断记录。', '아직 진단 기록이 없습니다.'),
+    'Added: Automatic bounded Error/Warning logs capture callback, Python/thread failures and emitted warnings independently of Debug mode.': ('新增：自動限量錯誤／警告紀錄，不需開啟 Debug 即可記錄回呼、Python／執行緒錯誤與警告。', '新增：自动限量错误／警告记录，无需开启 Debug 即可记录回调、Python／线程错误与警告。', '추가: Debug 모드와 별개로 콜백, Python/스레드 오류 및 경고를 용량 제한 기록에 저장합니다.'),
+    'Improved: Every diagnostic includes local time with timezone, UTC, PFC version and session ID; Help log viewer identifies the current version and file location.': ('改善：每筆診斷包含本機時間與時區、UTC、PFC 版本及執行階段 ID；Help 紀錄視窗顯示目前版本與檔案位置。', '改善：每条诊断包含本机时间与时区、UTC、PFC 版本和会话 ID；Help 记录窗口显示当前版本和文件位置。', '개선: 각 진단에 시간대 포함 현지 시각, UTC, PFC 버전과 세션 ID를 기록하며 도움말 기록 창에 현재 버전과 파일 위치를 표시합니다.'),
     'Save debug log': ('儲存除錯紀錄', '保存调试记录', '디버그 로그 저장'),
     'Refresh log': ('更新紀錄', '更新记录', '로그 새로고침'),
     'Enable Help > Debug mode, retry F3, then save the debug log.': ('請啟用 Help → 除錯模式，重試 F3，再儲存除錯紀錄。', '请启用 Help → 调试模式，重试 F3，再保存调试记录。', '도움말 → 디버그 모드를 켜고 F3를 다시 누른 뒤 로그를 저장하세요.'),
@@ -6900,7 +6906,7 @@ def resolve_reading_anchor(model, saved, signature):
 
 
 # Source: pycommander/debuglog.py
-"""Opt-in local diagnostics: metadata only, bounded files, no document content."""
+"""Bounded automatic errors and opt-in diagnostics; never log document content."""
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -6911,17 +6917,79 @@ from pathlib import Path
 import platform
 import traceback
 import uuid
+import threading
+import sys
+import warnings
 
 
 class DiagnosticLog:
-    def __init__(self, version, directory=None):
+    def __init__(self, version, directory=None, automatic=False):
         base = Path(os.environ.get('LOCALAPPDATA') or os.environ.get('XDG_CACHE_HOME') or Path.home()/'.cache')
         self.path = Path(directory or base/'PFC'/'logs')/'pfc-debug.jsonl'
         self.version, self.session = version, uuid.uuid4().hex[:12]
         self.handler = None
         self.error = None
+        self.error_path = self.path.with_name('pfc-errors.jsonl')
+        self.error_handler = None
+        self._lock = threading.RLock()
+        self._hooks = []
+        self._logging_handler = None
+        if automatic:
+            try:
+                self.error_path.parent.mkdir(parents=True, exist_ok=True)
+                self.error_handler = RotatingFileHandler(self.error_path, maxBytes=1024*1024,
+                                                         backupCount=2, encoding='utf-8')
+                self.event('session.started', severity='INFO', automatic=True,
+                           python=platform.python_version(), platform=platform.system())
+            except OSError:
+                self.error = 'automatic-log-unavailable'
+
+    def install_hooks(self):
+        """Observe unhandled failures/warnings, preserving normal Python handling."""
+        if self._hooks or self._logging_handler: return
+        old_sys, old_thread, old_warning = sys.excepthook, threading.excepthook, warnings.showwarning
+        def system(kind, exc, tb):
+            self.exception('python.unhandled', exc.with_traceback(tb))
+            old_sys(kind, exc, tb)
+        def thread(args):
+            if not isinstance(args.exc_value,SystemExit):
+                self.exception('thread.unhandled', args.exc_value.with_traceback(args.exc_traceback))
+            old_thread(args)
+        def warning(message, category, filename, lineno, file=None, line=None):
+            self.event('python.warning', severity='WARNING', category=category.__name__,
+                       module=Path(filename).name, line=lineno)
+            old_warning(message, category, filename, lineno, file, line)
+        for obj, name, new, old in ((sys,'excepthook',system,old_sys),
+                (threading,'excepthook',thread,old_thread), (warnings,'showwarning',warning,old_warning)):
+            setattr(obj,name,new); self._hooks.append((obj,name,new,old))
+        owner = self
+        class ErrorHandler(logging.Handler):
+            def emit(self, record):
+                if record.exc_info and record.exc_info[1]:
+                    owner.exception('logging.exception', record.exc_info[1])
+                else:
+                    owner.event('logging.warning', severity=record.levelname,
+                                logger=record.name, module=record.module, line=record.lineno)
+        self._logging_handler = ErrorHandler(logging.WARNING)
+        logging.getLogger().addHandler(self._logging_handler)
+
+    def close(self):
+        for obj,name,new,old in reversed(self._hooks):
+            if getattr(obj,name) is new: setattr(obj,name,old)
+        self._hooks.clear()
+        if self._logging_handler:
+            logging.getLogger().removeHandler(self._logging_handler)
+            self._logging_handler = None
+        with self._lock:
+            for handler in (self.handler,self.error_handler):
+                if handler: handler.close()
+            self.handler = self.error_handler = None
 
     def set_enabled(self, enabled):
+        with self._lock:
+            return self._set_enabled(enabled)
+
+    def _set_enabled(self, enabled):
         if not enabled:
             self.event('debug.disabled')
             if self.handler: self.handler.close()
@@ -6940,16 +7008,28 @@ class DiagnosticLog:
             self.handler = None
             return False
 
-    def event(self, event, **metadata):
-        if self.handler is None: return
+    def event(self, event, severity='INFO', automatic=False, **metadata):
+        with self._lock:
+            handlers = [h for h in (self.handler, self.error_handler
+                        if automatic or severity in ('WARNING','ERROR','CRITICAL') else None) if h]
+            if not handlers: return
+            metadata.update(time=datetime.now().astimezone().isoformat(),
+                            utc_time=datetime.now(timezone.utc).isoformat(), version=self.version,
+                            session=self.session, event=event, severity=severity)
+            try:
+                payload = json.dumps(metadata, ensure_ascii=True)
+            except (TypeError, ValueError):
+                self.error = 'diagnostic-metadata-invalid'
+                return
+            for handler in handlers: self._write(handler, payload)
+
+    def _write(self, handler, payload):
         try:
-            payload = json.dumps(dict(time=datetime.now(timezone.utc).isoformat(), session=self.session,
-                                      event=event, **metadata), ensure_ascii=True)
             # Write directly: logging.handleError can leak raw exception text
             # to stderr; diagnostic I/O failure must not interrupt Preview.
-            if self.handler.shouldRollover(logging.makeLogRecord({'msg':payload})):
-                self.handler.doRollover()
-            self.handler.stream.write(payload+'\n'); self.handler.flush()
+            if handler.shouldRollover(logging.makeLogRecord({'msg':payload})):
+                handler.doRollover()
+            handler.stream.write(payload+'\n'); handler.flush()
         except (OSError, ValueError):
             self.error = 'diagnostic-write-failed'
 
@@ -6964,18 +7044,19 @@ class DiagnosticLog:
         except OSError as exc: metadata['stat_error'] = type(exc).__name__
         self.event(event, **metadata)
 
-    def exception(self, event, exc):
+    def exception(self, event, exc, severity='ERROR'):
         frames = [dict(module=Path(f.filename).name, line=f.lineno, function=f.name)
                   for f in traceback.extract_tb(exc.__traceback__)[-16:]]
         data = dict(error=type(exc).__name__, frames=frames)
         if isinstance(exc, OSError): data.update(errno=exc.errno, winerror=getattr(exc,'winerror',None))
         if isinstance(exc, NameError) and getattr(exc,'name',None): data['name'] = exc.name
-        self.event(event, **data)
+        self.event(event, severity=severity, **data)
 
-    def snapshot(self):
-        if not self.path.exists(): return ''
-        with self.path.open('rb') as stream:
-            stream.seek(max(0, self.path.stat().st_size-128*1024))
+    def snapshot(self, automatic=False):
+        path = self.error_path if automatic else self.path
+        if not path.exists(): return ''
+        with self._lock, path.open('rb') as stream:
+            stream.seek(max(0, os.fstat(stream.fileno()).st_size-128*1024))
             return stream.read(128*1024).decode('utf-8', errors='replace')
 
 
@@ -14973,7 +15054,7 @@ def render_hex(data: bytes) -> str:
 def preview_diagnostic(widget, event, *, path=None, exc=None, **metadata):
     log = getattr(widget._root(), 'debug_log', None)
     if log is None: return
-    if exc is not None: log.exception(event, exc)
+    if exc is not None: log.exception(event, exc, severity=metadata.pop('severity','ERROR'))
     elif path is not None: log.file(event, path, **metadata)
     else: log.event(event, **metadata)
 
@@ -15203,6 +15284,7 @@ class PreviewPage(tk.Frame):
                 context=self._md_request;self._md_request=None
                 if not context['probe']:
                     preview_diagnostic(self,'preview.worker.result',worker_error=bool(result.get('error')),
+                        severity='ERROR' if result.get('error') else 'INFO',
                         error_type=result.get('error_type'),characters=len(result.get('content','')),encoding=result.get('encoding'))
                 self.md_cancel.state(['disabled'])
                 if 'error' in result:
@@ -15216,7 +15298,7 @@ class PreviewPage(tk.Frame):
                 else:
                     self._begin_markdown_result(result,context)
             if self._md_jobs.pending and time.monotonic()-self._md_jobs.started>5:
-                preview_diagnostic(self,'preview.worker.timeout')
+                preview_diagnostic(self,'preview.worker.timeout',severity='WARNING')
                 self.cancel_markdown()
                 self.status.configure(text=tr('Preview timed out; press F5 to retry'))
             if self._md_insert: self._insert_markdown_chunk()
@@ -15797,6 +15879,7 @@ class PreviewWindow(tk.Toplevel):
                 self.bind('<Control-ISO_Left_Tab>', lambda e: (self.cycle(-1), 'break')[1])
             except tk.TclError as exc:
                 preview_diagnostic(self, 'preview.binding.unsupported', exc=exc,
+                                   severity='WARNING',
                                    sequence='Control-ISO_Left_Tab')
             self.show(files, selected)
         except Exception as exc:
@@ -18407,7 +18490,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.24"
+__version__ = "0.18.25"
 
 
 
@@ -18527,6 +18610,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/09"
 VERSION_HISTORY = (
+    ("v0.18.25", "2026/10/09", (
+        "Added: Automatic bounded Error/Warning logs capture callback, Python/thread failures and emitted warnings independently of Debug mode.",
+        "Improved: Every diagnostic includes local time with timezone, UTC, PFC version and session ID; Help log viewer identifies the current version and file location.",
+    )),
     ("v0.18.24", "2026/10/09", (
         "Improved: Git/SVN overlays use bounded last-known snapshots on the first paint when entering covered subfolders; fresh status loads in the background.",
         "Improved: Recent ancestor scans are reused without crossing nested repository boundaries, and per-file overlay aggregation avoids repeated filesystem resolution.",
@@ -20749,7 +20836,11 @@ class Commander(tk.Tk):
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
         self.debug_mode_var = tk.BooleanVar(value=self.config_data.getboolean('debug', 'enabled', fallback=False))
-        self.debug_log = DiagnosticLog(__version__)
+        self.debug_log = DiagnosticLog(__version__, automatic=True)
+        self.debug_log.install_hooks()
+        diagnostic_log = self.debug_log
+        self.bind('<Destroy>', lambda event: diagnostic_log.close()
+                  if event.widget is self else None, add='+')
         if not self.debug_log.set_enabled(self.debug_mode_var.get()): self.debug_mode_var.set(False)
         self.home_prefixes = discover_home_prefixes()
         self.cloud_status = CloudStatusCache([p for p, kind in self.home_prefixes if kind == 'cloud']
@@ -21715,7 +21806,7 @@ class Commander(tk.Tk):
         versions.add_command(label=tr("Check Update"), command=self.check_update)
         versions.add_separator()
         add_scaled_checkbutton(versions, tr('Debug mode'), self.debug_mode_var, self.set_debug_mode)
-        versions.add_command(label=tr('View debug log')+'…', command=self.show_debug_log)
+        versions.add_command(label=tr('Error / Warning log')+'…', command=self.show_debug_log)
         versions.add_separator()
         version_series = []
         for version, build_date, notes in VERSION_HISTORY:
@@ -22720,6 +22811,7 @@ class Commander(tk.Tk):
                 accepts_progress = bool(inspect.signature(work).parameters)
                 results.put(("result", True, work(report) if accepts_progress else work()))
             except BaseException as exc:
+                self.debug_log.exception('operation.worker.failed', exc)
                 results.put(("result", False, exc))
 
         worker = threading.Thread(target=runner, daemon=True, name=f"PFC-{title}")
@@ -23492,28 +23584,47 @@ class Commander(tk.Tk):
         self.config_data.set('debug','enabled',str(self.debug_mode_var.get()).lower())
         self.save_config()
         if self.debug_mode_var.get():
-            messagebox.showinfo(tr('Debug mode'), tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')+'\n\n'+str(self.debug_log.path), parent=self)
+            instructions=tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')
+            instructions=instructions.replace(tr('View debug log'),tr('Error / Warning log'))
+            messagebox.showinfo(tr('Debug mode'), instructions+'\n\n'+str(self.debug_log.path), parent=self)
 
     def show_debug_log(self):
-        win = tk.Toplevel(self); win.title(tr('View debug log')); win.geometry('900x600')
+        win = tk.Toplevel(self); win.title(tr('Error / Warning log')); win.geometry('1000x650')
         bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
         ttk.Label(bar, text=tr('Debug mode')+(' ✓' if self.debug_mode_var.get() else ' —')).pack(side='left')
+        identity = ttk.Label(win, text='PFC '+__version__+' · '+
+                             tr('Automatic Error / Warning log' if self.debug_log.error_handler
+                                else 'Cannot write diagnostic log.')+'\n'+
+                             str(self.debug_log.error_path)+'\n'+
+                             tr('Current session')+': '+self.debug_log.session,
+                             wraplength=950)
+        identity.pack(fill='x',padx=6,pady=6)
         footer = ttk.Label(win,text=tr('Recent diagnostics only; no document contents or filenames.'),wraplength=800)
         footer.pack(side='bottom',fill='x',padx=6,pady=6)
-        win.bind('<Configure>',lambda e:footer.configure(wraplength=max(100,win.winfo_width()-12)) if e.widget is win else None,add='+')
+        def resize_log(event):
+            if event.widget is win:
+                width=max(100,win.winfo_width()-12)
+                footer.configure(wraplength=width); identity.configure(wraplength=width)
+        win.bind('<Configure>',resize_log,add='+')
         body = ttk.Frame(win); body.pack(fill='both',expand=True)
         text = tk.Text(body, wrap='word', font='TkTextFont'); text.pack(side='left',fill='both',expand=True)
         scroll = ttk.Scrollbar(body,command=text.yview); scroll.pack(side='right',fill='y')
         text.configure(yscrollcommand=scroll.set)
         def refresh():
-            try: content=self.debug_log.snapshot() or tr('No diagnostic log yet. Enable Debug mode and retry F3.')
+            try:
+                content=self.debug_log.snapshot(automatic=True)
+                details=self.debug_log.snapshot()
+                if details: content+='\n'+details
+                content=content or tr('No diagnostic log yet.')
             except OSError: content=tr('Cannot read diagnostic log.')
             text.configure(state='normal');text.delete('1.0','end');text.insert('1.0',content);text.configure(state='disabled');text.see('end')
         def save():
             destination=filedialog.asksaveasfilename(parent=win,defaultextension='.jsonl',initialfile='pfc-debug.jsonl')
             if destination:
                 try:
-                    if Path(destination).resolve()!=self.debug_log.path.resolve(): shutil.copyfile(self.debug_log.path,destination)
+                    if Path(destination).resolve() not in (self.debug_log.path.resolve(), self.debug_log.error_path.resolve()):
+                        Path(destination).write_bytes((self.debug_log.snapshot(automatic=True)+'\n'+
+                                                       self.debug_log.snapshot()).encode('utf-8'))
                 except OSError: messagebox.showerror(tr('Debug mode'),tr('Cannot save diagnostic log.'),parent=win)
         ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
         ttk.Button(bar,text=tr('Save debug log'),command=save).pack(side='right',padx=6)

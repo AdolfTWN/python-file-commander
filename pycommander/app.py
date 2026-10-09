@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.25", "2026/10/09", (
+        "Added: Automatic bounded Error/Warning logs capture callback, Python/thread failures and emitted warnings independently of Debug mode.",
+        "Improved: Every diagnostic includes local time with timezone, UTC, PFC version and session ID; Help log viewer identifies the current version and file location.",
+    )),
     ("v0.18.24", "2026/10/09", (
         "Improved: Git/SVN overlays use bounded last-known snapshots on the first paint when entering covered subfolders; fresh status loads in the background.",
         "Improved: Recent ancestor scans are reused without crossing nested repository boundaries, and per-file overlay aggregation avoids repeated filesystem resolution.",
@@ -2364,7 +2368,11 @@ class Commander(tk.Tk):
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
         self.debug_mode_var = tk.BooleanVar(value=self.config_data.getboolean('debug', 'enabled', fallback=False))
-        self.debug_log = DiagnosticLog(__version__)
+        self.debug_log = DiagnosticLog(__version__, automatic=True)
+        self.debug_log.install_hooks()
+        diagnostic_log = self.debug_log
+        self.bind('<Destroy>', lambda event: diagnostic_log.close()
+                  if event.widget is self else None, add='+')
         if not self.debug_log.set_enabled(self.debug_mode_var.get()): self.debug_mode_var.set(False)
         self.home_prefixes = discover_home_prefixes()
         self.cloud_status = CloudStatusCache([p for p, kind in self.home_prefixes if kind == 'cloud']
@@ -3330,7 +3338,7 @@ class Commander(tk.Tk):
         versions.add_command(label=tr("Check Update"), command=self.check_update)
         versions.add_separator()
         add_scaled_checkbutton(versions, tr('Debug mode'), self.debug_mode_var, self.set_debug_mode)
-        versions.add_command(label=tr('View debug log')+'…', command=self.show_debug_log)
+        versions.add_command(label=tr('Error / Warning log')+'…', command=self.show_debug_log)
         versions.add_separator()
         version_series = []
         for version, build_date, notes in VERSION_HISTORY:
@@ -4335,6 +4343,7 @@ class Commander(tk.Tk):
                 accepts_progress = bool(inspect.signature(work).parameters)
                 results.put(("result", True, work(report) if accepts_progress else work()))
             except BaseException as exc:
+                self.debug_log.exception('operation.worker.failed', exc)
                 results.put(("result", False, exc))
 
         worker = threading.Thread(target=runner, daemon=True, name=f"PFC-{title}")
@@ -5107,28 +5116,47 @@ class Commander(tk.Tk):
         self.config_data.set('debug','enabled',str(self.debug_mode_var.get()).lower())
         self.save_config()
         if self.debug_mode_var.get():
-            messagebox.showinfo(tr('Debug mode'), tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')+'\n\n'+str(self.debug_log.path), parent=self)
+            instructions=tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')
+            instructions=instructions.replace(tr('View debug log'),tr('Error / Warning log'))
+            messagebox.showinfo(tr('Debug mode'), instructions+'\n\n'+str(self.debug_log.path), parent=self)
 
     def show_debug_log(self):
-        win = tk.Toplevel(self); win.title(tr('View debug log')); win.geometry('900x600')
+        win = tk.Toplevel(self); win.title(tr('Error / Warning log')); win.geometry('1000x650')
         bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
         ttk.Label(bar, text=tr('Debug mode')+(' ✓' if self.debug_mode_var.get() else ' —')).pack(side='left')
+        identity = ttk.Label(win, text='PFC '+__version__+' · '+
+                             tr('Automatic Error / Warning log' if self.debug_log.error_handler
+                                else 'Cannot write diagnostic log.')+'\n'+
+                             str(self.debug_log.error_path)+'\n'+
+                             tr('Current session')+': '+self.debug_log.session,
+                             wraplength=950)
+        identity.pack(fill='x',padx=6,pady=6)
         footer = ttk.Label(win,text=tr('Recent diagnostics only; no document contents or filenames.'),wraplength=800)
         footer.pack(side='bottom',fill='x',padx=6,pady=6)
-        win.bind('<Configure>',lambda e:footer.configure(wraplength=max(100,win.winfo_width()-12)) if e.widget is win else None,add='+')
+        def resize_log(event):
+            if event.widget is win:
+                width=max(100,win.winfo_width()-12)
+                footer.configure(wraplength=width); identity.configure(wraplength=width)
+        win.bind('<Configure>',resize_log,add='+')
         body = ttk.Frame(win); body.pack(fill='both',expand=True)
         text = tk.Text(body, wrap='word', font='TkTextFont'); text.pack(side='left',fill='both',expand=True)
         scroll = ttk.Scrollbar(body,command=text.yview); scroll.pack(side='right',fill='y')
         text.configure(yscrollcommand=scroll.set)
         def refresh():
-            try: content=self.debug_log.snapshot() or tr('No diagnostic log yet. Enable Debug mode and retry F3.')
+            try:
+                content=self.debug_log.snapshot(automatic=True)
+                details=self.debug_log.snapshot()
+                if details: content+='\n'+details
+                content=content or tr('No diagnostic log yet.')
             except OSError: content=tr('Cannot read diagnostic log.')
             text.configure(state='normal');text.delete('1.0','end');text.insert('1.0',content);text.configure(state='disabled');text.see('end')
         def save():
             destination=filedialog.asksaveasfilename(parent=win,defaultextension='.jsonl',initialfile='pfc-debug.jsonl')
             if destination:
                 try:
-                    if Path(destination).resolve()!=self.debug_log.path.resolve(): shutil.copyfile(self.debug_log.path,destination)
+                    if Path(destination).resolve() not in (self.debug_log.path.resolve(), self.debug_log.error_path.resolve()):
+                        Path(destination).write_bytes((self.debug_log.snapshot(automatic=True)+'\n'+
+                                                       self.debug_log.snapshot()).encode('utf-8'))
                 except OSError: messagebox.showerror(tr('Debug mode'),tr('Cannot save diagnostic log.'),parent=win)
         ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
         ttk.Button(bar,text=tr('Save debug log'),command=save).pack(side='right',padx=6)
