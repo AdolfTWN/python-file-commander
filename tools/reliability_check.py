@@ -397,7 +397,7 @@ class ReliabilityTests(unittest.TestCase):
             for index in range(vcs._VCS_CACHE_LIMIT + 5):
                 vcs.folder_statuses(self.root / str(index))
             self.assertEqual(len(vcs._CACHE), vcs._VCS_CACHE_LIMIT)
-            clock += vcs._CACHE_SECONDS + 1
+            clock += vcs._DISPLAY_CACHE_SECONDS + 1
             vcs.folder_statuses(self.root / "fresh")
             self.assertEqual(list(vcs._CACHE), [os.path.normcase(str(self.root / "fresh"))])
 

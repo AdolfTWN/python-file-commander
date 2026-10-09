@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Git/SVN overlays use bounded last-known snapshots on the first paint when entering covered subfolders; fresh status loads in the background.': ('改善：進入已涵蓋的子資料夾時，Git/SVN 圖示立即使用限時的既有狀態，並在背景取得最新狀態。', '改善：进入已覆盖的子文件夹时，Git/SVN 图标立即使用限时的已有状态，并在后台取得最新状态。', '개선: 조회된 하위 폴더에 들어갈 때 Git/SVN 아이콘에 제한된 최근 상태를 즉시 표시하고 새 상태는 백그라운드에서 조회합니다.'),
+    'Improved: Recent ancestor scans are reused without crossing nested repository boundaries, and per-file overlay aggregation avoids repeated filesystem resolution.': ('改善：重用近期上層資料夾的狀態查詢，不跨越巢狀儲存庫邊界；彙整圖示狀態時避免重複解析每個檔案的實體路徑。', '改善：复用近期上层文件夹的状态查询，不跨越嵌套仓库边界；汇总图标状态时避免重复解析每个文件的实际路径。', '개선: 중첩 저장소 경계를 넘지 않고 최근 상위 폴더 조회를 재사용하며 파일별 아이콘 상태 집계에서 반복 파일 시스템 경로 확인을 제거합니다.'),
     'Fixed: Tab focus uses the native border without a redundant redraw callback when returning from dialogs.': ('修正：頁籤焦點使用原生框線，從對話框返回時不再觸發多餘的重繪回呼。', '修正：页签焦点使用原生边框，从对话框返回时不再触发多余的重绘回调。', '수정: 대화 상자에서 돌아올 때 탭 포커스가 불필요한 다시 그리기 콜백 없이 기본 테두리를 사용합니다.'),
     'Fixed: Concurrent Windows settings saves retry temporary sharing conflicts without discarding the previous configuration.': ('修正：Windows 設定同時儲存遇到暫時共用衝突時有限重試，不丟棄原有設定。', '修正：Windows 设置同时保存遇到暂时共享冲突时有限重试，不丢弃原有设置。', '수정: Windows 동시 설정 저장 시 일시적인 공유 충돌을 제한적으로 재시도하며 기존 설정을 보존합니다.'),
     'Improved: ZIP creation reuses operation-local file metadata while preserving archive layout and progress reporting.': ('改善：ZIP 建立流程重用本次作業的檔案資訊，保留壓縮檔配置與進度回報。', '改善：ZIP 创建流程复用本次操作的文件信息，保留压缩包布局与进度报告。', '개선: ZIP 생성 시 작업 내 파일 정보를 재사용하며 압축 구성과 진행 보고를 유지합니다.'),

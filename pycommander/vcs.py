@@ -10,9 +10,11 @@ from .vcsactions import vcs_cli
 
 
 _CACHE: dict[str, tuple[float, dict[str, str]]] = {}
+_CACHE_COVERAGE: set[str] = set()
 _VCS_CACHE_LOCK = threading.Lock()
 _VCS_CACHE_EPOCH = 0
 _CACHE_SECONDS = 3.0
+_DISPLAY_CACHE_SECONDS = 30.0
 _VCS_CACHE_LIMIT = 128
 _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
@@ -24,6 +26,7 @@ def invalidate_vcs_cache():
     with _VCS_CACHE_LOCK:
         _VCS_CACHE_EPOCH += 1
         _CACHE.clear()
+        _CACHE_COVERAGE.clear()
 
 
 def _run_options() -> dict:
@@ -41,10 +44,10 @@ def _overlay_cli(kind: str) -> str:
 
 
 def _merge(statuses: dict[str, str], path: Path, status: str, root: Path) -> None:
-    try:
-        current = path.resolve()
-    except OSError:
-        current = Path(os.path.abspath(path))
+    # Git reports paths relative to an already resolved worktree. Resolving
+    # every tracked file repeats filesystem/reparse-point calls and incorrectly
+    # attaches a tracked symlink's overlay to its target instead of the link.
+    current = Path(os.path.abspath(path))
     while current == root or root in current.parents:
         key = os.path.normcase(str(current))
         if key not in statuses or _PRIORITY.get(status, 0) > _PRIORITY.get(statuses[key], 0):
@@ -205,17 +208,18 @@ def folder_statuses(folder: Path) -> dict[str, str]:
     """Return Git/SVN overlay states keyed by normalized absolute path."""
     if is_metadata_path(folder):
         return {}
-    key = os.path.normcase(str(folder.resolve()))
+    folder = folder.resolve()
+    key = os.path.normcase(str(folder))
     with _VCS_CACHE_LOCK:
-        cached = _CACHE.get(key)
         epoch = _VCS_CACHE_EPOCH
-    now = time.monotonic()
-    if cached and now - cached[0] < _CACHE_SECONDS:
-        return cached[1]
+    inherited = cached_folder_statuses(folder, max_age=_CACHE_SECONDS)
+    if inherited is not None:
+        return inherited
     try:
         statuses = _git_status(folder)
         if statuses is None:
             statuses = _svn_status(folder)
+        covered = statuses is not None
         value = statuses or {}
         # A directly contained repository remains its own status boundary even
         # when the folder being viewed is itself inside another work tree.
@@ -224,22 +228,57 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         value.update(_child_repository_statuses(folder))
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
         value = {}
+        covered = False
     with _VCS_CACHE_LOCK:
         if epoch == _VCS_CACHE_EPOCH:
             completed = time.monotonic()
             for old_key, (timestamp, _) in list(_CACHE.items()):
-                if completed - timestamp >= _CACHE_SECONDS:
+                if completed - timestamp >= _DISPLAY_CACHE_SECONDS:
                     del _CACHE[old_key]
+                    _CACHE_COVERAGE.discard(old_key)
             _CACHE[key] = (completed, value)
+            _CACHE_COVERAGE.discard(key)
+            if covered:
+                _CACHE_COVERAGE.add(key)
             while len(_CACHE) > _VCS_CACHE_LIMIT:
                 oldest = min(_CACHE, key=lambda item: _CACHE[item][0])
                 del _CACHE[oldest]
+                _CACHE_COVERAGE.discard(oldest)
     return value
 
 
+def cached_folder_statuses(folder: Path, *, max_age=_DISPLAY_CACHE_SECONDS) -> dict[str, str] | None:
+    """Last-known overlays for immediate paint; no CLI, no fabricated clean state.
+
+    Ancestor status scans cover descendants, but a parent-folder repository
+    summary does not. Never inherit across nested worktrees or VCS internals.
+    Background queries use the shorter freshness TTL, not the display TTL.
+    """
+    folder = Path(os.path.abspath(folder))
+    if any(part.casefold() in {'.git', '.svn'} for part in folder.parts):
+        return None
+    now = time.monotonic()
+    with _VCS_CACHE_LOCK:
+        entries, coverage, epoch = dict(_CACHE), set(_CACHE_COVERAGE), _VCS_CACHE_EPOCH
+    if not entries:
+        return None
+    for candidate in (folder, *folder.parents):
+        key = os.path.normcase(str(candidate))
+        cached = entries.get(key)
+        if cached and now - cached[0] < max_age and (candidate == folder or key in coverage):
+            # Only inspect boundaries when a usable ancestor snapshot exists.
+            # Unrelated folders must not acquire synchronous marker probes just
+            # because some other pane has populated the global cache.
+            for boundary in (folder, *folder.parents):
+                if boundary == candidate:
+                    break
+                if (boundary / '.git').exists() or (boundary / '.svn').exists():
+                    return None
+            with _VCS_CACHE_LOCK:
+                return cached[1] if epoch == _VCS_CACHE_EPOCH else None
+    return None
+
+
 def status_for(statuses: dict[str, str], path: Path) -> str | None:
-    try:
-        key = os.path.normcase(str(path.resolve()))
-    except OSError:
-        key = os.path.normcase(os.path.abspath(path))
+    key = os.path.normcase(os.path.abspath(path))
     return statuses.get(key)

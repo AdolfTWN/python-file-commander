@@ -26,7 +26,7 @@ from . import __version__
 from .fileops import OperationFailure, OperationResult, compact_file_size, copy_items, delete_items, format_size, is_hidden, is_system, move_items, recycle_items, roots
 from .clipboard import clear_file_clipboard, extract_virtual_files, get_file_clipboard, get_virtual_file_descriptors, set_file_clipboard
 from .icons import ShellIconProvider, create_pfc_icon, pfc_icon_ico
-from .vcs import folder_statuses, status_for
+from .vcs import cached_folder_statuses, folder_statuses, status_for
 from .compare import CompareWindow, is_compare_container
 from .preview import PreviewWindow
 from .search import SearchWindow
@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.24", "2026/10/09", (
+        "Improved: Git/SVN overlays use bounded last-known snapshots on the first paint when entering covered subfolders; fresh status loads in the background.",
+        "Improved: Recent ancestor scans are reused without crossing nested repository boundaries, and per-file overlay aggregation avoids repeated filesystem resolution.",
+    )),
     ("v0.18.23", "2026/10/08", (
         "Fixed: Concurrent Windows settings saves retry temporary sharing conflicts without discarding the previous configuration.",
         "Fixed: Tab focus uses the native border without a redundant redraw callback when returning from dialogs.",
@@ -1329,13 +1333,11 @@ class FilePane(ttk.Frame):
             return
         now, path = time.monotonic(), self.path
         if self._vcs_path != path:
-            self._vcs_statuses = {}
+            self._vcs_statuses = cached_folder_statuses(path) or {}
         if self._vcs_inflight is not None:
             return
         if self._vcs_path == path and now - self._vcs_requested_at < 10.0:
             return
-        if self._vcs_path != path:
-            self._vcs_statuses = {}
         self._vcs_path = path; self._vcs_requested_at = now
         self._vcs_generation += 1
         self._vcs_loading = True
