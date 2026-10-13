@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.26**
+Current version: **v0.18.27**
 
 **Search result navigation:** Search still includes accessible hidden/system
 items. Its Attributes column labels Hidden, System or both; ordinary items are
@@ -9,7 +9,7 @@ Double-click a result to locate it and close Search; Enter or Results → Go to 
 locates it without closing Search. Missing/unavailable results keep Search open.
 Locating a hidden file reveals that one target in the destination file list,
 without changing hidden/system visibility or quick-filter settings; leaving its
-folder clears this temporary exception. Folder results retain folder navigation.
+folder or switching view modes clears this temporary exception. Folder results retain folder navigation.
 
 **Reliability hardening:** Link/junction deletion and Shell operations preserve
 the selected path. Attachments use collision-safe staging; interrupted ZIP

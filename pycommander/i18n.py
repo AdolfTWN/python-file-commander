@@ -11,6 +11,7 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Temporary search-result visibility resets when switching file-list view modes, preventing repeated folder refreshes.': ('修正：切換檔案清單檢視模式時，清除搜尋結果的暫時顯示狀態，避免反覆刷新資料夾。', '修正：切换文件列表查看模式时，清除搜索结果的临时显示状态，避免反复刷新文件夹。', '수정: 파일 목록 보기 모드 변경 시 검색 결과의 임시 표시 상태를 초기화하여 폴더가 반복 갱신되지 않도록 합니다.'),
     'Hidden': ('隱藏', '隐藏', '숨김'),
     'System': ('系統', '系统', '시스템'),
     'Attributes': ('屬性', '属性', '속성'),

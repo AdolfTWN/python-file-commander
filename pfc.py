@@ -20,6 +20,7 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Temporary search-result visibility resets when switching file-list view modes, preventing repeated folder refreshes.': ('修正：切換檔案清單檢視模式時，清除搜尋結果的暫時顯示狀態，避免反覆刷新資料夾。', '修正：切换文件列表查看模式时，清除搜索结果的临时显示状态，避免反复刷新文件夹。', '수정: 파일 목록 보기 모드 변경 시 검색 결과의 임시 표시 상태를 초기화하여 폴더가 반복 갱신되지 않도록 합니다.'),
     'Hidden': ('隱藏', '隐藏', '숨김'),
     'System': ('系統', '系统', '시스템'),
     'Attributes': ('屬性', '属性', '속성'),
@@ -18517,7 +18518,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.26"
+__version__ = "0.18.27"
 
 
 
@@ -18637,6 +18638,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/13"
 VERSION_HISTORY = (
+    ("v0.18.27", "2026/10/13", (
+        "Fixed: Temporary search-result visibility resets when switching file-list view modes, preventing repeated folder refreshes.",
+    )),
     ("v0.18.26", "2026/10/13", (
         "Added: Search results label Hidden and System attributes without excluding those items.",
         "Improved: Double-click locates a search result and closes Search; Go to File keeps Search open. Hidden targets can be selected without changing visibility settings.",
@@ -19652,6 +19656,7 @@ class FilePane(ttk.Frame):
             return
         selected = self.selected_paths()
         self.view_mode = mode
+        self._search_reveal_path = None
         self._update_view_mode_button()
         self.refresh()
         retained = []

@@ -142,6 +142,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.27", "2026/10/13", (
+        "Fixed: Temporary search-result visibility resets when switching file-list view modes, preventing repeated folder refreshes.",
+    )),
     ("v0.18.26", "2026/10/13", (
         "Added: Search results label Hidden and System attributes without excluding those items.",
         "Improved: Double-click locates a search result and closes Search; Go to File keeps Search open. Hidden targets can be selected without changing visibility settings.",
@@ -1157,6 +1160,7 @@ class FilePane(ttk.Frame):
             return
         selected = self.selected_paths()
         self.view_mode = mode
+        self._search_reveal_path = None
         self._update_view_mode_button()
         self.refresh()
         retained = []

@@ -77,6 +77,10 @@ def main():
             assert not pane.refresh_if_changed(), 'Temporary reveal caused an unchanged folder to refresh'
             relative=Path(os.path.relpath(hidden))
             assert app.go_to_search_result(relative,pane) and pane.selected_paths()==[hidden]
+            pane.set_view_mode('file')
+            assert not pane.refresh_if_changed(), 'Changing view mode caused repeated refreshes after locating a hidden result'
+            pane.set_view_mode('list')
+            assert app.go_to_search_result(hidden,pane)
             # Non-result regions do not navigate or close.
             s.double_click_result(SimpleNamespace(x=5,y=2));assert s.winfo_exists()
             # A deleted result cannot close Search or select an unrelated file.
