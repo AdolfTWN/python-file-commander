@@ -25,6 +25,15 @@ CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
 
 
+def search_attributes(path: Path, metadata) -> str:
+    """Use the search worker's stat snapshot; no additional per-row disk I/O."""
+    flags = getattr(metadata, 'st_file_attributes', 0)
+    labels = []
+    if path.name.startswith('.') or flags & 2: labels.append(tr('Hidden'))
+    if flags & 4: labels.append(tr('System'))
+    return ' · '.join(labels)
+
+
 def search_row_height(linespace: int, scale: float) -> int:
     """Leave enough vertical padding for scaled Search result text."""
     return max(24, int(linespace) + max(8, round(6 * float(scale))))
@@ -34,22 +43,16 @@ def search_column_widths(available: int, desired: dict[str, int]) -> dict[str, i
     """Fit result columns while reserving useful space for both name and folder."""
     available = max(520, int(available))
     fixed = {
-        "size": min(max(desired.get("size", 80), 72), 125),
-        "modified": min(max(desired.get("modified", 150), 148), 200),
-        "ext": min(max(desired.get("ext", 54), 48), 105),
+        "attributes": min(max(desired.get("attributes", 90), 72), 400),
+        "size": min(max(desired.get("size", 80), 72), 180),
+        "modified": min(max(desired.get("modified", 150), 148), 400),
+        "ext": min(max(desired.get("ext", 54), 48), 150),
     }
     flexible = max(280, available - sum(fixed.values()) - 8)
     wanted_name = min(max(desired.get("name", 160), 130), int(available * .48))
-    wanted_folder = min(max(desired.get("folder", 220), 150), int(available * .52))
-    wanted_total = wanted_name + wanted_folder
-    if wanted_total <= flexible:
-        name = wanted_name
-        folder = flexible - name
-    else:
-        name = max(130, round(flexible * wanted_name / wanted_total))
-        folder = max(150, flexible - name)
-        if name + folder > flexible:
-            name = max(130, flexible - folder)
+    # A long containing path must not crowd short, otherwise-readable names.
+    name = wanted_name
+    folder = max(150, flexible - name)
     return {"name": name, "folder": folder, **fixed}
 
 
@@ -174,7 +177,7 @@ class SearchWindow(tk.Toplevel):
                 ('Copy Path', self.copy_paths)):
             self.results_menu.add_command(label=tr(label), command=command)
         self.results_button.configure(menu=self.results_menu); self.results_button.pack(side='right')
-        ToolTip(self.results_button, lambda: tr('Selected results: Enter opens, F3 previews, F9 compares'))
+        ToolTip(self.results_button, lambda: tr('Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.'))
         form.columnconfigure(1, weight=1)
 
         footer = ttk.Frame(self, padding=(7, 2)); footer.pack(side='bottom', fill='x')
@@ -189,16 +192,20 @@ class SearchWindow(tk.Toplevel):
         self.progress.pack(side='left')
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
-        columns = ("folder", "size", "modified", "ext")
+        columns = ("folder", "size", "modified", "ext", "attributes")
         self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended",
+                                 displaycolumns=('attributes','folder','size','modified','ext'),
                                  style="PFCSearch.Treeview")
         self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260, stretch=False)
-        for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60)):
+        for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60), ("attributes", 90)):
             self.tree.heading(col, text=tr(col.title()), command=lambda c=col: self.change_sort(c))
             self.tree.column(col, width=width, anchor="e" if col == "size" else "w", stretch=False)
         scroll = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview); self.tree.configure(yscrollcommand=scroll.set)
-        self.tree.pack(side="left", fill="both", expand=True); scroll.pack(side="right", fill="y")
-        self.tree.bind("<Double-1>", lambda _e: self.go_selected())
+        horizontal = ttk.Scrollbar(body, orient='horizontal', command=self.tree.xview)
+        self.tree.configure(xscrollcommand=horizontal.set)
+        horizontal.pack(side='bottom', fill='x')
+        scroll.pack(side="right", fill="y"); self.tree.pack(side="left", fill="both", expand=True)
+        self.tree.bind("<Double-1>", self.double_click_result)
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         self.tree.bind("<Configure>", self._schedule_column_resize)
         for variable in (self.mask_var, self.content_var, self.case_var, self.depth_var,
@@ -225,19 +232,20 @@ class SearchWindow(tk.Toplevel):
             "size": heading.measure(tr("Size")) + 28,
             "modified": heading.measure(tr("Modified")) + 28,
             "ext": heading.measure(tr("Ext")) + 28,
+            "attributes": max(heading.measure(tr("Attributes")), font.measure(tr('Hidden')+' · '+tr('System'))) + 24,
         }
         for iid in self.tree.get_children():
             values = self.tree.item(iid, "values")
             if len(values) >= 4:
-                self._measure_result(str(self.tree.item(iid, "text")), *map(str, values[:4]),
+                self._measure_result(str(self.tree.item(iid, "text")), *map(str, values[:5]),
                                      schedule=False)
         self._schedule_column_resize()
 
     def _measure_result(self, name: str, folder: str, size: str, modified: str, ext: str,
-                        schedule: bool = True) -> None:
+                        attributes: str = '', schedule: bool = True) -> None:
         font = tkfont.nametofont("TkDefaultFont")
         for key, value in (("name", name), ("folder", folder), ("size", size),
-                           ("modified", modified), ("ext", ext)):
+                           ("modified", modified), ("ext", ext), ("attributes", attributes)):
             self._column_desired[key] = max(self._column_desired.get(key, 0),
                                             font.measure(value) + (38 if key == "name" else 24))
         if schedule:
@@ -252,7 +260,7 @@ class SearchWindow(tk.Toplevel):
         self._column_resize_job = None
         widths = search_column_widths(self.tree.winfo_width(), self._column_desired)
         self.tree.column("#0", width=widths["name"])
-        for column in ("folder", "size", "modified", "ext"):
+        for column in ("folder", "size", "modified", "ext", "attributes"):
             self.tree.column(column, width=widths[column])
 
     def apply_color_scheme(self, palette) -> None:
@@ -376,7 +384,7 @@ class SearchWindow(tk.Toplevel):
     def _apply_sort(self):
         column = self.sort_column
         labels = {"name": tr("Name"), "folder": tr("Folder"), "size": tr("Size"),
-                  "modified": tr("Modified"), "ext": tr("Ext")}
+                  "modified": tr("Modified"), "ext": tr("Ext"), "attributes": tr('Attributes')}
         for name, label in labels.items():
             marker = (" ▲" if not self.sort_reverse else " ▼") if name == column else ""
             self.tree.heading("#0" if name == "name" else name, text=label + marker)
@@ -464,12 +472,14 @@ class SearchWindow(tk.Toplevel):
                 size_text = "<DIR>" if path.is_dir() else f"{stat.st_size:,}"
                 modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
                 extension = "" if path.is_dir() else path.suffix[1:].upper()
+                attributes = search_attributes(path, stat)
                 iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
-                                       values=(folder, size_text, modified, extension))
-                self._measure_result(path.name, folder, size_text, modified, extension)
+                                       values=(folder, size_text, modified, extension, attributes))
+                self._measure_result(path.name, folder, size_text, modified, extension, attributes)
                 self.item_data[iid] = {"name": path.name.casefold(), "folder": str(path.parent).casefold(),
                                        "size": stat.st_size, "modified": stat.st_mtime,
-                                       "ext": ("" if path.is_dir() else path.suffix[1:]).casefold()}
+                                       "ext": ("" if path.is_dir() else path.suffix[1:]).casefold(),
+                                       "attributes": attributes.casefold()}
                 self.status.configure(text=tr("{count} found", count=len(self.results)))
             elif message[0] == "done":
                 _, count, cancelled, limited = message
@@ -506,10 +516,20 @@ class SearchWindow(tk.Toplevel):
     def selected_paths(self):
         return [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.selection()
                 if self.tree.item(iid, "tags")]
-    def go_selected(self):
+    def double_click_result(self, event):
+        iid = self.tree.identify_row(event.y)
+        if iid and self.tree.identify_region(event.x,event.y) in ('tree','cell'):
+            self.tree.selection_set(iid); self.tree.focus(iid)
+            self.go_selected(close_after=True)
+        return 'break'
+
+    def go_selected(self, close_after=False):
         paths=self.selected_paths()
         if paths:
-            self.on_go(paths[0])
+            if self.on_go(paths[0]) is False: return
+            if close_after:
+                self.close()
+                return
             try: self.lower(self.master)
             except tk.TclError: pass
     def preview_selected(self):

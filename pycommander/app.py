@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.26", "2026/10/13", (
+        "Added: Search results label Hidden and System attributes without excluding those items.",
+        "Improved: Double-click locates a search result and closes Search; Go to File keeps Search open. Hidden targets can be selected without changing visibility settings.",
+    )),
     ("v0.18.25", "2026/10/09", (
         "Added: Automatic bounded Error/Warning logs capture callback, Python/thread failures and emitted warnings independently of Debug mode.",
         "Improved: Every diagnostic includes local time with timezone, UTC, PFC version and session ID; Help log viewer identifies the current version and file location.",
@@ -973,6 +977,7 @@ class FilePane(ttk.Frame):
         self.locked_path: Path | None = None
         self.on_locked_navigation = lambda _path: None
         self._signature = None
+        self._search_reveal_path = None
         self.quick_filter_var = tk.StringVar()
         self._drag_press_item = None
         self._drag_press_xy = None
@@ -1700,6 +1705,8 @@ class FilePane(ttk.Frame):
                 self.history.append(self.path)
                 self._reset_view_on_refresh = True
             self.path = path
+            if getattr(self, '_search_reveal_path', None) is not None and self._search_reveal_path.parent != path:
+                self._search_reveal_path = None
             self.mode = "files"
             if self.archive_session is not None and self.archive_session.contains(path):
                 relative = self.archive_session.relative_path(path)
@@ -1874,12 +1881,13 @@ class FilePane(ttk.Frame):
                 self.tree.yview_moveto(scroll_position)
                 self._schedule_column_autosize()
                 return
+            reveal = getattr(self, '_search_reveal_path', None)
             entries = [p for p in self.path.iterdir()
-                       if (self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p))]
+                       if p == reveal or ((self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p)))]
             self._signature = self.signature_for(entries)
             needle = self.quick_filter_var.get().strip().casefold()
             if needle:
-                entries = [path for path in entries if needle in path.name.casefold()]
+                entries = [path for path in entries if path == reveal or needle in path.name.casefold()]
             def key(p: Path):
                 try:
                     stat = p.stat()
@@ -2002,8 +2010,9 @@ class FilePane(ttk.Frame):
             return False
         self._request_vcs_statuses()
         try:
+            reveal = self._search_reveal_path
             entries = [p for p in self.path.iterdir()
-                       if (self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p))]
+                       if p == reveal or ((self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p)))]
             signature = self.signature_for(entries)
         except OSError:
             return False
@@ -5187,14 +5196,31 @@ class Commander(tk.Tk):
         self.active = pane
         self.save_config()
 
-    def go_to_search_result(self, path: Path, source: FilePane) -> None:
+    def go_to_search_result(self, path: Path, source: FilePane) -> bool:
+        # Resolve only the containing folder, retaining a file link's name.
+        path = path.parent.resolve() / path.name
+        if not path.exists():
+            messagebox.showerror(tr('Search'),tr('Search result no longer exists.'),parent=self.search_window)
+            return False
         self.set_active(source)
-        if path.is_dir(): source.navigate(path)
-        elif source.navigate(path.parent): source.select_path(path)
+        folder = path.resolve() if path.is_dir() else path.parent
+        source._search_reveal_path = path if path.is_file() else None
+        # Locked navigation opens another tab. Select in that destination.
+        if not source.navigate(folder):
+            if self.active is source or self.active.path != folder: return False
+            source = self.active
+            source._search_reveal_path = path if path.is_file() else None
+        if path.is_file():
+            if source.view_mode != 'list' or not source.select_path(path):
+                source.view_mode = 'list'
+                source._update_view_mode_button()
+                source.refresh()
+            if not source.select_path(path): return False
         source.update_idletasks()
         if path.is_file(): source.select_path(path)
         source.focus_file_list(); self.lift(); self.focus_force()
         if path.is_file(): self.after_idle(lambda: (source.select_path(path), source.focus_file_list()))
+        return True
 
     def new_tab(self) -> None:
         source, _ = self.panes()

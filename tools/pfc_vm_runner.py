@@ -315,6 +315,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                     data=guest.image_data(directory+'\\evidence-'+name+'.bmp')
                     (evidence_dir/(name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/(name+'.png'))
+            if result['status']=='passed' and 'search_results_check.py' in checks:
+                from PIL import Image
+                import io
+                for scale in ('100','200'):
+                    data=guest.image_data(directory+'\\evidence-search-'+scale+'.bmp')
+                    (evidence_dir/('search-'+scale+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('search-'+scale+'.png'))
             if result['status']=='passed' and 'control_scaling_check.py' in checks:
                 from PIL import Image
                 import io

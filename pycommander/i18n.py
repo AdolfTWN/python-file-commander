@@ -11,6 +11,13 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Hidden': ('隱藏', '隐藏', '숨김'),
+    'System': ('系統', '系统', '시스템'),
+    'Attributes': ('屬性', '属性', '속성'),
+    'Search result no longer exists.': ('搜尋結果已不存在。', '搜索结果已不存在。', '검색 결과가 더 이상 존재하지 않습니다.'),
+    'Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.': ('雙擊定位並關閉搜尋；Enter／Go to File 保留搜尋視窗。F3 預覽；F9 比較。', '双击定位并关闭搜索；Enter／Go to File 保留搜索窗口。F3 预览；F9 比较。', '두 번 클릭하면 이동 후 검색을 닫습니다. Enter / 파일로 이동은 검색을 유지합니다. F3 미리보기, F9 비교.'),
+    'Added: Search results label Hidden and System attributes without excluding those items.': ('新增：搜尋結果註記隱藏與系統屬性，不排除這些項目。', '新增：搜索结果标注隐藏与系统属性，不排除这些项目。', '추가: 검색 결과에 숨김 및 시스템 속성을 표시하며 해당 항목을 제외하지 않습니다.'),
+    'Improved: Double-click locates a search result and closes Search; Go to File keeps Search open. Hidden targets can be selected without changing visibility settings.': ('改善：雙擊定位搜尋結果並關閉搜尋；Go to File 保留搜尋視窗。隱藏項目可直接定位，不更改顯示設定。', '改善：双击定位搜索结果并关闭搜索；Go to File 保留搜索窗口。隐藏项目可直接定位，不更改显示设置。', '개선: 두 번 클릭하면 검색 결과로 이동 후 검색을 닫고 파일로 이동은 창을 유지합니다. 표시 설정 변경 없이 숨김 항목을 선택합니다.'),
     'Improved: Git/SVN overlays use bounded last-known snapshots on the first paint when entering covered subfolders; fresh status loads in the background.': ('改善：進入已涵蓋的子資料夾時，Git/SVN 圖示立即使用限時的既有狀態，並在背景取得最新狀態。', '改善：进入已覆盖的子文件夹时，Git/SVN 图标立即使用限时的已有状态，并在后台取得最新状态。', '개선: 조회된 하위 폴더에 들어갈 때 Git/SVN 아이콘에 제한된 최근 상태를 즉시 표시하고 새 상태는 백그라운드에서 조회합니다.'),
     'Improved: Recent ancestor scans are reused without crossing nested repository boundaries, and per-file overlay aggregation avoids repeated filesystem resolution.': ('改善：重用近期上層資料夾的狀態查詢，不跨越巢狀儲存庫邊界；彙整圖示狀態時避免重複解析每個檔案的實體路徑。', '改善：复用近期上层文件夹的状态查询，不跨越嵌套仓库边界；汇总图标状态时避免重复解析每个文件的实际路径。', '개선: 중첩 저장소 경계를 넘지 않고 최근 상위 폴더 조회를 재사용하며 파일별 아이콘 상태 집계에서 반복 파일 시스템 경로 확인을 제거합니다.'),
     'Fixed: Tab focus uses the native border without a redundant redraw callback when returning from dialogs.': ('修正：頁籤焦點使用原生框線，從對話框返回時不再觸發多餘的重繪回呼。', '修正：页签焦点使用原生边框，从对话框返回时不再触发多余的重绘回调。', '수정: 대화 상자에서 돌아올 때 탭 포커스가 불필요한 다시 그리기 콜백 없이 기본 테두리를 사용합니다.'),

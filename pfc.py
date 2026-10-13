@@ -20,6 +20,13 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Hidden': ('隱藏', '隐藏', '숨김'),
+    'System': ('系統', '系统', '시스템'),
+    'Attributes': ('屬性', '属性', '속성'),
+    'Search result no longer exists.': ('搜尋結果已不存在。', '搜索结果已不存在。', '검색 결과가 더 이상 존재하지 않습니다.'),
+    'Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.': ('雙擊定位並關閉搜尋；Enter／Go to File 保留搜尋視窗。F3 預覽；F9 比較。', '双击定位并关闭搜索；Enter／Go to File 保留搜索窗口。F3 预览；F9 比较。', '두 번 클릭하면 이동 후 검색을 닫습니다. Enter / 파일로 이동은 검색을 유지합니다. F3 미리보기, F9 비교.'),
+    'Added: Search results label Hidden and System attributes without excluding those items.': ('新增：搜尋結果註記隱藏與系統屬性，不排除這些項目。', '新增：搜索结果标注隐藏与系统属性，不排除这些项目。', '추가: 검색 결과에 숨김 및 시스템 속성을 표시하며 해당 항목을 제외하지 않습니다.'),
+    'Improved: Double-click locates a search result and closes Search; Go to File keeps Search open. Hidden targets can be selected without changing visibility settings.': ('改善：雙擊定位搜尋結果並關閉搜尋；Go to File 保留搜尋視窗。隱藏項目可直接定位，不更改顯示設定。', '改善：双击定位搜索结果并关闭搜索；Go to File 保留搜索窗口。隐藏项目可直接定位，不更改显示设置。', '개선: 두 번 클릭하면 검색 결과로 이동 후 검색을 닫고 파일로 이동은 창을 유지합니다. 표시 설정 변경 없이 숨김 항목을 선택합니다.'),
     'Improved: Git/SVN overlays use bounded last-known snapshots on the first paint when entering covered subfolders; fresh status loads in the background.': ('改善：進入已涵蓋的子資料夾時，Git/SVN 圖示立即使用限時的既有狀態，並在背景取得最新狀態。', '改善：进入已覆盖的子文件夹时，Git/SVN 图标立即使用限时的已有状态，并在后台取得最新状态。', '개선: 조회된 하위 폴더에 들어갈 때 Git/SVN 아이콘에 제한된 최근 상태를 즉시 표시하고 새 상태는 백그라운드에서 조회합니다.'),
     'Improved: Recent ancestor scans are reused without crossing nested repository boundaries, and per-file overlay aggregation avoids repeated filesystem resolution.': ('改善：重用近期上層資料夾的狀態查詢，不跨越巢狀儲存庫邊界；彙整圖示狀態時避免重複解析每個檔案的實體路徑。', '改善：复用近期上层文件夹的状态查询，不跨越嵌套仓库边界；汇总图标状态时避免重复解析每个文件的实际路径。', '개선: 중첩 저장소 경계를 넘지 않고 최근 상위 폴더 조회를 재사용하며 파일별 아이콘 상태 집계에서 반복 파일 시스템 경로 확인을 제거합니다.'),
     'Fixed: Tab focus uses the native border without a redundant redraw callback when returning from dialogs.': ('修正：頁籤焦點使用原生框線，從對話框返回時不再觸發多餘的重繪回呼。', '修正：页签焦点使用原生边框，从对话框返回时不再触发多余的重绘回调。', '수정: 대화 상자에서 돌아올 때 탭 포커스가 불필요한 다시 그리기 콜백 없이 기본 테두리를 사용합니다.'),
@@ -16040,6 +16047,15 @@ CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
 
 
+def search_attributes(path: Path, metadata) -> str:
+    """Use the search worker's stat snapshot; no additional per-row disk I/O."""
+    flags = getattr(metadata, 'st_file_attributes', 0)
+    labels = []
+    if path.name.startswith('.') or flags & 2: labels.append(tr('Hidden'))
+    if flags & 4: labels.append(tr('System'))
+    return ' · '.join(labels)
+
+
 def search_row_height(linespace: int, scale: float) -> int:
     """Leave enough vertical padding for scaled Search result text."""
     return max(24, int(linespace) + max(8, round(6 * float(scale))))
@@ -16049,22 +16065,16 @@ def search_column_widths(available: int, desired: dict[str, int]) -> dict[str, i
     """Fit result columns while reserving useful space for both name and folder."""
     available = max(520, int(available))
     fixed = {
-        "size": min(max(desired.get("size", 80), 72), 125),
-        "modified": min(max(desired.get("modified", 150), 148), 200),
-        "ext": min(max(desired.get("ext", 54), 48), 105),
+        "attributes": min(max(desired.get("attributes", 90), 72), 400),
+        "size": min(max(desired.get("size", 80), 72), 180),
+        "modified": min(max(desired.get("modified", 150), 148), 400),
+        "ext": min(max(desired.get("ext", 54), 48), 150),
     }
     flexible = max(280, available - sum(fixed.values()) - 8)
     wanted_name = min(max(desired.get("name", 160), 130), int(available * .48))
-    wanted_folder = min(max(desired.get("folder", 220), 150), int(available * .52))
-    wanted_total = wanted_name + wanted_folder
-    if wanted_total <= flexible:
-        name = wanted_name
-        folder = flexible - name
-    else:
-        name = max(130, round(flexible * wanted_name / wanted_total))
-        folder = max(150, flexible - name)
-        if name + folder > flexible:
-            name = max(130, flexible - folder)
+    # A long containing path must not crowd short, otherwise-readable names.
+    name = wanted_name
+    folder = max(150, flexible - name)
     return {"name": name, "folder": folder, **fixed}
 
 
@@ -16189,7 +16199,7 @@ class SearchWindow(tk.Toplevel):
                 ('Copy Path', self.copy_paths)):
             self.results_menu.add_command(label=tr(label), command=command)
         self.results_button.configure(menu=self.results_menu); self.results_button.pack(side='right')
-        ToolTip(self.results_button, lambda: tr('Selected results: Enter opens, F3 previews, F9 compares'))
+        ToolTip(self.results_button, lambda: tr('Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.'))
         form.columnconfigure(1, weight=1)
 
         footer = ttk.Frame(self, padding=(7, 2)); footer.pack(side='bottom', fill='x')
@@ -16204,16 +16214,20 @@ class SearchWindow(tk.Toplevel):
         self.progress.pack(side='left')
 
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
-        columns = ("folder", "size", "modified", "ext")
+        columns = ("folder", "size", "modified", "ext", "attributes")
         self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended",
+                                 displaycolumns=('attributes','folder','size','modified','ext'),
                                  style="PFCSearch.Treeview")
         self.tree.heading("#0", text=tr("Name") + " ▲", command=lambda: self.change_sort("name")); self.tree.column("#0", width=260, stretch=False)
-        for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60)):
+        for col, width in (("folder", 460), ("size", 90), ("modified", 140), ("ext", 60), ("attributes", 90)):
             self.tree.heading(col, text=tr(col.title()), command=lambda c=col: self.change_sort(c))
             self.tree.column(col, width=width, anchor="e" if col == "size" else "w", stretch=False)
         scroll = ttk.Scrollbar(body, orient="vertical", command=self.tree.yview); self.tree.configure(yscrollcommand=scroll.set)
-        self.tree.pack(side="left", fill="both", expand=True); scroll.pack(side="right", fill="y")
-        self.tree.bind("<Double-1>", lambda _e: self.go_selected())
+        horizontal = ttk.Scrollbar(body, orient='horizontal', command=self.tree.xview)
+        self.tree.configure(xscrollcommand=horizontal.set)
+        horizontal.pack(side='bottom', fill='x')
+        scroll.pack(side="right", fill="y"); self.tree.pack(side="left", fill="both", expand=True)
+        self.tree.bind("<Double-1>", self.double_click_result)
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         self.tree.bind("<Configure>", self._schedule_column_resize)
         for variable in (self.mask_var, self.content_var, self.case_var, self.depth_var,
@@ -16240,19 +16254,20 @@ class SearchWindow(tk.Toplevel):
             "size": heading.measure(tr("Size")) + 28,
             "modified": heading.measure(tr("Modified")) + 28,
             "ext": heading.measure(tr("Ext")) + 28,
+            "attributes": max(heading.measure(tr("Attributes")), font.measure(tr('Hidden')+' · '+tr('System'))) + 24,
         }
         for iid in self.tree.get_children():
             values = self.tree.item(iid, "values")
             if len(values) >= 4:
-                self._measure_result(str(self.tree.item(iid, "text")), *map(str, values[:4]),
+                self._measure_result(str(self.tree.item(iid, "text")), *map(str, values[:5]),
                                      schedule=False)
         self._schedule_column_resize()
 
     def _measure_result(self, name: str, folder: str, size: str, modified: str, ext: str,
-                        schedule: bool = True) -> None:
+                        attributes: str = '', schedule: bool = True) -> None:
         font = tkfont.nametofont("TkDefaultFont")
         for key, value in (("name", name), ("folder", folder), ("size", size),
-                           ("modified", modified), ("ext", ext)):
+                           ("modified", modified), ("ext", ext), ("attributes", attributes)):
             self._column_desired[key] = max(self._column_desired.get(key, 0),
                                             font.measure(value) + (38 if key == "name" else 24))
         if schedule:
@@ -16267,7 +16282,7 @@ class SearchWindow(tk.Toplevel):
         self._column_resize_job = None
         widths = search_column_widths(self.tree.winfo_width(), self._column_desired)
         self.tree.column("#0", width=widths["name"])
-        for column in ("folder", "size", "modified", "ext"):
+        for column in ("folder", "size", "modified", "ext", "attributes"):
             self.tree.column(column, width=widths[column])
 
     def apply_color_scheme(self, palette) -> None:
@@ -16391,7 +16406,7 @@ class SearchWindow(tk.Toplevel):
     def _apply_sort(self):
         column = self.sort_column
         labels = {"name": tr("Name"), "folder": tr("Folder"), "size": tr("Size"),
-                  "modified": tr("Modified"), "ext": tr("Ext")}
+                  "modified": tr("Modified"), "ext": tr("Ext"), "attributes": tr('Attributes')}
         for name, label in labels.items():
             marker = (" ▲" if not self.sort_reverse else " ▼") if name == column else ""
             self.tree.heading("#0" if name == "name" else name, text=label + marker)
@@ -16479,12 +16494,14 @@ class SearchWindow(tk.Toplevel):
                 size_text = "<DIR>" if path.is_dir() else f"{stat.st_size:,}"
                 modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
                 extension = "" if path.is_dir() else path.suffix[1:].upper()
+                attributes = search_attributes(path, stat)
                 iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
-                                       values=(folder, size_text, modified, extension))
-                self._measure_result(path.name, folder, size_text, modified, extension)
+                                       values=(folder, size_text, modified, extension, attributes))
+                self._measure_result(path.name, folder, size_text, modified, extension, attributes)
                 self.item_data[iid] = {"name": path.name.casefold(), "folder": str(path.parent).casefold(),
                                        "size": stat.st_size, "modified": stat.st_mtime,
-                                       "ext": ("" if path.is_dir() else path.suffix[1:]).casefold()}
+                                       "ext": ("" if path.is_dir() else path.suffix[1:]).casefold(),
+                                       "attributes": attributes.casefold()}
                 self.status.configure(text=tr("{count} found", count=len(self.results)))
             elif message[0] == "done":
                 _, count, cancelled, limited = message
@@ -16521,10 +16538,20 @@ class SearchWindow(tk.Toplevel):
     def selected_paths(self):
         return [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.selection()
                 if self.tree.item(iid, "tags")]
-    def go_selected(self):
+    def double_click_result(self, event):
+        iid = self.tree.identify_row(event.y)
+        if iid and self.tree.identify_region(event.x,event.y) in ('tree','cell'):
+            self.tree.selection_set(iid); self.tree.focus(iid)
+            self.go_selected(close_after=True)
+        return 'break'
+
+    def go_selected(self, close_after=False):
         paths=self.selected_paths()
         if paths:
-            self.on_go(paths[0])
+            if self.on_go(paths[0]) is False: return
+            if close_after:
+                self.close()
+                return
             try: self.lower(self.master)
             except tk.TclError: pass
     def preview_selected(self):
@@ -18490,7 +18517,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.25"
+__version__ = "0.18.26"
 
 
 
@@ -18608,8 +18635,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/09"
+BUILD_DATE = "2026/10/13"
 VERSION_HISTORY = (
+    ("v0.18.26", "2026/10/13", (
+        "Added: Search results label Hidden and System attributes without excluding those items.",
+        "Improved: Double-click locates a search result and closes Search; Go to File keeps Search open. Hidden targets can be selected without changing visibility settings.",
+    )),
     ("v0.18.25", "2026/10/09", (
         "Added: Automatic bounded Error/Warning logs capture callback, Python/thread failures and emitted warnings independently of Debug mode.",
         "Improved: Every diagnostic includes local time with timezone, UTC, PFC version and session ID; Help log viewer identifies the current version and file location.",
@@ -19441,6 +19472,7 @@ class FilePane(ttk.Frame):
         self.locked_path: Path | None = None
         self.on_locked_navigation = lambda _path: None
         self._signature = None
+        self._search_reveal_path = None
         self.quick_filter_var = tk.StringVar()
         self._drag_press_item = None
         self._drag_press_xy = None
@@ -20168,6 +20200,8 @@ class FilePane(ttk.Frame):
                 self.history.append(self.path)
                 self._reset_view_on_refresh = True
             self.path = path
+            if getattr(self, '_search_reveal_path', None) is not None and self._search_reveal_path.parent != path:
+                self._search_reveal_path = None
             self.mode = "files"
             if self.archive_session is not None and self.archive_session.contains(path):
                 relative = self.archive_session.relative_path(path)
@@ -20342,12 +20376,13 @@ class FilePane(ttk.Frame):
                 self.tree.yview_moveto(scroll_position)
                 self._schedule_column_autosize()
                 return
+            reveal = getattr(self, '_search_reveal_path', None)
             entries = [p for p in self.path.iterdir()
-                       if (self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p))]
+                       if p == reveal or ((self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p)))]
             self._signature = self.signature_for(entries)
             needle = self.quick_filter_var.get().strip().casefold()
             if needle:
-                entries = [path for path in entries if needle in path.name.casefold()]
+                entries = [path for path in entries if path == reveal or needle in path.name.casefold()]
             def key(p: Path):
                 try:
                     stat = p.stat()
@@ -20470,8 +20505,9 @@ class FilePane(ttk.Frame):
             return False
         self._request_vcs_statuses()
         try:
+            reveal = self._search_reveal_path
             entries = [p for p in self.path.iterdir()
-                       if (self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p))]
+                       if p == reveal or ((self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p)))]
             signature = self.signature_for(entries)
         except OSError:
             return False
@@ -23655,14 +23691,31 @@ class Commander(tk.Tk):
         self.active = pane
         self.save_config()
 
-    def go_to_search_result(self, path: Path, source: FilePane) -> None:
+    def go_to_search_result(self, path: Path, source: FilePane) -> bool:
+        # Resolve only the containing folder, retaining a file link's name.
+        path = path.parent.resolve() / path.name
+        if not path.exists():
+            messagebox.showerror(tr('Search'),tr('Search result no longer exists.'),parent=self.search_window)
+            return False
         self.set_active(source)
-        if path.is_dir(): source.navigate(path)
-        elif source.navigate(path.parent): source.select_path(path)
+        folder = path.resolve() if path.is_dir() else path.parent
+        source._search_reveal_path = path if path.is_file() else None
+        # Locked navigation opens another tab. Select in that destination.
+        if not source.navigate(folder):
+            if self.active is source or self.active.path != folder: return False
+            source = self.active
+            source._search_reveal_path = path if path.is_file() else None
+        if path.is_file():
+            if source.view_mode != 'list' or not source.select_path(path):
+                source.view_mode = 'list'
+                source._update_view_mode_button()
+                source.refresh()
+            if not source.select_path(path): return False
         source.update_idletasks()
         if path.is_file(): source.select_path(path)
         source.focus_file_list(); self.lift(); self.focus_force()
         if path.is_file(): self.after_idle(lambda: (source.select_path(path), source.focus_file_list()))
+        return True
 
     def new_tab(self) -> None:
         source, _ = self.panes()

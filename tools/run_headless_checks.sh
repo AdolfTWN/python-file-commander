@@ -91,6 +91,8 @@ xvfb-run -a python3 tools/drag_refresh_check.py
 xvfb-run -a python3 tools/drag_refresh_check.py pfc
 xvfb-run -a python3 tools/search_archive_check.py
 xvfb-run -a python3 tools/search_archive_check.py pfc
+xvfb-run -a python3 tools/search_results_check.py
+xvfb-run -a python3 tools/search_results_check.py pfc
 xvfb-run -a python3 tools/path_navigation_check.py
 xvfb-run -a python3 tools/path_navigation_check.py pfc
 xvfb-run -a python3 tools/archive_exit_check.py
