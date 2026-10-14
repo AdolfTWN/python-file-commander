@@ -54,6 +54,33 @@ _SINGLE_PANEL_TRANSLATIONS = {
     'Improved: Every diagnostic includes local time with timezone, UTC, PFC version and session ID; Help log viewer identifies the current version and file location.': ('改善：每筆診斷包含本機時間與時區、UTC、PFC 版本及執行階段 ID；Help 紀錄視窗顯示目前版本與檔案位置。', '改善：每条诊断包含本机时间与时区、UTC、PFC 版本和会话 ID；Help 记录窗口显示当前版本和文件位置。', '개선: 각 진단에 시간대 포함 현지 시각, UTC, PFC 버전과 세션 ID를 기록하며 도움말 기록 창에 현재 버전과 파일 위치를 표시합니다.'),
     'Save debug log': ('儲存除錯紀錄', '保存调试记录', '디버그 로그 저장'),
     'Clear logs': ('清除紀錄', '清除记录', '로그 지우기'),
+    'Ready to search': ('準備搜尋', '准备搜索', '검색 준비'),
+    'Fixed: Markdown Preview remains read-only while the initial document loads.': ('修正：Markdown 預覽從初始載入期間就維持唯讀，避免誤輸入。', '修正：Markdown 预览从初始加载期间就保持只读，避免误输入。', '수정: Markdown 미리보기는 최초 문서 로드 중에도 읽기 전용을 유지합니다.'),
+    'Improved: Search keeps progress and explicit running, complete, empty, cancelled, partial and failed states beside its controls.': ('改善：搜尋進度及搜尋中、完成、無結果、取消、部分結果與失敗狀態，持續顯示於操作區附近。', '改善：搜索进度及进行中、完成、无结果、取消、部分结果与失败状态，持续显示在操作区附近。', '개선: 검색 컨트롤 옆에 진행 중, 완료, 결과 없음, 취소, 부분 결과 및 실패 상태를 표시합니다.'),
+    'Improved: Preview and comparison activity stays above content; unknown search durations no longer show speculative estimates.': ('改善：預覽與比較的工作狀態顯示於內容上方；搜尋不再顯示不可靠的剩餘時間估算。', '改善：预览与比较的工作状态显示在内容上方；搜索不再显示不可靠的剩余时间估算。', '개선: 미리보기와 비교 활동을 콘텐츠 위에 표시하고 불확실한 검색 시간 추정을 제거합니다.'),
+    'Improved: Settings uses concise explanations with accessible Auto Font details; unchanged rename items use neutral styling.': ('改善：設定說明更精簡，自動字型完整規則可按鈕查閱；未變更的改名項目使用中性色。', '改善：设置说明更精简，自动字体完整规则可通过按钮查看；未变更的改名项目使用中性色。', '개선: 설정 설명을 줄이고 자동 글꼴 세부 정보를 제공하며 이름 변경이 없는 항목을 중립 색으로 표시합니다.'),
+    'Comparison complete': ('比較完成', '比较完成', '비교 완료'),
+    'Details…': ('詳細說明…', '详细说明…', '자세히…'),
+    'Preview only — Apply or OK saves changes.': ('僅供預覽 — 按套用或確定才儲存變更。', '仅供预览 — 按应用或确定才保存更改。', '미리보기 전용 — 적용 또는 확인을 눌러 저장합니다.'),
+    'Auto fits Panels 1–2 (100–300%). Stable while browsing.': ('自動適配面板 1–2（100–300%），瀏覽時保持穩定。', '自动适配面板 1–2（100–300%），浏览时保持稳定。', '패널 1–2에 자동 맞춤(100–300%). 탐색 중에는 유지됩니다.'),
+    'Sample style at 100%; text size shown below.': ('100% 樣式範例；實際文字大小顯示於下方。', '100% 样式示例；实际文字大小显示在下方。', '100% 스타일 예시. 실제 글자 크기는 아래에 표시됩니다.'),
+    'Stopping previous search… please wait': ('正在停止上一次搜尋…請稍候', '正在停止上一次搜索…请稍候', '이전 검색 중지 중… 잠시 기다리세요'),
+    'Searching… {count} found so far': ('搜尋中…目前找到 {count} 個', '搜索中…目前找到 {count} 个', '검색 중… 현재 {count}개 발견'),
+    'Cancelling… {count} found so far': ('取消中…目前找到 {count} 個', '取消中…目前找到 {count} 个', '취소 중… 현재 {count}개 발견'),
+    'Search complete — {count} found': ('搜尋完成 — 找到 {count} 個', '搜索完成 — 找到 {count} 个', '검색 완료 — {count}개 발견'),
+    'Search cancelled — {count} partial results': ('搜尋已取消 — 保留 {count} 個部分結果', '搜索已取消 — 保留 {count} 个部分结果', '검색 취소 — 부분 결과 {count}개'),
+    'Result limit reached — {count} partial results': ('已達結果上限 — 保留 {count} 個部分結果', '已达结果上限 — 保留 {count} 个部分结果', '결과 한도 도달 — 부분 결과 {count}개'),
+    'Search incomplete — {count} found; some items could not be read': ('搜尋未完整 — 找到 {count} 個，部分項目無法讀取', '搜索未完整 — 找到 {count} 个，部分项目无法读取', '검색 불완전 — {count}개 발견, 일부 항목 읽기 불가'),
+    'Search failed — {count} partial results': ('搜尋失敗 — 保留 {count} 個部分結果', '搜索失败 — 保留 {count} 个部分结果', '검색 실패 — 부분 결과 {count}개'),
+    'Elapsed {minutes:02d}:{seconds:02d} · Folders scanned: {folders} · Unreadable: {skipped}': ('耗時 {minutes:02d}:{seconds:02d} · 已掃描資料夾 {folders} · 無法讀取 {skipped}', '耗时 {minutes:02d}:{seconds:02d} · 已扫描文件夹 {folders} · 无法读取 {skipped}', '경과 {minutes:02d}:{seconds:02d} · 스캔 폴더 {folders} · 읽기 불가 {skipped}'),
+    'Enter a name or mask, then choose Find.': ('輸入名稱或萬用字元，然後按「尋找」。', '输入名称或通配符，然后按“查找”。', '이름 또는 패턴을 입력하고 찾기를 선택하세요.'),
+    'Searching… results will appear here.': ('搜尋中…結果會顯示在這裡。', '搜索中…结果会显示在这里。', '검색 중… 여기에 결과가 표시됩니다.'),
+    'Waiting for the current read to stop…': ('正在等待目前的讀取作業停止…', '正在等待当前的读取操作停止…', '현재 읽기 작업이 멈추기를 기다리는 중…'),
+    'No matching items. Try another name or folder.': ('沒有符合的項目，請嘗試其他名稱或資料夾。', '没有符合的项目，请尝试其他名称或文件夹。', '일치하는 항목이 없습니다. 다른 이름이나 폴더를 사용하세요.'),
+    'Search cancelled. No results collected.': ('搜尋已取消，尚未取得結果。', '搜索已取消，尚未取得结果。', '검색이 취소되어 수집된 결과가 없습니다.'),
+    'Search stopped at the result limit.': ('搜尋已停止：達到結果上限。', '搜索已停止：达到结果上限。', '결과 한도에 도달해 검색이 중지되었습니다.'),
+    'Some locations could not be read. Check access and try again.': ('部分位置無法讀取，請確認存取權限後重試。', '部分位置无法读取，请确认访问权限后重试。', '일부 위치를 읽을 수 없습니다. 접근 권한을 확인하고 다시 시도하세요.'),
+    'Search failed. Check the error and try again.': ('搜尋失敗，請依錯誤提示處理後重試。', '搜索失败，请根据错误提示处理后重试。', '검색이 실패했습니다. 오류를 확인하고 다시 시도하세요.'),
     'Improved: Diagnostic events are listed by system time, version, level and event, with selectable structured details and duplicate removal.': ('改善：診斷紀錄以系統時間、版本、等級和事件分欄，支援選取詳細資料並去除重複紀錄。', '改善：诊断记录按系统时间、版本、级别和事件分栏，支持选择详细资料并去除重复记录。', '개선: 진단 이벤트를 시간, 버전, 수준 및 이벤트 열로 표시하고 구조화된 세부 정보와 중복 제거를 제공합니다.'),
     'Added: Confirmed log clearing removes error/debug records and rotated copies while automatic logging remains active.': ('新增：確認後可清除錯誤、除錯及輪替紀錄，清除後自動記錄持續運作。', '新增：确认后可清除错误、调试及轮替记录，清除后自动记录继续运行。', '추가: 확인 후 오류, 디버그 및 순환 로그를 지우며 자동 기록은 계속됩니다.'),
     'Fixed: Windows Preview no longer attempts an unsupported X11 tab shortcut alias.': ('修正：Windows 預覽不再嘗試註冊不支援的 X11 頁籤快捷鍵。', '修正：Windows 预览不再尝试注册不支持的 X11 页签快捷键。', '수정: Windows 미리보기에서 지원하지 않는 X11 탭 단축키 등록을 시도하지 않습니다.'),
@@ -8399,7 +8426,7 @@ class SettingsDialog(tk.Toplevel):
         self.title_label.configure(text=tr(dict(SETTINGS_CATEGORIES)[category]))
         self.canvas.yview_moveto(0)
         notes={
-            'appearance':'Choose a style below. The comparison shows your current style and the draft; only Apply or OK changes PFC.',
+            'appearance':'Preview only — Apply or OK saves changes.',
             'layout':'Compare complete layouts and tab styles before applying.',
             'columns':'Name visibility applies to the tab where Settings was opened. Other column preferences apply to all tabs. Hidden columns can be restored here.',
             'navigation':'Configure file menus, delete behavior and path shortcuts. Changes apply only after Apply or OK.',
@@ -8421,8 +8448,13 @@ class SettingsDialog(tk.Toplevel):
                 if group is not None:ttk.Separator(self.page).pack(fill='x',pady=8)
                 self._label(self.page,title,True); group=title
             if choices is None:
-                control=ttk.Checkbutton(self.page,text=tr(label),variable=self.vars[key],style='Prefs.TCheckbutton')
-                control.pack(anchor='w',pady=5)
+                container=self.page
+                if key=='auto_font_size':
+                    container=ttk.Frame(self.page);container.pack(fill='x',pady=5)
+                    ttk.Button(container,text=tr('Details…'),style='Prefs.TButton',command=lambda:messagebox.showinfo(
+                        tr('Auto Font Size'),tr('Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.'),parent=self)).pack(side='right',padx=(6,0))
+                control=ttk.Checkbutton(container,text=tr(label),variable=self.vars[key],style='Prefs.TCheckbutton')
+                control.pack(side='left' if key=='auto_font_size' else 'top',anchor='w',pady=0 if key=='auto_font_size' else 5)
             else:
                 container=self.page
                 if compact:
@@ -8442,8 +8474,7 @@ class SettingsDialog(tk.Toplevel):
             if key=='auto_start' and os.name!='nt':
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
-                'auto_font_size':'Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.',
-                'font_size':'Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.',
+                'auto_font_size':'Auto fits Panels 1–2 (100–300%). Stable while browsing.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
@@ -8479,7 +8510,7 @@ class SettingsDialog(tk.Toplevel):
         enlarge=ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
                    command=lambda:self._enlarge(None));enlarge.pack(side='right')
         self._comparison_bar=(title,enlarge)
-        caption=ttk.Label(self.comparison,text=tr('Style details from demo screenshots; font size is shown separately.' if self.category=='appearance'
+        caption=ttk.Label(self.comparison,text=tr('Sample style at 100%; text size shown below.' if self.category=='appearance'
                           else 'Sample tabs and file list; panel layout is shown below.'),
                           style='Prefs.TLabel',wraplength=480)
         caption.pack(fill='x',pady=(2,4));self.comparison_caption=caption
@@ -10052,7 +10083,12 @@ class ReviewCompare(ttk.Frame):
             text.bind('<Prior>',lambda e:self.scroll('scroll',-1,'pages'))
             text.bind('<Control-s>',lambda e,s=side:self.save_side(s))
         self.scrollbar=ttk.Scrollbar(self,command=self.scroll);self.scrollbar.pack(side='right',fill='y',before=self.body)
-        self.status=ttk.Label(self,text=tr('Loading comparison…'),anchor='w',width=1);self.status.pack(fill='x',padx=4)
+        activity=ttk.Frame(self);activity.pack(fill='x',padx=4,before=self.body)
+        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.status=ttk.Label(activity,text=tr('Loading comparison…'),anchor='w',width=1)
+        self.status.pack(side='left',fill='x',expand=True)
+        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(160,e.width-130)))
         self.bind('<Configure>',self.resize,add='+')
         self.bind('<Destroy>',self._destroyed,add='+')
         self._orientation='horizontal'
@@ -10073,6 +10109,8 @@ class ReviewCompare(ttk.Frame):
 
     def start(self,request):
         self.busy=True; self.status.configure(text=tr('Comparing… drafts retained; Cancel is available'))
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.activity_progress.stop();self.activity_progress.start(30)
         self.serial=self.jobs.submit(request)
         if self._poll_job is None:self._poll_job=self.after(40,self.poll)
 
@@ -10081,7 +10119,7 @@ class ReviewCompare(ttk.Frame):
         if self._saving:
             try:error=self._saved.get_nowait()
             except queue.Empty:self._poll_job=self.after(40,self.poll);return
-            self._saving=False;self.busy=False;self.render()
+            self._saving=False;self.busy=False;self.activity_progress.stop();self.activity_progress.pack_forget();self.render()
             if error:messagebox.showerror(tr('Save failed'),error,parent=self)
             return
         try:
@@ -10093,6 +10131,7 @@ class ReviewCompare(ttk.Frame):
             if self.busy:self._poll_job=self.after(40,self.poll)
             return
         self.busy=False
+        self.activity_progress.stop();self.activity_progress.pack_forget()
         if 'error' in result:self.status.configure(text=result['error']);return
         if 'documents' in result:
             self.documents=[TextDocument(p,**dict(d,bom=bytes.fromhex(d['bom']),limit=REVIEW_LIMIT))
@@ -10105,6 +10144,7 @@ class ReviewCompare(ttk.Frame):
     def cancel(self):
         if self._saving:self.status.configure(text=tr('Finishing atomic save; please wait'));return
         self.jobs.cancel();self.busy=False;self.status.configure(text=tr('Cancelled — drafts retained; use Actions to save'))
+        self.activity_progress.stop();self.activity_progress.pack_forget()
 
     def recompare(self):
         if self._editors or self._saving:return
@@ -10281,6 +10321,8 @@ class ReviewCompare(ttk.Frame):
         if self.texts[side]==self.documents[side].text:return 'break'
         if not messagebox.askyesno(tr('Save'),tr('Write this draft to the original file?')+'\n'+str(self.paths[side]),parent=self):return 'break'
         self.busy=True;self._saving=True;draft=self.texts[side]
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.activity_progress.stop();self.activity_progress.start(30)
         self.status.configure(text=tr('Saving verified draft…'))
         def save():
             try:self.documents[side].save(draft);error=None
@@ -10585,7 +10627,12 @@ class WorkbookCompare(ttk.Frame):
         self.tree.bind('<MouseWheel>',lambda e:self.scroll('scroll',-3 if e.delta>0 else 3,'units'))
         self.tree.bind('<Button-4>',lambda e:self.scroll('scroll',-3,'units'))
         self.tree.bind('<Button-5>',lambda e:self.scroll('scroll',3,'units'))
-        self.status=ttk.Label(self,text=tr('Loading workbook…'),width=1);self.status.pack(fill='x')
+        activity=ttk.Frame(self);activity.pack(fill='x',padx=4,before=self.tree)
+        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.activity_progress.pack(side='right',padx=(6,0));self.activity_progress.start(30)
+        self.status=ttk.Label(activity,text=tr('Loading workbook…'),width=1)
+        self.status.pack(side='left',fill='x',expand=True)
+        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(160,e.width-130)))
         ToolTip(self.status,lambda:self.status.cget('text'))
         self.bind('<Destroy>',self.destroyed,add='+')
         self.serial=self.jobs.submit({'mode':'workbook','paths':[str(p) for p in self.paths]});self._job=self.after(40,self.poll)
@@ -10595,6 +10642,7 @@ class WorkbookCompare(ttk.Frame):
         try:serial,result=self.jobs.results.get_nowait()
         except queue.Empty:self._job=self.after(40,self.poll);return
         if serial!=self.serial:return
+        self.activity_progress.stop();self.activity_progress.pack_forget()
         if 'error' in result:
             self.status.configure(text=result['error']);self.show_empty(tr('Workbook could not be read')+'\n'+result['error']);return
         self.books=result['books'];names=[]
@@ -10623,6 +10671,8 @@ class WorkbookCompare(ttk.Frame):
         self.rows=[];self.filtered=[];self.tree.delete(*self.tree.get_children())
         self.show_empty(tr('Comparing worksheet…'))
         self.status.configure(text=tr('Comparing worksheet…'))
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.activity_progress.stop();self.activity_progress.start(30)
         def work():
             try:
                 rows=workbook_rows(*selected,keys,header);filtered=[];differences=0
@@ -10640,6 +10690,7 @@ class WorkbookCompare(ttk.Frame):
         try:serial,rows,filtered,error,differences=self._row_results.get_nowait()
         except queue.Empty:self._rows_job=self.after(40,self.poll_rows);return
         if serial!=self._generation:self._rows_job=self.after(40,self.poll_rows);return
+        self.activity_progress.stop();self.activity_progress.pack_forget()
         self.rows=rows;self.filtered=filtered;self.difference_count=differences;self.top=0;self.render()
         if error:self.status.configure(text=error);self.show_empty(error)
         elif self._pending_find is not None:
@@ -10757,6 +10808,7 @@ class WorkbookCompare(ttk.Frame):
         self.jobs.cancel()
         if self._job is not None:self.after_cancel(self._job);self._job=None
         self.status.configure(text=tr('Cancelled'))
+        self.activity_progress.stop();self.activity_progress.pack_forget()
 
     def destroyed(self,event):
         if event.widget is self:
@@ -12501,7 +12553,7 @@ class _FolderCompareLogic(ttk.Frame):
             self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
         elif self.rows:
             different = sum(1 for row in self.rows if row[0] != "Identical")
-            self.scan_status.configure(text=tr("{count} item(s), {different} different",
+            self.scan_status.configure(text=tr('Comparison complete')+' — '+tr("{count} item(s), {different} different",
                                                 count=len(self.rows), different=different))
 
     @staticmethod
@@ -12519,6 +12571,10 @@ class _FolderCompareLogic(ttk.Frame):
             self._cancel_event.set()
         self._cancel_event = threading.Event(); self._scanning = True
         self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
+        if hasattr(self,'activity_progress'):
+            self.activity_progress.pack(side='right',padx=(6,0))
+            self.activity_progress.stop();self.activity_progress.start(30)
+            self.scan_cancel_button.state(['!disabled'])
         recursive, masks, by_content = self.recursive_var.get(), self.mask_var.get(), self.content_var.get()
         text_equivalent = self.text_equivalent_var.get()
         excludes = getattr(self, 'exclude_var', None)
@@ -12550,6 +12606,9 @@ class _FolderCompareLogic(ttk.Frame):
             if self.winfo_exists() and self._scanning: self.after(60, self._poll_scan)
             return
         self._scanning = False
+        if hasattr(self,'activity_progress'):
+            self.activity_progress.stop();self.activity_progress.pack_forget()
+            self.scan_cancel_button.state(['disabled'])
         if cancel.is_set():
             self.scan_status.configure(text=tr("Scan cancelled"))
             return
@@ -12560,7 +12619,7 @@ class _FolderCompareLogic(ttk.Frame):
         self.rows, self.actions = rows, {}
         self._scan_complete = True
         different = sum(status != "Identical" for status, *_rest in rows)
-        self.scan_status.configure(text=tr("{count} item(s), {different} different",
+        self.scan_status.configure(text=tr('Comparison complete')+' — '+tr("{count} item(s), {different} different",
                                            count=len(rows), different=different))
         self.populate()
         children = tuple(self._all_tree_items())
@@ -12572,6 +12631,9 @@ class _FolderCompareLogic(ttk.Frame):
         if not self._scanning:
             return False
         self._cancel_event.set(); self._scanning = False
+        if hasattr(self,'activity_progress'):
+            self.activity_progress.stop();self.activity_progress.pack_forget()
+            self.scan_cancel_button.state(['disabled'])
         self.scan_status.configure(text=tr("Scan cancelled"))
         return True
 
@@ -12792,7 +12854,8 @@ class FolderCompare(_FolderCompareLogic):
         self.rules_menu.add_separator()
         self.rules_menu.add_command(label=tr('Exclusions')+'…',command=self.edit_exclusions)
         ToolTip(self.rules_button, lambda: tr('Excluded')+': '+self.exclude_var.get())
-        ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan, width=7).pack(side="right", padx=(3, 0))
+        self.scan_cancel_button=ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan, width=7)
+        self.scan_cancel_button.pack(side="right", padx=(3, 0))
         ttk.Button(bar, text=tr("Compare"), command=self.start_scan, width=8).pack(side="right", padx=(3, 0))
         ttk.Entry(bar, textvariable=self.mask_var, width=10).pack(side="left", fill='x', expand=True, padx=(0, 6))
 
@@ -12843,10 +12906,14 @@ class FolderCompare(_FolderCompareLogic):
         sync_button = ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run)
         sync_button.pack(side="right")
         ToolTip(sync_button,tr('Scanned files only — no automatic delete'))
-        self.scan_status = ttk.Label(status_row, text=tr("Ready"), anchor="w")
-        self.scan_status.pack(side="left")
+        activity=ttk.Frame(self.summary,padding=(5,3));activity.pack(fill='x',before=options)
+        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.scan_status = ttk.Label(activity, text=tr("Ready"), anchor="w",width=1)
+        self.scan_status.pack(side="left",fill='x',expand=True)
+        activity.bind('<Configure>',lambda e:self.scan_status.configure(wraplength=max(160,e.width-130)))
         self.diff_status = ttk.Label(options, anchor='e');self.diff_status.pack(side='right')
-        self.find_status = ttk.Label(status_row,anchor='w');self.find_status.pack(side='left',padx=8)
+        self.find_status = ttk.Label(navigation,anchor='w');self.find_status.pack(side='right',padx=8)
 
         self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)
@@ -15218,8 +15285,15 @@ class PreviewPage(tk.Frame):
         ToolTip(self.md_task_label,lambda:tr('Completed / total tasks; read-only'),delay=700)
         ToolTip(self.md_more,self._markdown_boundary_label,delay=700)
 
+        activity = ttk.Frame(self,padding=(7,3)); activity.pack(fill='x')
+        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.status=ttk.Label(activity,anchor='w',width=1)
+        self.status.pack(side='left',fill='x',expand=True)
+        ToolTip(self.status,lambda:str(self.path)+'\n'+str(self.status.cget('text')))
+        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(180,e.width-130)))
+        self._activity_busy=False
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
-        self.text = tk.Text(frame, wrap="word" if self.wrap_var.get() else "none", undo=False,
+        self.text = tk.Text(frame, wrap="word" if self.wrap_var.get() else "none", undo=False,state='disabled',
                             font=tkfont.nametofont("TkFixedFont"), padx=8, pady=6)
         vertical = ttk.Scrollbar(frame, orient="vertical", command=self.text.yview)
         horizontal = ttk.Scrollbar(frame, orient="horizontal", command=self.text.xview)
@@ -15233,7 +15307,6 @@ class PreviewPage(tk.Frame):
         self.text.bind('<Control-c>',self._copy_preview)
         self.bind('<F5>',lambda e:self.load())
         self._configure_effect_fonts()
-        self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
         self.apply_color_scheme(getattr(host.master, "palette", color_scheme("light")))
         install_button_tooltips(self)
         if not lazy: self.load()
@@ -15315,6 +15388,17 @@ class PreviewPage(tk.Frame):
         self.markdown_frame.pack(side='left',padx=(4,0))
         self.md_cancel.state(['!disabled'])
         if not probe: self.status.configure(text=tr('Loading Markdown…'))
+        self._sync_preview_activity()
+
+    def _sync_preview_activity(self):
+        busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
+                  or (self._md_request and not self._md_request['probe']))
+        if busy!=self._activity_busy:
+            self._activity_busy=busy
+            if busy:
+                self.activity_progress.pack(side='right',padx=(6,0));self.activity_progress.start(30)
+            else:
+                self.activity_progress.stop();self.activity_progress.pack_forget()
 
     def cancel_markdown(self):
         if self._md_insert:
@@ -15327,6 +15411,7 @@ class PreviewPage(tk.Frame):
         self.status.configure(text=tr('Preview canceled; press F5 to retry'))
         self._md_last_probe=time.monotonic()
         self._md_auto_suspended=True
+        self._sync_preview_activity()
 
     def _poll_markdown(self):
         self._md_poll_job=None
@@ -15363,7 +15448,9 @@ class PreviewPage(tk.Frame):
         except (OSError,ValueError) as exc:
             preview_diagnostic(self,'preview.markdown.failed',exc=exc)
             self.cancel_markdown();self.status.configure(text=str(exc))
-        if self.winfo_exists(): self._md_poll_job=self.after(40,self._poll_markdown)
+        if self.winfo_exists():
+            self._sync_preview_activity()
+            self._md_poll_job=self.after(40,self._poll_markdown)
 
     def _begin_markdown_result(self,result,context):
         preview_diagnostic(self,'preview.markdown.insert.start',characters=len(result.get('content','')),
@@ -15810,11 +15897,11 @@ class PreviewPage(tk.Frame):
             detail = f"{shown_mode}   {size:,} bytes"
             if encoding: detail += f"   {encoding}"
             if truncated: detail += "   Preview truncated"
-            self.status.configure(text=f"{detail}   {path}")
+            self.status.configure(text=detail)
         except OSError as exc:
             preview_diagnostic(self,'preview.read.failed',exc=exc)
             self.text.insert("1.0", f"{tr('Cannot preview file')}:\n{exc}")
-            self.status.configure(text=str(path))
+            self.status.configure(text=tr('Cannot preview file')+' — '+path.name)
         self.text.configure(state="disabled")
         self.text.tag_raise("match"); self.text.tag_raise("current_match")
         self._signature = self._path_signature()
@@ -16138,7 +16225,7 @@ def name_matches(name: str, masks: str, case_sensitive: bool) -> bool:
     return any(fnmatch.fnmatchcase(name, pattern) for pattern in patterns)
 
 
-def content_matches(path: Path, needle: str, case_sensitive: bool) -> bool:
+def content_matches(path: Path, needle: str, case_sensitive: bool, *, on_error=None) -> bool:
     if not needle: return True
     target = needle if case_sensitive else needle.casefold()
     try:
@@ -16170,6 +16257,7 @@ def content_matches(path: Path, needle: str, case_sensitive: bool) -> bool:
             except UnicodeDecodeError: text = data.decode("cp1252", errors="replace")
         return target in (text if case_sensitive else text.casefold())
     except (OSError, zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError, zlib.error):
+        if on_error:on_error()
         return False
 
 
@@ -16187,8 +16275,10 @@ class SearchWindow(tk.Toplevel):
         self._column_resize_job = None
         self._column_desired = {}
         self._progress_started = 0.0
-        self._progress_target = 0.0
-        self._progress_displayed = 0.0
+        self._elapsed_finished = None
+        self.search_state = 'ready'
+        self._scanned_folders = self._skipped = 0
+        self._query_states = []
         self.path_var = tk.StringVar(value=str(start_path))
         self.mask_var = tk.StringVar(value="")
         self.content_var = tk.StringVar(value="")
@@ -16254,17 +16344,21 @@ class SearchWindow(tk.Toplevel):
         ToolTip(self.results_button, lambda: tr('Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.'))
         form.columnconfigure(1, weight=1)
 
+        activity = self.activity = ttk.Frame(self, padding=(7, 3))
+        activity.pack(fill='x')
+        activity.columnconfigure(0, weight=1)
+        self.status = ttk.Label(activity, anchor='w', font='TkHeadingFont')
+        self.status.grid(row=0,column=0,sticky='ew',padx=(0,8))
+        self.progress = ttk.Progressbar(activity, mode='determinate', value=0, length=120)
+        self.progress.grid(row=0,column=1,sticky='e')
+        self.progress_eta = ttk.Label(activity, anchor='w')
+        self.progress_eta.grid(row=1,column=0,columnspan=2,sticky='ew')
+        activity.bind('<Configure>',lambda e:(self.status.configure(wraplength=max(160,e.width-150)),
+                                               self.progress_eta.configure(wraplength=max(160,e.width-20))))
         footer = ttk.Frame(self, padding=(7, 2)); footer.pack(side='bottom', fill='x')
-        self.status = ttk.Label(footer, anchor='e'); self.status.pack(side='right')
         self.criteria_label = ttk.Label(footer, anchor='w', width=1)
         self.criteria_label.pack(side='left', fill='x', expand=True)
         ToolTip(self.criteria_label, lambda: self.criteria_label.cget('text'))
-        progress_row = ttk.Frame(self); progress_row.pack(side='bottom', fill='x', padx=7)
-        self.progress_eta = ttk.Label(progress_row, anchor='w', width=1)
-        self.progress_eta.pack(side='right', fill='x', expand=True, padx=4)
-        self.progress = ttk.Progressbar(progress_row, mode='determinate', value=0, length=100)
-        self.progress.pack(side='left')
-
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
         columns = ("folder", "size", "modified", "ext", "attributes")
         self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended",
@@ -16279,6 +16373,8 @@ class SearchWindow(tk.Toplevel):
         self.tree.configure(xscrollcommand=horizontal.set)
         horizontal.pack(side='bottom', fill='x')
         scroll.pack(side="right", fill="y"); self.tree.pack(side="left", fill="both", expand=True)
+        self.empty_hint = ttk.Label(body,anchor='center',justify='center',padding=12)
+        body.bind('<Configure>',lambda e:self.empty_hint.configure(wraplength=max(150,e.width-60)))
         self.tree.bind("<Double-1>", self.double_click_result)
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         self.tree.bind("<Configure>", self._schedule_column_resize)
@@ -16287,6 +16383,7 @@ class SearchWindow(tk.Toplevel):
                          self.max_size_var, self.days_var):
             variable.trace_add("write", self._update_criteria_summary)
         self._update_criteria_summary()
+        self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
 
@@ -16371,10 +16468,7 @@ class SearchWindow(tk.Toplevel):
         self._apply_sort()
         self._reset_column_measurements()
         self._update_criteria_summary()
-        if self.worker is not None and self.worker.is_alive():
-            self.status.configure(text=tr("Searching…"))
-        elif self.results:
-            self.status.configure(text=tr("{count} found", count=len(self.results)))
+        self._show_search_state()
 
     def activate(self):
         self.reset_for_open()
@@ -16397,9 +16491,11 @@ class SearchWindow(tk.Toplevel):
         self.tree.delete(*self.tree.get_children())
         self.results = []
         self.item_data.clear()
-        self.status.configure(text='')
+        self.search_state = 'ready'
+        self._set_query_enabled(True)
         self.progress.stop(); self.progress.configure(value=0)
         self.progress_eta.configure(text='')
+        self._show_search_state()
         self.find_button.configure(state='disabled')
         self.cancel_button.configure(state='disabled')
         self._finish_reset()
@@ -16407,12 +16503,17 @@ class SearchWindow(tk.Toplevel):
     def _finish_reset(self):
         self._reset_job = None
         if self.worker and self.worker.is_alive():
+            self.search_state='resetting';self._show_search_state()
+            if str(self.progress.cget('mode'))!='indeterminate':
+                self.progress.configure(mode='indeterminate');self.progress.start(30)
             self._reset_job = self.after(50, self._finish_reset)
             return
         while True:
             try: self.messages.get_nowait()
             except queue.Empty: break
         self.worker = None
+        self.search_state='ready';self.progress.stop();self.progress.configure(mode='determinate',value=0)
+        self.progress_eta.configure(text='');self._show_search_state()
         self.find_button.configure(state='normal')
 
     def _update_criteria_summary(self, *_args) -> None:
@@ -16446,7 +16547,8 @@ class SearchWindow(tk.Toplevel):
         self.min_size_var.set("")
         self.max_size_var.set("")
         self.days_var.set("")
-        self.status.configure(text=tr("Filters cleared"))
+        if self.search_state not in ('running','cancelling'):
+            self.status.configure(text=tr("Filters cleared"))
         self.mask_entry.focus_set()
         self.mask_entry.selection_range(0, "end")
 
@@ -16491,7 +16593,7 @@ class SearchWindow(tk.Toplevel):
 
     def start(self):
         if getattr(self, '_reset_job', None) is not None: return
-        if self.worker and self.worker.is_alive(): return
+        if self.search_state in ('running','cancelling') or (self.worker and self.worker.is_alive()): return
         try:
             criteria = self.criteria()
         except (ValueError, OverflowError) as exc:
@@ -16500,16 +16602,18 @@ class SearchWindow(tk.Toplevel):
         if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self._reset_column_measurements()
-        self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
-        self._progress_started = time.monotonic(); self._progress_target = 0.0; self._progress_displayed = 0.0
-        self.progress.stop(); self.progress.configure(mode="determinate", maximum=100, value=0)
-        self.progress_eta.configure(text=tr("Estimated time remaining: calculating…"))
+        self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal")
+        self.search_state='running'; self._scanned_folders=self._skipped=0
+        self._set_query_enabled(False)
+        self._progress_started = time.monotonic(); self._elapsed_finished = None
+        self.progress.stop(); self.progress.configure(mode="indeterminate", maximum=100, value=0); self.progress.start(30)
+        self._show_search_state()
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
     def _search(self, c):
         count = 0; processed_folders = 0; discovered_folders = 1
         try:
-            for current, dirs, files in os.walk(c["root"]):
+            for current, dirs, files in os.walk(c["root"],onerror=lambda exc:self.messages.put(('skipped',))):
                 if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
                 depth = len(Path(current).relative_to(c["root"]).parts)
                 folder_names = list(dirs)
@@ -16526,15 +16630,18 @@ class SearchWindow(tk.Toplevel):
                         if path.is_file() and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
                         if path.is_file() and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
                         if c["since"] is not None and datetime.fromtimestamp(stat.st_mtime) < c["since"]: continue
-                        if path.is_file() and not content_matches(path, c["content"], c["case"]): continue
+                        if path.is_file() and not content_matches(path, c["content"], c["case"],on_error=lambda:self.messages.put(('skipped',))): continue
                         if path.is_dir() and c["content"]: continue
                         self.messages.put(("item", path, stat)); count += 1
-                    except OSError: continue
+                    except OSError: self.messages.put(('skipped',)); continue
             self.messages.put(("done", count, self.cancel_event.is_set(), count >= RESULT_LIMIT))
         except BaseException as exc:
+            log=getattr(getattr(self,'master',None),'debug_log',None)
+            if log:log.exception('search.worker.failed',exc)
             self.messages.put(("error", str(exc)))
 
     def _poll(self):
+        self.poll_job = None
         processed = 0
         while processed < 250:
             try: message = self.messages.get_nowait()
@@ -16554,38 +16661,82 @@ class SearchWindow(tk.Toplevel):
                                        "size": stat.st_size, "modified": stat.st_mtime,
                                        "ext": ("" if path.is_dir() else path.suffix[1:]).casefold(),
                                        "attributes": attributes.casefold()}
-                self.status.configure(text=tr("{count} found", count=len(self.results)))
             elif message[0] == "done":
                 _, count, cancelled, limited = message
-                suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
-                self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
-                self.progress.stop(); self.progress.configure(mode="determinate", value=100)
-                self._progress_target = self._progress_displayed = 100
-                self.progress_eta.configure(text=tr("Estimated time remaining: 00 minutes 00 seconds"))
+                self.search_state='cancelled' if cancelled else 'limited' if limited else 'partial' if self._skipped else 'complete'
+                self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
+                self._set_query_enabled(True)
+                self.progress.stop(); self.progress.configure(mode="determinate",value=100 if self.search_state=='complete' else 0)
                 self.worker = None
                 self._apply_sort()
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self.progress.stop(); self.progress.configure(mode="determinate", value=0)
+                self.search_state='failed'; self._set_query_enabled(True)
                 self.worker = None
+                self._show_search_state()
+                self.update_idletasks()
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
+            elif message[0] == 'skipped':
+                self._skipped+=1
             elif message[0] == "progress":
                 _, completed, total = message
-                if total:
-                    self._progress_target = max(self._progress_target,
-                                                min(95.0, completed * 100 / total))
-        if self._progress_displayed < self._progress_target:
-            delta = min(5, max(1, self._progress_target - self._progress_displayed))
-            self._progress_displayed = min(self._progress_target, self._progress_displayed + delta)
-            self.progress.configure(value=self._progress_displayed)
-            elapsed = max(.001, time.monotonic() - self._progress_started)
-            remaining = max(0, round(elapsed * (100 - self._progress_displayed) /
-                                     max(1, self._progress_displayed)))
-            self.progress_eta.configure(text=tr(
-                "Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds",
-                minutes=remaining // 60, seconds=remaining % 60))
-        if not self.messages.empty() or (self.worker and self.worker.is_alive()):
+                self._scanned_folders=completed
+        self._show_search_state()
+        if not self.messages.empty() or self.search_state in ('running','cancelling'):
             self.poll_job = self.after(40, self._poll)
+
+    def _set_query_enabled(self, enabled):
+        if enabled:
+            for widget,state in self._query_states:
+                if widget.winfo_exists(): widget.configure(state=state)
+            self._query_states=[]
+            return
+        if self._query_states: return
+        pending=[self.form]
+        while pending:
+            widget=pending.pop(); pending.extend(widget.winfo_children())
+            if isinstance(widget,(ttk.Entry,ttk.Combobox,ttk.Checkbutton)) or (isinstance(widget,ttk.Button) and widget not in (self.find_button,self.cancel_button)):
+                self._query_states.append((widget,str(widget.cget('state'))))
+                widget.configure(state='disabled')
+
+    def _show_search_state(self):
+        count=len(self.results)
+        if self.search_state in ('running','cancelling','resetting'):
+            if not self.progress.winfo_manager():self.progress.grid()
+        elif self.progress.winfo_manager():self.progress.grid_remove()
+        labels={'ready':'Ready to search', 'resetting':'Stopping previous search… please wait', 'running':'Searching… {count} found so far',
+                'cancelling':'Cancelling… {count} found so far',
+                'complete':'Search complete — {count} found',
+                'cancelled':'Search cancelled — {count} partial results',
+                'limited':'Result limit reached — {count} partial results',
+                'partial':'Search incomplete — {count} found; some items could not be read',
+                'failed':'Search failed — {count} partial results'}
+        status=tr(labels[self.search_state],count=count)
+        if self.status.cget('text')!=status:self.status.configure(text=status)
+        if self.search_state!='ready':
+            elapsed=max(0,int(time.monotonic()-self._progress_started))
+            # Freeze the displayed duration after reaching a terminal state.
+            if self.search_state not in ('running','cancelling','resetting'):
+                if self._elapsed_finished is None:self._elapsed_finished=elapsed
+                elapsed=self._elapsed_finished
+            detail=tr('Elapsed {minutes:02d}:{seconds:02d} · Folders scanned: {folders} · Unreadable: {skipped}',
+                minutes=elapsed//60,seconds=elapsed%60,folders=self._scanned_folders,skipped=self._skipped)
+            if self.progress_eta.cget('text')!=detail:self.progress_eta.configure(text=detail)
+        hints={'ready':'Enter a name or mask, then choose Find.', 'resetting':'Waiting for the current read to stop…',
+               'running':'Searching… results will appear here.',
+               'cancelling':'Waiting for the current read to stop…',
+               'complete':'No matching items. Try another name or folder.',
+               'cancelled':'Search cancelled. No results collected.',
+               'limited':'Search stopped at the result limit.',
+               'partial':'Some locations could not be read. Check access and try again.',
+               'failed':'Search failed. Check the error and try again.'}
+        if count:self.empty_hint.place_forget()
+        else:
+            hint=tr(hints[self.search_state])
+            if self.empty_hint.cget('text')!=hint:self.empty_hint.configure(text=hint)
+            if not self.empty_hint.winfo_manager():
+                self.empty_hint.place(relx=.5,rely=.35,anchor='center');self.empty_hint.lift()
 
     def selected_paths(self):
         return [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.selection()
@@ -16627,7 +16778,10 @@ class SearchWindow(tk.Toplevel):
     def copy_paths(self):
         paths=self.selected_paths()
         if paths: self.clipboard_clear(); self.clipboard_append("\n".join(map(str, paths))); self.update_idletasks()
-    def cancel(self): self.cancel_event.set(); self.status.configure(text=tr("Cancelling…"))
+    def cancel(self):
+        if self.search_state not in ('running','cancelling'):return
+        self.cancel_event.set(); self.search_state='cancelling'; self.cancel_button.state(['disabled'])
+        self._show_search_state()
     def escape(self): self.cancel() if self.worker and self.worker.is_alive() else self.close()
     def close(self):
         self.cancel_event.set()
@@ -16835,6 +16989,7 @@ class MultiRenameWindow(tk.Toplevel):
         dark = palette["window"] == "#20262c"
         self.tree.tag_configure("error", foreground="#ff7770" if dark else "#a00000")
         self.tree.tag_configure("ok", foreground="#73d6a1" if dark else "#006c3b")
+        self.tree.tag_configure('unchanged',foreground=palette['text'])
 
     def _layout_actions(self, event):
         font = tkfont.nametofont('TkDefaultFont')
@@ -16871,7 +17026,7 @@ class MultiRenameWindow(tk.Toplevel):
             if problem and problem != "Unchanged": errors += 1
             if not problem: changed += 1
             self.tree.insert("", "end", values=(source.name, target.name, tr(problem or "Ready")),
-                             tags=("error" if problem and problem != "Unchanged" else "ok",))
+                             tags=('unchanged' if problem=='Unchanged' else 'error' if problem else 'ok',))
         self.status.configure(text=tr("{changed} rename(s), {errors} error(s)", changed=changed, errors=errors))
         self.apply_button.state(["disabled"] if errors or not changed else ["!disabled"])
         self.undo_button.state(["!disabled"] if self.undo_stack else ["disabled"])
@@ -18569,7 +18724,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.28"
+__version__ = "0.18.29"
 
 
 
@@ -18687,8 +18842,14 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/14"
+BUILD_DATE = "2026/10/15"
 VERSION_HISTORY = (
+    ("v0.18.29", "2026/10/15", (
+        "Improved: Search keeps progress and explicit running, complete, empty, cancelled, partial and failed states beside its controls.",
+        "Improved: Preview and comparison activity stays above content; unknown search durations no longer show speculative estimates.",
+        "Improved: Settings uses concise explanations with accessible Auto Font details; unchanged rename items use neutral styling.",
+        "Fixed: Markdown Preview remains read-only while the initial document loads.",
+    )),
     ("v0.18.28", "2026/10/14", (
         "Improved: Diagnostic events are listed by system time, version, level and event, with selectable structured details and duplicate removal.",
         "Added: Confirmed log clearing removes error/debug records and rotated copies while automatic logging remains active.",

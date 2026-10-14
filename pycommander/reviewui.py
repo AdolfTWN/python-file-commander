@@ -95,7 +95,12 @@ class ReviewCompare(ttk.Frame):
             text.bind('<Prior>',lambda e:self.scroll('scroll',-1,'pages'))
             text.bind('<Control-s>',lambda e,s=side:self.save_side(s))
         self.scrollbar=ttk.Scrollbar(self,command=self.scroll);self.scrollbar.pack(side='right',fill='y',before=self.body)
-        self.status=ttk.Label(self,text=tr('Loading comparison…'),anchor='w',width=1);self.status.pack(fill='x',padx=4)
+        activity=ttk.Frame(self);activity.pack(fill='x',padx=4,before=self.body)
+        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.status=ttk.Label(activity,text=tr('Loading comparison…'),anchor='w',width=1)
+        self.status.pack(side='left',fill='x',expand=True)
+        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(160,e.width-130)))
         self.bind('<Configure>',self.resize,add='+')
         self.bind('<Destroy>',self._destroyed,add='+')
         self._orientation='horizontal'
@@ -116,6 +121,8 @@ class ReviewCompare(ttk.Frame):
 
     def start(self,request):
         self.busy=True; self.status.configure(text=tr('Comparing… drafts retained; Cancel is available'))
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.activity_progress.stop();self.activity_progress.start(30)
         self.serial=self.jobs.submit(request)
         if self._poll_job is None:self._poll_job=self.after(40,self.poll)
 
@@ -124,7 +131,7 @@ class ReviewCompare(ttk.Frame):
         if self._saving:
             try:error=self._saved.get_nowait()
             except queue.Empty:self._poll_job=self.after(40,self.poll);return
-            self._saving=False;self.busy=False;self.render()
+            self._saving=False;self.busy=False;self.activity_progress.stop();self.activity_progress.pack_forget();self.render()
             if error:messagebox.showerror(tr('Save failed'),error,parent=self)
             return
         try:
@@ -136,6 +143,7 @@ class ReviewCompare(ttk.Frame):
             if self.busy:self._poll_job=self.after(40,self.poll)
             return
         self.busy=False
+        self.activity_progress.stop();self.activity_progress.pack_forget()
         if 'error' in result:self.status.configure(text=result['error']);return
         if 'documents' in result:
             self.documents=[TextDocument(p,**dict(d,bom=bytes.fromhex(d['bom']),limit=REVIEW_LIMIT))
@@ -148,6 +156,7 @@ class ReviewCompare(ttk.Frame):
     def cancel(self):
         if self._saving:self.status.configure(text=tr('Finishing atomic save; please wait'));return
         self.jobs.cancel();self.busy=False;self.status.configure(text=tr('Cancelled — drafts retained; use Actions to save'))
+        self.activity_progress.stop();self.activity_progress.pack_forget()
 
     def recompare(self):
         if self._editors or self._saving:return
@@ -324,6 +333,8 @@ class ReviewCompare(ttk.Frame):
         if self.texts[side]==self.documents[side].text:return 'break'
         if not messagebox.askyesno(tr('Save'),tr('Write this draft to the original file?')+'\n'+str(self.paths[side]),parent=self):return 'break'
         self.busy=True;self._saving=True;draft=self.texts[side]
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.activity_progress.stop();self.activity_progress.start(30)
         self.status.configure(text=tr('Saving verified draft…'))
         def save():
             try:self.documents[side].save(draft);error=None

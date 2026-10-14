@@ -1235,7 +1235,7 @@ class _FolderCompareLogic(ttk.Frame):
             self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
         elif self.rows:
             different = sum(1 for row in self.rows if row[0] != "Identical")
-            self.scan_status.configure(text=tr("{count} item(s), {different} different",
+            self.scan_status.configure(text=tr('Comparison complete')+' — '+tr("{count} item(s), {different} different",
                                                 count=len(self.rows), different=different))
 
     @staticmethod
@@ -1253,6 +1253,10 @@ class _FolderCompareLogic(ttk.Frame):
             self._cancel_event.set()
         self._cancel_event = threading.Event(); self._scanning = True
         self.scan_status.configure(text=tr("Scanning…  Esc cancels"))
+        if hasattr(self,'activity_progress'):
+            self.activity_progress.pack(side='right',padx=(6,0))
+            self.activity_progress.stop();self.activity_progress.start(30)
+            self.scan_cancel_button.state(['!disabled'])
         recursive, masks, by_content = self.recursive_var.get(), self.mask_var.get(), self.content_var.get()
         text_equivalent = self.text_equivalent_var.get()
         excludes = getattr(self, 'exclude_var', None)
@@ -1284,6 +1288,9 @@ class _FolderCompareLogic(ttk.Frame):
             if self.winfo_exists() and self._scanning: self.after(60, self._poll_scan)
             return
         self._scanning = False
+        if hasattr(self,'activity_progress'):
+            self.activity_progress.stop();self.activity_progress.pack_forget()
+            self.scan_cancel_button.state(['disabled'])
         if cancel.is_set():
             self.scan_status.configure(text=tr("Scan cancelled"))
             return
@@ -1294,7 +1301,7 @@ class _FolderCompareLogic(ttk.Frame):
         self.rows, self.actions = rows, {}
         self._scan_complete = True
         different = sum(status != "Identical" for status, *_rest in rows)
-        self.scan_status.configure(text=tr("{count} item(s), {different} different",
+        self.scan_status.configure(text=tr('Comparison complete')+' — '+tr("{count} item(s), {different} different",
                                            count=len(rows), different=different))
         self.populate()
         children = tuple(self._all_tree_items())
@@ -1306,6 +1313,9 @@ class _FolderCompareLogic(ttk.Frame):
         if not self._scanning:
             return False
         self._cancel_event.set(); self._scanning = False
+        if hasattr(self,'activity_progress'):
+            self.activity_progress.stop();self.activity_progress.pack_forget()
+            self.scan_cancel_button.state(['disabled'])
         self.scan_status.configure(text=tr("Scan cancelled"))
         return True
 
@@ -1526,7 +1536,8 @@ class FolderCompare(_FolderCompareLogic):
         self.rules_menu.add_separator()
         self.rules_menu.add_command(label=tr('Exclusions')+'…',command=self.edit_exclusions)
         ToolTip(self.rules_button, lambda: tr('Excluded')+': '+self.exclude_var.get())
-        ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan, width=7).pack(side="right", padx=(3, 0))
+        self.scan_cancel_button=ttk.Button(bar, text=tr("Cancel"), command=self.cancel_scan, width=7)
+        self.scan_cancel_button.pack(side="right", padx=(3, 0))
         ttk.Button(bar, text=tr("Compare"), command=self.start_scan, width=8).pack(side="right", padx=(3, 0))
         ttk.Entry(bar, textvariable=self.mask_var, width=10).pack(side="left", fill='x', expand=True, padx=(0, 6))
 
@@ -1577,10 +1588,14 @@ class FolderCompare(_FolderCompareLogic):
         sync_button = ttk.Button(status_row, text=tr("Dry Run && Sync"), command=self.dry_run)
         sync_button.pack(side="right")
         ToolTip(sync_button,tr('Scanned files only — no automatic delete'))
-        self.scan_status = ttk.Label(status_row, text=tr("Ready"), anchor="w")
-        self.scan_status.pack(side="left")
+        activity=ttk.Frame(self.summary,padding=(5,3));activity.pack(fill='x',before=options)
+        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.scan_status = ttk.Label(activity, text=tr("Ready"), anchor="w",width=1)
+        self.scan_status.pack(side="left",fill='x',expand=True)
+        activity.bind('<Configure>',lambda e:self.scan_status.configure(wraplength=max(160,e.width-130)))
         self.diff_status = ttk.Label(options, anchor='e');self.diff_status.pack(side='right')
-        self.find_status = ttk.Label(status_row,anchor='w');self.find_status.pack(side='left',padx=8)
+        self.find_status = ttk.Label(navigation,anchor='w');self.find_status.pack(side='right',padx=8)
 
         self.body.pack(fill="both", expand=True, pady=(3, 0))
         self.body.rowconfigure(1, weight=1)

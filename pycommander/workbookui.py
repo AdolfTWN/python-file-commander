@@ -64,7 +64,12 @@ class WorkbookCompare(ttk.Frame):
         self.tree.bind('<MouseWheel>',lambda e:self.scroll('scroll',-3 if e.delta>0 else 3,'units'))
         self.tree.bind('<Button-4>',lambda e:self.scroll('scroll',-3,'units'))
         self.tree.bind('<Button-5>',lambda e:self.scroll('scroll',3,'units'))
-        self.status=ttk.Label(self,text=tr('Loading workbook…'),width=1);self.status.pack(fill='x')
+        activity=ttk.Frame(self);activity.pack(fill='x',padx=4,before=self.tree)
+        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.activity_progress.pack(side='right',padx=(6,0));self.activity_progress.start(30)
+        self.status=ttk.Label(activity,text=tr('Loading workbook…'),width=1)
+        self.status.pack(side='left',fill='x',expand=True)
+        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(160,e.width-130)))
         ToolTip(self.status,lambda:self.status.cget('text'))
         self.bind('<Destroy>',self.destroyed,add='+')
         self.serial=self.jobs.submit({'mode':'workbook','paths':[str(p) for p in self.paths]});self._job=self.after(40,self.poll)
@@ -74,6 +79,7 @@ class WorkbookCompare(ttk.Frame):
         try:serial,result=self.jobs.results.get_nowait()
         except queue.Empty:self._job=self.after(40,self.poll);return
         if serial!=self.serial:return
+        self.activity_progress.stop();self.activity_progress.pack_forget()
         if 'error' in result:
             self.status.configure(text=result['error']);self.show_empty(tr('Workbook could not be read')+'\n'+result['error']);return
         self.books=result['books'];names=[]
@@ -102,6 +108,8 @@ class WorkbookCompare(ttk.Frame):
         self.rows=[];self.filtered=[];self.tree.delete(*self.tree.get_children())
         self.show_empty(tr('Comparing worksheet…'))
         self.status.configure(text=tr('Comparing worksheet…'))
+        self.activity_progress.pack(side='right',padx=(6,0))
+        self.activity_progress.stop();self.activity_progress.start(30)
         def work():
             try:
                 rows=workbook_rows(*selected,keys,header);filtered=[];differences=0
@@ -119,6 +127,7 @@ class WorkbookCompare(ttk.Frame):
         try:serial,rows,filtered,error,differences=self._row_results.get_nowait()
         except queue.Empty:self._rows_job=self.after(40,self.poll_rows);return
         if serial!=self._generation:self._rows_job=self.after(40,self.poll_rows);return
+        self.activity_progress.stop();self.activity_progress.pack_forget()
         self.rows=rows;self.filtered=filtered;self.difference_count=differences;self.top=0;self.render()
         if error:self.status.configure(text=error);self.show_empty(error)
         elif self._pending_find is not None:
@@ -236,6 +245,7 @@ class WorkbookCompare(ttk.Frame):
         self.jobs.cancel()
         if self._job is not None:self.after_cancel(self._job);self._job=None
         self.status.configure(text=tr('Cancelled'))
+        self.activity_progress.stop();self.activity_progress.pack_forget()
 
     def destroyed(self,event):
         if event.widget is self:

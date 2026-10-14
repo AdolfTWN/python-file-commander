@@ -26,6 +26,14 @@ class SearchTests(unittest.TestCase):
             self.assertTrue(content_matches(path, "alpha", False))
             self.assertFalse(content_matches(path, "alpha", True))
 
+    def test_unreadable_content_is_reported_without_changing_boolean_contract(self):
+        with tempfile.TemporaryDirectory() as raw:
+            errors=[]
+            self.assertFalse(content_matches(Path(raw)/'missing.txt','needle',False,on_error=lambda:errors.append(1)))
+            self.assertEqual(errors,[1])
+            self.assertTrue(content_matches(Path(raw)/'missing.txt','',False,on_error=lambda:errors.append(1)))
+            self.assertEqual(errors,[1])
+
     def test_column_fit_uses_available_width(self):
         widths = search_column_widths(
             1000, {"name": 420, "folder": 600, "size": 90, "modified": 150, "ext": 60})

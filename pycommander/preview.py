@@ -429,8 +429,15 @@ class PreviewPage(tk.Frame):
         ToolTip(self.md_task_label,lambda:tr('Completed / total tasks; read-only'),delay=700)
         ToolTip(self.md_more,self._markdown_boundary_label,delay=700)
 
+        activity = ttk.Frame(self,padding=(7,3)); activity.pack(fill='x')
+        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.status=ttk.Label(activity,anchor='w',width=1)
+        self.status.pack(side='left',fill='x',expand=True)
+        ToolTip(self.status,lambda:str(self.path)+'\n'+str(self.status.cget('text')))
+        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(180,e.width-130)))
+        self._activity_busy=False
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
-        self.text = tk.Text(frame, wrap="word" if self.wrap_var.get() else "none", undo=False,
+        self.text = tk.Text(frame, wrap="word" if self.wrap_var.get() else "none", undo=False,state='disabled',
                             font=tkfont.nametofont("TkFixedFont"), padx=8, pady=6)
         vertical = ttk.Scrollbar(frame, orient="vertical", command=self.text.yview)
         horizontal = ttk.Scrollbar(frame, orient="horizontal", command=self.text.xview)
@@ -444,7 +451,6 @@ class PreviewPage(tk.Frame):
         self.text.bind('<Control-c>',self._copy_preview)
         self.bind('<F5>',lambda e:self.load())
         self._configure_effect_fonts()
-        self.status = ttk.Label(self, anchor="w", padding=(7, 4)); self.status.pack(fill="x")
         self.apply_color_scheme(getattr(host.master, "palette", color_scheme("light")))
         install_button_tooltips(self)
         if not lazy: self.load()
@@ -526,6 +532,17 @@ class PreviewPage(tk.Frame):
         self.markdown_frame.pack(side='left',padx=(4,0))
         self.md_cancel.state(['!disabled'])
         if not probe: self.status.configure(text=tr('Loading Markdown…'))
+        self._sync_preview_activity()
+
+    def _sync_preview_activity(self):
+        busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
+                  or (self._md_request and not self._md_request['probe']))
+        if busy!=self._activity_busy:
+            self._activity_busy=busy
+            if busy:
+                self.activity_progress.pack(side='right',padx=(6,0));self.activity_progress.start(30)
+            else:
+                self.activity_progress.stop();self.activity_progress.pack_forget()
 
     def cancel_markdown(self):
         if self._md_insert:
@@ -538,6 +555,7 @@ class PreviewPage(tk.Frame):
         self.status.configure(text=tr('Preview canceled; press F5 to retry'))
         self._md_last_probe=time.monotonic()
         self._md_auto_suspended=True
+        self._sync_preview_activity()
 
     def _poll_markdown(self):
         self._md_poll_job=None
@@ -574,7 +592,9 @@ class PreviewPage(tk.Frame):
         except (OSError,ValueError) as exc:
             preview_diagnostic(self,'preview.markdown.failed',exc=exc)
             self.cancel_markdown();self.status.configure(text=str(exc))
-        if self.winfo_exists(): self._md_poll_job=self.after(40,self._poll_markdown)
+        if self.winfo_exists():
+            self._sync_preview_activity()
+            self._md_poll_job=self.after(40,self._poll_markdown)
 
     def _begin_markdown_result(self,result,context):
         preview_diagnostic(self,'preview.markdown.insert.start',characters=len(result.get('content','')),
@@ -1021,11 +1041,11 @@ class PreviewPage(tk.Frame):
             detail = f"{shown_mode}   {size:,} bytes"
             if encoding: detail += f"   {encoding}"
             if truncated: detail += "   Preview truncated"
-            self.status.configure(text=f"{detail}   {path}")
+            self.status.configure(text=detail)
         except OSError as exc:
             preview_diagnostic(self,'preview.read.failed',exc=exc)
             self.text.insert("1.0", f"{tr('Cannot preview file')}:\n{exc}")
-            self.status.configure(text=str(path))
+            self.status.configure(text=tr('Cannot preview file')+' — '+path.name)
         self.text.configure(state="disabled")
         self.text.tag_raise("match"); self.text.tag_raise("current_match")
         self._signature = self._path_signature()

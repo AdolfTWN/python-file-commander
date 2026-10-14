@@ -64,7 +64,7 @@ def name_matches(name: str, masks: str, case_sensitive: bool) -> bool:
     return any(fnmatch.fnmatchcase(name, pattern) for pattern in patterns)
 
 
-def content_matches(path: Path, needle: str, case_sensitive: bool) -> bool:
+def content_matches(path: Path, needle: str, case_sensitive: bool, *, on_error=None) -> bool:
     if not needle: return True
     target = needle if case_sensitive else needle.casefold()
     try:
@@ -96,6 +96,7 @@ def content_matches(path: Path, needle: str, case_sensitive: bool) -> bool:
             except UnicodeDecodeError: text = data.decode("cp1252", errors="replace")
         return target in (text if case_sensitive else text.casefold())
     except (OSError, zipfile.BadZipFile, RuntimeError, NotImplementedError, EOFError, zlib.error):
+        if on_error:on_error()
         return False
 
 
@@ -113,8 +114,10 @@ class SearchWindow(tk.Toplevel):
         self._column_resize_job = None
         self._column_desired = {}
         self._progress_started = 0.0
-        self._progress_target = 0.0
-        self._progress_displayed = 0.0
+        self._elapsed_finished = None
+        self.search_state = 'ready'
+        self._scanned_folders = self._skipped = 0
+        self._query_states = []
         self.path_var = tk.StringVar(value=str(start_path))
         self.mask_var = tk.StringVar(value="")
         self.content_var = tk.StringVar(value="")
@@ -180,17 +183,21 @@ class SearchWindow(tk.Toplevel):
         ToolTip(self.results_button, lambda: tr('Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.'))
         form.columnconfigure(1, weight=1)
 
+        activity = self.activity = ttk.Frame(self, padding=(7, 3))
+        activity.pack(fill='x')
+        activity.columnconfigure(0, weight=1)
+        self.status = ttk.Label(activity, anchor='w', font='TkHeadingFont')
+        self.status.grid(row=0,column=0,sticky='ew',padx=(0,8))
+        self.progress = ttk.Progressbar(activity, mode='determinate', value=0, length=120)
+        self.progress.grid(row=0,column=1,sticky='e')
+        self.progress_eta = ttk.Label(activity, anchor='w')
+        self.progress_eta.grid(row=1,column=0,columnspan=2,sticky='ew')
+        activity.bind('<Configure>',lambda e:(self.status.configure(wraplength=max(160,e.width-150)),
+                                               self.progress_eta.configure(wraplength=max(160,e.width-20))))
         footer = ttk.Frame(self, padding=(7, 2)); footer.pack(side='bottom', fill='x')
-        self.status = ttk.Label(footer, anchor='e'); self.status.pack(side='right')
         self.criteria_label = ttk.Label(footer, anchor='w', width=1)
         self.criteria_label.pack(side='left', fill='x', expand=True)
         ToolTip(self.criteria_label, lambda: self.criteria_label.cget('text'))
-        progress_row = ttk.Frame(self); progress_row.pack(side='bottom', fill='x', padx=7)
-        self.progress_eta = ttk.Label(progress_row, anchor='w', width=1)
-        self.progress_eta.pack(side='right', fill='x', expand=True, padx=4)
-        self.progress = ttk.Progressbar(progress_row, mode='determinate', value=0, length=100)
-        self.progress.pack(side='left')
-
         body = ttk.Frame(self); body.pack(fill="both", expand=True)
         columns = ("folder", "size", "modified", "ext", "attributes")
         self.tree = ttk.Treeview(body, columns=columns, show="tree headings", selectmode="extended",
@@ -205,6 +212,8 @@ class SearchWindow(tk.Toplevel):
         self.tree.configure(xscrollcommand=horizontal.set)
         horizontal.pack(side='bottom', fill='x')
         scroll.pack(side="right", fill="y"); self.tree.pack(side="left", fill="both", expand=True)
+        self.empty_hint = ttk.Label(body,anchor='center',justify='center',padding=12)
+        body.bind('<Configure>',lambda e:self.empty_hint.configure(wraplength=max(150,e.width-60)))
         self.tree.bind("<Double-1>", self.double_click_result)
         self.tree.bind("<Return>", lambda _e: self.go_selected())
         self.tree.bind("<Configure>", self._schedule_column_resize)
@@ -213,6 +222,7 @@ class SearchWindow(tk.Toplevel):
                          self.max_size_var, self.days_var):
             variable.trace_add("write", self._update_criteria_summary)
         self._update_criteria_summary()
+        self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
 
@@ -297,10 +307,7 @@ class SearchWindow(tk.Toplevel):
         self._apply_sort()
         self._reset_column_measurements()
         self._update_criteria_summary()
-        if self.worker is not None and self.worker.is_alive():
-            self.status.configure(text=tr("Searching…"))
-        elif self.results:
-            self.status.configure(text=tr("{count} found", count=len(self.results)))
+        self._show_search_state()
 
     def activate(self):
         self.reset_for_open()
@@ -323,9 +330,11 @@ class SearchWindow(tk.Toplevel):
         self.tree.delete(*self.tree.get_children())
         self.results = []
         self.item_data.clear()
-        self.status.configure(text='')
+        self.search_state = 'ready'
+        self._set_query_enabled(True)
         self.progress.stop(); self.progress.configure(value=0)
         self.progress_eta.configure(text='')
+        self._show_search_state()
         self.find_button.configure(state='disabled')
         self.cancel_button.configure(state='disabled')
         self._finish_reset()
@@ -333,12 +342,17 @@ class SearchWindow(tk.Toplevel):
     def _finish_reset(self):
         self._reset_job = None
         if self.worker and self.worker.is_alive():
+            self.search_state='resetting';self._show_search_state()
+            if str(self.progress.cget('mode'))!='indeterminate':
+                self.progress.configure(mode='indeterminate');self.progress.start(30)
             self._reset_job = self.after(50, self._finish_reset)
             return
         while True:
             try: self.messages.get_nowait()
             except queue.Empty: break
         self.worker = None
+        self.search_state='ready';self.progress.stop();self.progress.configure(mode='determinate',value=0)
+        self.progress_eta.configure(text='');self._show_search_state()
         self.find_button.configure(state='normal')
 
     def _update_criteria_summary(self, *_args) -> None:
@@ -372,7 +386,8 @@ class SearchWindow(tk.Toplevel):
         self.min_size_var.set("")
         self.max_size_var.set("")
         self.days_var.set("")
-        self.status.configure(text=tr("Filters cleared"))
+        if self.search_state not in ('running','cancelling'):
+            self.status.configure(text=tr("Filters cleared"))
         self.mask_entry.focus_set()
         self.mask_entry.selection_range(0, "end")
 
@@ -417,7 +432,7 @@ class SearchWindow(tk.Toplevel):
 
     def start(self):
         if getattr(self, '_reset_job', None) is not None: return
-        if self.worker and self.worker.is_alive(): return
+        if self.search_state in ('running','cancelling') or (self.worker and self.worker.is_alive()): return
         try:
             criteria = self.criteria()
         except (ValueError, OverflowError) as exc:
@@ -426,16 +441,18 @@ class SearchWindow(tk.Toplevel):
         if not criteria["root"].is_dir(): messagebox.showerror(tr("Search"), tr("Start path is not a folder."), parent=self); return
         self.tree.delete(*self.tree.get_children()); self.results=[]; self.item_data.clear(); self.cancel_event.clear()
         self._reset_column_measurements()
-        self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal"); self.status.configure(text=tr("Searching…"))
-        self._progress_started = time.monotonic(); self._progress_target = 0.0; self._progress_displayed = 0.0
-        self.progress.stop(); self.progress.configure(mode="determinate", maximum=100, value=0)
-        self.progress_eta.configure(text=tr("Estimated time remaining: calculating…"))
+        self.find_button.configure(state="disabled"); self.cancel_button.configure(state="normal")
+        self.search_state='running'; self._scanned_folders=self._skipped=0
+        self._set_query_enabled(False)
+        self._progress_started = time.monotonic(); self._elapsed_finished = None
+        self.progress.stop(); self.progress.configure(mode="indeterminate", maximum=100, value=0); self.progress.start(30)
+        self._show_search_state()
         self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
 
     def _search(self, c):
         count = 0; processed_folders = 0; discovered_folders = 1
         try:
-            for current, dirs, files in os.walk(c["root"]):
+            for current, dirs, files in os.walk(c["root"],onerror=lambda exc:self.messages.put(('skipped',))):
                 if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
                 depth = len(Path(current).relative_to(c["root"]).parts)
                 folder_names = list(dirs)
@@ -452,15 +469,18 @@ class SearchWindow(tk.Toplevel):
                         if path.is_file() and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
                         if path.is_file() and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
                         if c["since"] is not None and datetime.fromtimestamp(stat.st_mtime) < c["since"]: continue
-                        if path.is_file() and not content_matches(path, c["content"], c["case"]): continue
+                        if path.is_file() and not content_matches(path, c["content"], c["case"],on_error=lambda:self.messages.put(('skipped',))): continue
                         if path.is_dir() and c["content"]: continue
                         self.messages.put(("item", path, stat)); count += 1
-                    except OSError: continue
+                    except OSError: self.messages.put(('skipped',)); continue
             self.messages.put(("done", count, self.cancel_event.is_set(), count >= RESULT_LIMIT))
         except BaseException as exc:
+            log=getattr(getattr(self,'master',None),'debug_log',None)
+            if log:log.exception('search.worker.failed',exc)
             self.messages.put(("error", str(exc)))
 
     def _poll(self):
+        self.poll_job = None
         processed = 0
         while processed < 250:
             try: message = self.messages.get_nowait()
@@ -480,38 +500,82 @@ class SearchWindow(tk.Toplevel):
                                        "size": stat.st_size, "modified": stat.st_mtime,
                                        "ext": ("" if path.is_dir() else path.suffix[1:]).casefold(),
                                        "attributes": attributes.casefold()}
-                self.status.configure(text=tr("{count} found", count=len(self.results)))
             elif message[0] == "done":
                 _, count, cancelled, limited = message
-                suffix = tr(" — cancelled") if cancelled else (tr(" — limit reached") if limited else "")
-                self.status.configure(text=tr("{count} found", count=count) + suffix); self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
-                self.progress.stop(); self.progress.configure(mode="determinate", value=100)
-                self._progress_target = self._progress_displayed = 100
-                self.progress_eta.configure(text=tr("Estimated time remaining: 00 minutes 00 seconds"))
+                self.search_state='cancelled' if cancelled else 'limited' if limited else 'partial' if self._skipped else 'complete'
+                self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
+                self._set_query_enabled(True)
+                self.progress.stop(); self.progress.configure(mode="determinate",value=100 if self.search_state=='complete' else 0)
                 self.worker = None
                 self._apply_sort()
             elif message[0] == "error":
                 self.find_button.configure(state="normal"); self.cancel_button.configure(state="disabled")
                 self.progress.stop(); self.progress.configure(mode="determinate", value=0)
+                self.search_state='failed'; self._set_query_enabled(True)
                 self.worker = None
+                self._show_search_state()
+                self.update_idletasks()
                 messagebox.showerror(tr("Search failed"), message[1], parent=self)
+            elif message[0] == 'skipped':
+                self._skipped+=1
             elif message[0] == "progress":
                 _, completed, total = message
-                if total:
-                    self._progress_target = max(self._progress_target,
-                                                min(95.0, completed * 100 / total))
-        if self._progress_displayed < self._progress_target:
-            delta = min(5, max(1, self._progress_target - self._progress_displayed))
-            self._progress_displayed = min(self._progress_target, self._progress_displayed + delta)
-            self.progress.configure(value=self._progress_displayed)
-            elapsed = max(.001, time.monotonic() - self._progress_started)
-            remaining = max(0, round(elapsed * (100 - self._progress_displayed) /
-                                     max(1, self._progress_displayed)))
-            self.progress_eta.configure(text=tr(
-                "Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds",
-                minutes=remaining // 60, seconds=remaining % 60))
-        if not self.messages.empty() or (self.worker and self.worker.is_alive()):
+                self._scanned_folders=completed
+        self._show_search_state()
+        if not self.messages.empty() or self.search_state in ('running','cancelling'):
             self.poll_job = self.after(40, self._poll)
+
+    def _set_query_enabled(self, enabled):
+        if enabled:
+            for widget,state in self._query_states:
+                if widget.winfo_exists(): widget.configure(state=state)
+            self._query_states=[]
+            return
+        if self._query_states: return
+        pending=[self.form]
+        while pending:
+            widget=pending.pop(); pending.extend(widget.winfo_children())
+            if isinstance(widget,(ttk.Entry,ttk.Combobox,ttk.Checkbutton)) or (isinstance(widget,ttk.Button) and widget not in (self.find_button,self.cancel_button)):
+                self._query_states.append((widget,str(widget.cget('state'))))
+                widget.configure(state='disabled')
+
+    def _show_search_state(self):
+        count=len(self.results)
+        if self.search_state in ('running','cancelling','resetting'):
+            if not self.progress.winfo_manager():self.progress.grid()
+        elif self.progress.winfo_manager():self.progress.grid_remove()
+        labels={'ready':'Ready to search', 'resetting':'Stopping previous search… please wait', 'running':'Searching… {count} found so far',
+                'cancelling':'Cancelling… {count} found so far',
+                'complete':'Search complete — {count} found',
+                'cancelled':'Search cancelled — {count} partial results',
+                'limited':'Result limit reached — {count} partial results',
+                'partial':'Search incomplete — {count} found; some items could not be read',
+                'failed':'Search failed — {count} partial results'}
+        status=tr(labels[self.search_state],count=count)
+        if self.status.cget('text')!=status:self.status.configure(text=status)
+        if self.search_state!='ready':
+            elapsed=max(0,int(time.monotonic()-self._progress_started))
+            # Freeze the displayed duration after reaching a terminal state.
+            if self.search_state not in ('running','cancelling','resetting'):
+                if self._elapsed_finished is None:self._elapsed_finished=elapsed
+                elapsed=self._elapsed_finished
+            detail=tr('Elapsed {minutes:02d}:{seconds:02d} · Folders scanned: {folders} · Unreadable: {skipped}',
+                minutes=elapsed//60,seconds=elapsed%60,folders=self._scanned_folders,skipped=self._skipped)
+            if self.progress_eta.cget('text')!=detail:self.progress_eta.configure(text=detail)
+        hints={'ready':'Enter a name or mask, then choose Find.', 'resetting':'Waiting for the current read to stop…',
+               'running':'Searching… results will appear here.',
+               'cancelling':'Waiting for the current read to stop…',
+               'complete':'No matching items. Try another name or folder.',
+               'cancelled':'Search cancelled. No results collected.',
+               'limited':'Search stopped at the result limit.',
+               'partial':'Some locations could not be read. Check access and try again.',
+               'failed':'Search failed. Check the error and try again.'}
+        if count:self.empty_hint.place_forget()
+        else:
+            hint=tr(hints[self.search_state])
+            if self.empty_hint.cget('text')!=hint:self.empty_hint.configure(text=hint)
+            if not self.empty_hint.winfo_manager():
+                self.empty_hint.place(relx=.5,rely=.35,anchor='center');self.empty_hint.lift()
 
     def selected_paths(self):
         return [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.selection()
@@ -553,7 +617,10 @@ class SearchWindow(tk.Toplevel):
     def copy_paths(self):
         paths=self.selected_paths()
         if paths: self.clipboard_clear(); self.clipboard_append("\n".join(map(str, paths))); self.update_idletasks()
-    def cancel(self): self.cancel_event.set(); self.status.configure(text=tr("Cancelling…"))
+    def cancel(self):
+        if self.search_state not in ('running','cancelling'):return
+        self.cancel_event.set(); self.search_state='cancelling'; self.cancel_button.state(['disabled'])
+        self._show_search_state()
     def escape(self): self.cancel() if self.worker and self.worker.is_alive() else self.close()
     def close(self):
         self.cancel_event.set()

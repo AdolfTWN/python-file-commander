@@ -16,7 +16,7 @@ import sys
 import time
 from contextlib import contextmanager
 
-ALLOWED = {'search_results_check.py', 'vcs_gui_check.py', 'architecture_check.py', 'reliability_check.py', 'tooltip_check.py', 'preview_tabs_check.py', 'settings_check.py',
+ALLOWED = {'ux_walkthrough_check.py', 'search_results_check.py', 'vcs_gui_check.py', 'architecture_check.py', 'reliability_check.py', 'tooltip_check.py', 'preview_tabs_check.py', 'settings_check.py',
            'folder_scroll_check.py', 'folder_navigation_check.py', 'folder_leaf_check.py', 'settings_readability_groups_check.py',
            'interaction_layout_check.py', 'compact_chrome_check.py', 'review_compare_check.py', 'control_scaling_check.py'}
 
@@ -48,7 +48,19 @@ def desktop_ready():
 def atomic_report(path, record):
     tmp = path.with_suffix('.tmp')
     tmp.write_text(json.dumps(record), encoding='utf-8')
-    tmp.replace(path)
+    # Windows report readers/antivirus can briefly deny delete-sharing. Keep
+    # the old complete report visible while retrying this one owned replace.
+    for attempt in range(8):
+        try:
+            tmp.replace(path)
+            return
+        except PermissionError:
+            if attempt==7:raise
+            time.sleep(min(.025*2**attempt,.2))
+
+
+class DisplayUnavailable(OSError):
+    pass
 
 
 @contextmanager
@@ -69,7 +81,7 @@ def visible_test_display(set_state=None):
         user.mouse_event.argtypes=[W.DWORD,W.DWORD,W.DWORD,W.DWORD,ctypes.c_size_t]
         user.mouse_event(0x0001,0,0,0,0)
     previous=set_state(0x80000002)  # ES_CONTINUOUS | ES_DISPLAY_REQUIRED
-    if not previous:raise OSError('Cannot keep the validation display awake')
+    if not previous:raise DisplayUnavailable('Cannot keep the validation display awake')
     try:yield
     finally:set_state(previous | 0x80000000)
 
@@ -100,8 +112,12 @@ def execute(request_path):
     try:
         with visible_test_display():
             return run_checks(directory,request,result,report)
-    except OSError:
+    except DisplayUnavailable:
         result.update(status='blocked',stage='desktop',reason='display-request-unavailable')
+        atomic_report(report,result)
+        return 2
+    except OSError:
+        result.update(status='blocked',stage='worker-io',reason='worker-file-io-unavailable')
         atomic_report(report,result)
         return 2
 

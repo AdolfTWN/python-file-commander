@@ -530,7 +530,7 @@ class ReliabilityTests(unittest.TestCase):
         item = self.root / "a.txt"
         item.write_bytes(b"a")
         visited = []
-        def walk(_root):
+        def walk(_root, **kwargs):
             visited.append("first")
             yield str(self.root), [], [item.name]
             visited.append("second")

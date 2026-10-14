@@ -274,7 +274,7 @@ def main() -> None:
                               if app.versions_menu.type(index) in {"command", "cascade"}]
             expected_series = ("v0.18.x", "v0.17.x", "v0.16.x", "v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
                                "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
-            assert version_labels == ([f"Current version: v{pfc.__version__}", "Check Update", "View debug log…"] +
+            assert version_labels == ([f"Current version: v{pfc.__version__}", "Check Update", "Error / Warning log…"] +
                                       [f"{series} Changes" for series in expected_series] +
                                       ["Yoda — Portable App Advocate"])
             assert app.version_series == expected_series
@@ -515,12 +515,14 @@ def main() -> None:
             app._exit_archive(source_pane); source_pane.navigate(quick_root); app.update()
             app.set_active(source_pane); app.search(); app.update()
             search_window = app.search_window
-            assert search_window is not None and search_window.progress.winfo_viewable()
+            assert search_window is not None and search_window.status.winfo_viewable()
+            assert search_window.search_state=='ready' and not search_window.progress.winfo_viewable()
             search_window.start(); deadline = time.time() + 3
-            while search_window.worker and search_window.worker.is_alive() and time.time() < deadline:
+            while search_window.search_state in ('running','cancelling') and time.time() < deadline:
                 app.update(); time.sleep(0.01)
             for _ in range(10): app.update(); time.sleep(0.01)
             assert float(search_window.progress.cget("value")) == 100
+            assert search_window.search_state=='complete' and not search_window.progress.winfo_viewable()
             search_window.destroy(); app.search_window = None
             progress_results = []
             app._run_progress_operation("Compressing…", lambda: "done",

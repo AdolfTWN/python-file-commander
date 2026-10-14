@@ -180,6 +180,7 @@ class MultiRenameWindow(tk.Toplevel):
         dark = palette["window"] == "#20262c"
         self.tree.tag_configure("error", foreground="#ff7770" if dark else "#a00000")
         self.tree.tag_configure("ok", foreground="#73d6a1" if dark else "#006c3b")
+        self.tree.tag_configure('unchanged',foreground=palette['text'])
 
     def _layout_actions(self, event):
         font = tkfont.nametofont('TkDefaultFont')
@@ -216,7 +217,7 @@ class MultiRenameWindow(tk.Toplevel):
             if problem and problem != "Unchanged": errors += 1
             if not problem: changed += 1
             self.tree.insert("", "end", values=(source.name, target.name, tr(problem or "Ready")),
-                             tags=("error" if problem and problem != "Unchanged" else "ok",))
+                             tags=('unchanged' if problem=='Unchanged' else 'error' if problem else 'ok',))
         self.status.configure(text=tr("{changed} rename(s), {errors} error(s)", changed=changed, errors=errors))
         self.apply_button.state(["disabled"] if errors or not changed else ["!disabled"])
         self.undo_button.state(["!disabled"] if self.undo_stack else ["disabled"])

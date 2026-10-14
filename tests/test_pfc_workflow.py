@@ -154,6 +154,29 @@ class TrackingTests(unittest.TestCase):
 
 
 class VmRunnerTests(unittest.TestCase):
+    def test_atomic_report_retries_transient_sharing_and_preserves_old_json(self):
+        with tempfile.TemporaryDirectory() as raw:
+            path=Path(raw)/'result.json';worker.atomic_report(path,{'status':'running'})
+            original=Path.replace;attempts=[]
+            def replace(source,target):
+                attempts.append(1)
+                if len(attempts)<3:
+                    self.assertEqual(json.loads(path.read_text()),{'status':'running'})
+                    raise PermissionError('sharing violation')
+                return original(source,target)
+            with patch.object(Path,'replace',autospec=True,side_effect=replace),patch.object(worker.time,'sleep'):
+                worker.atomic_report(path,{'status':'passed'})
+            self.assertEqual(len(attempts),3)
+            self.assertEqual(json.loads(path.read_text()),{'status':'passed'})
+
+    def test_atomic_report_permanent_permission_failure_is_bounded(self):
+        with tempfile.TemporaryDirectory() as raw:
+            path=Path(raw)/'result.json';worker.atomic_report(path,{'status':'running'})
+            with patch.object(Path,'replace',side_effect=PermissionError) as replace,patch.object(worker.time,'sleep'):
+                with self.assertRaises(PermissionError):worker.atomic_report(path,{'status':'passed'})
+            self.assertEqual(replace.call_count,8)
+            self.assertEqual(json.loads(path.read_text()),{'status':'running'})
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.store = workflow.Store(self.temp.name)
@@ -376,6 +399,16 @@ class VmRunnerTests(unittest.TestCase):
             self.assertEqual(worker.execute(request), 2)
             process.assert_not_called()
         self.assertEqual(json.loads((directory/'result.json').read_text())['reason'], 'interactive-desktop-unavailable')
+
+    def test_worker_file_error_is_not_mislabeled_as_a_display_failure(self):
+        from contextlib import nullcontext
+        directory=Path(self.temp.name);request=directory/'request.json'
+        request.write_text(json.dumps({'request_id':'fixture','files':{},'checks':['ux_walkthrough_check.py']}))
+        with patch.object(worker,'desktop_ready',return_value=True),patch.object(worker,'visible_test_display',return_value=nullcontext()),patch.object(worker,'run_checks',side_effect=PermissionError):
+            self.assertEqual(worker.execute(request),2)
+        result=json.loads((directory/'result.json').read_text())
+        self.assertEqual(result['stage'],'worker-io')
+        self.assertEqual(result['reason'],'worker-file-io-unavailable')
 
     def test_display_request_is_temporary_even_when_test_fails(self):
         setter=MagicMock(return_value=0x80000000)

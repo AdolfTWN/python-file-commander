@@ -142,6 +142,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.29", "2026/10/15", (
+        "Improved: Search keeps progress and explicit running, complete, empty, cancelled, partial and failed states beside its controls.",
+        "Improved: Preview and comparison activity stays above content; unknown search durations no longer show speculative estimates.",
+        "Improved: Settings uses concise explanations with accessible Auto Font details; unchanged rename items use neutral styling.",
+        "Fixed: Markdown Preview remains read-only while the initial document loads.",
+    )),
     ("v0.18.28", "2026/10/14", (
         "Improved: Diagnostic events are listed by system time, version, level and event, with selectable structured details and duplicate removal.",
         "Added: Confirmed log clearing removes error/debug records and rotated copies while automatic logging remains active.",

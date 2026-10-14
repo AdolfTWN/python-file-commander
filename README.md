@@ -1,6 +1,14 @@
 # Python File Commander
 
-Current version: **v0.18.28**
+Current version: **v0.18.29**
+
+**Visible work status:** F4 Search shows activity and explicit running, completed,
+cancelled, limited, unreadable/partial and failed states immediately below its
+controls. Empty results explain whether the search is still running or finished.
+Elapsed time and scanned/unreadable counts replace speculative time estimates;
+query controls stay fixed until the active search stops. Preview, text/workbook
+and folder comparison show activity above their content. Activity animation stops
+and disappears when work finishes. See the [UI/UX walkthrough](docs/ui-ux-walkthrough-20261014.md).
 
 **Search result navigation:** Search still includes accessible hidden/system
 items. Its Attributes column labels Hidden, System or both; ordinary items are

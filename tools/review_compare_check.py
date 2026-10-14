@@ -122,6 +122,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     view=api.ReviewCompare(app,a,b);view.pack(fill='both',expand=True)
     until(lambda:not view.busy)
     assert view.alignment,view.status.cget('text')
+    assert view.status.winfo_rooty()<view.widgets[0].winfo_rooty(), 'Comparison status hidden below content'
+    assert not view.activity_progress.winfo_ismapped(), 'Completed comparison still appears busy'
     print('Compare fixture: large text aligned', flush=True)
     timings['20MiB_load_diff_seconds']=round(time.monotonic()-started,3)
     assert len(view.alignment.differences)==1
@@ -233,6 +235,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     grid=tables.WorkbookCompare(app,ca,cb);grid.pack(fill='both',expand=True)
     until(lambda:grid.books is not None and grid._rows_job is None)
     assert len(grid.filtered)==6 and grid.difference_count==2,grid.status.cget('text')
+    assert grid.status.winfo_rooty()<grid.tree.winfo_rooty(), 'Workbook status hidden below cells'
+    assert not grid.activity_progress.winfo_ismapped(), 'Completed workbook still appears busy'
     grid.only.set(True);grid.filter();until(lambda:grid._rows_job is None)
     assert len(grid.filtered)==2
     assert grid.rows[grid.filtered[0]][0]=='B2';shot('workbook')

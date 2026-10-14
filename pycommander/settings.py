@@ -393,7 +393,7 @@ class SettingsDialog(tk.Toplevel):
         self.title_label.configure(text=tr(dict(SETTINGS_CATEGORIES)[category]))
         self.canvas.yview_moveto(0)
         notes={
-            'appearance':'Choose a style below. The comparison shows your current style and the draft; only Apply or OK changes PFC.',
+            'appearance':'Preview only — Apply or OK saves changes.',
             'layout':'Compare complete layouts and tab styles before applying.',
             'columns':'Name visibility applies to the tab where Settings was opened. Other column preferences apply to all tabs. Hidden columns can be restored here.',
             'navigation':'Configure file menus, delete behavior and path shortcuts. Changes apply only after Apply or OK.',
@@ -415,8 +415,13 @@ class SettingsDialog(tk.Toplevel):
                 if group is not None:ttk.Separator(self.page).pack(fill='x',pady=8)
                 self._label(self.page,title,True); group=title
             if choices is None:
-                control=ttk.Checkbutton(self.page,text=tr(label),variable=self.vars[key],style='Prefs.TCheckbutton')
-                control.pack(anchor='w',pady=5)
+                container=self.page
+                if key=='auto_font_size':
+                    container=ttk.Frame(self.page);container.pack(fill='x',pady=5)
+                    ttk.Button(container,text=tr('Details…'),style='Prefs.TButton',command=lambda:messagebox.showinfo(
+                        tr('Auto Font Size'),tr('Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.'),parent=self)).pack(side='right',padx=(6,0))
+                control=ttk.Checkbutton(container,text=tr(label),variable=self.vars[key],style='Prefs.TCheckbutton')
+                control.pack(side='left' if key=='auto_font_size' else 'top',anchor='w',pady=0 if key=='auto_font_size' else 5)
             else:
                 container=self.page
                 if compact:
@@ -436,8 +441,7 @@ class SettingsDialog(tk.Toplevel):
             if key=='auto_start' and os.name!='nt':
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
-                'auto_font_size':'Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.',
-                'font_size':'Settings uses the interface text size. Apply changes the reading size here too. At larger sizes, scroll to reach all options.',
+                'auto_font_size':'Auto fits Panels 1–2 (100–300%). Stable while browsing.',
                 'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
@@ -473,7 +477,7 @@ class SettingsDialog(tk.Toplevel):
         enlarge=ttk.Button(bar,text=tr('Compare at full size…'),style='Prefs.TButton',
                    command=lambda:self._enlarge(None));enlarge.pack(side='right')
         self._comparison_bar=(title,enlarge)
-        caption=ttk.Label(self.comparison,text=tr('Style details from demo screenshots; font size is shown separately.' if self.category=='appearance'
+        caption=ttk.Label(self.comparison,text=tr('Sample style at 100%; text size shown below.' if self.category=='appearance'
                           else 'Sample tabs and file list; panel layout is shown below.'),
                           style='Prefs.TLabel',wraplength=480)
         caption.pack(fill='x',pady=(2,4));self.comparison_caption=caption
