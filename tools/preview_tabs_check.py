@@ -82,7 +82,7 @@ with tempfile.TemporaryDirectory() as raw:
             recovered.show([md, second], path); settle(app)
             assert recovered.text.get('1.0', 'end-1c').strip()
         assert recovered.bind('<Control-Shift-Tab>')
-        assert 'preview.binding.unsupported' in app.debug_log.snapshot()
+        assert ('preview.binding.unsupported' in app.debug_log.snapshot()) == (app.tk.call('tk','windowingsystem')=='x11')
         recovered.close(); app.preview_window = None
         app.show_debug_log();app.update()
         viewer=next(w for w in app.winfo_children() if isinstance(w,pfc.tk.Toplevel))
@@ -94,6 +94,19 @@ with tempfile.TemporaryDirectory() as raw:
         # Export preserves bounded tails from both streams without translating
         # their Windows CRLF a second time.
         assert export.read_bytes() == (app.debug_log.snapshot(automatic=True)+'\n'+app.debug_log.snapshot()).encode('utf-8')
+        def descendants(widget):
+            for child in widget.winfo_children():
+                yield child
+                yield from descendants(child)
+        table=next(w for w in descendants(viewer) if isinstance(w,pfc.ttk.Treeview))
+        assert table.get_children(), 'Structured diagnostic events missing'
+        assert table['columns'] == ('time','version','severity','event')
+        displayed_time=table.item(table.get_children()[-1],'values')[0]
+        assert table.column('time','width') >= pfc.tkfont.nametofont('TkDefaultFont').measure(displayed_time)+12
+        clear=next(w for w in bar.winfo_children() if isinstance(w,pfc.ttk.Button) and w.cget('text')==pfc.tr('Clear logs'))
+        before=app.debug_log.snapshot(automatic=True)
+        with patch.object(pfc.messagebox,'askyesno',return_value=False):clear.invoke()
+        assert app.debug_log.snapshot(automatic=True)==before, 'Cancelled clear deleted logs'
         for widget in bar.winfo_children():
             assert widget.winfo_x()+widget.winfo_width() <= viewer.winfo_width(), 'Log actions clipped at 200%'
         x,y=viewer.winfo_rootx(),viewer.winfo_rooty()
@@ -106,6 +119,11 @@ with tempfile.TemporaryDirectory() as raw:
             ImageGrab.grab((x,y,x+viewer.winfo_width(),y+viewer.winfo_height())).save(evidence)
         footer=next(w for w in viewer.winfo_children() if isinstance(w,pfc.ttk.Label))
         assert footer.winfo_ismapped() and footer.winfo_y()+footer.winfo_height()<=viewer.winfo_height()
+        with patch.object(pfc.messagebox,'askyesno',return_value=True):clear.invoke()
+        assert len(table.get_children())==1
+        assert 'logs.cleared' in app.debug_log.snapshot(automatic=True)
+        app.debug_log.event('after.clear',severity='WARNING')
+        assert 'after.clear' in app.debug_log.snapshot(automatic=True)
         viewer.destroy();app.font_size_var.set('small');app.apply_font_size(save=False)
         app.active.navigate(root);app.update()
         # Actual multiselect -> F3, not merely a direct PreviewWindow call.

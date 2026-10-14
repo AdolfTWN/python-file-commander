@@ -14,6 +14,23 @@ import sys
 import warnings
 
 
+def diagnostic_records(*snapshots):
+    """Merge bounded JSONL tails, ignoring partial lines and duplicate records."""
+    rows, seen = [], set()
+    for snapshot in snapshots:
+        for line in snapshot.splitlines():
+            try:
+                row = json.loads(line)
+                if not isinstance(row, dict) or not isinstance(row.get('event'), str):
+                    continue
+                key = json.dumps(row, sort_keys=True, ensure_ascii=True)
+            except (ValueError, TypeError):
+                continue
+            if key not in seen:
+                rows.append(row); seen.add(key)
+    return sorted(rows, key=lambda row: str(row.get('utc_time') or row.get('time') or ''))
+
+
 class DiagnosticLog:
     def __init__(self, version, directory=None, automatic=False):
         base = Path(os.environ.get('LOCALAPPDATA') or os.environ.get('XDG_CACHE_HOME') or Path.home()/'.cache')
@@ -150,3 +167,27 @@ class DiagnosticLog:
         with self._lock, path.open('rb') as stream:
             stream.seek(max(0, os.fstat(stream.fileno()).st_size-128*1024))
             return stream.read(128*1024).decode('utf-8', errors='replace')
+
+    def clear(self):
+        """Clear both diagnostic streams and their two owned rotation files.
+
+        Keep handlers open so ongoing diagnostics continue after truncation.
+        Failures are reported to the caller, never presented as a successful clear.
+        """
+        with self._lock:
+            try:
+                for path in (self.path, self.error_path):
+                    handler = self.handler if path == self.path else self.error_handler
+                    if handler and handler.stream:
+                        handler.flush()
+                        handler.stream.seek(0); handler.stream.truncate(); handler.flush()
+                    elif path.exists():
+                        with path.open('wb'):
+                            pass
+                    for suffix in ('.1', '.2'):
+                        path.with_name(path.name+suffix).unlink(missing_ok=True)
+            except (OSError, ValueError):
+                self.error = 'diagnostic-clear-failed'
+                return False
+            self.event('logs.cleared', automatic=True)
+            return True

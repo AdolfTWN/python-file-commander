@@ -53,6 +53,15 @@ _SINGLE_PANEL_TRANSLATIONS = {
     'Added: Automatic bounded Error/Warning logs capture callback, Python/thread failures and emitted warnings independently of Debug mode.': ('新增：自動限量錯誤／警告紀錄，不需開啟 Debug 即可記錄回呼、Python／執行緒錯誤與警告。', '新增：自动限量错误／警告记录，无需开启 Debug 即可记录回调、Python／线程错误与警告。', '추가: Debug 모드와 별개로 콜백, Python/스레드 오류 및 경고를 용량 제한 기록에 저장합니다.'),
     'Improved: Every diagnostic includes local time with timezone, UTC, PFC version and session ID; Help log viewer identifies the current version and file location.': ('改善：每筆診斷包含本機時間與時區、UTC、PFC 版本及執行階段 ID；Help 紀錄視窗顯示目前版本與檔案位置。', '改善：每条诊断包含本机时间与时区、UTC、PFC 版本和会话 ID；Help 记录窗口显示当前版本和文件位置。', '개선: 각 진단에 시간대 포함 현지 시각, UTC, PFC 버전과 세션 ID를 기록하며 도움말 기록 창에 현재 버전과 파일 위치를 표시합니다.'),
     'Save debug log': ('儲存除錯紀錄', '保存调试记录', '디버그 로그 저장'),
+    'Clear logs': ('清除紀錄', '清除记录', '로그 지우기'),
+    'Improved: Diagnostic events are listed by system time, version, level and event, with selectable structured details and duplicate removal.': ('改善：診斷紀錄以系統時間、版本、等級和事件分欄，支援選取詳細資料並去除重複紀錄。', '改善：诊断记录按系统时间、版本、级别和事件分栏，支持选择详细资料并去除重复记录。', '개선: 진단 이벤트를 시간, 버전, 수준 및 이벤트 열로 표시하고 구조화된 세부 정보와 중복 제거를 제공합니다.'),
+    'Added: Confirmed log clearing removes error/debug records and rotated copies while automatic logging remains active.': ('新增：確認後可清除錯誤、除錯及輪替紀錄，清除後自動記錄持續運作。', '新增：确认后可清除错误、调试及轮替记录，清除后自动记录继续运行。', '추가: 확인 후 오류, 디버그 및 순환 로그를 지우며 자동 기록은 계속됩니다.'),
+    'Fixed: Windows Preview no longer attempts an unsupported X11 tab shortcut alias.': ('修正：Windows 預覽不再嘗試註冊不支援的 X11 頁籤快捷鍵。', '修正：Windows 预览不再尝试注册不支持的 X11 页签快捷键。', '수정: Windows 미리보기에서 지원하지 않는 X11 탭 단축키 등록을 시도하지 않습니다.'),
+    'Clear error and debug logs, including rotated copies? This cannot be undone.': ('清除錯誤及除錯紀錄，包含輪替備份？此操作無法復原。', '清除错误及调试记录，包括轮替备份？此操作无法撤销。', '오류 및 디버그 로그와 순환 백업을 지울까요? 취소할 수 없습니다.'),
+    'Cannot clear diagnostic logs.': ('無法完整清除診斷紀錄。', '无法完整清除诊断记录。', '진단 로그를 모두 지울 수 없습니다.'),
+    'System time': ('系統時間', '系统时间', '시스템 시간'),
+    'Level': ('等級', '级别', '수준'),
+    'Event': ('事件', '事件', '이벤트'),
     'Refresh log': ('更新紀錄', '更新记录', '로그 새로고침'),
     'Enable Help > Debug mode, retry F3, then save the debug log.': ('請啟用 Help → 除錯模式，重試 F3，再儲存除錯紀錄。', '请启用 Help → 调试模式，重试 F3，再保存调试记录。', '도움말 → 디버그 모드를 켜고 F3를 다시 누른 뒤 로그를 저장하세요.'),
     'Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.': ('已啟用除錯紀錄。請重現問題，再由 Help → 檢視除錯紀錄儲存檔案。不記錄文件內容或檔名。', '已启用调试记录。请重现问题，再由 Help → 查看调试记录保存文件。不记录文件内容或文件名。', '디버그 기록이 켜졌습니다. 문제를 재현한 뒤 도움말 → 디버그 로그 보기에서 저장하세요. 문서 내용과 파일명은 기록하지 않습니다.'),
@@ -6930,6 +6939,23 @@ import sys
 import warnings
 
 
+def diagnostic_records(*snapshots):
+    """Merge bounded JSONL tails, ignoring partial lines and duplicate records."""
+    rows, seen = [], set()
+    for snapshot in snapshots:
+        for line in snapshot.splitlines():
+            try:
+                row = json.loads(line)
+                if not isinstance(row, dict) or not isinstance(row.get('event'), str):
+                    continue
+                key = json.dumps(row, sort_keys=True, ensure_ascii=True)
+            except (ValueError, TypeError):
+                continue
+            if key not in seen:
+                rows.append(row); seen.add(key)
+    return sorted(rows, key=lambda row: str(row.get('utc_time') or row.get('time') or ''))
+
+
 class DiagnosticLog:
     def __init__(self, version, directory=None, automatic=False):
         base = Path(os.environ.get('LOCALAPPDATA') or os.environ.get('XDG_CACHE_HOME') or Path.home()/'.cache')
@@ -7066,6 +7092,30 @@ class DiagnosticLog:
         with self._lock, path.open('rb') as stream:
             stream.seek(max(0, os.fstat(stream.fileno()).st_size-128*1024))
             return stream.read(128*1024).decode('utf-8', errors='replace')
+
+    def clear(self):
+        """Clear both diagnostic streams and their two owned rotation files.
+
+        Keep handlers open so ongoing diagnostics continue after truncation.
+        Failures are reported to the caller, never presented as a successful clear.
+        """
+        with self._lock:
+            try:
+                for path in (self.path, self.error_path):
+                    handler = self.handler if path == self.path else self.error_handler
+                    if handler and handler.stream:
+                        handler.flush()
+                        handler.stream.seek(0); handler.stream.truncate(); handler.flush()
+                    elif path.exists():
+                        with path.open('wb'):
+                            pass
+                    for suffix in ('.1', '.2'):
+                        path.with_name(path.name+suffix).unlink(missing_ok=True)
+            except (OSError, ValueError):
+                self.error = 'diagnostic-clear-failed'
+                return False
+            self.event('logs.cleared', automatic=True)
+            return True
 
 
 # Source: pycommander/dialogs.py
@@ -15884,7 +15934,8 @@ class PreviewWindow(tk.Toplevel):
             # X11 emits this keysym for Shift+Tab; Windows Tk may reject it.
             # An optional platform alias must never prevent document loading.
             try:
-                self.bind('<Control-ISO_Left_Tab>', lambda e: (self.cycle(-1), 'break')[1])
+                if self.tk.call('tk', 'windowingsystem') == 'x11':
+                    self.bind('<Control-ISO_Left_Tab>', lambda e: (self.cycle(-1), 'break')[1])
             except tk.TclError as exc:
                 preview_diagnostic(self, 'preview.binding.unsupported', exc=exc,
                                    severity='WARNING',
@@ -18518,7 +18569,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.27"
+__version__ = "0.18.28"
 
 
 
@@ -18636,8 +18687,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/13"
+BUILD_DATE = "2026/10/14"
 VERSION_HISTORY = (
+    ("v0.18.28", "2026/10/14", (
+        "Improved: Diagnostic events are listed by system time, version, level and event, with selectable structured details and duplicate removal.",
+        "Added: Confirmed log clearing removes error/debug records and rotated copies while automatic logging remains active.",
+        "Fixed: Windows Preview no longer attempts an unsupported X11 tab shortcut alias.",
+    )),
     ("v0.18.27", "2026/10/13", (
         "Fixed: Temporary search-result visibility resets when switching file-list view modes, preventing repeated folder refreshes.",
     )),
@@ -23648,27 +23704,76 @@ class Commander(tk.Tk):
                 footer.configure(wraplength=width); identity.configure(wraplength=width)
         win.bind('<Configure>',resize_log,add='+')
         body = ttk.Frame(win); body.pack(fill='both',expand=True)
-        text = tk.Text(body, wrap='word', font='TkTextFont'); text.pack(side='left',fill='both',expand=True)
-        scroll = ttk.Scrollbar(body,command=text.yview); scroll.pack(side='right',fill='y')
-        text.configure(yscrollcommand=scroll.set)
+        split = ttk.Panedwindow(body, orient='vertical'); split.pack(fill='both',expand=True)
+        listing = ttk.Frame(split); split.add(listing,weight=3)
+        columns = ('time','version','severity','event')
+        table = ttk.Treeview(listing,columns=columns,show='headings',selectmode='browse')
+        for column, label, width in zip(columns, ('System time','Version','Level','Event'), (245,85,100,380)):
+            table.heading(column,text=tr(label)); table.column(column,width=width,minwidth=60)
+        def size_columns(event=None):
+            font=tkfont.nametofont('TkDefaultFont')
+            for column,sample in (('time','2026-10-14 23:59:59'),('version','0.18.288'),('severity','WARNING')):
+                width=font.measure(sample)+24
+                table.column(column,width=width,minwidth=width,stretch=False)
+        table.bind('<Configure>',size_columns,add='+')
+        size_columns()
+        listing.rowconfigure(0,weight=1); listing.columnconfigure(0,weight=1)
+        table.grid(row=0,column=0,sticky='nsew')
+        scroll = ttk.Scrollbar(listing,command=table.yview); scroll.grid(row=0,column=1,sticky='ns')
+        horizontal = ttk.Scrollbar(listing,orient='horizontal',command=table.xview)
+        horizontal.grid(row=1,column=0,sticky='ew')
+        table.configure(yscrollcommand=scroll.set,xscrollcommand=horizontal.set)
+        detail = ttk.Frame(split); split.add(detail,weight=2)
+        text = tk.Text(detail,wrap='word',font='TkTextFont',height=8,state='disabled')
+        text.pack(side='left',fill='both',expand=True)
+        detail_scroll = ttk.Scrollbar(detail,command=text.yview); detail_scroll.pack(side='right',fill='y')
+        text.configure(yscrollcommand=detail_scroll.set)
+        rows = []
+        def show_details(event=None):
+            selection=table.selection()
+            if selection:
+                row=rows[int(selection[0])]
+                ordered={k:row.get(k,'—') for k in ('time','version','severity','event','session')}
+                ordered.update(row)
+                summary=' · '.join(str(value) for value in ('PFC '+str(row.get('version','—')),row.get('severity','—'),row.get('error')) if value)
+                content=summary+'\n'+str(row.get('time','—'))+'\n'+row['event']+'\n\n'+json.dumps(ordered,ensure_ascii=False,indent=2)
+            else:
+                content=tr('No diagnostic log yet.')
+            text.configure(state='normal'); text.delete('1.0','end'); text.insert('1.0',content); text.configure(state='disabled')
+        table.bind('<<TreeviewSelect>>',show_details)
         def refresh():
+            nonlocal rows
             try:
-                content=self.debug_log.snapshot(automatic=True)
-                details=self.debug_log.snapshot()
-                if details: content+='\n'+details
-                content=content or tr('No diagnostic log yet.')
-            except OSError: content=tr('Cannot read diagnostic log.')
-            text.configure(state='normal');text.delete('1.0','end');text.insert('1.0',content);text.configure(state='disabled');text.see('end')
+                rows=diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())
+            except OSError:
+                messagebox.showerror(tr('Debug mode'),tr('Cannot read diagnostic log.'),parent=win)
+                return
+            table.delete(*table.get_children())
+            for i,row in enumerate(rows):
+                time=str(row.get('time','—'))[:19].replace('T',' ')
+                table.insert('', 'end',iid=str(i),values=(time,*(row.get(k, '—') for k in columns[1:])))
+            if rows:
+                selected=next((i for i in range(len(rows)-1,-1,-1) if rows[i].get('severity') in ('ERROR','CRITICAL','WARNING')),len(rows)-1)
+                table.selection_set(str(selected)); table.see(str(selected))
+            show_details()
+        def clear():
+            if not messagebox.askyesno(tr('Clear logs'),tr('Clear error and debug logs, including rotated copies? This cannot be undone.'),parent=win):
+                return
+            if not self.debug_log.clear():
+                messagebox.showerror(tr('Clear logs'),tr('Cannot clear diagnostic logs.'),parent=win)
+            refresh()
         def save():
             destination=filedialog.asksaveasfilename(parent=win,defaultextension='.jsonl',initialfile='pfc-debug.jsonl')
             if destination:
                 try:
-                    if Path(destination).resolve() not in (self.debug_log.path.resolve(), self.debug_log.error_path.resolve()):
+                    protected={p.with_name(p.name+s).resolve() for p in (self.debug_log.path,self.debug_log.error_path) for s in ('','.1','.2')}
+                    if Path(destination).resolve() not in protected:
                         Path(destination).write_bytes((self.debug_log.snapshot(automatic=True)+'\n'+
                                                        self.debug_log.snapshot()).encode('utf-8'))
                 except OSError: messagebox.showerror(tr('Debug mode'),tr('Cannot save diagnostic log.'),parent=win)
         ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
         ttk.Button(bar,text=tr('Save debug log'),command=save).pack(side='right',padx=6)
+        ttk.Button(bar,text=tr('Clear logs'),command=clear).pack(side='right')
         win.bind('<Escape>',lambda e:win.destroy());refresh()
 
     def search(self) -> None:

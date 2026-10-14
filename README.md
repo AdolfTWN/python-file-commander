@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.27**
+Current version: **v0.18.28**
 
 **Search result navigation:** Search still includes accessible hidden/system
 items. Its Attributes column labels Hidden, System or both; ordinary items are
@@ -19,7 +19,13 @@ inputs are validated, Office content reads are bounded, and version-control
 overlays coalesce rapid navigation. See the [audit and remaining risks](docs/reliability-audit-20261008.md).
 
 **Automatic Error/Warning log:** **Help → Error / Warning log** shows the current
-version, session ID and file location. On Windows, errors are saved automatically
+version, session ID and file location. Events appear in time/version/level/event
+columns; selecting one shows its structured metadata and stack frames. Duplicate
+records from the two streams are shown once; missing historical versions stay
+unknown. Refresh selects the latest warning/error when present. **Clear logs**
+asks before clearing both streams and their rotated copies (irreversible);
+logging continues with a new `logs.cleared` entry. Save exports raw JSONL for diagnosis.
+On Windows, errors are saved automatically
 to `%LOCALAPPDATA%\PFC\logs\pfc-errors.jsonl`; rotated history is `.1` and `.2`.
 Each entry identifies the emitting PFC version, local system time with timezone,
 UTC, severity and session, so older failures are distinguishable after upgrading.

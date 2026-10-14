@@ -54,7 +54,7 @@ from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard, popup_work_area
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
 from .dialogs import install_scaled_messageboxes
-from .debuglog import DiagnosticLog
+from .debuglog import DiagnosticLog, diagnostic_records
 from .columnsettings import font_snapshot
 from .actionbar import ActionBarLayout
 from .vcsui import VcsActions
@@ -142,6 +142,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.28", "2026/10/14", (
+        "Improved: Diagnostic events are listed by system time, version, level and event, with selectable structured details and duplicate removal.",
+        "Added: Confirmed log clearing removes error/debug records and rotated copies while automatic logging remains active.",
+        "Fixed: Windows Preview no longer attempts an unsupported X11 tab shortcut alias.",
+    )),
     ("v0.18.27", "2026/10/13", (
         "Fixed: Temporary search-result visibility resets when switching file-list view modes, preventing repeated folder refreshes.",
     )),
@@ -5152,27 +5157,76 @@ class Commander(tk.Tk):
                 footer.configure(wraplength=width); identity.configure(wraplength=width)
         win.bind('<Configure>',resize_log,add='+')
         body = ttk.Frame(win); body.pack(fill='both',expand=True)
-        text = tk.Text(body, wrap='word', font='TkTextFont'); text.pack(side='left',fill='both',expand=True)
-        scroll = ttk.Scrollbar(body,command=text.yview); scroll.pack(side='right',fill='y')
-        text.configure(yscrollcommand=scroll.set)
+        split = ttk.Panedwindow(body, orient='vertical'); split.pack(fill='both',expand=True)
+        listing = ttk.Frame(split); split.add(listing,weight=3)
+        columns = ('time','version','severity','event')
+        table = ttk.Treeview(listing,columns=columns,show='headings',selectmode='browse')
+        for column, label, width in zip(columns, ('System time','Version','Level','Event'), (245,85,100,380)):
+            table.heading(column,text=tr(label)); table.column(column,width=width,minwidth=60)
+        def size_columns(event=None):
+            font=tkfont.nametofont('TkDefaultFont')
+            for column,sample in (('time','2026-10-14 23:59:59'),('version','0.18.288'),('severity','WARNING')):
+                width=font.measure(sample)+24
+                table.column(column,width=width,minwidth=width,stretch=False)
+        table.bind('<Configure>',size_columns,add='+')
+        size_columns()
+        listing.rowconfigure(0,weight=1); listing.columnconfigure(0,weight=1)
+        table.grid(row=0,column=0,sticky='nsew')
+        scroll = ttk.Scrollbar(listing,command=table.yview); scroll.grid(row=0,column=1,sticky='ns')
+        horizontal = ttk.Scrollbar(listing,orient='horizontal',command=table.xview)
+        horizontal.grid(row=1,column=0,sticky='ew')
+        table.configure(yscrollcommand=scroll.set,xscrollcommand=horizontal.set)
+        detail = ttk.Frame(split); split.add(detail,weight=2)
+        text = tk.Text(detail,wrap='word',font='TkTextFont',height=8,state='disabled')
+        text.pack(side='left',fill='both',expand=True)
+        detail_scroll = ttk.Scrollbar(detail,command=text.yview); detail_scroll.pack(side='right',fill='y')
+        text.configure(yscrollcommand=detail_scroll.set)
+        rows = []
+        def show_details(event=None):
+            selection=table.selection()
+            if selection:
+                row=rows[int(selection[0])]
+                ordered={k:row.get(k,'—') for k in ('time','version','severity','event','session')}
+                ordered.update(row)
+                summary=' · '.join(str(value) for value in ('PFC '+str(row.get('version','—')),row.get('severity','—'),row.get('error')) if value)
+                content=summary+'\n'+str(row.get('time','—'))+'\n'+row['event']+'\n\n'+json.dumps(ordered,ensure_ascii=False,indent=2)
+            else:
+                content=tr('No diagnostic log yet.')
+            text.configure(state='normal'); text.delete('1.0','end'); text.insert('1.0',content); text.configure(state='disabled')
+        table.bind('<<TreeviewSelect>>',show_details)
         def refresh():
+            nonlocal rows
             try:
-                content=self.debug_log.snapshot(automatic=True)
-                details=self.debug_log.snapshot()
-                if details: content+='\n'+details
-                content=content or tr('No diagnostic log yet.')
-            except OSError: content=tr('Cannot read diagnostic log.')
-            text.configure(state='normal');text.delete('1.0','end');text.insert('1.0',content);text.configure(state='disabled');text.see('end')
+                rows=diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())
+            except OSError:
+                messagebox.showerror(tr('Debug mode'),tr('Cannot read diagnostic log.'),parent=win)
+                return
+            table.delete(*table.get_children())
+            for i,row in enumerate(rows):
+                time=str(row.get('time','—'))[:19].replace('T',' ')
+                table.insert('', 'end',iid=str(i),values=(time,*(row.get(k, '—') for k in columns[1:])))
+            if rows:
+                selected=next((i for i in range(len(rows)-1,-1,-1) if rows[i].get('severity') in ('ERROR','CRITICAL','WARNING')),len(rows)-1)
+                table.selection_set(str(selected)); table.see(str(selected))
+            show_details()
+        def clear():
+            if not messagebox.askyesno(tr('Clear logs'),tr('Clear error and debug logs, including rotated copies? This cannot be undone.'),parent=win):
+                return
+            if not self.debug_log.clear():
+                messagebox.showerror(tr('Clear logs'),tr('Cannot clear diagnostic logs.'),parent=win)
+            refresh()
         def save():
             destination=filedialog.asksaveasfilename(parent=win,defaultextension='.jsonl',initialfile='pfc-debug.jsonl')
             if destination:
                 try:
-                    if Path(destination).resolve() not in (self.debug_log.path.resolve(), self.debug_log.error_path.resolve()):
+                    protected={p.with_name(p.name+s).resolve() for p in (self.debug_log.path,self.debug_log.error_path) for s in ('','.1','.2')}
+                    if Path(destination).resolve() not in protected:
                         Path(destination).write_bytes((self.debug_log.snapshot(automatic=True)+'\n'+
                                                        self.debug_log.snapshot()).encode('utf-8'))
                 except OSError: messagebox.showerror(tr('Debug mode'),tr('Cannot save diagnostic log.'),parent=win)
         ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
         ttk.Button(bar,text=tr('Save debug log'),command=save).pack(side='right',padx=6)
+        ttk.Button(bar,text=tr('Clear logs'),command=clear).pack(side='right')
         win.bind('<Escape>',lambda e:win.destroy());refresh()
 
     def search(self) -> None:

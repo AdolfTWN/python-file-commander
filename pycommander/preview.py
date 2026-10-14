@@ -1145,7 +1145,8 @@ class PreviewWindow(tk.Toplevel):
             # X11 emits this keysym for Shift+Tab; Windows Tk may reject it.
             # An optional platform alias must never prevent document loading.
             try:
-                self.bind('<Control-ISO_Left_Tab>', lambda e: (self.cycle(-1), 'break')[1])
+                if self.tk.call('tk', 'windowingsystem') == 'x11':
+                    self.bind('<Control-ISO_Left_Tab>', lambda e: (self.cycle(-1), 'break')[1])
             except tk.TclError as exc:
                 preview_diagnostic(self, 'preview.binding.unsupported', exc=exc,
                                    severity='WARNING',

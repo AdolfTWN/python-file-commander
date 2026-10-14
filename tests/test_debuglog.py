@@ -8,10 +8,49 @@ import threading
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
-from pycommander.debuglog import DiagnosticLog
+from pycommander.debuglog import DiagnosticLog, diagnostic_records
 
 
 class DebugLogTests(unittest.TestCase):
+    def test_structured_tails_ignore_partial_records_and_deduplicate(self):
+        first={'event':'preview.ready','utc_time':'2026-10-14T01:00:00+00:00','version':'old'}
+        second={'event':'preview.failed','utc_time':'2026-10-14T02:00:00+00:00'}
+        rows=diagnostic_records('partial}\n'+json.dumps(second)+'\n[]\nnull\n',
+                                json.dumps(first)+'\n'+json.dumps(second))
+        self.assertEqual(rows,[first,second])
+        self.assertNotIn('version',rows[1])
+
+    def test_clear_owned_rotations_and_keep_logging(self):
+        with tempfile.TemporaryDirectory() as raw:
+            log=DiagnosticLog('test',raw,automatic=True)
+            try:
+                log.set_enabled(True)
+                log.event('old.error',severity='ERROR')
+                for path in (log.path,log.error_path):
+                    for suffix in ('.1','.2'):
+                        path.with_name(path.name+suffix).write_text('old')
+                unrelated=Path(raw)/'other.jsonl'; unrelated.write_text('keep')
+                self.assertTrue(log.clear())
+                self.assertEqual(unrelated.read_text(),'keep')
+                self.assertFalse(list(Path(raw).glob('*.jsonl.[12]')))
+                self.assertNotIn('old.error',log.snapshot(automatic=True))
+                log.event('new.error',severity='ERROR')
+                for snapshot in (log.snapshot(),log.snapshot(automatic=True)):
+                    self.assertEqual([r['event'] for r in diagnostic_records(snapshot)],['logs.cleared','new.error'])
+            finally: log.close()
+
+    def test_clear_failure_is_reported_and_handler_survives(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as raw:
+            log=DiagnosticLog('test',raw,automatic=True)
+            try:
+                with patch.object(Path,'unlink',side_effect=PermissionError):
+                    self.assertFalse(log.clear())
+                self.assertEqual(log.error,'diagnostic-clear-failed')
+                log.event('still.active',severity='ERROR')
+                self.assertIn('still.active',log.snapshot(automatic=True))
+            finally: log.close()
+
     def test_automatic_errors_with_debug_disabled_and_version_per_record(self):
         with tempfile.TemporaryDirectory() as raw:
             log=DiagnosticLog('0.18.test', raw, automatic=True)
