@@ -53,13 +53,12 @@ with tempfile.TemporaryDirectory(prefix='pfc-chrome-') as raw:
         win = app.search_window; win.geometry('1100x760+0+0'); pump(app)
         shot(win, 'search-chrome')
         if '--before' not in sys.argv:
-            assert win.tree.winfo_rooty()-win.winfo_rooty() < 230
+            assert win.tree.winfo_rooty()-win.winfo_rooty() < 320
             for entry, related in win.query_rows:
                 assert abs(entry.winfo_rooty()-related.winfo_rooty()) < 12
                 assert entry.winfo_width() >= 80
-            win.toggle_filters(); pump(app)
             assert win.advanced.winfo_ismapped()
-            win.min_size_var.set('1'); win.toggle_filters()
+            win.min_size_var.set('1')
             assert win.min_size_var.get() == '1'
             win.clear_filters()
             win.mask_var.set('Project'); win.content_var.set('alpha'); win.start(); pump(app, 1.5)
@@ -70,7 +69,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-chrome-') as raw:
                 app.font_size_var.set(level); app.apply_font_size(save=False)
                 app.search(); win = app.search_window
                 win.geometry('760x680+0+0'); pump(app)
-                assert win.results_button.winfo_rootx()+win.results_button.winfo_width() <= win.winfo_rootx()+win.winfo_width()
+                assert all(b.winfo_rootx()+b.winfo_width() <= win.winfo_rootx()+win.winfo_width() for b in win.result_buttons)
                 assert all(e.winfo_width() >= 60 for e, _ in win.query_rows), level
                 win.close(); app.search_window = None
                 compare = pfc.CompareWindow(app, app.config_data, lambda: None)

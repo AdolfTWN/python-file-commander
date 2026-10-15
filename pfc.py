@@ -20,6 +20,17 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'List → New Tab': ('清單 → 新頁籤','列表 → 新页签','목록 → 새 탭'),
+    'Improved: Search groups folder, filename, content and size/date conditions in a compact control area with right-aligned Search and Stop.': ('改善：搜尋以緊湊版面整合資料夾、檔名、內容及大小／日期條件，搜尋與停止按鈕靠右。','改善：搜索以紧凑布局整合文件夹、文件名、内容及大小／日期条件，搜索与停止按钮靠右。','개선: 검색 폴더, 파일 이름, 내용, 크기/날짜 조건을 간결하게 배치하고 검색/중지 버튼을 오른쪽에 정렬합니다.'),
+    'Added: Search exposes result actions above the list, a right-click menu, F2 Rename and F11 Copy Path; size filters support kB, MB and GB.': ('新增：搜尋清單上方直接提供結果操作、右鍵選單、F2 重新命名及 F11 複製路徑；大小支援 kB、MB、GB。','新增：搜索列表上方直接提供结果操作、右键菜单、F2 重命名及 F11 复制路径；大小支持 kB、MB、GB。','추가: 검색 목록 위 결과 작업, 오른쪽 클릭 메뉴, F2 이름 변경 및 F11 경로 복사를 제공하며 크기 필터에서 kB/MB/GB를 지원합니다.'),
+    'Improved: Search result actions wrap at large text sizes without shrinking fonts; running and terminal states remain visible above results.': ('改善：大字體時搜尋結果操作合理換列，不縮小字體；執行與完成狀態持續顯示在清單上方。','改善：大字体时搜索结果操作合理换行，不缩小字体；运行与完成状态持续显示在列表上方。','개선: 큰 글꼴에서는 결과 작업 버튼을 줄바꿈하고 실행 및 종료 상태를 목록 위에 계속 표시합니다.'),
+    'Size min:': ('大小下限：','大小下限：','최소 크기:'),
+    'Modified within:': ('修改於最近：','修改于最近：','최근 수정:'),
+    'days': ('天','天','일'),
+    'Stop': ('停止','停止','중지'),
+    'F2 Rename': ('F2 重新命名','F2 重命名','F2 이름 변경'),
+    'F11 Copy Path': ('F11 複製路徑','F11 复制路径','F11 경로 복사'),
+    'New name:': ('新名稱：','新名称：','새 이름:'),
     'Fixed: Temporary search-result visibility resets when switching file-list view modes, preventing repeated folder refreshes.': ('修正：切換檔案清單檢視模式時，清除搜尋結果的暫時顯示狀態，避免反覆刷新資料夾。', '修正：切换文件列表查看模式时，清除搜索结果的临时显示状态，避免反复刷新文件夹。', '수정: 파일 목록 보기 모드 변경 시 검색 결과의 임시 표시 상태를 초기화하여 폴더가 반복 갱신되지 않도록 합니다.'),
     'Hidden': ('隱藏', '隐藏', '숨김'),
     'System': ('系統', '系统', '시스템'),
@@ -16173,7 +16184,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import tkinter as tk
 import tkinter.font as tkfont
-from tkinter import messagebox, ttk
+from tkinter import messagebox, simpledialog, ttk
+
 
 
 
@@ -16292,10 +16304,18 @@ class SearchWindow(tk.Toplevel):
         self.min_size_var = tk.StringVar(value=config.get("search", "min_size_kb", fallback=""))
         self.max_size_var = tk.StringVar(value=config.get("search", "max_size_kb", fallback=""))
         self.days_var = tk.StringVar(value=config.get("search", "modified_days", fallback=""))
+        self.size_unit_var = tk.StringVar(value=config.get('search', 'size_unit', fallback='kB'))
+        if self.size_unit_var.get() not in ('kB', 'MB', 'GB'): self.size_unit_var.set('kB')
+        for variable in (self.min_size_var,self.max_size_var):
+            if variable.get() and self.size_unit_var.get()!='kB':
+                try:variable.set(f'{float(variable.get()) / (1024 ** (1 if self.size_unit_var.get()=="MB" else 2)):g}')
+                except ValueError:pass
         self.title(tr("PFC Search")); self.geometry(config.get("search", "geometry", fallback="1100x720")); self.minsize(720, 480)
-        self.protocol("WM_DELETE_WINDOW", self.close); self.bind("<Escape>", lambda _e: self.escape())
-        self.bind("<F3>", lambda _e: self.preview_selected())
-        self.bind("<F9>", lambda _e: self.compare_selected())
+        self.protocol("WM_DELETE_WINDOW", self.close); self.bind("<Escape>", lambda _e: (self.escape(),'break')[1])
+        self.bind("<F3>", lambda _e: (self.preview_selected(),'break')[1])
+        self.bind("<F9>", lambda _e: (self.compare_selected(),'break')[1])
+        self.bind('<F2>', lambda _e: self.rename_selected())
+        self.bind('<F11>', lambda _e: (self.copy_paths(),'break')[1])
 
         form = ttk.Frame(self, padding=7); form.pack(fill="x")
         self.form = form
@@ -16304,12 +16324,12 @@ class SearchWindow(tk.Toplevel):
         for row, (label, variable) in enumerate((("Start in:", self.path_var), ("Name/mask:", self.mask_var),
                                                  ("Containing text:", self.content_var))):
             ttk.Label(form, text=tr(label)).grid(row=row, column=0, sticky="w", padx=(0, 5), pady=2)
-            group = ttk.Frame(form); group.grid(row=row, column=1, sticky='ew', pady=2)
+            group = ttk.Frame(form); group.grid(row=row, column=1, columnspan=2 if row == 0 else 1, sticky='ew', pady=2)
             related = ttk.Frame(group); related.pack(side='right', padx=(5, 0))
             entry = ttk.Entry(group, textvariable=variable, width=10)
             entry.pack(side='left', fill='x', expand=True)
             self.query_rows.append((entry, related))
-            entry.bind("<Return>", lambda _event: self.start())
+            entry.bind("<Return>", lambda _event: (self.start(),'break')[1])
             if row == 1: self.mask_entry = entry
         options = self.query_rows[0][1]
         ttk.Label(options, text=tr("Depth:")).pack(side="left")
@@ -16323,38 +16343,52 @@ class SearchWindow(tk.Toplevel):
         self.case_check.pack(side="left")
         ToolTip(self.case_check, lambda: tr('Case sensitive for both name and content'))
         advanced = self.advanced = ttk.Frame(form)
-        for row, (label, variable) in enumerate((('Size KB min:', self.min_size_var),
-                ('max:', self.max_size_var), ('Modified within days:', self.days_var))):
-            ttk.Label(advanced, text=tr(label)).grid(row=row, column=0, sticky='w')
-            ttk.Entry(advanced, textvariable=variable, width=9).grid(row=row, column=1, sticky='ew', padx=5)
-        advanced.columnconfigure(1, weight=1)
-        actions = ttk.Frame(form); actions.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(3, 0))
-        self.find_button = ttk.Button(actions, text=tr("Find"), width=0, command=self.start); self.find_button.pack(side="left")
-        self.cancel_button = ttk.Button(actions, text=tr("Cancel"), width=0, command=self.cancel, state="disabled"); self.cancel_button.pack(side="left", padx=3)
-        self.filters_button = ttk.Button(actions, text=tr('Filters')+' ▸', width=0, command=self.toggle_filters)
-        self.filters_button.pack(side='left', padx=3)
-        ttk.Button(actions, text=tr("Clear Filters"), width=0, command=self.clear_filters).pack(side="left", padx=3)
-        self.results_button = ttk.Menubutton(actions, text=tr('Results'), width=0)
-        self.results_menu = tk.Menu(self.results_button, tearoff=False, font='TkMenuFont')
+        advanced.grid(row=3,column=0,columnspan=3,sticky='ew',pady=2)
+        size = self.size_controls = ttk.Frame(advanced)
+        size.grid(row=0,column=0,sticky='w')
+        for col,(label,variable) in enumerate((('Size min:',self.min_size_var),('max:',self.max_size_var))):
+            ttk.Label(size,text=tr(label)).grid(row=0,column=col*2,sticky='w',padx=(0,3))
+            ttk.Entry(size,textvariable=variable,width=5).grid(row=0,column=col*2+1,padx=(0,5))
+        ttk.Combobox(size,textvariable=self.size_unit_var,values=('kB','MB','GB'),state='readonly',width=4).grid(row=0,column=4)
+        days = self.days_controls = ttk.Frame(advanced)
+        days.grid(row=0,column=1,sticky='e',padx=(8,0))
+        ttk.Label(days,text=tr('Modified within:')).pack(side='left')
+        ttk.Entry(days,textvariable=self.days_var,width=4).pack(side='left',padx=3)
+        ttk.Label(days,text=tr('days')).pack(side='left')
+        advanced.columnconfigure(1,weight=1)
+        self.find_button = ttk.Button(form, text=tr('Search'), width=0, padding=(14,5), command=self.start)
+        self.find_button.grid(row=1,column=2,sticky='nsew',padx=(8,0))
+        self.cancel_button = ttk.Button(form, text=tr('Stop'), width=0, command=self.cancel, state='disabled')
+        self.cancel_button.grid(row=2,column=2,sticky='ew',padx=(8,0))
+        self.results_menu = tk.Menu(self, tearoff=False, font='TkMenuFont')
         for label, command in (('Go to File', self.go_selected), ('Preview', self.preview_selected),
                 ('Compare', self.compare_selected), ('Send Listing to New Tab', self.send_listing),
-                ('Copy Path', self.copy_paths)):
+                ('Copy Path', self.copy_paths), ('Rename', self.rename_selected)):
             self.results_menu.add_command(label=tr(label), command=command)
-        self.results_button.configure(menu=self.results_menu); self.results_button.pack(side='right')
-        ToolTip(self.results_button, lambda: tr('Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.'))
         form.columnconfigure(1, weight=1)
 
         activity = self.activity = ttk.Frame(self, padding=(7, 3))
         activity.pack(fill='x')
-        activity.columnconfigure(0, weight=1)
+        activity.columnconfigure(1, weight=1)
         self.status = ttk.Label(activity, anchor='w', font='TkHeadingFont')
         self.status.grid(row=0,column=0,sticky='ew',padx=(0,8))
         self.progress = ttk.Progressbar(activity, mode='determinate', value=0, length=120)
-        self.progress.grid(row=0,column=1,sticky='e')
+        self.progress.grid(row=0,column=1,sticky='ew')
         self.progress_eta = ttk.Label(activity, anchor='w')
         self.progress_eta.grid(row=1,column=0,columnspan=2,sticky='ew')
         activity.bind('<Configure>',lambda e:(self.status.configure(wraplength=max(160,e.width-150)),
                                                self.progress_eta.configure(wraplength=max(160,e.width-20))))
+        actions = self.result_actions = ttk.Frame(self,padding=(7,2))
+        actions.pack(fill='x')
+        self.result_buttons=[]
+        for label,command in (('Go to File',self.go_selected),('List → New Tab',self.send_listing),
+                ('F2 Rename',self.rename_selected),('F3 Preview',self.preview_selected),
+                ('F9 Compare',self.compare_selected),('F11 Copy Path',self.copy_paths)):
+            button=ttk.Button(actions,text=tr(label),width=0,command=command,state='disabled')
+            self.result_buttons.append(button)
+        ToolTip(self.result_buttons[1],lambda:tr('Send Listing to New Tab'))
+        ToolTip(self.result_buttons[0],lambda:tr('Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.'))
+        self.bind('<Configure>',self._layout_controls,add='+')
         footer = ttk.Frame(self, padding=(7, 2)); footer.pack(side='bottom', fill='x')
         self.criteria_label = ttk.Label(footer, anchor='w', width=1)
         self.criteria_label.pack(side='left', fill='x', expand=True)
@@ -16376,23 +16410,57 @@ class SearchWindow(tk.Toplevel):
         self.empty_hint = ttk.Label(body,anchor='center',justify='center',padding=12)
         body.bind('<Configure>',lambda e:self.empty_hint.configure(wraplength=max(150,e.width-60)))
         self.tree.bind("<Double-1>", self.double_click_result)
-        self.tree.bind("<Return>", lambda _e: self.go_selected())
+        self.tree.bind("<Return>", lambda _e: (self.go_selected(),'break')[1])
+        self.tree.bind('<Button-3>',self.context_menu)
+        self.tree.bind('<Shift-F10>',self.context_menu)
+        self.tree.bind('<<TreeviewSelect>>',lambda _e:self._sync_result_actions())
         self.tree.bind("<Configure>", self._schedule_column_resize)
         for variable in (self.mask_var, self.content_var, self.case_var, self.depth_var,
                          self.files_var, self.folders_var, self.min_size_var,
-                         self.max_size_var, self.days_var):
+                         self.max_size_var, self.days_var, self.size_unit_var):
             variable.trace_add("write", self._update_criteria_summary)
         self._update_criteria_summary()
         self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         install_button_tooltips(self); self.after_idle(self.activate)
 
-    def toggle_filters(self):
-        if self.advanced.winfo_manager():
-            self.advanced.grid_remove()
+    def _layout_controls(self,event=None):
+        if event is not None and event.widget is not self:return
+        available=max(1,self.winfo_width()-14)
+        narrow=self.size_controls.winfo_reqwidth()+self.days_controls.winfo_reqwidth()+12>available
+        self.days_controls.grid_configure(row=1 if narrow else 0,column=0 if narrow else 1,
+                                          sticky='w' if narrow else 'e',padx=0 if narrow else (8,0))
+        # Equal-width columns must fit the widest label, not just the sum of
+        # unequal requested widths (Windows fonts exposed clipping otherwise).
+        widest=max(b.winfo_reqwidth()+4 for b in self.result_buttons)
+        columns=next((n for n in (6,3,2,1) if widest*n<=available),1)
+        for col in range(6):self.result_actions.columnconfigure(col,weight=1 if col<columns else 0,uniform='actions' if col<columns else '')
+        for i,button in enumerate(self.result_buttons):button.grid(row=i//columns,column=i%columns,sticky='ew',padx=2,pady=1)
+
+    def _sync_result_actions(self):
+        selected=len(self.tree.selection());busy=self.search_state in ('running','cancelling','resetting')
+        available=(selected>0,bool(self.results) and self.on_send_listing is not None,selected==1 and not busy,selected>0,
+                   selected>=2 and self.on_compare is not None,selected>0)
+        if getattr(self,'_result_availability',None)==available:return
+        self._result_availability=available
+        for button,enabled in zip(self.result_buttons,available):button.configure(state='normal' if enabled else 'disabled')
+        for index,enabled in enumerate((available[0],available[3],available[4],available[1],available[5],available[2])):
+            self.results_menu.entryconfigure(index,state='normal' if enabled else 'disabled')
+
+    def context_menu(self,event):
+        if getattr(event,'keysym','')=='F10':
+            iid=self.tree.focus();box=self.tree.bbox(iid) if iid else ()
+            if not box:return 'break'
+            x,y=self.tree.winfo_rootx()+box[0]+20,self.tree.winfo_rooty()+box[1]+box[3]
         else:
-            self.advanced.grid(row=3, column=0, columnspan=2, sticky='ew', pady=3)
-        self._update_criteria_summary()
+            iid=self.tree.identify_row(event.y)
+            if not iid or self.tree.identify_region(event.x,event.y) not in ('tree','cell'):return 'break'
+            x,y=event.x_root,event.y_root
+        if iid not in self.tree.selection():self.tree.selection_set(iid)
+        self.tree.focus(iid);self.tree.focus_set();self._sync_result_actions()
+        try:self.results_menu.tk_popup(x,y)
+        finally:self.results_menu.grab_release()
+        return 'break'
 
     def _reset_column_measurements(self) -> None:
         font = tkfont.nametofont("TkDefaultFont")
@@ -16456,15 +16524,19 @@ class SearchWindow(tk.Toplevel):
                         rowheight=search_row_height(default_font.metrics("linespace"), scale))
         style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
         self._reset_column_measurements()
+        self.after_idle(self._layout_controls)
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
         retranslate_widgets(self, old_language)
+        for index,label in enumerate(('Go to File','Preview','Compare','Send Listing to New Tab','Copy Path','Rename')):
+            self.results_menu.entryconfigure(index,label=tr(label))
         self.depth_values = {tr("Current"): "Current", "1": "1", "2": "2", "3": "3",
                              "5": "5", tr("All"): "All"}
         self.depth_combo.configure(values=tuple(self.depth_values))
         self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
         self.title(tr("PFC Search"))
+        self.after_idle(self._layout_controls)
         self._apply_sort()
         self._reset_column_measurements()
         self._update_criteria_summary()
@@ -16527,15 +16599,12 @@ class SearchWindow(tk.Toplevel):
         if self.content_var.get().strip():
             parts.append(f"{tr('Containing text:')} {self.content_var.get().strip()}")
         if self.min_size_var.get().strip() or self.max_size_var.get().strip():
-            parts.append(f"{tr('Size')}: {self.min_size_var.get().strip() or '0'}–{self.max_size_var.get().strip() or '∞'} KB")
+            parts.append(f"{tr('Size')}: {self.min_size_var.get().strip() or '0'}–{self.max_size_var.get().strip() or '∞'} {self.size_unit_var.get()}")
         if self.days_var.get().strip():
             parts.append(f"{tr('Modified within days:')} {self.days_var.get().strip()}")
         if self.case_var.get():
             parts.append(tr("Case sensitive"))
         self.criteria_label.configure(text=f"{tr('Filters:')} " + " · ".join(parts))
-        active = sum(bool(v.get().strip()) for v in (self.min_size_var, self.max_size_var, self.days_var))
-        suffix = f' ({active})' if active else ''
-        self.filters_button.configure(text=tr('Filters')+suffix+(' ▾' if self.advanced.winfo_manager() else ' ▸'))
 
     def clear_filters(self) -> None:
         self.mask_var.set("*")
@@ -16546,6 +16615,7 @@ class SearchWindow(tk.Toplevel):
         self.folders_var.set(True)
         self.min_size_var.set("")
         self.max_size_var.set("")
+        self.size_unit_var.set('kB')
         self.days_var.set("")
         if self.search_state not in ('running','cancelling'):
             self.status.configure(text=tr("Filters cleared"))
@@ -16583,7 +16653,8 @@ class SearchWindow(tk.Toplevel):
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
         max_depth = None if depth == "All" else (0 if depth == "Current" else int(depth))
         days = number(self.days_var.get())
-        minimum, maximum = number(self.min_size_var.get(), 1024), number(self.max_size_var.get(), 1024)
+        factor={'kB':1024,'MB':1024**2,'GB':1024**3}[self.size_unit_var.get()]
+        minimum, maximum = number(self.min_size_var.get(), factor), number(self.max_size_var.get(), factor)
         if minimum is not None and maximum is not None and minimum > maximum:
             raise ValueError("Minimum size cannot exceed maximum size.")
         return dict(root=Path(self.path_var.get().strip().strip('"')), masks=self.mask_var.get(), content=self.content_var.get(),
@@ -16702,6 +16773,7 @@ class SearchWindow(tk.Toplevel):
 
     def _show_search_state(self):
         count=len(self.results)
+        self._sync_result_actions()
         if self.search_state in ('running','cancelling','resetting'):
             if not self.progress.winfo_manager():self.progress.grid()
         elif self.progress.winfo_manager():self.progress.grid_remove()
@@ -16741,6 +16813,39 @@ class SearchWindow(tk.Toplevel):
     def selected_paths(self):
         return [Path(self.tree.item(iid, "tags")[0]) for iid in self.tree.selection()
                 if self.tree.item(iid, "tags")]
+
+    def rename_selected(self):
+        # A live worker may still emit paths under the old name. Do not mutate
+        # files until traversal has stopped and all queued results are drained.
+        if self.search_state in ('running','cancelling','resetting'):return 'break'
+        paths=self.selected_paths()
+        if len(paths)!=1:return 'break'
+        original=paths[0]
+        name=simpledialog.askstring(tr('Rename'),tr('New name:'),initialvalue=original.name,parent=self)
+        if name is None or name==original.name:return 'break'
+        try:
+            target=original.with_name(name)
+            execute_rename_pairs([(original,target)])
+        except (OSError,ValueError) as exc:
+            log=getattr(self.master,'debug_log',None)
+            if log:log.exception('search.rename.failed',exc)
+            messagebox.showerror(tr('Rename failed'),str(exc),parent=self)
+            return 'break'
+        updated=[]
+        for iid in self.tree.get_children():
+            path=Path(self.tree.item(iid,'tags')[0])
+            try:new=target/path.relative_to(original)
+            except ValueError:new=path
+            updated.append(new)
+            if new!=path:
+                values=list(self.tree.item(iid,'values'));values[0]=str(new.parent)
+                self.tree.item(iid,text=new.name,tags=(str(new),),values=values)
+                try:values[4]=search_attributes(new,new.stat())
+                except OSError:pass  # A concurrent removal is handled on navigation.
+                self.item_data[iid].update(name=new.name.casefold(),folder=str(new.parent).casefold(),ext=new.suffix[1:].casefold() if values[1]!='<DIR>' else '',attributes=values[4].casefold())
+                values[3]=self.item_data[iid]['ext'].upper();self.tree.item(iid,values=values)
+        self.results=updated;self._apply_sort();self._reset_column_measurements();self._show_search_state()
+        return 'break'
     def double_click_result(self, event):
         iid = self.tree.identify_row(event.y)
         if iid and self.tree.identify_region(event.x,event.y) in ('tree','cell'):
@@ -16796,11 +16901,15 @@ class SearchWindow(tk.Toplevel):
         if not self.config_data.has_section("search"): self.config_data.add_section("search")
         for key in ("mask", "content"):
             self.config_data.remove_option("search", key)
+        def stored_kb(variable):
+            try:return f'{float(variable.get()) * {"kB":1,"MB":1024,"GB":1024**2}[self.size_unit_var.get()]:g}' if variable.get().strip() else ''
+            except ValueError:return ''
         for key, value in (("geometry", self.geometry()),
                            ("case_sensitive", str(self.case_var.get()).lower()),
                            ("depth", self.depth_values.get(self.depth_var.get(), self.depth_var.get())),
                            ("files", str(self.files_var.get()).lower()), ("folders", str(self.folders_var.get()).lower()),
-                           ("min_size_kb", self.min_size_var.get()), ("max_size_kb", self.max_size_var.get()),
+                           ("min_size_kb", stored_kb(self.min_size_var)), ("max_size_kb", stored_kb(self.max_size_var)),
+                           ('size_unit',self.size_unit_var.get()),
                            ("modified_days", self.days_var.get())):
             self.config_data.set("search", key, value.replace("%", "%%"))
         self.save_config(); self.destroy()
@@ -18724,7 +18833,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.29"
+__version__ = "0.18.30"
 
 
 
@@ -18844,6 +18953,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/15"
 VERSION_HISTORY = (
+    ("v0.18.30", "2026/10/15", (
+        "Improved: Search groups folder, filename, content and size/date conditions in a compact control area with right-aligned Search and Stop.",
+        "Added: Search exposes result actions above the list, a right-click menu, F2 Rename and F11 Copy Path; size filters support kB, MB and GB.",
+        "Improved: Search result actions wrap at large text sizes without shrinking fonts; running and terminal states remain visible above results.",
+    )),
     ("v0.18.29", "2026/10/15", (
         "Improved: Search keeps progress and explicit running, complete, empty, cancelled, partial and failed states beside its controls.",
         "Improved: Preview and comparison activity stays above content; unknown search durations no longer show speculative estimates.",

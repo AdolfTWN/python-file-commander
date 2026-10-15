@@ -1,6 +1,10 @@
 # Python File Commander
 
-Current version: **v0.18.29**
+Current version: **v0.18.30**
+
+**Compact F4 Search:** folder/name/content/size/date conditions stay visible,
+Search/Stop align on the right, and result actions sit above the list. Results
+support right-click, F2 Rename and F11 Copy Path; size filters accept kB/MB/GB.
 
 **Visible work status:** F4 Search shows activity and explicit running, completed,
 cancelled, limited, unreadable/partial and failed states immediately below its

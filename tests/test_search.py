@@ -2,12 +2,27 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pycommander.search import content_matches, name_matches, search_column_widths, search_attributes
+from pycommander.search import SearchWindow, content_matches, name_matches, search_column_widths, search_attributes
 from pycommander.i18n import tr
 from types import SimpleNamespace
 
 
 class SearchTests(unittest.TestCase):
+    def test_size_units_and_validation(self):
+        def var(value):return SimpleNamespace(get=lambda:value)
+        window=SimpleNamespace(depth_values={},depth_var=var('All'),path_var=var('.'),
+            mask_var=var('*'),content_var=var(''),case_var=var(False),files_var=var(True),folders_var=var(True),
+            min_size_var=var('1.5'),max_size_var=var('2'),days_var=var(''))
+        for unit,factor in (('kB',1024),('MB',1024**2),('GB',1024**3)):
+            window.size_unit_var=var(unit)
+            self.assertEqual(SearchWindow.criteria(window)['min_size'],1.5*factor)
+            self.assertEqual(SearchWindow.criteria(window)['max_size'],2*factor)
+        window.min_size_var=var('3')
+        with self.assertRaises(ValueError):SearchWindow.criteria(window)
+        for invalid in ('nan','inf','-1','bad','1e309'):
+            window.min_size_var=var(invalid)
+            with self.subTest(invalid=invalid),self.assertRaises(ValueError):SearchWindow.criteria(window)
+
     def test_hidden_system_notes_reuse_stat_attributes(self):
         for flags,expected in ((0,''),(2,tr('Hidden')),(4,tr('System')),
                                (6,tr('Hidden')+' · '+tr('System'))):

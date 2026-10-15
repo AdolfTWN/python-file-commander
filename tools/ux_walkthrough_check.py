@@ -87,13 +87,17 @@ with tempfile.TemporaryDirectory(prefix='pfc-ux-') as raw:
             app.color_scheme_var.set(theme);app.apply_color_scheme(save=False);pump(app)
             app.font_size_var.set(key);app.apply_font_size(save=False)
             s.geometry(f'{width}x740+0+0');pump(app);gate.clear();s._search=slow;s.start();pump(app)
+            face=pfc.tkfont.nametofont('TkDefaultFont')
+            for button in s.result_buttons:
+                assert button.winfo_width()>=face.measure(button.cget('text'))+12, (language,button.cget('text'))
+            assert s.results_menu.entrycget(0,'label')==pfc.tr('Go to File')
             assert s.search_state=='running' and s.empty_hint.winfo_ismapped()
             above(s.status,s.tree)
             assert str(s.progress.cget('mode'))=='indeterminate'
             value=float(s.progress.cget('value'));time.sleep(.15);pump(app)
             assert float(s.progress.cget('value'))!=value,'No visible activity during wait'
             assert s.mask_entry.instate(['disabled']) and s.depth_combo.instate(['disabled'])
-            assert s.filters_button.instate(['disabled'])
+            assert s.days_controls.winfo_ismapped() and s.size_controls.winfo_ismapped()
             capture(s,'search-running-'+scale)
             s.cancel();pump(app,lambda:s.worker is None)
             assert s.search_state=='cancelled' and float(s.progress.cget('value'))!=100

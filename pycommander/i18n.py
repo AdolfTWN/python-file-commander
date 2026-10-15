@@ -11,6 +11,17 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'List → New Tab': ('清單 → 新頁籤','列表 → 新页签','목록 → 새 탭'),
+    'Improved: Search groups folder, filename, content and size/date conditions in a compact control area with right-aligned Search and Stop.': ('改善：搜尋以緊湊版面整合資料夾、檔名、內容及大小／日期條件，搜尋與停止按鈕靠右。','改善：搜索以紧凑布局整合文件夹、文件名、内容及大小／日期条件，搜索与停止按钮靠右。','개선: 검색 폴더, 파일 이름, 내용, 크기/날짜 조건을 간결하게 배치하고 검색/중지 버튼을 오른쪽에 정렬합니다.'),
+    'Added: Search exposes result actions above the list, a right-click menu, F2 Rename and F11 Copy Path; size filters support kB, MB and GB.': ('新增：搜尋清單上方直接提供結果操作、右鍵選單、F2 重新命名及 F11 複製路徑；大小支援 kB、MB、GB。','新增：搜索列表上方直接提供结果操作、右键菜单、F2 重命名及 F11 复制路径；大小支持 kB、MB、GB。','추가: 검색 목록 위 결과 작업, 오른쪽 클릭 메뉴, F2 이름 변경 및 F11 경로 복사를 제공하며 크기 필터에서 kB/MB/GB를 지원합니다.'),
+    'Improved: Search result actions wrap at large text sizes without shrinking fonts; running and terminal states remain visible above results.': ('改善：大字體時搜尋結果操作合理換列，不縮小字體；執行與完成狀態持續顯示在清單上方。','改善：大字体时搜索结果操作合理换行，不缩小字体；运行与完成状态持续显示在列表上方。','개선: 큰 글꼴에서는 결과 작업 버튼을 줄바꿈하고 실행 및 종료 상태를 목록 위에 계속 표시합니다.'),
+    'Size min:': ('大小下限：','大小下限：','최소 크기:'),
+    'Modified within:': ('修改於最近：','修改于最近：','최근 수정:'),
+    'days': ('天','天','일'),
+    'Stop': ('停止','停止','중지'),
+    'F2 Rename': ('F2 重新命名','F2 重命名','F2 이름 변경'),
+    'F11 Copy Path': ('F11 複製路徑','F11 复制路径','F11 경로 복사'),
+    'New name:': ('新名稱：','新名称：','새 이름:'),
     'Fixed: Temporary search-result visibility resets when switching file-list view modes, preventing repeated folder refreshes.': ('修正：切換檔案清單檢視模式時，清除搜尋結果的暫時顯示狀態，避免反覆刷新資料夾。', '修正：切换文件列表查看模式时，清除搜索结果的临时显示状态，避免反复刷新文件夹。', '수정: 파일 목록 보기 모드 변경 시 검색 결과의 임시 표시 상태를 초기화하여 폴더가 반복 갱신되지 않도록 합니다.'),
     'Hidden': ('隱藏', '隐藏', '숨김'),
     'System': ('系統', '系统', '시스템'),

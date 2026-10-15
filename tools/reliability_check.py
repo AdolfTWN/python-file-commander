@@ -551,7 +551,7 @@ class ReliabilityTests(unittest.TestCase):
         def var(value): return SimpleNamespace(get=lambda: value)
         window = SimpleNamespace(depth_values={}, depth_var=var("All"), path_var=var(str(self.root)),
             mask_var=var(""), content_var=var(""), case_var=var(False), files_var=var(True), folders_var=var(True),
-            min_size_var=var(""), max_size_var=var(""), days_var=var(""))
+            min_size_var=var(""), max_size_var=var(""), days_var=var(""), size_unit_var=var('kB'))
         for value in ("NaN", "inf", "-1", "bad", "1e100"):
             window.days_var = var(value)
             with self.subTest(value=value), self.assertRaises((ValueError, OverflowError)):

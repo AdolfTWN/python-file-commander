@@ -142,6 +142,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.30", "2026/10/15", (
+        "Improved: Search groups folder, filename, content and size/date conditions in a compact control area with right-aligned Search and Stop.",
+        "Added: Search exposes result actions above the list, a right-click menu, F2 Rename and F11 Copy Path; size filters support kB, MB and GB.",
+        "Improved: Search result actions wrap at large text sizes without shrinking fonts; running and terminal states remain visible above results.",
+    )),
     ("v0.18.29", "2026/10/15", (
         "Improved: Search keeps progress and explicit running, complete, empty, cancelled, partial and failed states beside its controls.",
         "Improved: Preview and comparison activity stays above content; unknown search durations no longer show speculative estimates.",
