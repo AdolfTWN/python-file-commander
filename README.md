@@ -1,10 +1,12 @@
 # Python File Commander
 
-Current version: **v0.18.31**
+Current version: **v0.18.32**
 
-**OneDrive visibility:** solid high-contrast badges distinguish local copies,
-online-only clouds, syncing arrows, errors and pauses, including selected rows.
-Missing metadata remains unknown, not proof of synchronization.
+**Icon corners:** Git/SVN keeps its existing symbols and sizes at top-left.
+OneDrive uses a small color-only triangle at top-right: blue for a local copy
+in sync, red for errors, orange for pending, cyan for online-only, yellow for
+paused and pink for warnings. Bottom corners are reserved. Missing metadata
+remains unknown, not proof of synchronization.
 
 **Compact F4 Search:** folder/name/content/size/date conditions stay visible,
 Search/Stop align on the right, and result actions sit above the list. Results

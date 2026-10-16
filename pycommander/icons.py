@@ -7,6 +7,7 @@ import os
 import struct
 import zlib
 from collections import OrderedDict
+from functools import lru_cache
 from pathlib import Path
 from tkinter import PhotoImage
 
@@ -238,6 +239,7 @@ def _distance_to_segment(px, py, x1, y1, x2, y2) -> float:
     return ((px - nearest_x) ** 2 + (py - nearest_y) ** 2) ** .5
 
 
+@lru_cache(maxsize=128)
 def vcs_badge_png(size: int, status: str) -> bytes:
     """Render one anti-aliased Git/SVN badge with a solid status-color face."""
     if size < 8 or status not in VCS_BADGE_SPECS:
@@ -302,59 +304,27 @@ def vcs_badge_png(size: int, status: str) -> bytes:
 
 
 CLOUD_BADGE_COLORS = {
-    'online': ('#005ca8', '#ffffff'),
-    'available': ('#006b35', '#ffffff'),
-    'pinned': ('#004a27', '#ffffff'),
-    'syncing': ('#6d28d9', '#ffffff'),
-    'error': ('#b91c1c', '#ffffff'),
-    'paused': ('#ffcf33', '#151b23'),
-    'warning': ('#ffcf33', '#151b23'),
+    'online': ('#00e5e5', '#151b23'),
+    'available': ('#00a6ff', '#151b23'),
+    'pinned': ('#00a6ff', '#151b23'),
+    'syncing': ('#ff8c00', '#151b23'),
+    'error': ('#ff3030', '#151b23'),
+    'paused': ('#ffe000', '#151b23'),
+    'warning': ('#ff55cc', '#151b23'),
 }
 
 
+@lru_cache(maxsize=128)
 def cloud_badge_png(size: int, status: str) -> bytes:
-    """Square OneDrive badges: separate shape/location from round Git badges."""
+    """Color-only NE corner pennant; transparent southwest half, no glyph."""
     if status not in CLOUD_BADGE_COLORS or size < 8:
         raise ValueError('Unsupported cloud badge')
     factor = 6
     side = size * factor
     pixels = bytearray(side * side * 4)
-    face, ink = map(_hex_rgba, CLOUD_BADGE_COLORS[status])
-    outer, keyline = _hex_rgba('#ffffff'), _hex_rgba('#151b23')
-    segments = []
-    if status == 'available':
-        segments = [(0.2,0.50,0.43,0.73),(0.43,0.73,0.80,0.25)]
-    elif status == 'pinned':
-        segments = [(0.2,0.40,0.43,0.63),(0.43,0.63,0.80,0.20),
-                    (0.23,0.83,0.77,0.83)]
-    elif status == 'syncing':
-        segments = [(0.22,0.32,0.78,0.32),(0.78,0.32,0.62,0.18),
-                    (0.78,0.32,0.62,0.46),(0.78,0.69,0.22,0.69),
-                    (0.22,0.69,0.38,0.55),(0.22,0.69,0.38,0.83)]
-    elif status == 'paused':
-        segments = [(0.35,0.25,0.35,0.75),(0.65,0.25,0.65,0.75)]
-    elif status == 'error':
-        segments = [(0.28,0.28,0.72,0.72),(0.72,0.28,0.28,0.72)]
-    elif status == 'warning':
-        segments = [(0.5,0.2,0.5,0.55),(0.5,0.75,0.5,0.76)]
-    for y in range(side):
-        for x in range(side):
-            nx, ny = (x+.5)/side, (y+.5)/side
-            if not (.025 < nx < .975 and .025 < ny < .975):
-                continue
-            color = face
-            edge = min(nx, ny, 1-nx, 1-ny)
-            if edge < .065: color = outer
-            elif edge < .12: color = keyline
-            painted = any(_distance_to_segment(nx, ny, *line) < .065 for line in segments)
-            if status == 'online':
-                painted = ((nx-.40)**2+(ny-.46)**2 < .18**2 or
-                           (nx-.61)**2+(ny-.53)**2 < .18**2 or
-                           (.23 < nx < .77 and .49 < ny < .69))
-            if painted and edge >= .12:
-                color = ink
-            pos = (y*side+x)*4
-            pixels[pos:pos+4] = bytes(color)
+    for inset,color in ((.02,'#ffffff'),(.075,'#151b23'),(.14,CLOUD_BADGE_COLORS[status][0])):
+        lo,hi=side*inset,side*(1-inset)
+        _paint_polygon(pixels,side,((lo,lo),(hi,lo),(hi,hi)),_hex_rgba(color))
     return _rgba_png_downsample(pixels, size, factor)
 
 
@@ -415,9 +385,9 @@ class ShellIconProvider:
             if icon is not None and cloud:
                 result = PhotoImage(width=self.size, height=self.size)
                 result.tk.call(str(result), 'copy', str(icon), '-to', 0, 0)
-                diameter = min(self.size, max(8, round(self.size * (.56 if overlay else .62))))
+                diameter = min(self.size, max(8, round(self.size * .38)))
                 badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
-                result.tk.call(str(result), 'copy', str(badge), '-to', 0, 0, '-compositingrule', 'overlay')
+                result.tk.call(str(result), 'copy', str(badge), '-to', self.size-diameter, 0, '-compositingrule', 'overlay')
                 icon = result
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
         self.cache.move_to_end(key)
@@ -433,7 +403,7 @@ class ShellIconProvider:
             encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
             badge = PhotoImage(data=encoded, format="png")
             result.tk.call(str(result), "copy", str(badge),
-                           "-to", self.size - diameter, self.size - diameter,
+                           "-to", 0, 0,
                            "-compositingrule", "overlay")
         return result
 

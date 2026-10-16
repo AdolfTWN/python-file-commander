@@ -20,6 +20,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Git/SVN overlays keep their symbols and sizes at top-left; OneDrive uses color-only top-right triangles, leaving bottom corners reserved.': ('改善：Git/SVN 保留原圖案及尺寸並移至左上；OneDrive 改用右上純色三角，下方兩角保留。','改善：Git/SVN 保留原图案及尺寸并移至左上；OneDrive 改用右上纯色三角，下方两角保留。','개선: Git/SVN 기호와 크기는 왼쪽 위에 유지하고 OneDrive는 오른쪽 위 색상 삼각형을 사용하며 아래 모서리는 예약됩니다.'),
+    'Cyan triangle: online only; opening may require a download.': ('青色三角：僅線上，開啟時可能需要下載。','青色三角：仅在线，打开时可能需要下载。','청록 삼각형: 온라인 전용이며 열 때 다운로드가 필요할 수 있습니다.'),
+    'Blue triangle: local copy is in sync; cleanup may remove the local copy.': ('亮藍三角：本機副本已同步；清理空間可能移除本機副本。','亮蓝三角：本地副本已同步；清理空间可能移除本地副本。','파란 삼각형: 로컬 복사본 동기화 상태이며 정리 시 제거될 수 있습니다.'),
+    'Blue triangle: local copy is in sync and marked to stay offline.': ('亮藍三角：本機副本已同步，並設定保留離線。','亮蓝三角：本地副本已同步，并设置保留离线。','파란 삼각형: 로컬 복사본이 동기화되어 오프라인 유지로 표시되었습니다.'),
+    'Top-right triangle: blue = local copy in sync; red = sync error; orange = syncing/pending; cyan = online only; yellow = paused; pink = warning. No triangle = unknown. Git/SVN stays top-left; bottom corners are reserved.': ('右上三角：亮藍＝本機已同步；亮紅＝同步錯誤；橘＝同步中／待同步；青＝僅線上；黃＝暫停；粉紅＝警告。無三角＝未知。Git/SVN 固定左上，下方兩角保留。','右上三角：亮蓝＝本地已同步；亮红＝同步错误；橘＝同步中／待同步；青＝仅在线；黄＝暂停；粉红＝警告。无三角＝未知。Git/SVN 固定左上，下方两角保留。','오른쪽 위 삼각형: 파랑=로컬 동기화, 빨강=오류, 주황=진행/대기, 청록=온라인 전용, 노랑=일시 중지, 분홍=경고. 없음=알 수 없음. Git/SVN은 왼쪽 위, 아래 모서리는 예약됩니다.'),
     'Improved: OneDrive status badges use solid high-contrast colors, thicker symbols and light/dark borders; syncing arrows are distinct from online-only clouds.': ('改善：OneDrive 狀態使用高對比實心底色、加粗符號及明暗邊框；同步箭頭與僅線上雲朵明確區分。','改善：OneDrive 状态使用高对比实心底色、加粗符号及明暗边框；同步箭头与仅在线云朵明确区分。','개선: OneDrive 상태 배지에 고대비 단색 배경, 굵은 기호 및 밝고 어두운 테두리를 사용하고 동기화 화살표와 온라인 전용 구름을 구분합니다.'),
     'Improved: Larger cloud badges stay legible over file icons and selected rows, while unknown metadata is never labeled synchronized.': ('改善：加大雲端狀態標記，在檔案圖示與選取光棒上保持清楚；未知狀態不標成已同步。','改善：加大云端状态标记，在文件图标与选取高亮上保持清楚；未知状态不标成已同步。','개선: 파일 아이콘과 선택 행 위에서 클라우드 배지를 더 크게 표시하며 알 수 없는 상태를 동기화 완료로 표시하지 않습니다.'),
     'Green check: usable offline now; storage cleanup may remove the local copy.': ('綠底白勾：目前可離線使用；儲存空間清理可能移除本機副本。','绿底白勾：目前可离线使用；存储空间清理可能移除本地副本。','초록 체크: 현재 오프라인에서 사용 가능하며 저장 공간 정리 시 로컬 복사본이 제거될 수 있습니다.'),
@@ -2221,6 +2226,7 @@ import os
 import struct
 import zlib
 from collections import OrderedDict
+from functools import lru_cache
 from pathlib import Path
 from tkinter import PhotoImage
 
@@ -2452,6 +2458,7 @@ def _distance_to_segment(px, py, x1, y1, x2, y2) -> float:
     return ((px - nearest_x) ** 2 + (py - nearest_y) ** 2) ** .5
 
 
+@lru_cache(maxsize=128)
 def vcs_badge_png(size: int, status: str) -> bytes:
     """Render one anti-aliased Git/SVN badge with a solid status-color face."""
     if size < 8 or status not in VCS_BADGE_SPECS:
@@ -2516,59 +2523,27 @@ def vcs_badge_png(size: int, status: str) -> bytes:
 
 
 CLOUD_BADGE_COLORS = {
-    'online': ('#005ca8', '#ffffff'),
-    'available': ('#006b35', '#ffffff'),
-    'pinned': ('#004a27', '#ffffff'),
-    'syncing': ('#6d28d9', '#ffffff'),
-    'error': ('#b91c1c', '#ffffff'),
-    'paused': ('#ffcf33', '#151b23'),
-    'warning': ('#ffcf33', '#151b23'),
+    'online': ('#00e5e5', '#151b23'),
+    'available': ('#00a6ff', '#151b23'),
+    'pinned': ('#00a6ff', '#151b23'),
+    'syncing': ('#ff8c00', '#151b23'),
+    'error': ('#ff3030', '#151b23'),
+    'paused': ('#ffe000', '#151b23'),
+    'warning': ('#ff55cc', '#151b23'),
 }
 
 
+@lru_cache(maxsize=128)
 def cloud_badge_png(size: int, status: str) -> bytes:
-    """Square OneDrive badges: separate shape/location from round Git badges."""
+    """Color-only NE corner pennant; transparent southwest half, no glyph."""
     if status not in CLOUD_BADGE_COLORS or size < 8:
         raise ValueError('Unsupported cloud badge')
     factor = 6
     side = size * factor
     pixels = bytearray(side * side * 4)
-    face, ink = map(_hex_rgba, CLOUD_BADGE_COLORS[status])
-    outer, keyline = _hex_rgba('#ffffff'), _hex_rgba('#151b23')
-    segments = []
-    if status == 'available':
-        segments = [(0.2,0.50,0.43,0.73),(0.43,0.73,0.80,0.25)]
-    elif status == 'pinned':
-        segments = [(0.2,0.40,0.43,0.63),(0.43,0.63,0.80,0.20),
-                    (0.23,0.83,0.77,0.83)]
-    elif status == 'syncing':
-        segments = [(0.22,0.32,0.78,0.32),(0.78,0.32,0.62,0.18),
-                    (0.78,0.32,0.62,0.46),(0.78,0.69,0.22,0.69),
-                    (0.22,0.69,0.38,0.55),(0.22,0.69,0.38,0.83)]
-    elif status == 'paused':
-        segments = [(0.35,0.25,0.35,0.75),(0.65,0.25,0.65,0.75)]
-    elif status == 'error':
-        segments = [(0.28,0.28,0.72,0.72),(0.72,0.28,0.28,0.72)]
-    elif status == 'warning':
-        segments = [(0.5,0.2,0.5,0.55),(0.5,0.75,0.5,0.76)]
-    for y in range(side):
-        for x in range(side):
-            nx, ny = (x+.5)/side, (y+.5)/side
-            if not (.025 < nx < .975 and .025 < ny < .975):
-                continue
-            color = face
-            edge = min(nx, ny, 1-nx, 1-ny)
-            if edge < .065: color = outer
-            elif edge < .12: color = keyline
-            painted = any(_distance_to_segment(nx, ny, *line) < .065 for line in segments)
-            if status == 'online':
-                painted = ((nx-.40)**2+(ny-.46)**2 < .18**2 or
-                           (nx-.61)**2+(ny-.53)**2 < .18**2 or
-                           (.23 < nx < .77 and .49 < ny < .69))
-            if painted and edge >= .12:
-                color = ink
-            pos = (y*side+x)*4
-            pixels[pos:pos+4] = bytes(color)
+    for inset,color in ((.02,'#ffffff'),(.075,'#151b23'),(.14,CLOUD_BADGE_COLORS[status][0])):
+        lo,hi=side*inset,side*(1-inset)
+        _paint_polygon(pixels,side,((lo,lo),(hi,lo),(hi,hi)),_hex_rgba(color))
     return _rgba_png_downsample(pixels, size, factor)
 
 
@@ -2629,9 +2604,9 @@ class ShellIconProvider:
             if icon is not None and cloud:
                 result = PhotoImage(width=self.size, height=self.size)
                 result.tk.call(str(result), 'copy', str(icon), '-to', 0, 0)
-                diameter = min(self.size, max(8, round(self.size * (.56 if overlay else .62))))
+                diameter = min(self.size, max(8, round(self.size * .38)))
                 badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
-                result.tk.call(str(result), 'copy', str(badge), '-to', 0, 0, '-compositingrule', 'overlay')
+                result.tk.call(str(result), 'copy', str(badge), '-to', self.size-diameter, 0, '-compositingrule', 'overlay')
                 icon = result
             self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
         self.cache.move_to_end(key)
@@ -2647,7 +2622,7 @@ class ShellIconProvider:
             encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
             badge = PhotoImage(data=encoded, format="png")
             result.tk.call(str(result), "copy", str(badge),
-                           "-to", self.size - diameter, self.size - diameter,
+                           "-to", 0, 0,
                            "-compositingrule", "overlay")
         return result
 
@@ -5284,9 +5259,9 @@ CLOUD_LABELS = {'online': 'Online only', 'available': 'Locally available',
                 'pinned': 'Always available offline', 'syncing': 'Syncing / pending',
                 'error': 'Sync error', 'paused': 'Sync paused', 'warning': 'Sync warning'}
 CLOUD_DETAILS = {
-    'online': 'Blue cloud: opening requires a download and network access.',
-    'available': 'Green check: usable offline now; storage cleanup may remove the local copy.',
-    'pinned': 'Underlined green check: marked to stay on this device for offline use.',
+    'online': 'Cyan triangle: online only; opening may require a download.',
+    'available': 'Blue triangle: local copy is in sync; cleanup may remove the local copy.',
+    'pinned': 'Blue triangle: local copy is in sync and marked to stay offline.',
     'syncing': 'Pending changes are not yet confirmed synchronized.',
     'error': 'Check OneDrive for the error and recovery actions.',
     'paused': 'Check OneDrive to resume synchronization.',
@@ -5383,6 +5358,7 @@ class CloudStatusCache:
         self.busy = False
         self.due = 0
         self.cursor = 0
+        self._last_candidates = ()
 
     def eligible(self, path):
         path = Path(path)
@@ -5404,9 +5380,13 @@ class CloudStatusCache:
         except queue.Empty:
             pass
         now = time.monotonic()
+        candidates = list(dict.fromkeys(str(p) for p in paths if self.eligible(p)))
+        if tuple(candidates) != self._last_candidates:
+            self._last_candidates = tuple(candidates)
+            self.cursor = 0
+            self.due = 0  # New viewport must not inherit the old folder's timer.
         if self.busy or now < self.due:
             return changed
-        candidates = list(dict.fromkeys(str(p) for p in paths if self.eligible(p)))
         start = self.cursor % len(candidates) if candidates else 0
         selected = (candidates[start:] + candidates[:start])[:128]
         self.cursor = start+len(selected)
@@ -8503,7 +8483,7 @@ class SettingsDialog(tk.Toplevel):
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
                 'auto_font_size':'Auto fits Panels 1–2 (100–300%). Stable while browsing.',
-                'onedrive_overlay':'Blue cloud: online only. Green check: local copy; underlined check: kept offline. Purple arrows: syncing/pending. Red cross: error; yellow bars: paused. Missing status is unknown, not proof of sync.',
+                'onedrive_overlay':'Top-right triangle: blue = local copy in sync; red = sync error; orange = syncing/pending; cyan = online only; yellow = paused; pink = warning. No triangle = unknown. Git/SVN stays top-left; bottom corners are reserved.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
                 'continue_errors':'Continue with the remaining files after a failure; errors are still reported.',
@@ -18850,7 +18830,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.31"
+__version__ = "0.18.32"
 
 
 
@@ -18970,6 +18950,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/16"
 VERSION_HISTORY = (
+    ("v0.18.32", "2026/10/16", (
+        "Improved: Git/SVN overlays keep their symbols and sizes at top-left; OneDrive uses color-only top-right triangles, leaving bottom corners reserved.",
+    )),
     ("v0.18.31", "2026/10/16", (
         "Improved: OneDrive status badges use solid high-contrast colors, thicker symbols and light/dark borders; syncing arrows are distinct from online-only clouds.",
         "Improved: Larger cloud badges stay legible over file icons and selected rows, while unknown metadata is never labeled synchronized.",

@@ -16,9 +16,9 @@ CLOUD_LABELS = {'online': 'Online only', 'available': 'Locally available',
                 'pinned': 'Always available offline', 'syncing': 'Syncing / pending',
                 'error': 'Sync error', 'paused': 'Sync paused', 'warning': 'Sync warning'}
 CLOUD_DETAILS = {
-    'online': 'Blue cloud: opening requires a download and network access.',
-    'available': 'Green check: usable offline now; storage cleanup may remove the local copy.',
-    'pinned': 'Underlined green check: marked to stay on this device for offline use.',
+    'online': 'Cyan triangle: online only; opening may require a download.',
+    'available': 'Blue triangle: local copy is in sync; cleanup may remove the local copy.',
+    'pinned': 'Blue triangle: local copy is in sync and marked to stay offline.',
     'syncing': 'Pending changes are not yet confirmed synchronized.',
     'error': 'Check OneDrive for the error and recovery actions.',
     'paused': 'Check OneDrive to resume synchronization.',
@@ -115,6 +115,7 @@ class CloudStatusCache:
         self.busy = False
         self.due = 0
         self.cursor = 0
+        self._last_candidates = ()
 
     def eligible(self, path):
         path = Path(path)
@@ -136,9 +137,13 @@ class CloudStatusCache:
         except queue.Empty:
             pass
         now = time.monotonic()
+        candidates = list(dict.fromkeys(str(p) for p in paths if self.eligible(p)))
+        if tuple(candidates) != self._last_candidates:
+            self._last_candidates = tuple(candidates)
+            self.cursor = 0
+            self.due = 0  # New viewport must not inherit the old folder's timer.
         if self.busy or now < self.due:
             return changed
-        candidates = list(dict.fromkeys(str(p) for p in paths if self.eligible(p)))
         start = self.cursor % len(candidates) if candidates else 0
         selected = (candidates[start:] + candidates[:start])[:128]
         self.cursor = start+len(selected)

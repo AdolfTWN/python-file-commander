@@ -9,6 +9,33 @@ from pycommander.icons import cloud_badge_png, CLOUD_BADGE_COLORS
 
 
 class CloudStatusTests(unittest.TestCase):
+    def test_new_folder_does_not_wait_for_previous_refresh_timer(self):
+        started=threading.Event();release=threading.Event();seen=[]
+        def reader(path):
+            seen.append((path,threading.current_thread().name));started.set()
+            release.wait(2);return 'available'
+        cache=CloudStatusCache([Path('/cloud')],reader)
+        cache.due=time.monotonic()+100
+        cache.poll(['/cloud/new/a'])
+        self.assertTrue(started.wait(1))
+        self.assertTrue(cache.busy)
+        self.assertEqual(seen,[('/cloud/new/a','PFC-OneDrive-metadata')])
+        cache.poll(['/cloud/next/b']);cache.poll(['/cloud/latest/c'])
+        self.assertEqual(len(seen),1)  # Never add parallel metadata workers.
+        release.set()
+        end=time.monotonic()+3
+        while cache.results.empty() and time.monotonic()<end:time.sleep(.01)
+        cache.poll(['/cloud/latest/c'])
+        while len(seen)<2 and time.monotonic()<end:time.sleep(.01)
+        self.assertEqual([p for p,_ in seen],['/cloud/new/a','/cloud/latest/c'])
+        self.assertEqual(cache.get('/cloud/new/a'),'available')
+
+    def test_badge_rasterization_is_bounded_and_reused(self):
+        cloud_badge_png.cache_clear()
+        first=cloud_badge_png(16,'available')
+        self.assertIs(cloud_badge_png(16,'available'),first)
+        self.assertEqual(cloud_badge_png.cache_info().hits,1)
+        self.assertEqual(cloud_badge_png.cache_info().maxsize,128)
     def test_solid_faces_have_readable_glyph_contrast(self):
         def luminance(color):
             values=[int(color[i:i+2],16)/255 for i in (1,3,5)]
@@ -39,7 +66,8 @@ class CloudStatusTests(unittest.TestCase):
     def test_badges_distinct_and_scaled(self):
         for size in (8,16,32):
             icons = [cloud_badge_png(size, state) for state in CLOUD_LABELS]
-            self.assertEqual(len(set(icons)), len(CLOUD_LABELS))
+            self.assertEqual(len(set(icons)), len(CLOUD_LABELS)-1)  # available/pinned share the synced lamp
+            self.assertEqual(cloud_badge_png(size,'available'),cloud_badge_png(size,'pinned'))
             for icon in icons:
                 self.assertEqual(struct.unpack('>II',icon[16:24]), (size,size))
 

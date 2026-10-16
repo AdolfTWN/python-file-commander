@@ -11,6 +11,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Git/SVN overlays keep their symbols and sizes at top-left; OneDrive uses color-only top-right triangles, leaving bottom corners reserved.': ('改善：Git/SVN 保留原圖案及尺寸並移至左上；OneDrive 改用右上純色三角，下方兩角保留。','改善：Git/SVN 保留原图案及尺寸并移至左上；OneDrive 改用右上纯色三角，下方两角保留。','개선: Git/SVN 기호와 크기는 왼쪽 위에 유지하고 OneDrive는 오른쪽 위 색상 삼각형을 사용하며 아래 모서리는 예약됩니다.'),
+    'Cyan triangle: online only; opening may require a download.': ('青色三角：僅線上，開啟時可能需要下載。','青色三角：仅在线，打开时可能需要下载。','청록 삼각형: 온라인 전용이며 열 때 다운로드가 필요할 수 있습니다.'),
+    'Blue triangle: local copy is in sync; cleanup may remove the local copy.': ('亮藍三角：本機副本已同步；清理空間可能移除本機副本。','亮蓝三角：本地副本已同步；清理空间可能移除本地副本。','파란 삼각형: 로컬 복사본 동기화 상태이며 정리 시 제거될 수 있습니다.'),
+    'Blue triangle: local copy is in sync and marked to stay offline.': ('亮藍三角：本機副本已同步，並設定保留離線。','亮蓝三角：本地副本已同步，并设置保留离线。','파란 삼각형: 로컬 복사본이 동기화되어 오프라인 유지로 표시되었습니다.'),
+    'Top-right triangle: blue = local copy in sync; red = sync error; orange = syncing/pending; cyan = online only; yellow = paused; pink = warning. No triangle = unknown. Git/SVN stays top-left; bottom corners are reserved.': ('右上三角：亮藍＝本機已同步；亮紅＝同步錯誤；橘＝同步中／待同步；青＝僅線上；黃＝暫停；粉紅＝警告。無三角＝未知。Git/SVN 固定左上，下方兩角保留。','右上三角：亮蓝＝本地已同步；亮红＝同步错误；橘＝同步中／待同步；青＝仅在线；黄＝暂停；粉红＝警告。无三角＝未知。Git/SVN 固定左上，下方两角保留。','오른쪽 위 삼각형: 파랑=로컬 동기화, 빨강=오류, 주황=진행/대기, 청록=온라인 전용, 노랑=일시 중지, 분홍=경고. 없음=알 수 없음. Git/SVN은 왼쪽 위, 아래 모서리는 예약됩니다.'),
     'Improved: OneDrive status badges use solid high-contrast colors, thicker symbols and light/dark borders; syncing arrows are distinct from online-only clouds.': ('改善：OneDrive 狀態使用高對比實心底色、加粗符號及明暗邊框；同步箭頭與僅線上雲朵明確區分。','改善：OneDrive 状态使用高对比实心底色、加粗符号及明暗边框；同步箭头与仅在线云朵明确区分。','개선: OneDrive 상태 배지에 고대비 단색 배경, 굵은 기호 및 밝고 어두운 테두리를 사용하고 동기화 화살표와 온라인 전용 구름을 구분합니다.'),
     'Improved: Larger cloud badges stay legible over file icons and selected rows, while unknown metadata is never labeled synchronized.': ('改善：加大雲端狀態標記，在檔案圖示與選取光棒上保持清楚；未知狀態不標成已同步。','改善：加大云端状态标记，在文件图标与选取高亮上保持清楚；未知状态不标成已同步。','개선: 파일 아이콘과 선택 행 위에서 클라우드 배지를 더 크게 표시하며 알 수 없는 상태를 동기화 완료로 표시하지 않습니다.'),
     'Green check: usable offline now; storage cleanup may remove the local copy.': ('綠底白勾：目前可離線使用；儲存空間清理可能移除本機副本。','绿底白勾：目前可离线使用；存储空间清理可能移除本地副本。','초록 체크: 현재 오프라인에서 사용 가능하며 저장 공간 정리 시 로컬 복사본이 제거될 수 있습니다.'),

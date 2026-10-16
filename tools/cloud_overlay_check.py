@@ -9,6 +9,8 @@ import tempfile
 import time
 import tkinter as tk
 from tkinter import ttk
+from types import SimpleNamespace
+from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 module=importlib.import_module(sys.argv[1] if len(sys.argv)>1 else 'pycommander.app')
@@ -81,13 +83,31 @@ with tempfile.TemporaryDirectory() as raw:
             for row,bg in enumerate(('#eeeeee','#20242b','#0078d4'),1):
                 for col,state in enumerate(states):
                     base=tk.PhotoImage(width=size,height=size);base.put('#d49b12',to=(0,size//4,size,size))
-                    badge=tk.PhotoImage(data=base64.b64encode(icons.cloud_badge_png(max(8,round(size*.62)),state)).decode(),format='png')
-                    base.tk.call(str(base),'copy',str(badge),'-to',0,0,'-compositingrule','overlay')
+                    if row>1:
+                        provider=icons.ShellIconProvider(size)
+                        base=provider._with_overlay(base,'modified' if row==2 else 'clean',compact=True)
+                    diameter=max(8,round(size*.38))
+                    badge=tk.PhotoImage(data=base64.b64encode(icons.cloud_badge_png(diameter,state)).decode(),format='png')
+                    assert badge.transparency_get(0,diameter-1)
+                    base.tk.call(str(base),'copy',str(badge),'-to',size-diameter,0,'-compositingrule','overlay')
                     images.append(base)
                     tk.Label(display,image=base,bg=bg,padx=12,pady=6).grid(row=row,column=col,sticky='ew')
             display.geometry('+10+10');settle(app)
             capture(display,str(scale))
         display.withdraw()
+        native_get=icons.ShellIconProvider.get
+        for size in (16,24,42,48,80):
+            base=tk.PhotoImage(width=size,height=size);base.put('#ab9067',to=(0,0,size,size))
+            base.put('#00dd55',to=(0,size*3//4,size//4,size))
+            base.put('#dd00aa',to=(size*3//4,size*3//4,size,size))
+            for vcs in (None,'clean','modified'):
+                provider=icons.ShellIconProvider(size)
+                with patch.object(provider,'_load',return_value=base),patch.dict(native_get.__globals__,os=SimpleNamespace(name='nt',path=os.path)):
+                    image=provider.get(paths[0],False,vcs,'available')
+                for y in range(size*3//4,size):
+                    for x in range(size):assert image.get(x,y)==base.get(x,y), 'PFC overwrote reserved bottom corners'
+                assert image.get(size-3,2)!=base.get(size-3,2), 'Cloud triangle must be top-right'
+                if vcs:assert image.get(size//4,size//4)!=base.get(size//4,size//4), 'VCS must be top-left'
         for key in ('small','175','xl'):
             app.font_size_var.set(key);app.apply_font_size(save=False);settle(app)
             app.cloud_status.due=0;settle(app,.3)
