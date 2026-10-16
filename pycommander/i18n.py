@@ -11,6 +11,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: OneDrive status badges use solid high-contrast colors, thicker symbols and light/dark borders; syncing arrows are distinct from online-only clouds.': ('改善：OneDrive 狀態使用高對比實心底色、加粗符號及明暗邊框；同步箭頭與僅線上雲朵明確區分。','改善：OneDrive 状态使用高对比实心底色、加粗符号及明暗边框；同步箭头与仅在线云朵明确区分。','개선: OneDrive 상태 배지에 고대비 단색 배경, 굵은 기호 및 밝고 어두운 테두리를 사용하고 동기화 화살표와 온라인 전용 구름을 구분합니다.'),
+    'Improved: Larger cloud badges stay legible over file icons and selected rows, while unknown metadata is never labeled synchronized.': ('改善：加大雲端狀態標記，在檔案圖示與選取光棒上保持清楚；未知狀態不標成已同步。','改善：加大云端状态标记，在文件图标与选取高亮上保持清楚；未知状态不标成已同步。','개선: 파일 아이콘과 선택 행 위에서 클라우드 배지를 더 크게 표시하며 알 수 없는 상태를 동기화 완료로 표시하지 않습니다.'),
+    'Green check: usable offline now; storage cleanup may remove the local copy.': ('綠底白勾：目前可離線使用；儲存空間清理可能移除本機副本。','绿底白勾：目前可离线使用；存储空间清理可能移除本地副本。','초록 체크: 현재 오프라인에서 사용 가능하며 저장 공간 정리 시 로컬 복사본이 제거될 수 있습니다.'),
+    'Underlined green check: marked to stay on this device for offline use.': ('底線綠勾：已設定保留在此裝置，供離線使用。','下划线绿勾：已设置保留在此设备，供离线使用。','밑줄 초록 체크: 오프라인 사용을 위해 이 장치에 유지하도록 표시되었습니다.'),
+    'Blue cloud: online only. Green check: local copy; underlined check: kept offline. Purple arrows: syncing/pending. Red cross: error; yellow bars: paused. Missing status is unknown, not proof of sync.': ('藍雲：僅線上；綠勾：本機副本；底線勾：保留離線；紫色箭頭：同步中／待同步；紅叉：錯誤；黃底雙直線：暫停。沒有狀態代表未知，不代表已同步。','蓝云：仅在线；绿勾：本地副本；下划线勾：保留离线；紫色箭头：同步中／待同步；红叉：错误；黄底双直线：暂停。没有状态表示未知，不代表已同步。','파란 구름: 온라인 전용. 초록 체크: 로컬 복사본. 밑줄 체크: 오프라인 유지. 보라색 화살표: 동기화 중/대기. 빨간 X: 오류. 노란색 막대: 일시 중지. 상태 없음은 동기화 완료가 아닌 알 수 없음입니다.'),
     'List → New Tab': ('清單 → 新頁籤','列表 → 新页签','목록 → 새 탭'),
     'Improved: Search groups folder, filename, content and size/date conditions in a compact control area with right-aligned Search and Stop.': ('改善：搜尋以緊湊版面整合資料夾、檔名、內容及大小／日期條件，搜尋與停止按鈕靠右。','改善：搜索以紧凑布局整合文件夹、文件名、内容及大小／日期条件，搜索与停止按钮靠右。','개선: 검색 폴더, 파일 이름, 내용, 크기/날짜 조건을 간결하게 배치하고 검색/중지 버튼을 오른쪽에 정렬합니다.'),
     'Added: Search exposes result actions above the list, a right-click menu, F2 Rename and F11 Copy Path; size filters support kB, MB and GB.': ('新增：搜尋清單上方直接提供結果操作、右鍵選單、F2 重新命名及 F11 複製路徑；大小支援 kB、MB、GB。','新增：搜索列表上方直接提供结果操作、右键菜单、F2 重命名及 F11 复制路径；大小支持 kB、MB、GB。','추가: 검색 목록 위 결과 작업, 오른쪽 클릭 메뉴, F2 이름 변경 및 F11 경로 복사를 제공하며 크기 필터에서 kB/MB/GB를 지원합니다.'),

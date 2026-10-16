@@ -1,6 +1,10 @@
 # Python File Commander
 
-Current version: **v0.18.30**
+Current version: **v0.18.31**
+
+**OneDrive visibility:** solid high-contrast badges distinguish local copies,
+online-only clouds, syncing arrows, errors and pauses, including selected rows.
+Missing metadata remains unknown, not proof of synchronization.
 
 **Compact F4 Search:** folder/name/content/size/date conditions stay visible,
 Search/Stop align on the right, and result actions sit above the list. Results

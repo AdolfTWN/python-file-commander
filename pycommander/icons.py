@@ -301,21 +301,32 @@ def vcs_badge_png(size: int, status: str) -> bytes:
     return _rgba_png_downsample(pixels, size, supersample)
 
 
+CLOUD_BADGE_COLORS = {
+    'online': ('#005ca8', '#ffffff'),
+    'available': ('#006b35', '#ffffff'),
+    'pinned': ('#004a27', '#ffffff'),
+    'syncing': ('#6d28d9', '#ffffff'),
+    'error': ('#b91c1c', '#ffffff'),
+    'paused': ('#ffcf33', '#151b23'),
+    'warning': ('#ffcf33', '#151b23'),
+}
+
+
 def cloud_badge_png(size: int, status: str) -> bytes:
     """Square OneDrive badges: separate shape/location from round Git badges."""
-    colors = {'online': '#0078d4', 'available': '#16853c', 'pinned': '#16853c',
-              'syncing': '#0078d4', 'error': '#da2020', 'paused': '#b56b00', 'warning': '#b56b00'}
-    if status not in colors or size < 8:
+    if status not in CLOUD_BADGE_COLORS or size < 8:
         raise ValueError('Unsupported cloud badge')
     factor = 6
     side = size * factor
     pixels = bytearray(side * side * 4)
-    outline = status in ('online', 'available')
-    face, ink = ((_hex_rgba('#ffffff'), _hex_rgba(colors[status])) if outline else
-                 (_hex_rgba(colors[status]), _hex_rgba('#ffffff')))
+    face, ink = map(_hex_rgba, CLOUD_BADGE_COLORS[status])
+    outer, keyline = _hex_rgba('#ffffff'), _hex_rgba('#151b23')
     segments = []
-    if status in ('available', 'pinned'):
+    if status == 'available':
         segments = [(0.2,0.50,0.43,0.73),(0.43,0.73,0.80,0.25)]
+    elif status == 'pinned':
+        segments = [(0.2,0.40,0.43,0.63),(0.43,0.63,0.80,0.20),
+                    (0.23,0.83,0.77,0.83)]
     elif status == 'syncing':
         segments = [(0.22,0.32,0.78,0.32),(0.78,0.32,0.62,0.18),
                     (0.78,0.32,0.62,0.46),(0.78,0.69,0.22,0.69),
@@ -332,14 +343,15 @@ def cloud_badge_png(size: int, status: str) -> bytes:
             if not (.025 < nx < .975 and .025 < ny < .975):
                 continue
             color = face
-            if min(nx, ny, 1-nx, 1-ny) < .08:
-                color = _hex_rgba(colors[status])
-            painted = any(_distance_to_segment(nx, ny, *line) < .05 for line in segments)
+            edge = min(nx, ny, 1-nx, 1-ny)
+            if edge < .065: color = outer
+            elif edge < .12: color = keyline
+            painted = any(_distance_to_segment(nx, ny, *line) < .065 for line in segments)
             if status == 'online':
                 painted = ((nx-.40)**2+(ny-.46)**2 < .18**2 or
                            (nx-.61)**2+(ny-.53)**2 < .18**2 or
                            (.23 < nx < .77 and .49 < ny < .69))
-            if painted:
+            if painted and edge >= .12:
                 color = ink
             pos = (y*side+x)*4
             pixels[pos:pos+4] = bytes(color)
@@ -403,7 +415,7 @@ class ShellIconProvider:
             if icon is not None and cloud:
                 result = PhotoImage(width=self.size, height=self.size)
                 result.tk.call(str(result), 'copy', str(icon), '-to', 0, 0)
-                diameter = min(self.size, max(8, round(self.size * .55)))
+                diameter = min(self.size, max(8, round(self.size * (.56 if overlay else .62))))
                 badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
                 result.tk.call(str(result), 'copy', str(badge), '-to', 0, 0, '-compositingrule', 'overlay')
                 icon = result

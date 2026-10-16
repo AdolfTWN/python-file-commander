@@ -308,6 +308,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
             for test in result.get('tests', []):
                 name = test['check']
                 (evidence_dir/(name+'.log')).write_bytes(guest.read(directory+'\\'+name+'.log'))
+            if result['status']=='passed' and 'cloud_overlay_check.py' in checks:
+                from PIL import Image
+                import io
+                for scale in ('100','175','200'):
+                    data=guest.image_data(directory+'\\evidence-cloud-'+scale+'.bmp')
+                    (evidence_dir/('cloud-'+scale+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('cloud-'+scale+'.png'))
             if result['status']=='passed' and 'ux_walkthrough_check.py' in checks:
                 from PIL import Image
                 import io

@@ -17,8 +17,8 @@ CLOUD_LABELS = {'online': 'Online only', 'available': 'Locally available',
                 'error': 'Sync error', 'paused': 'Sync paused', 'warning': 'Sync warning'}
 CLOUD_DETAILS = {
     'online': 'Blue cloud: opening requires a download and network access.',
-    'available': 'Outlined check: usable offline now; storage cleanup may remove the local copy.',
-    'pinned': 'Filled check: marked to stay on this device for offline use.',
+    'available': 'Green check: usable offline now; storage cleanup may remove the local copy.',
+    'pinned': 'Underlined green check: marked to stay on this device for offline use.',
     'syncing': 'Pending changes are not yet confirmed synchronized.',
     'error': 'Check OneDrive for the error and recovery actions.',
     'paused': 'Check OneDrive to resume synchronization.',

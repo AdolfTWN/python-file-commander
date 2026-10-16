@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 import tkinter as tk
+from tkinter import ttk
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 module=importlib.import_module(sys.argv[1] if len(sys.argv)>1 else 'pycommander.app')
@@ -18,6 +19,16 @@ def settle(app,seconds=.2):
     end=time.monotonic()+seconds
     while time.monotonic()<end:
         app.update(); time.sleep(.01)
+
+def capture(window,name):
+    window.lift();settle(window,.15)
+    if os.name=='nt':
+        from folder_native_test_support import capture_window
+        capture_window(window,Path(__file__).parent/('evidence-cloud-'+name+'.bmp'))
+    else:
+        from PIL import ImageGrab
+        x,y=window.winfo_rootx(),window.winfo_rooty()
+        ImageGrab.grab((x,y,x+window.winfo_width(),y+window.winfo_height())).save('/tmp/pfc-cloud-'+name+'.png')
 
 with tempfile.TemporaryDirectory() as raw:
     root=Path(raw)/'cloud-fixture'; root.mkdir()
@@ -59,6 +70,30 @@ with tempfile.TemporaryDirectory() as raw:
             image=tk.PhotoImage(data=base64.b64encode(icons.cloud_badge_png(32,state)).decode(),format='png')
             images.append(image)
             tk.Label(display,image=image,text=state,compound='top').grid(row=0,column=column,padx=12,pady=12)
+        # Fixed states exercise rendering only, not an authenticated provider.
+        # Composite at real small/large icon sizes on light/dark/selection colors.
+        states=tuple(cloud.CLOUD_LABELS)
+        for scale in (100,175,200):
+            for child in display.winfo_children():child.destroy()
+            images.clear();size=round(24*scale/100)
+            for col,state in enumerate(states):
+                tk.Label(display,text=state).grid(row=0,column=col,padx=4)
+            for row,bg in enumerate(('#eeeeee','#20242b','#0078d4'),1):
+                for col,state in enumerate(states):
+                    base=tk.PhotoImage(width=size,height=size);base.put('#d49b12',to=(0,size//4,size,size))
+                    badge=tk.PhotoImage(data=base64.b64encode(icons.cloud_badge_png(max(8,round(size*.62)),state)).decode(),format='png')
+                    base.tk.call(str(base),'copy',str(badge),'-to',0,0,'-compositingrule','overlay')
+                    images.append(base)
+                    tk.Label(display,image=base,bg=bg,padx=12,pady=6).grid(row=row,column=col,sticky='ew')
+            display.geometry('+10+10');settle(app)
+            capture(display,str(scale))
+        display.withdraw()
+        for key in ('small','175','xl'):
+            app.font_size_var.set(key);app.apply_font_size(save=False);settle(app)
+            app.cloud_status.due=0;settle(app,.3)
+            rows=pane.tree.get_children()
+            pane.tree.selection_set(rows[0]);settle(app)
+            assert {Path(pane.tree.item(i,'tags')[0]) for i in rows}==set(paths)
         settle(app)
         original_ids=pane.tree.get_children()
         app.onedrive_overlay_var.set(False); app.apply_column_settings(); settle(app)
@@ -70,6 +105,6 @@ with tempfile.TemporaryDirectory() as raw:
         assert pane.tree.get_children()==original_ids
         assert not errors,errors
         if '--pause' in sys.argv: settle(app,20)
-        print('PASS: injected seven-state overlays, async cache, tooltip, preference, stable row IDs and drag deferral',flush=True)
+        print('PASS: seven-state contrast fixtures at 100/175/200%; async cache, tooltip, preference, stable rows and drag deferral',flush=True)
         print('NOTE: offline VM does not validate real OneDrive provider sync transitions.',flush=True)
     finally: app.destroy()

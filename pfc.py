@@ -20,6 +20,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: OneDrive status badges use solid high-contrast colors, thicker symbols and light/dark borders; syncing arrows are distinct from online-only clouds.': ('改善：OneDrive 狀態使用高對比實心底色、加粗符號及明暗邊框；同步箭頭與僅線上雲朵明確區分。','改善：OneDrive 状态使用高对比实心底色、加粗符号及明暗边框；同步箭头与仅在线云朵明确区分。','개선: OneDrive 상태 배지에 고대비 단색 배경, 굵은 기호 및 밝고 어두운 테두리를 사용하고 동기화 화살표와 온라인 전용 구름을 구분합니다.'),
+    'Improved: Larger cloud badges stay legible over file icons and selected rows, while unknown metadata is never labeled synchronized.': ('改善：加大雲端狀態標記，在檔案圖示與選取光棒上保持清楚；未知狀態不標成已同步。','改善：加大云端状态标记，在文件图标与选取高亮上保持清楚；未知状态不标成已同步。','개선: 파일 아이콘과 선택 행 위에서 클라우드 배지를 더 크게 표시하며 알 수 없는 상태를 동기화 완료로 표시하지 않습니다.'),
+    'Green check: usable offline now; storage cleanup may remove the local copy.': ('綠底白勾：目前可離線使用；儲存空間清理可能移除本機副本。','绿底白勾：目前可离线使用；存储空间清理可能移除本地副本。','초록 체크: 현재 오프라인에서 사용 가능하며 저장 공간 정리 시 로컬 복사본이 제거될 수 있습니다.'),
+    'Underlined green check: marked to stay on this device for offline use.': ('底線綠勾：已設定保留在此裝置，供離線使用。','下划线绿勾：已设置保留在此设备，供离线使用。','밑줄 초록 체크: 오프라인 사용을 위해 이 장치에 유지하도록 표시되었습니다.'),
+    'Blue cloud: online only. Green check: local copy; underlined check: kept offline. Purple arrows: syncing/pending. Red cross: error; yellow bars: paused. Missing status is unknown, not proof of sync.': ('藍雲：僅線上；綠勾：本機副本；底線勾：保留離線；紫色箭頭：同步中／待同步；紅叉：錯誤；黃底雙直線：暫停。沒有狀態代表未知，不代表已同步。','蓝云：仅在线；绿勾：本地副本；下划线勾：保留离线；紫色箭头：同步中／待同步；红叉：错误；黄底双直线：暂停。没有状态表示未知，不代表已同步。','파란 구름: 온라인 전용. 초록 체크: 로컬 복사본. 밑줄 체크: 오프라인 유지. 보라색 화살표: 동기화 중/대기. 빨간 X: 오류. 노란색 막대: 일시 중지. 상태 없음은 동기화 완료가 아닌 알 수 없음입니다.'),
     'List → New Tab': ('清單 → 新頁籤','列表 → 新页签','목록 → 새 탭'),
     'Improved: Search groups folder, filename, content and size/date conditions in a compact control area with right-aligned Search and Stop.': ('改善：搜尋以緊湊版面整合資料夾、檔名、內容及大小／日期條件，搜尋與停止按鈕靠右。','改善：搜索以紧凑布局整合文件夹、文件名、内容及大小／日期条件，搜索与停止按钮靠右。','개선: 검색 폴더, 파일 이름, 내용, 크기/날짜 조건을 간결하게 배치하고 검색/중지 버튼을 오른쪽에 정렬합니다.'),
     'Added: Search exposes result actions above the list, a right-click menu, F2 Rename and F11 Copy Path; size filters support kB, MB and GB.': ('新增：搜尋清單上方直接提供結果操作、右鍵選單、F2 重新命名及 F11 複製路徑；大小支援 kB、MB、GB。','新增：搜索列表上方直接提供结果操作、右键菜单、F2 重命名及 F11 复制路径；大小支持 kB、MB、GB。','추가: 검색 목록 위 결과 작업, 오른쪽 클릭 메뉴, F2 이름 변경 및 F11 경로 복사를 제공하며 크기 필터에서 kB/MB/GB를 지원합니다.'),
@@ -2510,21 +2515,32 @@ def vcs_badge_png(size: int, status: str) -> bytes:
     return _rgba_png_downsample(pixels, size, supersample)
 
 
+CLOUD_BADGE_COLORS = {
+    'online': ('#005ca8', '#ffffff'),
+    'available': ('#006b35', '#ffffff'),
+    'pinned': ('#004a27', '#ffffff'),
+    'syncing': ('#6d28d9', '#ffffff'),
+    'error': ('#b91c1c', '#ffffff'),
+    'paused': ('#ffcf33', '#151b23'),
+    'warning': ('#ffcf33', '#151b23'),
+}
+
+
 def cloud_badge_png(size: int, status: str) -> bytes:
     """Square OneDrive badges: separate shape/location from round Git badges."""
-    colors = {'online': '#0078d4', 'available': '#16853c', 'pinned': '#16853c',
-              'syncing': '#0078d4', 'error': '#da2020', 'paused': '#b56b00', 'warning': '#b56b00'}
-    if status not in colors or size < 8:
+    if status not in CLOUD_BADGE_COLORS or size < 8:
         raise ValueError('Unsupported cloud badge')
     factor = 6
     side = size * factor
     pixels = bytearray(side * side * 4)
-    outline = status in ('online', 'available')
-    face, ink = ((_hex_rgba('#ffffff'), _hex_rgba(colors[status])) if outline else
-                 (_hex_rgba(colors[status]), _hex_rgba('#ffffff')))
+    face, ink = map(_hex_rgba, CLOUD_BADGE_COLORS[status])
+    outer, keyline = _hex_rgba('#ffffff'), _hex_rgba('#151b23')
     segments = []
-    if status in ('available', 'pinned'):
+    if status == 'available':
         segments = [(0.2,0.50,0.43,0.73),(0.43,0.73,0.80,0.25)]
+    elif status == 'pinned':
+        segments = [(0.2,0.40,0.43,0.63),(0.43,0.63,0.80,0.20),
+                    (0.23,0.83,0.77,0.83)]
     elif status == 'syncing':
         segments = [(0.22,0.32,0.78,0.32),(0.78,0.32,0.62,0.18),
                     (0.78,0.32,0.62,0.46),(0.78,0.69,0.22,0.69),
@@ -2541,14 +2557,15 @@ def cloud_badge_png(size: int, status: str) -> bytes:
             if not (.025 < nx < .975 and .025 < ny < .975):
                 continue
             color = face
-            if min(nx, ny, 1-nx, 1-ny) < .08:
-                color = _hex_rgba(colors[status])
-            painted = any(_distance_to_segment(nx, ny, *line) < .05 for line in segments)
+            edge = min(nx, ny, 1-nx, 1-ny)
+            if edge < .065: color = outer
+            elif edge < .12: color = keyline
+            painted = any(_distance_to_segment(nx, ny, *line) < .065 for line in segments)
             if status == 'online':
                 painted = ((nx-.40)**2+(ny-.46)**2 < .18**2 or
                            (nx-.61)**2+(ny-.53)**2 < .18**2 or
                            (.23 < nx < .77 and .49 < ny < .69))
-            if painted:
+            if painted and edge >= .12:
                 color = ink
             pos = (y*side+x)*4
             pixels[pos:pos+4] = bytes(color)
@@ -2612,7 +2629,7 @@ class ShellIconProvider:
             if icon is not None and cloud:
                 result = PhotoImage(width=self.size, height=self.size)
                 result.tk.call(str(result), 'copy', str(icon), '-to', 0, 0)
-                diameter = min(self.size, max(8, round(self.size * .55)))
+                diameter = min(self.size, max(8, round(self.size * (.56 if overlay else .62))))
                 badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
                 result.tk.call(str(result), 'copy', str(badge), '-to', 0, 0, '-compositingrule', 'overlay')
                 icon = result
@@ -5268,8 +5285,8 @@ CLOUD_LABELS = {'online': 'Online only', 'available': 'Locally available',
                 'error': 'Sync error', 'paused': 'Sync paused', 'warning': 'Sync warning'}
 CLOUD_DETAILS = {
     'online': 'Blue cloud: opening requires a download and network access.',
-    'available': 'Outlined check: usable offline now; storage cleanup may remove the local copy.',
-    'pinned': 'Filled check: marked to stay on this device for offline use.',
+    'available': 'Green check: usable offline now; storage cleanup may remove the local copy.',
+    'pinned': 'Underlined green check: marked to stay on this device for offline use.',
     'syncing': 'Pending changes are not yet confirmed synchronized.',
     'error': 'Check OneDrive for the error and recovery actions.',
     'paused': 'Check OneDrive to resume synchronization.',
@@ -8486,7 +8503,7 @@ class SettingsDialog(tk.Toplevel):
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
                 'auto_font_size':'Auto fits Panels 1–2 (100–300%). Stable while browsing.',
-                'onedrive_overlay':'Blue cloud: online only. Outlined green check: local copy. Filled green check: kept offline. Missing status is unknown, not proof of sync.',
+                'onedrive_overlay':'Blue cloud: online only. Green check: local copy; underlined check: kept offline. Purple arrows: syncing/pending. Red cross: error; yellow bars: paused. Missing status is unknown, not proof of sync.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
                 'continue_errors':'Continue with the remaining files after a failure; errors are still reported.',
@@ -18833,7 +18850,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.30"
+__version__ = "0.18.31"
 
 
 
@@ -18951,8 +18968,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/15"
+BUILD_DATE = "2026/10/16"
 VERSION_HISTORY = (
+    ("v0.18.31", "2026/10/16", (
+        "Improved: OneDrive status badges use solid high-contrast colors, thicker symbols and light/dark borders; syncing arrows are distinct from online-only clouds.",
+        "Improved: Larger cloud badges stay legible over file icons and selected rows, while unknown metadata is never labeled synchronized.",
+    )),
     ("v0.18.30", "2026/10/15", (
         "Improved: Search groups folder, filename, content and size/date conditions in a compact control area with right-aligned Search and Stop.",
         "Added: Search exposes result actions above the list, a right-click menu, F2 Rename and F11 Copy Path; size filters support kB, MB and GB.",

@@ -5,10 +5,22 @@ import threading
 import time
 import unittest
 from pycommander.cloudstatus import CLOUD_LABELS, CloudStatusCache, cloud_state, _CloudPropertyKey, _CloudVariant
-from pycommander.icons import cloud_badge_png
+from pycommander.icons import cloud_badge_png, CLOUD_BADGE_COLORS
 
 
 class CloudStatusTests(unittest.TestCase):
+    def test_solid_faces_have_readable_glyph_contrast(self):
+        def luminance(color):
+            values=[int(color[i:i+2],16)/255 for i in (1,3,5)]
+            linear=[v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in values]
+            return sum(v*w for v,w in zip(linear,(.2126,.7152,.0722)))
+        for state,(face,ink) in CLOUD_BADGE_COLORS.items():
+            hi,lo=sorted((luminance(face),luminance(ink)),reverse=True)
+            self.assertGreaterEqual((hi+.05)/(lo+.05),4.5,state)
+        self.assertNotEqual(CLOUD_BADGE_COLORS['syncing'],CLOUD_BADGE_COLORS['online'])
+        for invalid in ('unknown','synced',''):
+            with self.assertRaises(ValueError):cloud_badge_png(16,invalid)
+
     def test_precedence_and_unknown(self):
         self.assertIsNone(cloud_state(None))
         self.assertIsNone(cloud_state(0xffffffff))
