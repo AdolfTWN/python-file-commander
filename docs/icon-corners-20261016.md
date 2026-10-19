@@ -185,11 +185,16 @@ extra Git commands. These are warm fixture timings, not proof of cold Shell or
 live cloud-provider latency; ARM Windows does not establish native x64 acceptance.
 
 Same-version publishing requires a precise mirrored tag correction. The mirror
-workflow now honors only **forced GitHub tag events**, using that event's prior
+workflow honors **accepted existing-tag updates**, using the event's prior
 object as an exact `--force-with-lease` expectation for that single GitLab tag.
-It never force-pushes branches or arbitrary tag sets. Four isolated local Git
-tests cover authorized replacement/idempotency, stale leases, nonforced/branch
-events and invalid old SHA rejection (`.github/tests/test_mirror_tags.py`).
+An explicit manual recovery accepts one tag and its expected old GitLab object
+to recover missed updates. It never force-pushes branches or arbitrary tag sets.
+Real tag-event evidence showed `forced=false` despite Git accepting the explicit
+tag replacement; the first forced-flag guard safely rejected the mirror update.
+Do not use that flag alone to detect tag replacement. Six isolated local Git
+tests cover this actual payload, authorized replacement/idempotency, stale leases,
+new-tag/branch events, malformed old SHA and exact manual recovery
+(`.github/tests/test_mirror_tags.py`).
 No stored credentials or global Git settings were changed.
 
 ### Adaptive face follow-up in the same task
@@ -228,7 +233,8 @@ remained disabled; live OneDrive sync and owner visual acceptance remain unteste
 
 Final full regression passed: 410 unit tests (9 platform skips), all 98 GUI
 source/portable checks (99 runner checks including unit suite), plus the four
-isolated mirror-tag safety cases. Final real-Git warm-navigation first paint was
+isolated mirror-tag safety cases (subsequently expanded to six for tag-event
+recovery). Final real-Git warm-navigation first paint was
 15.2–24.2ms ARM64 and 15.3–27.2ms x64, zero additional Git commands in eight
 subfolder switches each. No end-to-end speedup or token saving is inferred;
 token counters and a comparable whole-task baseline are unavailable.

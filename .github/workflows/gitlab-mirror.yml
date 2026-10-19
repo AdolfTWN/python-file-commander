@@ -2,6 +2,16 @@ name: Mirror to GitLab
 
 on:
   push:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Exact existing tag to recover (for example v0.18.33)'
+        required: true
+        type: string
+      expected_old_sha:
+        description: 'Exact current GitLab tag object; mismatch aborts'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -19,8 +29,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITLAB_SSH_PRIVATE_KEY: ${{ secrets.GITLAB_MIRROR_SSH_KEY }}
-          EVENT_FORCED: ${{ github.event.forced }}
           EVENT_BEFORE: ${{ github.event.before }}
+          REQUESTED_TAG: ${{ inputs.tag }}
+          REQUESTED_OLD_SHA: ${{ inputs.expected_old_sha }}
         run: |
           set -eu
           install -d -m 700 "$HOME/.ssh"
@@ -32,15 +43,21 @@ jobs:
             "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
             mirror.git
           target="git@gitlab.com:adolftwn-backup/${GITHUB_REPOSITORY#*/}.git"
-          # BEGIN leased tag replacement: only an explicitly forced GitHub tag event.
-          if [ "$EVENT_FORCED" = true ] && [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            git check-ref-format "$GITHUB_REF"
-            [[ "$EVENT_BEFORE" =~ ^[0-9a-f]{40}$ ]]
-            current=$(git ls-remote "$target" "$GITHUB_REF" | cut -f1)
-            desired=$(git -C mirror.git rev-parse "$GITHUB_REF")
+          # BEGIN leased tag replacement: an accepted tag update or explicit recovery.
+          tag_ref="$GITHUB_REF"
+          expected_old="$EVENT_BEFORE"
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            tag_ref="refs/tags/$REQUESTED_TAG"
+            expected_old="$REQUESTED_OLD_SHA"
+          fi
+          if [[ "$tag_ref" == refs/tags/* ]] && [ "$expected_old" != 0000000000000000000000000000000000000000 ]; then
+            git check-ref-format "$tag_ref"
+            [[ "$expected_old" =~ ^[0-9a-f]{40}$ ]]
+            current=$(git ls-remote "$target" "$tag_ref" | cut -f1)
+            desired=$(git -C mirror.git rev-parse "$tag_ref")
             if [ "$current" != "$desired" ]; then
-              git -C mirror.git push --force-with-lease="$GITHUB_REF:$EVENT_BEFORE" \
-                "$target" "$GITHUB_REF:$GITHUB_REF"
+              git -C mirror.git push --force-with-lease="$tag_ref:$expected_old" \
+                "$target" "$tag_ref:$tag_ref"
             fi
           fi
           # END leased tag replacement.
