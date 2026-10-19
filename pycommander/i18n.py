@@ -11,6 +11,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: OneDrive uses an isolated top-right status lamp with fixed spacing, avoiding folded-corner effects and preserving the entire base icon.': ('改善：OneDrive 改用右上分離式狀態圓燈，留白固定，避免折角錯覺並保留完整原始圖示。','改善：OneDrive 改用右上分离式状态圆灯，留白固定，避免折角错觉并保留完整原始图标。','개선: OneDrive가 일정한 간격의 분리된 오른쪽 위 상태등을 사용하여 접힌 모서리 효과를 방지하고 기본 아이콘을 보존합니다.'),
+    'Cyan lamp: online only; opening may require a download.': ('青色圓燈：僅線上，開啟時可能需要下載。','青色圆灯：仅在线，打开时可能需要下载。','청록 상태등: 온라인 전용이며 열 때 다운로드가 필요할 수 있습니다.'),
+    'Blue lamp: local copy is in sync; cleanup may remove the local copy.': ('亮藍圓燈：本機副本已同步；清理空間可能移除本機副本。','亮蓝圆灯：本地副本已同步；清理空间可能移除本地副本。','파란 상태등: 로컬 복사본이 동기화 상태이며 정리 시 제거될 수 있습니다.'),
+    'Blue lamp: local copy is in sync and marked to stay offline.': ('亮藍圓燈：本機副本已同步，並設定保留離線。','亮蓝圆灯：本地副本已同步，并设置保留离线。','파란 상태등: 로컬 복사본이 동기화되어 오프라인 유지로 표시되었습니다.'),
+    'Separated top-right lamp: blue = local copy in sync; red = sync error; orange = syncing/pending; cyan = online only; yellow = paused; pink = warning. No lamp = unknown. Git/SVN stays top-left; bottom corners are reserved.': ('右上分離圓燈：亮藍＝本機已同步；亮紅＝同步錯誤；橘＝同步中／待同步；青＝僅線上；黃＝暫停；粉紅＝警告。無燈＝未知。Git/SVN 固定左上，下方兩角保留。','右上分离圆灯：亮蓝＝本地已同步；亮红＝同步错误；橘＝同步中／待同步；青＝仅在线；黄＝暂停；粉红＝警告。无灯＝未知。Git/SVN 固定左上，下方两角保留。','분리된 오른쪽 위 상태등: 파랑=로컬 동기화, 빨강=오류, 주황=진행/대기, 청록=온라인 전용, 노랑=일시 중지, 분홍=경고. 없음=알 수 없음. Git/SVN은 왼쪽 위, 아래 모서리는 예약됩니다.'),
     'Improved: Git/SVN overlays keep their symbols and sizes at top-left; OneDrive uses color-only top-right triangles, leaving bottom corners reserved.': ('改善：Git/SVN 保留原圖案及尺寸並移至左上；OneDrive 改用右上純色三角，下方兩角保留。','改善：Git/SVN 保留原图案及尺寸并移至左上；OneDrive 改用右上纯色三角，下方两角保留。','개선: Git/SVN 기호와 크기는 왼쪽 위에 유지하고 OneDrive는 오른쪽 위 색상 삼각형을 사용하며 아래 모서리는 예약됩니다.'),
     'Cyan triangle: online only; opening may require a download.': ('青色三角：僅線上，開啟時可能需要下載。','青色三角：仅在线，打开时可能需要下载。','청록 삼각형: 온라인 전용이며 열 때 다운로드가 필요할 수 있습니다.'),
     'Blue triangle: local copy is in sync; cleanup may remove the local copy.': ('亮藍三角：本機副本已同步；清理空間可能移除本機副本。','亮蓝三角：本地副本已同步；清理空间可能移除本地副本。','파란 삼각형: 로컬 복사본 동기화 상태이며 정리 시 제거될 수 있습니다.'),

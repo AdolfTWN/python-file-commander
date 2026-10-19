@@ -5,10 +5,19 @@ import threading
 import time
 import unittest
 from pycommander.cloudstatus import CLOUD_LABELS, CloudStatusCache, cloud_state, _CloudPropertyKey, _CloudVariant
-from pycommander.icons import cloud_badge_png, CLOUD_BADGE_COLORS
+from pycommander.icons import cloud_badge_png, cloud_badge_geometry, CLOUD_BADGE_COLORS
 
 
 class CloudStatusTests(unittest.TestCase):
+    def test_lamp_geometry_is_separated_and_fits_in_reserved_gap(self):
+        for size in (16,24,42,48,80):
+            diameter,gap,reserve=cloud_badge_geometry(size)
+            self.assertGreaterEqual(diameter,10)
+            self.assertGreaterEqual(gap,2)
+            self.assertLessEqual(diameter,size*3/4)
+            self.assertLessEqual(gap+diameter,reserve-2)
+        with self.assertRaises(ValueError):cloud_badge_png(16,'available','unsupported')
+        self.assertNotEqual(cloud_badge_png(16,'available','triangle'),cloud_badge_png(16,'available','circle'))
     def test_new_folder_does_not_wait_for_previous_refresh_timer(self):
         started=threading.Event();release=threading.Event();seen=[]
         def reader(path):
@@ -36,7 +45,7 @@ class CloudStatusTests(unittest.TestCase):
         self.assertIs(cloud_badge_png(16,'available'),first)
         self.assertEqual(cloud_badge_png.cache_info().hits,1)
         self.assertEqual(cloud_badge_png.cache_info().maxsize,128)
-    def test_solid_faces_have_readable_glyph_contrast(self):
+    def test_lamp_faces_contrast_with_dark_keyline(self):
         def luminance(color):
             values=[int(color[i:i+2],16)/255 for i in (1,3,5)]
             linear=[v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in values]

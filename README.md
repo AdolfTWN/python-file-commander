@@ -1,12 +1,13 @@
 # Python File Commander
 
-Current version: **v0.18.32**
+Current version: **v0.18.33**
 
 **Icon corners:** Git/SVN keeps its existing symbols and sizes at top-left.
-OneDrive uses a small color-only triangle at top-right: blue for a local copy
+OneDrive uses a separated color-only lamp at top-right: blue for a local copy
 in sync, red for errors, orange for pending, cyan for online-only, yellow for
 paused and pink for warnings. Bottom corners are reserved. Missing metadata
-remains unknown, not proof of synchronization.
+remains unknown, not proof of synchronization. Fixed trailing space keeps lamps
+off the base icon without shifting names as status changes.
 
 **Compact F4 Search:** folder/name/content/size/date conditions stay visible,
 Search/Stop align on the right, and result actions sit above the list. Results

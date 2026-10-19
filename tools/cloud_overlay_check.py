@@ -68,31 +68,42 @@ with tempfile.TemporaryDirectory() as raw:
             assert cloud.CLOUD_DETAILS[path.stem] in pane._tooltip_name(iid)
         images=[]
         display=tk.Toplevel(app); display.title('OneDrive badge regression fixture (not live sync)')
-        for column,state in enumerate(cloud.CLOUD_LABELS):
-            image=tk.PhotoImage(data=base64.b64encode(icons.cloud_badge_png(32,state)).decode(),format='png')
-            images.append(image)
-            tk.Label(display,image=image,text=state,compound='top').grid(row=0,column=column,padx=12,pady=12)
-        # Fixed states exercise rendering only, not an authenticated provider.
-        # Composite at real small/large icon sizes on light/dark/selection colors.
+        # Real Windows Known Folder images plus explicit blue/purple fixtures.
+        # Same paths, colors and scales across current / A / B comparisons.
         states=tuple(cloud.CLOUD_LABELS)
         for scale in (100,175,200):
             for child in display.winfo_children():child.destroy()
             images.clear();size=round(24*scale/100)
-            for col,state in enumerate(states):
-                tk.Label(display,text=state).grid(row=0,column=col,padx=4)
-            for row,bg in enumerate(('#eeeeee','#20242b','#0078d4'),1):
-                for col,state in enumerate(states):
-                    base=tk.PhotoImage(width=size,height=size);base.put('#d49b12',to=(0,size//4,size,size))
-                    if row>1:
+            originals=[]
+            for col in range(7):
+                native=None
+                if os.name=='nt' and col<3:
+                    native=icons.ShellIconProvider(size)._load(Path.home()/('Desktop','Pictures','Documents')[col],True)
+                if native is None:
+                    native=tk.PhotoImage(width=size,height=size)
+                    native.put(('#168dd2','#a23acb','#d49b12')[col%3],to=(0,size//4,size,size))
+                originals.append(native)
+            images.extend(originals)
+            stacked=21*(size+icons.cloud_badge_geometry(size)[2]+6)+30>display.winfo_screenwidth()-30
+            for variant,(title,shape) in enumerate((('Current: inline triangle','triangle'),('A: separated triangle','triangle'),('B: separated lamp','circle'))):
+                group=ttk.Frame(display);group.grid(row=variant if stacked else 0,column=0 if stacked else variant,padx=5,sticky='n')
+                ttk.Label(group,text=title).grid(row=0,column=0,columnspan=7)
+                for col,label in enumerate(('online','local','kept','pending','error','pause','warn')):
+                    ttk.Label(group,text=label).grid(row=1,column=col,padx=2)
+                for row,bg in enumerate(('#eeeeee','#20242b','#0078d4'),2):
+                    for col,state in enumerate(states):
                         provider=icons.ShellIconProvider(size)
-                        base=provider._with_overlay(base,'modified' if row==2 else 'clean',compact=True)
-                    diameter=max(8,round(size*.38))
-                    badge=tk.PhotoImage(data=base64.b64encode(icons.cloud_badge_png(diameter,state)).decode(),format='png')
-                    assert badge.transparency_get(0,diameter-1)
-                    base.tk.call(str(base),'copy',str(badge),'-to',size-diameter,0,'-compositingrule','overlay')
-                    images.append(base)
-                    tk.Label(display,image=base,bg=bg,padx=12,pady=6).grid(row=row,column=col,sticky='ew')
-            display.geometry('+10+10');settle(app)
+                        base=originals[col]
+                        if row>2:base=provider._with_overlay(base,'modified' if row==3 else 'clean',compact=True)
+                        picture=provider._with_text_gap(base)
+                        diameter,gap,_=icons.cloud_badge_geometry(size)
+                        if variant==0:diameter=max(8,round(size*.38))
+                        badge=tk.PhotoImage(data=base64.b64encode(icons.cloud_badge_png(diameter,state,shape)).decode(),format='png')
+                        picture.tk.call(str(picture),'copy',str(badge),'-to',size-diameter if variant==0 else size+gap,0,'-compositingrule','overlay')
+                        images.append(picture)
+                        tk.Label(group,image=picture,bg=bg,padx=3,pady=4).grid(row=row,column=col,sticky='ew')
+            display.update_idletasks()
+            display.geometry(f'{display.winfo_reqwidth()}x{display.winfo_reqheight()}+0+0');settle(app)
             capture(display,str(scale))
         display.withdraw()
         native_get=icons.ShellIconProvider.get
@@ -106,7 +117,12 @@ with tempfile.TemporaryDirectory() as raw:
                     image=provider.get(paths[0],False,vcs,'available')
                 for y in range(size*3//4,size):
                     for x in range(size):assert image.get(x,y)==base.get(x,y), 'PFC overwrote reserved bottom corners'
-                assert image.get(size-3,2)!=base.get(size-3,2), 'Cloud triangle must be top-right'
+                diameter,gap,_=icons.cloud_badge_geometry(size)
+                assert image.get(size+gap+diameter//2,diameter//2)!=base.get(size-3,2), 'Lamp must be separated to upper right'
+                assert image.width()==provider.blank.width(), 'Status must not change row width'
+                plain=provider._with_overlay(base,vcs,compact=True) if vcs else base
+                for y in range(size):
+                    for x in range(size):assert image.get(x,y)==plain.get(x,y), 'Cloud lamp must not obscure base icon'
                 if vcs:assert image.get(size//4,size//4)!=base.get(size//4,size//4), 'VCS must be top-left'
         for key in ('small','175','xl'):
             app.font_size_var.set(key);app.apply_font_size(save=False);settle(app)
@@ -125,6 +141,6 @@ with tempfile.TemporaryDirectory() as raw:
         assert pane.tree.get_children()==original_ids
         assert not errors,errors
         if '--pause' in sys.argv: settle(app,20)
-        print('PASS: seven-state contrast fixtures at 100/175/200%; async cache, tooltip, preference, stable rows and drag deferral',flush=True)
+        print('PASS: current/A/B on native/blue/multicolor icons at 100/175/200%; base pixels preserved, fixed row width, cache, tooltip and drag deferral',flush=True)
         print('NOTE: offline VM does not validate real OneDrive provider sync transitions.',flush=True)
     finally: app.destroy()

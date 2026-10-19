@@ -315,17 +315,31 @@ CLOUD_BADGE_COLORS = {
 
 
 @lru_cache(maxsize=128)
-def cloud_badge_png(size: int, status: str) -> bytes:
-    """Color-only NE corner pennant; transparent southwest half, no glyph."""
-    if status not in CLOUD_BADGE_COLORS or size < 8:
+def cloud_badge_png(size: int, status: str, shape: str = 'circle') -> bytes:
+    """Color-only isolated lamp; triangle retained for visual comparison."""
+    if status not in CLOUD_BADGE_COLORS or size < 8 or shape not in ('circle','triangle'):
         raise ValueError('Unsupported cloud badge')
     factor = 6
     side = size * factor
     pixels = bytearray(side * side * 4)
     for inset,color in ((.02,'#ffffff'),(.075,'#151b23'),(.14,CLOUD_BADGE_COLORS[status][0])):
         lo,hi=side*inset,side*(1-inset)
-        _paint_polygon(pixels,side,((lo,lo),(hi,lo),(hi,hi)),_hex_rgba(color))
+        if shape=='triangle':
+            _paint_polygon(pixels,side,((lo,lo),(hi,lo),(hi,hi)),_hex_rgba(color))
+        else:
+            center=side/2;radius=side*(.5-inset);rgba=bytes(_hex_rgba(color))
+            for y in range(side):
+                for x in range(side):
+                    if (x+.5-center)**2+(y+.5-center)**2<=radius**2:
+                        pos=(y*side+x)*4;pixels[pos:pos+4]=rgba
     return _rgba_png_downsample(pixels, size, factor)
+
+
+def cloud_badge_geometry(size: int) -> tuple[int, int, int]:
+    """Fixed per-size trailing space: never reflow names when status arrives."""
+    diameter=min(size,max(10,round(size*.34)))
+    gap=max(2,round(size*.06))
+    return diameter,gap,diameter+2*gap
 
 
 def folder_nav_icon_png(kind: str, size: int) -> bytes:
@@ -361,6 +375,7 @@ class ShellIconProvider:
                  *, cache_limit: int = 512) -> None:
         self.size = size
         self.text_gap = max(4, round(size * 0.3)) if text_gap is None else text_gap
+        self.text_gap = max(self.text_gap,cloud_badge_geometry(size)[2])
         self.cache_limit = max(1, cache_limit)
         self.cache: OrderedDict[tuple, PhotoImage] = OrderedDict()
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
@@ -382,14 +397,14 @@ class ShellIconProvider:
             icon = self._load(path, is_dir)
             if icon is not None and overlay:
                 icon = self._with_overlay(icon, overlay, compact=bool(cloud))
+            icon = self._with_text_gap(icon) if icon is not None else self.blank
             if icon is not None and cloud:
-                result = PhotoImage(width=self.size, height=self.size)
-                result.tk.call(str(result), 'copy', str(icon), '-to', 0, 0)
-                diameter = min(self.size, max(8, round(self.size * .38)))
+                diameter,gap,_ = cloud_badge_geometry(self.size)
                 badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
-                result.tk.call(str(result), 'copy', str(badge), '-to', self.size-diameter, 0, '-compositingrule', 'overlay')
-                icon = result
-            self.cache[key] = self._with_text_gap(icon) if icon is not None else self.blank
+                # blank is shared fallback: never paint status onto it.
+                if icon is not self.blank:
+                    icon.tk.call(str(icon), 'copy', str(badge), '-to', self.size+gap, 0, '-compositingrule', 'overlay')
+            self.cache[key] = icon
         self.cache.move_to_end(key)
         while len(self.cache) > self.cache_limit:
             self.cache.popitem(last=False)

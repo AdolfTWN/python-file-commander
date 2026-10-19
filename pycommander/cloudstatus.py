@@ -16,9 +16,9 @@ CLOUD_LABELS = {'online': 'Online only', 'available': 'Locally available',
                 'pinned': 'Always available offline', 'syncing': 'Syncing / pending',
                 'error': 'Sync error', 'paused': 'Sync paused', 'warning': 'Sync warning'}
 CLOUD_DETAILS = {
-    'online': 'Cyan triangle: online only; opening may require a download.',
-    'available': 'Blue triangle: local copy is in sync; cleanup may remove the local copy.',
-    'pinned': 'Blue triangle: local copy is in sync and marked to stay offline.',
+    'online': 'Cyan lamp: online only; opening may require a download.',
+    'available': 'Blue lamp: local copy is in sync; cleanup may remove the local copy.',
+    'pinned': 'Blue lamp: local copy is in sync and marked to stay offline.',
     'syncing': 'Pending changes are not yet confirmed synchronized.',
     'error': 'Check OneDrive for the error and recovery actions.',
     'paused': 'Check OneDrive to resume synchronization.',
