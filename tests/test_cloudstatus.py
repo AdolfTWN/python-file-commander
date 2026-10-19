@@ -5,19 +5,34 @@ import threading
 import time
 import unittest
 from pycommander.cloudstatus import CLOUD_LABELS, CloudStatusCache, cloud_state, _CloudPropertyKey, _CloudVariant
-from pycommander.icons import cloud_badge_png, cloud_badge_geometry, CLOUD_BADGE_COLORS
+from pycommander.icons import cloud_badge_png, cloud_badge_geometry, cloud_badge_needs_lightening, CLOUD_BADGE_COLORS
 
 
 class CloudStatusTests(unittest.TestCase):
-    def test_lamp_geometry_is_separated_and_fits_in_reserved_gap(self):
+    def test_only_similar_opaque_icon_colors_trigger_lightening(self):
+        cyan=(0,217,255);white=(255,255,255);red=(255,48,48)
+        self.assertTrue(cloud_badge_needs_lightening('available',[cyan,cyan,white]))
+        self.assertFalse(cloud_badge_needs_lightening('available',[cyan,red,white]))
+        self.assertTrue(cloud_badge_needs_lightening('error',[red]))
+        self.assertFalse(cloud_badge_needs_lightening('available',[white,(0,0,0)]))
+        self.assertFalse(cloud_badge_needs_lightening('available',[]))
+        self.assertFalse(cloud_badge_needs_lightening('unknown',[cyan]))
+        self.assertFalse(cloud_badge_needs_lightening('online',[(185,167,255)]))
+
+    def test_lightened_variant_is_separate_and_cached_without_mutating_palette(self):
+        palette=dict(CLOUD_BADGE_COLORS)
+        first=cloud_badge_png(16,'available',True)
+        self.assertNotEqual(first,cloud_badge_png(16,'available'))
+        self.assertIs(first,cloud_badge_png(16,'available',True))
+        self.assertEqual(CLOUD_BADGE_COLORS,palette)
+
+    def test_triangle_is_attached_and_leaves_vcs_half_uncovered(self):
         for size in (16,24,42,48,80):
-            diameter,gap,reserve=cloud_badge_geometry(size)
-            self.assertGreaterEqual(diameter,10)
-            self.assertGreaterEqual(gap,2)
-            self.assertLessEqual(diameter,size*3/4)
-            self.assertLessEqual(gap+diameter,reserve-2)
-        with self.assertRaises(ValueError):cloud_badge_png(16,'available','unsupported')
-        self.assertNotEqual(cloud_badge_png(16,'available','triangle'),cloud_badge_png(16,'available','circle'))
+            diameter,x=cloud_badge_geometry(size)
+            self.assertGreaterEqual(diameter,8)
+            self.assertLessEqual(diameter,size//2)
+            self.assertEqual(x+diameter,size)
+            self.assertGreaterEqual(x,size//2)
     def test_new_folder_does_not_wait_for_previous_refresh_timer(self):
         started=threading.Event();release=threading.Event();seen=[]
         def reader(path):
@@ -45,7 +60,7 @@ class CloudStatusTests(unittest.TestCase):
         self.assertIs(cloud_badge_png(16,'available'),first)
         self.assertEqual(cloud_badge_png.cache_info().hits,1)
         self.assertEqual(cloud_badge_png.cache_info().maxsize,128)
-    def test_lamp_faces_contrast_with_dark_keyline(self):
+    def test_triangle_faces_contrast_with_dark_keyline(self):
         def luminance(color):
             values=[int(color[i:i+2],16)/255 for i in (1,3,5)]
             linear=[v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in values]
@@ -75,7 +90,7 @@ class CloudStatusTests(unittest.TestCase):
     def test_badges_distinct_and_scaled(self):
         for size in (8,16,32):
             icons = [cloud_badge_png(size, state) for state in CLOUD_LABELS]
-            self.assertEqual(len(set(icons)), len(CLOUD_LABELS)-1)  # available/pinned share the synced lamp
+            self.assertEqual(len(set(icons)), len(CLOUD_LABELS)-1)  # available/pinned share the synced triangle
             self.assertEqual(cloud_badge_png(size,'available'),cloud_badge_png(size,'pinned'))
             for icon in icons:
                 self.assertEqual(struct.unpack('>II',icon[16:24]), (size,size))

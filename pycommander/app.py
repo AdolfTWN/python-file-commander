@@ -142,8 +142,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
-    ("v0.18.33", "2026/10/19", (
-        "Improved: OneDrive uses an isolated top-right status lamp with fixed spacing, avoiding folded-corner effects and preserving the entire base icon.",
+    ("v0.18.33", "2026/10/20", (
+        "Improved: OneDrive uses attached top-right triangles with white diagonal bevels and dark shadows; cyan-blue marks local sync and light violet marks online-only.",
+        "Improved: Similar icon colors use a lighter overlay face without recoloring the icon or querying extra file metadata.",
     )),
     ("v0.18.32", "2026/10/16", (
         "Improved: Git/SVN overlays keep their symbols and sizes at top-left; OneDrive uses color-only top-right triangles, leaving bottom corners reserved.",

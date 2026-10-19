@@ -3,11 +3,14 @@
 Current version: **v0.18.33**
 
 **Icon corners:** Git/SVN keeps its existing symbols and sizes at top-left.
-OneDrive uses a separated color-only lamp at top-right: blue for a local copy
-in sync, red for errors, orange for pending, cyan for online-only, yellow for
+OneDrive uses an attached top-right triangle with a white diagonal bevel and
+dark shadow: bright cyan-blue for a local copy in sync, red for errors, orange
+for pending, light violet for online-only, yellow for
 paused and pink for warnings. Bottom corners are reserved. Missing metadata
-remains unknown, not proof of synchronization. Fixed trailing space keeps lamps
-off the base icon without shifting names as status changes.
+remains unknown, not proof of synchronization. Status stays within the icon,
+without shifting names or using extra filename space.
+Similar icon colors trigger a bounded lighter overlay face; the original icon
+colors stay unchanged. This uses loaded pixels, not additional file queries.
 
 **Compact F4 Search:** folder/name/content/size/date conditions stay visible,
 Search/Stop align on the right, and result actions sit above the list. Results

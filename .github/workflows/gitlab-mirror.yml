@@ -19,6 +19,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITLAB_SSH_PRIVATE_KEY: ${{ secrets.GITLAB_MIRROR_SSH_KEY }}
+          EVENT_FORCED: ${{ github.event.forced }}
+          EVENT_BEFORE: ${{ github.event.before }}
         run: |
           set -eu
           install -d -m 700 "$HOME/.ssh"
@@ -29,6 +31,19 @@ jobs:
           git clone --bare \
             "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
             mirror.git
+          target="git@gitlab.com:adolftwn-backup/${GITHUB_REPOSITORY#*/}.git"
+          # BEGIN leased tag replacement: only an explicitly forced GitHub tag event.
+          if [ "$EVENT_FORCED" = true ] && [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            git check-ref-format "$GITHUB_REF"
+            [[ "$EVENT_BEFORE" =~ ^[0-9a-f]{40}$ ]]
+            current=$(git ls-remote "$target" "$GITHUB_REF" | cut -f1)
+            desired=$(git -C mirror.git rev-parse "$GITHUB_REF")
+            if [ "$current" != "$desired" ]; then
+              git -C mirror.git push --force-with-lease="$GITHUB_REF:$EVENT_BEFORE" \
+                "$target" "$GITHUB_REF:$GITHUB_REF"
+            fi
+          fi
+          # END leased tag replacement.
           git -C mirror.git push \
             "git@gitlab.com:adolftwn-backup/${GITHUB_REPOSITORY#*/}.git" \
             'refs/heads/*:refs/heads/*' \

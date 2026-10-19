@@ -442,7 +442,7 @@ class SettingsDialog(tk.Toplevel):
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
                 'auto_font_size':'Auto fits Panels 1–2 (100–300%). Stable while browsing.',
-                'onedrive_overlay':'Separated top-right lamp: blue = local copy in sync; red = sync error; orange = syncing/pending; cyan = online only; yellow = paused; pink = warning. No lamp = unknown. Git/SVN stays top-left; bottom corners are reserved.',
+                'onedrive_overlay':'Attached top-right triangle: cyan-blue = local copy in sync; red = sync error; orange = syncing/pending; light violet = online only; yellow = paused; pink = warning. No triangle = unknown. Git/SVN stays top-left; bottom corners are reserved.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
                 'continue_errors':'Continue with the remaining files after a failure; errors are still reported.',

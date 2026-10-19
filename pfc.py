@@ -20,11 +20,12 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
-    'Improved: OneDrive uses an isolated top-right status lamp with fixed spacing, avoiding folded-corner effects and preserving the entire base icon.': ('改善：OneDrive 改用右上分離式狀態圓燈，留白固定，避免折角錯覺並保留完整原始圖示。','改善：OneDrive 改用右上分离式状态圆灯，留白固定，避免折角错觉并保留完整原始图标。','개선: OneDrive가 일정한 간격의 분리된 오른쪽 위 상태등을 사용하여 접힌 모서리 효과를 방지하고 기본 아이콘을 보존합니다.'),
-    'Cyan lamp: online only; opening may require a download.': ('青色圓燈：僅線上，開啟時可能需要下載。','青色圆灯：仅在线，打开时可能需要下载。','청록 상태등: 온라인 전용이며 열 때 다운로드가 필요할 수 있습니다.'),
-    'Blue lamp: local copy is in sync; cleanup may remove the local copy.': ('亮藍圓燈：本機副本已同步；清理空間可能移除本機副本。','亮蓝圆灯：本地副本已同步；清理空间可能移除本地副本。','파란 상태등: 로컬 복사본이 동기화 상태이며 정리 시 제거될 수 있습니다.'),
-    'Blue lamp: local copy is in sync and marked to stay offline.': ('亮藍圓燈：本機副本已同步，並設定保留離線。','亮蓝圆灯：本地副本已同步，并设置保留离线。','파란 상태등: 로컬 복사본이 동기화되어 오프라인 유지로 표시되었습니다.'),
-    'Separated top-right lamp: blue = local copy in sync; red = sync error; orange = syncing/pending; cyan = online only; yellow = paused; pink = warning. No lamp = unknown. Git/SVN stays top-left; bottom corners are reserved.': ('右上分離圓燈：亮藍＝本機已同步；亮紅＝同步錯誤；橘＝同步中／待同步；青＝僅線上；黃＝暫停；粉紅＝警告。無燈＝未知。Git/SVN 固定左上，下方兩角保留。','右上分离圆灯：亮蓝＝本地已同步；亮红＝同步错误；橘＝同步中／待同步；青＝仅在线；黄＝暂停；粉红＝警告。无灯＝未知。Git/SVN 固定左上，下方两角保留。','분리된 오른쪽 위 상태등: 파랑=로컬 동기화, 빨강=오류, 주황=진행/대기, 청록=온라인 전용, 노랑=일시 중지, 분홍=경고. 없음=알 수 없음. Git/SVN은 왼쪽 위, 아래 모서리는 예약됩니다.'),
+    'Improved: Similar icon colors use a lighter overlay face without recoloring the icon or querying extra file metadata.': ('改善：圖示與狀態色接近時自動調亮疊圖，不改變原圖示，也不增加檔案狀態查詢。','改善：图标与状态色接近时自动调亮叠图，不改变原图标，也不增加文件状态查询。','개선: 아이콘과 상태 색상이 비슷하면 오버레이만 밝게 표시합니다. 원본 아이콘이나 추가 파일 조회에는 영향이 없습니다.'),
+    'Improved: OneDrive uses attached top-right triangles with white diagonal bevels and dark shadows; cyan-blue marks local sync and light violet marks online-only.': ('改善：OneDrive 三角形貼附右上角，以白色斜邊及深色陰影呈現浮起效果；亮青藍代表本機已同步，淡紫代表僅線上。','改善：OneDrive 三角形贴附右上角，以白色斜边及深色阴影呈现浮起效果；亮青蓝代表本地已同步，淡紫代表仅在线。','개선: OneDrive 삼각형을 오른쪽 위에 부착하고 흰 대각선과 어두운 그림자로 구분합니다. 밝은 청록색은 로컬 동기화, 연보라는 온라인 전용입니다.'),
+    'Light violet triangle: online only; opening may require a download.': ('淡紫三角：僅線上，開啟時可能需要下載。','淡紫三角：仅在线，打开时可能需要下载。','연보라 삼각형: 온라인 전용이며 열 때 다운로드가 필요할 수 있습니다.'),
+    'Cyan-blue triangle: local copy is in sync; cleanup may remove the local copy.': ('亮青藍三角：本機副本已同步；清理空間可能移除本機副本。','亮青蓝三角：本地副本已同步；清理空间可能移除本地副本。','밝은 청록 삼각형: 로컬 복사본이 동기화 상태이며 정리 시 제거될 수 있습니다.'),
+    'Cyan-blue triangle: local copy is in sync and marked to stay offline.': ('亮青藍三角：本機副本已同步，並設定保留離線。','亮青蓝三角：本地副本已同步，并设置保留离线。','밝은 청록 삼각형: 로컬 복사본이 동기화되어 오프라인 유지로 표시되었습니다.'),
+    'Attached top-right triangle: cyan-blue = local copy in sync; red = sync error; orange = syncing/pending; light violet = online only; yellow = paused; pink = warning. No triangle = unknown. Git/SVN stays top-left; bottom corners are reserved.': ('右上貼附三角：亮青藍＝本機已同步；紅＝同步錯誤；橘＝同步中／待同步；淡紫＝僅線上；黃＝暫停；粉紅＝警告。無三角＝未知。Git/SVN 固定左上，下方兩角保留。','右上贴附三角：亮青蓝＝本地已同步；红＝同步错误；橘＝同步中／待同步；淡紫＝仅在线；黄＝暂停；粉红＝警告。无三角＝未知。Git/SVN 固定左上，下方两角保留。','부착된 오른쪽 위 삼각형: 청록=로컬 동기화, 빨강=오류, 주황=진행/대기, 연보라=온라인 전용, 노랑=일시 중지, 분홍=경고. 없음=알 수 없음. Git/SVN은 왼쪽 위, 아래 모서리는 예약됩니다.'),
     'Improved: Git/SVN overlays keep their symbols and sizes at top-left; OneDrive uses color-only top-right triangles, leaving bottom corners reserved.': ('改善：Git/SVN 保留原圖案及尺寸並移至左上；OneDrive 改用右上純色三角，下方兩角保留。','改善：Git/SVN 保留原图案及尺寸并移至左上；OneDrive 改用右上纯色三角，下方两角保留。','개선: Git/SVN 기호와 크기는 왼쪽 위에 유지하고 OneDrive는 오른쪽 위 색상 삼각형을 사용하며 아래 모서리는 예약됩니다.'),
     'Cyan triangle: online only; opening may require a download.': ('青色三角：僅線上，開啟時可能需要下載。','青色三角：仅在线，打开时可能需要下载。','청록 삼각형: 온라인 전용이며 열 때 다운로드가 필요할 수 있습니다.'),
     'Blue triangle: local copy is in sync; cleanup may remove the local copy.': ('亮藍三角：本機副本已同步；清理空間可能移除本機副本。','亮蓝三角：本地副本已同步；清理空间可能移除本地副本。','파란 삼각형: 로컬 복사본 동기화 상태이며 정리 시 제거될 수 있습니다.'),
@@ -2226,6 +2227,7 @@ def clear_file_clipboard() -> None:
 
 import base64
 import binascii
+import colorsys
 import ctypes
 import os
 import struct
@@ -2528,9 +2530,9 @@ def vcs_badge_png(size: int, status: str) -> bytes:
 
 
 CLOUD_BADGE_COLORS = {
-    'online': ('#00e5e5', '#151b23'),
-    'available': ('#00a6ff', '#151b23'),
-    'pinned': ('#00a6ff', '#151b23'),
+    'online': ('#b9a7ff', '#151b23'),
+    'available': ('#00d9ff', '#151b23'),
+    'pinned': ('#00d9ff', '#151b23'),
     'syncing': ('#ff8c00', '#151b23'),
     'error': ('#ff3030', '#151b23'),
     'paused': ('#ffe000', '#151b23'),
@@ -2538,32 +2540,50 @@ CLOUD_BADGE_COLORS = {
 }
 
 
+def cloud_badge_needs_lightening(status: str, samples: list[tuple[int, int, int]]) -> bool:
+    """Use opaque, already-loaded icon pixels; never inspect files or row colors."""
+    if not samples or status not in CLOUD_BADGE_COLORS:
+        return False
+    face = CLOUD_BADGE_COLORS[status][0]
+    hue, light, _ = colorsys.rgb_to_hls(*(int(face[i:i+2],16)/255 for i in (1,3,5)))
+    if light >= .74:
+        return False  # Already pale: don't wash the state color into white.
+    matches = 0
+    for rgb in samples:
+        other_hue, other_light, saturation = colorsys.rgb_to_hls(*(c/255 for c in rgb))
+        distance = abs(hue-other_hue)
+        matches += min(distance,1-distance)<.07 and abs(light-other_light)<.23 and saturation>.25
+    return matches > len(samples)/2
+
+
 @lru_cache(maxsize=128)
-def cloud_badge_png(size: int, status: str, shape: str = 'circle') -> bytes:
-    """Color-only isolated lamp; triangle retained for visual comparison."""
-    if status not in CLOUD_BADGE_COLORS or size < 8 or shape not in ('circle','triangle'):
+def cloud_badge_png(size: int, status: str, lighter: bool = False) -> bytes:
+    """Attached NE pennant with a bright diagonal bevel and lower shadow."""
+    if status not in CLOUD_BADGE_COLORS or size < 8:
         raise ValueError('Unsupported cloud badge')
     factor = 6
     side = size * factor
     pixels = bytearray(side * side * 4)
-    for inset,color in ((.02,'#ffffff'),(.075,'#151b23'),(.14,CLOUD_BADGE_COLORS[status][0])):
-        lo,hi=side*inset,side*(1-inset)
-        if shape=='triangle':
-            _paint_polygon(pixels,side,((lo,lo),(hi,lo),(hi,hi)),_hex_rgba(color))
-        else:
-            center=side/2;radius=side*(.5-inset);rgba=bytes(_hex_rgba(color))
-            for y in range(side):
-                for x in range(side):
-                    if (x+.5-center)**2+(y+.5-center)**2<=radius**2:
-                        pos=(y*side+x)*4;pixels[pos:pos+4]=rgba
+    face = CLOUD_BADGE_COLORS[status][0]
+    if lighter:
+        hue, light, saturation = colorsys.rgb_to_hls(*(int(face[i:i+2],16)/255 for i in (1,3,5)))
+        rgb = colorsys.hls_to_rgb(hue,max(light,min(.74,light+.16)),saturation)
+        face = '#'+''.join(f'{round(c*255):02x}' for c in rgb)
+    # Offset diagonal edges form a real white separator plus a dark lower lip.
+    # All layers stay inside the badge, never in the filename/text-gap region.
+    for points,color in (
+        (((0,.02),(1,.02),(1,1)), '#151b23'),
+        (((.03,0),(.96,0),(.96,.86)), '#ffffff'),
+        (((.26,.06),(.91,.06),(.91,.66)), face),
+    ):
+        _paint_polygon(pixels,side,[(x*side,y*side) for x,y in points],_hex_rgba(color))
     return _rgba_png_downsample(pixels, size, factor)
 
 
-def cloud_badge_geometry(size: int) -> tuple[int, int, int]:
-    """Fixed per-size trailing space: never reflow names when status arrives."""
-    diameter=min(size,max(10,round(size*.34)))
-    gap=max(2,round(size*.06))
-    return diameter,gap,diameter+2*gap
+def cloud_badge_geometry(size: int) -> tuple[int, int]:
+    """Badge size and attached x origin; leave the left VCS half unobscured."""
+    diameter=min(size//2,max(8,round(size*.42)))
+    return diameter,size-diameter
 
 
 def folder_nav_icon_png(kind: str, size: int) -> bytes:
@@ -2599,7 +2619,6 @@ class ShellIconProvider:
                  *, cache_limit: int = 512) -> None:
         self.size = size
         self.text_gap = max(4, round(size * 0.3)) if text_gap is None else text_gap
-        self.text_gap = max(self.text_gap,cloud_badge_geometry(size)[2])
         self.cache_limit = max(1, cache_limit)
         self.cache: OrderedDict[tuple, PhotoImage] = OrderedDict()
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
@@ -2622,12 +2641,16 @@ class ShellIconProvider:
             if icon is not None and overlay:
                 icon = self._with_overlay(icon, overlay, compact=bool(cloud))
             icon = self._with_text_gap(icon) if icon is not None else self.blank
-            if icon is not None and cloud:
-                diameter,gap,_ = cloud_badge_geometry(self.size)
-                badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
-                # blank is shared fallback: never paint status onto it.
-                if icon is not self.blank:
-                    icon.tk.call(str(icon), 'copy', str(badge), '-to', self.size+gap, 0, '-compositingrule', 'overlay')
+            if cloud and icon is not self.blank:
+                diameter,x = cloud_badge_geometry(self.size)
+                samples = []
+                for px,py in ((x+diameter//2,diameter//2),(self.size-2,max(1,diameter//3)),
+                              (x+diameter//3,max(1,diameter//3))):
+                    if not icon.transparency_get(px,py):
+                        samples.append(icon.get(px,py))
+                lighter = cloud_badge_needs_lightening(cloud,samples)
+                badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud,lighter)).decode('ascii'), format='png')
+                icon.tk.call(str(icon), 'copy', str(badge), '-to', x, 0, '-compositingrule', 'overlay')
             self.cache[key] = icon
         self.cache.move_to_end(key)
         while len(self.cache) > self.cache_limit:
@@ -5279,9 +5302,9 @@ CLOUD_LABELS = {'online': 'Online only', 'available': 'Locally available',
                 'pinned': 'Always available offline', 'syncing': 'Syncing / pending',
                 'error': 'Sync error', 'paused': 'Sync paused', 'warning': 'Sync warning'}
 CLOUD_DETAILS = {
-    'online': 'Cyan lamp: online only; opening may require a download.',
-    'available': 'Blue lamp: local copy is in sync; cleanup may remove the local copy.',
-    'pinned': 'Blue lamp: local copy is in sync and marked to stay offline.',
+    'online': 'Light violet triangle: online only; opening may require a download.',
+    'available': 'Cyan-blue triangle: local copy is in sync; cleanup may remove the local copy.',
+    'pinned': 'Cyan-blue triangle: local copy is in sync and marked to stay offline.',
     'syncing': 'Pending changes are not yet confirmed synchronized.',
     'error': 'Check OneDrive for the error and recovery actions.',
     'paused': 'Check OneDrive to resume synchronization.',
@@ -8503,7 +8526,7 @@ class SettingsDialog(tk.Toplevel):
                 control.state(['disabled']); self._label(self.page,'Windows only. No system change is made on this platform.')
             hints={
                 'auto_font_size':'Auto fits Panels 1–2 (100–300%). Stable while browsing.',
-                'onedrive_overlay':'Separated top-right lamp: blue = local copy in sync; red = sync error; orange = syncing/pending; cyan = online only; yellow = paused; pink = warning. No lamp = unknown. Git/SVN stays top-left; bottom corners are reserved.',
+                'onedrive_overlay':'Attached top-right triangle: cyan-blue = local copy in sync; red = sync error; orange = syncing/pending; light violet = online only; yellow = paused; pink = warning. No triangle = unknown. Git/SVN stays top-left; bottom corners are reserved.',
                 'size_emphasis':'GB is bold; TB is bold red. This changes display only, not file sizes.',
                 'right_click_menu':'File Explorer uses the Windows native file menu. Blank-area and column menus remain PFC shortcuts.',
                 'continue_errors':'Continue with the remaining files after a failure; errors are still reported.',
@@ -18968,10 +18991,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/19"
+BUILD_DATE = "2026/10/20"
 VERSION_HISTORY = (
-    ("v0.18.33", "2026/10/19", (
-        "Improved: OneDrive uses an isolated top-right status lamp with fixed spacing, avoiding folded-corner effects and preserving the entire base icon.",
+    ("v0.18.33", "2026/10/20", (
+        "Improved: OneDrive uses attached top-right triangles with white diagonal bevels and dark shadows; cyan-blue marks local sync and light violet marks online-only.",
+        "Improved: Similar icon colors use a lighter overlay face without recoloring the icon or querying extra file metadata.",
     )),
     ("v0.18.32", "2026/10/16", (
         "Improved: Git/SVN overlays keep their symbols and sizes at top-left; OneDrive uses color-only top-right triangles, leaving bottom corners reserved.",

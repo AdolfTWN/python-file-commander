@@ -1,5 +1,9 @@
 # Icon corners and navigation latency — v0.18.32
 
+Current implementation: **v0.18.33 amended 2026-10-20**, attached beveled
+triangles (last section). Earlier layouts and test evidence below are historical,
+not current visual acceptance.
+
 Owner-approved layout supersedes the v0.18.31 cloud glyph layout:
 
 - Top-left: existing Git/SVN symbols, palette and diameter formula unchanged;
@@ -133,3 +137,98 @@ baseline is claimed.
 
 Final full regression passed: 408 unit tests completed (9 platform skips) and
 all 98 GUI source/portable checks (99 runner checks including the unit suite).
+
+## v0.18.33 amended — 2026-10-20
+
+Owner rejected the separated lamp: it detached status from the icon. The owner
+reported not downloading it and explicitly requested withdrawing/reusing
+v0.18.33. Main history is preserved; only this version tag is repointed, using
+the old object `9366d85c09163eb90d8d12caa93951a464476424` as an exact lease.
+The 2026-10-19 separated-lamp recommendation above is superseded, not accepted.
+
+The new color-only triangle is attached **inside** the upper-right icon corner.
+A continuous white diagonal bevel and dark lower lip give separation from the
+underlying Shell icon and selected-blue background without an external gap.
+Compared original thin edging, a moderate white bevel/shadow, and a heavier
+white bevel on identical icons and states: selected the moderate bevel because
+it retains more colored face than the heavy variant while making the diagonal
+noticeable. This is developer visual review, not owner acceptance. See the
+[100% native comparison](images/cloud-status-raised-100.png) and
+[200% native comparison](images/cloud-status-raised-200.png). After the owner's
+additional lightness suggestion, the final figures compare thin/fixed/adaptive
+triangles, with the **rightmost adaptive candidate** selected (see below).
+
+- Size: 42% of the base icon, minimum 8px, capped at half the base width so it
+  cannot cover the compact top-left Git/SVN overlay. Restored normal filename
+  spacing; no lamp space, status column, reflow or extra click target.
+- Local in-sync / pinned: bright cyan-blue `#00d9ff`, instead of the common
+  icon blue. Online-only: light violet `#b9a7ff`, to avoid conflating the two.
+  Error red / pending orange / paused yellow / warning pink stay unchanged.
+  No triangle still means unknown, not verified synchronization. Tooltips and
+  Settings legend reflect the revised palette; status-reader semantics unchanged.
+- Bottom corners and pixels outside the upper-right badge square remain intact.
+  Regression checks actual composed images at 16/24/42/48/80px: no detached pixels
+  in the text gap, unchanged row width, white bevel / dark lip / bright color
+  surviving rasterization, unchanged lower quarter and top-left VCS placement.
+- No extra metadata queries or workers. Bounded PNG caching and asynchronous
+  visible-item metadata scheduling remain. No network or live OneDrive test.
+
+Trace `23d64e6a94e74db6bbbae62c2901f1b4`; initial fixed-face portable SHA256
+`4d86c393a05d44291482ddbe7c0c3b56528db5a43e57e211d6cb193df6509909`.
+ARM64 Windows Python 3.13.15 cloud/folder/real-Git checks passed in
+11.654 / 8.436 / 6.026 seconds, request `fa8be8cf9e3842f1ba05ae614b6abaf9`,
+cleanup confirmed. Warm Git navigation: 14.9–20.7ms, zero extra Git commands.
+The same SHA passed on Windows-emulated x64 Python 3.13.15 in
+15.504 / 10.676 / 6.277 seconds, request `4ea45029878f47f8a539ac3173b54910`,
+also with confirmed cleanup. x64 warm Git first paint: 16.7–27.9ms and zero
+extra Git commands. These are warm fixture timings, not proof of cold Shell or
+live cloud-provider latency; ARM Windows does not establish native x64 acceptance.
+
+Same-version publishing requires a precise mirrored tag correction. The mirror
+workflow now honors only **forced GitHub tag events**, using that event's prior
+object as an exact `--force-with-lease` expectation for that single GitLab tag.
+It never force-pushes branches or arbitrary tag sets. Four isolated local Git
+tests cover authorized replacement/idempotency, stale leases, nonforced/branch
+events and invalid old SHA rejection (`.github/tests/test_mirror_tags.py`).
+No stored credentials or global Git settings were changed.
+
+### Adaptive face follow-up in the same task
+
+Owner suggested brightening similar icon/overlay colors. Compared fixed and
+adaptive faces on synthetic exact-match cyan/red/green/violet cases, in addition
+to real Shell icons. Retained the white bevel and dark lip, adding only a bounded
+lighter face when a majority of up to three opaque, already-loaded icon samples
+have similar hue/lightness. Never recolor the source icon or sample selection-row
+background. Transparent/neutral/dissimilar pixels do not trigger lightening.
+Hue is preserved; HLS lightness rises by at most .16 to .74. Already-pale states
+stay unchanged, avoiding white-washed status colors. This is not a grayscale or
+color-vision accessibility guarantee; explicit tooltip meanings remain necessary.
+
+Composition and the decision are cached by the existing per-provider state key;
+PNG variants remain bounded to 128 entries. No extra Shell/file/cloud/network
+reads or workers. Same-host microbenchmark: three loaded-pixel samples plus
+decision median **5.45 microseconds** across 5 × 10,000 calls. This isolates CPU/Tk
+pixel work, not native provider or end-to-end folder navigation latency.
+The final comparison's fourth row deliberately matches each icon to its status
+color; the adaptive face remains distinguishable without moving off the icon.
+
+Final adaptive candidate SHA256:
+`4b37910c16c328b05483f68a7f008b7f322caafeb2678d3a31d3359f21c2c56e`.
+The earlier fixed-face Windows results above are not final adaptive acceptance.
+Both profiles were rerun on this final artifact with confirmed cleanup:
+
+| Python 3.13.15 runtime | Cloud / folder / real-Git GUI seconds | Request |
+|---|---|---|
+| ARM64 | 11.665 / 8.846 / 5.030 | `afa145ad85854c1cb12ce0a13d58ed6d` |
+| Windows-emulated x64 | 15.502 / 10.687 / 7.255 | `082bd1a1ede547048bfae98bbe29f6f1` |
+
+Pixel checks cover every state against a matching-color icon at all five sizes,
+and repeated cached access performs only one Shell-load fixture call. Network
+remained disabled; live OneDrive sync and owner visual acceptance remain untested.
+
+Final full regression passed: 410 unit tests (9 platform skips), all 98 GUI
+source/portable checks (99 runner checks including unit suite), plus the four
+isolated mirror-tag safety cases. Final real-Git warm-navigation first paint was
+15.2–24.2ms ARM64 and 15.3–27.2ms x64, zero additional Git commands in eight
+subfolder switches each. No end-to-end speedup or token saving is inferred;
+token counters and a comparable whole-task baseline are unavailable.

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import colorsys
 import ctypes
 import os
 import struct
@@ -304,9 +305,9 @@ def vcs_badge_png(size: int, status: str) -> bytes:
 
 
 CLOUD_BADGE_COLORS = {
-    'online': ('#00e5e5', '#151b23'),
-    'available': ('#00a6ff', '#151b23'),
-    'pinned': ('#00a6ff', '#151b23'),
+    'online': ('#b9a7ff', '#151b23'),
+    'available': ('#00d9ff', '#151b23'),
+    'pinned': ('#00d9ff', '#151b23'),
     'syncing': ('#ff8c00', '#151b23'),
     'error': ('#ff3030', '#151b23'),
     'paused': ('#ffe000', '#151b23'),
@@ -314,32 +315,50 @@ CLOUD_BADGE_COLORS = {
 }
 
 
+def cloud_badge_needs_lightening(status: str, samples: list[tuple[int, int, int]]) -> bool:
+    """Use opaque, already-loaded icon pixels; never inspect files or row colors."""
+    if not samples or status not in CLOUD_BADGE_COLORS:
+        return False
+    face = CLOUD_BADGE_COLORS[status][0]
+    hue, light, _ = colorsys.rgb_to_hls(*(int(face[i:i+2],16)/255 for i in (1,3,5)))
+    if light >= .74:
+        return False  # Already pale: don't wash the state color into white.
+    matches = 0
+    for rgb in samples:
+        other_hue, other_light, saturation = colorsys.rgb_to_hls(*(c/255 for c in rgb))
+        distance = abs(hue-other_hue)
+        matches += min(distance,1-distance)<.07 and abs(light-other_light)<.23 and saturation>.25
+    return matches > len(samples)/2
+
+
 @lru_cache(maxsize=128)
-def cloud_badge_png(size: int, status: str, shape: str = 'circle') -> bytes:
-    """Color-only isolated lamp; triangle retained for visual comparison."""
-    if status not in CLOUD_BADGE_COLORS or size < 8 or shape not in ('circle','triangle'):
+def cloud_badge_png(size: int, status: str, lighter: bool = False) -> bytes:
+    """Attached NE pennant with a bright diagonal bevel and lower shadow."""
+    if status not in CLOUD_BADGE_COLORS or size < 8:
         raise ValueError('Unsupported cloud badge')
     factor = 6
     side = size * factor
     pixels = bytearray(side * side * 4)
-    for inset,color in ((.02,'#ffffff'),(.075,'#151b23'),(.14,CLOUD_BADGE_COLORS[status][0])):
-        lo,hi=side*inset,side*(1-inset)
-        if shape=='triangle':
-            _paint_polygon(pixels,side,((lo,lo),(hi,lo),(hi,hi)),_hex_rgba(color))
-        else:
-            center=side/2;radius=side*(.5-inset);rgba=bytes(_hex_rgba(color))
-            for y in range(side):
-                for x in range(side):
-                    if (x+.5-center)**2+(y+.5-center)**2<=radius**2:
-                        pos=(y*side+x)*4;pixels[pos:pos+4]=rgba
+    face = CLOUD_BADGE_COLORS[status][0]
+    if lighter:
+        hue, light, saturation = colorsys.rgb_to_hls(*(int(face[i:i+2],16)/255 for i in (1,3,5)))
+        rgb = colorsys.hls_to_rgb(hue,max(light,min(.74,light+.16)),saturation)
+        face = '#'+''.join(f'{round(c*255):02x}' for c in rgb)
+    # Offset diagonal edges form a real white separator plus a dark lower lip.
+    # All layers stay inside the badge, never in the filename/text-gap region.
+    for points,color in (
+        (((0,.02),(1,.02),(1,1)), '#151b23'),
+        (((.03,0),(.96,0),(.96,.86)), '#ffffff'),
+        (((.26,.06),(.91,.06),(.91,.66)), face),
+    ):
+        _paint_polygon(pixels,side,[(x*side,y*side) for x,y in points],_hex_rgba(color))
     return _rgba_png_downsample(pixels, size, factor)
 
 
-def cloud_badge_geometry(size: int) -> tuple[int, int, int]:
-    """Fixed per-size trailing space: never reflow names when status arrives."""
-    diameter=min(size,max(10,round(size*.34)))
-    gap=max(2,round(size*.06))
-    return diameter,gap,diameter+2*gap
+def cloud_badge_geometry(size: int) -> tuple[int, int]:
+    """Badge size and attached x origin; leave the left VCS half unobscured."""
+    diameter=min(size//2,max(8,round(size*.42)))
+    return diameter,size-diameter
 
 
 def folder_nav_icon_png(kind: str, size: int) -> bytes:
@@ -375,7 +394,6 @@ class ShellIconProvider:
                  *, cache_limit: int = 512) -> None:
         self.size = size
         self.text_gap = max(4, round(size * 0.3)) if text_gap is None else text_gap
-        self.text_gap = max(self.text_gap,cloud_badge_geometry(size)[2])
         self.cache_limit = max(1, cache_limit)
         self.cache: OrderedDict[tuple, PhotoImage] = OrderedDict()
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
@@ -398,12 +416,16 @@ class ShellIconProvider:
             if icon is not None and overlay:
                 icon = self._with_overlay(icon, overlay, compact=bool(cloud))
             icon = self._with_text_gap(icon) if icon is not None else self.blank
-            if icon is not None and cloud:
-                diameter,gap,_ = cloud_badge_geometry(self.size)
-                badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud)).decode('ascii'), format='png')
-                # blank is shared fallback: never paint status onto it.
-                if icon is not self.blank:
-                    icon.tk.call(str(icon), 'copy', str(badge), '-to', self.size+gap, 0, '-compositingrule', 'overlay')
+            if cloud and icon is not self.blank:
+                diameter,x = cloud_badge_geometry(self.size)
+                samples = []
+                for px,py in ((x+diameter//2,diameter//2),(self.size-2,max(1,diameter//3)),
+                              (x+diameter//3,max(1,diameter//3))):
+                    if not icon.transparency_get(px,py):
+                        samples.append(icon.get(px,py))
+                lighter = cloud_badge_needs_lightening(cloud,samples)
+                badge = PhotoImage(data=base64.b64encode(cloud_badge_png(diameter, cloud,lighter)).decode('ascii'), format='png')
+                icon.tk.call(str(icon), 'copy', str(badge), '-to', x, 0, '-compositingrule', 'overlay')
             self.cache[key] = icon
         self.cache.move_to_end(key)
         while len(self.cache) > self.cache_limit:
