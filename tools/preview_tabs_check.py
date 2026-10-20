@@ -14,9 +14,15 @@ def settle(app):
     while time.monotonic()<deadline:
         app.update(); time.sleep(.01)
         win = app.preview_window
-        if not (win._md_jobs.pending or win._md_queued or win._md_insert or win._span_job):
+        page=win.active_page
+        if not (win._md_jobs.pending or win._md_queued or win._md_insert or win._span_job
+                or page._format_jobs.pending or page._format_queued or page._format_request or page.render_view._insert_job):
             app.update(); return
     raise AssertionError('Preview did not finish')
+
+def plain_widget(win):
+    page=win.active_page
+    return page.render_view.text if page._format_active else page.text
 
 with tempfile.TemporaryDirectory() as raw:
     root = Path(raw)
@@ -147,21 +153,24 @@ with tempfile.TemporaryDirectory() as raw:
                    for page in win.pages.values() if page.path in (md,second)), 'Markdown tabs load lazily'
         for path in paths:
             win.show(paths,path);settle(app)
-            assert win.text.get('1.0','end-1c').strip(),path
+            if win.active_page._format_active:
+                win.markdown_var.set(next(k for k,v in win.markdown_values.items() if v=='source'));win.load();settle(app)
+            assert plain_widget(win).get('1.0','end-1c').strip(),path
             if path.suffix=='.md':
                 assert 'preview.markdown.insert.complete' in app.debug_log.snapshot()
             if path.suffix!='.md':
-                assert 'name:' in win.text.get('1.0','end-1c')
+                assert 'name:' in plain_widget(win).get('1.0','end-1c')
                 win.mode_var.set(pfc.tr('Text'));win.load();settle(app)
-                assert 'name:' in win.text.get('1.0','end-1c')
+                assert 'name:' in plain_widget(win).get('1.0','end-1c')
         win.show(paths,paths[0]);settle(app)
         page=win.active_page;page.wrap_var.set(True);page.set_wrap()
-        page.search_var.set('draft');page.find_all();page.text.yview_moveto(.6);app.update()
-        position=page.text.yview()
+        page.search_var.set('draft');page.find_all();plain_widget(win).yview_moveto(.6);app.update()
+        assert plain_widget(win).cget('wrap')=='word'
+        position=plain_widget(win).yview()
         win.show(paths,md);settle(app)
         win.show(paths,paths[0]);settle(app)
         assert win.active_page is page and page.wrap_var.get() and page.search_var.get()=='draft'
-        assert abs(page.text.yview()[0]-position[0])<.01
+        assert abs(plain_widget(win).yview()[0]-position[0])<.01
         assert len(win.pages)==len(paths), 'Repeated F3 must reuse an existing document'
         win.show(paths,md);settle(app)
         mdpage=win.active_page;mdpage.md_outline.current(0);mdpage.markdown_fold()

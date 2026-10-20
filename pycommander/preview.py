@@ -7,6 +7,7 @@ import os
 import re
 import time
 import tokenize
+import tempfile
 import tkinter as tk
 import tkinter.font as tkfont
 from pathlib import Path
@@ -23,6 +24,9 @@ from .mdworkspaceui import MarkdownWorkspaceDialog
 from .workflowdata import WorkflowRecords, reading_anchor, resolve_reading_anchor
 from .workflows import WorkflowPicker
 from .settings import readable_check_style
+from .rendercore import RENDER_EXTENSIONS,RENDER_INPUT_LIMIT,structured_preview,table_preview,patch_preview
+from .renderbrowser import raster_preview
+from .renderui import FormatRenderView
 
 
 TEXT_EXTENSIONS = {
@@ -30,6 +34,7 @@ TEXT_EXTENSIONS = {
     ".yaml", ".yml", ".html", ".htm", ".css", ".js", ".ps1", ".bat", ".cmd",
     ".sql", ".srt", ".cfg", ".conf",
 }
+TEXT_EXTENSIONS |= RENDER_EXTENSIONS
 TEXT_LIMIT = 8 * 1024 * 1024
 HEX_LIMIT = 1024 * 1024
 SYNTAX_BATCH_SIZE = 600
@@ -230,7 +235,12 @@ def markdown_document(text: str):
         if 'end' not in item:
             item['end']=next((h['start'] for h in headings[index+1:] if h['level']<=item['level']),length)
     if length>2*1024*1024 or len(spans)>20000: raise ValueError('Markdown rendering limit reached')
-    return {'content':''.join(output),'spans':spans,'headings':headings,'links':links,'tasks':tasks}
+    content=''.join(output);diagrams=[];cursor=0
+    for match in re.finditer(r'(?ms)^ {0,3}(`{3,}|~{3,})[ \t]*mermaid[ \t]*\r?\n(.*?)^ {0,3}\1[ \t]*\r?$',text):
+        source='\n'.join(match[2].splitlines());start=content.find(source,cursor)
+        if start>=0 and len(diagrams)<20:
+            diagrams.append(dict(source=source,start=start,end=start+len(source)));cursor=start+len(source)
+    return {'content':content,'spans':spans,'headings':headings,'links':links,'tasks':tasks,'diagrams':diagrams}
 
 
 def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
@@ -289,6 +299,74 @@ def markdown_worker_main():
             result={'id':request.get('id'),'error':str(exc),'error_type':type(exc).__name__}
         sys.stdout.buffer.write((json.dumps(result,ensure_ascii=True)+'\n').encode('utf-8'))
         sys.stdout.buffer.flush()
+
+
+def format_worker_main():
+    """Bounded parser / disposable browser worker; documents are never executed."""
+    import sys
+    import stat
+    from_locale=globals().get('set_language')
+    if from_locale is None:
+        from .i18n import set_language as from_locale
+    # Windows: automatically kill all browser children if this worker is cancelled.
+    cleanup_protected=os.name!='nt'
+    if os.name=='nt':
+        try:_preview_worker_job();cleanup_protected=True
+        except OSError:pass
+    for raw in sys.stdin.buffer:
+        request={};source='';encoding='';signature=None;truncated=False
+        try:
+            request=json.loads(raw);from_locale(request.get('language','en'));path=Path(request['path'])
+            flags=os.O_RDONLY | (getattr(os,'O_NONBLOCK',0) if os.name!='nt' else 0)
+            fd=os.open(path,flags)
+            with os.fdopen(fd,'rb') as stream:
+                info=os.fstat(stream.fileno())
+                if not stat.S_ISREG(info.st_mode):raise ValueError('Target is not a regular file')
+                suffix=path.suffix.casefold();limit=8*1024*1024 if suffix=='.ipynb' else RENDER_INPUT_LIMIT
+                signature=[info.st_mtime_ns,info.st_size];data=stream.read(limit+1)
+            truncated=len(data)>limit;source,encoding=decode_text(data[:limit]);partial=''
+            if truncated:
+                if request.get('rendered') and suffix in {'.jsonl','.ndjson'} and '\n' in source:
+                    source=source.rsplit('\n',1)[0]+'\n';partial='Loaded first 2 MiB / complete records only; use Source for remaining data'
+                else:raise ValueError('Preview input limited to '+str(limit//(1024*1024))+' MiB; showing loaded Source')
+            suffix=path.suffix.casefold()
+            if not request.get('rendered'):
+                result=dict(kind='document',content=source,spans=syntax_spans(source,suffix) if len(source)<=512*1024 else [],notice='Source · read-only')
+            elif suffix in {'.json','.jsonl','.ndjson','.yaml','.yml','.toml'}:result=structured_preview(source,suffix)
+            elif suffix in {'.csv','.tsv'}:result=table_preview(source,suffix)
+            elif suffix in {'.diff','.patch'}:result=patch_preview(source)
+            else:
+                if not cleanup_protected:raise ValueError('Browser cleanup protection unavailable; showing Source')
+                result=raster_preview(source,suffix,width=request.get('width',1100),font_size=request.get('font_size',16))
+            if partial:result['notice']=result.get('notice','')+'; '+partial;result['truncated']=True
+            result.update(id=request['id'],signature=signature,encoding=encoding,size=info.st_size,rendered=bool(request.get('rendered')))
+        except Exception as exc:
+            result=dict(id=request.get('id'),kind='document',content=source or ('Cannot preview file:\n'+str(exc)),spans=[],
+                        signature=signature,encoding=encoding,rendered=False,notice='Source fallback: '+str(exc),
+                        error_type=type(exc).__name__,fallback=True,truncated=truncated)
+        sys.stdout.buffer.write((json.dumps(result,ensure_ascii=True)+'\n').encode('utf-8'));sys.stdout.buffer.flush()
+
+
+def _preview_worker_job():
+    """Owned Windows kill-on-close job, not a claim of a general OS sandbox."""
+    import ctypes
+    from ctypes import wintypes as W
+    class Basic(ctypes.Structure):
+        _fields_=[('ProcessTime',ctypes.c_int64),('JobTime',ctypes.c_int64),('Flags',W.DWORD),
+            ('MinWorking',ctypes.c_size_t),('MaxWorking',ctypes.c_size_t),('Active',W.DWORD),
+            ('Affinity',ctypes.c_size_t),('Priority',W.DWORD),('Scheduling',W.DWORD)]
+    class Extended(ctypes.Structure):
+        _fields_=[('Basic',Basic),('IO',ctypes.c_uint64*6),('ProcessMemory',ctypes.c_size_t),
+            ('JobMemory',ctypes.c_size_t),('PeakProcess',ctypes.c_size_t),('PeakJob',ctypes.c_size_t)]
+    kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+    kernel.CreateJobObjectW.argtypes=[ctypes.c_void_p,W.LPCWSTR];kernel.CreateJobObjectW.restype=W.HANDLE
+    kernel.SetInformationJobObject.argtypes=[W.HANDLE,ctypes.c_int,ctypes.c_void_p,W.DWORD]
+    kernel.AssignProcessToJobObject.argtypes=[W.HANDLE,W.HANDLE];kernel.GetCurrentProcess.restype=W.HANDLE
+    handle=kernel.CreateJobObjectW(None,None);info=Extended();info.Basic.Flags=0x2000|0x100;info.ProcessMemory=512*1024*1024
+    if not handle or not kernel.SetInformationJobObject(handle,9,ctypes.byref(info),ctypes.sizeof(info)) or not kernel.AssignProcessToJobObject(handle,kernel.GetCurrentProcess()):
+        raise OSError('Static render worker cleanup protection unavailable')
+    # Non-inheritable handle intentionally retained until worker exit.
+    return handle
 
 
 def looks_text(path: Path, sample: bytes) -> bool:
@@ -353,6 +431,8 @@ class PreviewPage(tk.Frame):
         self._span_job = None
         self._pending_spans = []
         self._md_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__))
+        self._format_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__),'format_worker_main')
+        self._format_queued=None;self._format_request=None;self._format_poll=None;self._format_active=False
         self._md_request=None;self._md_queued=None;self._md_insert=None
         self._md_model={};self._md_history=[];self._linked_path=None
         self._md_boundary=Path(os.path.abspath(selected)).parent
@@ -360,6 +440,7 @@ class PreviewPage(tk.Frame):
         self._md_display_path=None;self._md_signature=None
         self._md_auto_suspended=False
         self.bind('<Destroy>',lambda e:self._md_jobs.close() if e.widget is self else None,add='+')
+        self.bind('<Destroy>',lambda e:self._format_jobs.close() if e.widget is self else None,add='+')
         self.title(tr("PFC Preview"))
         preview_diagnostic(self, 'preview.page.state.ready')
 
@@ -389,7 +470,7 @@ class PreviewPage(tk.Frame):
         self.markdown_check.pack(side='left')
         file_row.bind('<Configure>', self._layout_file_tools)
         self.markdown_frame.bind('<Map>', self._layout_file_tools)
-        ToolTip(self.markdown_check, lambda: tr('Markdown rendered')+' / '+tr('Markdown Source'))
+        ToolTip(self.markdown_check, lambda: tr('Rendered')+' / '+tr('Source'))
         find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
         self.find_row = find_row
         ttk.Label(find_row, text=tr("Find:")).pack(side="left", padx=(0, 3))
@@ -433,10 +514,12 @@ class PreviewPage(tk.Frame):
         self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
         self.status=ttk.Label(activity,anchor='w',width=1)
         self.status.pack(side='left',fill='x',expand=True)
+        self.format_cancel=ttk.Button(activity,text=tr('Cancel'),width=0,command=self._cancel_format_ui)
         ToolTip(self.status,lambda:str(self.path)+'\n'+str(self.status.cget('text')))
         activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(180,e.width-130)))
         self._activity_busy=False
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
+        self.text_frame=frame
         self.text = tk.Text(frame, wrap="word" if self.wrap_var.get() else "none", undo=False,state='disabled',
                             font=tkfont.nametofont("TkFixedFont"), padx=8, pady=6)
         vertical = ttk.Scrollbar(frame, orient="vertical", command=self.text.yview)
@@ -449,6 +532,7 @@ class PreviewPage(tk.Frame):
         self.text.bind('<Control-a>',self._copy_select_all)
         self.text.bind('<<Copy>>',self._copy_preview)
         self.text.bind('<Control-c>',self._copy_preview)
+        self.render_view=FormatRenderView(self)
         self.bind('<F5>',lambda e:self.load())
         self._configure_effect_fonts()
         self.apply_color_scheme(getattr(host.master, "palette", color_scheme("light")))
@@ -456,6 +540,7 @@ class PreviewPage(tk.Frame):
         if not lazy: self.load()
         self._schedule_refresh()
         self._md_poll_job=self.after(40,self._poll_markdown)
+        self._format_poll=self.after(40,self._poll_format)
         preview_diagnostic(self,'preview.page.construct.complete')
 
     def title(self, value):
@@ -465,7 +550,67 @@ class PreviewPage(tk.Frame):
             self.host.path_label.configure(text=str(self.path))
 
     def _markdown_mode(self):
-        return self.path.suffix.casefold()=='.md' and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
+        return self.path.suffix.casefold()=='.md' and not self.path.is_dir() and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
+
+    def _format_mode(self):
+        return self.path.suffix.casefold() in RENDER_EXTENSIONS and not self.path.is_dir() and self.mode_values.get(self.mode_var.get(),self.mode_var.get())!='Hex'
+
+    def _queue_format(self):
+        self._format_jobs.cancel();self._format_active=True
+        self.render_view.set_wrap(self.wrap_var.get())
+        self.markdown_check.state(['!disabled'] if self.extension_effect else ['disabled'])
+        self.md_tools.pack_forget();self.markdown_frame.pack(side='left',padx=(4,0))
+        self.text_frame.pack_forget();self.render_view.pack(fill='both',expand=True)
+        self.render_view.show(dict(kind='document',content=tr('Loading preview…'),spans=[]))
+        self._format_request=None
+        self._format_queued=dict(path=str(self.path),language=get_language(),rendered=self.extension_effect and self.markdown_values.get(self.markdown_var.get())=='rendered',
+            width=max(640,min(1600,self.host.winfo_width()-38)),font_size=tkfont.nametofont('TkFixedFont').metrics('linespace'))
+        self.title(tr('PFC Preview')+' — '+self.path.name)
+        self.status.configure(text=tr('Loading preview…'))
+        self._sync_preview_activity()
+
+    def _poll_format(self):
+        self._format_poll=None
+        try:
+            self._format_jobs.reap()
+            if self._format_queued and not self._format_jobs.pending and not self._format_jobs.retiring:
+                if self._format_jobs.submit(self._format_queued):
+                    self._format_request=self._format_queued;self._format_queued=None
+            result=self._format_jobs.poll()
+            if result is not None and self._format_request is not None:
+                request=self._format_request;self._format_request=None
+                if self._format_active and str(self.path)==request['path']:
+                    if 'error' in result:result=dict(kind='document',content=tr('Cannot preview file')+'\n'+str(result['error']),notice=str(result['error']))
+                    self.render_view.show(result)
+                    self.wrap_check.state(['!disabled'] if result['kind']=='document' else ['disabled'])
+                    if result.get('fallback') and request.get('rendered'):
+                        self.markdown_var.set(next(label for label,value in self.markdown_values.items() if value=='source'))
+                    signature=result.get('signature');self._signature=tuple(signature) if signature else self._path_signature()
+                    self.status.configure(text=tr(result.get('notice',''))+'   '+str(result.get('size',''))+' bytes   '+str(result.get('encoding','')))
+                    preview_diagnostic(self,'preview.format.ready',path=self.path,kind=result['kind'],fallback=result.get('fallback',False),severity='WARNING' if result.get('fallback') else 'INFO')
+            if self._format_jobs.pending and time.monotonic()-self._format_jobs.started>30:
+                self._cancel_format()
+                self._signature=self._path_signature()
+                self.render_view.show(dict(kind='document',content=tr('Preview timed out; switch to Source or press F5 to retry'),spans=[]))
+                self.status.configure(text=tr('Preview timed out; press F5 to retry'))
+        except (OSError,ValueError,tk.TclError) as exc:
+            preview_diagnostic(self,'preview.format.failed',exc=exc)
+            self._cancel_format();self._signature=self._path_signature()
+            message=tr('Cannot preview file')+': '+str(exc)
+            self.status.configure(text=message)
+            try:self.render_view.show(dict(kind='document',content=message,spans=[]))
+            except tk.TclError:pass  # The window may already be closing.
+        if self.winfo_exists():
+            self._sync_preview_activity();self._format_poll=self.after(40,self._poll_format)
+
+    def _cancel_format(self):
+        self._format_jobs.close();self._format_request=None;self._format_queued=None
+
+    def _cancel_format_ui(self):
+        self._cancel_format();self._signature=self._path_signature()
+        self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
+        self.status.configure(text=tr('Preview canceled; press F5 to retry'));self._sync_preview_activity()
+
 
     def _layout_file_tools(self, _event=None):
         font = tkfont.nametofont('TkDefaultFont')
@@ -536,7 +681,10 @@ class PreviewPage(tk.Frame):
 
     def _sync_preview_activity(self):
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
-                  or (self._md_request and not self._md_request['probe']))
+                  or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
+                  or (self._format_active and self.render_view._insert_job is not None))
+        if self._format_queued or self._format_request:self.format_cancel.pack(side='right',padx=(4,0))
+        else:self.format_cancel.pack_forget()
         if busy!=self._activity_busy:
             self._activity_busy=busy
             if busy:
@@ -616,7 +764,7 @@ class PreviewPage(tk.Frame):
         self._md_signature=result['signature'];self._md_model=result;self._md_folded.clear()
         self.text.configure(state='normal');self.text.delete('1.0','end')
         for tag in self.text.tag_names():
-            if tag.startswith(('md_link_','md_fold_')): self.text.tag_delete(tag)
+            if tag.startswith(('md_link_','md_fold_','md_diagram_')): self.text.tag_delete(tag)
         self.text.configure(state='disabled')
         self._md_insert={'result':result,'context':context,'offset':0}
         self.md_cancel.state(['!disabled'])
@@ -658,6 +806,16 @@ class PreviewPage(tk.Frame):
         self.md_menu.add_command(label=tr('Find Markdown files')+'…',command=self.markdown_workspace,state=workspace_state)
         self.md_menu.add_command(label=tr('Backlinks to this document')+'…',command=lambda:self.markdown_workspace('backlinks'),state=workspace_state)
         self.md_menu.add_command(label=self._markdown_boundary_label(),state='disabled')
+        for number,diagram in enumerate(result.get('diagrams',[])):
+            self.md_menu.add_command(label=tr('Diagram {number} (Mermaid)…',number=number+1),
+                command=lambda n=number:self._open_diagram(n))
+            tag='md_diagram_'+str(number)
+            first_end=result['content'].find('\n',diagram['start'])
+            if first_end<0:first_end=diagram['end']
+            self.text.tag_add(tag,f"1.0+{diagram['start']}c",f'1.0+{first_end}c')
+            self.text.tag_configure(tag,underline=True)
+            self.text.tag_bind(tag,'<Control-ButtonRelease-1>',lambda e,n=number:self._open_diagram(n))
+            self.text.tag_bind(tag,'<Enter>',lambda e:self.status.configure(text=tr('Ctrl+click to render this Mermaid diagram in a preview tab')))
         self.md_menu.add_separator()
         for number,item in enumerate(result.get('links',[])[:100]):
             self.md_menu.add_command(label=item['label'][:50]+' → '+item['href'][:70],
@@ -682,6 +840,10 @@ class PreviewPage(tk.Frame):
             saved = next((item['data'] for item in WorkflowRecords(self.config_data, 'reading_positions').read()
                           if item['data'].get('path') == str(self._md_display_path)), None)
             if saved: self._restore_reading_position(saved)
+
+    def _open_diagram(self,number):
+        diagrams=self._md_model.get('diagrams',[])
+        if 0<=number<len(diagrams):self.host.open_diagram(diagrams[number]['source'],self.path.stem,number+1)
 
     def _capture_markdown_position(self):
         if (not self._md_model.get('rendered') or self._md_insert or self._archive_markdown()
@@ -842,9 +1004,13 @@ class PreviewPage(tk.Frame):
         return 'break'
 
     def _copy_select_all(self,event=None):
+        if self._format_active:
+            if self.render_view.text:self.render_view.text.tag_add('sel','1.0','end-1c')
+            return 'break'
         self.text.tag_add('sel','1.0','end-1c');return 'break'
 
     def _copy_preview(self,event=None):
+        if self._format_active:return self.render_view.copy()
         try: value=self.text.get('sel.first','sel.last')
         except tk.TclError: return 'break'
         self.clipboard_clear();self.clipboard_append(value);return 'break'
@@ -879,9 +1045,13 @@ class PreviewPage(tk.Frame):
     def apply_scale(self, _scale: float) -> None:
         self._configure_effect_fonts()
         self.apply_color_scheme(self.palette)
+        if self._format_active:self.render_view.rescale()
         self.after_idle(self._layout_markdown_tools)
         self.after_idle(self._layout_find)
         self.after_idle(self._layout_file_tools)
+        if self._format_active and self.render_view.model.get('kind')=='image':
+            if self.host.active_page is self:self.after_idle(self.load)
+            else:self._loaded=False
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -969,6 +1139,8 @@ class PreviewPage(tk.Frame):
         self._refresh_job = None
         if self.host.active_page is not self:
             self._schedule_refresh(); return
+        if self._format_jobs.pending or self._format_queued or (self._format_active and self.render_view._insert_job is not None):
+            self._schedule_refresh();return
         if self._markdown_mode():
             if (not self._md_auto_suspended and not self._md_jobs.pending and not self._md_queued
                     and not self._md_insert and self._md_display_path==self.path
@@ -987,6 +1159,12 @@ class PreviewPage(tk.Frame):
         path = self.path
         preview_diagnostic(self,'preview.load.start',path=path,mode=self.mode_values.get(self.mode_var.get(),'Auto'),
                            markdown=self.markdown_values.get(self.markdown_var.get(),'rendered'))
+        if self._format_mode():
+            if self._md_jobs.pending or self._md_queued:self.cancel_markdown()
+            self._md_model={};self._queue_format();return
+        self._cancel_format();self._format_active=False;self.render_view.pack_forget()
+        self.wrap_check.state(['!disabled'])
+        self.text_frame.pack(fill='both',expand=True)
         if self._markdown_mode():
             self._queue_markdown();return
         self._remember_markdown_position()
@@ -1053,11 +1231,13 @@ class PreviewPage(tk.Frame):
 
     def set_wrap(self) -> None:
         self.text.configure(wrap="word" if self.wrap_var.get() else "none")
+        self.render_view.set_wrap(self.wrap_var.get())
 
     def focus_search(self) -> str:
         self.search.focus_set(); self.search.selection_range(0, "end"); return "break"
 
     def find_all(self) -> None:
+        if self._format_active:return
         self.text.tag_remove("match", "1.0", "end"); self.text.tag_remove("current_match", "1.0", "end")
         self.matches, self.match_index = [], -1
         needle = self.search_var.get()
@@ -1080,6 +1260,10 @@ class PreviewPage(tk.Frame):
                 self.status.configure(text=tr('Showing the first 5,000 search matches'));break
 
     def _find(self, direction: int) -> str:
+        if self._format_active:
+            detail=self.render_view.find(self.search_var.get(),self.case_var.get(),direction)
+            if self.render_view.model.get('truncated'):detail+=' · '+tr('Loaded portion only')
+            self.status.configure(text=detail);return 'break'
         previous_index = self.match_index
         self.find_all()
         if not self.matches:
@@ -1114,6 +1298,9 @@ class PreviewPage(tk.Frame):
     def close(self) -> None:
         self._remember_markdown_position()
         self._md_jobs.close()
+        self._format_jobs.close()
+        if self._format_poll is not None:
+            self.after_cancel(self._format_poll);self._format_poll=None
         if self._md_poll_job is not None:
             self.after_cancel(self._md_poll_job);self._md_poll_job=None
         if self._refresh_job is not None:
@@ -1133,6 +1320,7 @@ class PreviewWindow(tk.Toplevel):
         self.extension_effect = extension_effect
         self.pages = {}
         self.active_page = None
+        self._diagram_directory=None
         self.geometry(config.get('preview', 'geometry', fallback='1100x720'))
         self.minsize(640, 400)
         self.protocol('WM_DELETE_WINDOW', self.close)
@@ -1156,6 +1344,8 @@ class PreviewWindow(tk.Toplevel):
                 ('<Escape>', self.close), ('<Control-w>', self.close_tab),
                 ('<Control-f>', lambda: self.active_page.focus_search()),
                 ('<F5>', lambda: self.active_page.load()),
+                ('<F3>', lambda: self.active_page.find_next()),
+                ('<Shift-F3>', lambda: self.active_page.find_previous()),
                 ('<Alt-Left>', lambda: self.active_page.markdown_back() if self.active_page._md_history else self.active_page.previous_file()),
                 ('<Alt-Right>', lambda: self.active_page.next_file()),
                 ('<Control-Tab>', lambda: self.cycle(1)),
@@ -1190,6 +1380,13 @@ class PreviewWindow(tk.Toplevel):
 
     def show(self, files, selected):
         self.open_paths(files, [selected], selected)
+
+    def open_diagram(self,source,stem,number):
+        if self._diagram_directory is None:self._diagram_directory=tempfile.TemporaryDirectory(prefix='pfc-diagrams-',ignore_cleanup_errors=True)
+        safe=re.sub(r'[^\w.-]','_',stem)[:60]
+        target=Path(self._diagram_directory.name)/(safe+'-diagram-'+str(number)+'.mmd')
+        target.write_text(source,encoding='utf-8')
+        self.open_paths([target],[target],target)
 
     def open_paths(self, files, selected_paths, selected=None):
         from tkinter import messagebox
@@ -1240,6 +1437,9 @@ class PreviewWindow(tk.Toplevel):
                 if previous._md_jobs.pending or previous._md_queued or previous._md_insert:
                     previous.cancel_markdown(); previous._loaded = False
                 previous._md_jobs.close()
+                if previous._format_jobs.pending or previous._format_queued:
+                    previous._cancel_format();previous._loaded=False
+                previous._format_jobs.close()
             self.active_page = page
         if not page._loaded:
             page._loaded = True
@@ -1254,7 +1454,10 @@ class PreviewWindow(tk.Toplevel):
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()
-        if self.active_page: self.active_page.text.focus_set()
+        if self.active_page:
+            page=self.active_page
+            widget=(page.render_view.tree or page.render_view.text or page.render_view.canvas) if page._format_active else page.text
+            if widget:widget.focus_set()
 
     def cycle(self, direction):
         tabs = self.notebook.tabs()
@@ -1299,4 +1502,5 @@ class PreviewWindow(tk.Toplevel):
             self.config_data.set('preview', 'wrap', str(self.active_page.wrap_var.get()).lower())
         for page in list(self.pages.values()): page.close()
         self.pages.clear(); self.active_page = None
+        if self._diagram_directory is not None:self._diagram_directory.cleanup();self._diagram_directory=None
         self.save_config(); self.destroy()

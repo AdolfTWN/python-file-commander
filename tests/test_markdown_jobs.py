@@ -18,6 +18,7 @@ def markdown_worker_main():
         item=json.loads(raw)
         time.sleep(item.get('delay',0))
         print(json.dumps(item),flush=True)
+format_worker_main=markdown_worker_main
 ''',encoding='utf-8')
         self.jobs=MarkdownJobs(script,False)
 
@@ -81,6 +82,25 @@ def markdown_worker_main():
                 if thread.name.startswith('PFC-Markdown-'): thread.join(2)
         self.jobs.process = None
         self.assertFalse(errors)
+
+    def test_format_worker_owns_and_cleans_private_profile_root(self):
+        import os
+        real_popen=__import__('subprocess').Popen
+        self.jobs=MarkdownJobs(self.jobs.module_file,False,'format_worker_main')
+        with mock.patch('pycommander.mdjobs.subprocess.Popen',wraps=real_popen) as start:
+            self.jobs.submit({'value':'safe'})
+            self.assertEqual(self.result()['value'],'safe')
+        options=start.call_args.kwargs
+        owned=Path(options['env']['PFC_STATIC_ROOT'])
+        self.assertTrue(owned.is_dir())
+        self.assertEqual(options['start_new_session'],os.name!='nt')
+        self.jobs.close()
+        until=time.monotonic()+4
+        while owned.exists() and time.monotonic()<until:time.sleep(.02)
+        self.assertFalse(owned.exists())
+
+    def test_format_worker_entry_is_allowlisted(self):
+        with self.assertRaises(ValueError):MarkdownJobs(self.jobs.module_file,False,'arbitrary_function')
 
 
 if __name__=='__main__':unittest.main()

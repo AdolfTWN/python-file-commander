@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.34", "2026/10/20", (
+        "Added: F3 renders structured JSON/JSONL/YAML/TOML, CSV/TSV tables, SVG, Mermaid, saved notebooks, patches and safe static HTML with a shared Source switch.",
+        "Improved: Read-only previews include search/copy, explicit loading and fallback notices, bounded inputs, cancellation and isolated offline graphics; document code is never executed.",
+    )),
     ("v0.18.33", "2026/10/20", (
         "Improved: OneDrive uses attached top-right triangles with white diagonal bevels and dark shadows; cyan-blue marks local sync and light violet marks online-only.",
         "Improved: Similar icon colors use a lighter overlay face without recoloring the icon or querying extra file metadata.",

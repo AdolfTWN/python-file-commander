@@ -1,6 +1,23 @@
 # Python File Commander
 
-Current version: **v0.18.33**
+Current version: **v0.18.34**
+
+**F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
+saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
+Hex remain available per tab, with search/copy and explicit limits/errors.
+Graphics use an installed Edge or Chrome/Chromium in a disposable offline profile;
+no runtime download, cell execution, document scripts or external resources.
+Mermaid blocks inside Markdown open as separate diagram tabs through Reading or
+Ctrl-click. CSV headers can be treated as data; structured values retain raw
+identifiers and offer Copy value/Copy path. These readers are read-only, not editors.
+
+Rendering is bounded: structured input 2 MiB (Notebook 8 MiB), trees 3,000 nodes,
+tables 20,000 cells, Notebook 60 cells and static graphics 4 million pixels.
+Partial views are labelled; invalid/unsupported content or a missing graphics
+engine falls back to Source with an explanation. HTML is sanitized, static and
+offline: scripts, forms, external/local resources and interactive navigation are
+not supported. Notebook code is never executed. Bundled parser/diagram sources
+and licenses are listed in [preview dependencies](docs/preview-dependencies.md).
 
 **Icon corners:** Git/SVN keeps its existing symbols and sizes at top-left.
 OneDrive uses an attached top-right triangle with a white diagonal bevel and

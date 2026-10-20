@@ -5,6 +5,8 @@ from pathlib import Path
 import queue
 import subprocess
 import sys
+import shutil
+import tempfile
 import threading
 import time
 
@@ -49,7 +51,9 @@ def limit_markdown_worker_memory(limit=512*1024*1024):
 
 
 class MarkdownJobs:
-    def __init__(self, module_file, packaged):
+    def __init__(self, module_file, packaged, entry='markdown_worker_main'):
+        if entry not in {'markdown_worker_main','format_worker_main'}:raise ValueError('Unknown preview worker')
+        self.entry=entry
         self.module_file=module_file;self.packaged=packaged
         self.process=None;self.results=queue.Queue();self.pending=None
         self.serial=0;self.started=0;self.retiring=[]
@@ -57,15 +61,24 @@ class MarkdownJobs:
 
     def _start(self):
         if self.packaged:
-            code='from pycommander.preview import markdown_worker_main; markdown_worker_main()'
+            code=f'from pycommander.preview import {self.entry}; {self.entry}()'
             cwd=str(Path(self.module_file).parent.parent)
             args=[sys.executable,'-c',code]
         else:
-            code="import runpy,sys; n=runpy.run_path(sys.argv[1],run_name='pfc_md_worker'); n['markdown_worker_main']()"
+            code=f"import runpy,sys; n=runpy.run_path(sys.argv[1],run_name='pfc_md_worker'); n[{self.entry!r}]()"
             cwd=str(Path(self.module_file).parent)
             args=[sys.executable,'-c',code,str(self.module_file)]
-        self.process=subprocess.Popen(args,cwd=cwd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,creationflags=0x08000000 if os.name=='nt' else 0)
+        owned_root=None;environment=None
+        if self.entry=='format_worker_main':
+            snap=Path.home()/'snap/chromium/common'
+            owned_root=tempfile.mkdtemp(prefix='pfc-render-worker-',dir=snap if os.name!='nt' and snap.is_dir() else None)
+            environment=dict(os.environ,PFC_STATIC_ROOT=owned_root)
+        try:self.process=subprocess.Popen(args,cwd=cwd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,creationflags=0x08000000 if os.name=='nt' else 0,
+            start_new_session=os.name!='nt' and self.entry=='format_worker_main',env=environment)
+        except Exception:
+            if owned_root:shutil.rmtree(owned_root,ignore_errors=True)
+            raise
         process=self.process;results=self.results
         outgoing=queue.Queue(maxsize=1);self.outgoing=outgoing
         def send():
@@ -95,10 +108,15 @@ class MarkdownJobs:
             finally:
                 results.put((process,{'error':'Preview worker stopped'}))
                 process.stdout.close()
-                if process.poll() is None: process.kill()
+                if process.poll() is None:self._terminate(process)
                 try: outgoing.put_nowait(None)
                 except queue.Full: pass
                 process.wait()
+                if owned_root:
+                    for attempt in range(20):
+                        try:shutil.rmtree(owned_root);break
+                        except FileNotFoundError:break
+                        except OSError:time.sleep(.1)
         threading.Thread(target=send,name='PFC-Markdown-requests',daemon=True).start()
         threading.Thread(target=receive,name='PFC-Markdown-results',daemon=True).start()
 
@@ -124,11 +142,18 @@ class MarkdownJobs:
         self.pending=None
         if self.process is not None:
             process=self.process;self.process=None
-            if process.poll() is None: process.kill()
+            if process.poll() is None:self._terminate(process)
             try: self.outgoing.put_nowait(None)
             except queue.Full: pass
             self.retiring.append(process)
         self.reap()
+
+    def _terminate(self,process):
+        if os.name!='nt' and self.entry=='format_worker_main':
+            import signal
+            try:os.killpg(process.pid,signal.SIGKILL)
+            except ProcessLookupError:pass
+        else:process.kill()
 
     def reap(self):
         self.retiring[:]=[p for p in self.retiring if p.poll() is None]

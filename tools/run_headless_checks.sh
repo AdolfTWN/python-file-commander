@@ -34,6 +34,8 @@ xvfb-run -a python3 tools/tooltip_check.py
 xvfb-run -a python3 tools/tooltip_check.py pfc
 xvfb-run -a python3 tools/markdown_workspace_check.py
 xvfb-run -a python3 tools/markdown_workspace_check.py pfc
+xvfb-run -a python3 tools/render_formats_check.py
+xvfb-run -a python3 tools/render_formats_check.py pfc
 xvfb-run -a python3 tools/vcs_actions_check.py
 xvfb-run -a python3 tools/vcs_actions_check.py pfc
 xvfb-run -a python3 tools/folder_icon_check.py

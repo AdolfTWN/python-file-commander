@@ -209,13 +209,24 @@ def task_xml(directory):
 
 
 def validate_result(result, request_id, checks):
+    if not isinstance(result,dict):raise Blocked('invalid-test-result')
     if result.get('request_id') != request_id:
         raise Blocked('stale-result')
     if result.get('status') == 'passed':
         tests = result.get('tests', [])
-        if [t.get('check') for t in tests] != checks or any(t.get('exit_code') != 0 for t in tests):
+        if not isinstance(tests,list) or any(not isinstance(t,dict) for t in tests) or [t.get('check') for t in tests] != checks or any(t.get('exit_code') != 0 for t in tests):
             raise Blocked('incomplete-test-results')
     return result
+
+
+def read_test_result(guest, remote, request_id, checks):
+    # Retry only bounded, read-only report retrieval, never task dispatch or
+    # file writes. Transient empty/truncated stdout is not a passing report.
+    for attempt in range(3):
+        try:return validate_result(json.loads(guest.read(remote)),request_id,checks)
+        except json.JSONDecodeError:
+            if attempt==2:raise Blocked('guest-result-invalid-json') from None
+            time.sleep(.1)
 
 
 def stop_request_checks(guest, directory, checks):
@@ -289,7 +300,7 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
         began_tests = False
         while time.monotonic() < deadline:
             try:
-                result = validate_result(json.loads(guest.read(directory+'\\result.json')), request_id, checks)
+                result = read_test_result(guest,directory+'\\result.json',request_id,checks)
             except Blocked as exc:
                 if str(exc) != 'guest-file-open-unavailable':
                     raise
@@ -336,6 +347,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                     data=guest.image_data(directory+'\\evidence-'+name+'.bmp')
                     (evidence_dir/(name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/(name+'.png'))
+            if result['status']=='passed' and 'render_formats_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('agent','evaluation','diagram','flow','report','notebook','change','table-200'):
+                    data=guest.image_data(directory+'\\evidence-render-'+name+'.bmp')
+                    (evidence_dir/('render-'+name+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('render-'+name+'.png'))
             if result['status']=='passed' and 'search_results_check.py' in checks:
                 from PIL import Image
                 import io

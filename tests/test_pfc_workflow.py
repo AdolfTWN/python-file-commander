@@ -254,6 +254,21 @@ class VmRunnerTests(unittest.TestCase):
     def test_stale_and_incomplete_result_rejected(self):
         for result in ({'request_id':'old','status':'passed'}, {'request_id':'new','status':'passed','tests':[]}):
             with self.assertRaises(vm.Blocked): vm.validate_result(result, 'new', ['tooltip_check.py'])
+        for result in (None,[],{'request_id':'new','status':'passed','tests':[None]}):
+            with self.assertRaises(vm.Blocked):vm.validate_result(result,'new',['tooltip_check.py'])
+
+    def test_report_retry_is_bounded_read_only_and_keeps_validation(self):
+        guest=MagicMock();valid={'request_id':'new','status':'passed','tests':[{'check':'tooltip_check.py','exit_code':0}]}
+        guest.read.side_effect=[b'',b'{',json.dumps(valid).encode()]
+        with patch.object(vm.time,'sleep'):
+            self.assertEqual(vm.read_test_result(guest,'result.json','new',['tooltip_check.py']),valid)
+        self.assertEqual(guest.read.call_count,3);guest.execute.assert_not_called();guest.put.assert_not_called()
+        guest.read.side_effect=None;guest.read.return_value=b''
+        with patch.object(vm.time,'sleep'),self.assertRaisesRegex(vm.Blocked,'guest-result-invalid-json'):
+            vm.read_test_result(guest,'result.json','new',['tooltip_check.py'])
+        guest.read.return_value=json.dumps(dict(valid,request_id='old')).encode()
+        with self.assertRaisesRegex(vm.Blocked,'stale-result'):
+            vm.read_test_result(guest,'result.json','new',['tooltip_check.py'])
 
     def test_lost_lease_prevents_socket_access(self):
         self.leases.snapshot.return_value = {'vms':{'vm2':{'active':{'lease_id':'other'}}}}
