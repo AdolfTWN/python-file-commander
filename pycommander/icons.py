@@ -378,6 +378,11 @@ def folder_nav_icon_png(kind: str, size: int) -> bytes:
         polygon(((5,8),(19,8),(21,15),(3,15)), '#dce5eb')
         box(3,16,21,19,'#b6c4ce'); box(5,17,13,18,'#7d919f')
         box(18,17,20,18,'#178267')
+    elif kind == 'file':
+        polygon(((5,2),(15,2),(21,8),(21,22),(5,22)), '#718391')
+        polygon(((6,3),(14,3),(20,9),(20,21),(6,21)), '#f7fafc')
+        polygon(((14,3),(14,9),(20,9)), '#bacbd6')
+        for y in (12,15,18):box(8,y,18,y+1,'#9aabb6')
     else:
         polygon(((2,5),(9,5),(11,7),(21,7),(22,9),(22,20),(2,20)), '#bc8c26')
         polygon(((3,6),(9,6),(11,8),(21,8),(21,19),(3,19)), '#f2cd69')
@@ -413,8 +418,13 @@ class ShellIconProvider:
         key = (base_key, overlay or '', cloud or '')
         if key not in self.cache:
             icon = self._load(path, is_dir)
+            if icon is None:
+                # A transient Shell lookup failure must not hide known status
+                # badges or poison the cache with an invisible image.
+                png=folder_nav_icon_png('folder' if is_dir else 'file',self.size)
+                icon=PhotoImage(data=base64.b64encode(png).decode('ascii'),format='png')
             if icon is not None and overlay:
-                icon = self._with_overlay(icon, overlay, compact=bool(cloud))
+                icon = self._with_overlay(icon, overlay)
             icon = self._with_text_gap(icon) if icon is not None else self.blank
             if cloud and icon is not self.blank:
                 diameter,x = cloud_badge_geometry(self.size)
@@ -436,7 +446,8 @@ class ShellIconProvider:
         result = PhotoImage(width=self.size, height=self.size)
         result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
         if overlay in VCS_BADGE_SPECS:
-            diameter = min(self.size, max(8 if compact else 12, round(self.size * (.50 if compact else .70))))
+            # Keep Git/SVN's established size when OneDrive is also present.
+            diameter = min(self.size, max(12, round(self.size * .70)))
             encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
             badge = PhotoImage(data=encoded, format="png")
             result.tk.call(str(result), "copy", str(badge),

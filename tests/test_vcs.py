@@ -11,6 +11,39 @@ from pycommander.vcs import (_CACHE, _git_root_summary, _git_status, folder_stat
 
 
 class VCSOverlayTests(unittest.TestCase):
+    def test_tracked_listing_timeout_preserves_confirmed_changes(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw).resolve();(root/'.git').mkdir()
+            status=subprocess.CompletedProcess([],0,stdout=b' M changed.txt\0',stderr=b'')
+            with patch.object(vcs,'_overlay_cli',return_value='git'),patch.object(vcs.subprocess,'run',side_effect=[status,subprocess.TimeoutExpired('git',4)]):
+                with self.assertRaises(vcs.VcsOverlayError) as caught:vcs.folder_statuses(root)
+            self.assertEqual(caught.exception.reason,'tracked-files-timeout')
+            self.assertEqual(status_for(caught.exception.statuses,root/'changed.txt'),'modified')
+            self.assertNotIn(os.path.normcase(str(root)),vcs._CACHE)
+
+    def test_failed_query_does_not_replace_or_extend_valid_snapshot(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw).resolve();(root/'.git').mkdir()
+            states={os.path.normcase(str(root/'known.txt')):'clean'}
+            with patch.object(vcs.time,'monotonic',return_value=10),patch.object(vcs,'_git_status',return_value=states),patch.object(vcs,'_child_repository_statuses',return_value={}):
+                vcs.folder_statuses(root)
+            key=os.path.normcase(str(root));before=vcs._CACHE[key]
+            with patch.object(vcs.time,'monotonic',return_value=20),patch.object(vcs,'_git_status',side_effect=vcs.VcsOverlayError('status-timeout')):
+                with self.assertRaises(vcs.VcsOverlayError):vcs.folder_statuses(root)
+                self.assertEqual(vcs.cached_folder_statuses(root),states)
+            self.assertEqual(vcs._CACHE[key],before)
+            with patch.object(vcs.time,'monotonic',return_value=41):self.assertIsNone(vcs.cached_folder_statuses(root))
+
+    def test_unsafe_ownership_has_safe_reason_not_private_stderr(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw).resolve();(root/'.git').mkdir()
+            result=subprocess.CompletedProcess([],128,stdout=b'',stderr=b"fatal: detected dubious ownership in PRIVATE PATH")
+            with patch.object(vcs,'_overlay_cli',return_value='git'),patch.object(vcs.subprocess,'run',return_value=result):
+                with self.assertRaises(vcs.VcsOverlayError) as caught:vcs.folder_statuses(root)
+            self.assertEqual(caught.exception.reason,'unsafe-ownership')
+            self.assertEqual(caught.exception.returncode,128)
+            self.assertNotIn('PRIVATE',str(caught.exception))
+
     def setUp(self):
         vcs.invalidate_vcs_cache()
 

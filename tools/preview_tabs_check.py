@@ -107,6 +107,12 @@ with tempfile.TemporaryDirectory() as raw:
         table=next(w for w in descendants(viewer) if isinstance(w,pfc.ttk.Treeview))
         assert table.get_children(), 'Structured diagnostic events missing'
         assert table['columns'] == ('time','version','severity','event')
+        app.debug_log.event('newest.error.test',severity='ERROR')
+        refresh=next(w for w in bar.winfo_children() if isinstance(w,pfc.ttk.Button) and w.cget('text')==pfc.tr('Refresh log'))
+        table.yview_moveto(1);refresh.invoke();app.update()
+        assert table.item(table.get_children()[0],'values')[-1]=='newest.error.test'
+        assert table.selection()==('0',) and table.yview()[0]==0.0
+        assert '▼' in table.heading('time','text')
         displayed_time=table.item(table.get_children()[-1],'values')[0]
         assert table.column('time','width') >= pfc.tkfont.nametofont('TkDefaultFont').measure(displayed_time)+12
         clear=next(w for w in bar.winfo_children() if isinstance(w,pfc.ttk.Button) and w.cget('text')==pfc.tr('Clear logs'))

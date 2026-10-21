@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Git overlay failures retain valid cached states and report safe automatic warnings; per-user Git installations and failed Shell icon lookups are handled.': ('修正：Git 疊圖查詢失敗時保留有效快取並自動記錄安全警告；支援個人安裝的 Git 及系統圖示讀取失敗回退。','修正：Git 叠图查询失败时保留有效缓存并自动记录安全警告；支持个人安装的 Git 及系统图标读取失败回退。','수정: Git 조회 실패 시 유효한 캐시 유지 및 안전한 자동 경고 기록. 사용자별 Git 설치와 Shell 아이콘 실패 처리.'),
+    'Improved: Git/SVN badges retain their size beside OneDrive; Error / Warning log lists newest events first and Refresh returns to the top.': ('改善：Git/SVN 與 OneDrive 並存時保留疊圖尺寸；錯誤／警告記錄由新到舊排列，重新整理回到頂端。','改善：Git/SVN 与 OneDrive 并存时保留叠图尺寸；错误／警告记录由新到旧排列，刷新回到顶部。','개선: OneDrive와 함께 표시해도 Git/SVN 배지 크기 유지. 오류/경고는 최신순으로 표시하고 새로 고침 시 맨 위로 이동.'),
     'Added: F3 renders structured JSON/JSONL/YAML/TOML, CSV/TSV tables, SVG, Mermaid, saved notebooks, patches and safe static HTML with a shared Source switch.': ('新增：F3 支援 JSON/JSONL/YAML/TOML 階層、CSV/TSV 表格、SVG、Mermaid、Notebook 已存輸出、差異檔及安全靜態 HTML，共用原文切換。','新增：F3 支持 JSON/JSONL/YAML/TOML 层级、CSV/TSV 表格、SVG、Mermaid、Notebook 已存输出、差异文件及安全静态 HTML，共用原文切换。','추가: F3 구조/표/도형/노트북 저장 출력/패치/정적 HTML 미리보기와 공통 원문 전환.'),
     'Improved: Read-only previews include search/copy, explicit loading and fallback notices, bounded inputs, cancellation and isolated offline graphics; document code is never executed.': ('改善：唯讀預覽提供搜尋／複製、載入與回退提示、大小限制、取消及隔離離線繪圖；不執行文件程式。','改善：只读预览提供搜索／复制、加载与回退提示、大小限制、取消及隔离离线绘图；不执行文档程序。','개선: 검색/복사, 로딩/원문 대체 안내, 용량 제한, 취소와 격리된 오프라인 도형. 문서 코드는 실행하지 않습니다.'),
     'Structure': ('階層','层级','구조'),

@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.35", "2026/10/21", (
+        "Fixed: Git overlay failures retain valid cached states and report safe automatic warnings; per-user Git installations and failed Shell icon lookups are handled.",
+        "Improved: Git/SVN badges retain their size beside OneDrive; Error / Warning log lists newest events first and Refresh returns to the top.",
+    )),
     ("v0.18.34", "2026/10/20", (
         "Added: F3 renders structured JSON/JSONL/YAML/TOML, CSV/TSV tables, SVG, Mermaid, saved notebooks, patches and safe static HTML with a shared Source switch.",
         "Improved: Read-only previews include search/copy, explicit loading and fallback notices, bounded inputs, cancellation and isolated offline graphics; document code is never executed.",
@@ -1388,11 +1392,16 @@ class FilePane(ttk.Frame):
         generation = self._vcs_generation
         self._vcs_inflight = generation
         def load():
+            issue=None
             try:
                 statuses = folder_statuses(path)
-            except Exception:
-                statuses = {}
-            self._vcs_results.put((generation, path, statuses))
+            except Exception as exc:
+                try:statuses = dict(cached_folder_statuses(path) or {})
+                except OSError:statuses = {}
+                statuses.update(getattr(exc,'statuses',{}))
+                issue=dict(backend=getattr(exc,'backend','vcs'),reason=getattr(exc,'reason','query-failed'),
+                           error=type(exc).__name__,returncode=getattr(exc,'returncode',None))
+            self._vcs_results.put((generation, path, statuses, issue))
         try:
             threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
         except RuntimeError:
@@ -1403,12 +1412,16 @@ class FilePane(ttk.Frame):
     def _poll_vcs_results(self) -> None:
         try:
             while True:
-                generation, path, statuses = self._vcs_results.get_nowait()
+                generation, path, statuses, issue = self._vcs_results.get_nowait()
                 if generation == self._vcs_inflight:
                     self._vcs_inflight = None
                     self._vcs_loading = False
                 if (generation == self._vcs_generation and path == self.path and
                         self.archive_session is None and self.winfo_toplevel().vcs_overlay_var.get()):
+                    if issue != getattr(self,'_vcs_last_issue',None):
+                        self._vcs_last_issue=issue
+                        log=getattr(self.winfo_toplevel(),'debug_log',None)
+                        if issue and log:log.event('vcs.overlay.unavailable',severity='WARNING',**issue)
                     previous = self._vcs_statuses
                     if statuses != previous:
                         self._vcs_statuses = statuses
@@ -5160,6 +5173,7 @@ class Commander(tk.Tk):
         self.config_data.set('debug','enabled',str(self.debug_mode_var.get()).lower())
         self.save_config()
         if self.debug_mode_var.get():
+            self.debug_log.event('vcs.overlay.configuration',enabled=self.vcs_overlay_var.get())
             instructions=tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')
             instructions=instructions.replace(tr('View debug log'),tr('Error / Warning log'))
             messagebox.showinfo(tr('Debug mode'), instructions+'\n\n'+str(self.debug_log.path), parent=self)
@@ -5188,7 +5202,7 @@ class Commander(tk.Tk):
         columns = ('time','version','severity','event')
         table = ttk.Treeview(listing,columns=columns,show='headings',selectmode='browse')
         for column, label, width in zip(columns, ('System time','Version','Level','Event'), (245,85,100,380)):
-            table.heading(column,text=tr(label)); table.column(column,width=width,minwidth=60)
+            table.heading(column,text=tr(label)+(' ▼' if column=='time' else '')); table.column(column,width=width,minwidth=60)
         def size_columns(event=None):
             font=tkfont.nametofont('TkDefaultFont')
             for column,sample in (('time','2026-10-14 23:59:59'),('version','0.18.288'),('severity','WARNING')):
@@ -5223,7 +5237,7 @@ class Commander(tk.Tk):
         def refresh():
             nonlocal rows
             try:
-                rows=diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())
+                rows=list(reversed(diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())))
             except OSError:
                 messagebox.showerror(tr('Debug mode'),tr('Cannot read diagnostic log.'),parent=win)
                 return
@@ -5232,8 +5246,8 @@ class Commander(tk.Tk):
                 time=str(row.get('time','—'))[:19].replace('T',' ')
                 table.insert('', 'end',iid=str(i),values=(time,*(row.get(k, '—') for k in columns[1:])))
             if rows:
-                selected=next((i for i in range(len(rows)-1,-1,-1) if rows[i].get('severity') in ('ERROR','CRITICAL','WARNING')),len(rows)-1)
-                table.selection_set(str(selected)); table.see(str(selected))
+                table.selection_set('0'); table.focus('0')
+            table.yview_moveto(0)
             show_details()
         def clear():
             if not messagebox.askyesno(tr('Clear logs'),tr('Clear error and debug logs, including rotated copies? This cannot be undone.'),parent=win):

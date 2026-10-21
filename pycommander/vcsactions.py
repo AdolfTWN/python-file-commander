@@ -96,10 +96,12 @@ def vcs_cli(kind):
     if found:
         return found
     if os.name == 'nt':
-        for variable in ('ProgramFiles', 'ProgramFiles(x86)'):
+        for variable in ('ProgramFiles', 'ProgramW6432', 'ProgramFiles(x86)', 'LOCALAPPDATA'):
             base = os.environ.get(variable)
             if base:
-                relative = 'Git/cmd/git.exe' if kind == 'git' else 'TortoiseSVN/bin/svn.exe'
+                relative = ('Programs/Git/cmd/git.exe' if variable=='LOCALAPPDATA' else 'Git/cmd/git.exe') if kind=='git' else 'TortoiseSVN/bin/svn.exe'
+                if variable=='LOCALAPPDATA' and kind!='git':continue
+                if not Path(base).is_absolute():continue
                 candidate = Path(base) / relative
                 if candidate.is_file():
                     return str(candidate)

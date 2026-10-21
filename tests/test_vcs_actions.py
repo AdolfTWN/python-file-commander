@@ -6,10 +6,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 from pycommander.vcsactions import (VcsContext, VcsLocation, vcs_context, vcs_location,
-    vcs_status, vcs_parse_git_status, vcs_dialog_command, vcs_find_client)
+    vcs_status, vcs_parse_git_status, vcs_dialog_command, vcs_find_client, vcs_cli)
 
 
 class VcsActionTests(unittest.TestCase):
+    def test_windows_gui_finds_per_user_git_without_using_current_directory(self):
+        with tempfile.TemporaryDirectory() as raw:
+            target=Path(raw)/'Programs/Git/cmd/git.exe';target.parent.mkdir(parents=True);target.touch()
+            with patch('pycommander.vcsactions.Path',type(target)),patch('pycommander.vcsactions.os.name','nt'),patch.dict(os.environ,{'PATH':'','ProgramFiles':'','ProgramFiles(x86)':'','ProgramW6432':'','LOCALAPPDATA':raw}),patch('pycommander.vcsactions.shutil.which',return_value=None):
+                self.assertEqual(vcs_cli('git'),str(target))
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)

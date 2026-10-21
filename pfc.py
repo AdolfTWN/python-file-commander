@@ -21,6 +21,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Git overlay failures retain valid cached states and report safe automatic warnings; per-user Git installations and failed Shell icon lookups are handled.': ('修正：Git 疊圖查詢失敗時保留有效快取並自動記錄安全警告；支援個人安裝的 Git 及系統圖示讀取失敗回退。','修正：Git 叠图查询失败时保留有效缓存并自动记录安全警告；支持个人安装的 Git 及系统图标读取失败回退。','수정: Git 조회 실패 시 유효한 캐시 유지 및 안전한 자동 경고 기록. 사용자별 Git 설치와 Shell 아이콘 실패 처리.'),
+    'Improved: Git/SVN badges retain their size beside OneDrive; Error / Warning log lists newest events first and Refresh returns to the top.': ('改善：Git/SVN 與 OneDrive 並存時保留疊圖尺寸；錯誤／警告記錄由新到舊排列，重新整理回到頂端。','改善：Git/SVN 与 OneDrive 并存时保留叠图尺寸；错误／警告记录由新到旧排列，刷新回到顶部。','개선: OneDrive와 함께 표시해도 Git/SVN 배지 크기 유지. 오류/경고는 최신순으로 표시하고 새로 고침 시 맨 위로 이동.'),
     'Added: F3 renders structured JSON/JSONL/YAML/TOML, CSV/TSV tables, SVG, Mermaid, saved notebooks, patches and safe static HTML with a shared Source switch.': ('新增：F3 支援 JSON/JSONL/YAML/TOML 階層、CSV/TSV 表格、SVG、Mermaid、Notebook 已存輸出、差異檔及安全靜態 HTML，共用原文切換。','新增：F3 支持 JSON/JSONL/YAML/TOML 层级、CSV/TSV 表格、SVG、Mermaid、Notebook 已存输出、差异文件及安全静态 HTML，共用原文切换。','추가: F3 구조/표/도형/노트북 저장 출력/패치/정적 HTML 미리보기와 공통 원문 전환.'),
     'Improved: Read-only previews include search/copy, explicit loading and fallback notices, bounded inputs, cancellation and isolated offline graphics; document code is never executed.': ('改善：唯讀預覽提供搜尋／複製、載入與回退提示、大小限制、取消及隔離離線繪圖；不執行文件程式。','改善：只读预览提供搜索／复制、加载与回退提示、大小限制、取消及隔离离线绘图；不执行文档程序。','개선: 검색/복사, 로딩/원문 대체 안내, 용량 제한, 취소와 격리된 오프라인 도형. 문서 코드는 실행하지 않습니다.'),
     'Structure': ('階層','层级','구조'),
@@ -2624,6 +2626,11 @@ def folder_nav_icon_png(kind: str, size: int) -> bytes:
         polygon(((5,8),(19,8),(21,15),(3,15)), '#dce5eb')
         box(3,16,21,19,'#b6c4ce'); box(5,17,13,18,'#7d919f')
         box(18,17,20,18,'#178267')
+    elif kind == 'file':
+        polygon(((5,2),(15,2),(21,8),(21,22),(5,22)), '#718391')
+        polygon(((6,3),(14,3),(20,9),(20,21),(6,21)), '#f7fafc')
+        polygon(((14,3),(14,9),(20,9)), '#bacbd6')
+        for y in (12,15,18):box(8,y,18,y+1,'#9aabb6')
     else:
         polygon(((2,5),(9,5),(11,7),(21,7),(22,9),(22,20),(2,20)), '#bc8c26')
         polygon(((3,6),(9,6),(11,8),(21,8),(21,19),(3,19)), '#f2cd69')
@@ -2659,8 +2666,13 @@ class ShellIconProvider:
         key = (base_key, overlay or '', cloud or '')
         if key not in self.cache:
             icon = self._load(path, is_dir)
+            if icon is None:
+                # A transient Shell lookup failure must not hide known status
+                # badges or poison the cache with an invisible image.
+                png=folder_nav_icon_png('folder' if is_dir else 'file',self.size)
+                icon=PhotoImage(data=base64.b64encode(png).decode('ascii'),format='png')
             if icon is not None and overlay:
-                icon = self._with_overlay(icon, overlay, compact=bool(cloud))
+                icon = self._with_overlay(icon, overlay)
             icon = self._with_text_gap(icon) if icon is not None else self.blank
             if cloud and icon is not self.blank:
                 diameter,x = cloud_badge_geometry(self.size)
@@ -2682,7 +2694,8 @@ class ShellIconProvider:
         result = PhotoImage(width=self.size, height=self.size)
         result.tk.call(str(result), "copy", str(icon), "-to", 0, 0)
         if overlay in VCS_BADGE_SPECS:
-            diameter = min(self.size, max(8 if compact else 12, round(self.size * (.50 if compact else .70))))
+            # Keep Git/SVN's established size when OneDrive is also present.
+            diameter = min(self.size, max(12, round(self.size * .70)))
             encoded = base64.b64encode(vcs_badge_png(diameter, overlay)).decode("ascii")
             badge = PhotoImage(data=encoded, format="png")
             result.tk.call(str(result), "copy", str(badge),
@@ -3262,6 +3275,14 @@ _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
 
 
+class VcsOverlayError(OSError):
+    """Bounded diagnostics only: never retain CLI stderr or private filenames."""
+    def __init__(self, reason, *, returncode=None, statuses=None):
+        super().__init__('Version-control overlay unavailable')
+        self.reason, self.backend = reason, 'git'
+        self.returncode, self.statuses = returncode, statuses or {}
+
+
 def invalidate_vcs_cache():
     """A client dialog finished; the next overlay request must use fresh metadata."""
     global _VCS_CACHE_EPOCH
@@ -3281,6 +3302,7 @@ def _run_options() -> dict:
 def _overlay_cli(kind: str) -> str:
     executable = vcs_cli(kind)
     if executable is None:
+        if kind=='git':raise VcsOverlayError('cli-unavailable')
         raise OSError("Version control command-line tool is unavailable.")
     return executable
 
@@ -3389,17 +3411,14 @@ def _git_status(folder: Path) -> dict[str, str] | None:
     relative = os.path.relpath(folder, root)
     command = [_overlay_cli("git"), "-C", str(root), "status", "--porcelain=v1", "-z",
                "--untracked-files=all", "--", relative]
-    result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
+    try:
+        result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
+    except subprocess.TimeoutExpired:
+        raise VcsOverlayError('status-timeout') from None
     if result.returncode:
-        return {}
+        reason='unsafe-ownership' if b'dubious ownership' in (result.stderr or b'').lower() else 'status-command-failed'
+        raise VcsOverlayError(reason,returncode=result.returncode)
     statuses: dict[str, str] = {}
-    tracked = subprocess.run([_overlay_cli("git"), "-C", str(root), "ls-files", "-z", "--", relative],
-                             capture_output=True, timeout=4, **_run_options())
-    if tracked.returncode == 0:
-        for raw_path in tracked.stdout.split(b"\0"):
-            if raw_path:
-                _merge(statuses, root / raw_path.decode("utf-8", "surrogateescape"),
-                       "clean", root)
     records = result.stdout.split(b"\0")
     index = 0
     while index < len(records):
@@ -3413,6 +3432,16 @@ def _git_status(folder: Path) -> dict[str, str] | None:
             index += 1  # porcelain -z adds the source name after the destination.
         status = _git_code_status(code)
         _merge(statuses, root / raw_path, status, root)
+    try:
+        tracked = subprocess.run([_overlay_cli("git"), "-C", str(root), "ls-files", "-z", "--", relative],
+                                 capture_output=True, timeout=4, **_run_options())
+    except subprocess.TimeoutExpired:
+        raise VcsOverlayError('tracked-files-timeout',statuses=statuses) from None
+    if tracked.returncode:
+        raise VcsOverlayError('tracked-files-command-failed',returncode=tracked.returncode,statuses=statuses)
+    for raw_path in tracked.stdout.split(b"\0"):
+        if raw_path:
+            _merge(statuses, root / raw_path.decode("utf-8", "surrogateescape"), "clean", root)
     return statuses
 
 
@@ -3469,8 +3498,10 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         # submodules.
         value.update(_child_repository_statuses(folder))
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
-        value = {}
-        covered = False
+        # Do not replace a good snapshot with a fresh, apparently valid empty
+        # cache. The UI can retain its bounded last-known snapshot and report
+        # the failure; no failed query extends that snapshot's lifetime.
+        raise
     with _VCS_CACHE_LOCK:
         if epoch == _VCS_CACHE_EPOCH:
             completed = time.monotonic()
@@ -8953,10 +8984,12 @@ def vcs_cli(kind):
     if found:
         return found
     if os.name == 'nt':
-        for variable in ('ProgramFiles', 'ProgramFiles(x86)'):
+        for variable in ('ProgramFiles', 'ProgramW6432', 'ProgramFiles(x86)', 'LOCALAPPDATA'):
             base = os.environ.get(variable)
             if base:
-                relative = 'Git/cmd/git.exe' if kind == 'git' else 'TortoiseSVN/bin/svn.exe'
+                relative = ('Programs/Git/cmd/git.exe' if variable=='LOCALAPPDATA' else 'Git/cmd/git.exe') if kind=='git' else 'TortoiseSVN/bin/svn.exe'
+                if variable=='LOCALAPPDATA' and kind!='git':continue
+                if not Path(base).is_absolute():continue
                 candidate = Path(base) / relative
                 if candidate.is_file():
                     return str(candidate)
@@ -40109,7 +40142,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.34"
+__version__ = "0.18.35"
 
 
 
@@ -40227,8 +40260,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/20"
+BUILD_DATE = "2026/10/21"
 VERSION_HISTORY = (
+    ("v0.18.35", "2026/10/21", (
+        "Fixed: Git overlay failures retain valid cached states and report safe automatic warnings; per-user Git installations and failed Shell icon lookups are handled.",
+        "Improved: Git/SVN badges retain their size beside OneDrive; Error / Warning log lists newest events first and Refresh returns to the top.",
+    )),
     ("v0.18.34", "2026/10/20", (
         "Added: F3 renders structured JSON/JSONL/YAML/TOML, CSV/TSV tables, SVG, Mermaid, saved notebooks, patches and safe static HTML with a shared Source switch.",
         "Improved: Read-only previews include search/copy, explicit loading and fallback notices, bounded inputs, cancellation and isolated offline graphics; document code is never executed.",
@@ -41475,11 +41512,16 @@ class FilePane(ttk.Frame):
         generation = self._vcs_generation
         self._vcs_inflight = generation
         def load():
+            issue=None
             try:
                 statuses = folder_statuses(path)
-            except Exception:
-                statuses = {}
-            self._vcs_results.put((generation, path, statuses))
+            except Exception as exc:
+                try:statuses = dict(cached_folder_statuses(path) or {})
+                except OSError:statuses = {}
+                statuses.update(getattr(exc,'statuses',{}))
+                issue=dict(backend=getattr(exc,'backend','vcs'),reason=getattr(exc,'reason','query-failed'),
+                           error=type(exc).__name__,returncode=getattr(exc,'returncode',None))
+            self._vcs_results.put((generation, path, statuses, issue))
         try:
             threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
         except RuntimeError:
@@ -41490,12 +41532,16 @@ class FilePane(ttk.Frame):
     def _poll_vcs_results(self) -> None:
         try:
             while True:
-                generation, path, statuses = self._vcs_results.get_nowait()
+                generation, path, statuses, issue = self._vcs_results.get_nowait()
                 if generation == self._vcs_inflight:
                     self._vcs_inflight = None
                     self._vcs_loading = False
                 if (generation == self._vcs_generation and path == self.path and
                         self.archive_session is None and self.winfo_toplevel().vcs_overlay_var.get()):
+                    if issue != getattr(self,'_vcs_last_issue',None):
+                        self._vcs_last_issue=issue
+                        log=getattr(self.winfo_toplevel(),'debug_log',None)
+                        if issue and log:log.event('vcs.overlay.unavailable',severity='WARNING',**issue)
                     previous = self._vcs_statuses
                     if statuses != previous:
                         self._vcs_statuses = statuses
@@ -45247,6 +45293,7 @@ class Commander(tk.Tk):
         self.config_data.set('debug','enabled',str(self.debug_mode_var.get()).lower())
         self.save_config()
         if self.debug_mode_var.get():
+            self.debug_log.event('vcs.overlay.configuration',enabled=self.vcs_overlay_var.get())
             instructions=tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')
             instructions=instructions.replace(tr('View debug log'),tr('Error / Warning log'))
             messagebox.showinfo(tr('Debug mode'), instructions+'\n\n'+str(self.debug_log.path), parent=self)
@@ -45275,7 +45322,7 @@ class Commander(tk.Tk):
         columns = ('time','version','severity','event')
         table = ttk.Treeview(listing,columns=columns,show='headings',selectmode='browse')
         for column, label, width in zip(columns, ('System time','Version','Level','Event'), (245,85,100,380)):
-            table.heading(column,text=tr(label)); table.column(column,width=width,minwidth=60)
+            table.heading(column,text=tr(label)+(' ▼' if column=='time' else '')); table.column(column,width=width,minwidth=60)
         def size_columns(event=None):
             font=tkfont.nametofont('TkDefaultFont')
             for column,sample in (('time','2026-10-14 23:59:59'),('version','0.18.288'),('severity','WARNING')):
@@ -45310,7 +45357,7 @@ class Commander(tk.Tk):
         def refresh():
             nonlocal rows
             try:
-                rows=diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())
+                rows=list(reversed(diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())))
             except OSError:
                 messagebox.showerror(tr('Debug mode'),tr('Cannot read diagnostic log.'),parent=win)
                 return
@@ -45319,8 +45366,8 @@ class Commander(tk.Tk):
                 time=str(row.get('time','—'))[:19].replace('T',' ')
                 table.insert('', 'end',iid=str(i),values=(time,*(row.get(k, '—') for k in columns[1:])))
             if rows:
-                selected=next((i for i in range(len(rows)-1,-1,-1) if rows[i].get('severity') in ('ERROR','CRITICAL','WARNING')),len(rows)-1)
-                table.selection_set(str(selected)); table.see(str(selected))
+                table.selection_set('0'); table.focus('0')
+            table.yview_moveto(0)
             show_details()
         def clear():
             if not messagebox.askyesno(tr('Clear logs'),tr('Clear error and debug logs, including rotated copies? This cannot be undone.'),parent=win):

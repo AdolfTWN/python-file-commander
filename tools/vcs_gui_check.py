@@ -7,6 +7,7 @@ import sys
 import importlib
 import subprocess
 import os
+from types import SimpleNamespace
 from contextlib import ExitStack
 from unittest.mock import patch
 
@@ -75,6 +76,20 @@ def main():
         Commander._find_ini_path = staticmethod(lambda: Path(raw) / "pfc.ini")
         app = Commander(); app.geometry('1100x720+60+60'); app.update()
         try:
+            # Verify real Tk pixels, including a failed native Shell lookup.
+            icons = module if portable else importlib.import_module('pycommander.icons')
+            for size in (24,42,48):
+                provider=icons.ShellIconProvider(size)
+                with patch.object(provider,'_load',return_value=None),patch.dict(
+                        icons.ShellIconProvider.get.__globals__,os=SimpleNamespace(name='nt',path=os.path)):
+                    plain=provider.get(repository,True)
+                    badge=provider.get(repository,True,'modified')
+                    combined=provider.get(repository,True,'modified','available')
+                assert badge is not provider.blank
+                assert any(badge.get(x,y)!=plain.get(x,y)
+                           for y in range(size//2) for x in range(size//2)), 'Missing visible Git badge'
+                assert all(badge.get(x,y)==combined.get(x,y)
+                           for y in range(size//2) for x in range(size//3)), 'Cloud shrank Git badge'
             pane = app.left_tabs.current()
             assert pane.navigate(repository.parent)
             wait_for_vcs(app, pane)

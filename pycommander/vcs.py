@@ -20,6 +20,14 @@ _PRIORITY = {"conflict": 5, "modified": 4, "added": 3, "untracked": 2,
              "deleted": 1, "clean": 0}
 
 
+class VcsOverlayError(OSError):
+    """Bounded diagnostics only: never retain CLI stderr or private filenames."""
+    def __init__(self, reason, *, returncode=None, statuses=None):
+        super().__init__('Version-control overlay unavailable')
+        self.reason, self.backend = reason, 'git'
+        self.returncode, self.statuses = returncode, statuses or {}
+
+
 def invalidate_vcs_cache():
     """A client dialog finished; the next overlay request must use fresh metadata."""
     global _VCS_CACHE_EPOCH
@@ -39,6 +47,7 @@ def _run_options() -> dict:
 def _overlay_cli(kind: str) -> str:
     executable = vcs_cli(kind)
     if executable is None:
+        if kind=='git':raise VcsOverlayError('cli-unavailable')
         raise OSError("Version control command-line tool is unavailable.")
     return executable
 
@@ -147,17 +156,14 @@ def _git_status(folder: Path) -> dict[str, str] | None:
     relative = os.path.relpath(folder, root)
     command = [_overlay_cli("git"), "-C", str(root), "status", "--porcelain=v1", "-z",
                "--untracked-files=all", "--", relative]
-    result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
+    try:
+        result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
+    except subprocess.TimeoutExpired:
+        raise VcsOverlayError('status-timeout') from None
     if result.returncode:
-        return {}
+        reason='unsafe-ownership' if b'dubious ownership' in (result.stderr or b'').lower() else 'status-command-failed'
+        raise VcsOverlayError(reason,returncode=result.returncode)
     statuses: dict[str, str] = {}
-    tracked = subprocess.run([_overlay_cli("git"), "-C", str(root), "ls-files", "-z", "--", relative],
-                             capture_output=True, timeout=4, **_run_options())
-    if tracked.returncode == 0:
-        for raw_path in tracked.stdout.split(b"\0"):
-            if raw_path:
-                _merge(statuses, root / raw_path.decode("utf-8", "surrogateescape"),
-                       "clean", root)
     records = result.stdout.split(b"\0")
     index = 0
     while index < len(records):
@@ -171,6 +177,16 @@ def _git_status(folder: Path) -> dict[str, str] | None:
             index += 1  # porcelain -z adds the source name after the destination.
         status = _git_code_status(code)
         _merge(statuses, root / raw_path, status, root)
+    try:
+        tracked = subprocess.run([_overlay_cli("git"), "-C", str(root), "ls-files", "-z", "--", relative],
+                                 capture_output=True, timeout=4, **_run_options())
+    except subprocess.TimeoutExpired:
+        raise VcsOverlayError('tracked-files-timeout',statuses=statuses) from None
+    if tracked.returncode:
+        raise VcsOverlayError('tracked-files-command-failed',returncode=tracked.returncode,statuses=statuses)
+    for raw_path in tracked.stdout.split(b"\0"):
+        if raw_path:
+            _merge(statuses, root / raw_path.decode("utf-8", "surrogateescape"), "clean", root)
     return statuses
 
 
@@ -227,8 +243,10 @@ def folder_statuses(folder: Path) -> dict[str, str]:
         # submodules.
         value.update(_child_repository_statuses(folder))
     except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired):
-        value = {}
-        covered = False
+        # Do not replace a good snapshot with a fresh, apparently valid empty
+        # cache. The UI can retain its bounded last-known snapshot and report
+        # the failure; no failed query extends that snapshot's lifetime.
+        raise
     with _VCS_CACHE_LOCK:
         if epoch == _VCS_CACHE_EPOCH:
             completed = time.monotonic()

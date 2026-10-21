@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.34**
+Current version: **v0.18.35**
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
@@ -61,7 +61,7 @@ overlays coalesce rapid navigation. See the [audit and remaining risks](docs/rel
 version, session ID and file location. Events appear in time/version/level/event
 columns; selecting one shows its structured metadata and stack frames. Duplicate
 records from the two streams are shown once; missing historical versions stay
-unknown. Refresh selects the latest warning/error when present. **Clear logs**
+unknown. Newest events appear first; Refresh selects the first row and returns to the top. **Clear logs**
 asks before clearing both streams and their rotated copies (irreversible);
 logging continues with a new `logs.cleared` entry. Save exports raw JSONL for diagnosis.
 On Windows, errors are saved automatically
