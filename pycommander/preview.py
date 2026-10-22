@@ -681,13 +681,14 @@ class PreviewPage(tk.Frame):
 
     def _cancel_format(self):
         self.render_view.cancel_tree_reveal()
+        if hasattr(self.render_view.tree,'cancel_layout'):self.render_view.tree.cancel_layout()
         if self._format_find_job is not None:
             self.after_cancel(self._format_find_job);self._format_find_job=None
         self._format_jobs.close();self._format_request=None;self._format_queued=None
         self._format_searching=False
 
     def _cancel_format_ui(self):
-        searching=self._format_searching
+        searching=self._format_searching or bool(getattr(self.render_view.tree,'_layout_job',None))
         self._cancel_format()
         if not searching:self._signature=self._path_signature()
         if not searching:self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
@@ -764,10 +765,11 @@ class PreviewPage(tk.Frame):
         self._sync_preview_activity()
 
     def _sync_preview_activity(self):
+        reflow=bool(getattr(self.render_view.tree,'_layout_job',None))
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
-                  or (self._format_active and self.render_view._insert_job is not None))
-        if self._format_queued or self._format_request or self.render_view._tree_revealing:self.format_cancel.pack(side='right',padx=(4,0))
+                  or (self._format_active and (self.render_view._insert_job is not None or reflow)))
+        if self._format_queued or self._format_request or self.render_view._tree_revealing or reflow:self.format_cancel.pack(side='right',padx=(4,0))
         else:self.format_cancel.pack_forget()
         if busy!=self._activity_busy:
             self._activity_busy=busy

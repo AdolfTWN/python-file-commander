@@ -9,6 +9,7 @@ from tkinter import ttk
 from .i18n import tr
 from .tooltip import ToolTip
 from .rendercore import STRUCTURE_REVEAL_LIMIT
+from .wraptree import WrappedTreeview
 
 
 def preview_cell_text(value):
@@ -26,6 +27,7 @@ class FormatRenderView(ttk.Frame):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
         self._row_lookup={};self._search_extra=[]
+        self._structured_widths=None
         self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         self._grid_header=True;self.wrap=False
@@ -55,6 +57,7 @@ class FormatRenderView(ttk.Frame):
         self._generation+=1
         if self._insert_job is not None:
             self.after_cancel(self._insert_job);self._insert_job=None
+        if isinstance(self.tree,WrappedTreeview):self._structured_widths=tuple(self.tree.column(c,'width') for c in ('#0','value','type'))
         for child in self.body.winfo_children():child.destroy()
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
@@ -83,12 +86,11 @@ class FormatRenderView(ttk.Frame):
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self._grid_search_row=None;self._header_match=None;self.match_index=-1
         if kind=='tree':
-            columns=('value','type');self.tree=ttk.Treeview(self.body,columns=columns,show='tree headings',selectmode='browse')
+            columns=('value','type');self.tree=WrappedTreeview(self.body,columns=columns,show='tree headings',selectmode='browse')
             self.tree.heading('#0',text=tr('Key / index'));self.tree.heading('value',text=tr('Value'));self.tree.heading('type',text=tr('Type'))
             for row in self.model['rows']:
                 self._row_lookup[row['id']]=row
-                shown=preview_cell_text(row['value'])
-                self.tree.insert(row['parent'],'end',iid=row['id'],text=preview_cell_text(row['label'])[:500],values=(shown[:500],row['kind']),open=row['path'].count('/')<=1)
+                self.tree.insert(row['parent'],'end',iid=row['id'],text=row['label'],values=(row['value'],row['kind']),open=row['path'].count('/')<=1)
             self.tree_actions.pack(side='right',padx=4)
         else:
             columns=tuple('c'+str(i) for i in range(len(self.model['columns'])))
@@ -133,9 +135,15 @@ class FormatRenderView(ttk.Frame):
                     line(x0,y0,x1,y1)
                 if expanded:line(.42,.42,.42+t,.74)
                 self._tree_icons.append(icon);button.configure(image=icon)
-            self.tree.column('#0',width=22*unit,minwidth=16*unit)
-            self.tree.column('value',width=34*unit,minwidth=12*unit)
-            self.tree.column('type',width=10*unit,minwidth=8*unit,stretch=False)
+            if not getattr(self.tree,'_columns_initialized',False):
+                widths=self._structured_widths or (22*unit,34*unit,10*unit)
+                self.tree.column('#0',width=widths[0],minwidth=4*unit,stretch=False)
+                self.tree.column('value',width=widths[1],minwidth=6*unit,stretch=True)
+                self.tree.column('type',width=widths[2],minwidth=4*unit,stretch=False)
+                self.tree._columns_initialized=True
+            self.tree._invalidate()
+            selected=self.tree.selection()
+            if selected:self.tree.see(selected[0])
         else:
             columns=self.tree['columns']
             for index,key in enumerate(columns):
@@ -291,6 +299,11 @@ class FormatRenderView(ttk.Frame):
         self._tree_revealing=False
     def _tree_match_text(self,row,match):
         iid=row['id']
+        if isinstance(self.tree,WrappedTreeview):
+            self.tree.item(iid,text=row['label'],values=(row['value'],row['kind']))
+            if match:self.tree._match[iid]=(match.get('field'),match.get('start',0),match.get('end',0))
+            else:self.tree._match.pop(iid,None)
+            return
         label=preview_cell_text(row['label'])[:500]
         value=preview_cell_text(row['value'])[:500]
         field=match.get('field')
@@ -337,8 +350,8 @@ class FormatRenderView(ttk.Frame):
                 if iid not in self._row_lookup:
                     siblings=self.tree.get_children(row['parent'])
                     position=next((i for i,other in enumerate(siblings) if int(other[1:])>int(iid[1:])),len(siblings))
-                    self.tree.insert(row['parent'],position,iid=iid,text=preview_cell_text(row['label'])[:500],
-                                     values=(preview_cell_text(row['value'])[:500],row['kind']))
+                    self.tree.insert(row['parent'],position,iid=iid,text=row['label'],
+                                     values=(row['value'],row['kind']))
                     self._row_lookup[iid]=row;self._search_extra.append(iid)
                 # Every returned row is on a matched path; unrelated initial
                 # branches keep their own expansion state.

@@ -16,7 +16,7 @@ def settle(app):
         win = app.preview_window
         page=win.active_page
         if not (win._md_jobs.pending or win._md_queued or win._md_insert or win._span_job
-                or page._format_jobs.pending or page._format_queued or page._format_request or page.render_view._insert_job):
+                or page._format_jobs.pending or page._format_queued or page._format_request or page.render_view._insert_job or getattr(page.render_view.tree,'_layout_job',None)):
             app.update(); return
     raise AssertionError('Preview did not finish')
 

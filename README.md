@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.39**
+Current version: **v0.18.40**
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
@@ -96,7 +96,11 @@ expanded matches, without changing the Rendered state or unrelated branches.
 UI batches; narrow windows use the shorter **Find All** label. A new query/case
 setting resets its search-added nodes. Up to 9,000 extra UI nodes are retained;
 bulk path unions are also capped at 9,000 rows. Limits are explicit, never silently
-evicting earlier matches. Long values show excerpts while Copy keeps raw values.
+evicting earlier matches. Structured values wrap to their column width in
+variable-height rows, preserving line breaks and complete loaded values rather
+than search excerpts. Layout runs in cancellable batches and only viewport text
+is painted. Search reveals the matching lines inside long cells; Copy stays
+lossless. Manually resized key columns remain fixed during font/window changes.
 Cancellation, changed files and partial searches are explicit. Manual Source
 remains available; lines over 32,768 characters use an explicitly labelled
 16K-character source window, repositioned around each match, with Wrap disabled.

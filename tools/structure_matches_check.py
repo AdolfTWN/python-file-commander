@@ -19,7 +19,7 @@ def ready(root,page,timeout=35):
     until=time.monotonic()+timeout
     while time.monotonic()<until:
         root.update();time.sleep(.005)
-        if not (page._format_jobs.pending or page._format_queued or page._format_request or page.render_view._insert_job):
+        if not (page._format_jobs.pending or page._format_queued or page._format_request or page.render_view._insert_job or getattr(page.render_view.tree,'_layout_job',None)):
             root.update();return
     raise AssertionError('Search did not settle: '+page.status.cget('text'))
 

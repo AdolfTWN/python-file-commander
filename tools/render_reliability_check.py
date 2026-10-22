@@ -23,7 +23,7 @@ def ready(root,page,timeout=35):
     while time.monotonic()<until:
         root.update();time.sleep(.01)
         if not (page._format_jobs.pending or page._format_queued or page._format_request
-                or page.render_view._insert_job or page._format_find_job):return
+                or page.render_view._insert_job or page._format_find_job or getattr(page.render_view.tree,'_layout_job',None)):return
     raise AssertionError('Preview did not settle: '+page.status.cget('text'))
 
 

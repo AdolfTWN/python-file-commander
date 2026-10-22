@@ -17,7 +17,7 @@ def ready(root,page,timeout=25):
     while time.monotonic()<end:
         root.update();time.sleep(.01)
         if not (page._format_jobs.pending or page._format_queued or page._format_request
-                or page.render_view._insert_job or page._format_find_job):
+                or page.render_view._insert_job or page._format_find_job or getattr(page.render_view.tree,'_layout_job',None)):
             root.update();return
     raise AssertionError('Structure request did not finish')
 

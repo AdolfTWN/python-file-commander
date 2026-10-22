@@ -17,7 +17,7 @@ MODULES = (
     "actionbar", "vcsui", "comparecolors", "reviewcore", "reviewstorage",
     "workbook", "reviewjobs", "reviewui", "workbookui", "archivereview",
     "archivereviewui", "textio", "compare", "mdworkspace", "mdworkspaceui",
-    "mdlinks", "mdjobs", "markdownblocks", "previewassets", "rendercore", "renderbrowser", "renderui", "preview", "search", "multirename",
+    "mdlinks", "mdjobs", "markdownblocks", "previewassets", "rendercore", "renderbrowser", "wraptree", "renderui", "preview", "search", "multirename",
     "archivefs", "spaceanalyzer", "shelldnd", "shellmenu", "app",
 )
 BANNER = '''"""Portable Python File Commander.

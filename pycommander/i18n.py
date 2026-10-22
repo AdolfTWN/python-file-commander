@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Structured preview wraps complete values into variable-height rows; long-cell layout stays responsive and search reveals matching lines.': ('改善：結構預覽依欄寬完整換行，列高隨內容調整；長值分批排版，搜尋可定位到符合的行。','改善：结构预览按列宽完整换行，行高随内容调整；长值分批排版，搜索可定位匹配行。','개선: 구조 미리보기는 전체 값을 열 너비에 맞춰 가변 높이 행으로 표시하며 긴 값도 응답성을 유지하고 일치 줄로 이동합니다.'),
+    'Fixed: Structured preview keeps manually resized key columns stable during font scaling and window resizing.': ('修正：結構預覽手動調整的索引欄寬不再因字型縮放或視窗大小變更而回彈。','修正：结构预览手动调整的索引列宽不再因字体缩放或窗口大小变化而回弹。','수정: 글꼴 배율이나 창 크기를 바꿔도 수동 조정한 키 열 너비를 유지합니다.'),
     'Fixed: Structured preview keeps previously found branches expanded while navigating matches in the same search.': ('修正：結構預覽在同一搜尋中切換命中項目時，保留先前找到的分支及展開狀態。','修正：结构预览在同一搜索中切换匹配项时，保留先前找到的分支及展开状态。','수정: 같은 검색의 다음/이전 일치로 이동해도 이미 찾은 분기를 펼친 상태로 유지합니다.'),
     'Added: Find All Matched (Ctrl+Enter) expands matching paths in cancellable batches, with explicit display limits and compact scalable controls.': ('新增：全部符合項目（Ctrl+Enter）分批展開命中路徑，可取消並明示顯示上限；控制列支援縮放及緊湊排列。','新增：全部匹配项（Ctrl+Enter）分批展开匹配路径，可取消并明确显示上限；控制栏支持缩放及紧凑排列。','추가: 모두 찾기(Ctrl+Enter)는 일치 경로를 취소 가능한 배치로 펼치며 표시 제한과 작은 창용 컨트롤을 제공합니다.'),
     'Find All Matched': ('展開全部符合項目','展开全部匹配项','모든 일치 펼치기'),
