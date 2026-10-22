@@ -21,6 +21,9 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Table preview searches include headers and every matching cell, reveal long values and preserve lossless Copy. UTF-32 BOM text is decoded correctly.': ('修正：表格預覽搜尋涵蓋欄名及各儲存格，顯示長值命中片段並保留完整複製；正確解碼 UTF-32 BOM 文字。','修正：表格预览搜索涵盖字段名及各单元格，显示长值命中片段并保留完整复制；正确解码 UTF-32 BOM 文本。','수정: 표 검색은 머리글과 모든 일치 셀을 포함하고 긴 값의 일치 부분을 표시하며 원본을 복사합니다. UTF-32 BOM을 올바르게 해석합니다.'),
+    'Improved: Render search clears stale highlights, retains image matches across zoom and labels partial Notebook/graphics results. Unchanged image redraws reuse buffers.': ('改善：清除過期搜尋標記，圖像縮放保留命中位置，明示 Notebook／圖像的部分搜尋範圍；相同縮放重繪時重用圖像緩衝。','改善：清除过期搜索标记，图像缩放保留命中位置，明示 Notebook／图像的部分搜索范围；相同缩放重绘时复用图像缓冲。','개선: 오래된 검색 표시를 지우고 확대 시 일치를 유지하며 Notebook/그래픽의 부분 검색을 명시합니다. 같은 배율은 이미지 버퍼를 재사용합니다.'),
+    'Column header': ('欄位名稱','字段名称','열 머리글'),
     'Fixed: Structured preview search stays in the rendered tree, scans in the background and reveals matched ancestor paths instead of switching to Source.': ('修正：結構化預覽搜尋保留樹狀畫面，在背景掃描並展開命中路徑，不再切換成原文。','修正：结构化预览搜索保留树状画面，在后台扫描并展开命中路径，不再切换成原文。','수정: 구조 검색은 렌더링 트리를 유지하고 백그라운드에서 검색하여 일치 항목의 상위 경로를 펼칩니다. 원문으로 전환하지 않습니다.'),
     'Improved: Long scalar matches show bounded excerpts; search supports cancellation and stale-result protection. Very long Source lines avoid word-wrap layout.': ('改善：長欄位值顯示命中片段；搜尋可取消並排除過期結果。原文極長行避免自動換行排版。','改善：长字段值显示命中片段；搜索可取消并排除过期结果。原文极长行避免自动换行排版。','개선: 긴 값은 일치 부분만 표시합니다. 검색 취소와 오래된 결과 차단을 지원하며 매우 긴 원문 행은 자동 줄 바꿈을 사용하지 않습니다.'),
     'Searching structure…': ('正在搜尋階層…','正在搜索层级…','구조 검색 중…'),
@@ -35356,13 +35359,19 @@ def table_preview(text,suffix):
     if suffix=='.csv':
         try:delimiter=csv.Sniffer().sniff(text[:16384],delimiters=',;\t|').delimiter
         except csv.Error:pass
-    reader=csv.reader(io.StringIO(text,newline=''),delimiter=delimiter,strict=True)
     rows=[];width=0;notice=''
-    for row in reader:
-        next_width=max(width,len(row))
-        if len(rows)>=1001 or (len(rows)+1)*next_width>RENDER_CELL_LIMIT or len(row)>200:
-            notice='Table preview limited to 1,000 records / 20,000 cells; use Source';break
-        rows.append(row);width=next_width
+    # csv defaults to 128 KiB per field, below our bounded input allowance.
+    # Parsing runs in the serial disposable worker; do not leak a global limit.
+    previous=csv.field_size_limit()
+    try:
+        csv.field_size_limit(RENDER_INPUT_LIMIT)
+        reader=csv.reader(io.StringIO(text,newline=''),delimiter=delimiter,strict=True)
+        for row in reader:
+            next_width=max(width,len(row))
+            if len(rows)>=1001 or (len(rows)+1)*next_width>RENDER_CELL_LIMIT or len(row)>200:
+                notice='Table preview limited to 1,000 records / 20,000 cells; use Source';break
+            rows.append(row);width=next_width
+    finally:csv.field_size_limit(previous)
     header=(rows.pop(0) if rows else [])
     header+=['Column '+str(i+1) for i in range(len(header),width)]
     return dict(kind='grid',columns=header,rows=[r+['']*(width-len(r)) for r in rows],
@@ -35533,10 +35542,10 @@ def markdown_preview_html(text):
     return ''.join(output)
 
 
-def notebook_preview_html(text):
+def notebook_preview_html(text,*,with_limits=False):
     data=json.loads(text)
     if not isinstance(data,dict) or data.get('nbformat')!=4 or not isinstance(data.get('cells'),list):raise ValueError('Expected notebook format 4 with cells')
-    output=[];notice='Stored outputs only; no cell execution';images=0
+    output=[];notice='Stored outputs only; no cell execution';images=0;limited=False
     def source(value):
         if isinstance(value,list) and all(isinstance(v,str) for v in value):return ''.join(value)
         if isinstance(value,str):return value
@@ -35546,7 +35555,11 @@ def notebook_preview_html(text):
         kind=cell.get('cell_type');value=source(cell.get('source',''))
         output.append('<section><h3>Cell '+str(index+1)+' · '+html.escape(str(kind))+'</h3>')
         output.append(markdown_preview_html(value) if kind=='markdown' else '<pre><code>'+html.escape(value)+'</code></pre>')
-        for item in cell.get('outputs',[])[:30]:
+        outputs=cell.get('outputs',[])
+        if not isinstance(outputs,list):raise ValueError('Invalid notebook outputs')
+        if len(outputs)>30:
+            notice+='; first 30 outputs per cell only; use Source';limited=True
+        for item in outputs[:30]:
             if not isinstance(item,dict):continue
             if 'text' in item:output.append('<pre class="output">'+html.escape(source(item['text']))+'</pre>')
             if item.get('output_type')=='error':output.append('<pre class="error">'+html.escape('\n'.join(item.get('traceback',[])))+'</pre>')
@@ -35563,12 +35576,13 @@ def notebook_preview_html(text):
                 output.append('<img src="data:image/svg+xml;base64,'+base64.b64encode(svg.encode()).decode()+'">');images+=1;handled=True
             if not handled and 'text/html' in mime:output.append(static_preview_html(source(mime['text/html']),allow_styles=False));handled=True
             if not handled and 'text/plain' in mime:output.append('<pre class="output">'+html.escape(source(mime['text/plain']))+'</pre>')
-            if not handled and any(k.startswith('image/') or k.startswith('application/') for k in mime):notice+='; unsupported rich output omitted (see Source)'
+            if not handled and any(k.startswith('image/') or k.startswith('application/') for k in mime):
+                notice+='; unsupported rich output omitted (see Source)';limited=True
         output.append('</section>')
-    if len(data['cells'])>60:notice+='; first 60 cells only; use Source'
+    if len(data['cells'])>60:notice+='; first 60 cells only; use Source';limited=True
     result=''.join(output)
     if len(result)>4*1024*1024:raise ValueError('Notebook visual output limit reached; use Source')
-    return result,notice
+    return (result,notice,limited) if with_limits else (result,notice)
 
 
 # Source: pycommander/renderbrowser.py
@@ -35677,13 +35691,14 @@ class _PreviewCDP:
 def raster_preview(text,suffix,*,width=1100,font_size=16):
     browser=preview_browser_path()
     if not browser:raise ValueError('Static graphics require installed Microsoft Edge or Chrome/Chromium; showing Source (no automatic installation)')
+    content_limited=False
     if suffix in {'.mmd','.mermaid'}:
         if len(text)>100000:raise ValueError('Diagram source limit reached; use Source')
         # Do not allow document-level directives/frontmatter to weaken renderer policy.
         if re_preview_directive(text):raise ValueError('Diagram configuration directives are disabled; use plain diagram syntax')
         body='<div id="diagram"></div>';notice='Offline diagram · read-only'
     elif suffix=='.svg':body=static_preview_svg(text);notice='Static SVG · scripts and external resources blocked'
-    elif suffix=='.ipynb':body,notice=notebook_preview_html(text)
+    elif suffix=='.ipynb':body,notice,content_limited=notebook_preview_html(text,with_limits=True)
     else:body=static_preview_html(text);notice='Static HTML · scripts/forms/external resources blocked'
     width=max(640,min(1600,int(width)));font_size=max(12,min(48,int(font_size)))
     style=(f'html,body{{margin:0;background:white;color:#202124;font:{font_size}px Arial,sans-serif}}'
@@ -35741,7 +35756,14 @@ def raster_preview(text,suffix,*,width=1100,font_size=16):
             maximum=max(100,4000000//width)
             clipped=height>maximum or content_height>8000
             height=min(height,maximum)
-            positions=channel.evaluate('''(()=>{let p=[],n,total=0;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);while((n=w.nextNode())&&p.length<3000){if(!n.textContent.trim()||n.parentElement.closest('style,script'))continue;const r=document.createRange();r.selectNodeContents(n);const b=r.getBoundingClientRect();if(b.width&&b.height&&b.y<'''+str(height)+'''){const t=n.textContent;p.push({text:t,x:b.x,y:b.y,w:b.width,h:b.height,start:total,end:total+t.length});total+=t.length+1}}return p})()''')
+            text_model=channel.evaluate('''(()=>{let p=[],n,limited=false;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+while((n=w.nextNode())){if(!n.textContent.trim()||n.parentElement.closest('style,script'))continue;
+const r=document.createRange();r.selectNodeContents(n);const b=r.getBoundingClientRect();if(!b.width||!b.height)continue;
+if(p.length>=3000){limited=true;break;}
+if(b.y>='''+str(height)+'''||b.bottom<=0||b.x>='''+str(width)+'''||b.right<=0){limited=true;continue;}
+if(b.bottom>'''+str(height)+'''||b.y<0||b.right>'''+str(width)+'''||b.x<0)limited=true;
+p.push({text:n.textContent,x:b.x,y:b.y,w:b.width,h:b.height});}return {positions:p,limited}})()''')
+            positions=text_model['positions']
             offset=0
             for position in positions:
                 position.update(start=offset,end=offset+len(position['text']));offset=position['end']+1
@@ -35751,8 +35773,10 @@ def raster_preview(text,suffix,*,width=1100,font_size=16):
                              clip=dict(x=0,y=0,width=width,height=height,scale=1))['data']
             if len(png)>12*1024*1024:raise ValueError('Rendered image size limit reached')
             if clipped:notice+='; rendered height limited; use Source for remaining content'
+            if text_model['limited']:notice+='; rendered search covers part of visible text; use Source for remaining content'
             return dict(kind='image',png=png,width=width,height=height,positions=positions,
-                        content='\n'.join(p['text'] for p in positions),notice=notice,truncated=clipped)
+                        content='\n'.join(p['text'] for p in positions),notice=notice,
+                        truncated=clipped or content_limited or text_model['limited'])
         finally:
             if channel:
                 try:channel.call('Browser.close')
@@ -35790,6 +35814,7 @@ def re_preview_directive(text):
 # Source: pycommander/renderui.py
 """One compact read-only view for structured, tabular, textual and image models."""
 import base64
+from itertools import chain,islice
 import re
 import tkinter as tk
 import tkinter.font as tkfont
@@ -35803,11 +35828,17 @@ def preview_cell_text(value):
     return value.replace('\r\n','\n').replace('\r','\n').replace('\n',' ↵ ')
 
 
+def preview_match_excerpt(value,start,end):
+    left=max(0,start-12);right=min(len(value),end+80,left+200)
+    return ('… ' if left else '')+preview_cell_text(value[left:right])+(' …' if right<len(value) else '')
+
+
 class FormatRenderView(ttk.Frame):
     def __init__(self,master):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
         self._row_lookup={};self._search_extra=[]
+        self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         self._grid_header=True;self.wrap=False
         self.header=ttk.Frame(self,padding=(6,3));self.header.pack(fill='x')
         self.detail=ttk.Label(self.header,width=1);self.detail.pack(side='left',fill='x',expand=True)
@@ -35839,6 +35870,7 @@ class FormatRenderView(ttk.Frame):
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         self._row_lookup={};self._search_extra=[]
+        self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
     def show(self,model):
@@ -35859,6 +35891,7 @@ class FormatRenderView(ttk.Frame):
         widget.bind('<Control-C>',lambda e:self.copy())
     def _show_tree(self,kind):
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
+        self._grid_search_row=None;self._header_match=None;self.match_index=-1
         if kind=='tree':
             columns=('value','type');self.tree=ttk.Treeview(self.body,columns=columns,show='tree headings',selectmode='browse')
             self.tree.heading('#0',text=tr('Key / index'));self.tree.heading('value',text=tr('Value'));self.tree.heading('type',text=tr('Type'))
@@ -35870,10 +35903,11 @@ class FormatRenderView(ttk.Frame):
         else:
             columns=tuple('c'+str(i) for i in range(len(self.model['columns'])))
             headers=self.model['columns'] if self._grid_header else ['Column '+str(i+1) for i in range(len(columns))]
+            self._grid_headings=headers
             self._grid_rows=self.model['rows'] if self._grid_header else [self.model['columns']]+self.model['rows']
             self.tree=ttk.Treeview(self.body,columns=columns,show='headings',selectmode='browse')
             for index,(key,label) in enumerate(zip(columns,headers)):
-                self.tree.heading(key,text=label)
+                self.tree.heading(key,text=preview_cell_text(label)[:500])
             for index,row in enumerate(self._grid_rows):
                 self.tree.insert('','end',iid='r'+str(index),values=tuple(preview_cell_text(v)[:500] for v in row))
             self.choice.configure(values=(tr('First row: header'),tr('First row: data')))
@@ -35934,6 +35968,7 @@ class FormatRenderView(ttk.Frame):
         return 'break'
     def _value(self):
         selection=self.tree.selection() if self.tree else ()
+        if not selection and self._header_match is not None:return self._header_match
         if not selection:return self.model.get('content','') if not self.tree else ''
         iid=selection[0]
         if self.model['kind']=='tree':
@@ -36032,10 +36067,22 @@ class FormatRenderView(ttk.Frame):
         factor=2 if value=='200%' else 1
         divisor=max(1,(width+max(100,self.canvas.winfo_width()-12)-1)//max(100,self.canvas.winfo_width()-12)) if value==tr('Fit width') else 1
         # Integer subsampling keeps Tk memory bounded, original raster stays available.
-        self.display_image=self.original.subsample(divisor) if divisor>1 else self.original.zoom(factor) if factor>1 else self.original
-        self.images=[self.original,self.display_image];self.scale=factor/divisor
-        self.canvas.delete('all');self.canvas.create_image(0,0,image=self.display_image,anchor='nw')
-        self.canvas.configure(scrollregion=(0,0,self.display_image.width(),self.display_image.height()))
+        key=(self._generation,factor,divisor)
+        if self._image_view_key!=key:
+            self.display_image=self.original.subsample(divisor) if divisor>1 else self.original.zoom(factor) if factor>1 else self.original
+            self._image_view_key=key
+            self.images=[self.original,self.display_image];self.scale=factor/divisor
+            self.canvas.delete('all');self.canvas.create_image(0,0,image=self.display_image,anchor='nw')
+            self.canvas.configure(scrollregion=(0,0,self.display_image.width(),self.display_image.height()))
+        self._paint_image_match()
+    def _paint_image_match(self):
+        self.canvas.delete('search_hit')
+        node=self._image_match
+        if node:
+            x,y,w,h=(node[k]*self.scale for k in ('x','y','w','h'))
+            self.canvas.create_rectangle(x,y,x+w,y+h,outline='#db6c00',width=3,tags='search_hit')
+            self.canvas.yview_moveto(max(0,(y-20)/max(1,self.display_image.height())))
+            self.canvas.xview_moveto(max(0,(x-20)/max(1,self.display_image.width())))
     def _choose(self):
         if self.canvas:self._draw_image()
         elif self.tree and self.model['kind']=='grid':
@@ -36075,8 +36122,7 @@ class FormatRenderView(ttk.Frame):
         value=preview_cell_text(row['value'])[:500]
         field=result.get('field')
         if field in {'label','value'}:
-            raw=row[field];start=max(0,result['start']-12);end=min(len(raw),result['end']+80,start+200)
-            snippet=('… ' if start else '')+preview_cell_text(raw[start:end])+(' …' if end<len(raw) else '')
+            snippet=preview_match_excerpt(row[field],result['start'],result['end'])
             if field=='value':value=snippet
             else:label=snippet
         self.tree.item(iid,text=label,values=(value,row['kind']))
@@ -36085,19 +36131,45 @@ class FormatRenderView(ttk.Frame):
         self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
         self._cell=0
     def find(self,needle,case=False,direction=1):
+        self._clear_find_display()
         if not needle:return tr('Enter search text')
         flags=0 if case else re.I;pattern=re.compile(re.escape(needle),flags);hits=[]
-        if self.tree:
+        if self.tree and self.model['kind']=='grid':
+            cells=((-1,c,label) for c,label in enumerate(self._grid_headings))
+            cells=chain(cells,((r,c,value) for r,row in enumerate(self._grid_rows) for c,value in enumerate(row)))
+            for row,column,value in cells:
+                for match in pattern.finditer(value):
+                    hits.append((row,column,match.start(),match.end()))
+                    if len(hits)>5000:break
+                if len(hits)>5000:break
+        elif self.tree:
             for index,row in enumerate(self.model['rows'] if self.model['kind']=='tree' else self._grid_rows):
                 values=(row['label'],row['value'],row['path']) if self.model['kind']=='tree' else row
                 for column,value in enumerate(values):
                     if pattern.search(value):hits.append((index,column));break
-        else:hits=[m.start() for m in pattern.finditer(self.model.get('content',''))][:5000]
+        else:hits=[m.start() for m in islice(pattern.finditer(self.model.get('content','')),5001)]
+        limited=len(hits)>5000;hits=hits[:5000]
         key=(needle,case)
         if getattr(self,'_find_key',None)!=key:self.match_index=-1;self._find_key=key
         if not hits:return tr('No matches')
         self.match_index=((0 if direction>0 else len(hits)-1) if self.match_index<0 else (self.match_index+direction)%len(hits));hit=hits[self.match_index]
-        if self.tree:
+        header=False
+        if self.tree and self.model['kind']=='grid':
+            index,column,start,end=hit;key=self.tree['columns'][column]
+            self._cell=column
+            if index<0:
+                header=True;self._header_match=self._grid_headings[column]
+                self.tree.selection_remove(*self.tree.selection())
+                self.tree.heading(key,text='▶ '+preview_match_excerpt(self._header_match,start,end))
+            else:
+                self._grid_search_row=index;iid='r'+str(index)
+                shown=[preview_cell_text(v)[:500] for v in self._grid_rows[index]]
+                shown[column]=preview_match_excerpt(self._grid_rows[index][column],start,end)
+                self.tree.item(iid,values=shown);self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
+            left=sum(self.tree.column(k,'width') for k in self.tree['columns'][:column])
+            total=sum(self.tree.column(k,'width') for k in self.tree['columns'])
+            self.tree.xview_moveto(left/max(1,total))
+        elif self.tree:
             index,column=hit;iid=self.model['rows'][index]['id'] if self.model['kind']=='tree' else 'r'+str(index)
             parent=self.tree.parent(iid)
             while parent:self.tree.item(parent,open=True);parent=self.tree.parent(parent)
@@ -36110,13 +36182,21 @@ class FormatRenderView(ttk.Frame):
             self.text.tag_remove('format_match','1.0','end');self.text.tag_add('format_match',f'1.0+{local_hit}c',f'1.0+{local_hit+len(needle)}c')
             self.text.see(f'1.0+{local_hit}c')
         elif self.canvas:
-            self.canvas.delete('search_hit')
-            node=next((p for p in self.model.get('positions',[]) if p['start']<=hit<p['end']),None)
-            if node:
-                x,y,w,h=(node[k]*self.scale for k in ('x','y','w','h'))
-                self.canvas.create_rectangle(x,y,x+w,y+h,outline='#db6c00',width=3,tags='search_hit')
-                self.canvas.yview_moveto(max(0,(y-20)/max(1,self.display_image.height())))
-        return tr('Match {current} of {total}',current=self.match_index+1,total=len(hits))
+            self._image_match=next((p for p in self.model.get('positions',[]) if p['start']<=hit<p['end']),None)
+            self._draw_image()
+        detail=tr('Match {current} of {total}',current=self.match_index+1,total=len(hits))
+        if header:detail=tr('Column header')+' · '+detail
+        if limited:detail=tr('Showing the first 5,000 search matches')+' · '+detail
+        return detail
+    def _clear_find_display(self):
+        if self.tree and self.model['kind']=='grid':
+            if self._grid_search_row is not None:
+                index=self._grid_search_row
+                self.tree.item('r'+str(index),values=tuple(preview_cell_text(v)[:500] for v in self._grid_rows[index]))
+            for column,label in zip(self.tree['columns'],self._grid_headings):self.tree.heading(column,text=preview_cell_text(label)[:500])
+        self._grid_search_row=None;self._header_match=None;self._image_match=None
+        if self.text:self.text.tag_remove('format_match','1.0','end')
+        if self.canvas:self.canvas.delete('search_hit')
 
 
 # Source: pycommander/preview.py
@@ -36505,12 +36585,14 @@ def looks_text(path: Path, sample: bytes) -> bool:
         return True
     if not sample:
         return True
-    if sample.startswith((b"\xff\xfe", b"\xfe\xff", b"\xef\xbb\xbf")):
+    if sample.startswith((b"\xff\xfe", b"\xfe\xff", b"\xef\xbb\xbf",b"\x00\x00\xfe\xff")):
         return True
     return b"\x00" not in sample and sum(byte < 9 or 13 < byte < 32 for byte in sample) / len(sample) < 0.05
 
 
 def decode_text(data: bytes) -> tuple[str, str]:
+    if data.startswith((b"\xff\xfe\x00\x00",b"\x00\x00\xfe\xff")):
+        return data.decode("utf-32", errors="replace"), "UTF-32"
     if data.startswith((b"\xff\xfe", b"\xfe\xff")):
         return data.decode("utf-16", errors="replace"), "UTF-16"
     try:
@@ -40374,7 +40456,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.37"
+__version__ = "0.18.38"
 
 
 
@@ -40494,6 +40576,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/22"
 VERSION_HISTORY = (
+    ("v0.18.38", "2026/10/22", (
+        "Fixed: Table preview searches include headers and every matching cell, reveal long values and preserve lossless Copy. UTF-32 BOM text is decoded correctly.",
+        "Improved: Render search clears stale highlights, retains image matches across zoom and labels partial Notebook/graphics results. Unchanged image redraws reuse buffers.",
+    )),
     ("v0.18.37", "2026/10/22", (
         "Fixed: Structured preview search stays in the rendered tree, scans in the background and reveals matched ancestor paths instead of switching to Source.",
         "Improved: Long scalar matches show bounded excerpts; search supports cancellation and stale-result protection. Very long Source lines avoid word-wrap layout.",

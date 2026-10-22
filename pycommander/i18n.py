@@ -11,6 +11,9 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Table preview searches include headers and every matching cell, reveal long values and preserve lossless Copy. UTF-32 BOM text is decoded correctly.': ('修正：表格預覽搜尋涵蓋欄名及各儲存格，顯示長值命中片段並保留完整複製；正確解碼 UTF-32 BOM 文字。','修正：表格预览搜索涵盖字段名及各单元格，显示长值命中片段并保留完整复制；正确解码 UTF-32 BOM 文本。','수정: 표 검색은 머리글과 모든 일치 셀을 포함하고 긴 값의 일치 부분을 표시하며 원본을 복사합니다. UTF-32 BOM을 올바르게 해석합니다.'),
+    'Improved: Render search clears stale highlights, retains image matches across zoom and labels partial Notebook/graphics results. Unchanged image redraws reuse buffers.': ('改善：清除過期搜尋標記，圖像縮放保留命中位置，明示 Notebook／圖像的部分搜尋範圍；相同縮放重繪時重用圖像緩衝。','改善：清除过期搜索标记，图像缩放保留命中位置，明示 Notebook／图像的部分搜索范围；相同缩放重绘时复用图像缓冲。','개선: 오래된 검색 표시를 지우고 확대 시 일치를 유지하며 Notebook/그래픽의 부분 검색을 명시합니다. 같은 배율은 이미지 버퍼를 재사용합니다.'),
+    'Column header': ('欄位名稱','字段名称','열 머리글'),
     'Fixed: Structured preview search stays in the rendered tree, scans in the background and reveals matched ancestor paths instead of switching to Source.': ('修正：結構化預覽搜尋保留樹狀畫面，在背景掃描並展開命中路徑，不再切換成原文。','修正：结构化预览搜索保留树状画面，在后台扫描并展开命中路径，不再切换成原文。','수정: 구조 검색은 렌더링 트리를 유지하고 백그라운드에서 검색하여 일치 항목의 상위 경로를 펼칩니다. 원문으로 전환하지 않습니다.'),
     'Improved: Long scalar matches show bounded excerpts; search supports cancellation and stale-result protection. Very long Source lines avoid word-wrap layout.': ('改善：長欄位值顯示命中片段；搜尋可取消並排除過期結果。原文極長行避免自動換行排版。','改善：长字段值显示命中片段；搜索可取消并排除过期结果。原文极长行避免自动换行排版。','개선: 긴 값은 일치 부분만 표시합니다. 검색 취소와 오래된 결과 차단을 지원하며 매우 긴 원문 행은 자동 줄 바꿈을 사용하지 않습니다.'),
     'Searching structure…': ('正在搜尋階層…','正在搜索层级…','구조 검색 중…'),

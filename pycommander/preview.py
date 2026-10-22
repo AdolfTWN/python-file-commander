@@ -383,12 +383,14 @@ def looks_text(path: Path, sample: bytes) -> bool:
         return True
     if not sample:
         return True
-    if sample.startswith((b"\xff\xfe", b"\xfe\xff", b"\xef\xbb\xbf")):
+    if sample.startswith((b"\xff\xfe", b"\xfe\xff", b"\xef\xbb\xbf",b"\x00\x00\xfe\xff")):
         return True
     return b"\x00" not in sample and sum(byte < 9 or 13 < byte < 32 for byte in sample) / len(sample) < 0.05
 
 
 def decode_text(data: bytes) -> tuple[str, str]:
+    if data.startswith((b"\xff\xfe\x00\x00",b"\x00\x00\xfe\xff")):
+        return data.decode("utf-32", errors="replace"), "UTF-32"
     if data.startswith((b"\xff\xfe", b"\xfe\xff")):
         return data.decode("utf-16", errors="replace"), "UTF-16"
     try:

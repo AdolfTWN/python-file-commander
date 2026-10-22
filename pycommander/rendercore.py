@@ -169,13 +169,19 @@ def table_preview(text,suffix):
     if suffix=='.csv':
         try:delimiter=csv.Sniffer().sniff(text[:16384],delimiters=',;\t|').delimiter
         except csv.Error:pass
-    reader=csv.reader(io.StringIO(text,newline=''),delimiter=delimiter,strict=True)
     rows=[];width=0;notice=''
-    for row in reader:
-        next_width=max(width,len(row))
-        if len(rows)>=1001 or (len(rows)+1)*next_width>RENDER_CELL_LIMIT or len(row)>200:
-            notice='Table preview limited to 1,000 records / 20,000 cells; use Source';break
-        rows.append(row);width=next_width
+    # csv defaults to 128 KiB per field, below our bounded input allowance.
+    # Parsing runs in the serial disposable worker; do not leak a global limit.
+    previous=csv.field_size_limit()
+    try:
+        csv.field_size_limit(RENDER_INPUT_LIMIT)
+        reader=csv.reader(io.StringIO(text,newline=''),delimiter=delimiter,strict=True)
+        for row in reader:
+            next_width=max(width,len(row))
+            if len(rows)>=1001 or (len(rows)+1)*next_width>RENDER_CELL_LIMIT or len(row)>200:
+                notice='Table preview limited to 1,000 records / 20,000 cells; use Source';break
+            rows.append(row);width=next_width
+    finally:csv.field_size_limit(previous)
     header=(rows.pop(0) if rows else [])
     header+=['Column '+str(i+1) for i in range(len(header),width)]
     return dict(kind='grid',columns=header,rows=[r+['']*(width-len(r)) for r in rows],
@@ -346,10 +352,10 @@ def markdown_preview_html(text):
     return ''.join(output)
 
 
-def notebook_preview_html(text):
+def notebook_preview_html(text,*,with_limits=False):
     data=json.loads(text)
     if not isinstance(data,dict) or data.get('nbformat')!=4 or not isinstance(data.get('cells'),list):raise ValueError('Expected notebook format 4 with cells')
-    output=[];notice='Stored outputs only; no cell execution';images=0
+    output=[];notice='Stored outputs only; no cell execution';images=0;limited=False
     def source(value):
         if isinstance(value,list) and all(isinstance(v,str) for v in value):return ''.join(value)
         if isinstance(value,str):return value
@@ -359,7 +365,11 @@ def notebook_preview_html(text):
         kind=cell.get('cell_type');value=source(cell.get('source',''))
         output.append('<section><h3>Cell '+str(index+1)+' · '+html.escape(str(kind))+'</h3>')
         output.append(markdown_preview_html(value) if kind=='markdown' else '<pre><code>'+html.escape(value)+'</code></pre>')
-        for item in cell.get('outputs',[])[:30]:
+        outputs=cell.get('outputs',[])
+        if not isinstance(outputs,list):raise ValueError('Invalid notebook outputs')
+        if len(outputs)>30:
+            notice+='; first 30 outputs per cell only; use Source';limited=True
+        for item in outputs[:30]:
             if not isinstance(item,dict):continue
             if 'text' in item:output.append('<pre class="output">'+html.escape(source(item['text']))+'</pre>')
             if item.get('output_type')=='error':output.append('<pre class="error">'+html.escape('\n'.join(item.get('traceback',[])))+'</pre>')
@@ -376,9 +386,10 @@ def notebook_preview_html(text):
                 output.append('<img src="data:image/svg+xml;base64,'+base64.b64encode(svg.encode()).decode()+'">');images+=1;handled=True
             if not handled and 'text/html' in mime:output.append(static_preview_html(source(mime['text/html']),allow_styles=False));handled=True
             if not handled and 'text/plain' in mime:output.append('<pre class="output">'+html.escape(source(mime['text/plain']))+'</pre>')
-            if not handled and any(k.startswith('image/') or k.startswith('application/') for k in mime):notice+='; unsupported rich output omitted (see Source)'
+            if not handled and any(k.startswith('image/') or k.startswith('application/') for k in mime):
+                notice+='; unsupported rich output omitted (see Source)';limited=True
         output.append('</section>')
-    if len(data['cells'])>60:notice+='; first 60 cells only; use Source'
+    if len(data['cells'])>60:notice+='; first 60 cells only; use Source';limited=True
     result=''.join(output)
     if len(result)>4*1024*1024:raise ValueError('Notebook visual output limit reached; use Source')
-    return result,notice
+    return (result,notice,limited) if with_limits else (result,notice)

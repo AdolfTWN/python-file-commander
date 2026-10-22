@@ -1,5 +1,6 @@
 """One compact read-only view for structured, tabular, textual and image models."""
 import base64
+from itertools import chain,islice
 import re
 import tkinter as tk
 import tkinter.font as tkfont
@@ -13,11 +14,17 @@ def preview_cell_text(value):
     return value.replace('\r\n','\n').replace('\r','\n').replace('\n',' ↵ ')
 
 
+def preview_match_excerpt(value,start,end):
+    left=max(0,start-12);right=min(len(value),end+80,left+200)
+    return ('… ' if left else '')+preview_cell_text(value[left:right])+(' …' if right<len(value) else '')
+
+
 class FormatRenderView(ttk.Frame):
     def __init__(self,master):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
         self._row_lookup={};self._search_extra=[]
+        self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         self._grid_header=True;self.wrap=False
         self.header=ttk.Frame(self,padding=(6,3));self.header.pack(fill='x')
         self.detail=ttk.Label(self.header,width=1);self.detail.pack(side='left',fill='x',expand=True)
@@ -49,6 +56,7 @@ class FormatRenderView(ttk.Frame):
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         self._row_lookup={};self._search_extra=[]
+        self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
     def show(self,model):
@@ -69,6 +77,7 @@ class FormatRenderView(ttk.Frame):
         widget.bind('<Control-C>',lambda e:self.copy())
     def _show_tree(self,kind):
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
+        self._grid_search_row=None;self._header_match=None;self.match_index=-1
         if kind=='tree':
             columns=('value','type');self.tree=ttk.Treeview(self.body,columns=columns,show='tree headings',selectmode='browse')
             self.tree.heading('#0',text=tr('Key / index'));self.tree.heading('value',text=tr('Value'));self.tree.heading('type',text=tr('Type'))
@@ -80,10 +89,11 @@ class FormatRenderView(ttk.Frame):
         else:
             columns=tuple('c'+str(i) for i in range(len(self.model['columns'])))
             headers=self.model['columns'] if self._grid_header else ['Column '+str(i+1) for i in range(len(columns))]
+            self._grid_headings=headers
             self._grid_rows=self.model['rows'] if self._grid_header else [self.model['columns']]+self.model['rows']
             self.tree=ttk.Treeview(self.body,columns=columns,show='headings',selectmode='browse')
             for index,(key,label) in enumerate(zip(columns,headers)):
-                self.tree.heading(key,text=label)
+                self.tree.heading(key,text=preview_cell_text(label)[:500])
             for index,row in enumerate(self._grid_rows):
                 self.tree.insert('','end',iid='r'+str(index),values=tuple(preview_cell_text(v)[:500] for v in row))
             self.choice.configure(values=(tr('First row: header'),tr('First row: data')))
@@ -144,6 +154,7 @@ class FormatRenderView(ttk.Frame):
         return 'break'
     def _value(self):
         selection=self.tree.selection() if self.tree else ()
+        if not selection and self._header_match is not None:return self._header_match
         if not selection:return self.model.get('content','') if not self.tree else ''
         iid=selection[0]
         if self.model['kind']=='tree':
@@ -242,10 +253,22 @@ class FormatRenderView(ttk.Frame):
         factor=2 if value=='200%' else 1
         divisor=max(1,(width+max(100,self.canvas.winfo_width()-12)-1)//max(100,self.canvas.winfo_width()-12)) if value==tr('Fit width') else 1
         # Integer subsampling keeps Tk memory bounded, original raster stays available.
-        self.display_image=self.original.subsample(divisor) if divisor>1 else self.original.zoom(factor) if factor>1 else self.original
-        self.images=[self.original,self.display_image];self.scale=factor/divisor
-        self.canvas.delete('all');self.canvas.create_image(0,0,image=self.display_image,anchor='nw')
-        self.canvas.configure(scrollregion=(0,0,self.display_image.width(),self.display_image.height()))
+        key=(self._generation,factor,divisor)
+        if self._image_view_key!=key:
+            self.display_image=self.original.subsample(divisor) if divisor>1 else self.original.zoom(factor) if factor>1 else self.original
+            self._image_view_key=key
+            self.images=[self.original,self.display_image];self.scale=factor/divisor
+            self.canvas.delete('all');self.canvas.create_image(0,0,image=self.display_image,anchor='nw')
+            self.canvas.configure(scrollregion=(0,0,self.display_image.width(),self.display_image.height()))
+        self._paint_image_match()
+    def _paint_image_match(self):
+        self.canvas.delete('search_hit')
+        node=self._image_match
+        if node:
+            x,y,w,h=(node[k]*self.scale for k in ('x','y','w','h'))
+            self.canvas.create_rectangle(x,y,x+w,y+h,outline='#db6c00',width=3,tags='search_hit')
+            self.canvas.yview_moveto(max(0,(y-20)/max(1,self.display_image.height())))
+            self.canvas.xview_moveto(max(0,(x-20)/max(1,self.display_image.width())))
     def _choose(self):
         if self.canvas:self._draw_image()
         elif self.tree and self.model['kind']=='grid':
@@ -285,8 +308,7 @@ class FormatRenderView(ttk.Frame):
         value=preview_cell_text(row['value'])[:500]
         field=result.get('field')
         if field in {'label','value'}:
-            raw=row[field];start=max(0,result['start']-12);end=min(len(raw),result['end']+80,start+200)
-            snippet=('… ' if start else '')+preview_cell_text(raw[start:end])+(' …' if end<len(raw) else '')
+            snippet=preview_match_excerpt(row[field],result['start'],result['end'])
             if field=='value':value=snippet
             else:label=snippet
         self.tree.item(iid,text=label,values=(value,row['kind']))
@@ -295,19 +317,45 @@ class FormatRenderView(ttk.Frame):
         self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
         self._cell=0
     def find(self,needle,case=False,direction=1):
+        self._clear_find_display()
         if not needle:return tr('Enter search text')
         flags=0 if case else re.I;pattern=re.compile(re.escape(needle),flags);hits=[]
-        if self.tree:
+        if self.tree and self.model['kind']=='grid':
+            cells=((-1,c,label) for c,label in enumerate(self._grid_headings))
+            cells=chain(cells,((r,c,value) for r,row in enumerate(self._grid_rows) for c,value in enumerate(row)))
+            for row,column,value in cells:
+                for match in pattern.finditer(value):
+                    hits.append((row,column,match.start(),match.end()))
+                    if len(hits)>5000:break
+                if len(hits)>5000:break
+        elif self.tree:
             for index,row in enumerate(self.model['rows'] if self.model['kind']=='tree' else self._grid_rows):
                 values=(row['label'],row['value'],row['path']) if self.model['kind']=='tree' else row
                 for column,value in enumerate(values):
                     if pattern.search(value):hits.append((index,column));break
-        else:hits=[m.start() for m in pattern.finditer(self.model.get('content',''))][:5000]
+        else:hits=[m.start() for m in islice(pattern.finditer(self.model.get('content','')),5001)]
+        limited=len(hits)>5000;hits=hits[:5000]
         key=(needle,case)
         if getattr(self,'_find_key',None)!=key:self.match_index=-1;self._find_key=key
         if not hits:return tr('No matches')
         self.match_index=((0 if direction>0 else len(hits)-1) if self.match_index<0 else (self.match_index+direction)%len(hits));hit=hits[self.match_index]
-        if self.tree:
+        header=False
+        if self.tree and self.model['kind']=='grid':
+            index,column,start,end=hit;key=self.tree['columns'][column]
+            self._cell=column
+            if index<0:
+                header=True;self._header_match=self._grid_headings[column]
+                self.tree.selection_remove(*self.tree.selection())
+                self.tree.heading(key,text='▶ '+preview_match_excerpt(self._header_match,start,end))
+            else:
+                self._grid_search_row=index;iid='r'+str(index)
+                shown=[preview_cell_text(v)[:500] for v in self._grid_rows[index]]
+                shown[column]=preview_match_excerpt(self._grid_rows[index][column],start,end)
+                self.tree.item(iid,values=shown);self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
+            left=sum(self.tree.column(k,'width') for k in self.tree['columns'][:column])
+            total=sum(self.tree.column(k,'width') for k in self.tree['columns'])
+            self.tree.xview_moveto(left/max(1,total))
+        elif self.tree:
             index,column=hit;iid=self.model['rows'][index]['id'] if self.model['kind']=='tree' else 'r'+str(index)
             parent=self.tree.parent(iid)
             while parent:self.tree.item(parent,open=True);parent=self.tree.parent(parent)
@@ -320,10 +368,18 @@ class FormatRenderView(ttk.Frame):
             self.text.tag_remove('format_match','1.0','end');self.text.tag_add('format_match',f'1.0+{local_hit}c',f'1.0+{local_hit+len(needle)}c')
             self.text.see(f'1.0+{local_hit}c')
         elif self.canvas:
-            self.canvas.delete('search_hit')
-            node=next((p for p in self.model.get('positions',[]) if p['start']<=hit<p['end']),None)
-            if node:
-                x,y,w,h=(node[k]*self.scale for k in ('x','y','w','h'))
-                self.canvas.create_rectangle(x,y,x+w,y+h,outline='#db6c00',width=3,tags='search_hit')
-                self.canvas.yview_moveto(max(0,(y-20)/max(1,self.display_image.height())))
-        return tr('Match {current} of {total}',current=self.match_index+1,total=len(hits))
+            self._image_match=next((p for p in self.model.get('positions',[]) if p['start']<=hit<p['end']),None)
+            self._draw_image()
+        detail=tr('Match {current} of {total}',current=self.match_index+1,total=len(hits))
+        if header:detail=tr('Column header')+' · '+detail
+        if limited:detail=tr('Showing the first 5,000 search matches')+' · '+detail
+        return detail
+    def _clear_find_display(self):
+        if self.tree and self.model['kind']=='grid':
+            if self._grid_search_row is not None:
+                index=self._grid_search_row
+                self.tree.item('r'+str(index),values=tuple(preview_cell_text(v)[:500] for v in self._grid_rows[index]))
+            for column,label in zip(self.tree['columns'],self._grid_headings):self.tree.heading(column,text=preview_cell_text(label)[:500])
+        self._grid_search_row=None;self._header_match=None;self._image_match=None
+        if self.text:self.text.tag_remove('format_match','1.0','end')
+        if self.canvas:self.canvas.delete('search_hit')

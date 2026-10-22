@@ -103,13 +103,14 @@ class _PreviewCDP:
 def raster_preview(text,suffix,*,width=1100,font_size=16):
     browser=preview_browser_path()
     if not browser:raise ValueError('Static graphics require installed Microsoft Edge or Chrome/Chromium; showing Source (no automatic installation)')
+    content_limited=False
     if suffix in {'.mmd','.mermaid'}:
         if len(text)>100000:raise ValueError('Diagram source limit reached; use Source')
         # Do not allow document-level directives/frontmatter to weaken renderer policy.
         if re_preview_directive(text):raise ValueError('Diagram configuration directives are disabled; use plain diagram syntax')
         body='<div id="diagram"></div>';notice='Offline diagram · read-only'
     elif suffix=='.svg':body=static_preview_svg(text);notice='Static SVG · scripts and external resources blocked'
-    elif suffix=='.ipynb':body,notice=notebook_preview_html(text)
+    elif suffix=='.ipynb':body,notice,content_limited=notebook_preview_html(text,with_limits=True)
     else:body=static_preview_html(text);notice='Static HTML · scripts/forms/external resources blocked'
     width=max(640,min(1600,int(width)));font_size=max(12,min(48,int(font_size)))
     style=(f'html,body{{margin:0;background:white;color:#202124;font:{font_size}px Arial,sans-serif}}'
@@ -167,7 +168,14 @@ def raster_preview(text,suffix,*,width=1100,font_size=16):
             maximum=max(100,4000000//width)
             clipped=height>maximum or content_height>8000
             height=min(height,maximum)
-            positions=channel.evaluate('''(()=>{let p=[],n,total=0;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);while((n=w.nextNode())&&p.length<3000){if(!n.textContent.trim()||n.parentElement.closest('style,script'))continue;const r=document.createRange();r.selectNodeContents(n);const b=r.getBoundingClientRect();if(b.width&&b.height&&b.y<'''+str(height)+'''){const t=n.textContent;p.push({text:t,x:b.x,y:b.y,w:b.width,h:b.height,start:total,end:total+t.length});total+=t.length+1}}return p})()''')
+            text_model=channel.evaluate('''(()=>{let p=[],n,limited=false;const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+while((n=w.nextNode())){if(!n.textContent.trim()||n.parentElement.closest('style,script'))continue;
+const r=document.createRange();r.selectNodeContents(n);const b=r.getBoundingClientRect();if(!b.width||!b.height)continue;
+if(p.length>=3000){limited=true;break;}
+if(b.y>='''+str(height)+'''||b.bottom<=0||b.x>='''+str(width)+'''||b.right<=0){limited=true;continue;}
+if(b.bottom>'''+str(height)+'''||b.y<0||b.right>'''+str(width)+'''||b.x<0)limited=true;
+p.push({text:n.textContent,x:b.x,y:b.y,w:b.width,h:b.height});}return {positions:p,limited}})()''')
+            positions=text_model['positions']
             offset=0
             for position in positions:
                 position.update(start=offset,end=offset+len(position['text']));offset=position['end']+1
@@ -177,8 +185,10 @@ def raster_preview(text,suffix,*,width=1100,font_size=16):
                              clip=dict(x=0,y=0,width=width,height=height,scale=1))['data']
             if len(png)>12*1024*1024:raise ValueError('Rendered image size limit reached')
             if clipped:notice+='; rendered height limited; use Source for remaining content'
+            if text_model['limited']:notice+='; rendered search covers part of visible text; use Source for remaining content'
             return dict(kind='image',png=png,width=width,height=height,positions=positions,
-                        content='\n'.join(p['text'] for p in positions),notice=notice,truncated=clipped)
+                        content='\n'.join(p['text'] for p in positions),notice=notice,
+                        truncated=clipped or content_limited or text_model['limited'])
         finally:
             if channel:
                 try:channel.call('Browser.close')

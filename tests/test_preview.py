@@ -16,6 +16,18 @@ class PreviewTests(unittest.TestCase):
         self.assertIn("41 42 43 00", rendered)
         self.assertIn("|ABC.|", rendered)
 
+    def test_explicit_unicode_boms_including_utf32_are_detected_without_guessing(self):
+        text='中😀 {"value":"needle"}'
+        for codec,bom,label in (('utf-32-le',b'\xff\xfe\0\0','UTF-32'),
+                                ('utf-32-be',b'\0\0\xfe\xff','UTF-32'),
+                                ('utf-16-le',b'\xff\xfe','UTF-16'),
+                                ('utf-16-be',b'\xfe\xff','UTF-16'),
+                                ('utf-8',b'\xef\xbb\xbf','UTF-8')):
+            with self.subTest(codec=codec):
+                data=bom+text.encode(codec)
+                self.assertTrue(looks_text(Path('unknown.data'),data))
+                self.assertEqual(decode_text(data),(text,label))
+
     def test_python_and_markdown_effects(self):
         python = "def answer():\n    # note\n    return 42\n"
         tags = {tag for _start, _end, tag in syntax_spans(python, ".py")}

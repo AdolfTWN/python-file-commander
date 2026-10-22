@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.37**
+Current version: **v0.18.38**
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
@@ -13,6 +13,11 @@ identifiers and offer Copy value/Copy path. These readers are read-only, not edi
 
 Rendering is bounded: structured input 2 MiB (Notebook 8 MiB), trees 3,000 nodes,
 tables 20,000 cells, Notebook 60 cells and static graphics 4 million pixels.
+Tables search headers and all matching cells, reveal long matches and copy raw
+values; fields up to the input limit are accepted rather than the CSV library's
+default 131,072-character cap. UTF-8/16/32 BOM text is supported. Notebook's 30-output-per-cell
+and embedded-image limits, and graphics' 3,000-text-node search index, explicitly
+mark partial results. Source/Hex remain available; image search is not OCR.
 Partial views are labelled; invalid/unsupported content or a missing graphics
 engine falls back to Source with an explanation. HTML is sanitized, static and
 offline: scripts, forms, external/local resources and interactive navigation are
