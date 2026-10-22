@@ -64,13 +64,13 @@ def _preview_scalar(value):
     return str(value),type(value).__name__
 
 
-def structured_preview(text,suffix):
+def structured_preview(text,suffix,*,node_limit=RENDER_NODE_LIMIT,text_limit=2*1024*1024):
     rows=[];notice=[];seen=set();text_budget=0;partial=False
     def emit(parent,label,value,kind,path):
         nonlocal text_budget
-        if len(rows)>=RENDER_NODE_LIMIT:raise OverflowError('First 3,000 nodes only; use Source for the full document')
+        if len(rows)>=node_limit:raise OverflowError(f'First {node_limit:,} nodes displayed; search can reveal more')
         text_budget+=len(str(label))+len(value)+len(path)
-        if text_budget>2*1024*1024:raise OverflowError('Structure text limit reached; use Source')
+        if text_budget>text_limit:raise OverflowError('Structure text limit reached')
         iid='n'+str(len(rows));rows.append(dict(id=iid,parent=parent,label=str(label),value=value,kind=kind,path=path))
         return iid
     def walk(value,parent='',label='$',path='',depth=0):
@@ -126,8 +126,41 @@ def structured_preview(text,suffix):
         if not rows:raise ValueError(str(exc)) from exc
         notice.append(str(exc));partial=True
     summary=suffix[1:].upper()+' structure · '+str(len(rows))+' nodes'
-    return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial,
-                **({'source':text} if partial else {}))
+    return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial)
+
+
+def structured_search(text,suffix,needle,case=False,index=0):
+    """Worker-only bounded scan; return one real ancestor path, never a text view.
+
+    Preorder IDs match the initial tree, including duplicate object keys. Only
+    the selected branch crosses the process boundary, keeping Tk work bounded.
+    """
+    model=structured_preview(text,suffix,node_limit=100000,text_limit=8*1024*1024)
+    pattern=re.compile(re.escape(needle),0 if case else re.I) if needle else None
+    hits=[];limited=False
+    if pattern:
+        for row in model['rows']:
+            found=False
+            for field in ('label','value'):
+                for match in pattern.finditer(row[field]):
+                    found=True
+                    if len(hits)>=5000:limited=True;break
+                    hits.append((row,field,match.start(),match.end()))
+                if limited:break
+            if limited:break
+            if not found:
+                match=pattern.search(row['path'])
+                if match:
+                    if len(hits)>=5000:limited=True;break
+                    hits.append((row,'path',match.start(),match.end()))
+    result=dict(kind='tree_search',rows=[],count=len(hits),index=-1,
+                partial=model['truncated'] or limited)
+    if hits:
+        index=index%len(hits);row,field,start,end=hits[index]
+        lookup={r['id']:r for r in model['rows']};branch=[row]
+        while branch[-1]['parent']:branch.append(lookup[branch[-1]['parent']])
+        result.update(rows=list(reversed(branch)),index=index,field=field,start=start,end=end)
+    return result
 
 
 def table_preview(text,suffix):

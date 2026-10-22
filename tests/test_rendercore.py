@@ -2,7 +2,7 @@ import base64
 import json
 import unittest
 from unittest.mock import patch,Mock
-from pycommander.rendercore import (structured_preview,table_preview,patch_preview,static_preview_html,
+from pycommander.rendercore import (structured_preview,structured_search,table_preview,patch_preview,static_preview_html,
     static_preview_svg,safe_preview_image,safe_preview_css,notebook_preview_html,preview_vendor,RENDER_EXTENSIONS)
 from pycommander.renderbrowser import raster_preview,re_preview_directive,_preview_browser_port
 from pycommander.preview import markdown_document
@@ -11,6 +11,25 @@ from pycommander.renderui import preview_cell_text
 
 
 class StructuredPreviewTests(unittest.TestCase):
+    def test_search_reveals_late_real_ancestor_path_and_occurrences(self):
+        source=json.dumps({'early':list(range(5000)),'nested':{'key':'AW27 then AW27'}})
+        original=structured_preview(source,'.json')
+        self.assertTrue(original['truncated'])
+        result=structured_search(source,'.json','AW27',index=1)
+        self.assertEqual((result['count'],result['index'],result['partial']),(2,1,False))
+        self.assertEqual([r['label'] for r in result['rows']],['$','nested','key'])
+        self.assertEqual(result['rows'][-1]['path'],'/nested/key')
+        self.assertEqual(result['start'],10)
+        self.assertEqual(structured_search(source,'.json','aw27',True)['count'],0)
+
+    def test_search_duplicate_keys_have_distinct_stable_ids_and_limits_are_honest(self):
+        source='{"same":"AW27","same":"AW27"}'
+        first=structured_search(source,'.json','AW27',index=0)
+        second=structured_search(source,'.json','AW27',index=-1)
+        self.assertNotEqual(first['rows'][-1]['id'],second['rows'][-1]['id'])
+        result=structured_search(json.dumps(['hit']*6000),'.json','hit')
+        self.assertEqual(result['count'],5000);self.assertTrue(result['partial'])
+
     def test_cell_line_breaks_display_once_without_changing_raw_value(self):
         for newline in ('\n','\r\n','\r'):
             raw='line one'+newline+'line two'
@@ -46,7 +65,7 @@ class StructuredPreviewTests(unittest.TestCase):
     def test_tree_limits_are_explicit_and_parent_ids_valid(self):
         m=structured_preview(json.dumps(list(range(4000))),'.json')
         self.assertLessEqual(len(m['rows']),3000);self.assertIn('3,000',m['notice'])
-        self.assertEqual(m['source'],json.dumps(list(range(4000))))
+        self.assertNotIn('source',m)
         seen={''}
         for r in m['rows']:self.assertIn(r['parent'],seen);seen.add(r['id'])
     def test_large_repeated_paths_cannot_expand_model_unboundedly(self):

@@ -21,6 +21,17 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Structured preview search stays in the rendered tree, scans in the background and reveals matched ancestor paths instead of switching to Source.': ('修正：結構化預覽搜尋保留樹狀畫面，在背景掃描並展開命中路徑，不再切換成原文。','修正：结构化预览搜索保留树状画面，在后台扫描并展开命中路径，不再切换成原文。','수정: 구조 검색은 렌더링 트리를 유지하고 백그라운드에서 검색하여 일치 항목의 상위 경로를 펼칩니다. 원문으로 전환하지 않습니다.'),
+    'Improved: Long scalar matches show bounded excerpts; search supports cancellation and stale-result protection. Very long Source lines avoid word-wrap layout.': ('改善：長欄位值顯示命中片段；搜尋可取消並排除過期結果。原文極長行避免自動換行排版。','改善：长字段值显示命中片段；搜索可取消并排除过期结果。原文极长行避免自动换行排版。','개선: 긴 값은 일치 부분만 표시합니다. 검색 취소와 오래된 결과 차단을 지원하며 매우 긴 원문 행은 자동 줄 바꿈을 사용하지 않습니다.'),
+    'Searching structure…': ('正在搜尋階層…','正在搜索层级…','구조 검색 중…'),
+    'Partial tree': ('部分階層','部分层级','부분 트리'),
+    'Structure search failed; reload preview and retry': ('階層搜尋失敗；請重新載入預覽後重試','层级搜索失败；请重新加载预览后重试','구조 검색 실패; 미리보기를 다시 불러오세요'),
+    'Search timed out; narrow the query and retry': ('搜尋逾時；請縮小條件後重試','搜索超时；请缩小条件后重试','검색 시간 초과; 검색어를 좁혀 다시 시도하세요'),
+    'Search canceled': ('搜尋已取消','搜索已取消','검색 취소됨'),
+    'Search text changed; press Enter to search': ('搜尋文字已變更；按 Enter 搜尋','搜索文字已更改；按 Enter 搜索','검색어 변경됨; Enter로 검색'),
+    'Search limit reached; results are partial': ('已達搜尋上限；結果僅涵蓋部分資料','已达搜索上限；结果仅覆盖部分数据','검색 제한 도달; 부분 결과'),
+    'No matches in searched structure': ('已搜尋階層中沒有相符項目','已搜索层级中没有匹配项','검색한 구조에 일치 항목 없음'),
+    'Long lines: 16K-character window; search and Copy use full loaded source': ('行過長：顯示 16K 字元片段；搜尋與複製仍使用已載入全文','行过长：显示 16K 字符片段；搜索与复制仍使用已加载全文','매우 긴 행: 16K 문자 창; 검색과 복사는 불러온 전체 원문 사용'),
     'Improved: Errors and warnings automatically save bounded recent diagnostics; no Debug or Verbose switch is needed.': ('改善：錯誤及警告自動保存限量的近期診斷，不再需要 Debug 或 Verbose 開關。','改善：错误及警告自动保存限量的近期诊断，不再需要 Debug 或 Verbose 开关。','개선: 오류와 경고가 제한된 최근 진단을 자동 저장하며 Debug/Verbose 스위치가 필요 없습니다.'),
     'Fixed: Limited JSON/YAML/TOML structure previews search loaded Source instead of silently missing later nodes; expand/collapse are direct scalable icon buttons.': ('修正：JSON/YAML/TOML 結構預覽達限制時改查已載入原文，不漏掉後續節點；展開／收合改用可縮放的直接圖示按鈕。','修正：JSON/YAML/TOML 结构预览达到限制时改查已加载原文，不漏掉后续节点；展开／折叠改用可缩放的直接图标按钮。','수정: 제한된 구조 미리보기는 불러온 원문을 검색하여 뒤쪽 노드를 놓치지 않으며 확장/축소는 크기 조절 아이콘 버튼으로 직접 실행합니다.'),
     'Automatic diagnostics': ('自動診斷','自动诊断','자동 진단'),
@@ -35240,13 +35251,13 @@ def _preview_scalar(value):
     return str(value),type(value).__name__
 
 
-def structured_preview(text,suffix):
+def structured_preview(text,suffix,*,node_limit=RENDER_NODE_LIMIT,text_limit=2*1024*1024):
     rows=[];notice=[];seen=set();text_budget=0;partial=False
     def emit(parent,label,value,kind,path):
         nonlocal text_budget
-        if len(rows)>=RENDER_NODE_LIMIT:raise OverflowError('First 3,000 nodes only; use Source for the full document')
+        if len(rows)>=node_limit:raise OverflowError(f'First {node_limit:,} nodes displayed; search can reveal more')
         text_budget+=len(str(label))+len(value)+len(path)
-        if text_budget>2*1024*1024:raise OverflowError('Structure text limit reached; use Source')
+        if text_budget>text_limit:raise OverflowError('Structure text limit reached')
         iid='n'+str(len(rows));rows.append(dict(id=iid,parent=parent,label=str(label),value=value,kind=kind,path=path))
         return iid
     def walk(value,parent='',label='$',path='',depth=0):
@@ -35302,8 +35313,41 @@ def structured_preview(text,suffix):
         if not rows:raise ValueError(str(exc)) from exc
         notice.append(str(exc));partial=True
     summary=suffix[1:].upper()+' structure · '+str(len(rows))+' nodes'
-    return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial,
-                **({'source':text} if partial else {}))
+    return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial)
+
+
+def structured_search(text,suffix,needle,case=False,index=0):
+    """Worker-only bounded scan; return one real ancestor path, never a text view.
+
+    Preorder IDs match the initial tree, including duplicate object keys. Only
+    the selected branch crosses the process boundary, keeping Tk work bounded.
+    """
+    model=structured_preview(text,suffix,node_limit=100000,text_limit=8*1024*1024)
+    pattern=re.compile(re.escape(needle),0 if case else re.I) if needle else None
+    hits=[];limited=False
+    if pattern:
+        for row in model['rows']:
+            found=False
+            for field in ('label','value'):
+                for match in pattern.finditer(row[field]):
+                    found=True
+                    if len(hits)>=5000:limited=True;break
+                    hits.append((row,field,match.start(),match.end()))
+                if limited:break
+            if limited:break
+            if not found:
+                match=pattern.search(row['path'])
+                if match:
+                    if len(hits)>=5000:limited=True;break
+                    hits.append((row,'path',match.start(),match.end()))
+    result=dict(kind='tree_search',rows=[],count=len(hits),index=-1,
+                partial=model['truncated'] or limited)
+    if hits:
+        index=index%len(hits);row,field,start,end=hits[index]
+        lookup={r['id']:r for r in model['rows']};branch=[row]
+        while branch[-1]['parent']:branch.append(lookup[branch[-1]['parent']])
+        result.update(rows=list(reversed(branch)),index=index,field=field,start=start,end=end)
+    return result
 
 
 def table_preview(text,suffix):
@@ -35763,6 +35807,7 @@ class FormatRenderView(ttk.Frame):
     def __init__(self,master):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
+        self._row_lookup={};self._search_extra=[]
         self._grid_header=True;self.wrap=False
         self.header=ttk.Frame(self,padding=(6,3));self.header.pack(fill='x')
         self.detail=ttk.Label(self.header,width=1);self.detail.pack(side='left',fill='x',expand=True)
@@ -35793,11 +35838,13 @@ class FormatRenderView(ttk.Frame):
         for child in self.body.winfo_children():child.destroy()
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
+        self._row_lookup={};self._search_extra=[]
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
     def show(self,model):
         self.clear();self.model=model;kind=model['kind']
         self.detail.configure(text=tr({'tree':'Structure','grid':'Table','document':'Document','image':'Static visual preview'}[kind]))
+        if kind=='tree' and model.get('truncated'):self.detail.configure(text=tr('Structure')+' · '+tr('Partial tree'))
         if kind in {'tree','grid'}:self._show_tree(kind)
         elif kind=='image':self._show_image()
         else:self._show_document()
@@ -35816,8 +35863,9 @@ class FormatRenderView(ttk.Frame):
             columns=('value','type');self.tree=ttk.Treeview(self.body,columns=columns,show='tree headings',selectmode='browse')
             self.tree.heading('#0',text=tr('Key / index'));self.tree.heading('value',text=tr('Value'));self.tree.heading('type',text=tr('Type'))
             for row in self.model['rows']:
+                self._row_lookup[row['id']]=row
                 shown=preview_cell_text(row['value'])
-                self.tree.insert(row['parent'],'end',iid=row['id'],text=row['label'],values=(shown[:500],row['kind']),open=row['path'].count('/')<=1)
+                self.tree.insert(row['parent'],'end',iid=row['id'],text=preview_cell_text(row['label'])[:500],values=(shown[:500],row['kind']),open=row['path'].count('/')<=1)
             self.tree_actions.pack(side='right',padx=4)
         else:
             columns=tuple('c'+str(i) for i in range(len(self.model['columns'])))
@@ -35889,7 +35937,7 @@ class FormatRenderView(ttk.Frame):
         if not selection:return self.model.get('content','') if not self.tree else ''
         iid=selection[0]
         if self.model['kind']=='tree':
-            row=self.model['rows'][int(iid[1:])]
+            row=self._row_lookup[iid]
             return row['value']
         row=self._grid_rows[int(iid[1:])]
         return row[min(getattr(self,'_cell',0),len(row)-1)] if row else ''
@@ -35903,7 +35951,7 @@ class FormatRenderView(ttk.Frame):
     def _copy_path(self):
         selected=self.tree.selection()
         if selected:
-            value=self.model['rows'][int(selected[0][1:])]['path']
+            value=self._row_lookup[selected[0]]['path']
             self.clipboard_clear();self.clipboard_append(value)
     def _full_value(self,event=None):
         if event is not None and getattr(event,'num',None)==1:
@@ -35913,16 +35961,18 @@ class FormatRenderView(ttk.Frame):
             column=self.tree.identify_column(event.x)
             if column:self._cell=max(0,int(column[1:])-1)
         if self.model['kind']=='tree' and self.tree.selection():
-            row=self.model['rows'][int(self.tree.selection()[0][1:])]
+            row=self._row_lookup[self.tree.selection()[0]]
             if row['kind'] in {'object','array','mapping','sequence'}:return None  # Native expand/collapse.
         popup=tk.Toplevel(self);popup.title(tr('Full value'));popup.geometry('800x480');popup.minsize(400,250)
-        box=tk.Text(popup,wrap='word',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=8)
+        value=self._value()
+        box=tk.Text(popup,wrap='none' if any(len(line)>32768 for line in value.splitlines()) else 'word',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=8)
         scrollbar=ttk.Scrollbar(popup,command=box.yview);scrollbar.pack(side='right',fill='y');box.configure(yscrollcommand=scrollbar.set)
-        box.pack(fill='both',expand=True);box.insert('1.0',self._value());box.configure(state='disabled')
+        box.pack(fill='both',expand=True);box.insert('1.0',value);box.configure(state='disabled')
         ttk.Button(popup,text=tr('Close'),command=popup.destroy).pack(side='right',padx=6,pady=6)
         popup.bind('<Escape>',lambda e:popup.destroy());return 'break'
     def _show_document(self):
-        self.text=tk.Text(self.body,wrap='word' if self.wrap else 'none',state='disabled',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=6)
+        self.model['wrap_limited']=any(len(line)>32768 for line in self.model.get('content','').splitlines())
+        self.text=tk.Text(self.body,wrap='word' if self.wrap and not self.model['wrap_limited'] else 'none',state='disabled',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=6)
         self._scrollbars(self.text)
         self.text.tag_configure('render_add',background='#e5f4e9',foreground='#165b2e')
         self.text.tag_configure('render_remove',background='#fce7e7',foreground='#8b1b27')
@@ -35930,6 +35980,8 @@ class FormatRenderView(ttk.Frame):
         self.text.tag_configure('render_hunk',background='#e4edf8',foreground='#1a4e86')
         self.text.tag_configure('format_match',background='#ffcc66',foreground='#17202a')
         generation=self._generation;content=self.model.get('content','');offset=0
+        self._document_offset=0
+        if self.model['wrap_limited']:content=content[:16384]
         def insert():
             nonlocal offset
             self._insert_job=None
@@ -35937,7 +35989,8 @@ class FormatRenderView(ttk.Frame):
             self.text.configure(state='normal');self.text.insert('end',content[offset:offset+65536]);self.text.configure(state='disabled');offset+=65536
             if offset<len(content):self._insert_job=self.after(1,insert)
             else:
-                for start,end,tag in self.model.get('spans',[]):self.text.tag_add(tag,f'1.0+{start}c',f'1.0+{end}c')
+                for start,end,tag in self.model.get('spans',[]):
+                    if start<len(content):self.text.tag_add(tag,f'1.0+{start}c',f'1.0+{min(end,len(content))}c')
         insert()
         sections=self.model.get('sections',[])
         if sections:
@@ -35946,7 +35999,16 @@ class FormatRenderView(ttk.Frame):
             self.text.bind('<F7>',lambda e:self._section(-1));self.text.bind('<F8>',lambda e:self._section(1))
     def set_wrap(self,enabled):
         self.wrap=bool(enabled)
-        if self.text:self.text.configure(wrap='word' if self.wrap else 'none')
+        if self.text:self.text.configure(wrap='word' if self.wrap and not self.model.get('wrap_limited') else 'none')
+    def _document_position(self,offset):
+        if self.model.get('wrap_limited'):
+            content=self.model['content'];start=max(0,offset-512)
+            self._document_offset=start
+            self.text.configure(state='normal');self.text.delete('1.0','end')
+            self.text.insert('1.0',content[start:start+16384]);self.text.configure(state='disabled')
+            for a,b,tag in self.model.get('spans',[]):
+                if b>start and a<start+16384:self.text.tag_add(tag,f'1.0+{max(0,a-start)}c',f'1.0+{min(b-start,16384)}c')
+        return f'1.0+{offset-self._document_offset}c'
     def _section(self,direction):
         sections=self.model.get('sections',[])
         if sections:
@@ -35982,10 +36044,46 @@ class FormatRenderView(ttk.Frame):
             self._show_tree('grid')
         elif self.text:
             index=self.choice.current();sections=self.model.get('sections',[])
-            if 0<=index<len(sections):self.text.see(f"1.0+{sections[index]['offset']}c")
+            if 0<=index<len(sections):self.text.see(self._document_position(sections[index]['offset']))
     def _expand_tree(self,expanded):
         if self.tree and self.model.get('kind')=='tree':
-            for row in self.model['rows']:self.tree.item(row['id'],open=expanded)
+            for row in self._row_lookup.values():self.tree.item(row['id'],open=expanded)
+    def apply_tree_search(self,result):
+        """Reveal a bounded real branch without replacing the original tree."""
+        if not self.tree or self.model.get('kind')!='tree':return
+        for iid in self.tree.selection():
+            row=self._row_lookup.get(iid)
+            if row:self.tree.item(iid,text=preview_cell_text(row['label'])[:500],values=(preview_cell_text(row['value'])[:500],row['kind']))
+        self.tree.selection_remove(*self.tree.selection())
+        # Only one extra branch is retained: repeated searches cannot accumulate
+        # thousands of Tk rows or disturb the initial tree's unrelated state.
+        for iid in reversed(self._search_extra):
+            if self.tree.exists(iid):self.tree.delete(iid)
+            self._row_lookup.pop(iid,None)
+        self._search_extra=[]
+        for row in result['rows']:
+            iid=row['id']
+            if iid not in self._row_lookup:
+                siblings=self.tree.get_children(row['parent'])
+                position=next((i for i,other in enumerate(siblings) if int(other[1:])>int(iid[1:])),len(siblings))
+                self.tree.insert(row['parent'],position,iid=iid,text=preview_cell_text(row['label'])[:500],
+                                 values=(preview_cell_text(row['value'])[:500],row['kind']))
+                self._row_lookup[iid]=row;self._search_extra.append(iid)
+        if not result['rows']:return
+        row=result['rows'][-1];iid=row['id']
+        label=preview_cell_text(row['label'])[:500]
+        value=preview_cell_text(row['value'])[:500]
+        field=result.get('field')
+        if field in {'label','value'}:
+            raw=row[field];start=max(0,result['start']-12);end=min(len(raw),result['end']+80,start+200)
+            snippet=('… ' if start else '')+preview_cell_text(raw[start:end])+(' …' if end<len(raw) else '')
+            if field=='value':value=snippet
+            else:label=snippet
+        self.tree.item(iid,text=label,values=(value,row['kind']))
+        parent=self.tree.parent(iid)
+        while parent:self.tree.item(parent,open=True);parent=self.tree.parent(parent)
+        self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
+        self._cell=0
     def find(self,needle,case=False,direction=1):
         if not needle:return tr('Enter search text')
         flags=0 if case else re.I;pattern=re.compile(re.escape(needle),flags);hits=[]
@@ -36005,7 +36103,12 @@ class FormatRenderView(ttk.Frame):
             while parent:self.tree.item(parent,open=True);parent=self.tree.parent(parent)
             self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid);self._cell=column
         elif self.text:
-            self.text.tag_remove('format_match','1.0','end');self.text.tag_add('format_match',f'1.0+{hit}c',f'1.0+{hit+len(needle)}c');self.text.see(f'1.0+{hit}c')
+            # Native Windows Tk also measures an unwrapped megabyte line during
+            # repaint; display an exact bounded slice while retaining full data.
+            self._document_position(hit)
+            local_hit=hit-self._document_offset
+            self.text.tag_remove('format_match','1.0','end');self.text.tag_add('format_match',f'1.0+{local_hit}c',f'1.0+{local_hit+len(needle)}c')
+            self.text.see(f'1.0+{local_hit}c')
         elif self.canvas:
             self.canvas.delete('search_hit')
             node=next((p for p in self.model.get('positions',[]) if p['start']<=hit<p['end']),None)
@@ -36343,13 +36446,21 @@ def format_worker_main():
                 if not stat.S_ISREG(info.st_mode):raise ValueError('Target is not a regular file')
                 suffix=path.suffix.casefold();limit=8*1024*1024 if suffix=='.ipynb' else RENDER_INPUT_LIMIT
                 signature=[info.st_mtime_ns,info.st_size];data=stream.read(limit+1)
+                after=os.fstat(stream.fileno())
+                if request.get('operation')=='structure_search' and signature!=[after.st_mtime_ns,after.st_size]:
+                    raise ValueError('File changed; reload preview before searching')
             truncated=len(data)>limit;source,encoding=decode_text(data[:limit]);partial=''
             if truncated:
                 if request.get('rendered') and suffix in {'.jsonl','.ndjson'} and '\n' in source:
                     source=source.rsplit('\n',1)[0]+'\n';partial='Loaded first 2 MiB / complete records only; use Source for remaining data'
                 else:raise ValueError('Preview input limited to '+str(limit//(1024*1024))+' MiB; showing loaded Source')
             suffix=path.suffix.casefold()
-            if not request.get('rendered'):
+            if request.get('operation')=='structure_search':
+                if signature!=request.get('expected_signature'):raise ValueError('File changed; reload preview before searching')
+                if suffix not in {'.json','.jsonl','.ndjson','.yaml','.yml','.toml'}:raise ValueError('Not a structured document')
+                result=structured_search(source,suffix,request['needle'],request.get('case',False),request.get('index',0))
+                result['partial']=result['partial'] or truncated
+            elif not request.get('rendered'):
                 result=dict(kind='document',content=source,spans=syntax_spans(source,suffix) if len(source)<=512*1024 else [],notice='Source · read-only')
             elif suffix in {'.json','.jsonl','.ndjson','.yaml','.yml','.toml'}:result=structured_preview(source,suffix)
             elif suffix in {'.csv','.tsv'}:result=table_preview(source,suffix)
@@ -36454,6 +36565,7 @@ class PreviewPage(tk.Frame):
         self._format_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__),'format_worker_main')
         self._format_queued=None;self._format_request=None;self._format_poll=None;self._format_active=False
         self._format_find_job=None
+        self._format_searching=False;self._structure_search_key=None;self._structure_match_index=-1;self._structure_match_count=0
         self._md_request=None;self._md_queued=None;self._md_insert=None
         self._md_model={};self._md_history=[];self._linked_path=None
         self._md_boundary=Path(os.path.abspath(selected)).parent
@@ -36578,6 +36690,7 @@ class PreviewPage(tk.Frame):
 
     def _queue_format(self):
         self._format_jobs.cancel();self._format_active=True
+        self._format_searching=False;self._structure_search_key=None
         self.render_view.set_wrap(self.wrap_var.get())
         self.markdown_check.state(['!disabled'] if self.extension_effect else ['disabled'])
         self.md_tools.pack_forget();self.markdown_frame.pack(side='left',padx=(4,0))
@@ -36601,38 +36714,81 @@ class PreviewPage(tk.Frame):
             if result is not None and self._format_request is not None:
                 request=self._format_request;self._format_request=None
                 if self._format_active and str(self.path)==request['path']:
-                    if 'error' in result:result=dict(kind='document',content=tr('Cannot preview file')+'\n'+str(result['error']),notice=str(result['error']))
-                    self.render_view.show(result)
-                    self.wrap_check.state(['!disabled'] if result['kind']=='document' else ['disabled'])
-                    if result.get('fallback') and request.get('rendered'):
-                        self.markdown_var.set(next(label for label,value in self.markdown_values.items() if value=='source'))
-                    signature=result.get('signature');self._signature=tuple(signature) if signature else self._path_signature()
-                    self.status.configure(text=tr(result.get('notice',''))+'   '+str(result.get('size',''))+' bytes   '+str(result.get('encoding','')))
-                    preview_diagnostic(self,'preview.format.ready',path=self.path,kind=result['kind'],fallback=result.get('fallback',False),severity='WARNING' if result.get('fallback') else 'INFO')
+                    self._accept_format_result(request,result)
             if self._format_jobs.pending and time.monotonic()-self._format_jobs.started>30:
+                searching=self._format_searching
+                if searching:preview_diagnostic(self,'preview.structure.search.timeout',path=self.path,severity='WARNING')
                 self._cancel_format()
-                self._signature=self._path_signature()
-                self.render_view.show(dict(kind='document',content=tr('Preview timed out; switch to Source or press F5 to retry'),spans=[]))
-                self.status.configure(text=tr('Preview timed out; press F5 to retry'))
+                if not searching:self._signature=self._path_signature()
+                if not searching:self.render_view.show(dict(kind='document',content=tr('Preview timed out; switch to Source or press F5 to retry'),spans=[]))
+                self.status.configure(text=tr('Search timed out; narrow the query and retry' if searching else 'Preview timed out; press F5 to retry'))
         except (OSError,ValueError,tk.TclError) as exc:
             preview_diagnostic(self,'preview.format.failed',exc=exc)
-            self._cancel_format();self._signature=self._path_signature()
+            searching=self._format_searching
+            self._cancel_format()
+            if not searching:self._signature=self._path_signature()
             message=tr('Cannot preview file')+': '+str(exc)
             self.status.configure(text=message)
-            try:self.render_view.show(dict(kind='document',content=message,spans=[]))
+            try:
+                if not searching:self.render_view.show(dict(kind='document',content=message,spans=[]))
             except tk.TclError:pass  # The window may already be closing.
         if self.winfo_exists():
             self._sync_preview_activity();self._format_poll=self.after(40,self._poll_format)
+
+    def _accept_format_result(self,request,result):
+        if request.get('operation')=='structure_search':
+            self._format_searching=False
+            if (request['needle'],request['case'])!=(self.search_var.get(),self.case_var.get()):
+                self.status.configure(text=tr('Search text changed; press Enter to search'));return
+            if result.get('kind')!='tree_search':
+                self.status.configure(text=tr('Structure search failed; reload preview and retry'))
+                preview_diagnostic(self,'preview.structure.search.failed',path=self.path,severity='WARNING',error_type=result.get('error_type','worker-failed'))
+                return
+            self.render_view.apply_tree_search(result)
+            self._structure_search_key=(request['needle'],request['case'])
+            self._structure_match_index=result['index'];self._structure_match_count=result['count']
+            detail=tr('Match {current} of {total}',current=result['index']+1,total=result['count']) if result['count'] else tr('No matches')
+            if result['partial']:
+                if not result['count']:detail=tr('No matches in searched structure')
+                detail=tr('Search limit reached; results are partial')+' · '+detail
+            self.status.configure(text=detail)
+            preview_diagnostic(self,'preview.structure.search.complete',path=self.path,count=result['count'],partial=result['partial'])
+            return
+        if 'error' in result:result=dict(kind='document',content=tr('Cannot preview file')+'\n'+str(result['error']),notice=str(result['error']))
+        self.render_view.show(result)
+        self.wrap_check.state(['!disabled'] if result['kind']=='document' else ['disabled'])
+        if result.get('wrap_limited'):
+            self.wrap_var.set(False);self.wrap_check.state(['disabled'])
+            result['notice']=result.get('notice','')+' · '+tr('Long lines: 16K-character window; search and Copy use full loaded source')
+        if result.get('fallback') and request.get('rendered'):
+            self.markdown_var.set(next(label for label,value in self.markdown_values.items() if value=='source'))
+        signature=result.get('signature');self._signature=tuple(signature) if signature else self._path_signature()
+        self.status.configure(text=tr(result.get('notice',''))+'   '+str(result.get('size',''))+' bytes   '+str(result.get('encoding','')))
+        preview_diagnostic(self,'preview.format.ready',path=self.path,kind=result['kind'],fallback=result.get('fallback',False),severity='WARNING' if result.get('fallback') else 'INFO')
+
+    def _search_structure(self,direction):
+        key=(self.search_var.get(),self.case_var.get())
+        if not key[0]:self._cancel_format();self.status.configure(text=tr('Enter search text'));return
+        index=(self._structure_match_index+direction)%self._structure_match_count if key==self._structure_search_key and self._structure_match_count else (0 if direction>0 else -1)
+        if self._format_jobs.pending:self._format_jobs.cancel()
+        self._format_request=None;self._format_searching=True
+        self._format_queued=dict(operation='structure_search',path=str(self.path),language=get_language(),rendered=True,
+            expected_signature=list(self._signature),needle=key[0],case=key[1],index=index)
+        preview_diagnostic(self,'preview.structure.search.queued',path=self.path)
+        self.status.configure(text=tr('Searching structure…'));self._sync_preview_activity()
 
     def _cancel_format(self):
         if self._format_find_job is not None:
             self.after_cancel(self._format_find_job);self._format_find_job=None
         self._format_jobs.close();self._format_request=None;self._format_queued=None
+        self._format_searching=False
 
     def _cancel_format_ui(self):
-        self._cancel_format();self._signature=self._path_signature()
-        self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
-        self.status.configure(text=tr('Preview canceled; press F5 to retry'));self._sync_preview_activity()
+        searching=self._format_searching
+        self._cancel_format()
+        if not searching:self._signature=self._path_signature()
+        if not searching:self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
+        self.status.configure(text=tr('Search canceled' if searching else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
 
 
     def _layout_file_tools(self, _event=None):
@@ -37285,14 +37441,10 @@ class PreviewPage(tk.Frame):
     def _find(self, direction: int) -> str:
         if self._format_active:
             model=self.render_view.model
-            if model.get('kind')=='tree' and model.get('truncated') and 'source' in model and self.search_var.get():
-                # The tree node cap is not a valid document-wide search scope.
-                # Use the already decoded, bounded source, without a second read
-                # or waiting for another parser/browser process.
-                self.markdown_var.set(next(label for label,value in self.markdown_values.items() if value=='source'))
-                self.render_view.show(dict(kind='document',content=model['source'],spans=[],rendered=False,
-                    truncated=model.get('source_truncated',False),search_scope_notice='Structure limited; searching Source'))
-                self.wrap_check.state(['!disabled'])
+            if not self._format_searching and (self._format_queued or self._format_jobs.pending):
+                self.status.configure(text=tr('Loading preview…'));return 'break'
+            if model.get('kind')=='tree':
+                self._search_structure(direction);return 'break'
             if self.render_view.text and self.render_view._insert_job is not None:
                 # A match may be beyond the first insertion chunk. Do not clamp
                 # its Text indices to the current end and report a false hit.
@@ -37308,6 +37460,8 @@ class PreviewPage(tk.Frame):
             detail=self.render_view.find(self.search_var.get(),self.case_var.get(),direction)
             if self.render_view.model.get('truncated') and detail==tr('No matches'):
                 detail=tr('Not found in loaded portion; the rest of the file was not searched')
+            if self.render_view.model.get('wrap_limited'):
+                detail=tr('Long lines: 16K-character window; search and Copy use full loaded source')+' · '+detail
             if self.render_view.model.get('search_scope_notice'):
                 detail=tr(self.render_view.model['search_scope_notice'])+' · '+detail
             if self.render_view.model.get('truncated'):detail+=' · '+tr('Loaded portion only')
@@ -40220,7 +40374,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.36"
+__version__ = "0.18.37"
 
 
 
@@ -40340,6 +40494,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/22"
 VERSION_HISTORY = (
+    ("v0.18.37", "2026/10/22", (
+        "Fixed: Structured preview search stays in the rendered tree, scans in the background and reveals matched ancestor paths instead of switching to Source.",
+        "Improved: Long scalar matches show bounded excerpts; search supports cancellation and stale-result protection. Very long Source lines avoid word-wrap layout.",
+    )),
     ("v0.18.36", "2026/10/22", (
         "Improved: Errors and warnings automatically save bounded recent diagnostics; no Debug or Verbose switch is needed.",
         "Fixed: Limited JSON/YAML/TOML structure previews search loaded Source instead of silently missing later nodes; expand/collapse are direct scalable icon buttons.",

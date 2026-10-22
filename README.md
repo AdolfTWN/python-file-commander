@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.36**
+Current version: **v0.18.37**
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
@@ -83,8 +83,16 @@ Choose **Help → Error / Warning log → Save diagnostics** to export the evide
 The local error stream rotates across three 1 MiB files; old debug logs remain
 readable/exportable and clearable. Document contents, filenames and full paths
 are not recorded. Legacy INI debug settings are ignored and removed on save.
-Truncated structured previews search the already-loaded Source automatically;
-the status identifies Source searching and any remaining file input limit.
+Structured search never switches to Source: a background worker scans up to
+100,000 nodes / 8 MiB of structure text and 5,000 matches within the input limit.
+It reveals the selected real ancestor path while retaining the original tree,
+Rendered state and unrelated expansion state. Only one extra branch is retained;
+long scalar values show a match excerpt while Copy keeps the original value.
+Cancellation, changed files and partial searches are explicit. Manual Source
+remains available; lines over 32,768 characters use an explicitly labelled
+16K-character source window, repositioned around each match, with Wrap disabled.
+Search still covers the full loaded source; Copy without a selection copies it
+unchanged. This avoids native Windows Tk measuring a megabyte-long physical line.
 
 **Stable Auto Font Size:** Folder/tab navigation, scrolling, selection and file
 refresh keep the chosen text size. Fitting runs when enabled and after settled

@@ -17,6 +17,7 @@ class FormatRenderView(ttk.Frame):
     def __init__(self,master):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
+        self._row_lookup={};self._search_extra=[]
         self._grid_header=True;self.wrap=False
         self.header=ttk.Frame(self,padding=(6,3));self.header.pack(fill='x')
         self.detail=ttk.Label(self.header,width=1);self.detail.pack(side='left',fill='x',expand=True)
@@ -47,11 +48,13 @@ class FormatRenderView(ttk.Frame):
         for child in self.body.winfo_children():child.destroy()
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
+        self._row_lookup={};self._search_extra=[]
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
     def show(self,model):
         self.clear();self.model=model;kind=model['kind']
         self.detail.configure(text=tr({'tree':'Structure','grid':'Table','document':'Document','image':'Static visual preview'}[kind]))
+        if kind=='tree' and model.get('truncated'):self.detail.configure(text=tr('Structure')+' · '+tr('Partial tree'))
         if kind in {'tree','grid'}:self._show_tree(kind)
         elif kind=='image':self._show_image()
         else:self._show_document()
@@ -70,8 +73,9 @@ class FormatRenderView(ttk.Frame):
             columns=('value','type');self.tree=ttk.Treeview(self.body,columns=columns,show='tree headings',selectmode='browse')
             self.tree.heading('#0',text=tr('Key / index'));self.tree.heading('value',text=tr('Value'));self.tree.heading('type',text=tr('Type'))
             for row in self.model['rows']:
+                self._row_lookup[row['id']]=row
                 shown=preview_cell_text(row['value'])
-                self.tree.insert(row['parent'],'end',iid=row['id'],text=row['label'],values=(shown[:500],row['kind']),open=row['path'].count('/')<=1)
+                self.tree.insert(row['parent'],'end',iid=row['id'],text=preview_cell_text(row['label'])[:500],values=(shown[:500],row['kind']),open=row['path'].count('/')<=1)
             self.tree_actions.pack(side='right',padx=4)
         else:
             columns=tuple('c'+str(i) for i in range(len(self.model['columns'])))
@@ -143,7 +147,7 @@ class FormatRenderView(ttk.Frame):
         if not selection:return self.model.get('content','') if not self.tree else ''
         iid=selection[0]
         if self.model['kind']=='tree':
-            row=self.model['rows'][int(iid[1:])]
+            row=self._row_lookup[iid]
             return row['value']
         row=self._grid_rows[int(iid[1:])]
         return row[min(getattr(self,'_cell',0),len(row)-1)] if row else ''
@@ -157,7 +161,7 @@ class FormatRenderView(ttk.Frame):
     def _copy_path(self):
         selected=self.tree.selection()
         if selected:
-            value=self.model['rows'][int(selected[0][1:])]['path']
+            value=self._row_lookup[selected[0]]['path']
             self.clipboard_clear();self.clipboard_append(value)
     def _full_value(self,event=None):
         if event is not None and getattr(event,'num',None)==1:
@@ -167,16 +171,18 @@ class FormatRenderView(ttk.Frame):
             column=self.tree.identify_column(event.x)
             if column:self._cell=max(0,int(column[1:])-1)
         if self.model['kind']=='tree' and self.tree.selection():
-            row=self.model['rows'][int(self.tree.selection()[0][1:])]
+            row=self._row_lookup[self.tree.selection()[0]]
             if row['kind'] in {'object','array','mapping','sequence'}:return None  # Native expand/collapse.
         popup=tk.Toplevel(self);popup.title(tr('Full value'));popup.geometry('800x480');popup.minsize(400,250)
-        box=tk.Text(popup,wrap='word',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=8)
+        value=self._value()
+        box=tk.Text(popup,wrap='none' if any(len(line)>32768 for line in value.splitlines()) else 'word',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=8)
         scrollbar=ttk.Scrollbar(popup,command=box.yview);scrollbar.pack(side='right',fill='y');box.configure(yscrollcommand=scrollbar.set)
-        box.pack(fill='both',expand=True);box.insert('1.0',self._value());box.configure(state='disabled')
+        box.pack(fill='both',expand=True);box.insert('1.0',value);box.configure(state='disabled')
         ttk.Button(popup,text=tr('Close'),command=popup.destroy).pack(side='right',padx=6,pady=6)
         popup.bind('<Escape>',lambda e:popup.destroy());return 'break'
     def _show_document(self):
-        self.text=tk.Text(self.body,wrap='word' if self.wrap else 'none',state='disabled',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=6)
+        self.model['wrap_limited']=any(len(line)>32768 for line in self.model.get('content','').splitlines())
+        self.text=tk.Text(self.body,wrap='word' if self.wrap and not self.model['wrap_limited'] else 'none',state='disabled',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=6)
         self._scrollbars(self.text)
         self.text.tag_configure('render_add',background='#e5f4e9',foreground='#165b2e')
         self.text.tag_configure('render_remove',background='#fce7e7',foreground='#8b1b27')
@@ -184,6 +190,8 @@ class FormatRenderView(ttk.Frame):
         self.text.tag_configure('render_hunk',background='#e4edf8',foreground='#1a4e86')
         self.text.tag_configure('format_match',background='#ffcc66',foreground='#17202a')
         generation=self._generation;content=self.model.get('content','');offset=0
+        self._document_offset=0
+        if self.model['wrap_limited']:content=content[:16384]
         def insert():
             nonlocal offset
             self._insert_job=None
@@ -191,7 +199,8 @@ class FormatRenderView(ttk.Frame):
             self.text.configure(state='normal');self.text.insert('end',content[offset:offset+65536]);self.text.configure(state='disabled');offset+=65536
             if offset<len(content):self._insert_job=self.after(1,insert)
             else:
-                for start,end,tag in self.model.get('spans',[]):self.text.tag_add(tag,f'1.0+{start}c',f'1.0+{end}c')
+                for start,end,tag in self.model.get('spans',[]):
+                    if start<len(content):self.text.tag_add(tag,f'1.0+{start}c',f'1.0+{min(end,len(content))}c')
         insert()
         sections=self.model.get('sections',[])
         if sections:
@@ -200,7 +209,16 @@ class FormatRenderView(ttk.Frame):
             self.text.bind('<F7>',lambda e:self._section(-1));self.text.bind('<F8>',lambda e:self._section(1))
     def set_wrap(self,enabled):
         self.wrap=bool(enabled)
-        if self.text:self.text.configure(wrap='word' if self.wrap else 'none')
+        if self.text:self.text.configure(wrap='word' if self.wrap and not self.model.get('wrap_limited') else 'none')
+    def _document_position(self,offset):
+        if self.model.get('wrap_limited'):
+            content=self.model['content'];start=max(0,offset-512)
+            self._document_offset=start
+            self.text.configure(state='normal');self.text.delete('1.0','end')
+            self.text.insert('1.0',content[start:start+16384]);self.text.configure(state='disabled')
+            for a,b,tag in self.model.get('spans',[]):
+                if b>start and a<start+16384:self.text.tag_add(tag,f'1.0+{max(0,a-start)}c',f'1.0+{min(b-start,16384)}c')
+        return f'1.0+{offset-self._document_offset}c'
     def _section(self,direction):
         sections=self.model.get('sections',[])
         if sections:
@@ -236,10 +254,46 @@ class FormatRenderView(ttk.Frame):
             self._show_tree('grid')
         elif self.text:
             index=self.choice.current();sections=self.model.get('sections',[])
-            if 0<=index<len(sections):self.text.see(f"1.0+{sections[index]['offset']}c")
+            if 0<=index<len(sections):self.text.see(self._document_position(sections[index]['offset']))
     def _expand_tree(self,expanded):
         if self.tree and self.model.get('kind')=='tree':
-            for row in self.model['rows']:self.tree.item(row['id'],open=expanded)
+            for row in self._row_lookup.values():self.tree.item(row['id'],open=expanded)
+    def apply_tree_search(self,result):
+        """Reveal a bounded real branch without replacing the original tree."""
+        if not self.tree or self.model.get('kind')!='tree':return
+        for iid in self.tree.selection():
+            row=self._row_lookup.get(iid)
+            if row:self.tree.item(iid,text=preview_cell_text(row['label'])[:500],values=(preview_cell_text(row['value'])[:500],row['kind']))
+        self.tree.selection_remove(*self.tree.selection())
+        # Only one extra branch is retained: repeated searches cannot accumulate
+        # thousands of Tk rows or disturb the initial tree's unrelated state.
+        for iid in reversed(self._search_extra):
+            if self.tree.exists(iid):self.tree.delete(iid)
+            self._row_lookup.pop(iid,None)
+        self._search_extra=[]
+        for row in result['rows']:
+            iid=row['id']
+            if iid not in self._row_lookup:
+                siblings=self.tree.get_children(row['parent'])
+                position=next((i for i,other in enumerate(siblings) if int(other[1:])>int(iid[1:])),len(siblings))
+                self.tree.insert(row['parent'],position,iid=iid,text=preview_cell_text(row['label'])[:500],
+                                 values=(preview_cell_text(row['value'])[:500],row['kind']))
+                self._row_lookup[iid]=row;self._search_extra.append(iid)
+        if not result['rows']:return
+        row=result['rows'][-1];iid=row['id']
+        label=preview_cell_text(row['label'])[:500]
+        value=preview_cell_text(row['value'])[:500]
+        field=result.get('field')
+        if field in {'label','value'}:
+            raw=row[field];start=max(0,result['start']-12);end=min(len(raw),result['end']+80,start+200)
+            snippet=('… ' if start else '')+preview_cell_text(raw[start:end])+(' …' if end<len(raw) else '')
+            if field=='value':value=snippet
+            else:label=snippet
+        self.tree.item(iid,text=label,values=(value,row['kind']))
+        parent=self.tree.parent(iid)
+        while parent:self.tree.item(parent,open=True);parent=self.tree.parent(parent)
+        self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
+        self._cell=0
     def find(self,needle,case=False,direction=1):
         if not needle:return tr('Enter search text')
         flags=0 if case else re.I;pattern=re.compile(re.escape(needle),flags);hits=[]
@@ -259,7 +313,12 @@ class FormatRenderView(ttk.Frame):
             while parent:self.tree.item(parent,open=True);parent=self.tree.parent(parent)
             self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid);self._cell=column
         elif self.text:
-            self.text.tag_remove('format_match','1.0','end');self.text.tag_add('format_match',f'1.0+{hit}c',f'1.0+{hit+len(needle)}c');self.text.see(f'1.0+{hit}c')
+            # Native Windows Tk also measures an unwrapped megabyte line during
+            # repaint; display an exact bounded slice while retaining full data.
+            self._document_position(hit)
+            local_hit=hit-self._document_offset
+            self.text.tag_remove('format_match','1.0','end');self.text.tag_add('format_match',f'1.0+{local_hit}c',f'1.0+{local_hit+len(needle)}c')
+            self.text.see(f'1.0+{local_hit}c')
         elif self.canvas:
             self.canvas.delete('search_hit')
             node=next((p for p in self.model.get('positions',[]) if p['start']<=hit<p['end']),None)

@@ -74,6 +74,7 @@ with tempfile.TemporaryDirectory() as raw:
         'invalid.json':'{"incomplete":',
         'limited.json':json.dumps({'early':list(range(15000)),'ConnectedDeviceName':'Late value','second':{'ConnectedDeviceName':'Another'}}),
         'input-limit.json':'{"padding":"'+('x'*(2*1024*1024))+'","late":"NOT_LOADED_NEEDLE"}',
+        'input-limit.jsonl':'{"value":"first record"}\n{"padding":"'+('x'*(2*1024*1024))+'","late":"NOT_LOADED_NEEDLE"}\n',
         'plain.py':'print("NEVER EXECUTED")\n',
         'blocked.html':'<h1>Visible safe content</h1><img src="'+endpoint+'"><iframe src="'+secret.as_uri()+'"></iframe><script>document.body.innerText="SCRIPT RAN";fetch('+json.dumps(endpoint)+')</script><style>@import url('+endpoint+');</style>',
     }
@@ -108,7 +109,7 @@ with tempfile.TemporaryDirectory() as raw:
                 assert 'PFC_SOURCE_SECRET_SENTINEL' not in page.render_view.model['content']
                 assert not requests,requests
             if name=='agent.json':
-                page.search_var.set('Reviewer');page.find_next();assert page.render_view.tree.selection()
+                page.search_var.set('Reviewer');page.find_next();ready(root,page);assert page.render_view.tree.selection()
             if name=='evaluation.csv':
                 shown=page.render_view.tree.item('r1','values')[-1]
                 assert '↵' in shown and '\r' not in shown and '\n' not in shown,repr(shown)
@@ -137,21 +138,27 @@ with tempfile.TemporaryDirectory() as raw:
         page.render_view.expand_button.invoke()
         assert all(page.render_view.tree.item(r['id'],'open') for r in page.render_view.model['rows'])
         capture(window,'structure-controls')
+        original_tree=page.render_view.tree
         page.search_var.set('ConnectedDeviceName');page.find_next();ready(root,page)
-        assert page.render_view.model['kind']=='document' and not page.render_view.model['truncated']
-        assert page.markdown_values[page.markdown_var.get()]=='source'
-        assert 'Match 1 of 2' in page.status.cget('text') and 'searching Source' in page.status.cget('text')
-        first=page.render_view.text.tag_ranges('format_match')
-        assert page.render_view.text.get(*first)=='ConnectedDeviceName'
-        page.find_next();assert 'Match 2 of 2' in page.status.cget('text')
-        assert page.render_view.text.tag_ranges('format_match')!=first
-        page.find_previous();assert page.render_view.text.tag_ranges('format_match')==first
+        assert page.render_view.model['kind']=='tree' and page.render_view.tree is original_tree
+        assert page.markdown_values[page.markdown_var.get()]=='rendered'
+        assert 'Match 1 of 2' in page.status.cget('text')
+        first=page.render_view.tree.selection()
+        assert page.render_view.tree.item(first[0],'text')=='ConnectedDeviceName'
+        page.find_next();ready(root,page);assert 'Match 2 of 2' in page.status.cget('text')
+        assert page.render_view.tree.selection()!=first
+        page.find_previous();ready(root,page);assert page.render_view.tree.selection()==first
         capture(window,'structure-search')
         window.show(paths,directory/'input-limit.json');page=window.active_page;ready(root,page)
         assert page.render_view.model['truncated']
         page.search_var.set('NOT_LOADED_NEEDLE');page.find_next()
         assert 'rest of the file was not searched' in page.status.cget('text')
         assert 'No matches' not in page.status.cget('text')
+        window.show(paths,directory/'input-limit.jsonl');page=window.active_page;ready(root,page)
+        assert page.render_view.model['kind']=='tree' and page.render_view.model['truncated']
+        page.search_var.set('NOT_LOADED_NEEDLE');page.find_next();ready(root,page)
+        assert page.render_view.model['kind']=='tree'
+        assert 'results are partial' in page.status.cget('text') and 'No matches in searched structure' in page.status.cget('text')
         # Starting a graph then immediately switching must cancel and ignore its results.
         window.show(paths,directory/'flow.mmd');page=window.active_page
         page.markdown_var.set(next(k for k,v in page.markdown_values.items() if v=='rendered'));page.load()

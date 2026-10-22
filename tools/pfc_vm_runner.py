@@ -354,6 +354,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                     data=guest.image_data(directory+'\\evidence-render-'+name+'.bmp')
                     (evidence_dir/('render-'+name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('render-'+name+'.png'))
+            if result['status']=='passed' and 'structure_search_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('late-key','long-value','source-wrap'):
+                    data=guest.image_data(directory+'\\evidence-structure-'+name+'.bmp')
+                    (evidence_dir/('structure-'+name+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('structure-'+name+'.png'))
             if result['status']=='passed' and 'search_results_check.py' in checks:
                 from PIL import Image
                 import io

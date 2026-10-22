@@ -11,6 +11,17 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Structured preview search stays in the rendered tree, scans in the background and reveals matched ancestor paths instead of switching to Source.': ('修正：結構化預覽搜尋保留樹狀畫面，在背景掃描並展開命中路徑，不再切換成原文。','修正：结构化预览搜索保留树状画面，在后台扫描并展开命中路径，不再切换成原文。','수정: 구조 검색은 렌더링 트리를 유지하고 백그라운드에서 검색하여 일치 항목의 상위 경로를 펼칩니다. 원문으로 전환하지 않습니다.'),
+    'Improved: Long scalar matches show bounded excerpts; search supports cancellation and stale-result protection. Very long Source lines avoid word-wrap layout.': ('改善：長欄位值顯示命中片段；搜尋可取消並排除過期結果。原文極長行避免自動換行排版。','改善：长字段值显示命中片段；搜索可取消并排除过期结果。原文极长行避免自动换行排版。','개선: 긴 값은 일치 부분만 표시합니다. 검색 취소와 오래된 결과 차단을 지원하며 매우 긴 원문 행은 자동 줄 바꿈을 사용하지 않습니다.'),
+    'Searching structure…': ('正在搜尋階層…','正在搜索层级…','구조 검색 중…'),
+    'Partial tree': ('部分階層','部分层级','부분 트리'),
+    'Structure search failed; reload preview and retry': ('階層搜尋失敗；請重新載入預覽後重試','层级搜索失败；请重新加载预览后重试','구조 검색 실패; 미리보기를 다시 불러오세요'),
+    'Search timed out; narrow the query and retry': ('搜尋逾時；請縮小條件後重試','搜索超时；请缩小条件后重试','검색 시간 초과; 검색어를 좁혀 다시 시도하세요'),
+    'Search canceled': ('搜尋已取消','搜索已取消','검색 취소됨'),
+    'Search text changed; press Enter to search': ('搜尋文字已變更；按 Enter 搜尋','搜索文字已更改；按 Enter 搜索','검색어 변경됨; Enter로 검색'),
+    'Search limit reached; results are partial': ('已達搜尋上限；結果僅涵蓋部分資料','已达搜索上限；结果仅覆盖部分数据','검색 제한 도달; 부분 결과'),
+    'No matches in searched structure': ('已搜尋階層中沒有相符項目','已搜索层级中没有匹配项','검색한 구조에 일치 항목 없음'),
+    'Long lines: 16K-character window; search and Copy use full loaded source': ('行過長：顯示 16K 字元片段；搜尋與複製仍使用已載入全文','行过长：显示 16K 字符片段；搜索与复制仍使用已加载全文','매우 긴 행: 16K 문자 창; 검색과 복사는 불러온 전체 원문 사용'),
     'Improved: Errors and warnings automatically save bounded recent diagnostics; no Debug or Verbose switch is needed.': ('改善：錯誤及警告自動保存限量的近期診斷，不再需要 Debug 或 Verbose 開關。','改善：错误及警告自动保存限量的近期诊断，不再需要 Debug 或 Verbose 开关。','개선: 오류와 경고가 제한된 최근 진단을 자동 저장하며 Debug/Verbose 스위치가 필요 없습니다.'),
     'Fixed: Limited JSON/YAML/TOML structure previews search loaded Source instead of silently missing later nodes; expand/collapse are direct scalable icon buttons.': ('修正：JSON/YAML/TOML 結構預覽達限制時改查已載入原文，不漏掉後續節點；展開／收合改用可縮放的直接圖示按鈕。','修正：JSON/YAML/TOML 结构预览达到限制时改查已加载原文，不漏掉后续节点；展开／折叠改用可缩放的直接图标按钮。','수정: 제한된 구조 미리보기는 불러온 원문을 검색하여 뒤쪽 노드를 놓치지 않으며 확장/축소는 크기 조절 아이콘 버튼으로 직접 실행합니다.'),
     'Automatic diagnostics': ('自動診斷','自动诊断','자동 진단'),
