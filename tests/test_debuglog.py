@@ -12,6 +12,46 @@ from pycommander.debuglog import DiagnosticLog, diagnostic_records
 
 
 class DebugLogTests(unittest.TestCase):
+    def test_context_is_detached_drained_and_not_duplicated_on_repeated_warnings(self):
+        with tempfile.TemporaryDirectory() as raw:
+            log=DiagnosticLog('test',raw,automatic=True)
+            try:
+                values=['original'];log.event('operation.step',values=values);values.append('later')
+                log.event('first.warning',severity='WARNING')
+                log.event('second.warning',severity='WARNING')
+                rows=diagnostic_records(log.snapshot(automatic=True))
+                self.assertEqual(rows[-2]['context'][-1]['values'],['original'])
+                self.assertNotIn('context',rows[-1])
+            finally:log.close()
+
+    def test_snapshot_starts_with_complete_json_records(self):
+        with tempfile.TemporaryDirectory() as raw:
+            log=DiagnosticLog('test',raw,automatic=True)
+            try:
+                for i in range(200):log.event('large.warning',severity='WARNING',index=i,data='x'*1500)
+                rows=[json.loads(line) for line in log.snapshot(automatic=True).splitlines()]
+                self.assertTrue(rows)
+                self.assertEqual(rows[-1]['index'],199)
+            finally:log.close()
+
+    def test_automatic_failure_saves_bounded_context_without_opt_in(self):
+        with tempfile.TemporaryDirectory() as raw:
+            log=DiagnosticLog('test',raw,automatic=True)
+            try:
+                for i in range(100):log.event('normal.step',step=i)
+                self.assertNotIn('normal.step',log.snapshot(automatic=True))
+                self.assertFalse(log.path.exists())
+                log.event('operation.failed',severity='ERROR')
+                row=diagnostic_records(log.snapshot(automatic=True))[-1]
+                self.assertEqual(row['event'],'operation.failed')
+                self.assertEqual(len(row['context']),64)
+                self.assertEqual(row['context'][-1]['step'],99)
+                self.assertTrue(all(x['version']=='test' and x['time'] for x in row['context']))
+                self.assertTrue(log.clear())
+                log.event('next.failed',severity='WARNING')
+                self.assertNotIn('normal.step',log.snapshot(automatic=True))
+            finally:log.close()
+
     def test_structured_tails_ignore_partial_records_and_deduplicate(self):
         first={'event':'preview.ready','utc_time':'2026-10-14T01:00:00+00:00','version':'old'}
         second={'event':'preview.failed','utc_time':'2026-10-14T02:00:00+00:00'}

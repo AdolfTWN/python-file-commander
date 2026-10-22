@@ -21,6 +21,14 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Errors and warnings automatically save bounded recent diagnostics; no Debug or Verbose switch is needed.': ('改善：錯誤及警告自動保存限量的近期診斷，不再需要 Debug 或 Verbose 開關。','改善：错误及警告自动保存限量的近期诊断，不再需要 Debug 或 Verbose 开关。','개선: 오류와 경고가 제한된 최근 진단을 자동 저장하며 Debug/Verbose 스위치가 필요 없습니다.'),
+    'Fixed: Limited JSON/YAML/TOML structure previews search loaded Source instead of silently missing later nodes; expand/collapse are direct scalable icon buttons.': ('修正：JSON/YAML/TOML 結構預覽達限制時改查已載入原文，不漏掉後續節點；展開／收合改用可縮放的直接圖示按鈕。','修正：JSON/YAML/TOML 结构预览达到限制时改查已加载原文，不漏掉后续节点；展开／折叠改用可缩放的直接图标按钮。','수정: 제한된 구조 미리보기는 불러온 원문을 검색하여 뒤쪽 노드를 놓치지 않으며 확장/축소는 크기 조절 아이콘 버튼으로 직접 실행합니다.'),
+    'Automatic diagnostics': ('自動診斷','自动诊断','자동 진단'),
+    'Save diagnostics': ('儲存診斷','保存诊断','진단 저장'),
+    'Diagnostics were recorded automatically. Save them from Help > Error / Warning log.': ('診斷已自動記錄，請由 Help → 錯誤／警告紀錄儲存。','诊断已自动记录，请从 Help → 错误／警告记录保存。','진단이 자동 기록되었습니다. 도움말 > 오류/경고 로그에서 저장하세요.'),
+    'Structure limited; searching Source': ('結構顯示達上限；改查原文','结构显示达到上限；改查原文','구조 표시 제한; 원문 검색 중'),
+    'Searching loaded Source…': ('正在搜尋已載入原文…','正在搜索已加载原文…','불러온 원문 검색 중…'),
+    'Not found in loaded portion; the rest of the file was not searched': ('已載入部分未找到；尚未搜尋檔案其餘內容','已加载部分未找到；尚未搜索文件其余内容','불러온 부분에 없음; 나머지 파일은 검색하지 않음'),
     'Fixed: Git overlay failures retain valid cached states and report safe automatic warnings; per-user Git installations and failed Shell icon lookups are handled.': ('修正：Git 疊圖查詢失敗時保留有效快取並自動記錄安全警告；支援個人安裝的 Git 及系統圖示讀取失敗回退。','修正：Git 叠图查询失败时保留有效缓存并自动记录安全警告；支持个人安装的 Git 及系统图标读取失败回退。','수정: Git 조회 실패 시 유효한 캐시 유지 및 안전한 자동 경고 기록. 사용자별 Git 설치와 Shell 아이콘 실패 처리.'),
     'Improved: Git/SVN badges retain their size beside OneDrive; Error / Warning log lists newest events first and Refresh returns to the top.': ('改善：Git/SVN 與 OneDrive 並存時保留疊圖尺寸；錯誤／警告記錄由新到舊排列，重新整理回到頂端。','改善：Git/SVN 与 OneDrive 并存时保留叠图尺寸；错误／警告记录由新到旧排列，刷新回到顶部。','개선: OneDrive와 함께 표시해도 Git/SVN 배지 크기 유지. 오류/경고는 최신순으로 표시하고 새로 고침 시 맨 위로 이동.'),
     'Added: F3 renders structured JSON/JSONL/YAML/TOML, CSV/TSV tables, SVG, Mermaid, saved notebooks, patches and safe static HTML with a shared Source switch.': ('新增：F3 支援 JSON/JSONL/YAML/TOML 階層、CSV/TSV 表格、SVG、Mermaid、Notebook 已存輸出、差異檔及安全靜態 HTML，共用原文切換。','新增：F3 支持 JSON/JSONL/YAML/TOML 层级、CSV/TSV 表格、SVG、Mermaid、Notebook 已存输出、差异文件及安全静态 HTML，共用原文切换。','추가: F3 구조/표/도형/노트북 저장 출력/패치/정적 HTML 미리보기와 공통 원문 전환.'),
@@ -7053,7 +7061,8 @@ def resolve_reading_anchor(model, saved, signature):
 
 
 # Source: pycommander/debuglog.py
-"""Bounded automatic errors and opt-in diagnostics; never log document content."""
+"""Bounded automatic errors with recent context; never log document content."""
+from collections import deque
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -7096,6 +7105,7 @@ class DiagnosticLog:
         self.error_path = self.path.with_name('pfc-errors.jsonl')
         self.error_handler = None
         self._lock = threading.RLock()
+        self._recent = deque(maxlen=64)
         self._hooks = []
         self._logging_handler = None
         if automatic:
@@ -7176,16 +7186,27 @@ class DiagnosticLog:
         with self._lock:
             handlers = [h for h in (self.handler, self.error_handler
                         if automatic or severity in ('WARNING','ERROR','CRITICAL') else None) if h]
-            if not handlers: return
+            if not handlers and self.error_handler is None: return
             metadata.update(time=datetime.now().astimezone().isoformat(),
                             utc_time=datetime.now(timezone.utc).isoformat(), version=self.version,
                             session=self.session, event=event, severity=severity)
+            serious = severity in ('WARNING','ERROR','CRITICAL')
+            if serious and self.error_handler and self._recent:
+                metadata['context'] = [json.loads(record) for record in self._recent]
             try:
                 payload = json.dumps(metadata, ensure_ascii=True)
             except (TypeError, ValueError):
                 self.error = 'diagnostic-metadata-invalid'
                 return
             for handler in handlers: self._write(handler, payload)
+            # No normal-operation disk stream: keep a bounded, detached snapshot
+            # for the next failure, without recursively buffering old contexts.
+            metadata.pop('context',None)
+            if serious:
+                self._recent.clear()
+            elif self.error_handler:
+                recent=json.dumps(metadata,ensure_ascii=True)
+                if len(recent)<=1024:self._recent.append(recent)
 
     def _write(self, handler, payload):
         try:
@@ -7198,7 +7219,7 @@ class DiagnosticLog:
             self.error = 'diagnostic-write-failed'
 
     def file(self, event, path, **metadata):
-        if self.handler is None: return
+        if self.handler is None and self.error_handler is None: return
         path = Path(path)
         # Match events for one file without exposing personal paths/names.
         metadata.update(file_id=hashlib.sha256(os.fsencode(os.path.abspath(path))).hexdigest()[:16],
@@ -7220,7 +7241,9 @@ class DiagnosticLog:
         path = self.error_path if automatic else self.path
         if not path.exists(): return ''
         with self._lock, path.open('rb') as stream:
-            stream.seek(max(0, os.fstat(stream.fileno()).st_size-128*1024))
+            start=max(0, os.fstat(stream.fileno()).st_size-128*1024)
+            stream.seek(max(0,start-1))
+            if start and stream.read(1)!=b'\n':stream.readline()
             return stream.read(128*1024).decode('utf-8', errors='replace')
 
     def clear(self):
@@ -7244,6 +7267,7 @@ class DiagnosticLog:
             except (OSError, ValueError):
                 self.error = 'diagnostic-clear-failed'
                 return False
+            self._recent.clear()
             self.event('logs.cleared', automatic=True)
             return True
 
@@ -35278,7 +35302,8 @@ def structured_preview(text,suffix):
         if not rows:raise ValueError(str(exc)) from exc
         notice.append(str(exc));partial=True
     summary=suffix[1:].upper()+' structure · '+str(len(rows))+' nodes'
-    return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial)
+    return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial,
+                **({'source':text} if partial else {}))
 
 
 def table_preview(text,suffix):
@@ -35745,6 +35770,12 @@ class FormatRenderView(ttk.Frame):
         self.choice.bind('<<ComboboxSelected>>',lambda e:self._choose())
         self.copy_button=ttk.Button(self.header,text=tr('Copy'),width=0,command=self.copy)
         self.copy_button.pack(side='right',padx=(4,0))
+        self.tree_actions=ttk.Frame(self.header)
+        self.expand_button=ttk.Button(self.tree_actions,width=0,command=lambda:self._expand_tree(True))
+        self.collapse_button=ttk.Button(self.tree_actions,width=0,command=lambda:self._expand_tree(False))
+        self.expand_button.pack(side='left');self.collapse_button.pack(side='left',padx=(3,0))
+        ToolTip(self.expand_button,lambda:tr('Expand all'))
+        ToolTip(self.collapse_button,lambda:tr('Collapse all'))
         self.body=ttk.Frame(self);self.body.pack(fill='both',expand=True)
         self.tree=None;self.text=None;self.canvas=None;self.scale=1
         self.bind('<Destroy>',self._destroyed,add='+')
@@ -35761,7 +35792,7 @@ class FormatRenderView(ttk.Frame):
             self.after_cancel(self._insert_job);self._insert_job=None
         for child in self.body.winfo_children():child.destroy()
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
-        self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.match_index=-1
+        self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
     def show(self,model):
@@ -35787,8 +35818,7 @@ class FormatRenderView(ttk.Frame):
             for row in self.model['rows']:
                 shown=preview_cell_text(row['value'])
                 self.tree.insert(row['parent'],'end',iid=row['id'],text=row['label'],values=(shown[:500],row['kind']),open=row['path'].count('/')<=1)
-            self.choice.configure(values=(tr('Expand all'),tr('Collapse all')));self.choice.set(tr('Collapse all'))
-            self.choice.pack(side='right',padx=4)
+            self.tree_actions.pack(side='right',padx=4)
         else:
             columns=tuple('c'+str(i) for i in range(len(self.model['columns'])))
             headers=self.model['columns'] if self._grid_header else ['Column '+str(i+1) for i in range(len(columns))]
@@ -35816,7 +35846,24 @@ class FormatRenderView(ttk.Frame):
         if not self.tree:return
         font=tkfont.nametofont('TkDefaultFont');unit=max(8,font.measure('M'))
         if self.model['kind']=='tree':
-            self.tree.column('#0',width=22*unit);self.tree.column('value',width=34*unit);self.tree.column('type',width=10*unit,stretch=False)
+            size=max(18,font.metrics('linespace'));self._tree_icons=[]
+            # Font-independent, scalable outlined stacked boxes: + / −.
+            color=ttk.Style(self).lookup('TLabel','foreground') or '#243746'
+            # PhotoImage.put rejects Windows symbolic system colors even though
+            # widgets accept them. Resolve through Tk before drawing pixels.
+            color='#%02x%02x%02x'%tuple(c//257 for c in self.winfo_rgb(color))
+            for expanded,button in ((True,self.expand_button),(False,self.collapse_button)):
+                icon=tk.PhotoImage(master=self,width=size,height=size)
+                def line(x0,y0,x1,y1):
+                    icon.put(color,to=(round(size*x0),round(size*y0),max(round(size*x0)+1,round(size*x1)),max(round(size*y0)+1,round(size*y1))))
+                t=max(1,round(size*.06))/size
+                for x0,y0,x1,y1 in ((.27,.12,.86,.12+t),(.86-t,.12,.86,.65),(.12,.27,.72,.27+t),(.12,.27,.12+t,.88),(.12,.88-t,.72,.88),(.72-t,.27,.72,.88),(.26,.57,.58,.57+t)):
+                    line(x0,y0,x1,y1)
+                if expanded:line(.42,.42,.42+t,.74)
+                self._tree_icons.append(icon);button.configure(image=icon)
+            self.tree.column('#0',width=22*unit,minwidth=16*unit)
+            self.tree.column('value',width=34*unit,minwidth=12*unit)
+            self.tree.column('type',width=10*unit,minwidth=8*unit,stretch=False)
         else:
             columns=self.tree['columns']
             for index,key in enumerate(columns):
@@ -35929,9 +35976,6 @@ class FormatRenderView(ttk.Frame):
         self.canvas.configure(scrollregion=(0,0,self.display_image.width(),self.display_image.height()))
     def _choose(self):
         if self.canvas:self._draw_image()
-        elif self.tree and self.model['kind']=='tree':
-            expanded=self.choice.get()==tr('Expand all')
-            for row in self.model['rows']:self.tree.item(row['id'],open=expanded)
         elif self.tree and self.model['kind']=='grid':
             self._grid_header=self.choice.get()==tr('First row: header')
             for child in self.body.winfo_children():child.destroy()
@@ -35939,6 +35983,9 @@ class FormatRenderView(ttk.Frame):
         elif self.text:
             index=self.choice.current();sections=self.model.get('sections',[])
             if 0<=index<len(sections):self.text.see(f"1.0+{sections[index]['offset']}c")
+    def _expand_tree(self,expanded):
+        if self.tree and self.model.get('kind')=='tree':
+            for row in self.model['rows']:self.tree.item(row['id'],open=expanded)
     def find(self,needle,case=False,direction=1):
         if not needle:return tr('Enter search text')
         flags=0 if case else re.I;pattern=re.compile(re.escape(needle),flags);hits=[]
@@ -36311,6 +36358,7 @@ def format_worker_main():
                 if not cleanup_protected:raise ValueError('Browser cleanup protection unavailable; showing Source')
                 result=raster_preview(source,suffix,width=request.get('width',1100),font_size=request.get('font_size',16))
             if partial:result['notice']=result.get('notice','')+'; '+partial;result['truncated']=True
+            result['source_truncated']=truncated
             result.update(id=request['id'],signature=signature,encoding=encoding,size=info.st_size,rendered=bool(request.get('rendered')))
         except Exception as exc:
             result=dict(id=request.get('id'),kind='document',content=source or ('Cannot preview file:\n'+str(exc)),spans=[],
@@ -36405,6 +36453,7 @@ class PreviewPage(tk.Frame):
         self._md_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__))
         self._format_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__),'format_worker_main')
         self._format_queued=None;self._format_request=None;self._format_poll=None;self._format_active=False
+        self._format_find_job=None
         self._md_request=None;self._md_queued=None;self._md_insert=None
         self._md_model={};self._md_history=[];self._linked_path=None
         self._md_boundary=Path(os.path.abspath(selected)).parent
@@ -36576,6 +36625,8 @@ class PreviewPage(tk.Frame):
             self._sync_preview_activity();self._format_poll=self.after(40,self._poll_format)
 
     def _cancel_format(self):
+        if self._format_find_job is not None:
+            self.after_cancel(self._format_find_job);self._format_find_job=None
         self._format_jobs.close();self._format_request=None;self._format_queued=None
 
     def _cancel_format_ui(self):
@@ -37233,7 +37284,32 @@ class PreviewPage(tk.Frame):
 
     def _find(self, direction: int) -> str:
         if self._format_active:
+            model=self.render_view.model
+            if model.get('kind')=='tree' and model.get('truncated') and 'source' in model and self.search_var.get():
+                # The tree node cap is not a valid document-wide search scope.
+                # Use the already decoded, bounded source, without a second read
+                # or waiting for another parser/browser process.
+                self.markdown_var.set(next(label for label,value in self.markdown_values.items() if value=='source'))
+                self.render_view.show(dict(kind='document',content=model['source'],spans=[],rendered=False,
+                    truncated=model.get('source_truncated',False),search_scope_notice='Structure limited; searching Source'))
+                self.wrap_check.state(['!disabled'])
+            if self.render_view.text and self.render_view._insert_job is not None:
+                # A match may be beyond the first insertion chunk. Do not clamp
+                # its Text indices to the current end and report a false hit.
+                if self._format_find_job is not None:self.after_cancel(self._format_find_job)
+                generation=self.render_view._generation
+                query=(self.search_var.get(),self.case_var.get())
+                def resume():
+                    self._format_find_job=None
+                    if (self._format_active and self.render_view._generation==generation
+                            and query==(self.search_var.get(),self.case_var.get())):self._find(direction)
+                self._format_find_job=self.after(20,resume)
+                self.status.configure(text=tr('Searching loaded Source…'));return 'break'
             detail=self.render_view.find(self.search_var.get(),self.case_var.get(),direction)
+            if self.render_view.model.get('truncated') and detail==tr('No matches'):
+                detail=tr('Not found in loaded portion; the rest of the file was not searched')
+            if self.render_view.model.get('search_scope_notice'):
+                detail=tr(self.render_view.model['search_scope_notice'])+' · '+detail
             if self.render_view.model.get('truncated'):detail+=' · '+tr('Loaded portion only')
             self.status.configure(text=detail);return 'break'
         previous_index = self.match_index
@@ -37271,6 +37347,8 @@ class PreviewPage(tk.Frame):
         self._remember_markdown_position()
         self._md_jobs.close()
         self._format_jobs.close()
+        if self._format_find_job is not None:
+            self.after_cancel(self._format_find_job);self._format_find_job=None
         if self._format_poll is not None:
             self.after_cancel(self._format_poll);self._format_poll=None
         if self._md_poll_job is not None:
@@ -37419,7 +37497,7 @@ class PreviewWindow(tk.Toplevel):
             except Exception as exc:
                 preview_diagnostic(self,'preview.page.load.failed',exc=exc)
                 page._loaded = False
-                page.status.configure(text=tr('Cannot preview file')+' — '+tr('Enable Help > Debug mode, retry F3, then save the debug log.'))
+                page.status.configure(text=tr('Cannot preview file')+' — '+tr('Diagnostics were recorded automatically. Save them from Help > Error / Warning log.'))
                 raise
         self.title(getattr(page, 'page_title', tr('PFC Preview')))
         self.path_label.configure(text=str(page.path))
@@ -40142,7 +40220,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.35"
+__version__ = "0.18.36"
 
 
 
@@ -40260,8 +40338,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/21"
+BUILD_DATE = "2026/10/22"
 VERSION_HISTORY = (
+    ("v0.18.36", "2026/10/22", (
+        "Improved: Errors and warnings automatically save bounded recent diagnostics; no Debug or Verbose switch is needed.",
+        "Fixed: Limited JSON/YAML/TOML structure previews search loaded Source instead of silently missing later nodes; expand/collapse are direct scalable icon buttons.",
+    )),
     ("v0.18.35", "2026/10/21", (
         "Fixed: Git overlay failures retain valid cached states and report safe automatic warnings; per-user Git installations and failed Shell icon lookups are handled.",
         "Improved: Git/SVN badges retain their size beside OneDrive; Error / Warning log lists newest events first and Refresh returns to the top.",
@@ -42544,13 +42626,13 @@ class Commander(tk.Tk):
         self.config_data = configparser.ConfigParser()
         self.config_data.read(self.ini_path, encoding="utf-8")
         ensure_config_defaults(self.config_data)
-        self.debug_mode_var = tk.BooleanVar(value=self.config_data.getboolean('debug', 'enabled', fallback=False))
+        # Legacy debug settings no longer control automatic diagnostics.
+        self.config_data.remove_section('debug')
         self.debug_log = DiagnosticLog(__version__, automatic=True)
         self.debug_log.install_hooks()
         diagnostic_log = self.debug_log
         self.bind('<Destroy>', lambda event: diagnostic_log.close()
                   if event.widget is self else None, add='+')
-        if not self.debug_log.set_enabled(self.debug_mode_var.get()): self.debug_mode_var.set(False)
         self.home_prefixes = discover_home_prefixes()
         self.cloud_status = CloudStatusCache([p for p, kind in self.home_prefixes if kind == 'cloud']
                                             if os.name == 'nt' else [])
@@ -43166,7 +43248,6 @@ class Commander(tk.Tk):
         for session in list(self._archive_sessions):
             self._close_archive_session(session, retries=0)
         self._archive_sessions.clear()
-        self.debug_log.set_enabled(False)
         self.destroy()
 
     def _sync_auto_start(self, show_error: bool = True) -> bool:
@@ -43514,7 +43595,6 @@ class Commander(tk.Tk):
         versions.add_command(label=tr("Current version: v{version}", version=__version__), state="disabled")
         versions.add_command(label=tr("Check Update"), command=self.check_update)
         versions.add_separator()
-        add_scaled_checkbutton(versions, tr('Debug mode'), self.debug_mode_var, self.set_debug_mode)
         versions.add_command(label=tr('Error / Warning log')+'…', command=self.show_debug_log)
         versions.add_separator()
         version_series = []
@@ -45278,30 +45358,17 @@ class Commander(tk.Tk):
         except Exception as exc:
             self.debug_log.exception('preview.request.failed', exc)
             messagebox.showerror(tr('PFC Preview'), tr('Cannot preview file')+'\n'+
-                tr('Enable Help > Debug mode, retry F3, then save the debug log.'), parent=self)
+                tr('Diagnostics were recorded automatically. Save them from Help > Error / Warning log.'), parent=self)
 
     def report_callback_exception(self, kind, exc, tb):
         log = getattr(self, 'debug_log', None)
         if log: log.exception('tk.callback.failed', exc.with_traceback(tb))
         super().report_callback_exception(kind, exc, tb)
 
-    def set_debug_mode(self):
-        if not self.debug_log.set_enabled(self.debug_mode_var.get()):
-            self.debug_mode_var.set(False)
-            messagebox.showerror(tr('Debug mode'), tr('Cannot write diagnostic log.'), parent=self)
-        if not self.config_data.has_section('debug'): self.config_data.add_section('debug')
-        self.config_data.set('debug','enabled',str(self.debug_mode_var.get()).lower())
-        self.save_config()
-        if self.debug_mode_var.get():
-            self.debug_log.event('vcs.overlay.configuration',enabled=self.vcs_overlay_var.get())
-            instructions=tr('Debug logging is enabled. Reproduce the problem, then use Help > View debug log to save it. Document contents and filenames are not recorded.')
-            instructions=instructions.replace(tr('View debug log'),tr('Error / Warning log'))
-            messagebox.showinfo(tr('Debug mode'), instructions+'\n\n'+str(self.debug_log.path), parent=self)
-
     def show_debug_log(self):
         win = tk.Toplevel(self); win.title(tr('Error / Warning log')); win.geometry('1000x650')
         bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
-        ttk.Label(bar, text=tr('Debug mode')+(' ✓' if self.debug_mode_var.get() else ' —')).pack(side='left')
+        ttk.Label(bar, text=tr('Automatic diagnostics')).pack(side='left')
         identity = ttk.Label(win, text='PFC '+__version__+' · '+
                              tr('Automatic Error / Warning log' if self.debug_log.error_handler
                                 else 'Cannot write diagnostic log.')+'\n'+
@@ -45359,7 +45426,7 @@ class Commander(tk.Tk):
             try:
                 rows=list(reversed(diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())))
             except OSError:
-                messagebox.showerror(tr('Debug mode'),tr('Cannot read diagnostic log.'),parent=win)
+                messagebox.showerror(tr('Error / Warning log'),tr('Cannot read diagnostic log.'),parent=win)
                 return
             table.delete(*table.get_children())
             for i,row in enumerate(rows):
@@ -45376,16 +45443,16 @@ class Commander(tk.Tk):
                 messagebox.showerror(tr('Clear logs'),tr('Cannot clear diagnostic logs.'),parent=win)
             refresh()
         def save():
-            destination=filedialog.asksaveasfilename(parent=win,defaultextension='.jsonl',initialfile='pfc-debug.jsonl')
+            destination=filedialog.asksaveasfilename(parent=win,defaultextension='.jsonl',initialfile='pfc-diagnostics.jsonl')
             if destination:
                 try:
                     protected={p.with_name(p.name+s).resolve() for p in (self.debug_log.path,self.debug_log.error_path) for s in ('','.1','.2')}
                     if Path(destination).resolve() not in protected:
                         Path(destination).write_bytes((self.debug_log.snapshot(automatic=True)+'\n'+
                                                        self.debug_log.snapshot()).encode('utf-8'))
-                except OSError: messagebox.showerror(tr('Debug mode'),tr('Cannot save diagnostic log.'),parent=win)
+                except OSError: messagebox.showerror(tr('Error / Warning log'),tr('Cannot save diagnostic log.'),parent=win)
         ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
-        ttk.Button(bar,text=tr('Save debug log'),command=save).pack(side='right',padx=6)
+        ttk.Button(bar,text=tr('Save diagnostics'),command=save).pack(side='right',padx=6)
         ttk.Button(bar,text=tr('Clear logs'),command=clear).pack(side='right')
         win.bind('<Escape>',lambda e:win.destroy());refresh()
 

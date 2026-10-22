@@ -126,7 +126,8 @@ def structured_preview(text,suffix):
         if not rows:raise ValueError(str(exc)) from exc
         notice.append(str(exc));partial=True
     summary=suffix[1:].upper()+' structure · '+str(len(rows))+' nodes'
-    return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial)
+    return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial,
+                **({'source':text} if partial else {}))
 
 
 def table_preview(text,suffix):

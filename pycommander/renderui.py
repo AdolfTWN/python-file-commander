@@ -24,6 +24,12 @@ class FormatRenderView(ttk.Frame):
         self.choice.bind('<<ComboboxSelected>>',lambda e:self._choose())
         self.copy_button=ttk.Button(self.header,text=tr('Copy'),width=0,command=self.copy)
         self.copy_button.pack(side='right',padx=(4,0))
+        self.tree_actions=ttk.Frame(self.header)
+        self.expand_button=ttk.Button(self.tree_actions,width=0,command=lambda:self._expand_tree(True))
+        self.collapse_button=ttk.Button(self.tree_actions,width=0,command=lambda:self._expand_tree(False))
+        self.expand_button.pack(side='left');self.collapse_button.pack(side='left',padx=(3,0))
+        ToolTip(self.expand_button,lambda:tr('Expand all'))
+        ToolTip(self.collapse_button,lambda:tr('Collapse all'))
         self.body=ttk.Frame(self);self.body.pack(fill='both',expand=True)
         self.tree=None;self.text=None;self.canvas=None;self.scale=1
         self.bind('<Destroy>',self._destroyed,add='+')
@@ -40,7 +46,7 @@ class FormatRenderView(ttk.Frame):
             self.after_cancel(self._insert_job);self._insert_job=None
         for child in self.body.winfo_children():child.destroy()
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
-        self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.match_index=-1
+        self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
     def show(self,model):
@@ -66,8 +72,7 @@ class FormatRenderView(ttk.Frame):
             for row in self.model['rows']:
                 shown=preview_cell_text(row['value'])
                 self.tree.insert(row['parent'],'end',iid=row['id'],text=row['label'],values=(shown[:500],row['kind']),open=row['path'].count('/')<=1)
-            self.choice.configure(values=(tr('Expand all'),tr('Collapse all')));self.choice.set(tr('Collapse all'))
-            self.choice.pack(side='right',padx=4)
+            self.tree_actions.pack(side='right',padx=4)
         else:
             columns=tuple('c'+str(i) for i in range(len(self.model['columns'])))
             headers=self.model['columns'] if self._grid_header else ['Column '+str(i+1) for i in range(len(columns))]
@@ -95,7 +100,24 @@ class FormatRenderView(ttk.Frame):
         if not self.tree:return
         font=tkfont.nametofont('TkDefaultFont');unit=max(8,font.measure('M'))
         if self.model['kind']=='tree':
-            self.tree.column('#0',width=22*unit);self.tree.column('value',width=34*unit);self.tree.column('type',width=10*unit,stretch=False)
+            size=max(18,font.metrics('linespace'));self._tree_icons=[]
+            # Font-independent, scalable outlined stacked boxes: + / −.
+            color=ttk.Style(self).lookup('TLabel','foreground') or '#243746'
+            # PhotoImage.put rejects Windows symbolic system colors even though
+            # widgets accept them. Resolve through Tk before drawing pixels.
+            color='#%02x%02x%02x'%tuple(c//257 for c in self.winfo_rgb(color))
+            for expanded,button in ((True,self.expand_button),(False,self.collapse_button)):
+                icon=tk.PhotoImage(master=self,width=size,height=size)
+                def line(x0,y0,x1,y1):
+                    icon.put(color,to=(round(size*x0),round(size*y0),max(round(size*x0)+1,round(size*x1)),max(round(size*y0)+1,round(size*y1))))
+                t=max(1,round(size*.06))/size
+                for x0,y0,x1,y1 in ((.27,.12,.86,.12+t),(.86-t,.12,.86,.65),(.12,.27,.72,.27+t),(.12,.27,.12+t,.88),(.12,.88-t,.72,.88),(.72-t,.27,.72,.88),(.26,.57,.58,.57+t)):
+                    line(x0,y0,x1,y1)
+                if expanded:line(.42,.42,.42+t,.74)
+                self._tree_icons.append(icon);button.configure(image=icon)
+            self.tree.column('#0',width=22*unit,minwidth=16*unit)
+            self.tree.column('value',width=34*unit,minwidth=12*unit)
+            self.tree.column('type',width=10*unit,minwidth=8*unit,stretch=False)
         else:
             columns=self.tree['columns']
             for index,key in enumerate(columns):
@@ -208,9 +230,6 @@ class FormatRenderView(ttk.Frame):
         self.canvas.configure(scrollregion=(0,0,self.display_image.width(),self.display_image.height()))
     def _choose(self):
         if self.canvas:self._draw_image()
-        elif self.tree and self.model['kind']=='tree':
-            expanded=self.choice.get()==tr('Expand all')
-            for row in self.model['rows']:self.tree.item(row['id'],open=expanded)
         elif self.tree and self.model['kind']=='grid':
             self._grid_header=self.choice.get()==tr('First row: header')
             for child in self.body.winfo_children():child.destroy()
@@ -218,6 +237,9 @@ class FormatRenderView(ttk.Frame):
         elif self.text:
             index=self.choice.current();sections=self.model.get('sections',[])
             if 0<=index<len(sections):self.text.see(f"1.0+{sections[index]['offset']}c")
+    def _expand_tree(self,expanded):
+        if self.tree and self.model.get('kind')=='tree':
+            for row in self.model['rows']:self.tree.item(row['id'],open=expanded)
     def find(self,needle,case=False,direction=1):
         if not needle:return tr('Enter search text')
         flags=0 if case else re.I;pattern=re.compile(re.escape(needle),flags);hits=[]

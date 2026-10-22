@@ -46,6 +46,7 @@ class StructuredPreviewTests(unittest.TestCase):
     def test_tree_limits_are_explicit_and_parent_ids_valid(self):
         m=structured_preview(json.dumps(list(range(4000))),'.json')
         self.assertLessEqual(len(m['rows']),3000);self.assertIn('3,000',m['notice'])
+        self.assertEqual(m['source'],json.dumps(list(range(4000))))
         seen={''}
         for r in m['rows']:self.assertIn(r['parent'],seen);seen.add(r['id'])
     def test_large_repeated_paths_cannot_expand_model_unboundedly(self):

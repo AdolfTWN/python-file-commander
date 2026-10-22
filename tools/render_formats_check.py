@@ -27,7 +27,7 @@ def ready(root,page,timeout=35):
     until=time.monotonic()+timeout
     while time.monotonic()<until:
         root.update();time.sleep(.01)
-        if not (page._format_jobs.pending or page._format_queued or page._format_request or page.render_view._insert_job):return
+        if not (page._format_jobs.pending or page._format_queued or page._format_request or page.render_view._insert_job or page._format_find_job):return
     raise AssertionError('Render did not finish: '+page.path.name+' '+page.status.cget('text'))
 
 
@@ -72,6 +72,8 @@ with tempfile.TemporaryDirectory() as raw:
         'notes.md':'# Existing Markdown\n\nText with **bold** and [local](other.md).\n\n```mermaid\nflowchart LR\n A-->B\n```\n\n# Later section\nStill here.\n',
         'other.md':'# Other\nlinked text',
         'invalid.json':'{"incomplete":',
+        'limited.json':json.dumps({'early':list(range(15000)),'ConnectedDeviceName':'Late value','second':{'ConnectedDeviceName':'Another'}}),
+        'input-limit.json':'{"padding":"'+('x'*(2*1024*1024))+'","late":"NOT_LOADED_NEEDLE"}',
         'plain.py':'print("NEVER EXECUTED")\n',
         'blocked.html':'<h1>Visible safe content</h1><img src="'+endpoint+'"><iframe src="'+secret.as_uri()+'"></iframe><script>document.body.innerText="SCRIPT RAN";fetch('+json.dumps(endpoint)+')</script><style>@import url('+endpoint+');</style>',
     }
@@ -125,6 +127,31 @@ with tempfile.TemporaryDirectory() as raw:
         window.show(paths,directory/'invalid.json');page=window.active_page;ready(root,page)
         assert page.render_view.model.get('fallback') and 'Source fallback:' in page.status.cget('text')
         assert 'incomplete' in page.render_view.text.get('1.0','end')
+        window.show(paths,directory/'limited.json');page=window.active_page;ready(root,page)
+        assert page.render_view.model['kind']=='tree' and page.render_view.model['truncated']
+        assert not any(r['label']=='ConnectedDeviceName' for r in page.render_view.model['rows'])
+        assert not page.render_view.choice.winfo_ismapped()
+        assert page.render_view.expand_button.winfo_ismapped() and page.render_view.collapse_button.winfo_ismapped()
+        page.render_view.collapse_button.invoke()
+        assert not any(page.render_view.tree.item(r['id'],'open') for r in page.render_view.model['rows'])
+        page.render_view.expand_button.invoke()
+        assert all(page.render_view.tree.item(r['id'],'open') for r in page.render_view.model['rows'])
+        capture(window,'structure-controls')
+        page.search_var.set('ConnectedDeviceName');page.find_next();ready(root,page)
+        assert page.render_view.model['kind']=='document' and not page.render_view.model['truncated']
+        assert page.markdown_values[page.markdown_var.get()]=='source'
+        assert 'Match 1 of 2' in page.status.cget('text') and 'searching Source' in page.status.cget('text')
+        first=page.render_view.text.tag_ranges('format_match')
+        assert page.render_view.text.get(*first)=='ConnectedDeviceName'
+        page.find_next();assert 'Match 2 of 2' in page.status.cget('text')
+        assert page.render_view.text.tag_ranges('format_match')!=first
+        page.find_previous();assert page.render_view.text.tag_ranges('format_match')==first
+        capture(window,'structure-search')
+        window.show(paths,directory/'input-limit.json');page=window.active_page;ready(root,page)
+        assert page.render_view.model['truncated']
+        page.search_var.set('NOT_LOADED_NEEDLE');page.find_next()
+        assert 'rest of the file was not searched' in page.status.cget('text')
+        assert 'No matches' not in page.status.cget('text')
         # Starting a graph then immediately switching must cancel and ignore its results.
         window.show(paths,directory/'flow.mmd');page=window.active_page
         page.markdown_var.set(next(k for k,v in page.markdown_values.items() if v=='rendered'));page.load()
@@ -150,6 +177,12 @@ with tempfile.TemporaryDirectory() as raw:
         pump(root,.05)
         assert page.find_prev_button.winfo_rooty()==page.find_next_button.winfo_rooty()
         assert page.render_view.choice.winfo_ismapped() and page.render_view.copy_button.winfo_ismapped()
+        window.show(paths,directory/'agent.json');page=window.active_page
+        page.markdown_var.set(next(k for k,v in page.markdown_values.items() if v=='rendered'));page.load()
+        ready(root,page);page.render_view.rescale();pump(root)
+        assert page.render_view.expand_button.winfo_ismapped() and page.render_view.collapse_button.winfo_ismapped()
+        assert page.render_view._tree_icons[0].height()>=tkfont.nametofont('TkDefaultFont').metrics('linespace')
+        capture(window,'structure-controls')
         assert not errors,errors
         assert not execution_marker.exists(), 'Notebook code must never execute'
         assert not requests,requests

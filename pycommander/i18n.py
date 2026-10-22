@@ -11,6 +11,14 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Errors and warnings automatically save bounded recent diagnostics; no Debug or Verbose switch is needed.': ('改善：錯誤及警告自動保存限量的近期診斷，不再需要 Debug 或 Verbose 開關。','改善：错误及警告自动保存限量的近期诊断，不再需要 Debug 或 Verbose 开关。','개선: 오류와 경고가 제한된 최근 진단을 자동 저장하며 Debug/Verbose 스위치가 필요 없습니다.'),
+    'Fixed: Limited JSON/YAML/TOML structure previews search loaded Source instead of silently missing later nodes; expand/collapse are direct scalable icon buttons.': ('修正：JSON/YAML/TOML 結構預覽達限制時改查已載入原文，不漏掉後續節點；展開／收合改用可縮放的直接圖示按鈕。','修正：JSON/YAML/TOML 结构预览达到限制时改查已加载原文，不漏掉后续节点；展开／折叠改用可缩放的直接图标按钮。','수정: 제한된 구조 미리보기는 불러온 원문을 검색하여 뒤쪽 노드를 놓치지 않으며 확장/축소는 크기 조절 아이콘 버튼으로 직접 실행합니다.'),
+    'Automatic diagnostics': ('自動診斷','自动诊断','자동 진단'),
+    'Save diagnostics': ('儲存診斷','保存诊断','진단 저장'),
+    'Diagnostics were recorded automatically. Save them from Help > Error / Warning log.': ('診斷已自動記錄，請由 Help → 錯誤／警告紀錄儲存。','诊断已自动记录，请从 Help → 错误／警告记录保存。','진단이 자동 기록되었습니다. 도움말 > 오류/경고 로그에서 저장하세요.'),
+    'Structure limited; searching Source': ('結構顯示達上限；改查原文','结构显示达到上限；改查原文','구조 표시 제한; 원문 검색 중'),
+    'Searching loaded Source…': ('正在搜尋已載入原文…','正在搜索已加载原文…','불러온 원문 검색 중…'),
+    'Not found in loaded portion; the rest of the file was not searched': ('已載入部分未找到；尚未搜尋檔案其餘內容','已加载部分未找到；尚未搜索文件其余内容','불러온 부분에 없음; 나머지 파일은 검색하지 않음'),
     'Fixed: Git overlay failures retain valid cached states and report safe automatic warnings; per-user Git installations and failed Shell icon lookups are handled.': ('修正：Git 疊圖查詢失敗時保留有效快取並自動記錄安全警告；支援個人安裝的 Git 及系統圖示讀取失敗回退。','修正：Git 叠图查询失败时保留有效缓存并自动记录安全警告；支持个人安装的 Git 及系统图标读取失败回退。','수정: Git 조회 실패 시 유효한 캐시 유지 및 안전한 자동 경고 기록. 사용자별 Git 설치와 Shell 아이콘 실패 처리.'),
     'Improved: Git/SVN badges retain their size beside OneDrive; Error / Warning log lists newest events first and Refresh returns to the top.': ('改善：Git/SVN 與 OneDrive 並存時保留疊圖尺寸；錯誤／警告記錄由新到舊排列，重新整理回到頂端。','改善：Git/SVN 与 OneDrive 并存时保留叠图尺寸；错误／警告记录由新到旧排列，刷新回到顶部。','개선: OneDrive와 함께 표시해도 Git/SVN 배지 크기 유지. 오류/경고는 최신순으로 표시하고 새로 고침 시 맨 위로 이동.'),
     'Added: F3 renders structured JSON/JSONL/YAML/TOML, CSV/TSV tables, SVG, Mermaid, saved notebooks, patches and safe static HTML with a shared Source switch.': ('新增：F3 支援 JSON/JSONL/YAML/TOML 階層、CSV/TSV 表格、SVG、Mermaid、Notebook 已存輸出、差異檔及安全靜態 HTML，共用原文切換。','新增：F3 支持 JSON/JSONL/YAML/TOML 层级、CSV/TSV 表格、SVG、Mermaid、Notebook 已存输出、差异文件及安全静态 HTML，共用原文切换。','추가: F3 구조/표/도형/노트북 저장 출력/패치/정적 HTML 미리보기와 공통 원문 전환.'),

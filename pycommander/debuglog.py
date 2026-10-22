@@ -1,4 +1,5 @@
-"""Bounded automatic errors and opt-in diagnostics; never log document content."""
+"""Bounded automatic errors with recent context; never log document content."""
+from collections import deque
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -41,6 +42,7 @@ class DiagnosticLog:
         self.error_path = self.path.with_name('pfc-errors.jsonl')
         self.error_handler = None
         self._lock = threading.RLock()
+        self._recent = deque(maxlen=64)
         self._hooks = []
         self._logging_handler = None
         if automatic:
@@ -121,16 +123,27 @@ class DiagnosticLog:
         with self._lock:
             handlers = [h for h in (self.handler, self.error_handler
                         if automatic or severity in ('WARNING','ERROR','CRITICAL') else None) if h]
-            if not handlers: return
+            if not handlers and self.error_handler is None: return
             metadata.update(time=datetime.now().astimezone().isoformat(),
                             utc_time=datetime.now(timezone.utc).isoformat(), version=self.version,
                             session=self.session, event=event, severity=severity)
+            serious = severity in ('WARNING','ERROR','CRITICAL')
+            if serious and self.error_handler and self._recent:
+                metadata['context'] = [json.loads(record) for record in self._recent]
             try:
                 payload = json.dumps(metadata, ensure_ascii=True)
             except (TypeError, ValueError):
                 self.error = 'diagnostic-metadata-invalid'
                 return
             for handler in handlers: self._write(handler, payload)
+            # No normal-operation disk stream: keep a bounded, detached snapshot
+            # for the next failure, without recursively buffering old contexts.
+            metadata.pop('context',None)
+            if serious:
+                self._recent.clear()
+            elif self.error_handler:
+                recent=json.dumps(metadata,ensure_ascii=True)
+                if len(recent)<=1024:self._recent.append(recent)
 
     def _write(self, handler, payload):
         try:
@@ -143,7 +156,7 @@ class DiagnosticLog:
             self.error = 'diagnostic-write-failed'
 
     def file(self, event, path, **metadata):
-        if self.handler is None: return
+        if self.handler is None and self.error_handler is None: return
         path = Path(path)
         # Match events for one file without exposing personal paths/names.
         metadata.update(file_id=hashlib.sha256(os.fsencode(os.path.abspath(path))).hexdigest()[:16],
@@ -165,7 +178,9 @@ class DiagnosticLog:
         path = self.error_path if automatic else self.path
         if not path.exists(): return ''
         with self._lock, path.open('rb') as stream:
-            stream.seek(max(0, os.fstat(stream.fileno()).st_size-128*1024))
+            start=max(0, os.fstat(stream.fileno()).st_size-128*1024)
+            stream.seek(max(0,start-1))
+            if start and stream.read(1)!=b'\n':stream.readline()
             return stream.read(128*1024).decode('utf-8', errors='replace')
 
     def clear(self):
@@ -189,5 +204,6 @@ class DiagnosticLog:
             except (OSError, ValueError):
                 self.error = 'diagnostic-clear-failed'
                 return False
+            self._recent.clear()
             self.event('logs.cleared', automatic=True)
             return True

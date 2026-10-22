@@ -350,7 +350,7 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
             if result['status']=='passed' and 'render_formats_check.py' in checks:
                 from PIL import Image
                 import io
-                for name in ('agent','evaluation','diagram','flow','report','notebook','change','table-200'):
+                for name in ('agent','evaluation','diagram','flow','report','notebook','change','table-200','structure-controls','structure-search'):
                     data=guest.image_data(directory+'\\evidence-render-'+name+'.bmp')
                     (evidence_dir/('render-'+name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('render-'+name+'.png'))

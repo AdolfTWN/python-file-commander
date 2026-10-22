@@ -339,6 +339,7 @@ def format_worker_main():
                 if not cleanup_protected:raise ValueError('Browser cleanup protection unavailable; showing Source')
                 result=raster_preview(source,suffix,width=request.get('width',1100),font_size=request.get('font_size',16))
             if partial:result['notice']=result.get('notice','')+'; '+partial;result['truncated']=True
+            result['source_truncated']=truncated
             result.update(id=request['id'],signature=signature,encoding=encoding,size=info.st_size,rendered=bool(request.get('rendered')))
         except Exception as exc:
             result=dict(id=request.get('id'),kind='document',content=source or ('Cannot preview file:\n'+str(exc)),spans=[],
@@ -433,6 +434,7 @@ class PreviewPage(tk.Frame):
         self._md_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__))
         self._format_jobs=MarkdownJobs(Path(__file__).absolute(),bool(__package__),'format_worker_main')
         self._format_queued=None;self._format_request=None;self._format_poll=None;self._format_active=False
+        self._format_find_job=None
         self._md_request=None;self._md_queued=None;self._md_insert=None
         self._md_model={};self._md_history=[];self._linked_path=None
         self._md_boundary=Path(os.path.abspath(selected)).parent
@@ -604,6 +606,8 @@ class PreviewPage(tk.Frame):
             self._sync_preview_activity();self._format_poll=self.after(40,self._poll_format)
 
     def _cancel_format(self):
+        if self._format_find_job is not None:
+            self.after_cancel(self._format_find_job);self._format_find_job=None
         self._format_jobs.close();self._format_request=None;self._format_queued=None
 
     def _cancel_format_ui(self):
@@ -1261,7 +1265,32 @@ class PreviewPage(tk.Frame):
 
     def _find(self, direction: int) -> str:
         if self._format_active:
+            model=self.render_view.model
+            if model.get('kind')=='tree' and model.get('truncated') and 'source' in model and self.search_var.get():
+                # The tree node cap is not a valid document-wide search scope.
+                # Use the already decoded, bounded source, without a second read
+                # or waiting for another parser/browser process.
+                self.markdown_var.set(next(label for label,value in self.markdown_values.items() if value=='source'))
+                self.render_view.show(dict(kind='document',content=model['source'],spans=[],rendered=False,
+                    truncated=model.get('source_truncated',False),search_scope_notice='Structure limited; searching Source'))
+                self.wrap_check.state(['!disabled'])
+            if self.render_view.text and self.render_view._insert_job is not None:
+                # A match may be beyond the first insertion chunk. Do not clamp
+                # its Text indices to the current end and report a false hit.
+                if self._format_find_job is not None:self.after_cancel(self._format_find_job)
+                generation=self.render_view._generation
+                query=(self.search_var.get(),self.case_var.get())
+                def resume():
+                    self._format_find_job=None
+                    if (self._format_active and self.render_view._generation==generation
+                            and query==(self.search_var.get(),self.case_var.get())):self._find(direction)
+                self._format_find_job=self.after(20,resume)
+                self.status.configure(text=tr('Searching loaded Source…'));return 'break'
             detail=self.render_view.find(self.search_var.get(),self.case_var.get(),direction)
+            if self.render_view.model.get('truncated') and detail==tr('No matches'):
+                detail=tr('Not found in loaded portion; the rest of the file was not searched')
+            if self.render_view.model.get('search_scope_notice'):
+                detail=tr(self.render_view.model['search_scope_notice'])+' · '+detail
             if self.render_view.model.get('truncated'):detail+=' · '+tr('Loaded portion only')
             self.status.configure(text=detail);return 'break'
         previous_index = self.match_index
@@ -1299,6 +1328,8 @@ class PreviewPage(tk.Frame):
         self._remember_markdown_position()
         self._md_jobs.close()
         self._format_jobs.close()
+        if self._format_find_job is not None:
+            self.after_cancel(self._format_find_job);self._format_find_job=None
         if self._format_poll is not None:
             self.after_cancel(self._format_poll);self._format_poll=None
         if self._md_poll_job is not None:
@@ -1447,7 +1478,7 @@ class PreviewWindow(tk.Toplevel):
             except Exception as exc:
                 preview_diagnostic(self,'preview.page.load.failed',exc=exc)
                 page._loaded = False
-                page.status.configure(text=tr('Cannot preview file')+' — '+tr('Enable Help > Debug mode, retry F3, then save the debug log.'))
+                page.status.configure(text=tr('Cannot preview file')+' — '+tr('Diagnostics were recorded automatically. Save them from Help > Error / Warning log.'))
                 raise
         self.title(getattr(page, 'page_title', tr('PFC Preview')))
         self.path_label.configure(text=str(page.path))

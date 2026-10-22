@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.35**
+Current version: **v0.18.36**
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
@@ -75,14 +75,16 @@ failures before application initialization may leave no entry. Storage failures
 must not interrupt normal file operations. Records omit raw messages and document
 contents; source module/line, exception type and OS error codes identify failures.
 
-**Preview diagnostics:** Enable **Help → Debug mode**, reproduce with F3, then
-choose **Help → Error / Warning log → Save debug log**. Detailed Debug logging is
-off by default; automatic errors remain active when Debug is off. Each log stream
-is local only and bounded to three 1 MiB files. Debug contains runtime metadata,
-anonymous file IDs, sizes and error frame locations—not document contents,
-filenames or full paths. Disable Debug mode after reproducing the problem.
-v0.18.20 corrected unsupported Windows Preview tab shortcut bindings. Debug mode
-remains available to diagnose other opening/rendering failures.
+**Automatic diagnostics:** No Debug/Verbose switch is needed. Recent operation
+metadata stays in a bounded in-memory buffer (64 records, at most 1 KiB each).
+Warnings/errors automatically save that context, timestamps, version and error
+frame locations. Context is drained after saving to avoid repeated disk writes.
+Choose **Help → Error / Warning log → Save diagnostics** to export the evidence.
+The local error stream rotates across three 1 MiB files; old debug logs remain
+readable/exportable and clearable. Document contents, filenames and full paths
+are not recorded. Legacy INI debug settings are ignored and removed on save.
+Truncated structured previews search the already-loaded Source automatically;
+the status identifies Source searching and any remaining file input limit.
 
 **Stable Auto Font Size:** Folder/tab navigation, scrolling, selection and file
 refresh keep the chosen text size. Fitting runs when enabled and after settled
