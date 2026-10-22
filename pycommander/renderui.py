@@ -2,11 +2,13 @@
 import base64
 from itertools import chain,islice
 import re
+import time
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
 from .i18n import tr
 from .tooltip import ToolTip
+from .rendercore import STRUCTURE_REVEAL_LIMIT
 
 
 def preview_cell_text(value):
@@ -24,6 +26,7 @@ class FormatRenderView(ttk.Frame):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
         self._row_lookup={};self._search_extra=[]
+        self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         self._grid_header=True;self.wrap=False
         self.header=ttk.Frame(self,padding=(6,3));self.header.pack(fill='x')
@@ -56,6 +59,7 @@ class FormatRenderView(ttk.Frame):
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         self._row_lookup={};self._search_extra=[]
+        self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
@@ -281,41 +285,80 @@ class FormatRenderView(ttk.Frame):
     def _expand_tree(self,expanded):
         if self.tree and self.model.get('kind')=='tree':
             for row in self._row_lookup.values():self.tree.item(row['id'],open=expanded)
-    def apply_tree_search(self,result):
-        """Reveal a bounded real branch without replacing the original tree."""
-        if not self.tree or self.model.get('kind')!='tree':return
-        for iid in self.tree.selection():
-            row=self._row_lookup.get(iid)
-            if row:self.tree.item(iid,text=preview_cell_text(row['label'])[:500],values=(preview_cell_text(row['value'])[:500],row['kind']))
-        self.tree.selection_remove(*self.tree.selection())
-        # Only one extra branch is retained: repeated searches cannot accumulate
-        # thousands of Tk rows or disturb the initial tree's unrelated state.
-        for iid in reversed(self._search_extra):
-            if self.tree.exists(iid):self.tree.delete(iid)
-            self._row_lookup.pop(iid,None)
-        self._search_extra=[]
-        for row in result['rows']:
-            iid=row['id']
-            if iid not in self._row_lookup:
-                siblings=self.tree.get_children(row['parent'])
-                position=next((i for i,other in enumerate(siblings) if int(other[1:])>int(iid[1:])),len(siblings))
-                self.tree.insert(row['parent'],position,iid=iid,text=preview_cell_text(row['label'])[:500],
-                                 values=(preview_cell_text(row['value'])[:500],row['kind']))
-                self._row_lookup[iid]=row;self._search_extra.append(iid)
-        if not result['rows']:return
-        row=result['rows'][-1];iid=row['id']
+    def cancel_tree_reveal(self):
+        if self._tree_revealing and self._insert_job is not None:
+            self.after_cancel(self._insert_job);self._insert_job=None
+        self._tree_revealing=False
+    def _tree_match_text(self,row,match):
+        iid=row['id']
         label=preview_cell_text(row['label'])[:500]
         value=preview_cell_text(row['value'])[:500]
-        field=result.get('field')
+        field=match.get('field')
         if field in {'label','value'}:
-            snippet=preview_match_excerpt(row[field],result['start'],result['end'])
+            snippet=preview_match_excerpt(row[field],match['start'],match['end'])
             if field=='value':value=snippet
             else:label=snippet
         self.tree.item(iid,text=label,values=(value,row['kind']))
-        parent=self.tree.parent(iid)
-        while parent:self.tree.item(parent,open=True);parent=self.tree.parent(parent)
-        self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
-        self._cell=0
+    def apply_tree_search(self,result,*,key=None,complete=None,current=None):
+        """Retain this query's visited branches; reveal bulk results in UI batches."""
+        if not self.tree or self.model.get('kind')!='tree':return
+        self.cancel_tree_reveal()
+        if key!=self._tree_search_key:
+            for iid in self._tree_search_rows:
+                row=self._row_lookup.get(iid)
+                if row:self._tree_match_text(row,{})
+            for iid in reversed(self._search_extra):
+                if self.tree.exists(iid):self.tree.delete(iid)
+                self._row_lookup.pop(iid,None)
+            self._search_extra=[];self._tree_search_rows=set();self._tree_search_key=key
+        matches={m['id']:m for m in result.get('matches',[])}
+        # Compatibility with one-branch callers; selected need not be the last
+        # row when a bulk result contains several sibling branches.
+        selected=result.get('selected',result['rows'][-1]['id'] if result['rows'] else None)
+        if selected:matches[selected]=dict(id=selected,field=result.get('field'),start=result.get('start',0),end=result.get('end',0))
+        missing=[r for r in result['rows'] if r['id'] not in self._row_lookup]
+        limited=result.get('display_limited',False)
+        if len(self._search_extra)+len(missing)>STRUCTURE_REVEAL_LIMIT:
+            # Preserve previous matches rather than silently evicting them.
+            if complete:complete(True,0)
+            return
+        generation=self._generation;cursor=0;self._tree_revealing=True
+        def insert_rows():
+            nonlocal cursor
+            self._insert_job=None
+            if generation!=self._generation or not self._tree_revealing:return
+            if current and not current():
+                self._tree_revealing=False
+                if complete:complete(limited,-1)
+                return
+            started=time.monotonic();count=0
+            while cursor<len(result['rows']) and count<100 and time.monotonic()-started<.008:
+                row=result['rows'][cursor];cursor+=1;count+=1;iid=row['id']
+                if iid not in self._row_lookup:
+                    siblings=self.tree.get_children(row['parent'])
+                    position=next((i for i,other in enumerate(siblings) if int(other[1:])>int(iid[1:])),len(siblings))
+                    self.tree.insert(row['parent'],position,iid=iid,text=preview_cell_text(row['label'])[:500],
+                                     values=(preview_cell_text(row['value'])[:500],row['kind']))
+                    self._row_lookup[iid]=row;self._search_extra.append(iid)
+                # Every returned row is on a matched path; unrelated initial
+                # branches keep their own expansion state.
+                if row['kind'] in {'object','array','mapping','sequence'}:self.tree.item(iid,open=True)
+                if iid in matches:
+                    self._tree_match_text(row,matches[iid]);self._tree_search_rows.add(iid)
+            if cursor<len(result['rows']):self._insert_job=self.after(1,insert)
+            else:
+                self._tree_revealing=False
+                if selected and self.tree.exists(selected):
+                    self.tree.selection_set(selected);self.tree.focus(selected);self.tree.see(selected);self._cell=0
+                elif not result['rows']:self.tree.selection_remove(*self.tree.selection())
+                if complete:complete(limited,len(matches))
+        def insert():
+            try:insert_rows()
+            except (tk.TclError,ValueError,UnicodeError) as exc:
+                self._insert_job=None;self._tree_revealing=False
+                if complete:complete(limited,-2,exc)
+                else:raise
+        insert()
     def find(self,needle,case=False,direction=1):
         self._clear_find_display()
         if not needle:return tr('Enter search text')

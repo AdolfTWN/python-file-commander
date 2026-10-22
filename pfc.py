@@ -21,6 +21,13 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Structured preview keeps previously found branches expanded while navigating matches in the same search.': ('修正：結構預覽在同一搜尋中切換命中項目時，保留先前找到的分支及展開狀態。','修正：结构预览在同一搜索中切换匹配项时，保留先前找到的分支及展开状态。','수정: 같은 검색의 다음/이전 일치로 이동해도 이미 찾은 분기를 펼친 상태로 유지합니다.'),
+    'Added: Find All Matched (Ctrl+Enter) expands matching paths in cancellable batches, with explicit display limits and compact scalable controls.': ('新增：全部符合項目（Ctrl+Enter）分批展開命中路徑，可取消並明示顯示上限；控制列支援縮放及緊湊排列。','新增：全部匹配项（Ctrl+Enter）分批展开匹配路径，可取消并明确显示上限；控制栏支持缩放及紧凑排列。','추가: 모두 찾기(Ctrl+Enter)는 일치 경로를 취소 가능한 배치로 펼치며 표시 제한과 작은 창용 컨트롤을 제공합니다.'),
+    'Find All Matched': ('展開全部符合項目','展开全部匹配项','모든 일치 펼치기'),
+    'Find All': ('全部符合','全部匹配','모두 찾기'),
+    'Expanded {rows} matching rows · {matches} matches': ('已展開 {rows} 個符合列 · {matches} 筆命中','已展开 {rows} 个匹配行 · {matches} 处匹配','일치 행 {rows}개 펼침 · 일치 {matches}개'),
+    'Expanding matched paths…': ('正在展開命中路徑…','正在展开匹配路径…','일치 경로 펼치는 중…'),
+    'Expansion limit reached; narrow the search': ('已達展開上限；請縮小搜尋條件','已达展开上限；请缩小搜索条件','펼치기 제한 도달; 검색어를 좁히세요'),
     'Fixed: Table preview searches include headers and every matching cell, reveal long values and preserve lossless Copy. UTF-32 BOM text is decoded correctly.': ('修正：表格預覽搜尋涵蓋欄名及各儲存格，顯示長值命中片段並保留完整複製；正確解碼 UTF-32 BOM 文字。','修正：表格预览搜索涵盖字段名及各单元格，显示长值命中片段并保留完整复制；正确解码 UTF-32 BOM 文本。','수정: 표 검색은 머리글과 모든 일치 셀을 포함하고 긴 값의 일치 부분을 표시하며 원본을 복사합니다. UTF-32 BOM을 올바르게 해석합니다.'),
     'Improved: Render search clears stale highlights, retains image matches across zoom and labels partial Notebook/graphics results. Unchanged image redraws reuse buffers.': ('改善：清除過期搜尋標記，圖像縮放保留命中位置，明示 Notebook／圖像的部分搜尋範圍；相同縮放重繪時重用圖像緩衝。','改善：清除过期搜索标记，图像缩放保留命中位置，明示 Notebook／图像的部分搜索范围；相同缩放重绘时复用图像缓冲。','개선: 오래된 검색 표시를 지우고 확대 시 일치를 유지하며 Notebook/그래픽의 부분 검색을 명시합니다. 같은 배율은 이미지 버퍼를 재사용합니다.'),
     'Column header': ('欄位名稱','字段名称','열 머리글'),
@@ -35208,6 +35215,7 @@ RENDER_INPUT_LIMIT=2*1024*1024
 RENDER_NODE_LIMIT=3000
 RENDER_CELL_LIMIT=20000
 RENDER_DEPTH_LIMIT=64
+STRUCTURE_REVEAL_LIMIT=9000
 
 
 class _PreviewVendor(importlib.abc.MetaPathFinder,importlib.abc.Loader):
@@ -35319,11 +35327,11 @@ def structured_preview(text,suffix,*,node_limit=RENDER_NODE_LIMIT,text_limit=2*1
     return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial)
 
 
-def structured_search(text,suffix,needle,case=False,index=0):
-    """Worker-only bounded scan; return one real ancestor path, never a text view.
+def structured_search(text,suffix,needle,case=False,index=0,*,all_matches=False):
+    """Worker-only bounded scan; return real ancestor paths, never a text view.
 
-    Preorder IDs match the initial tree, including duplicate object keys. Only
-    the selected branch crosses the process boundary, keeping Tk work bounded.
+    Preorder IDs match the initial tree, including duplicate object keys. Bulk
+    results deduplicate ancestors and bound the number of revealed rows.
     """
     model=structured_preview(text,suffix,node_limit=100000,text_limit=8*1024*1024)
     pattern=re.compile(re.escape(needle),0 if case else re.I) if needle else None
@@ -35347,9 +35355,18 @@ def structured_search(text,suffix,needle,case=False,index=0):
                 partial=model['truncated'] or limited)
     if hits:
         index=index%len(hits);row,field,start,end=hits[index]
-        lookup={r['id']:r for r in model['rows']};branch=[row]
-        while branch[-1]['parent']:branch.append(lookup[branch[-1]['parent']])
-        result.update(rows=list(reversed(branch)),index=index,field=field,start=start,end=end)
+        lookup={r['id']:r for r in model['rows']};revealed={};matches={};display_limited=False
+        for item,key,a,b in (hits if all_matches else [hits[index]]):
+            branch=[item]
+            while branch[-1]['parent'] and branch[-1]['parent'] not in revealed:branch.append(lookup[branch[-1]['parent']])
+            missing=[r for r in reversed(branch) if r['id'] not in revealed]
+            if len(revealed)+len(missing)>STRUCTURE_REVEAL_LIMIT:
+                display_limited=True;break
+            revealed.update((r['id'],r) for r in missing)
+            matches.setdefault(item['id'],dict(id=item['id'],field=key,start=a,end=b))
+        result.update(rows=sorted(revealed.values(),key=lambda r:int(r['id'][1:])),
+                      matches=list(matches.values()),selected=row['id'],all_matches=all_matches,
+                      display_limited=display_limited,index=index,field=field,start=start,end=end)
     return result
 
 
@@ -35816,9 +35833,11 @@ def re_preview_directive(text):
 import base64
 from itertools import chain,islice
 import re
+import time
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
+
 
 
 
@@ -35838,6 +35857,7 @@ class FormatRenderView(ttk.Frame):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
         self._row_lookup={};self._search_extra=[]
+        self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         self._grid_header=True;self.wrap=False
         self.header=ttk.Frame(self,padding=(6,3));self.header.pack(fill='x')
@@ -35870,6 +35890,7 @@ class FormatRenderView(ttk.Frame):
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         self._row_lookup={};self._search_extra=[]
+        self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
@@ -36095,41 +36116,80 @@ class FormatRenderView(ttk.Frame):
     def _expand_tree(self,expanded):
         if self.tree and self.model.get('kind')=='tree':
             for row in self._row_lookup.values():self.tree.item(row['id'],open=expanded)
-    def apply_tree_search(self,result):
-        """Reveal a bounded real branch without replacing the original tree."""
-        if not self.tree or self.model.get('kind')!='tree':return
-        for iid in self.tree.selection():
-            row=self._row_lookup.get(iid)
-            if row:self.tree.item(iid,text=preview_cell_text(row['label'])[:500],values=(preview_cell_text(row['value'])[:500],row['kind']))
-        self.tree.selection_remove(*self.tree.selection())
-        # Only one extra branch is retained: repeated searches cannot accumulate
-        # thousands of Tk rows or disturb the initial tree's unrelated state.
-        for iid in reversed(self._search_extra):
-            if self.tree.exists(iid):self.tree.delete(iid)
-            self._row_lookup.pop(iid,None)
-        self._search_extra=[]
-        for row in result['rows']:
-            iid=row['id']
-            if iid not in self._row_lookup:
-                siblings=self.tree.get_children(row['parent'])
-                position=next((i for i,other in enumerate(siblings) if int(other[1:])>int(iid[1:])),len(siblings))
-                self.tree.insert(row['parent'],position,iid=iid,text=preview_cell_text(row['label'])[:500],
-                                 values=(preview_cell_text(row['value'])[:500],row['kind']))
-                self._row_lookup[iid]=row;self._search_extra.append(iid)
-        if not result['rows']:return
-        row=result['rows'][-1];iid=row['id']
+    def cancel_tree_reveal(self):
+        if self._tree_revealing and self._insert_job is not None:
+            self.after_cancel(self._insert_job);self._insert_job=None
+        self._tree_revealing=False
+    def _tree_match_text(self,row,match):
+        iid=row['id']
         label=preview_cell_text(row['label'])[:500]
         value=preview_cell_text(row['value'])[:500]
-        field=result.get('field')
+        field=match.get('field')
         if field in {'label','value'}:
-            snippet=preview_match_excerpt(row[field],result['start'],result['end'])
+            snippet=preview_match_excerpt(row[field],match['start'],match['end'])
             if field=='value':value=snippet
             else:label=snippet
         self.tree.item(iid,text=label,values=(value,row['kind']))
-        parent=self.tree.parent(iid)
-        while parent:self.tree.item(parent,open=True);parent=self.tree.parent(parent)
-        self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
-        self._cell=0
+    def apply_tree_search(self,result,*,key=None,complete=None,current=None):
+        """Retain this query's visited branches; reveal bulk results in UI batches."""
+        if not self.tree or self.model.get('kind')!='tree':return
+        self.cancel_tree_reveal()
+        if key!=self._tree_search_key:
+            for iid in self._tree_search_rows:
+                row=self._row_lookup.get(iid)
+                if row:self._tree_match_text(row,{})
+            for iid in reversed(self._search_extra):
+                if self.tree.exists(iid):self.tree.delete(iid)
+                self._row_lookup.pop(iid,None)
+            self._search_extra=[];self._tree_search_rows=set();self._tree_search_key=key
+        matches={m['id']:m for m in result.get('matches',[])}
+        # Compatibility with one-branch callers; selected need not be the last
+        # row when a bulk result contains several sibling branches.
+        selected=result.get('selected',result['rows'][-1]['id'] if result['rows'] else None)
+        if selected:matches[selected]=dict(id=selected,field=result.get('field'),start=result.get('start',0),end=result.get('end',0))
+        missing=[r for r in result['rows'] if r['id'] not in self._row_lookup]
+        limited=result.get('display_limited',False)
+        if len(self._search_extra)+len(missing)>STRUCTURE_REVEAL_LIMIT:
+            # Preserve previous matches rather than silently evicting them.
+            if complete:complete(True,0)
+            return
+        generation=self._generation;cursor=0;self._tree_revealing=True
+        def insert_rows():
+            nonlocal cursor
+            self._insert_job=None
+            if generation!=self._generation or not self._tree_revealing:return
+            if current and not current():
+                self._tree_revealing=False
+                if complete:complete(limited,-1)
+                return
+            started=time.monotonic();count=0
+            while cursor<len(result['rows']) and count<100 and time.monotonic()-started<.008:
+                row=result['rows'][cursor];cursor+=1;count+=1;iid=row['id']
+                if iid not in self._row_lookup:
+                    siblings=self.tree.get_children(row['parent'])
+                    position=next((i for i,other in enumerate(siblings) if int(other[1:])>int(iid[1:])),len(siblings))
+                    self.tree.insert(row['parent'],position,iid=iid,text=preview_cell_text(row['label'])[:500],
+                                     values=(preview_cell_text(row['value'])[:500],row['kind']))
+                    self._row_lookup[iid]=row;self._search_extra.append(iid)
+                # Every returned row is on a matched path; unrelated initial
+                # branches keep their own expansion state.
+                if row['kind'] in {'object','array','mapping','sequence'}:self.tree.item(iid,open=True)
+                if iid in matches:
+                    self._tree_match_text(row,matches[iid]);self._tree_search_rows.add(iid)
+            if cursor<len(result['rows']):self._insert_job=self.after(1,insert)
+            else:
+                self._tree_revealing=False
+                if selected and self.tree.exists(selected):
+                    self.tree.selection_set(selected);self.tree.focus(selected);self.tree.see(selected);self._cell=0
+                elif not result['rows']:self.tree.selection_remove(*self.tree.selection())
+                if complete:complete(limited,len(matches))
+        def insert():
+            try:insert_rows()
+            except (tk.TclError,ValueError,UnicodeError) as exc:
+                self._insert_job=None;self._tree_revealing=False
+                if complete:complete(limited,-2,exc)
+                else:raise
+        insert()
     def find(self,needle,case=False,direction=1):
         self._clear_find_display()
         if not needle:return tr('Enter search text')
@@ -36538,7 +36598,7 @@ def format_worker_main():
             if request.get('operation')=='structure_search':
                 if signature!=request.get('expected_signature'):raise ValueError('File changed; reload preview before searching')
                 if suffix not in {'.json','.jsonl','.ndjson','.yaml','.yml','.toml'}:raise ValueError('Not a structured document')
-                result=structured_search(source,suffix,request['needle'],request.get('case',False),request.get('index',0))
+                result=structured_search(source,suffix,request['needle'],request.get('case',False),request.get('index',0),all_matches=request.get('all_matches',False))
                 result['partial']=result['partial'] or truncated
             elif not request.get('rendered'):
                 result=dict(kind='document',content=source,spans=syntax_spans(source,suffix) if len(source)<=512*1024 else [],notice='Source · read-only')
@@ -36697,6 +36757,7 @@ class PreviewPage(tk.Frame):
         self.find_prev_button.pack(side="left")
         self.find_next_button = ttk.Button(find_actions, text=tr("Find Next"), width=0, command=self.find_next)
         self.find_next_button.pack(side="left", padx=(3, 0))
+        self.find_all_matched_button=ttk.Button(find_actions,text=tr('Find All Matched'),width=0,command=self.find_all_matched)
         self.case_check = ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
                         style=self._check_style, command=self.find_all)
         self.case_check.pack(side="left", padx=(8, 0))
@@ -36705,6 +36766,8 @@ class PreviewPage(tk.Frame):
         find_row.bind('<Configure>', self._layout_find)
         ToolTip(self.find_prev_button, lambda: tr('Find Prev')+' (Shift+Enter)')
         ToolTip(self.find_next_button, lambda: tr('Find Next')+' (Enter)')
+        ToolTip(self.find_all_matched_button,lambda:tr('Find All Matched')+' (Ctrl+Enter)')
+        self.search.bind('<Control-Return>',lambda e:self.find_all_matched())
         self.md_tools=ttk.Frame(toolbar)
         self.md_back=ttk.Button(self.md_tools,text='←',width=2,command=self.markdown_back)
         self.md_outline=ttk.Combobox(self.md_tools,width=1,state='readonly')
@@ -36778,6 +36841,7 @@ class PreviewPage(tk.Frame):
         self.md_tools.pack_forget();self.markdown_frame.pack(side='left',padx=(4,0))
         self.text_frame.pack_forget();self.render_view.pack(fill='both',expand=True)
         self.render_view.show(dict(kind='document',content=tr('Loading preview…'),spans=[]))
+        self.find_all_matched_button.pack_forget()
         self._format_request=None
         self._format_queued=dict(path=str(self.path),language=get_language(),rendered=self.extension_effect and self.markdown_values.get(self.markdown_var.get())=='rendered',
             width=max(640,min(1600,self.host.winfo_width()-38)),font_size=tkfont.nametofont('TkFixedFont').metrics('linespace'))
@@ -36819,25 +36883,42 @@ class PreviewPage(tk.Frame):
 
     def _accept_format_result(self,request,result):
         if request.get('operation')=='structure_search':
-            self._format_searching=False
             if (request['needle'],request['case'])!=(self.search_var.get(),self.case_var.get()):
+                self._format_searching=False
                 self.status.configure(text=tr('Search text changed; press Enter to search'));return
             if result.get('kind')!='tree_search':
+                self._format_searching=False
                 self.status.configure(text=tr('Structure search failed; reload preview and retry'))
                 preview_diagnostic(self,'preview.structure.search.failed',path=self.path,severity='WARNING',error_type=result.get('error_type','worker-failed'))
                 return
-            self.render_view.apply_tree_search(result)
             self._structure_search_key=(request['needle'],request['case'])
             self._structure_match_index=result['index'];self._structure_match_count=result['count']
             detail=tr('Match {current} of {total}',current=result['index']+1,total=result['count']) if result['count'] else tr('No matches')
+            if request.get('all_matches') and result['count']:
+                detail=tr('Expanded {rows} matching rows · {matches} matches',rows=len(result.get('matches',[])),matches=result['count'])
             if result['partial']:
                 if not result['count']:detail=tr('No matches in searched structure')
                 detail=tr('Search limit reached; results are partial')+' · '+detail
-            self.status.configure(text=detail)
-            preview_diagnostic(self,'preview.structure.search.complete',path=self.path,count=result['count'],partial=result['partial'])
+            key=(request['needle'],request['case'])
+            def current():return self._format_active and key==(self.search_var.get(),self.case_var.get())
+            def complete(limited,rows,error=None):
+                self._format_searching=False
+                message=detail
+                if error:
+                    message=tr('Structure search failed; reload preview and retry')
+                    preview_diagnostic(self,'preview.structure.search.render.failed',path=self.path,exc=error)
+                elif rows<0:message=tr('Search text changed; press Enter to search')
+                elif limited:message=tr('Expansion limit reached; narrow the search')+' · '+message
+                self.status.configure(text=message);self._sync_preview_activity()
+                preview_diagnostic(self,'preview.structure.search.complete',path=self.path,count=result['count'],partial=result['partial'] or limited)
+            self.status.configure(text=tr('Expanding matched paths…'))
+            self.render_view.apply_tree_search(result,key=key,complete=complete,current=current)
             return
         if 'error' in result:result=dict(kind='document',content=tr('Cannot preview file')+'\n'+str(result['error']),notice=str(result['error']))
         self.render_view.show(result)
+        if result['kind']=='tree':self.find_all_matched_button.pack(side='left',padx=(3,0),before=self.case_check)
+        else:self.find_all_matched_button.pack_forget()
+        self._layout_find()
         self.wrap_check.state(['!disabled'] if result['kind']=='document' else ['disabled'])
         if result.get('wrap_limited'):
             self.wrap_var.set(False);self.wrap_check.state(['disabled'])
@@ -36848,18 +36929,20 @@ class PreviewPage(tk.Frame):
         self.status.configure(text=tr(result.get('notice',''))+'   '+str(result.get('size',''))+' bytes   '+str(result.get('encoding','')))
         preview_diagnostic(self,'preview.format.ready',path=self.path,kind=result['kind'],fallback=result.get('fallback',False),severity='WARNING' if result.get('fallback') else 'INFO')
 
-    def _search_structure(self,direction):
+    def _search_structure(self,direction,*,all_matches=False):
         key=(self.search_var.get(),self.case_var.get())
         if not key[0]:self._cancel_format();self.status.configure(text=tr('Enter search text'));return
         index=(self._structure_match_index+direction)%self._structure_match_count if key==self._structure_search_key and self._structure_match_count else (0 if direction>0 else -1)
         if self._format_jobs.pending:self._format_jobs.cancel()
+        self.render_view.cancel_tree_reveal()
         self._format_request=None;self._format_searching=True
         self._format_queued=dict(operation='structure_search',path=str(self.path),language=get_language(),rendered=True,
-            expected_signature=list(self._signature),needle=key[0],case=key[1],index=index)
+            expected_signature=list(self._signature),needle=key[0],case=key[1],index=0 if all_matches else index,all_matches=all_matches)
         preview_diagnostic(self,'preview.structure.search.queued',path=self.path)
         self.status.configure(text=tr('Searching structure…'));self._sync_preview_activity()
 
     def _cancel_format(self):
+        self.render_view.cancel_tree_reveal()
         if self._format_find_job is not None:
             self.after_cancel(self._format_find_job);self._format_find_job=None
         self._format_jobs.close();self._format_request=None;self._format_queued=None
@@ -36885,10 +36968,12 @@ class PreviewPage(tk.Frame):
     def _layout_find(self, _event=None):
         font = tkfont.nametofont('TkDefaultFont')
         full = sum(font.measure(tr(s)) for s in ('Find:', 'Find Prev', 'Find Next', 'Case sensitive'))
+        if self.find_all_matched_button.winfo_manager():full+=font.measure(tr('Find All Matched'))+10
         compact = self.find_row.winfo_width() < full+font.measure('MMMMMMMMMMMM')+100
         self.find_prev_button.configure(text='↑' if compact else tr('Find Prev'))
         self.find_next_button.configure(text='↓' if compact else tr('Find Next'))
         self.case_check.configure(text='Aa' if compact else tr('Case sensitive'))
+        self.find_all_matched_button.configure(text=tr('Find All') if compact else tr('Find All Matched'))
 
     def _layout_markdown_tools(self):
         fixed=(self.md_back,self.md_fold,self.md_more,self.md_task_label,self.md_cancel)
@@ -36944,7 +37029,7 @@ class PreviewPage(tk.Frame):
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
                   or (self._format_active and self.render_view._insert_job is not None))
-        if self._format_queued or self._format_request:self.format_cancel.pack(side='right',padx=(4,0))
+        if self._format_queued or self._format_request or self.render_view._tree_revealing:self.format_cancel.pack(side='right',padx=(4,0))
         else:self.format_cancel.pack_forget()
         if busy!=self._activity_busy:
             self._activity_busy=busy
@@ -37570,6 +37655,9 @@ class PreviewPage(tk.Frame):
 
     def find_next(self) -> str: return self._find(1)
     def find_previous(self) -> str: return self._find(-1)
+    def find_all_matched(self):
+        if self._format_active and self.render_view.model.get('kind')=='tree':self._search_structure(1,all_matches=True)
+        return 'break'
 
     def previous_file(self) -> None:
         if self.files:
@@ -37723,7 +37811,7 @@ class PreviewWindow(tk.Toplevel):
                 if previous._md_jobs.pending or previous._md_queued or previous._md_insert:
                     previous.cancel_markdown(); previous._loaded = False
                 previous._md_jobs.close()
-                if previous._format_jobs.pending or previous._format_queued:
+                if previous._format_jobs.pending or previous._format_queued or previous.render_view._tree_revealing:
                     previous._cancel_format();previous._loaded=False
                 previous._format_jobs.close()
             self.active_page = page
@@ -40456,7 +40544,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.38"
+__version__ = "0.18.39"
 
 
 
@@ -40574,8 +40662,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/22"
+BUILD_DATE = "2026/10/23"
 VERSION_HISTORY = (
+    ("v0.18.39", "2026/10/23", (
+        "Fixed: Structured preview keeps previously found branches expanded while navigating matches in the same search.",
+        "Added: Find All Matched (Ctrl+Enter) expands matching paths in cancellable batches, with explicit display limits and compact scalable controls.",
+    )),
     ("v0.18.38", "2026/10/22", (
         "Fixed: Table preview searches include headers and every matching cell, reveal long values and preserve lossless Copy. UTF-32 BOM text is decoded correctly.",
         "Improved: Render search clears stale highlights, retains image matches across zoom and labels partial Notebook/graphics results. Unchanged image redraws reuse buffers.",

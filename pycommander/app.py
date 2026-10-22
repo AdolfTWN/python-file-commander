@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.39", "2026/10/23", (
+        "Fixed: Structured preview keeps previously found branches expanded while navigating matches in the same search.",
+        "Added: Find All Matched (Ctrl+Enter) expands matching paths in cancellable batches, with explicit display limits and compact scalable controls.",
+    )),
     ("v0.18.38", "2026/10/22", (
         "Fixed: Table preview searches include headers and every matching cell, reveal long values and preserve lossless Copy. UTF-32 BOM text is decoded correctly.",
         "Improved: Render search clears stale highlights, retains image matches across zoom and labels partial Notebook/graphics results. Unchanged image redraws reuse buffers.",

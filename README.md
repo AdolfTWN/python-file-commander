@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.38**
+Current version: **v0.18.39**
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
@@ -90,9 +90,13 @@ readable/exportable and clearable. Document contents, filenames and full paths
 are not recorded. Legacy INI debug settings are ignored and removed on save.
 Structured search never switches to Source: a background worker scans up to
 100,000 nodes / 8 MiB of structure text and 5,000 matches within the input limit.
-It reveals the selected real ancestor path while retaining the original tree,
-Rendered state and unrelated expansion state. Only one extra branch is retained;
-long scalar values show a match excerpt while Copy keeps the original value.
+It retains each visited matching path in the same search, including previously
+expanded matches, without changing the Rendered state or unrelated branches.
+**Find All Matched** (Ctrl+Enter in Find) reveals all matching paths in cancellable
+UI batches; narrow windows use the shorter **Find All** label. A new query/case
+setting resets its search-added nodes. Up to 9,000 extra UI nodes are retained;
+bulk path unions are also capped at 9,000 rows. Limits are explicit, never silently
+evicting earlier matches. Long values show excerpts while Copy keeps raw values.
 Cancellation, changed files and partial searches are explicit. Manual Source
 remains available; lines over 32,768 characters use an explicitly labelled
 16K-character source window, repositioned around each match, with Wrap disabled.

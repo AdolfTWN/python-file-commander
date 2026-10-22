@@ -18,6 +18,7 @@ RENDER_INPUT_LIMIT=2*1024*1024
 RENDER_NODE_LIMIT=3000
 RENDER_CELL_LIMIT=20000
 RENDER_DEPTH_LIMIT=64
+STRUCTURE_REVEAL_LIMIT=9000
 
 
 class _PreviewVendor(importlib.abc.MetaPathFinder,importlib.abc.Loader):
@@ -129,11 +130,11 @@ def structured_preview(text,suffix,*,node_limit=RENDER_NODE_LIMIT,text_limit=2*1
     return dict(kind='tree',rows=rows,content='\n'.join(r['path']+'  '+r['value'] for r in rows),notice=summary+('; '+'; '.join(dict.fromkeys(notice)) if notice else ''),truncated=partial)
 
 
-def structured_search(text,suffix,needle,case=False,index=0):
-    """Worker-only bounded scan; return one real ancestor path, never a text view.
+def structured_search(text,suffix,needle,case=False,index=0,*,all_matches=False):
+    """Worker-only bounded scan; return real ancestor paths, never a text view.
 
-    Preorder IDs match the initial tree, including duplicate object keys. Only
-    the selected branch crosses the process boundary, keeping Tk work bounded.
+    Preorder IDs match the initial tree, including duplicate object keys. Bulk
+    results deduplicate ancestors and bound the number of revealed rows.
     """
     model=structured_preview(text,suffix,node_limit=100000,text_limit=8*1024*1024)
     pattern=re.compile(re.escape(needle),0 if case else re.I) if needle else None
@@ -157,9 +158,18 @@ def structured_search(text,suffix,needle,case=False,index=0):
                 partial=model['truncated'] or limited)
     if hits:
         index=index%len(hits);row,field,start,end=hits[index]
-        lookup={r['id']:r for r in model['rows']};branch=[row]
-        while branch[-1]['parent']:branch.append(lookup[branch[-1]['parent']])
-        result.update(rows=list(reversed(branch)),index=index,field=field,start=start,end=end)
+        lookup={r['id']:r for r in model['rows']};revealed={};matches={};display_limited=False
+        for item,key,a,b in (hits if all_matches else [hits[index]]):
+            branch=[item]
+            while branch[-1]['parent'] and branch[-1]['parent'] not in revealed:branch.append(lookup[branch[-1]['parent']])
+            missing=[r for r in reversed(branch) if r['id'] not in revealed]
+            if len(revealed)+len(missing)>STRUCTURE_REVEAL_LIMIT:
+                display_limited=True;break
+            revealed.update((r['id'],r) for r in missing)
+            matches.setdefault(item['id'],dict(id=item['id'],field=key,start=a,end=b))
+        result.update(rows=sorted(revealed.values(),key=lambda r:int(r['id'][1:])),
+                      matches=list(matches.values()),selected=row['id'],all_matches=all_matches,
+                      display_limited=display_limited,index=index,field=field,start=start,end=end)
     return result
 
 

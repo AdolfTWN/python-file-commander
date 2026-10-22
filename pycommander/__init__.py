@@ -1,3 +1,3 @@
 """Python File Commander package."""
 
-__version__ = "0.18.38"
+__version__ = "0.18.39"

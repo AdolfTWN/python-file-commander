@@ -65,7 +65,7 @@ with tempfile.TemporaryDirectory() as raw:
             assert view.tree is tree and view.model['kind']=='tree' and view.text is None
             assert page.markdown_values[page.markdown_var.get()]=='rendered'
             assert not tree.item(early,'open'), 'Unrelated expansion state was lost'
-            assert len(view._row_lookup)<=initial+65, 'Search accumulated unbounded Tk rows'
+            assert len(view._row_lookup)<=initial+9000, 'Search exceeded bounded retained-node budget'
         find('ConnectedDeviceName')
         selected=tree.selection()[0]
         assert tree.item(selected,'text')=='ConnectedDeviceName'

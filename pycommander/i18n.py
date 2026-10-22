@@ -11,6 +11,13 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Structured preview keeps previously found branches expanded while navigating matches in the same search.': ('修正：結構預覽在同一搜尋中切換命中項目時，保留先前找到的分支及展開狀態。','修正：结构预览在同一搜索中切换匹配项时，保留先前找到的分支及展开状态。','수정: 같은 검색의 다음/이전 일치로 이동해도 이미 찾은 분기를 펼친 상태로 유지합니다.'),
+    'Added: Find All Matched (Ctrl+Enter) expands matching paths in cancellable batches, with explicit display limits and compact scalable controls.': ('新增：全部符合項目（Ctrl+Enter）分批展開命中路徑，可取消並明示顯示上限；控制列支援縮放及緊湊排列。','新增：全部匹配项（Ctrl+Enter）分批展开匹配路径，可取消并明确显示上限；控制栏支持缩放及紧凑排列。','추가: 모두 찾기(Ctrl+Enter)는 일치 경로를 취소 가능한 배치로 펼치며 표시 제한과 작은 창용 컨트롤을 제공합니다.'),
+    'Find All Matched': ('展開全部符合項目','展开全部匹配项','모든 일치 펼치기'),
+    'Find All': ('全部符合','全部匹配','모두 찾기'),
+    'Expanded {rows} matching rows · {matches} matches': ('已展開 {rows} 個符合列 · {matches} 筆命中','已展开 {rows} 个匹配行 · {matches} 处匹配','일치 행 {rows}개 펼침 · 일치 {matches}개'),
+    'Expanding matched paths…': ('正在展開命中路徑…','正在展开匹配路径…','일치 경로 펼치는 중…'),
+    'Expansion limit reached; narrow the search': ('已達展開上限；請縮小搜尋條件','已达展开上限；请缩小搜索条件','펼치기 제한 도달; 검색어를 좁히세요'),
     'Fixed: Table preview searches include headers and every matching cell, reveal long values and preserve lossless Copy. UTF-32 BOM text is decoded correctly.': ('修正：表格預覽搜尋涵蓋欄名及各儲存格，顯示長值命中片段並保留完整複製；正確解碼 UTF-32 BOM 文字。','修正：表格预览搜索涵盖字段名及各单元格，显示长值命中片段并保留完整复制；正确解码 UTF-32 BOM 文本。','수정: 표 검색은 머리글과 모든 일치 셀을 포함하고 긴 값의 일치 부분을 표시하며 원본을 복사합니다. UTF-32 BOM을 올바르게 해석합니다.'),
     'Improved: Render search clears stale highlights, retains image matches across zoom and labels partial Notebook/graphics results. Unchanged image redraws reuse buffers.': ('改善：清除過期搜尋標記，圖像縮放保留命中位置，明示 Notebook／圖像的部分搜尋範圍；相同縮放重繪時重用圖像緩衝。','改善：清除过期搜索标记，图像缩放保留命中位置，明示 Notebook／图像的部分搜索范围；相同缩放重绘时复用图像缓冲。','개선: 오래된 검색 표시를 지우고 확대 시 일치를 유지하며 Notebook/그래픽의 부분 검색을 명시합니다. 같은 배율은 이미지 버퍼를 재사용합니다.'),
     'Column header': ('欄位名稱','字段名称','열 머리글'),

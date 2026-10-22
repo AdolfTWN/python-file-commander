@@ -11,6 +11,23 @@ from pycommander.renderui import preview_cell_text
 
 
 class StructuredPreviewTests(unittest.TestCase):
+    def test_bulk_search_unions_real_ancestors_without_duplicate_rows(self):
+        source=json.dumps({'items':[{'name':'AW27'} for _ in range(9)]})
+        result=structured_search(source,'.json','AW27',all_matches=True)
+        self.assertEqual(result['count'],9);self.assertEqual(len(result['matches']),9)
+        self.assertEqual(len(result['rows']),20)
+        self.assertEqual(len({r['id'] for r in result['rows']}),20)
+        seen={''}
+        for row in result['rows']:
+            self.assertIn(row['parent'],seen);seen.add(row['id'])
+        self.assertIn(result['selected'],seen);self.assertFalse(result['display_limited'])
+
+    def test_bulk_display_limit_does_not_misreport_search_match_count(self):
+        source=json.dumps([{'a':{'b':{'c':{'name':'AW27'}}}} for _ in range(2500)])
+        result=structured_search(source,'.json','AW27',all_matches=True)
+        self.assertEqual(result['count'],2500);self.assertTrue(result['display_limited'])
+        self.assertLessEqual(len(result['rows']),9000);self.assertLess(len(result['matches']),2500)
+
     def test_search_reveals_late_real_ancestor_path_and_occurrences(self):
         source=json.dumps({'early':list(range(5000)),'nested':{'key':'AW27 then AW27'}})
         original=structured_preview(source,'.json')

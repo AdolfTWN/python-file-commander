@@ -336,7 +336,7 @@ def format_worker_main():
             if request.get('operation')=='structure_search':
                 if signature!=request.get('expected_signature'):raise ValueError('File changed; reload preview before searching')
                 if suffix not in {'.json','.jsonl','.ndjson','.yaml','.yml','.toml'}:raise ValueError('Not a structured document')
-                result=structured_search(source,suffix,request['needle'],request.get('case',False),request.get('index',0))
+                result=structured_search(source,suffix,request['needle'],request.get('case',False),request.get('index',0),all_matches=request.get('all_matches',False))
                 result['partial']=result['partial'] or truncated
             elif not request.get('rendered'):
                 result=dict(kind='document',content=source,spans=syntax_spans(source,suffix) if len(source)<=512*1024 else [],notice='Source · read-only')
@@ -495,6 +495,7 @@ class PreviewPage(tk.Frame):
         self.find_prev_button.pack(side="left")
         self.find_next_button = ttk.Button(find_actions, text=tr("Find Next"), width=0, command=self.find_next)
         self.find_next_button.pack(side="left", padx=(3, 0))
+        self.find_all_matched_button=ttk.Button(find_actions,text=tr('Find All Matched'),width=0,command=self.find_all_matched)
         self.case_check = ttk.Checkbutton(find_actions, text=tr("Case sensitive"), variable=self.case_var,
                         style=self._check_style, command=self.find_all)
         self.case_check.pack(side="left", padx=(8, 0))
@@ -503,6 +504,8 @@ class PreviewPage(tk.Frame):
         find_row.bind('<Configure>', self._layout_find)
         ToolTip(self.find_prev_button, lambda: tr('Find Prev')+' (Shift+Enter)')
         ToolTip(self.find_next_button, lambda: tr('Find Next')+' (Enter)')
+        ToolTip(self.find_all_matched_button,lambda:tr('Find All Matched')+' (Ctrl+Enter)')
+        self.search.bind('<Control-Return>',lambda e:self.find_all_matched())
         self.md_tools=ttk.Frame(toolbar)
         self.md_back=ttk.Button(self.md_tools,text='←',width=2,command=self.markdown_back)
         self.md_outline=ttk.Combobox(self.md_tools,width=1,state='readonly')
@@ -576,6 +579,7 @@ class PreviewPage(tk.Frame):
         self.md_tools.pack_forget();self.markdown_frame.pack(side='left',padx=(4,0))
         self.text_frame.pack_forget();self.render_view.pack(fill='both',expand=True)
         self.render_view.show(dict(kind='document',content=tr('Loading preview…'),spans=[]))
+        self.find_all_matched_button.pack_forget()
         self._format_request=None
         self._format_queued=dict(path=str(self.path),language=get_language(),rendered=self.extension_effect and self.markdown_values.get(self.markdown_var.get())=='rendered',
             width=max(640,min(1600,self.host.winfo_width()-38)),font_size=tkfont.nametofont('TkFixedFont').metrics('linespace'))
@@ -617,25 +621,42 @@ class PreviewPage(tk.Frame):
 
     def _accept_format_result(self,request,result):
         if request.get('operation')=='structure_search':
-            self._format_searching=False
             if (request['needle'],request['case'])!=(self.search_var.get(),self.case_var.get()):
+                self._format_searching=False
                 self.status.configure(text=tr('Search text changed; press Enter to search'));return
             if result.get('kind')!='tree_search':
+                self._format_searching=False
                 self.status.configure(text=tr('Structure search failed; reload preview and retry'))
                 preview_diagnostic(self,'preview.structure.search.failed',path=self.path,severity='WARNING',error_type=result.get('error_type','worker-failed'))
                 return
-            self.render_view.apply_tree_search(result)
             self._structure_search_key=(request['needle'],request['case'])
             self._structure_match_index=result['index'];self._structure_match_count=result['count']
             detail=tr('Match {current} of {total}',current=result['index']+1,total=result['count']) if result['count'] else tr('No matches')
+            if request.get('all_matches') and result['count']:
+                detail=tr('Expanded {rows} matching rows · {matches} matches',rows=len(result.get('matches',[])),matches=result['count'])
             if result['partial']:
                 if not result['count']:detail=tr('No matches in searched structure')
                 detail=tr('Search limit reached; results are partial')+' · '+detail
-            self.status.configure(text=detail)
-            preview_diagnostic(self,'preview.structure.search.complete',path=self.path,count=result['count'],partial=result['partial'])
+            key=(request['needle'],request['case'])
+            def current():return self._format_active and key==(self.search_var.get(),self.case_var.get())
+            def complete(limited,rows,error=None):
+                self._format_searching=False
+                message=detail
+                if error:
+                    message=tr('Structure search failed; reload preview and retry')
+                    preview_diagnostic(self,'preview.structure.search.render.failed',path=self.path,exc=error)
+                elif rows<0:message=tr('Search text changed; press Enter to search')
+                elif limited:message=tr('Expansion limit reached; narrow the search')+' · '+message
+                self.status.configure(text=message);self._sync_preview_activity()
+                preview_diagnostic(self,'preview.structure.search.complete',path=self.path,count=result['count'],partial=result['partial'] or limited)
+            self.status.configure(text=tr('Expanding matched paths…'))
+            self.render_view.apply_tree_search(result,key=key,complete=complete,current=current)
             return
         if 'error' in result:result=dict(kind='document',content=tr('Cannot preview file')+'\n'+str(result['error']),notice=str(result['error']))
         self.render_view.show(result)
+        if result['kind']=='tree':self.find_all_matched_button.pack(side='left',padx=(3,0),before=self.case_check)
+        else:self.find_all_matched_button.pack_forget()
+        self._layout_find()
         self.wrap_check.state(['!disabled'] if result['kind']=='document' else ['disabled'])
         if result.get('wrap_limited'):
             self.wrap_var.set(False);self.wrap_check.state(['disabled'])
@@ -646,18 +667,20 @@ class PreviewPage(tk.Frame):
         self.status.configure(text=tr(result.get('notice',''))+'   '+str(result.get('size',''))+' bytes   '+str(result.get('encoding','')))
         preview_diagnostic(self,'preview.format.ready',path=self.path,kind=result['kind'],fallback=result.get('fallback',False),severity='WARNING' if result.get('fallback') else 'INFO')
 
-    def _search_structure(self,direction):
+    def _search_structure(self,direction,*,all_matches=False):
         key=(self.search_var.get(),self.case_var.get())
         if not key[0]:self._cancel_format();self.status.configure(text=tr('Enter search text'));return
         index=(self._structure_match_index+direction)%self._structure_match_count if key==self._structure_search_key and self._structure_match_count else (0 if direction>0 else -1)
         if self._format_jobs.pending:self._format_jobs.cancel()
+        self.render_view.cancel_tree_reveal()
         self._format_request=None;self._format_searching=True
         self._format_queued=dict(operation='structure_search',path=str(self.path),language=get_language(),rendered=True,
-            expected_signature=list(self._signature),needle=key[0],case=key[1],index=index)
+            expected_signature=list(self._signature),needle=key[0],case=key[1],index=0 if all_matches else index,all_matches=all_matches)
         preview_diagnostic(self,'preview.structure.search.queued',path=self.path)
         self.status.configure(text=tr('Searching structure…'));self._sync_preview_activity()
 
     def _cancel_format(self):
+        self.render_view.cancel_tree_reveal()
         if self._format_find_job is not None:
             self.after_cancel(self._format_find_job);self._format_find_job=None
         self._format_jobs.close();self._format_request=None;self._format_queued=None
@@ -683,10 +706,12 @@ class PreviewPage(tk.Frame):
     def _layout_find(self, _event=None):
         font = tkfont.nametofont('TkDefaultFont')
         full = sum(font.measure(tr(s)) for s in ('Find:', 'Find Prev', 'Find Next', 'Case sensitive'))
+        if self.find_all_matched_button.winfo_manager():full+=font.measure(tr('Find All Matched'))+10
         compact = self.find_row.winfo_width() < full+font.measure('MMMMMMMMMMMM')+100
         self.find_prev_button.configure(text='↑' if compact else tr('Find Prev'))
         self.find_next_button.configure(text='↓' if compact else tr('Find Next'))
         self.case_check.configure(text='Aa' if compact else tr('Case sensitive'))
+        self.find_all_matched_button.configure(text=tr('Find All') if compact else tr('Find All Matched'))
 
     def _layout_markdown_tools(self):
         fixed=(self.md_back,self.md_fold,self.md_more,self.md_task_label,self.md_cancel)
@@ -742,7 +767,7 @@ class PreviewPage(tk.Frame):
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
                   or (self._format_active and self.render_view._insert_job is not None))
-        if self._format_queued or self._format_request:self.format_cancel.pack(side='right',padx=(4,0))
+        if self._format_queued or self._format_request or self.render_view._tree_revealing:self.format_cancel.pack(side='right',padx=(4,0))
         else:self.format_cancel.pack_forget()
         if busy!=self._activity_busy:
             self._activity_busy=busy
@@ -1368,6 +1393,9 @@ class PreviewPage(tk.Frame):
 
     def find_next(self) -> str: return self._find(1)
     def find_previous(self) -> str: return self._find(-1)
+    def find_all_matched(self):
+        if self._format_active and self.render_view.model.get('kind')=='tree':self._search_structure(1,all_matches=True)
+        return 'break'
 
     def previous_file(self) -> None:
         if self.files:
@@ -1521,7 +1549,7 @@ class PreviewWindow(tk.Toplevel):
                 if previous._md_jobs.pending or previous._md_queued or previous._md_insert:
                     previous.cancel_markdown(); previous._loaded = False
                 previous._md_jobs.close()
-                if previous._format_jobs.pending or previous._format_queued:
+                if previous._format_jobs.pending or previous._format_queued or previous.render_view._tree_revealing:
                     previous._cancel_format();previous._loaded=False
                 previous._format_jobs.close()
             self.active_page = page
