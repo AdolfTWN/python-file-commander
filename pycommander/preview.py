@@ -770,8 +770,11 @@ class PreviewPage(tk.Frame):
     def _sync_preview_activity(self):
         width=self.format_cancel.winfo_reqwidth()+self.activity_progress.winfo_reqwidth()+10
         height=max(self.format_cancel.winfo_reqheight(),self.activity_progress.winfo_reqheight())
-        if (int(self.activity_controls.cget('width')),int(self.activity_controls.cget('height')))!=(width,height):
+        # ttk distance options may be Tcl_Obj (including on older Windows Tk).
+        # Never int(cget(...)); keep numeric requested geometry on our side.
+        if getattr(self,'_activity_size',None)!=(width,height):
             self.activity_controls.configure(width=width,height=height)
+            self._activity_size=(width,height)
         reflow=bool(getattr(self.render_view.tree,'_layout_job',None))
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request

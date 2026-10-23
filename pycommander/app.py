@@ -54,7 +54,7 @@ from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard, popup_work_area
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
 from .dialogs import install_scaled_messageboxes
-from .debuglog import DiagnosticLog, diagnostic_records
+from .debuglog import DiagnosticLog, diagnostic_records, diagnostic_incidents, diagnostic_summary
 from .columnsettings import font_snapshot
 from .actionbar import ActionBarLayout
 from .vcsui import VcsActions
@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.42", "2026/10/23", (
+        "Fixed: F3 Preview accepts Tcl pixel-object geometry without a TypeError during JSON/Markdown loading.",
+        "Improved: Diagnostics group propagation of one exception into a photo-friendly incident card with root location, version, system time and runtime; original audit records remain available.",
+    )),
     ("v0.18.41", "2026/10/23", (
         "Fixed: Structured preview no longer loops through layout and progress changes after Expand All or Cancel; height-only changes preserve the viewport.",
         "Improved: Expand/collapse loaded nodes runs in cancellable batches; cancel restores the previous expansion state and rejects stale layout callbacks.",
@@ -2450,7 +2454,8 @@ class Commander(tk.Tk):
         ensure_config_defaults(self.config_data)
         # Legacy debug settings no longer control automatic diagnostics.
         self.config_data.remove_section('debug')
-        self.debug_log = DiagnosticLog(__version__, automatic=True)
+        self.debug_log = DiagnosticLog(__version__, automatic=True,
+                                      runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
         diagnostic_log = self.debug_log
         self.bind('<Destroy>', lambda event: diagnostic_log.close()
@@ -5190,12 +5195,9 @@ class Commander(tk.Tk):
     def show_debug_log(self):
         win = tk.Toplevel(self); win.title(tr('Error / Warning log')); win.geometry('1000x650')
         bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
-        ttk.Label(bar, text=tr('Automatic diagnostics')).pack(side='left')
         identity = ttk.Label(win, text='PFC '+__version__+' · '+
                              tr('Automatic Error / Warning log' if self.debug_log.error_handler
-                                else 'Cannot write diagnostic log.')+'\n'+
-                             str(self.debug_log.error_path)+'\n'+
-                             tr('Current session')+': '+self.debug_log.session,
+                                else 'Cannot write diagnostic log.'),
                              wraplength=950)
         identity.pack(fill='x',padx=6,pady=6)
         footer = ttk.Label(win,text=tr('Recent diagnostics only; no document contents or filenames.'),wraplength=800)
@@ -5206,39 +5208,39 @@ class Commander(tk.Tk):
                 footer.configure(wraplength=width); identity.configure(wraplength=width)
         win.bind('<Configure>',resize_log,add='+')
         body = ttk.Frame(win); body.pack(fill='both',expand=True)
-        split = ttk.Panedwindow(body, orient='vertical'); split.pack(fill='both',expand=True)
-        listing = ttk.Frame(split); split.add(listing,weight=3)
+        listing = ttk.Frame(body,height=130); listing.pack(fill='x');listing.pack_propagate(False)
         columns = ('time','version','severity','event')
-        table = ttk.Treeview(listing,columns=columns,show='headings',selectmode='browse')
+        table = ttk.Treeview(listing,columns=columns,show='headings',selectmode='browse',height=2)
         for column, label, width in zip(columns, ('System time','Version','Level','Event'), (245,85,100,380)):
             table.heading(column,text=tr(label)+(' ▼' if column=='time' else '')); table.column(column,width=width,minwidth=60)
         def size_columns(event=None):
             font=tkfont.nametofont('TkDefaultFont')
             for column,sample in (('time','2026-10-14 23:59:59'),('version','0.18.288'),('severity','WARNING')):
-                width=font.measure(sample)+24
+                index=columns.index(column)
+                samples=[sample]+[table.item(iid,'values')[index] for iid in table.get_children()]
+                width=max(font.measure(str(value)) for value in samples)+24
                 table.column(column,width=width,minwidth=width,stretch=False)
         table.bind('<Configure>',size_columns,add='+')
         size_columns()
+        listing.grid_propagate(False)
         listing.rowconfigure(0,weight=1); listing.columnconfigure(0,weight=1)
         table.grid(row=0,column=0,sticky='nsew')
         scroll = ttk.Scrollbar(listing,command=table.yview); scroll.grid(row=0,column=1,sticky='ns')
         horizontal = ttk.Scrollbar(listing,orient='horizontal',command=table.xview)
         horizontal.grid(row=1,column=0,sticky='ew')
         table.configure(yscrollcommand=scroll.set,xscrollcommand=horizontal.set)
-        detail = ttk.Frame(split); split.add(detail,weight=2)
-        text = tk.Text(detail,wrap='word',font='TkTextFont',height=8,state='disabled')
+        detail = ttk.Frame(body); detail.pack(fill='both',expand=True)
+        text = tk.Text(detail,wrap='word',font='TkTextFont',height=13,state='disabled')
         text.pack(side='left',fill='both',expand=True)
         detail_scroll = ttk.Scrollbar(detail,command=text.yview); detail_scroll.pack(side='right',fill='y')
         text.configure(yscrollcommand=detail_scroll.set)
         rows = []
+        raw_view=False
         def show_details(event=None):
             selection=table.selection()
             if selection:
                 row=rows[int(selection[0])]
-                ordered={k:row.get(k,'—') for k in ('time','version','severity','event','session')}
-                ordered.update(row)
-                summary=' · '.join(str(value) for value in ('PFC '+str(row.get('version','—')),row.get('severity','—'),row.get('error')) if value)
-                content=summary+'\n'+str(row.get('time','—'))+'\n'+row['event']+'\n\n'+json.dumps(ordered,ensure_ascii=False,indent=2)
+                content=json.dumps(row,ensure_ascii=False,indent=2) if raw_view else diagnostic_summary(row)
             else:
                 content=tr('No diagnostic log yet.')
             text.configure(state='normal'); text.delete('1.0','end'); text.insert('1.0',content); text.configure(state='disabled')
@@ -5246,7 +5248,7 @@ class Commander(tk.Tk):
         def refresh():
             nonlocal rows
             try:
-                rows=list(reversed(diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())))
+                rows=list(reversed(diagnostic_incidents(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())))
             except OSError:
                 messagebox.showerror(tr('Error / Warning log'),tr('Cannot read diagnostic log.'),parent=win)
                 return
@@ -5254,6 +5256,7 @@ class Commander(tk.Tk):
             for i,row in enumerate(rows):
                 time=str(row.get('time','—'))[:19].replace('T',' ')
                 table.insert('', 'end',iid=str(i),values=(time,*(row.get(k, '—') for k in columns[1:])))
+            size_columns()
             if rows:
                 table.selection_set('0'); table.focus('0')
             table.yview_moveto(0)
@@ -5273,6 +5276,13 @@ class Commander(tk.Tk):
                         Path(destination).write_bytes((self.debug_log.snapshot(automatic=True)+'\n'+
                                                        self.debug_log.snapshot()).encode('utf-8'))
                 except OSError: messagebox.showerror(tr('Error / Warning log'),tr('Cannot save diagnostic log.'),parent=win)
+        def toggle_details():
+            nonlocal raw_view
+            raw_view=not raw_view
+            details_button.configure(text=tr('Photo summary' if raw_view else 'Full details'))
+            show_details()
+        details_button=ttk.Button(bar,text=tr('Full details'),command=toggle_details)
+        details_button.pack(side='left')
         ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
         ttk.Button(bar,text=tr('Save diagnostics'),command=save).pack(side='right',padx=6)
         ttk.Button(bar,text=tr('Clear logs'),command=clear).pack(side='right')

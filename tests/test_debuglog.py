@@ -8,10 +8,37 @@ import threading
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
-from pycommander.debuglog import DiagnosticLog, diagnostic_records
+from pycommander.debuglog import DiagnosticLog, diagnostic_records, diagnostic_incidents, diagnostic_summary
 
 
 class DebugLogTests(unittest.TestCase):
+    def test_photo_card_folds_only_same_exception_and_shows_root_first(self):
+        with tempfile.TemporaryDirectory() as raw:
+            log=DiagnosticLog('test',raw,automatic=True)
+            try:
+                def inner():raise TypeError('PRIVATE CONTENT')
+                def outer():
+                    try:inner()
+                    except TypeError as exc:
+                        log.exception('preview.page.load.failed',exc)
+                        raise
+                try:outer()
+                except TypeError as exc:log.exception('preview.request.failed',exc)
+                try:inner()
+                except TypeError as exc:log.exception('preview.request.failed',exc)
+                snapshot=log.snapshot(automatic=True)
+                rows=diagnostic_incidents(snapshot,snapshot)
+                failures=[r for r in rows if r.get('error')]
+                self.assertEqual(len(failures),2)
+                self.assertEqual(failures[0]['events'],['preview.page.load.failed','preview.request.failed'])
+                card=diagnostic_summary(failures[0])
+                self.assertIn('TypeError',card);self.assertIn('Runtime:',card)
+                self.assertLess(card.index(' · inner'),card.index(' · outer'))
+                self.assertNotIn('PRIVATE',card+snapshot)
+                self.assertIn('test',card)
+                self.assertEqual(len(diagnostic_records(snapshot)),4)
+            finally:log.close()
+
     def test_context_is_detached_drained_and_not_duplicated_on_repeated_warnings(self):
         with tempfile.TemporaryDirectory() as raw:
             log=DiagnosticLog('test',raw,automatic=True)

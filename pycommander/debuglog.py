@@ -32,11 +32,50 @@ def diagnostic_records(*snapshots):
     return sorted(rows, key=lambda row: str(row.get('utc_time') or row.get('time') or ''))
 
 
+def diagnostic_incidents(*snapshots):
+    """Fold propagation of the SAME exception, never merely similar failures."""
+    result, groups = [], {}
+    for row in diagnostic_records(*snapshots):
+        key=(row.get('session'),row.get('incident'))
+        if not key[1]:
+            result.append(row); continue
+        if key not in groups:
+            row=dict(row,events=[row['event']]);groups[key]=row;result.append(row)
+        else:
+            first=groups[key]
+            if row['event'] not in first['events']:first['events'].append(row['event'])
+            if len(row.get('frames',[]))>len(first.get('frames',[])):first['frames']=row['frames']
+    return result
+
+
+def diagnostic_summary(row):
+    """Photo-first card: root location before caller chain, no raw values/locals."""
+    lines=['PFC '+str(row.get('version','—'))+' · '+str(row.get('severity','—'))+
+           ' · '+str(row.get('error') or row.get('event','—')),
+           str(row.get('time','—'))]
+    frames=row.get('frames',[])
+    if frames:
+        root=frames[-1]
+        lines.append('Location: '+str(root.get('module','?'))+':'+str(root.get('line','?'))+' · '+str(root.get('function','?')))
+    if row.get('reason'):lines.append(str(row['reason']))
+    runtime=row.get('runtime',{})
+    if runtime:
+        lines.append('Runtime: '+' · '.join(str(runtime[k]) for k in ('python','platform','machine','tk') if k in runtime))
+    if frames:
+        for frame in reversed(frames[-3:-1]):
+            lines.append('  '+str(frame.get('module','?'))+':'+str(frame.get('line','?'))+' · '+str(frame.get('function','?')))
+    events=row.get('events',[])
+    lines.append(('Same incident: '+' → '.join(events)) if len(events)>1 else 'Event: '+str(row.get('event','—')))
+    lines.append('Incident: '+str(row.get('incident','—')))
+    return '\n'.join(lines)
+
+
 class DiagnosticLog:
-    def __init__(self, version, directory=None, automatic=False):
+    def __init__(self, version, directory=None, automatic=False, runtime=None):
         base = Path(os.environ.get('LOCALAPPDATA') or os.environ.get('XDG_CACHE_HOME') or Path.home()/'.cache')
         self.path = Path(directory or base/'PFC'/'logs')/'pfc-debug.jsonl'
         self.version, self.session = version, uuid.uuid4().hex[:12]
+        self.runtime=dict(runtime or {})
         self.handler = None
         self.error = None
         self.error_path = self.path.with_name('pfc-errors.jsonl')
@@ -169,7 +208,25 @@ class DiagnosticLog:
     def exception(self, event, exc, severity='ERROR'):
         frames = [dict(module=Path(f.filename).name, line=f.lineno, function=f.name)
                   for f in traceback.extract_tb(exc.__traceback__)[-16:]]
-        data = dict(error=type(exc).__name__, frames=frames)
+        # An exception object survives re-raise through page/window/request.
+        # IDs distinguish independent identical failures and preserve audit rows.
+        with self._lock:
+            ids=getattr(exc,'_pfc_diagnostic_incidents',{})
+            incident=ids.get(self.session)
+            if not incident:
+                incident=uuid.uuid4().hex[:12]
+                try:
+                    exc._pfc_diagnostic_incidents={**ids,self.session:incident}
+                except (AttributeError,TypeError):pass
+        runtime=dict(python=platform.python_version(),platform=platform.system(),machine=platform.machine())
+        tkmodule=sys.modules.get('tkinter')
+        if tkmodule is not None:runtime['tk']='Tk '+str(tkmodule.TkVersion)
+        runtime.update(self.runtime)
+        data = dict(error=type(exc).__name__, frames=frames, incident=incident,runtime=runtime)
+        # Allow only an exact known interpreter message, never arbitrary text
+        # (which may contain paths, source lines or NDA document values).
+        if isinstance(exc,TypeError) and exc.args == ("int() argument must be a string, a bytes-like object or a real number, not '_tkinter.Tcl_Obj'",):
+            data['reason']='Geometry: int() received a Tcl pixel object.'
         if isinstance(exc, OSError): data.update(errno=exc.errno, winerror=getattr(exc,'winerror',None))
         if isinstance(exc, NameError) and getattr(exc,'name',None): data['name'] = exc.name
         self.event(event, severity=severity, **data)

@@ -21,6 +21,10 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: F3 Preview accepts Tcl pixel-object geometry without a TypeError during JSON/Markdown loading.': ('修正：F3 預覽相容 Tcl 像素尺寸物件，載入 JSON／Markdown 不再因此發生 TypeError。','修正：F3 预览兼容 Tcl 像素尺寸对象，加载 JSON/Markdown 不再因此发生 TypeError。','수정: F3 미리보기가 Tcl 픽셀 객체를 처리하여 JSON/Markdown 로드 중 TypeError를 방지합니다.'),
+    'Improved: Diagnostics group propagation of one exception into a photo-friendly incident card with root location, version, system time and runtime; original audit records remain available.': ('改善：同一例外的多層回報合併成適合拍照的摘要，集中顯示根因位置、版本、系統時間及執行環境；原始稽核紀錄仍保留。','改善：同一异常的多层报告合并为适合拍照的摘要，集中显示根因位置、版本、系统时间及运行环境；原始审计记录仍保留。','개선: 같은 예외의 전파를 촬영하기 쉬운 카드로 묶고 원인 위치, 버전, 시스템 시간과 실행 환경을 표시하며 원본 기록은 유지합니다.'),
+    'Full details': ('完整明細','完整明细','전체 세부 정보'),
+    'Photo summary': ('拍照摘要','拍照摘要','촬영용 요약'),
     'Fixed: Structured preview no longer loops through layout and progress changes after Expand All or Cancel; height-only changes preserve the viewport.': ('修正：結構預覽全部展開或取消後，不再反覆排版與啟動進度；僅高度變化時保留檢視位置。','修正：结构预览全部展开或取消后，不再反复排版并启动进度；仅高度变化时保留查看位置。','수정: 모두 펼치기/취소 후 레이아웃과 진행 표시가 반복되지 않으며 높이 변경 시 뷰포트를 유지합니다.'),
     'Improved: Expand/collapse loaded nodes runs in cancellable batches; cancel restores the previous expansion state and rejects stale layout callbacks.': ('改善：已載入節點分批展開／收合，可取消；取消會復原原先展開狀態並丟棄舊排版回呼。','改善：已加载节点分批展开/折叠，可取消；取消会恢复原先展开状态并丢弃旧排版回调。','개선: 로드된 노드를 취소 가능한 배치로 펼치고 접으며 취소 시 이전 상태를 복원하고 오래된 콜백을 무시합니다.'),
     'Expansion canceled; previous view retained': ('已取消展開；保留原畫面','已取消展开；保留原画面','펼치기 취소됨; 이전 보기 유지'),
@@ -7122,11 +7126,50 @@ def diagnostic_records(*snapshots):
     return sorted(rows, key=lambda row: str(row.get('utc_time') or row.get('time') or ''))
 
 
+def diagnostic_incidents(*snapshots):
+    """Fold propagation of the SAME exception, never merely similar failures."""
+    result, groups = [], {}
+    for row in diagnostic_records(*snapshots):
+        key=(row.get('session'),row.get('incident'))
+        if not key[1]:
+            result.append(row); continue
+        if key not in groups:
+            row=dict(row,events=[row['event']]);groups[key]=row;result.append(row)
+        else:
+            first=groups[key]
+            if row['event'] not in first['events']:first['events'].append(row['event'])
+            if len(row.get('frames',[]))>len(first.get('frames',[])):first['frames']=row['frames']
+    return result
+
+
+def diagnostic_summary(row):
+    """Photo-first card: root location before caller chain, no raw values/locals."""
+    lines=['PFC '+str(row.get('version','—'))+' · '+str(row.get('severity','—'))+
+           ' · '+str(row.get('error') or row.get('event','—')),
+           str(row.get('time','—'))]
+    frames=row.get('frames',[])
+    if frames:
+        root=frames[-1]
+        lines.append('Location: '+str(root.get('module','?'))+':'+str(root.get('line','?'))+' · '+str(root.get('function','?')))
+    if row.get('reason'):lines.append(str(row['reason']))
+    runtime=row.get('runtime',{})
+    if runtime:
+        lines.append('Runtime: '+' · '.join(str(runtime[k]) for k in ('python','platform','machine','tk') if k in runtime))
+    if frames:
+        for frame in reversed(frames[-3:-1]):
+            lines.append('  '+str(frame.get('module','?'))+':'+str(frame.get('line','?'))+' · '+str(frame.get('function','?')))
+    events=row.get('events',[])
+    lines.append(('Same incident: '+' → '.join(events)) if len(events)>1 else 'Event: '+str(row.get('event','—')))
+    lines.append('Incident: '+str(row.get('incident','—')))
+    return '\n'.join(lines)
+
+
 class DiagnosticLog:
-    def __init__(self, version, directory=None, automatic=False):
+    def __init__(self, version, directory=None, automatic=False, runtime=None):
         base = Path(os.environ.get('LOCALAPPDATA') or os.environ.get('XDG_CACHE_HOME') or Path.home()/'.cache')
         self.path = Path(directory or base/'PFC'/'logs')/'pfc-debug.jsonl'
         self.version, self.session = version, uuid.uuid4().hex[:12]
+        self.runtime=dict(runtime or {})
         self.handler = None
         self.error = None
         self.error_path = self.path.with_name('pfc-errors.jsonl')
@@ -7259,7 +7302,25 @@ class DiagnosticLog:
     def exception(self, event, exc, severity='ERROR'):
         frames = [dict(module=Path(f.filename).name, line=f.lineno, function=f.name)
                   for f in traceback.extract_tb(exc.__traceback__)[-16:]]
-        data = dict(error=type(exc).__name__, frames=frames)
+        # An exception object survives re-raise through page/window/request.
+        # IDs distinguish independent identical failures and preserve audit rows.
+        with self._lock:
+            ids=getattr(exc,'_pfc_diagnostic_incidents',{})
+            incident=ids.get(self.session)
+            if not incident:
+                incident=uuid.uuid4().hex[:12]
+                try:
+                    exc._pfc_diagnostic_incidents={**ids,self.session:incident}
+                except (AttributeError,TypeError):pass
+        runtime=dict(python=platform.python_version(),platform=platform.system(),machine=platform.machine())
+        tkmodule=sys.modules.get('tkinter')
+        if tkmodule is not None:runtime['tk']='Tk '+str(tkmodule.TkVersion)
+        runtime.update(self.runtime)
+        data = dict(error=type(exc).__name__, frames=frames, incident=incident,runtime=runtime)
+        # Allow only an exact known interpreter message, never arbitrary text
+        # (which may contain paths, source lines or NDA document values).
+        if isinstance(exc,TypeError) and exc.args == ("int() argument must be a string, a bytes-like object or a real number, not '_tkinter.Tcl_Obj'",):
+            data['reason']='Geometry: int() received a Tcl pixel object.'
         if isinstance(exc, OSError): data.update(errno=exc.errno, winerror=getattr(exc,'winerror',None))
         if isinstance(exc, NameError) and getattr(exc,'name',None): data['name'] = exc.name
         self.event(event, severity=severity, **data)
@@ -37404,8 +37465,11 @@ class PreviewPage(tk.Frame):
     def _sync_preview_activity(self):
         width=self.format_cancel.winfo_reqwidth()+self.activity_progress.winfo_reqwidth()+10
         height=max(self.format_cancel.winfo_reqheight(),self.activity_progress.winfo_reqheight())
-        if (int(self.activity_controls.cget('width')),int(self.activity_controls.cget('height')))!=(width,height):
+        # ttk distance options may be Tcl_Obj (including on older Windows Tk).
+        # Never int(cget(...)); keep numeric requested geometry on our side.
+        if getattr(self,'_activity_size',None)!=(width,height):
             self.activity_controls.configure(width=width,height=height)
+            self._activity_size=(width,height)
         reflow=bool(getattr(self.render_view.tree,'_layout_job',None))
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
@@ -40925,7 +40989,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.41"
+__version__ = "0.18.42"
 
 
 
@@ -41045,6 +41109,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/23"
 VERSION_HISTORY = (
+    ("v0.18.42", "2026/10/23", (
+        "Fixed: F3 Preview accepts Tcl pixel-object geometry without a TypeError during JSON/Markdown loading.",
+        "Improved: Diagnostics group propagation of one exception into a photo-friendly incident card with root location, version, system time and runtime; original audit records remain available.",
+    )),
     ("v0.18.41", "2026/10/23", (
         "Fixed: Structured preview no longer loops through layout and progress changes after Expand All or Cancel; height-only changes preserve the viewport.",
         "Improved: Expand/collapse loaded nodes runs in cancellable batches; cancel restores the previous expansion state and rejects stale layout callbacks.",
@@ -43353,7 +43421,8 @@ class Commander(tk.Tk):
         ensure_config_defaults(self.config_data)
         # Legacy debug settings no longer control automatic diagnostics.
         self.config_data.remove_section('debug')
-        self.debug_log = DiagnosticLog(__version__, automatic=True)
+        self.debug_log = DiagnosticLog(__version__, automatic=True,
+                                      runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
         diagnostic_log = self.debug_log
         self.bind('<Destroy>', lambda event: diagnostic_log.close()
@@ -46093,12 +46162,9 @@ class Commander(tk.Tk):
     def show_debug_log(self):
         win = tk.Toplevel(self); win.title(tr('Error / Warning log')); win.geometry('1000x650')
         bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
-        ttk.Label(bar, text=tr('Automatic diagnostics')).pack(side='left')
         identity = ttk.Label(win, text='PFC '+__version__+' · '+
                              tr('Automatic Error / Warning log' if self.debug_log.error_handler
-                                else 'Cannot write diagnostic log.')+'\n'+
-                             str(self.debug_log.error_path)+'\n'+
-                             tr('Current session')+': '+self.debug_log.session,
+                                else 'Cannot write diagnostic log.'),
                              wraplength=950)
         identity.pack(fill='x',padx=6,pady=6)
         footer = ttk.Label(win,text=tr('Recent diagnostics only; no document contents or filenames.'),wraplength=800)
@@ -46109,39 +46175,39 @@ class Commander(tk.Tk):
                 footer.configure(wraplength=width); identity.configure(wraplength=width)
         win.bind('<Configure>',resize_log,add='+')
         body = ttk.Frame(win); body.pack(fill='both',expand=True)
-        split = ttk.Panedwindow(body, orient='vertical'); split.pack(fill='both',expand=True)
-        listing = ttk.Frame(split); split.add(listing,weight=3)
+        listing = ttk.Frame(body,height=130); listing.pack(fill='x');listing.pack_propagate(False)
         columns = ('time','version','severity','event')
-        table = ttk.Treeview(listing,columns=columns,show='headings',selectmode='browse')
+        table = ttk.Treeview(listing,columns=columns,show='headings',selectmode='browse',height=2)
         for column, label, width in zip(columns, ('System time','Version','Level','Event'), (245,85,100,380)):
             table.heading(column,text=tr(label)+(' ▼' if column=='time' else '')); table.column(column,width=width,minwidth=60)
         def size_columns(event=None):
             font=tkfont.nametofont('TkDefaultFont')
             for column,sample in (('time','2026-10-14 23:59:59'),('version','0.18.288'),('severity','WARNING')):
-                width=font.measure(sample)+24
+                index=columns.index(column)
+                samples=[sample]+[table.item(iid,'values')[index] for iid in table.get_children()]
+                width=max(font.measure(str(value)) for value in samples)+24
                 table.column(column,width=width,minwidth=width,stretch=False)
         table.bind('<Configure>',size_columns,add='+')
         size_columns()
+        listing.grid_propagate(False)
         listing.rowconfigure(0,weight=1); listing.columnconfigure(0,weight=1)
         table.grid(row=0,column=0,sticky='nsew')
         scroll = ttk.Scrollbar(listing,command=table.yview); scroll.grid(row=0,column=1,sticky='ns')
         horizontal = ttk.Scrollbar(listing,orient='horizontal',command=table.xview)
         horizontal.grid(row=1,column=0,sticky='ew')
         table.configure(yscrollcommand=scroll.set,xscrollcommand=horizontal.set)
-        detail = ttk.Frame(split); split.add(detail,weight=2)
-        text = tk.Text(detail,wrap='word',font='TkTextFont',height=8,state='disabled')
+        detail = ttk.Frame(body); detail.pack(fill='both',expand=True)
+        text = tk.Text(detail,wrap='word',font='TkTextFont',height=13,state='disabled')
         text.pack(side='left',fill='both',expand=True)
         detail_scroll = ttk.Scrollbar(detail,command=text.yview); detail_scroll.pack(side='right',fill='y')
         text.configure(yscrollcommand=detail_scroll.set)
         rows = []
+        raw_view=False
         def show_details(event=None):
             selection=table.selection()
             if selection:
                 row=rows[int(selection[0])]
-                ordered={k:row.get(k,'—') for k in ('time','version','severity','event','session')}
-                ordered.update(row)
-                summary=' · '.join(str(value) for value in ('PFC '+str(row.get('version','—')),row.get('severity','—'),row.get('error')) if value)
-                content=summary+'\n'+str(row.get('time','—'))+'\n'+row['event']+'\n\n'+json.dumps(ordered,ensure_ascii=False,indent=2)
+                content=json.dumps(row,ensure_ascii=False,indent=2) if raw_view else diagnostic_summary(row)
             else:
                 content=tr('No diagnostic log yet.')
             text.configure(state='normal'); text.delete('1.0','end'); text.insert('1.0',content); text.configure(state='disabled')
@@ -46149,7 +46215,7 @@ class Commander(tk.Tk):
         def refresh():
             nonlocal rows
             try:
-                rows=list(reversed(diagnostic_records(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())))
+                rows=list(reversed(diagnostic_incidents(self.debug_log.snapshot(automatic=True),self.debug_log.snapshot())))
             except OSError:
                 messagebox.showerror(tr('Error / Warning log'),tr('Cannot read diagnostic log.'),parent=win)
                 return
@@ -46157,6 +46223,7 @@ class Commander(tk.Tk):
             for i,row in enumerate(rows):
                 time=str(row.get('time','—'))[:19].replace('T',' ')
                 table.insert('', 'end',iid=str(i),values=(time,*(row.get(k, '—') for k in columns[1:])))
+            size_columns()
             if rows:
                 table.selection_set('0'); table.focus('0')
             table.yview_moveto(0)
@@ -46176,6 +46243,13 @@ class Commander(tk.Tk):
                         Path(destination).write_bytes((self.debug_log.snapshot(automatic=True)+'\n'+
                                                        self.debug_log.snapshot()).encode('utf-8'))
                 except OSError: messagebox.showerror(tr('Error / Warning log'),tr('Cannot save diagnostic log.'),parent=win)
+        def toggle_details():
+            nonlocal raw_view
+            raw_view=not raw_view
+            details_button.configure(text=tr('Photo summary' if raw_view else 'Full details'))
+            show_details()
+        details_button=ttk.Button(bar,text=tr('Full details'),command=toggle_details)
+        details_button.pack(side='left')
         ttk.Button(bar,text=tr('Refresh log'),command=refresh).pack(side='right')
         ttk.Button(bar,text=tr('Save diagnostics'),command=save).pack(side='right',padx=6)
         ttk.Button(bar,text=tr('Clear logs'),command=clear).pack(side='right')

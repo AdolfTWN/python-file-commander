@@ -11,6 +11,10 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: F3 Preview accepts Tcl pixel-object geometry without a TypeError during JSON/Markdown loading.': ('修正：F3 預覽相容 Tcl 像素尺寸物件，載入 JSON／Markdown 不再因此發生 TypeError。','修正：F3 预览兼容 Tcl 像素尺寸对象，加载 JSON/Markdown 不再因此发生 TypeError。','수정: F3 미리보기가 Tcl 픽셀 객체를 처리하여 JSON/Markdown 로드 중 TypeError를 방지합니다.'),
+    'Improved: Diagnostics group propagation of one exception into a photo-friendly incident card with root location, version, system time and runtime; original audit records remain available.': ('改善：同一例外的多層回報合併成適合拍照的摘要，集中顯示根因位置、版本、系統時間及執行環境；原始稽核紀錄仍保留。','改善：同一异常的多层报告合并为适合拍照的摘要，集中显示根因位置、版本、系统时间及运行环境；原始审计记录仍保留。','개선: 같은 예외의 전파를 촬영하기 쉬운 카드로 묶고 원인 위치, 버전, 시스템 시간과 실행 환경을 표시하며 원본 기록은 유지합니다.'),
+    'Full details': ('完整明細','完整明细','전체 세부 정보'),
+    'Photo summary': ('拍照摘要','拍照摘要','촬영용 요약'),
     'Fixed: Structured preview no longer loops through layout and progress changes after Expand All or Cancel; height-only changes preserve the viewport.': ('修正：結構預覽全部展開或取消後，不再反覆排版與啟動進度；僅高度變化時保留檢視位置。','修正：结构预览全部展开或取消后，不再反复排版并启动进度；仅高度变化时保留查看位置。','수정: 모두 펼치기/취소 후 레이아웃과 진행 표시가 반복되지 않으며 높이 변경 시 뷰포트를 유지합니다.'),
     'Improved: Expand/collapse loaded nodes runs in cancellable batches; cancel restores the previous expansion state and rejects stale layout callbacks.': ('改善：已載入節點分批展開／收合，可取消；取消會復原原先展開狀態並丟棄舊排版回呼。','改善：已加载节点分批展开/折叠，可取消；取消会恢复原先展开状态并丢弃旧排版回调。','개선: 로드된 노드를 취소 가능한 배치로 펼치고 접으며 취소 시 이전 상태를 복원하고 오래된 콜백을 무시합니다.'),
     'Expansion canceled; previous view retained': ('已取消展開；保留原畫面','已取消展开；保留原画面','펼치기 취소됨; 이전 보기 유지'),

@@ -90,6 +90,29 @@ with tempfile.TemporaryDirectory() as raw:
         assert recovered.bind('<Control-Shift-Tab>')
         assert ('preview.binding.unsupported' in app.debug_log.snapshot(automatic=True)) == (app.tk.call('tk','windowingsystem')=='x11')
         recovered.close(); app.preview_window = None
+        # Real Tcl pixel objects are not int-convertible. Simulate the return
+        # type seen on Windows Tk even when this runtime returns Python ints.
+        pixel_frame=pfc.ttk.Frame(app,width='3p',height='3p')
+        pixel=pixel_frame.cget('width')
+        try:int(pixel)
+        except TypeError:pass
+        else:raise AssertionError('Expected a real Tcl pixel object for compatibility test')
+        original_cget=pfc.ttk.Frame.cget
+        def pixel_cget(widget,key):
+            if key in ('width','height'):return pixel
+            return original_cget(widget,key)
+        valid_json=root/'valid.json';valid_json.write_text('{"name":"AW27","nested":{"value":"matched"}}',encoding='utf-8')
+        with patch.object(pfc.ttk.Frame,'cget',pixel_cget):
+            with patch.object(pfc.messagebox,'showerror') as notice:
+                app.preview_paths([valid_json,md],valid_json);settle(app)
+                assert not notice.called
+                page=app.preview_window.active_page
+                assert page._format_active and page.render_view.tree.get_children()
+                size=page._activity_size
+                page._sync_preview_activity();assert page._activity_size==size
+                app.preview_window.show([valid_json,md],md);settle(app)
+                assert app.preview_window.text.get('1.0','end-1c').strip()
+        pixel_frame.destroy();app.preview_window.close();app.preview_window=None
         app.show_debug_log();app.update()
         viewer=next(w for w in app.winfo_children() if isinstance(w,pfc.tk.Toplevel))
         app.font_size_var.set('xl');app.apply_font_size(save=False);app.update()
@@ -115,6 +138,30 @@ with tempfile.TemporaryDirectory() as raw:
         assert '▼' in table.heading('time','text')
         displayed_time=table.item(table.get_children()[-1],'values')[0]
         assert table.column('time','width') >= pfc.tkfont.nametofont('TkDefaultFont').measure(displayed_time)+12
+        def failed_geometry():
+            raise TypeError("int() argument must be a string, a bytes-like object or a real number, not '_tkinter.Tcl_Obj'")
+        app.debug_log.event('preview.geometry.test')
+        try:failed_geometry()
+        except TypeError as exc:
+            for event in ('preview.page.load.failed','preview.window.construct.failed','preview.request.failed'):
+                app.debug_log.exception(event,exc)
+        previous_count=len(table.get_children());refresh.invoke();app.update()
+        assert len(table.get_children())==previous_count+1, 'Propagation shown as separate errors'
+        card=next(w for w in descendants(viewer) if isinstance(w,pfc.tk.Text))
+        content=card.get('1.0','end-1c')
+        assert 'failed_geometry' in content and 'Tcl pixel object' in content
+        assert all(event in content for event in ('preview.page.load.failed','preview.window.construct.failed','preview.request.failed'))
+        assert '"frames"' not in content, 'Default photo view still dumps raw JSON'
+        end_line=card.index('end-1c').split('.')[0]
+        assert card.dlineinfo(end_line+'.0') is not None, 'Incident card needs scrolling at 200%'
+        details=next(w for w in bar.winfo_children() if isinstance(w,pfc.ttk.Button) and w.cget('text')==pfc.tr('Full details'))
+        audit=app.debug_log.snapshot(automatic=True)
+        details.invoke();app.update()
+        assert '"frames"' in card.get('1.0','end-1c')
+        assert '"context"' in card.get('1.0','end-1c')
+        details.invoke();app.update()
+        assert card.get('1.0','end-1c')==content
+        assert audit==app.debug_log.snapshot(automatic=True), 'View toggle changed logging'
         clear=next(w for w in bar.winfo_children() if isinstance(w,pfc.ttk.Button) and w.cget('text')==pfc.tr('Clear logs'))
         before=app.debug_log.snapshot(automatic=True)
         with patch.object(pfc.messagebox,'askyesno',return_value=False):clear.invoke()
