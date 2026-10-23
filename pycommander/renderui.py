@@ -28,6 +28,7 @@ class FormatRenderView(ttk.Frame):
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
         self._row_lookup={};self._search_extra=[]
         self._structured_widths=None
+        self._expand_restore=None
         self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         self._grid_header=True;self.wrap=False
@@ -41,7 +42,7 @@ class FormatRenderView(ttk.Frame):
         self.expand_button=ttk.Button(self.tree_actions,width=0,command=lambda:self._expand_tree(True))
         self.collapse_button=ttk.Button(self.tree_actions,width=0,command=lambda:self._expand_tree(False))
         self.expand_button.pack(side='left');self.collapse_button.pack(side='left',padx=(3,0))
-        ToolTip(self.expand_button,lambda:tr('Expand all'))
+        ToolTip(self.expand_button,lambda:tr('Expand loaded nodes only; omitted entries are not loaded'))
         ToolTip(self.collapse_button,lambda:tr('Collapse all'))
         self.body=ttk.Frame(self);self.body.pack(fill='both',expand=True)
         self.tree=None;self.text=None;self.canvas=None;self.scale=1
@@ -54,6 +55,7 @@ class FormatRenderView(ttk.Frame):
                 try:self.after_cancel(self._insert_job)
                 except tk.TclError:pass
     def clear(self):
+        self.cancel_tree_reveal()
         self._generation+=1
         if self._insert_job is not None:
             self.after_cancel(self._insert_job);self._insert_job=None
@@ -292,11 +294,37 @@ class FormatRenderView(ttk.Frame):
             if 0<=index<len(sections):self.text.see(self._document_position(sections[index]['offset']))
     def _expand_tree(self,expanded):
         if self.tree and self.model.get('kind')=='tree':
-            for row in self._row_lookup.values():self.tree.item(row['id'],open=expanded)
+            self.cancel_tree_reveal()
+            tree=self.tree;tree.begin_batch();restore=[];self._expand_restore=restore
+            rows=iter(tuple(self._row_lookup));self._tree_revealing=True
+            def completed():
+                if self._expand_restore is restore:self._expand_restore=None
+            tree._layout_finished=completed
+            def batch():
+                if self._expand_restore is not restore:return
+                self._insert_job=None;start=time.monotonic();count=0
+                try:
+                    while count<100 and time.monotonic()-start<.008:
+                        try:iid=next(rows)
+                        except StopIteration:
+                            self._tree_revealing=False;tree.end_batch();return
+                        count+=1;before=bool(tree.item(iid,'open'))
+                        if before!=expanded:
+                            restore.append((iid,before));tree.item(iid,open=expanded)
+                    self._insert_job=self.after(1,batch)
+                except (tk.TclError,ValueError):
+                    self.cancel_tree_reveal();raise
+            batch()
     def cancel_tree_reveal(self):
         if self._tree_revealing and self._insert_job is not None:
             self.after_cancel(self._insert_job);self._insert_job=None
         self._tree_revealing=False
+        if self._expand_restore is not None and self.tree:
+            self.tree.begin_batch()
+            for iid,opened in self._expand_restore:
+                if self.tree.exists(iid):self.tree.item(iid,open=opened)
+            self._expand_restore=None;self.tree._layout_finished=None
+            self.tree.end_batch(commit=False)
     def _tree_match_text(self,row,match):
         iid=row['id']
         if isinstance(self.tree,WrappedTreeview):

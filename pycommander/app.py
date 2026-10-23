@@ -142,6 +142,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.41", "2026/10/23", (
+        "Fixed: Structured preview no longer loops through layout and progress changes after Expand All or Cancel; height-only changes preserve the viewport.",
+        "Improved: Expand/collapse loaded nodes runs in cancellable batches; cancel restores the previous expansion state and rejects stale layout callbacks.",
+    )),
     ("v0.18.40", "2026/10/23", (
         "Improved: Structured preview wraps complete values into variable-height rows; long-cell layout stays responsive and search reveals matching lines.",
         "Fixed: Structured preview keeps manually resized key columns stable during font scaling and window resizing.",

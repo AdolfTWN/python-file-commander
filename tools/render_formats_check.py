@@ -133,9 +133,9 @@ with tempfile.TemporaryDirectory() as raw:
         assert not any(r['label']=='ConnectedDeviceName' for r in page.render_view.model['rows'])
         assert not page.render_view.choice.winfo_ismapped()
         assert page.render_view.expand_button.winfo_ismapped() and page.render_view.collapse_button.winfo_ismapped()
-        page.render_view.collapse_button.invoke()
+        page.render_view.collapse_button.invoke();ready(root,page)
         assert not any(page.render_view.tree.item(r['id'],'open') for r in page.render_view.model['rows'])
-        page.render_view.expand_button.invoke()
+        page.render_view.expand_button.invoke();ready(root,page)
         assert all(page.render_view.tree.item(r['id'],'open') for r in page.render_view.model['rows'])
         capture(window,'structure-controls')
         original_tree=page.render_view.tree

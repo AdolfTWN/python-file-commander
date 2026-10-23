@@ -18,11 +18,12 @@ class WrappedTreeview(ttk.Treeview):
         self._yscroll=None;self._xscroll=None;self._offset=0;self._left=0
         self._total=1;self._extent=1;self._pending_see=None;self._match={}
         self._indent=18
+        self._layout_epoch=0;self._defer_layout=False;self._layout_finished=None;self._viewport_width=None
         self._body=tk.Canvas(self,highlightthickness=0,takefocus=False)
         self._body.place(x=1,y=25,relwidth=1,width=-2,relheight=1,height=-26)
-        self.bind('<Configure>',lambda e:self._invalidate(),add='+')
-        self.bind('<ButtonRelease-1>',lambda e:self._invalidate(),add='+')
-        self.bind('<B1-Motion>',lambda e:self._invalidate(),add='+')
+        self.bind('<Configure>',self._geometry_changed,add='+')
+        self.bind('<ButtonRelease-1>',lambda e:self._columns_changed(),add='+')
+        self.bind('<B1-Motion>',lambda e:self._columns_changed(),add='+')
         self.bind('<<TreeviewOpen>>',lambda e:self._invalidate(),add='+')
         self.bind('<<TreeviewClose>>',lambda e:self._invalidate(),add='+')
         self.bind('<<TreeviewSelect>>',lambda e:self._schedule_paint(),add='+')
@@ -45,9 +46,28 @@ class WrappedTreeview(ttk.Treeview):
                     except tk.TclError:pass
 
     def cancel_layout(self):
-        self._revision+=1
+        self._revision+=1;self._layout_epoch+=1
         if self._layout_job is not None:self.after_cancel(self._layout_job);self._layout_job=None
         self._pending_see=None
+
+    def begin_batch(self):
+        self.cancel_layout();self._defer_layout=True
+
+    def end_batch(self,commit=True):
+        self._defer_layout=False
+        if commit:self._invalidate()
+        else:self.cancel_layout()
+
+    def _geometry_changed(self,event):
+        # Row wrapping depends on width, not viewport height. Busy controls or
+        # status text changing height must not start another layout operation.
+        if event.width!=self._viewport_width:
+            self._viewport_width=event.width;self._invalidate()
+        else:self._clamp();self._schedule_paint()
+
+    def _columns_changed(self):
+        widths=tuple(self.column(c,'width') for c in ('#0','value','type'))
+        if widths!=getattr(self,'_layout_widths',None):self._invalidate()
 
     def configure(self,cnf=None,**kw):
         if 'yscrollcommand' in kw:self._yscroll=kw.pop('yscrollcommand')
@@ -95,7 +115,7 @@ class WrappedTreeview(ttk.Treeview):
 
     def _invalidate(self):
         self._revision+=1
-        if self._layout_job is None:self._layout_job=self.after_idle(self._layout)
+        if not self._defer_layout and self._layout_job is None:self._layout_job=self.after_idle(self._layout)
 
     @staticmethod
     def _line_chunks(text,width,font):
@@ -119,10 +139,11 @@ class WrappedTreeview(ttk.Treeview):
     def _lines(text,width,font):return list(WrappedTreeview._line_chunks(text,width,font))
 
     def _layout(self):
-        self._layout_job=None;revision=self._revision
+        self._layout_job=None;revision=self._revision;epoch=self._layout_epoch
         font=tkfont.nametofont('TkDefaultFont');line=font.metrics('linespace')
         self._indent=max(18,round(line*.9))
         widths=[self.column(c,'width') for c in ('#0','value','type')]
+        self._layout_widths=tuple(widths)
         # Header height follows the actual themed heading font, not a fixed row.
         heading=ttk.Style(self).lookup('Treeview.Heading','font') or 'TkDefaultFont'
         top=tkfont.Font(self,font=heading).metrics('linespace')+10
@@ -155,6 +176,7 @@ class WrappedTreeview(ttk.Treeview):
         iterator=layout_rows()
         def batch():
             nonlocal y
+            if epoch!=self._layout_epoch:return
             self._layout_job=None
             if revision!=self._revision:
                 self._layout_job=self.after_idle(self._layout);return
@@ -170,6 +192,7 @@ class WrappedTreeview(ttk.Treeview):
                 entries.append((iid,depth,y,height,wrapped));y+=height;ends.append(y)
             else:
                 self._layout_job=self.after(1,batch);return
+            if epoch!=self._layout_epoch:return
             self._entries=entries;self._ends=ends;self._layouts=cache;self._total=max(1,y);self._extent=sum(widths)
             if anchor:
                 found=next((r for r in entries if r[0]==anchor[0]),None)
@@ -177,6 +200,8 @@ class WrappedTreeview(ttk.Treeview):
             self._clamp();self._paint()
             if self._pending_see:
                 iid=self._pending_see;self._pending_see=None;self.see(iid)
+            if self._layout_finished:
+                callback=self._layout_finished;self._layout_finished=None;callback()
         batch()
 
     def _clamp(self):

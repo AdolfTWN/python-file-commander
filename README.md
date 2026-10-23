@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.40**
+Current version: **v0.18.41**
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
@@ -101,6 +101,10 @@ variable-height rows, preserving line breaks and complete loaded values rather
 than search excerpts. Layout runs in cancellable batches and only viewport text
 is painted. Search reveals the matching lines inside long cells; Copy stays
 lossless. Manually resized key columns remain fixed during font/window changes.
+Expand/Collapse All operates on loaded nodes only (it does not recursively load
+omitted entries), using cancellable batches. Cancel rolls back unfinished bulk
+expansion and retains the last committed view. Activity controls reserve their
+space, and height-only viewport changes do not restart wrapping.
 Cancellation, changed files and partial searches are explicit. Manual Source
 remains available; lines over 32,768 characters use an explicitly labelled
 16K-character source window, repositioned around each match, with Wrap disabled.

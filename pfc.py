@@ -21,6 +21,10 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Structured preview no longer loops through layout and progress changes after Expand All or Cancel; height-only changes preserve the viewport.': ('修正：結構預覽全部展開或取消後，不再反覆排版與啟動進度；僅高度變化時保留檢視位置。','修正：结构预览全部展开或取消后，不再反复排版并启动进度；仅高度变化时保留查看位置。','수정: 모두 펼치기/취소 후 레이아웃과 진행 표시가 반복되지 않으며 높이 변경 시 뷰포트를 유지합니다.'),
+    'Improved: Expand/collapse loaded nodes runs in cancellable batches; cancel restores the previous expansion state and rejects stale layout callbacks.': ('改善：已載入節點分批展開／收合，可取消；取消會復原原先展開狀態並丟棄舊排版回呼。','改善：已加载节点分批展开/折叠，可取消；取消会恢复原先展开状态并丢弃旧排版回调。','개선: 로드된 노드를 취소 가능한 배치로 펼치고 접으며 취소 시 이전 상태를 복원하고 오래된 콜백을 무시합니다.'),
+    'Expansion canceled; previous view retained': ('已取消展開；保留原畫面','已取消展开；保留原画面','펼치기 취소됨; 이전 보기 유지'),
+    'Expand loaded nodes only; omitted entries are not loaded': ('僅展開已載入節點；不會載入省略的項目','仅展开已加载节点；不会加载省略的条目','로드된 노드만 펼침; 생략된 항목은 로드하지 않음'),
     'Improved: Structured preview wraps complete values into variable-height rows; long-cell layout stays responsive and search reveals matching lines.': ('改善：結構預覽依欄寬完整換行，列高隨內容調整；長值分批排版，搜尋可定位到符合的行。','改善：结构预览按列宽完整换行，行高随内容调整；长值分批排版，搜索可定位匹配行。','개선: 구조 미리보기는 전체 값을 열 너비에 맞춰 가변 높이 행으로 표시하며 긴 값도 응답성을 유지하고 일치 줄로 이동합니다.'),
     'Fixed: Structured preview keeps manually resized key columns stable during font scaling and window resizing.': ('修正：結構預覽手動調整的索引欄寬不再因字型縮放或視窗大小變更而回彈。','修正：结构预览手动调整的索引列宽不再因字体缩放或窗口大小变化而回弹。','수정: 글꼴 배율이나 창 크기를 바꿔도 수동 조정한 키 열 너비를 유지합니다.'),
     'Fixed: Structured preview keeps previously found branches expanded while navigating matches in the same search.': ('修正：結構預覽在同一搜尋中切換命中項目時，保留先前找到的分支及展開狀態。','修正：结构预览在同一搜索中切换匹配项时，保留先前找到的分支及展开状态。','수정: 같은 검색의 다음/이전 일치로 이동해도 이미 찾은 분기를 펼친 상태로 유지합니다.'),
@@ -35851,11 +35855,12 @@ class WrappedTreeview(ttk.Treeview):
         self._yscroll=None;self._xscroll=None;self._offset=0;self._left=0
         self._total=1;self._extent=1;self._pending_see=None;self._match={}
         self._indent=18
+        self._layout_epoch=0;self._defer_layout=False;self._layout_finished=None;self._viewport_width=None
         self._body=tk.Canvas(self,highlightthickness=0,takefocus=False)
         self._body.place(x=1,y=25,relwidth=1,width=-2,relheight=1,height=-26)
-        self.bind('<Configure>',lambda e:self._invalidate(),add='+')
-        self.bind('<ButtonRelease-1>',lambda e:self._invalidate(),add='+')
-        self.bind('<B1-Motion>',lambda e:self._invalidate(),add='+')
+        self.bind('<Configure>',self._geometry_changed,add='+')
+        self.bind('<ButtonRelease-1>',lambda e:self._columns_changed(),add='+')
+        self.bind('<B1-Motion>',lambda e:self._columns_changed(),add='+')
         self.bind('<<TreeviewOpen>>',lambda e:self._invalidate(),add='+')
         self.bind('<<TreeviewClose>>',lambda e:self._invalidate(),add='+')
         self.bind('<<TreeviewSelect>>',lambda e:self._schedule_paint(),add='+')
@@ -35878,9 +35883,28 @@ class WrappedTreeview(ttk.Treeview):
                     except tk.TclError:pass
 
     def cancel_layout(self):
-        self._revision+=1
+        self._revision+=1;self._layout_epoch+=1
         if self._layout_job is not None:self.after_cancel(self._layout_job);self._layout_job=None
         self._pending_see=None
+
+    def begin_batch(self):
+        self.cancel_layout();self._defer_layout=True
+
+    def end_batch(self,commit=True):
+        self._defer_layout=False
+        if commit:self._invalidate()
+        else:self.cancel_layout()
+
+    def _geometry_changed(self,event):
+        # Row wrapping depends on width, not viewport height. Busy controls or
+        # status text changing height must not start another layout operation.
+        if event.width!=self._viewport_width:
+            self._viewport_width=event.width;self._invalidate()
+        else:self._clamp();self._schedule_paint()
+
+    def _columns_changed(self):
+        widths=tuple(self.column(c,'width') for c in ('#0','value','type'))
+        if widths!=getattr(self,'_layout_widths',None):self._invalidate()
 
     def configure(self,cnf=None,**kw):
         if 'yscrollcommand' in kw:self._yscroll=kw.pop('yscrollcommand')
@@ -35928,7 +35952,7 @@ class WrappedTreeview(ttk.Treeview):
 
     def _invalidate(self):
         self._revision+=1
-        if self._layout_job is None:self._layout_job=self.after_idle(self._layout)
+        if not self._defer_layout and self._layout_job is None:self._layout_job=self.after_idle(self._layout)
 
     @staticmethod
     def _line_chunks(text,width,font):
@@ -35952,10 +35976,11 @@ class WrappedTreeview(ttk.Treeview):
     def _lines(text,width,font):return list(WrappedTreeview._line_chunks(text,width,font))
 
     def _layout(self):
-        self._layout_job=None;revision=self._revision
+        self._layout_job=None;revision=self._revision;epoch=self._layout_epoch
         font=tkfont.nametofont('TkDefaultFont');line=font.metrics('linespace')
         self._indent=max(18,round(line*.9))
         widths=[self.column(c,'width') for c in ('#0','value','type')]
+        self._layout_widths=tuple(widths)
         # Header height follows the actual themed heading font, not a fixed row.
         heading=ttk.Style(self).lookup('Treeview.Heading','font') or 'TkDefaultFont'
         top=tkfont.Font(self,font=heading).metrics('linespace')+10
@@ -35988,6 +36013,7 @@ class WrappedTreeview(ttk.Treeview):
         iterator=layout_rows()
         def batch():
             nonlocal y
+            if epoch!=self._layout_epoch:return
             self._layout_job=None
             if revision!=self._revision:
                 self._layout_job=self.after_idle(self._layout);return
@@ -36003,6 +36029,7 @@ class WrappedTreeview(ttk.Treeview):
                 entries.append((iid,depth,y,height,wrapped));y+=height;ends.append(y)
             else:
                 self._layout_job=self.after(1,batch);return
+            if epoch!=self._layout_epoch:return
             self._entries=entries;self._ends=ends;self._layouts=cache;self._total=max(1,y);self._extent=sum(widths)
             if anchor:
                 found=next((r for r in entries if r[0]==anchor[0]),None)
@@ -36010,6 +36037,8 @@ class WrappedTreeview(ttk.Treeview):
             self._clamp();self._paint()
             if self._pending_see:
                 iid=self._pending_see;self._pending_see=None;self.see(iid)
+            if self._layout_finished:
+                callback=self._layout_finished;self._layout_finished=None;callback()
         batch()
 
     def _clamp(self):
@@ -36161,6 +36190,7 @@ class FormatRenderView(ttk.Frame):
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
         self._row_lookup={};self._search_extra=[]
         self._structured_widths=None
+        self._expand_restore=None
         self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         self._grid_header=True;self.wrap=False
@@ -36174,7 +36204,7 @@ class FormatRenderView(ttk.Frame):
         self.expand_button=ttk.Button(self.tree_actions,width=0,command=lambda:self._expand_tree(True))
         self.collapse_button=ttk.Button(self.tree_actions,width=0,command=lambda:self._expand_tree(False))
         self.expand_button.pack(side='left');self.collapse_button.pack(side='left',padx=(3,0))
-        ToolTip(self.expand_button,lambda:tr('Expand all'))
+        ToolTip(self.expand_button,lambda:tr('Expand loaded nodes only; omitted entries are not loaded'))
         ToolTip(self.collapse_button,lambda:tr('Collapse all'))
         self.body=ttk.Frame(self);self.body.pack(fill='both',expand=True)
         self.tree=None;self.text=None;self.canvas=None;self.scale=1
@@ -36187,6 +36217,7 @@ class FormatRenderView(ttk.Frame):
                 try:self.after_cancel(self._insert_job)
                 except tk.TclError:pass
     def clear(self):
+        self.cancel_tree_reveal()
         self._generation+=1
         if self._insert_job is not None:
             self.after_cancel(self._insert_job);self._insert_job=None
@@ -36425,11 +36456,37 @@ class FormatRenderView(ttk.Frame):
             if 0<=index<len(sections):self.text.see(self._document_position(sections[index]['offset']))
     def _expand_tree(self,expanded):
         if self.tree and self.model.get('kind')=='tree':
-            for row in self._row_lookup.values():self.tree.item(row['id'],open=expanded)
+            self.cancel_tree_reveal()
+            tree=self.tree;tree.begin_batch();restore=[];self._expand_restore=restore
+            rows=iter(tuple(self._row_lookup));self._tree_revealing=True
+            def completed():
+                if self._expand_restore is restore:self._expand_restore=None
+            tree._layout_finished=completed
+            def batch():
+                if self._expand_restore is not restore:return
+                self._insert_job=None;start=time.monotonic();count=0
+                try:
+                    while count<100 and time.monotonic()-start<.008:
+                        try:iid=next(rows)
+                        except StopIteration:
+                            self._tree_revealing=False;tree.end_batch();return
+                        count+=1;before=bool(tree.item(iid,'open'))
+                        if before!=expanded:
+                            restore.append((iid,before));tree.item(iid,open=expanded)
+                    self._insert_job=self.after(1,batch)
+                except (tk.TclError,ValueError):
+                    self.cancel_tree_reveal();raise
+            batch()
     def cancel_tree_reveal(self):
         if self._tree_revealing and self._insert_job is not None:
             self.after_cancel(self._insert_job);self._insert_job=None
         self._tree_revealing=False
+        if self._expand_restore is not None and self.tree:
+            self.tree.begin_batch()
+            for iid,opened in self._expand_restore:
+                if self.tree.exists(iid):self.tree.item(iid,open=opened)
+            self._expand_restore=None;self.tree._layout_finished=None
+            self.tree.end_batch(commit=False)
     def _tree_match_text(self,row,match):
         iid=row['id']
         if isinstance(self.tree,WrappedTreeview):
@@ -37104,12 +37161,14 @@ class PreviewPage(tk.Frame):
         ToolTip(self.md_more,self._markdown_boundary_label,delay=700)
 
         activity = ttk.Frame(self,padding=(7,3)); activity.pack(fill='x')
-        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.activity_controls=ttk.Frame(activity);self.activity_controls.pack(side='right')
+        self.activity_controls.pack_propagate(False)
+        self.activity_progress=ttk.Progressbar(self.activity_controls,mode='indeterminate',length=100)
         self.status=ttk.Label(activity,anchor='w',width=1)
         self.status.pack(side='left',fill='x',expand=True)
-        self.format_cancel=ttk.Button(activity,text=tr('Cancel'),width=0,command=self._cancel_format_ui)
+        self.format_cancel=ttk.Button(self.activity_controls,text=tr('Cancel'),width=0,command=self._cancel_format_ui)
         ToolTip(self.status,lambda:str(self.path)+'\n'+str(self.status.cget('text')))
-        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(180,e.width-130)))
+        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(100,e.width-self.activity_controls.winfo_reqwidth()-20)))
         self._activity_busy=False
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
         self.text_frame=frame
@@ -37265,11 +37324,12 @@ class PreviewPage(tk.Frame):
         self._format_searching=False
 
     def _cancel_format_ui(self):
-        searching=self._format_searching or bool(getattr(self.render_view.tree,'_layout_job',None))
+        expanding=self.render_view._expand_restore is not None
+        searching=self._format_searching or self.render_view._tree_revealing or expanding or bool(getattr(self.render_view.tree,'_layout_job',None))
         self._cancel_format()
         if not searching:self._signature=self._path_signature()
         if not searching:self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
-        self.status.configure(text=tr('Search canceled' if searching else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
+        self.status.configure(text=tr('Expansion canceled; previous view retained' if expanding else 'Search canceled' if searching else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
 
 
     def _layout_file_tools(self, _event=None):
@@ -37342,18 +37402,22 @@ class PreviewPage(tk.Frame):
         self._sync_preview_activity()
 
     def _sync_preview_activity(self):
+        width=self.format_cancel.winfo_reqwidth()+self.activity_progress.winfo_reqwidth()+10
+        height=max(self.format_cancel.winfo_reqheight(),self.activity_progress.winfo_reqheight())
+        if (int(self.activity_controls.cget('width')),int(self.activity_controls.cget('height')))!=(width,height):
+            self.activity_controls.configure(width=width,height=height)
         reflow=bool(getattr(self.render_view.tree,'_layout_job',None))
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
                   or (self._format_active and (self.render_view._insert_job is not None or reflow)))
-        if self._format_queued or self._format_request or self.render_view._tree_revealing or reflow:self.format_cancel.pack(side='right',padx=(4,0))
-        else:self.format_cancel.pack_forget()
+        if self._format_queued or self._format_request or self.render_view._tree_revealing or reflow:self.format_cancel.place(relx=1,rely=.5,anchor='e')
+        else:self.format_cancel.place_forget()
         if busy!=self._activity_busy:
             self._activity_busy=busy
             if busy:
-                self.activity_progress.pack(side='right',padx=(6,0));self.activity_progress.start(30)
+                self.activity_progress.place(x=0,rely=.5,anchor='w');self.activity_progress.start(30)
             else:
-                self.activity_progress.stop();self.activity_progress.pack_forget()
+                self.activity_progress.stop();self.activity_progress.place_forget()
 
     def cancel_markdown(self):
         if self._md_insert:
@@ -40861,7 +40925,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.40"
+__version__ = "0.18.41"
 
 
 
@@ -40981,6 +41045,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/23"
 VERSION_HISTORY = (
+    ("v0.18.41", "2026/10/23", (
+        "Fixed: Structured preview no longer loops through layout and progress changes after Expand All or Cancel; height-only changes preserve the viewport.",
+        "Improved: Expand/collapse loaded nodes runs in cancellable batches; cancel restores the previous expansion state and rejects stale layout callbacks.",
+    )),
     ("v0.18.40", "2026/10/23", (
         "Improved: Structured preview wraps complete values into variable-height rows; long-cell layout stays responsive and search reveals matching lines.",
         "Fixed: Structured preview keeps manually resized key columns stable during font scaling and window resizing.",

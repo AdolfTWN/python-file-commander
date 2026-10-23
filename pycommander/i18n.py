@@ -11,6 +11,10 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Structured preview no longer loops through layout and progress changes after Expand All or Cancel; height-only changes preserve the viewport.': ('修正：結構預覽全部展開或取消後，不再反覆排版與啟動進度；僅高度變化時保留檢視位置。','修正：结构预览全部展开或取消后，不再反复排版并启动进度；仅高度变化时保留查看位置。','수정: 모두 펼치기/취소 후 레이아웃과 진행 표시가 반복되지 않으며 높이 변경 시 뷰포트를 유지합니다.'),
+    'Improved: Expand/collapse loaded nodes runs in cancellable batches; cancel restores the previous expansion state and rejects stale layout callbacks.': ('改善：已載入節點分批展開／收合，可取消；取消會復原原先展開狀態並丟棄舊排版回呼。','改善：已加载节点分批展开/折叠，可取消；取消会恢复原先展开状态并丢弃旧排版回调。','개선: 로드된 노드를 취소 가능한 배치로 펼치고 접으며 취소 시 이전 상태를 복원하고 오래된 콜백을 무시합니다.'),
+    'Expansion canceled; previous view retained': ('已取消展開；保留原畫面','已取消展开；保留原画面','펼치기 취소됨; 이전 보기 유지'),
+    'Expand loaded nodes only; omitted entries are not loaded': ('僅展開已載入節點；不會載入省略的項目','仅展开已加载节点；不会加载省略的条目','로드된 노드만 펼침; 생략된 항목은 로드하지 않음'),
     'Improved: Structured preview wraps complete values into variable-height rows; long-cell layout stays responsive and search reveals matching lines.': ('改善：結構預覽依欄寬完整換行，列高隨內容調整；長值分批排版，搜尋可定位到符合的行。','改善：结构预览按列宽完整换行，行高随内容调整；长值分批排版，搜索可定位匹配行。','개선: 구조 미리보기는 전체 값을 열 너비에 맞춰 가변 높이 행으로 표시하며 긴 값도 응답성을 유지하고 일치 줄로 이동합니다.'),
     'Fixed: Structured preview keeps manually resized key columns stable during font scaling and window resizing.': ('修正：結構預覽手動調整的索引欄寬不再因字型縮放或視窗大小變更而回彈。','修正：结构预览手动调整的索引列宽不再因字体缩放或窗口大小变化而回弹。','수정: 글꼴 배율이나 창 크기를 바꿔도 수동 조정한 키 열 너비를 유지합니다.'),
     'Fixed: Structured preview keeps previously found branches expanded while navigating matches in the same search.': ('修正：結構預覽在同一搜尋中切換命中項目時，保留先前找到的分支及展開狀態。','修正：结构预览在同一搜索中切换匹配项时，保留先前找到的分支及展开状态。','수정: 같은 검색의 다음/이전 일치로 이동해도 이미 찾은 분기를 펼친 상태로 유지합니다.'),

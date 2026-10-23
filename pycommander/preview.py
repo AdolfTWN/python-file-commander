@@ -527,12 +527,14 @@ class PreviewPage(tk.Frame):
         ToolTip(self.md_more,self._markdown_boundary_label,delay=700)
 
         activity = ttk.Frame(self,padding=(7,3)); activity.pack(fill='x')
-        self.activity_progress=ttk.Progressbar(activity,mode='indeterminate',length=100)
+        self.activity_controls=ttk.Frame(activity);self.activity_controls.pack(side='right')
+        self.activity_controls.pack_propagate(False)
+        self.activity_progress=ttk.Progressbar(self.activity_controls,mode='indeterminate',length=100)
         self.status=ttk.Label(activity,anchor='w',width=1)
         self.status.pack(side='left',fill='x',expand=True)
-        self.format_cancel=ttk.Button(activity,text=tr('Cancel'),width=0,command=self._cancel_format_ui)
+        self.format_cancel=ttk.Button(self.activity_controls,text=tr('Cancel'),width=0,command=self._cancel_format_ui)
         ToolTip(self.status,lambda:str(self.path)+'\n'+str(self.status.cget('text')))
-        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(180,e.width-130)))
+        activity.bind('<Configure>',lambda e:self.status.configure(wraplength=max(100,e.width-self.activity_controls.winfo_reqwidth()-20)))
         self._activity_busy=False
         frame = ttk.Frame(self); frame.pack(fill="both", expand=True)
         self.text_frame=frame
@@ -688,11 +690,12 @@ class PreviewPage(tk.Frame):
         self._format_searching=False
 
     def _cancel_format_ui(self):
-        searching=self._format_searching or bool(getattr(self.render_view.tree,'_layout_job',None))
+        expanding=self.render_view._expand_restore is not None
+        searching=self._format_searching or self.render_view._tree_revealing or expanding or bool(getattr(self.render_view.tree,'_layout_job',None))
         self._cancel_format()
         if not searching:self._signature=self._path_signature()
         if not searching:self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
-        self.status.configure(text=tr('Search canceled' if searching else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
+        self.status.configure(text=tr('Expansion canceled; previous view retained' if expanding else 'Search canceled' if searching else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
 
 
     def _layout_file_tools(self, _event=None):
@@ -765,18 +768,22 @@ class PreviewPage(tk.Frame):
         self._sync_preview_activity()
 
     def _sync_preview_activity(self):
+        width=self.format_cancel.winfo_reqwidth()+self.activity_progress.winfo_reqwidth()+10
+        height=max(self.format_cancel.winfo_reqheight(),self.activity_progress.winfo_reqheight())
+        if (int(self.activity_controls.cget('width')),int(self.activity_controls.cget('height')))!=(width,height):
+            self.activity_controls.configure(width=width,height=height)
         reflow=bool(getattr(self.render_view.tree,'_layout_job',None))
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
                   or (self._format_active and (self.render_view._insert_job is not None or reflow)))
-        if self._format_queued or self._format_request or self.render_view._tree_revealing or reflow:self.format_cancel.pack(side='right',padx=(4,0))
-        else:self.format_cancel.pack_forget()
+        if self._format_queued or self._format_request or self.render_view._tree_revealing or reflow:self.format_cancel.place(relx=1,rely=.5,anchor='e')
+        else:self.format_cancel.place_forget()
         if busy!=self._activity_busy:
             self._activity_busy=busy
             if busy:
-                self.activity_progress.pack(side='right',padx=(6,0));self.activity_progress.start(30)
+                self.activity_progress.place(x=0,rely=.5,anchor='w');self.activity_progress.start(30)
             else:
-                self.activity_progress.stop();self.activity_progress.pack_forget()
+                self.activity_progress.stop();self.activity_progress.place_forget()
 
     def cancel_markdown(self):
         if self._md_insert:

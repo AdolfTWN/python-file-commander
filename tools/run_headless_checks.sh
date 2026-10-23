@@ -42,6 +42,8 @@ xvfb-run -a python3 tools/structure_matches_check.py
 xvfb-run -a python3 tools/structure_matches_check.py pfc
 xvfb-run -a python3 tools/structure_wrap_check.py
 xvfb-run -a python3 tools/structure_wrap_check.py pfc
+xvfb-run -a python3 tools/structure_expand_check.py
+xvfb-run -a python3 tools/structure_expand_check.py pfc
 xvfb-run -a python3 tools/render_reliability_check.py
 xvfb-run -a python3 tools/render_reliability_check.py pfc
 xvfb-run -a python3 tools/vcs_actions_check.py

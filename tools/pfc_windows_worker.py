@@ -18,7 +18,7 @@ from contextlib import contextmanager
 
 ALLOWED = {'cloud_overlay_check.py', 'folder_icon_check.py', 'ux_walkthrough_check.py', 'search_results_check.py', 'vcs_gui_check.py', 'architecture_check.py', 'reliability_check.py', 'tooltip_check.py', 'preview_tabs_check.py', 'settings_check.py',
            'folder_scroll_check.py', 'folder_navigation_check.py', 'folder_leaf_check.py', 'settings_readability_groups_check.py',
-           'interaction_layout_check.py', 'compact_chrome_check.py', 'review_compare_check.py', 'control_scaling_check.py', 'render_formats_check.py', 'structure_search_check.py', 'render_reliability_check.py', 'markdown_reading_check.py', 'structure_matches_check.py', 'structure_wrap_check.py'}
+           'interaction_layout_check.py', 'compact_chrome_check.py', 'review_compare_check.py', 'control_scaling_check.py', 'render_formats_check.py', 'structure_search_check.py', 'render_reliability_check.py', 'markdown_reading_check.py', 'structure_matches_check.py', 'structure_wrap_check.py', 'structure_expand_check.py'}
 
 
 def desktop_ready():

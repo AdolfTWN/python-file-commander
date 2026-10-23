@@ -375,6 +375,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                     data=guest.image_data(directory+'\\evidence-wrap-'+name+'.bmp')
                     (evidence_dir/('wrap-'+name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('wrap-'+name+'.png'))
+            if result['status']=='passed' and 'structure_expand_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('100','175','200','expanded-175'):
+                    data=guest.image_data(directory+'\\evidence-expand-'+name+'.bmp')
+                    (evidence_dir/('expand-'+name+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('expand-'+name+'.png'))
             if result['status']=='passed' and 'render_reliability_check.py' in checks:
                 from PIL import Image
                 import io
