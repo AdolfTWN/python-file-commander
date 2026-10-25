@@ -659,7 +659,7 @@ class PreviewPage(tk.Frame):
         if result['kind']=='tree':self.find_all_matched_button.pack(side='left',padx=(3,0),before=self.case_check)
         else:self.find_all_matched_button.pack_forget()
         self._layout_find()
-        self.wrap_check.state(['!disabled'] if result['kind']=='document' else ['disabled'])
+        self.wrap_check.state(['!disabled'] if result['kind'] in {'document','grid'} else ['disabled'])
         if result.get('wrap_limited'):
             self.wrap_var.set(False);self.wrap_check.state(['disabled'])
             result['notice']=result.get('notice','')+' · '+tr('Long lines: 16K-character window; search and Copy use full loaded source')
@@ -691,11 +691,13 @@ class PreviewPage(tk.Frame):
 
     def _cancel_format_ui(self):
         expanding=self.render_view._expand_restore is not None
-        searching=self._format_searching or self.render_view._tree_revealing or expanding or bool(getattr(self.render_view.tree,'_layout_job',None))
+        reflowing=bool(getattr(self.render_view.tree,'_layout_job',None))
+        searching=self._format_searching or self.render_view._tree_revealing or expanding
         self._cancel_format()
-        if not searching:self._signature=self._path_signature()
-        if not searching:self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
-        self.status.configure(text=tr('Expansion canceled; previous view retained' if expanding else 'Search canceled' if searching else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
+        if not searching and not reflowing:
+            self._signature=self._path_signature()
+            self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
+        self.status.configure(text=tr('Expansion canceled; previous view retained' if expanding else 'Search canceled' if searching else 'Layout canceled; previous view retained' if reflowing else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
 
 
     def _layout_file_tools(self, _event=None):
@@ -1419,19 +1421,26 @@ class PreviewPage(tk.Frame):
 
     def close(self) -> None:
         self._remember_markdown_position()
-        self._md_jobs.close()
-        self._format_jobs.close()
-        if self._format_find_job is not None:
-            self.after_cancel(self._format_find_job);self._format_find_job=None
-        if self._format_poll is not None:
-            self.after_cancel(self._format_poll);self._format_poll=None
-        if self._md_poll_job is not None:
-            self.after_cancel(self._md_poll_job);self._md_poll_job=None
-        if self._refresh_job is not None:
-            self.after_cancel(self._refresh_job); self._refresh_job = None
-        if self._span_job is not None:
-            self.after_cancel(self._span_job); self._span_job = None
         self.destroy()
+
+    def destroy(self):
+        # Also runs when construction aborts or the parent is destroyed directly.
+        # ttk's Tcl autoincrement timer is not a Python after callback, and must
+        # stop before its widget/interpreter disappears.
+        progress=self.__dict__.get('activity_progress')
+        if progress is not None:
+            try:progress.stop()
+            except tk.TclError:pass
+        for name in ('_md_jobs','_format_jobs'):
+            worker=self.__dict__.get(name)
+            if worker is not None:worker.close()
+        for name in ('_format_find_job','_format_poll','_md_poll_job','_refresh_job','_span_job'):
+            job=self.__dict__.get(name)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
+        super().destroy()
 
 
 class PreviewWindow(tk.Toplevel):

@@ -385,7 +385,7 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
             if result['status']=='passed' and 'render_reliability_check.py' in checks:
                 from PIL import Image
                 import io
-                for name in ('grid-match','partial-notebook'):
+                for name in ('grid-match','grid-wrap','partial-notebook'):
                     data=guest.image_data(directory+'\\evidence-reliability-'+name+'.bmp')
                     (evidence_dir/('reliability-'+name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('reliability-'+name+'.png'))

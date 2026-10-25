@@ -142,6 +142,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.43", "2026/10/25", (
+        "Improved: CSV/TSV preview supports complete multiline cells with Wrap, stable manual widths and retained selection when changing header mode.",
+        "Fixed: Visual preview redraws no longer undo manual panning after search; oversized value dialogs stay responsive and preserve full-value Copy.",
+        "Improved: Shared render reliability checks cover all six structured extensions, table reflow cancellation, source fallback and scaled controls.",
+    )),
     ("v0.18.42", "2026/10/23", (
         "Fixed: F3 Preview accepts Tcl pixel-object geometry without a TypeError during JSON/Markdown loading.",
         "Improved: Diagnostics group propagation of one exception into a photo-friendly incident card with root location, version, system time and runtime; original audit records remain available.",

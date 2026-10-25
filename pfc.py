@@ -21,6 +21,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: CSV/TSV preview supports complete multiline cells with Wrap, stable manual widths and retained selection when changing header mode.': ('改善：CSV／TSV 預覽支援完整多行儲存格及換行，手動欄寬保持穩定，切換表頭模式時保留選取資料。','改善：CSV/TSV 预览支持完整多行单元格及换行，手动列宽保持稳定，切换表头模式时保留选中数据。','개선: CSV/TSV 미리보기는 전체 셀 줄바꿈, 안정적인 열 너비와 헤더 모드 변경 시 선택 유지를 지원합니다.'),
+    'Fixed: Visual preview redraws no longer undo manual panning after search; oversized value dialogs stay responsive and preserve full-value Copy.': ('修正：視覺預覽搜尋後重繪不再取消手動捲動；超長值視窗保持回應，複製仍保留完整內容。','修正：视觉预览搜索后重绘不再取消手动滚动；超长值窗口保持响应，复制仍保留完整内容。','수정: 시각 미리보기 검색 후 다시 그릴 때 수동 이동을 유지하며 큰 값 창은 응답성과 전체 값 복사를 유지합니다.'),
+    'Improved: Shared render reliability checks cover all six structured extensions, table reflow cancellation, source fallback and scaled controls.': ('改善：共用 Render 可靠度測試涵蓋六種階層副檔名、表格排版取消、原文備援及控制項縮放。','改善：共用 Render 可靠性测试覆盖六种层级扩展名、表格排版取消、原文回退及控件缩放。','개선: 공유 렌더 신뢰성 검사는 여섯 구조화 확장자, 표 재배치 취소, 원문 대체 및 컨트롤 배율을 포함합니다.'),
+    'Long value: first 16K characters displayed; Copy keeps the full value': ('長值：顯示前 16K 字元；複製仍保留完整內容','长值：显示前 16K 字符；复制仍保留完整内容','긴 값: 처음 16K 문자만 표시하며 복사는 전체 값을 유지합니다'),
+    'Layout canceled; previous view retained': ('已取消排版；保留原畫面','已取消排版；保留原画面','레이아웃 취소됨; 이전 보기 유지'),
     'Fixed: F3 Preview accepts Tcl pixel-object geometry without a TypeError during JSON/Markdown loading.': ('修正：F3 預覽相容 Tcl 像素尺寸物件，載入 JSON／Markdown 不再因此發生 TypeError。','修正：F3 预览兼容 Tcl 像素尺寸对象，加载 JSON/Markdown 不再因此发生 TypeError。','수정: F3 미리보기가 Tcl 픽셀 객체를 처리하여 JSON/Markdown 로드 중 TypeError를 방지합니다.'),
     'Improved: Diagnostics group propagation of one exception into a photo-friendly incident card with root location, version, system time and runtime; original audit records remain available.': ('改善：同一例外的多層回報合併成適合拍照的摘要，集中顯示根因位置、版本、系統時間及執行環境；原始稽核紀錄仍保留。','改善：同一异常的多层报告合并为适合拍照的摘要，集中显示根因位置、版本、系统时间及运行环境；原始审计记录仍保留。','개선: 같은 예외의 전파를 촬영하기 쉬운 카드로 묶고 원인 위치, 버전, 시스템 시간과 실행 환경을 표시하며 원본 기록은 유지합니다.'),
     'Full details': ('完整明細','完整明细','전체 세부 정보'),
@@ -35911,6 +35916,10 @@ from tkinter import ttk
 class WrappedTreeview(ttk.Treeview):
     def __init__(self,master,**kw):
         super().__init__(master,**kw)
+        # Tk may return tuple members as Tcl_Obj, not Python strings.
+        self._hierarchical='tree' in tuple(map(str,self.tk.splitlist(self['show'])))
+        self._cell_columns=(('#0',) if self._hierarchical else ())+tuple(map(str,self.tk.splitlist(self['columns'])))
+        self.wrap_cells=True
         self._display={};self._layouts={};self._entries=[];self._ends=[]
         self._layout_job=None;self._paint_job=None;self._revision=0
         self._yscroll=None;self._xscroll=None;self._offset=0;self._left=0
@@ -35964,7 +35973,7 @@ class WrappedTreeview(ttk.Treeview):
         else:self._clamp();self._schedule_paint()
 
     def _columns_changed(self):
-        widths=tuple(self.column(c,'width') for c in ('#0','value','type'))
+        widths=tuple(self.column(c,'width') for c in self._cell_columns)
         if widths!=getattr(self,'_layout_widths',None):self._invalidate()
 
     def configure(self,cnf=None,**kw):
@@ -36040,7 +36049,7 @@ class WrappedTreeview(ttk.Treeview):
         self._layout_job=None;revision=self._revision;epoch=self._layout_epoch
         font=tkfont.nametofont('TkDefaultFont');line=font.metrics('linespace')
         self._indent=max(18,round(line*.9))
-        widths=[self.column(c,'width') for c in ('#0','value','type')]
+        widths=[self.column(c,'width') for c in self._cell_columns]
         self._layout_widths=tuple(widths)
         # Header height follows the actual themed heading font, not a fixed row.
         heading=ttk.Style(self).lookup('Treeview.Heading','font') or 'TkDefaultFont'
@@ -36056,18 +36065,24 @@ class WrappedTreeview(ttk.Treeview):
             iid,depth=stack.pop();rows.append((iid,depth))
             if super().item(iid,'open'):stack.extend((child,depth+1) for child in reversed(self.get_children(iid)))
         entries=[];ends=[];y=0;cache={}
-        signature=(tuple(widths),font.actual('family'),font.actual('size'),font.actual('weight'))
+        signature=(tuple(widths),font.actual('family'),font.actual('size'),font.actual('weight'),self.wrap_cells)
         def layout_rows():
             for iid,depth in rows:
-                text,values=self._display[iid];raw=(text,)+values
+                text,values=self._display[iid];raw=((text,) if self._hierarchical else ())+values
                 key=(signature,depth,raw);saved=self._layouts.get(iid)
                 if saved and saved[0]==key:wrapped=saved[1]
                 else:
                     wrapped=[]
                     for col,(value,width) in enumerate(zip(raw,widths)):
-                        width=max(20,width-12-min((depth+1)*self._indent,max(0,width-36)) if col==0 else width-12)
+                        width=max(20,width-12-min((depth+1)*self._indent,max(0,width-36)) if col==0 and self._hierarchical else width-12)
                         lines=[]
-                        for chunk in self._line_chunks(str(value),width,font):
+                        if self.wrap_cells:chunks=self._line_chunks(str(value),width,font)
+                        else:
+                            shown=str(value)[:500]
+                            if font.measure(shown)>width:
+                                shown=next(self._line_chunks(shown,max(1,width-font.measure('…')),font))+'…'
+                            chunks=(shown,)
+                        for chunk in chunks:
                             lines.append(chunk);yield None
                         wrapped.append(lines)
                 yield iid,depth,key,wrapped
@@ -36091,7 +36106,7 @@ class WrappedTreeview(ttk.Treeview):
             else:
                 self._layout_job=self.after(1,batch);return
             if epoch!=self._layout_epoch:return
-            self._entries=entries;self._ends=ends;self._layouts=cache;self._total=max(1,y);self._extent=sum(widths)
+            self._entries=entries;self._ends=ends;self._layouts=cache;self._total=max(1,y);self._extent=max(1,sum(widths))
             if anchor:
                 found=next((r for r in entries if r[0]==anchor[0]),None)
                 if found:self._offset=found[2]+anchor[1]
@@ -36116,7 +36131,7 @@ class WrappedTreeview(ttk.Treeview):
         selected_bg=style.lookup('Treeview','background',('selected',)) or '#0078d7'
         selected_fg=style.lookup('Treeview','foreground',('selected',)) or '#ffffff'
         body.configure(background=bg);font=tkfont.nametofont('TkDefaultFont');line=font.metrics('linespace')
-        selected=set(self.selection());widths=[self.column(c,'width') for c in ('#0','value','type')]
+        selected=set(self.selection());widths=[self.column(c,'width') for c in self._cell_columns]
         self._left=super().xview()[0]*max(1,sum(widths))
         start=bisect_right(self._ends,self._offset)
         for iid,depth,y,height,wrapped in self._entries[start:]:
@@ -36126,7 +36141,7 @@ class WrappedTreeview(ttk.Treeview):
             if iid in selected:body.create_rectangle(0,top,max(body.winfo_width(),self._extent),top+height,fill=selected_bg,outline='')
             x=-self._left
             for column,(width,lines) in enumerate(zip(widths,wrapped)):
-                indent=min((depth+1)*self._indent,max(0,width-36)) if column==0 else 0
+                indent=min((depth+1)*self._indent,max(0,width-36)) if column==0 and self._hierarchical else 0
                 first=max(0,int((-top-4)//line));last=min(len(lines),int((body.winfo_height()-top)//line)+1)
                 if last>first:body.create_text(x+6+indent,top+4+first*line,text='\n'.join(lines[first:last]),anchor='nw',font=font,fill=color)
                 x+=width
@@ -36146,7 +36161,7 @@ class WrappedTreeview(ttk.Treeview):
         self.focus_set();iid=self.identify_row(event.y+self._body.winfo_y())
         if not iid:return 'break'
         entry=next(r for r in self._entries if r[0]==iid)
-        arrow=min(entry[1]*self._indent+8,max(8,self.column('#0','width')-28))
+        arrow=min(entry[1]*self._indent+8,max(8,self.column('#0','width')-28)) if self._hierarchical else -100
         if self.get_children(iid) and abs(event.x+self._left-arrow)<max(9,self._indent/2):self.item(iid,open=not super().item(iid,'open'))
         self.selection_set(iid);self.focus(iid);return 'break'
 
@@ -36164,6 +36179,8 @@ class WrappedTreeview(ttk.Treeview):
         if not ids:return 'break'
         current=self.focus();index=ids.index(current) if current in ids else 0
         if key in ('Left','Right'):
+            if not self._hierarchical:
+                self.xview_scroll(-1 if key=='Left' else 1,'units');return 'break'
             if key=='Right':self.item(ids[index],open=True)
             elif self.item(ids[index],'open'):self.item(ids[index],open=False)
             elif self.parent(ids[index]):self.selection_set(self.parent(ids[index]));self.focus(self.parent(ids[index]));self.see(self.parent(ids[index]))
@@ -36196,12 +36213,16 @@ class WrappedTreeview(ttk.Treeview):
         if entry:
             top=entry[2];bottom=top+entry[3];height=self._body.winfo_height()
             match=self._match.get(iid)
-            if match and match[0] in ('label','value'):
-                column=0 if match[0]=='label' else 1
-                raw=self._display[iid][0] if column==0 else self._display[iid][1][0]
+            if match and (match[0] in ('label','value') or isinstance(match[0],int)):
+                column=match[0] if isinstance(match[0],int) else 0 if match[0]=='label' else 1
+                raw=self._display[iid][0] if self._hierarchical and column==0 else self._display[iid][1][column-(1 if self._hierarchical else 0)]
+                # Search offsets refer to the original scalar/cell, while the
+                # painted lines normalize Windows CRLF. Normalize the offset
+                # too, otherwise many preceding CRs reveal the wrong line.
+                match_start=len(raw[:match[1]].replace('\r\n','\n').replace('\r','\n'))
                 position=0;line=0;raw=raw.replace('\r\n','\n').replace('\r','\n')
                 for part in entry[4][column]:
-                    if position+len(part)>match[1]:break
+                    if position+len(part)>match_start:break
                     position+=len(part)
                     if raw[position:position+1]=='\n':position+=1
                     line+=1
@@ -36214,9 +36235,9 @@ class WrappedTreeview(ttk.Treeview):
     def bbox(self,iid,column=None):
         entry=next((r for r in self._entries if r[0]==iid),None)
         if not entry:return ''
-        y=entry[2]-self._offset+self._body.winfo_y();widths=[self.column(c,'width') for c in ('#0','value','type')]
+        y=entry[2]-self._offset+self._body.winfo_y();widths=[self.column(c,'width') for c in self._cell_columns]
         if column is None:return (-self._left,y,sum(widths),entry[3])
-        index=('#0','value','type').index(column)
+        index=self._cell_columns.index(column) if column in self._cell_columns else int(str(column)[1:])-(0 if self._hierarchical else 1)
         return (sum(widths[:index])-self._left,y,widths[index],entry[3])
 
 
@@ -36251,9 +36272,10 @@ class FormatRenderView(ttk.Frame):
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
         self._row_lookup={};self._search_extra=[]
         self._structured_widths=None
+        self._grid_widths=None
         self._expand_restore=None
         self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
-        self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
+        self._grid_search_row=None;self._grid_hit=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         self._grid_header=True;self.wrap=False
         self.header=ttk.Frame(self,padding=(6,3));self.header.pack(fill='x')
         self.detail=ttk.Label(self.header,width=1);self.detail.pack(side='left',fill='x',expand=True)
@@ -36282,13 +36304,15 @@ class FormatRenderView(ttk.Frame):
         self._generation+=1
         if self._insert_job is not None:
             self.after_cancel(self._insert_job);self._insert_job=None
-        if isinstance(self.tree,WrappedTreeview):self._structured_widths=tuple(self.tree.column(c,'width') for c in ('#0','value','type'))
+        if isinstance(self.tree,WrappedTreeview):
+            if self.model.get('kind')=='tree':self._structured_widths=tuple(self.tree.column(c,'width') for c in ('#0','value','type'))
+            else:self._grid_widths=tuple(self.tree.column(c,'width') for c in self.tree['columns'])
         for child in self.body.winfo_children():child.destroy()
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
         self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         self._row_lookup={};self._search_extra=[]
         self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
-        self._grid_search_row=None;self._header_match=None;self._image_match=None;self._image_view_key=None
+        self._grid_search_row=None;self._grid_hit=None;self._header_match=None;self._image_match=None;self._image_view_key=None
         for name in ('original','display_image'):
             if hasattr(self,name):delattr(self,name)
     def show(self,model):
@@ -36309,7 +36333,7 @@ class FormatRenderView(ttk.Frame):
         widget.bind('<Control-C>',lambda e:self.copy())
     def _show_tree(self,kind):
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
-        self._grid_search_row=None;self._header_match=None;self.match_index=-1
+        self._grid_search_row=None;self._grid_hit=None;self._header_match=None;self.match_index=-1
         if kind=='tree':
             columns=('value','type');self.tree=WrappedTreeview(self.body,columns=columns,show='tree headings',selectmode='browse')
             self.tree.heading('#0',text=tr('Key / index'));self.tree.heading('value',text=tr('Value'));self.tree.heading('type',text=tr('Type'))
@@ -36322,11 +36346,12 @@ class FormatRenderView(ttk.Frame):
             headers=self.model['columns'] if self._grid_header else ['Column '+str(i+1) for i in range(len(columns))]
             self._grid_headings=headers
             self._grid_rows=self.model['rows'] if self._grid_header else [self.model['columns']]+self.model['rows']
-            self.tree=ttk.Treeview(self.body,columns=columns,show='headings',selectmode='browse')
+            self.tree=WrappedTreeview(self.body,columns=columns,show='headings',selectmode='browse')
+            self.tree.wrap_cells=self.wrap
             for index,(key,label) in enumerate(zip(columns,headers)):
                 self.tree.heading(key,text=preview_cell_text(label)[:500])
             for index,row in enumerate(self._grid_rows):
-                self.tree.insert('','end',iid='r'+str(index),values=tuple(preview_cell_text(v)[:500] for v in row))
+                self.tree.insert('','end',iid='r'+str(index),values=self._grid_values(row))
             self.choice.configure(values=(tr('First row: header'),tr('First row: data')))
             self.choice.set(tr('First row: header') if self._grid_header else tr('First row: data'))
             self.choice.pack(side='right',padx=4)
@@ -36371,10 +36396,16 @@ class FormatRenderView(ttk.Frame):
             if selected:self.tree.see(selected[0])
         else:
             columns=self.tree['columns']
-            for index,key in enumerate(columns):
-                examples=[self.tree.heading(key,'text')]+[r[index] for r in self._grid_rows[:50] if index<len(r)]
-                width=max(9*unit,min(34*unit,max((font.measure(preview_cell_text(v)[:120]) for v in examples),default=0)+2*unit))
-                self.tree.column(key,width=width,stretch=index==len(columns)-1)
+            if not getattr(self.tree,'_columns_initialized',False):
+                for index,key in enumerate(columns):
+                    examples=[self.tree.heading(key,'text')]+[r[index] for r in self._grid_rows[:50] if index<len(r)]
+                    width=max(9*unit,min(34*unit,max((font.measure(preview_cell_text(v)[:120]) for v in examples),default=0)+2*unit))
+                    if self._grid_widths and len(self._grid_widths)==len(columns):width=self._grid_widths[index]
+                    self.tree.column(key,width=width,minwidth=3*unit,stretch=False)
+                self.tree._columns_initialized=True
+            self.tree._invalidate()
+    def _grid_values(self,row):
+        return tuple(row) if self.wrap else tuple(preview_cell_text(v)[:500] for v in row)
     def _select_cell(self,event):
         column=self.tree.identify_column(event.x)
         if column:self._cell=max(0,int(column[1:])-1)
@@ -36423,10 +36454,26 @@ class FormatRenderView(ttk.Frame):
             if row['kind'] in {'object','array','mapping','sequence'}:return None  # Native expand/collapse.
         popup=tk.Toplevel(self);popup.title(tr('Full value'));popup.geometry('800x480');popup.minsize(400,250)
         value=self._value()
-        box=tk.Text(popup,wrap='none' if any(len(line)>32768 for line in value.splitlines()) else 'word',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=8)
+        limited=any(len(line)>32768 for line in value.splitlines())
+        footer=ttk.Frame(popup,padding=6);footer.pack(side='bottom',fill='x')
+        ttk.Button(footer,text=tr('Close'),command=popup.destroy).pack(side='right')
+        def copy_value(event=None):
+            copied=value
+            if event is not None:
+                try:copied=box.get('sel.first','sel.last')
+                except tk.TclError:pass
+            self.clipboard_clear();self.clipboard_append(copied);return 'break'
+        ttk.Button(footer,text=tr('Copy value'),command=copy_value).pack(side='right',padx=6)
+        if limited:
+            note=ttk.Label(footer,text=tr('Long value: first 16K characters displayed; Copy keeps the full value'),width=1,wraplength=450)
+            note.pack(side='left',fill='x',expand=True)
+            note.bind('<Configure>',lambda e:note.configure(wraplength=max(80,e.width)))
+        box=tk.Text(popup,wrap='none' if limited else 'word',font=tkfont.nametofont('TkFixedFont'),padx=8,pady=8)
+        horizontal=ttk.Scrollbar(popup,orient='horizontal',command=box.xview);horizontal.pack(side='bottom',fill='x')
+        box.configure(xscrollcommand=horizontal.set)
         scrollbar=ttk.Scrollbar(popup,command=box.yview);scrollbar.pack(side='right',fill='y');box.configure(yscrollcommand=scrollbar.set)
-        box.pack(fill='both',expand=True);box.insert('1.0',value);box.configure(state='disabled')
-        ttk.Button(popup,text=tr('Close'),command=popup.destroy).pack(side='right',padx=6,pady=6)
+        box.pack(fill='both',expand=True);box.insert('1.0',value[:16384] if limited else value);box.configure(state='disabled')
+        if limited:box.bind('<Control-c>',copy_value);box.bind('<Control-C>',copy_value)
         popup.bind('<Escape>',lambda e:popup.destroy());return 'break'
     def _show_document(self):
         self.model['wrap_limited']=any(len(line)>32768 for line in self.model.get('content','').splitlines())
@@ -36458,6 +36505,18 @@ class FormatRenderView(ttk.Frame):
     def set_wrap(self,enabled):
         self.wrap=bool(enabled)
         if self.text:self.text.configure(wrap='word' if self.wrap and not self.model.get('wrap_limited') else 'none')
+        if self.tree and self.model.get('kind')=='grid':
+            self.tree.begin_batch();self.tree.wrap_cells=self.wrap
+            for index,row in enumerate(self._grid_rows):self.tree.item('r'+str(index),values=self._grid_values(row))
+            if self._grid_hit:
+                index,column,start,end=self._grid_hit;iid='r'+str(index)
+                shown=list(self._grid_values(self._grid_rows[index]))
+                if not self.wrap:shown[column]=preview_match_excerpt(self._grid_rows[index][column],start,end)
+                self.tree.item(iid,values=shown)
+                if self.wrap:self.tree._match[iid]=(column,start,end)
+                else:self.tree._match.pop(iid,None)
+            self.tree.end_batch()
+            if self._grid_hit:self.tree.see('r'+str(self._grid_hit[0]))
     def _document_position(self,offset):
         if self.model.get('wrap_limited'):
             content=self.model['content'];start=max(0,offset-512)
@@ -36498,20 +36557,30 @@ class FormatRenderView(ttk.Frame):
             self.canvas.delete('all');self.canvas.create_image(0,0,image=self.display_image,anchor='nw')
             self.canvas.configure(scrollregion=(0,0,self.display_image.width(),self.display_image.height()))
         self._paint_image_match()
-    def _paint_image_match(self):
+    def _paint_image_match(self,reveal=False):
         self.canvas.delete('search_hit')
         node=self._image_match
         if node:
             x,y,w,h=(node[k]*self.scale for k in ('x','y','w','h'))
             self.canvas.create_rectangle(x,y,x+w,y+h,outline='#db6c00',width=3,tags='search_hit')
-            self.canvas.yview_moveto(max(0,(y-20)/max(1,self.display_image.height())))
-            self.canvas.xview_moveto(max(0,(x-20)/max(1,self.display_image.width())))
+            if reveal:
+                self.canvas.yview_moveto(max(0,(y-20)/max(1,self.display_image.height())))
+                self.canvas.xview_moveto(max(0,(x-20)/max(1,self.display_image.width())))
     def _choose(self):
         if self.canvas:self._draw_image()
         elif self.tree and self.model['kind']=='grid':
-            self._grid_header=self.choice.get()==tr('First row: header')
+            header=self.choice.get()==tr('First row: header')
+            if header==self._grid_header:return
+            selected=self.tree.selection();cell=self._cell
+            index=int(selected[0][1:])+(1 if self._grid_header else -1) if selected else None
+            self._grid_widths=tuple(self.tree.column(c,'width') for c in self.tree['columns'])
+            self._grid_header=header
             for child in self.body.winfo_children():child.destroy()
             self._show_tree('grid')
+            self._cell=cell
+            if index is not None and self._grid_rows:
+                iid='r'+str(max(0,min(index,len(self._grid_rows)-1)))
+                self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
         elif self.text:
             index=self.choice.current();sections=self.model.get('sections',[])
             if 0<=index<len(sections):self.text.see(self._document_position(sections[index]['offset']))
@@ -36656,8 +36725,10 @@ class FormatRenderView(ttk.Frame):
                 self.tree.heading(key,text='▶ '+preview_match_excerpt(self._header_match,start,end))
             else:
                 self._grid_search_row=index;iid='r'+str(index)
-                shown=[preview_cell_text(v)[:500] for v in self._grid_rows[index]]
-                shown[column]=preview_match_excerpt(self._grid_rows[index][column],start,end)
+                self._grid_hit=hit
+                shown=list(self._grid_values(self._grid_rows[index]))
+                if not self.wrap:shown[column]=preview_match_excerpt(self._grid_rows[index][column],start,end)
+                else:self.tree._match[iid]=(column,start,end)
                 self.tree.item(iid,values=shown);self.tree.selection_set(iid);self.tree.focus(iid);self.tree.see(iid)
             left=sum(self.tree.column(k,'width') for k in self.tree['columns'][:column])
             total=sum(self.tree.column(k,'width') for k in self.tree['columns'])
@@ -36677,6 +36748,7 @@ class FormatRenderView(ttk.Frame):
         elif self.canvas:
             self._image_match=next((p for p in self.model.get('positions',[]) if p['start']<=hit<p['end']),None)
             self._draw_image()
+            self._paint_image_match(reveal=True)
         detail=tr('Match {current} of {total}',current=self.match_index+1,total=len(hits))
         if header:detail=tr('Column header')+' · '+detail
         if limited:detail=tr('Showing the first 5,000 search matches')+' · '+detail
@@ -36685,9 +36757,10 @@ class FormatRenderView(ttk.Frame):
         if self.tree and self.model['kind']=='grid':
             if self._grid_search_row is not None:
                 index=self._grid_search_row
-                self.tree.item('r'+str(index),values=tuple(preview_cell_text(v)[:500] for v in self._grid_rows[index]))
+                self.tree.item('r'+str(index),values=self._grid_values(self._grid_rows[index]))
+                self.tree._match.pop('r'+str(index),None)
             for column,label in zip(self.tree['columns'],self._grid_headings):self.tree.heading(column,text=preview_cell_text(label)[:500])
-        self._grid_search_row=None;self._header_match=None;self._image_match=None
+        self._grid_search_row=None;self._grid_hit=None;self._header_match=None;self._image_match=None
         if self.text:self.text.tag_remove('format_match','1.0','end')
         if self.canvas:self.canvas.delete('search_hit')
 
@@ -37354,7 +37427,7 @@ class PreviewPage(tk.Frame):
         if result['kind']=='tree':self.find_all_matched_button.pack(side='left',padx=(3,0),before=self.case_check)
         else:self.find_all_matched_button.pack_forget()
         self._layout_find()
-        self.wrap_check.state(['!disabled'] if result['kind']=='document' else ['disabled'])
+        self.wrap_check.state(['!disabled'] if result['kind'] in {'document','grid'} else ['disabled'])
         if result.get('wrap_limited'):
             self.wrap_var.set(False);self.wrap_check.state(['disabled'])
             result['notice']=result.get('notice','')+' · '+tr('Long lines: 16K-character window; search and Copy use full loaded source')
@@ -37386,11 +37459,13 @@ class PreviewPage(tk.Frame):
 
     def _cancel_format_ui(self):
         expanding=self.render_view._expand_restore is not None
-        searching=self._format_searching or self.render_view._tree_revealing or expanding or bool(getattr(self.render_view.tree,'_layout_job',None))
+        reflowing=bool(getattr(self.render_view.tree,'_layout_job',None))
+        searching=self._format_searching or self.render_view._tree_revealing or expanding
         self._cancel_format()
-        if not searching:self._signature=self._path_signature()
-        if not searching:self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
-        self.status.configure(text=tr('Expansion canceled; previous view retained' if expanding else 'Search canceled' if searching else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
+        if not searching and not reflowing:
+            self._signature=self._path_signature()
+            self.render_view.show(dict(kind='document',content=tr('Preview canceled; press F5 to retry'),spans=[]))
+        self.status.configure(text=tr('Expansion canceled; previous view retained' if expanding else 'Search canceled' if searching else 'Layout canceled; previous view retained' if reflowing else 'Preview canceled; press F5 to retry'));self._sync_preview_activity()
 
 
     def _layout_file_tools(self, _event=None):
@@ -38114,19 +38189,26 @@ class PreviewPage(tk.Frame):
 
     def close(self) -> None:
         self._remember_markdown_position()
-        self._md_jobs.close()
-        self._format_jobs.close()
-        if self._format_find_job is not None:
-            self.after_cancel(self._format_find_job);self._format_find_job=None
-        if self._format_poll is not None:
-            self.after_cancel(self._format_poll);self._format_poll=None
-        if self._md_poll_job is not None:
-            self.after_cancel(self._md_poll_job);self._md_poll_job=None
-        if self._refresh_job is not None:
-            self.after_cancel(self._refresh_job); self._refresh_job = None
-        if self._span_job is not None:
-            self.after_cancel(self._span_job); self._span_job = None
         self.destroy()
+
+    def destroy(self):
+        # Also runs when construction aborts or the parent is destroyed directly.
+        # ttk's Tcl autoincrement timer is not a Python after callback, and must
+        # stop before its widget/interpreter disappears.
+        progress=self.__dict__.get('activity_progress')
+        if progress is not None:
+            try:progress.stop()
+            except tk.TclError:pass
+        for name in ('_md_jobs','_format_jobs'):
+            worker=self.__dict__.get(name)
+            if worker is not None:worker.close()
+        for name in ('_format_find_job','_format_poll','_md_poll_job','_refresh_job','_span_job'):
+            job=self.__dict__.get(name)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
+        super().destroy()
 
 
 class PreviewWindow(tk.Toplevel):
@@ -40989,7 +41071,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.42"
+__version__ = "0.18.43"
 
 
 
@@ -41107,8 +41189,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/23"
+BUILD_DATE = "2026/10/25"
 VERSION_HISTORY = (
+    ("v0.18.43", "2026/10/25", (
+        "Improved: CSV/TSV preview supports complete multiline cells with Wrap, stable manual widths and retained selection when changing header mode.",
+        "Fixed: Visual preview redraws no longer undo manual panning after search; oversized value dialogs stay responsive and preserve full-value Copy.",
+        "Improved: Shared render reliability checks cover all six structured extensions, table reflow cancellation, source fallback and scaled controls.",
+    )),
     ("v0.18.42", "2026/10/23", (
         "Fixed: F3 Preview accepts Tcl pixel-object geometry without a TypeError during JSON/Markdown loading.",
         "Improved: Diagnostics group propagation of one exception into a photo-friendly incident card with root location, version, system time and runtime; original audit records remain available.",

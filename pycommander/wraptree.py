@@ -13,6 +13,10 @@ from tkinter import ttk
 class WrappedTreeview(ttk.Treeview):
     def __init__(self,master,**kw):
         super().__init__(master,**kw)
+        # Tk may return tuple members as Tcl_Obj, not Python strings.
+        self._hierarchical='tree' in tuple(map(str,self.tk.splitlist(self['show'])))
+        self._cell_columns=(('#0',) if self._hierarchical else ())+tuple(map(str,self.tk.splitlist(self['columns'])))
+        self.wrap_cells=True
         self._display={};self._layouts={};self._entries=[];self._ends=[]
         self._layout_job=None;self._paint_job=None;self._revision=0
         self._yscroll=None;self._xscroll=None;self._offset=0;self._left=0
@@ -66,7 +70,7 @@ class WrappedTreeview(ttk.Treeview):
         else:self._clamp();self._schedule_paint()
 
     def _columns_changed(self):
-        widths=tuple(self.column(c,'width') for c in ('#0','value','type'))
+        widths=tuple(self.column(c,'width') for c in self._cell_columns)
         if widths!=getattr(self,'_layout_widths',None):self._invalidate()
 
     def configure(self,cnf=None,**kw):
@@ -142,7 +146,7 @@ class WrappedTreeview(ttk.Treeview):
         self._layout_job=None;revision=self._revision;epoch=self._layout_epoch
         font=tkfont.nametofont('TkDefaultFont');line=font.metrics('linespace')
         self._indent=max(18,round(line*.9))
-        widths=[self.column(c,'width') for c in ('#0','value','type')]
+        widths=[self.column(c,'width') for c in self._cell_columns]
         self._layout_widths=tuple(widths)
         # Header height follows the actual themed heading font, not a fixed row.
         heading=ttk.Style(self).lookup('Treeview.Heading','font') or 'TkDefaultFont'
@@ -158,18 +162,24 @@ class WrappedTreeview(ttk.Treeview):
             iid,depth=stack.pop();rows.append((iid,depth))
             if super().item(iid,'open'):stack.extend((child,depth+1) for child in reversed(self.get_children(iid)))
         entries=[];ends=[];y=0;cache={}
-        signature=(tuple(widths),font.actual('family'),font.actual('size'),font.actual('weight'))
+        signature=(tuple(widths),font.actual('family'),font.actual('size'),font.actual('weight'),self.wrap_cells)
         def layout_rows():
             for iid,depth in rows:
-                text,values=self._display[iid];raw=(text,)+values
+                text,values=self._display[iid];raw=((text,) if self._hierarchical else ())+values
                 key=(signature,depth,raw);saved=self._layouts.get(iid)
                 if saved and saved[0]==key:wrapped=saved[1]
                 else:
                     wrapped=[]
                     for col,(value,width) in enumerate(zip(raw,widths)):
-                        width=max(20,width-12-min((depth+1)*self._indent,max(0,width-36)) if col==0 else width-12)
+                        width=max(20,width-12-min((depth+1)*self._indent,max(0,width-36)) if col==0 and self._hierarchical else width-12)
                         lines=[]
-                        for chunk in self._line_chunks(str(value),width,font):
+                        if self.wrap_cells:chunks=self._line_chunks(str(value),width,font)
+                        else:
+                            shown=str(value)[:500]
+                            if font.measure(shown)>width:
+                                shown=next(self._line_chunks(shown,max(1,width-font.measure('…')),font))+'…'
+                            chunks=(shown,)
+                        for chunk in chunks:
                             lines.append(chunk);yield None
                         wrapped.append(lines)
                 yield iid,depth,key,wrapped
@@ -193,7 +203,7 @@ class WrappedTreeview(ttk.Treeview):
             else:
                 self._layout_job=self.after(1,batch);return
             if epoch!=self._layout_epoch:return
-            self._entries=entries;self._ends=ends;self._layouts=cache;self._total=max(1,y);self._extent=sum(widths)
+            self._entries=entries;self._ends=ends;self._layouts=cache;self._total=max(1,y);self._extent=max(1,sum(widths))
             if anchor:
                 found=next((r for r in entries if r[0]==anchor[0]),None)
                 if found:self._offset=found[2]+anchor[1]
@@ -218,7 +228,7 @@ class WrappedTreeview(ttk.Treeview):
         selected_bg=style.lookup('Treeview','background',('selected',)) or '#0078d7'
         selected_fg=style.lookup('Treeview','foreground',('selected',)) or '#ffffff'
         body.configure(background=bg);font=tkfont.nametofont('TkDefaultFont');line=font.metrics('linespace')
-        selected=set(self.selection());widths=[self.column(c,'width') for c in ('#0','value','type')]
+        selected=set(self.selection());widths=[self.column(c,'width') for c in self._cell_columns]
         self._left=super().xview()[0]*max(1,sum(widths))
         start=bisect_right(self._ends,self._offset)
         for iid,depth,y,height,wrapped in self._entries[start:]:
@@ -228,7 +238,7 @@ class WrappedTreeview(ttk.Treeview):
             if iid in selected:body.create_rectangle(0,top,max(body.winfo_width(),self._extent),top+height,fill=selected_bg,outline='')
             x=-self._left
             for column,(width,lines) in enumerate(zip(widths,wrapped)):
-                indent=min((depth+1)*self._indent,max(0,width-36)) if column==0 else 0
+                indent=min((depth+1)*self._indent,max(0,width-36)) if column==0 and self._hierarchical else 0
                 first=max(0,int((-top-4)//line));last=min(len(lines),int((body.winfo_height()-top)//line)+1)
                 if last>first:body.create_text(x+6+indent,top+4+first*line,text='\n'.join(lines[first:last]),anchor='nw',font=font,fill=color)
                 x+=width
@@ -248,7 +258,7 @@ class WrappedTreeview(ttk.Treeview):
         self.focus_set();iid=self.identify_row(event.y+self._body.winfo_y())
         if not iid:return 'break'
         entry=next(r for r in self._entries if r[0]==iid)
-        arrow=min(entry[1]*self._indent+8,max(8,self.column('#0','width')-28))
+        arrow=min(entry[1]*self._indent+8,max(8,self.column('#0','width')-28)) if self._hierarchical else -100
         if self.get_children(iid) and abs(event.x+self._left-arrow)<max(9,self._indent/2):self.item(iid,open=not super().item(iid,'open'))
         self.selection_set(iid);self.focus(iid);return 'break'
 
@@ -266,6 +276,8 @@ class WrappedTreeview(ttk.Treeview):
         if not ids:return 'break'
         current=self.focus();index=ids.index(current) if current in ids else 0
         if key in ('Left','Right'):
+            if not self._hierarchical:
+                self.xview_scroll(-1 if key=='Left' else 1,'units');return 'break'
             if key=='Right':self.item(ids[index],open=True)
             elif self.item(ids[index],'open'):self.item(ids[index],open=False)
             elif self.parent(ids[index]):self.selection_set(self.parent(ids[index]));self.focus(self.parent(ids[index]));self.see(self.parent(ids[index]))
@@ -298,12 +310,16 @@ class WrappedTreeview(ttk.Treeview):
         if entry:
             top=entry[2];bottom=top+entry[3];height=self._body.winfo_height()
             match=self._match.get(iid)
-            if match and match[0] in ('label','value'):
-                column=0 if match[0]=='label' else 1
-                raw=self._display[iid][0] if column==0 else self._display[iid][1][0]
+            if match and (match[0] in ('label','value') or isinstance(match[0],int)):
+                column=match[0] if isinstance(match[0],int) else 0 if match[0]=='label' else 1
+                raw=self._display[iid][0] if self._hierarchical and column==0 else self._display[iid][1][column-(1 if self._hierarchical else 0)]
+                # Search offsets refer to the original scalar/cell, while the
+                # painted lines normalize Windows CRLF. Normalize the offset
+                # too, otherwise many preceding CRs reveal the wrong line.
+                match_start=len(raw[:match[1]].replace('\r\n','\n').replace('\r','\n'))
                 position=0;line=0;raw=raw.replace('\r\n','\n').replace('\r','\n')
                 for part in entry[4][column]:
-                    if position+len(part)>match[1]:break
+                    if position+len(part)>match_start:break
                     position+=len(part)
                     if raw[position:position+1]=='\n':position+=1
                     line+=1
@@ -316,7 +332,7 @@ class WrappedTreeview(ttk.Treeview):
     def bbox(self,iid,column=None):
         entry=next((r for r in self._entries if r[0]==iid),None)
         if not entry:return ''
-        y=entry[2]-self._offset+self._body.winfo_y();widths=[self.column(c,'width') for c in ('#0','value','type')]
+        y=entry[2]-self._offset+self._body.winfo_y();widths=[self.column(c,'width') for c in self._cell_columns]
         if column is None:return (-self._left,y,sum(widths),entry[3])
-        index=('#0','value','type').index(column)
+        index=self._cell_columns.index(column) if column in self._cell_columns else int(str(column)[1:])-(0 if self._hierarchical else 1)
         return (sum(widths[:index])-self._left,y,widths[index],entry[3])

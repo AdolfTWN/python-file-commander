@@ -11,6 +11,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: CSV/TSV preview supports complete multiline cells with Wrap, stable manual widths and retained selection when changing header mode.': ('改善：CSV／TSV 預覽支援完整多行儲存格及換行，手動欄寬保持穩定，切換表頭模式時保留選取資料。','改善：CSV/TSV 预览支持完整多行单元格及换行，手动列宽保持稳定，切换表头模式时保留选中数据。','개선: CSV/TSV 미리보기는 전체 셀 줄바꿈, 안정적인 열 너비와 헤더 모드 변경 시 선택 유지를 지원합니다.'),
+    'Fixed: Visual preview redraws no longer undo manual panning after search; oversized value dialogs stay responsive and preserve full-value Copy.': ('修正：視覺預覽搜尋後重繪不再取消手動捲動；超長值視窗保持回應，複製仍保留完整內容。','修正：视觉预览搜索后重绘不再取消手动滚动；超长值窗口保持响应，复制仍保留完整内容。','수정: 시각 미리보기 검색 후 다시 그릴 때 수동 이동을 유지하며 큰 값 창은 응답성과 전체 값 복사를 유지합니다.'),
+    'Improved: Shared render reliability checks cover all six structured extensions, table reflow cancellation, source fallback and scaled controls.': ('改善：共用 Render 可靠度測試涵蓋六種階層副檔名、表格排版取消、原文備援及控制項縮放。','改善：共用 Render 可靠性测试覆盖六种层级扩展名、表格排版取消、原文回退及控件缩放。','개선: 공유 렌더 신뢰성 검사는 여섯 구조화 확장자, 표 재배치 취소, 원문 대체 및 컨트롤 배율을 포함합니다.'),
+    'Long value: first 16K characters displayed; Copy keeps the full value': ('長值：顯示前 16K 字元；複製仍保留完整內容','长值：显示前 16K 字符；复制仍保留完整内容','긴 값: 처음 16K 문자만 표시하며 복사는 전체 값을 유지합니다'),
+    'Layout canceled; previous view retained': ('已取消排版；保留原畫面','已取消排版；保留原画面','레이아웃 취소됨; 이전 보기 유지'),
     'Fixed: F3 Preview accepts Tcl pixel-object geometry without a TypeError during JSON/Markdown loading.': ('修正：F3 預覽相容 Tcl 像素尺寸物件，載入 JSON／Markdown 不再因此發生 TypeError。','修正：F3 预览兼容 Tcl 像素尺寸对象，加载 JSON/Markdown 不再因此发生 TypeError。','수정: F3 미리보기가 Tcl 픽셀 객체를 처리하여 JSON/Markdown 로드 중 TypeError를 방지합니다.'),
     'Improved: Diagnostics group propagation of one exception into a photo-friendly incident card with root location, version, system time and runtime; original audit records remain available.': ('改善：同一例外的多層回報合併成適合拍照的摘要，集中顯示根因位置、版本、系統時間及執行環境；原始稽核紀錄仍保留。','改善：同一异常的多层报告合并为适合拍照的摘要，集中显示根因位置、版本、系统时间及运行环境；原始审计记录仍保留。','개선: 같은 예외의 전파를 촬영하기 쉬운 카드로 묶고 원인 위치, 버전, 시스템 시간과 실행 환경을 표시하며 원본 기록은 유지합니다.'),
     'Full details': ('完整明細','完整明细','전체 세부 정보'),

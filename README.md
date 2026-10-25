@@ -1,6 +1,6 @@
 # Python File Commander
 
-Current version: **v0.18.42**
+Current version: **v0.18.43**
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
