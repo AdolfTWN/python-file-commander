@@ -1,7 +1,11 @@
 # Python File Commander
 
-Current code: **v0.18.45 development candidate**. Windows ARM64/emulated-x64
-validation and release publication are pending; this is not a Windows acceptance claim.
+Current code: **v0.18.45 development candidate — not published**.
+Final Linux full regression and ten Windows checks per ARM64/emulated-x64
+runtime passed against the same portable artifact. Release is held for an owner
+decision: an earlier candidate had one intermittent x64 Compare native access
+violation; unchanged reruns passed, but its cause is not confirmed. This is not
+native x64 Windows acceptance. See the investigation and limits below.
 
 **Task-focused improvements:** copy/move I/O runs outside Tk; conflict choices
 remain on the UI thread with Cancel initially focused. Cancel/closing requests
