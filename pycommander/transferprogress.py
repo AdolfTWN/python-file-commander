@@ -9,6 +9,7 @@ from tkinter import ttk, font as tkfont
 from .fileops import OperationFailure, OperationResult
 from .i18n import tr
 from .flowlayout import guard_dialog_keys
+from .dialogs import release_owned_variables
 from .windowplacement import popup_work_area, position_popup_in_work_area
 
 
@@ -122,10 +123,10 @@ class TransferProgress(tk.Toplevel):
         # A destroyed modal can remain in a callback/exception cycle until the
         # next worker triggers GC. Release our sole Tk variable on its UI thread
         # while the interpreter is alive, not during that later collection.
-        self.target_var=None
         job=getattr(self,'_poll_job',None)
         if job is not None:self.after_cancel(job);self._poll_job=None
         super().destroy()
+        release_owned_variables(self,'target_var')
 
     def poll(self):
         self._poll_job=None

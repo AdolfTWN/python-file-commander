@@ -22,6 +22,8 @@ _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
     'Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.': ('修正：預覽讀取器在開啟前拒絕特殊串流，並核對已開啟檔案，避免被替換的管線阻塞。','修正：预览读取器在打开前拒绝特殊流，并核对已打开文件，避免被替换的管道阻塞。','수정: 미리보기는 특수 스트림을 열기 전에 거부하고 열린 파일을 검증하여 교체된 파이프로 인한 차단을 방지합니다.'),
+    'Fixed: Switching Markdown tabs during background checks retains folds and reading state.': ('修正：背景檢查時切換 Markdown 分頁，保留摺疊及閱讀狀態。','修正：后台检查时切换 Markdown 标签页，保留折叠及阅读状态。','수정: 백그라운드 확인 중 Markdown 탭을 전환해도 접기 및 읽기 상태를 유지합니다.'),
+    'Fixed: Closed workflow and rename dialogs release owned variable traces instead of retaining destroyed windows.': ('修正：關閉工作區及改名視窗時釋放自有變數追蹤，避免殘留已銷毀視窗。','修正：关闭工作区及重命名窗口时释放自有变量跟踪，避免残留已销毁窗口。','수정: 워크플로/이름 변경 창을 닫으면 소유 변수 추적을 해제하여 삭제된 창이 남지 않게 합니다.'),
     'Yes': ('是','是','예'),
     'No': ('否','否','아니요'),
     'Abort': ('中止','中止','중단'),
@@ -7467,6 +7469,21 @@ _NATIVE_INPUTS={kind:getattr(getattr(simpledialog,'ask'+kind),'_pfc_native_input
                            getattr(simpledialog,'ask'+kind)) for kind in ('string','integer','float')}
 
 
+def release_owned_variables(owner,*names):
+    """Detach only explicitly owned variables/traces on the UI thread.
+
+    Tcl trace commands can retain a destroyed tool window until the interpreter
+    exits. Never sweep arbitrary attributes: they may be shared preferences.
+    """
+    for name in names:
+        variable=getattr(owner,name,None)
+        if not isinstance(variable,tk.Variable):continue
+        try:
+            for modes,command in variable.trace_info():variable.trace_remove(modes,command)
+        except tk.TclError:pass  # An already-destroyed interpreter has no traces.
+        setattr(owner,name,None)
+
+
 class ScaledMessageDialog(tk.Toplevel):
     CHOICES = {'ok': ('ok',), 'okcancel': ('ok', 'cancel'),
                'yesno': ('yes', 'no'), 'yesnocancel': ('yes', 'no', 'cancel'),
@@ -7653,6 +7670,7 @@ from tkinter import ttk, messagebox, simpledialog, font as tkfont
 
 
 
+
 def workflow_dialog_geometry(window, master, width=650, height=420):
     area=popup_work_area(master)
     ratio=max(1,tkfont.nametofont('TkDefaultFont',root=master).metrics('linespace')/20)
@@ -7689,6 +7707,9 @@ def style_workflow_controls(window):
 
 
 class WorkflowPicker(tk.Toplevel):
+    def destroy(self):
+        super().destroy();release_owned_variables(self,'query')
+
     def __init__(self, master, title, records, save_config, capture, activate, describe):
         super().__init__(master)
         self.previous_grab=master.grab_current();self.previous_focus=master.focus_get()
@@ -7820,6 +7841,9 @@ def command_matches(commands, query):
 
 
 class CommandPalette(tk.Toplevel):
+    def destroy(self):
+        super().destroy();release_owned_variables(self,'query')
+
     def __init__(self, master, commands):
         super().__init__(master)
         self.title(tr('Command search')); workflow_dialog_geometry(self, master, 680, 390)
@@ -7828,7 +7852,7 @@ class CommandPalette(tk.Toplevel):
         self.previous_grab=master.grab_current()
         area = ttk.Frame(self, padding=10); area.pack(fill='both', expand=True)
         area.columnconfigure(0, weight=1); area.rowconfigure(1, weight=1)
-        self.query = tk.StringVar()
+        self.query = tk.StringVar(self)
         self.entry = ttk.Entry(area, textvariable=self.query)
         self.entry.grid(row=0, column=0, sticky='ew', pady=(0, 7))
         self.list = ttk.Treeview(area, columns=('category', 'key'), show='tree headings', height=9,
@@ -8156,6 +8180,7 @@ from tkinter import ttk, font as tkfont
 
 
 
+
 def resolve_progress_conflict(owner,source,target):
     """UI-thread reply; resolver faults must not masquerade as user Cancel."""
     try:action='cancel' if owner.cancelled.is_set() else owner.resolver(source,target)
@@ -8266,10 +8291,10 @@ class TransferProgress(tk.Toplevel):
         # A destroyed modal can remain in a callback/exception cycle until the
         # next worker triggers GC. Release our sole Tk variable on its UI thread
         # while the interpreter is alive, not during that later collection.
-        self.target_var=None
         job=getattr(self,'_poll_job',None)
         if job is not None:self.after_cancel(job);self._poll_job=None
         super().destroy()
+        release_owned_variables(self,'target_var')
 
     def poll(self):
         self._poll_job=None
@@ -39840,6 +39865,7 @@ from tkinter import messagebox, ttk
 
 
 
+
 INVALID_NAME_CHARS = set('<>:"/\\|?*')
 
 
@@ -39943,10 +39969,10 @@ class MultiRenameWindow(tk.Toplevel):
         self.title(tr("PFC Multi-Rename"))
         self.geometry("980x650"); self.minsize(700, 470); self.transient(master)
         self.protocol("WM_DELETE_WINDOW", self.destroy)
-        self.mask_var = tk.StringVar(value="[N]")
-        self.find_var, self.replace_var = tk.StringVar(), tk.StringVar()
-        self.start_var, self.digits_var = tk.IntVar(value=1), tk.IntVar(value=2)
-        self.case_var, self.extension_var = tk.BooleanVar(value=False), tk.BooleanVar(value=True)
+        self.mask_var = tk.StringVar(self,value="[N]")
+        self.find_var, self.replace_var = tk.StringVar(self), tk.StringVar(self)
+        self.start_var, self.digits_var = tk.IntVar(self,value=1), tk.IntVar(self,value=2)
+        self.case_var, self.extension_var = tk.BooleanVar(self,value=False), tk.BooleanVar(self,value=True)
         self._preview_job=None
         self.bind('<Destroy>',self._destroy_preview,add='+')
         controls = ttk.Frame(self, padding=8); controls.pack(fill="x")
@@ -40057,6 +40083,8 @@ class MultiRenameWindow(tk.Toplevel):
             for name in ('_preview_job','_activate_job'):
                 job=getattr(self,name,None)
                 if job is not None:self.after_cancel(job);setattr(self,name,None)
+            release_owned_variables(self,'mask_var','find_var','replace_var','start_var',
+                                    'digits_var','case_var','extension_var')
 
     def update_preview(self):
         if self._preview_job is not None:
@@ -41898,6 +41926,8 @@ VERSION_HISTORY = (
         "Improved: Saved workflows support filtering and accessible full details; operation results list failures first with targeted retry.",
         "Fixed: Folder lists reuse metadata for filtering and sorting, retain state on read failure and preserve explicit search-result tab scope.",
         "Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.",
+        "Fixed: Switching Markdown tabs during background checks retains folds and reading state.",
+        "Fixed: Closed workflow and rename dialogs release owned variable traces instead of retaining destroyed windows.",
     )),
     ("v0.18.44", "2026/10/28", (
         "Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.",
@@ -44186,12 +44216,15 @@ class PaneTabs(ChamferNotebook):
 
 
 class ConflictDialog(tk.Toplevel):
+    def destroy(self):
+        super().destroy();release_owned_variables(self,'apply_all')
+
     def __init__(self, parent, source: Path, target: Path) -> None:
         super().__init__(parent)
         self.withdraw()
         self.previous_grab=parent.grab_current();self.previous_focus=parent.focus_get()
         self.result = ("cancel", False)
-        self.apply_all = tk.BooleanVar(value=False)
+        self.apply_all = tk.BooleanVar(self,value=False)
         self.title(tr("File conflict")); self.transient(parent.winfo_toplevel())
         area=popup_work_area(parent);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')
         ratio=max(1,line/20)

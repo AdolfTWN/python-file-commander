@@ -12,6 +12,7 @@ from .tabs import color_scheme
 from .tooltip import ToolTip
 from .settings import readable_check_style
 from .flowlayout import FlowToolbar
+from .dialogs import release_owned_variables
 
 
 INVALID_NAME_CHARS = set('<>:"/\\|?*')
@@ -117,10 +118,10 @@ class MultiRenameWindow(tk.Toplevel):
         self.title(tr("PFC Multi-Rename"))
         self.geometry("980x650"); self.minsize(700, 470); self.transient(master)
         self.protocol("WM_DELETE_WINDOW", self.destroy)
-        self.mask_var = tk.StringVar(value="[N]")
-        self.find_var, self.replace_var = tk.StringVar(), tk.StringVar()
-        self.start_var, self.digits_var = tk.IntVar(value=1), tk.IntVar(value=2)
-        self.case_var, self.extension_var = tk.BooleanVar(value=False), tk.BooleanVar(value=True)
+        self.mask_var = tk.StringVar(self,value="[N]")
+        self.find_var, self.replace_var = tk.StringVar(self), tk.StringVar(self)
+        self.start_var, self.digits_var = tk.IntVar(self,value=1), tk.IntVar(self,value=2)
+        self.case_var, self.extension_var = tk.BooleanVar(self,value=False), tk.BooleanVar(self,value=True)
         self._preview_job=None
         self.bind('<Destroy>',self._destroy_preview,add='+')
         controls = ttk.Frame(self, padding=8); controls.pack(fill="x")
@@ -231,6 +232,8 @@ class MultiRenameWindow(tk.Toplevel):
             for name in ('_preview_job','_activate_job'):
                 job=getattr(self,name,None)
                 if job is not None:self.after_cancel(job);setattr(self,name,None)
+            release_owned_variables(self,'mask_var','find_var','replace_var','start_var',
+                                    'digits_var','case_var','extension_var')
 
     def update_preview(self):
         if self._preview_job is not None:

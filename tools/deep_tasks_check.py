@@ -416,6 +416,19 @@ class DeepTasks(unittest.TestCase):
                 start.event_generate('<F3>');pump(self.app,.02);self.assertFalse(leaked)
                 window.destroy();pump(self.app,.06)
 
+    def test_closed_tool_traces_do_not_retain_destroyed_windows(self):
+        workflows=pfc if pfc.__name__=='pfc' else importlib.import_module('pycommander.workflows')
+        factories=(
+            lambda:workflows.CommandPalette(self.app,[('Alpha','Task','','',lambda:None)]),
+            lambda:workflows.WorkflowPicker(self.app,'Saved',pfc.WorkflowRecords(self.app.config_data,'audit'),
+                       lambda:None,lambda:None,lambda d:False,str),
+            lambda:pfc.MultiRenameWindow(self.app,[self.folder/'alpha.md'],[],lambda:None))
+        for factory in factories:
+            for _ in range(4):
+                window=factory();pump(self.app,.02);reference=weakref.ref(window)
+                window.destroy();del window;pump(self.app,.02);gc.collect()
+                self.assertIsNone(reference(),'A Tcl variable trace retained the destroyed tool')
+
     def test_conflict_cancel_is_safe_default_and_restores_modal(self):
         outer=pfc.tk.Toplevel(self.app);outer.grab_set()
         entry=pfc.ttk.Entry(outer);entry.pack();entry.focus_force();pump(self.app)

@@ -58,7 +58,7 @@ from .operationui import OperationResultWindow
 from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard, popup_work_area
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
-from .dialogs import install_scaled_messageboxes
+from .dialogs import install_scaled_messageboxes, release_owned_variables
 from .debuglog import DiagnosticLog, diagnostic_records, diagnostic_incidents, diagnostic_summary
 from .columnsettings import font_snapshot
 from .actionbar import ActionBarLayout
@@ -153,6 +153,8 @@ VERSION_HISTORY = (
         "Improved: Saved workflows support filtering and accessible full details; operation results list failures first with targeted retry.",
         "Fixed: Folder lists reuse metadata for filtering and sorting, retain state on read failure and preserve explicit search-result tab scope.",
         "Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.",
+        "Fixed: Switching Markdown tabs during background checks retains folds and reading state.",
+        "Fixed: Closed workflow and rename dialogs release owned variable traces instead of retaining destroyed windows.",
     )),
     ("v0.18.44", "2026/10/28", (
         "Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.",
@@ -2441,12 +2443,15 @@ class PaneTabs(ChamferNotebook):
 
 
 class ConflictDialog(tk.Toplevel):
+    def destroy(self):
+        super().destroy();release_owned_variables(self,'apply_all')
+
     def __init__(self, parent, source: Path, target: Path) -> None:
         super().__init__(parent)
         self.withdraw()
         self.previous_grab=parent.grab_current();self.previous_focus=parent.focus_get()
         self.result = ("cancel", False)
-        self.apply_all = tk.BooleanVar(value=False)
+        self.apply_all = tk.BooleanVar(self,value=False)
         self.title(tr("File conflict")); self.transient(parent.winfo_toplevel())
         area=popup_work_area(parent);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')
         ratio=max(1,line/20)

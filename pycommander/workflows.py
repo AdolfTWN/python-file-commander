@@ -7,6 +7,7 @@ from .workflowdata import WorkflowRecords
 from .tooltip import ToolTip
 from .columnsettings import font_snapshot
 from .flowlayout import FlowToolbar, guard_dialog_keys
+from .dialogs import release_owned_variables
 from .windowplacement import popup_work_area, position_popup_in_work_area
 
 
@@ -46,6 +47,9 @@ def style_workflow_controls(window):
 
 
 class WorkflowPicker(tk.Toplevel):
+    def destroy(self):
+        super().destroy();release_owned_variables(self,'query')
+
     def __init__(self, master, title, records, save_config, capture, activate, describe):
         super().__init__(master)
         self.previous_grab=master.grab_current();self.previous_focus=master.focus_get()
@@ -177,6 +181,9 @@ def command_matches(commands, query):
 
 
 class CommandPalette(tk.Toplevel):
+    def destroy(self):
+        super().destroy();release_owned_variables(self,'query')
+
     def __init__(self, master, commands):
         super().__init__(master)
         self.title(tr('Command search')); workflow_dialog_geometry(self, master, 680, 390)
@@ -185,7 +192,7 @@ class CommandPalette(tk.Toplevel):
         self.previous_grab=master.grab_current()
         area = ttk.Frame(self, padding=10); area.pack(fill='both', expand=True)
         area.columnconfigure(0, weight=1); area.rowconfigure(1, weight=1)
-        self.query = tk.StringVar()
+        self.query = tk.StringVar(self)
         self.entry = ttk.Entry(area, textvariable=self.query)
         self.entry.grid(row=0, column=0, sticky='ew', pady=(0, 7))
         self.list = ttk.Treeview(area, columns=('category', 'key'), show='tree headings', height=9,

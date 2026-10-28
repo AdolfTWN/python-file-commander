@@ -11,6 +11,21 @@ _NATIVE_INPUTS={kind:getattr(getattr(simpledialog,'ask'+kind),'_pfc_native_input
                            getattr(simpledialog,'ask'+kind)) for kind in ('string','integer','float')}
 
 
+def release_owned_variables(owner,*names):
+    """Detach only explicitly owned variables/traces on the UI thread.
+
+    Tcl trace commands can retain a destroyed tool window until the interpreter
+    exits. Never sweep arbitrary attributes: they may be shared preferences.
+    """
+    for name in names:
+        variable=getattr(owner,name,None)
+        if not isinstance(variable,tk.Variable):continue
+        try:
+            for modes,command in variable.trace_info():variable.trace_remove(modes,command)
+        except tk.TclError:pass  # An already-destroyed interpreter has no traces.
+        setattr(owner,name,None)
+
+
 class ScaledMessageDialog(tk.Toplevel):
     CHOICES = {'ok': ('ok',), 'okcancel': ('ok', 'cancel'),
                'yesno': ('yes', 'no'), 'yesnocancel': ('yes', 'no', 'cancel'),
