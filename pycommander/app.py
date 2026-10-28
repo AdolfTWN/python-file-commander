@@ -142,6 +142,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.44", "2026/10/28", (
+        "Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.",
+        "Improved: Search keeps progress and elapsed details near the query and fits result actions to their labels.",
+        "Improved: Settings use inline selectors and optional examples for General and Paths & Operations.",
+    )),
     ("v0.18.43", "2026/10/25", (
         "Improved: CSV/TSV preview supports complete multiline cells with Wrap, stable manual widths and retained selection when changing header mode.",
         "Fixed: Visual preview redraws no longer undo manual panning after search; oversized value dialogs stay responsive and preserve full-value Copy.",

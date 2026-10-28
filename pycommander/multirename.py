@@ -11,6 +11,7 @@ from .i18n import retranslate_widgets, tr
 from .tabs import color_scheme
 from .tooltip import ToolTip
 from .settings import readable_check_style
+from .flowlayout import FlowToolbar
 
 
 INVALID_NAME_CHARS = set('<>:"/\\|?*')
@@ -121,26 +122,31 @@ class MultiRenameWindow(tk.Toplevel):
         self.start_var, self.digits_var = tk.IntVar(value=1), tk.IntVar(value=2)
         self.case_var, self.extension_var = tk.BooleanVar(value=False), tk.BooleanVar(value=True)
         controls = ttk.Frame(self, padding=8); controls.pack(fill="x")
-        ttk.Label(controls, text=tr("Name mask:")).grid(row=0, column=0, sticky="w")
-        self.mask_entry = ttk.Entry(controls, textvariable=self.mask_var)
-        self.mask_entry.grid(row=0, column=1, columnspan=3, sticky="ew", padx=(4, 8))
+        self.naming_tools = FlowToolbar(controls)
+        self.naming_tools.pack(fill='x')
+        self.replace_tools = FlowToolbar(controls)
+        self.replace_tools.pack(fill='x',pady=(3,0))
+        def field(bar, label, variable, *, spin=None):
+            group=ttk.Frame(bar)
+            ttk.Label(group,text=tr(label)).pack(side='left',padx=(0,4))
+            entry=(ttk.Spinbox(group,from_=spin[0],to=spin[1],textvariable=variable,
+                               width=7 if spin[1]==999999 else 3,command=self.update_preview) if spin else
+                   ttk.Entry(group,textvariable=variable,width=10))
+            entry.pack(side='left',fill='x',expand=True)
+            bar.add(group,expand=spin is None)
+            return entry
+        self.mask_entry = field(self.naming_tools,'Name mask:',self.mask_var)
         ToolTip(self.mask_entry, lambda: tr('[N] original   [C] counter   [E] extension'))
-        ttk.Label(controls, text=tr("Find:")).grid(row=1, column=0, sticky="w", pady=(6, 0))
-        ttk.Entry(controls, textvariable=self.find_var, width=8).grid(row=1, column=1, sticky="ew", padx=(4, 8), pady=(6, 0))
-        ttk.Label(controls, text=tr("Replace:")).grid(row=1, column=2, sticky="w", pady=(6, 0))
-        ttk.Entry(controls, textvariable=self.replace_var, width=8).grid(row=1, column=3, sticky="ew", padx=(4, 8), pady=(6, 0))
-        case = ttk.Checkbutton(controls, text='Aa', variable=self.case_var, command=self.update_preview)
-        case.grid(row=1, column=4, sticky="w", pady=(6, 0))
+        extension=ttk.Checkbutton(self.naming_tools,text=tr('Keep extension'),variable=self.extension_var,
+                                  command=self.update_preview)
+        self.naming_tools.add(extension)
+        field(self.naming_tools,'Start:',self.start_var,spin=(0,999999))
+        field(self.naming_tools,'Digits:',self.digits_var,spin=(1,12))
+        self.find_entry=field(self.replace_tools,'Find:',self.find_var)
+        self.replace_entry=field(self.replace_tools,'Replace:',self.replace_var)
+        case = ttk.Checkbutton(self.replace_tools, text='Aa', variable=self.case_var, command=self.update_preview)
+        self.replace_tools.add(case)
         ToolTip(case, lambda: tr('Case sensitive'))
-        ttk.Checkbutton(controls, text=tr("Keep extension"), variable=self.extension_var,
-                        command=self.update_preview).grid(row=0, column=4, sticky="w")
-        ttk.Label(controls, text=tr("Start:")).grid(row=2, column=0, sticky="w", pady=(6, 0))
-        ttk.Spinbox(controls, from_=0, to=999999, textvariable=self.start_var, width=7,
-                    command=self.update_preview).grid(row=2, column=1, sticky="w", padx=(4, 8), pady=(6, 0))
-        ttk.Label(controls, text=tr("Digits:")).grid(row=2, column=2, sticky="w", pady=(6, 0))
-        ttk.Spinbox(controls, from_=1, to=12, textvariable=self.digits_var, width=5,
-                    command=self.update_preview).grid(row=2, column=3, sticky="w", padx=(4, 8), pady=(6, 0))
-        controls.columnconfigure(1, weight=1); controls.columnconfigure(3, weight=1)
         self.tree = ttk.Treeview(self, columns=("old", "new", "status"), show="headings")
         for column, width in (("old", 360), ("new", 360), ("status", 150)):
             self.tree.heading(column, text=tr(column.title())); self.tree.column(column, width=width)
@@ -197,6 +203,7 @@ class MultiRenameWindow(tk.Toplevel):
         self.title(tr("PFC Multi-Rename"))
         for column in ("old", "new", "status"):
             self.tree.heading(column, text=tr(column.title()))
+        self.naming_tools.schedule(); self.replace_tools.schedule()
         self.update_preview()
 
     def _plan(self):

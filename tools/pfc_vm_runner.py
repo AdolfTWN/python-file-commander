@@ -326,6 +326,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                     data=guest.image_data(directory+'\\evidence-cloud-'+scale+'.bmp')
                     (evidence_dir/('cloud-'+scale+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('cloud-'+scale+'.png'))
+            if result['status']=='passed' and 'compact_tasks_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('search','preview','compare','rename','settings','narrow','wide'):
+                    data=guest.image_data(directory+'\\evidence-compact-'+name+'.bmp')
+                    (evidence_dir/('compact-'+name+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('compact-'+name+'.png'))
             if result['status']=='passed' and 'ux_walkthrough_check.py' in checks:
                 from PIL import Image
                 import io

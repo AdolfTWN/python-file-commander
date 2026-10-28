@@ -19,6 +19,7 @@ from .i18n import retranslate_widgets, tr
 from .tabs import color_scheme
 from .settings import readable_check_style
 from .multirename import execute_rename_pairs
+from .flowlayout import FlowToolbar
 
 
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
@@ -203,10 +204,9 @@ class SearchWindow(tk.Toplevel):
         self.progress = ttk.Progressbar(activity, mode='determinate', value=0, length=120)
         self.progress.grid(row=0,column=1,sticky='ew')
         self.progress_eta = ttk.Label(activity, anchor='w')
-        self.progress_eta.grid(row=1,column=0,columnspan=2,sticky='ew')
-        activity.bind('<Configure>',lambda e:(self.status.configure(wraplength=max(160,e.width-150)),
-                                               self.progress_eta.configure(wraplength=max(160,e.width-20))))
-        actions = self.result_actions = ttk.Frame(self,padding=(7,2))
+        activity.bind('<Configure>',lambda e:self._layout_activity())
+        action_container = ttk.Frame(self,padding=(7,2)); action_container.pack(fill='x')
+        actions = self.result_actions = FlowToolbar(action_container, gap=4, row_gap=2)
         actions.pack(fill='x')
         self.result_buttons=[]
         for label,command in (('Go to File',self.go_selected),('List → New Tab',self.send_listing),
@@ -214,6 +214,8 @@ class SearchWindow(tk.Toplevel):
                 ('F9 Compare',self.compare_selected),('F11 Copy Path',self.copy_paths)):
             button=ttk.Button(actions,text=tr(label),width=0,command=command,state='disabled')
             self.result_buttons.append(button)
+            actions.add(button,minimum=lambda b=button:max(b.winfo_reqwidth(),
+                tkfont.nametofont('TkDefaultFont').measure(b.cget('text'))+12))
         ToolTip(self.result_buttons[1],lambda:tr('Send Listing to New Tab'))
         ToolTip(self.result_buttons[0],lambda:tr('Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.'))
         self.bind('<Configure>',self._layout_controls,add='+')
@@ -258,12 +260,24 @@ class SearchWindow(tk.Toplevel):
         narrow=self.size_controls.winfo_reqwidth()+self.days_controls.winfo_reqwidth()+12>available
         self.days_controls.grid_configure(row=1 if narrow else 0,column=0 if narrow else 1,
                                           sticky='w' if narrow else 'e',padx=0 if narrow else (8,0))
-        # Equal-width columns must fit the widest label, not just the sum of
-        # unequal requested widths (Windows fonts exposed clipping otherwise).
-        widest=max(b.winfo_reqwidth()+4 for b in self.result_buttons)
-        columns=next((n for n in (6,3,2,1) if widest*n<=available),1)
-        for col in range(6):self.result_actions.columnconfigure(col,weight=1 if col<columns else 0,uniform='actions' if col<columns else '')
-        for i,button in enumerate(self.result_buttons):button.grid(row=i//columns,column=i%columns,sticky='ew',padx=2,pady=1)
+        self.result_actions.schedule()
+        self._layout_activity()
+
+    def _layout_activity(self):
+        # Never reserve an empty elapsed/ETA line. While running, keep activity
+        # close to the query; move detail below only when the labels need it.
+        width=max(1,self.activity.winfo_width()-14)
+        detail=bool(self.progress_eta.cget('text'))
+        reserve=140 if self.progress.winfo_manager() else 0
+        font=tkfont.nametofont('TkDefaultFont')
+        heading=tkfont.nametofont('TkHeadingFont')
+        same_row=heading.measure(self.status.cget('text'))+font.measure(self.progress_eta.cget('text'))+reserve+24<=width
+        self.status.configure(wraplength=max(160,width-reserve-8))
+        self.progress_eta.configure(wraplength=max(160,width-8))
+        if detail:
+            self.progress_eta.grid(row=0 if same_row else 1,column=2 if same_row else 0,
+                                   columnspan=1 if same_row else 3,sticky='w',padx=(8,0) if same_row else 0)
+        else:self.progress_eta.grid_remove()
 
     def _sync_result_actions(self):
         selected=len(self.tree.selection());busy=self.search_state in ('running','cancelling','resetting')
@@ -623,6 +637,7 @@ class SearchWindow(tk.Toplevel):
             detail=tr('Elapsed {minutes:02d}:{seconds:02d} · Folders scanned: {folders} · Unreadable: {skipped}',
                 minutes=elapsed//60,seconds=elapsed%60,folders=self._scanned_folders,skipped=self._skipped)
             if self.progress_eta.cget('text')!=detail:self.progress_eta.configure(text=detail)
+        self._layout_activity()
         hints={'ready':'Enter a name or mask, then choose Find.', 'resetting':'Waiting for the current read to stop…',
                'running':'Searching… results will appear here.',
                'cancelling':'Waiting for the current read to stop…',

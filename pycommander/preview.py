@@ -27,6 +27,7 @@ from .settings import readable_check_style
 from .rendercore import RENDER_EXTENSIONS,RENDER_INPUT_LIMIT,structured_preview,structured_search,table_preview,patch_preview
 from .renderbrowser import raster_preview
 from .renderui import FormatRenderView
+from .flowlayout import FlowToolbar
 
 
 TEXT_EXTENSIONS = {
@@ -458,7 +459,9 @@ class PreviewPage(tk.Frame):
         preview_diagnostic(self, 'preview.page.state.ready')
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
-        file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
+        self.reading_tools = FlowToolbar(toolbar)
+        self.reading_tools.pack(fill='x')
+        file_row = ttk.Frame(self.reading_tools)
         self.file_row = file_row
         self.file_previous = ttk.Button(file_row, text=tr("File <<"), width=0, command=self.previous_file)
         self.file_previous.pack(side="left")
@@ -484,7 +487,7 @@ class PreviewPage(tk.Frame):
         file_row.bind('<Configure>', self._layout_file_tools)
         self.markdown_frame.bind('<Map>', self._layout_file_tools)
         ToolTip(self.markdown_check, lambda: tr('Rendered')+' / '+tr('Source'))
-        find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
+        find_row = ttk.Frame(self.reading_tools)
         self.find_row = find_row
         ttk.Label(find_row, text=tr("Find:")).pack(side="left", padx=(0, 3))
         self.search = ttk.Entry(find_row, textvariable=self.search_var, width=12)
@@ -501,6 +504,8 @@ class PreviewPage(tk.Frame):
         self.case_check.pack(side="left", padx=(8, 0))
         ToolTip(self.case_check, lambda: tr('Case sensitive'))
         self.search.pack(side="left", fill="x", expand=True)
+        self.reading_tools.add(file_row, minimum=self._file_tools_width)
+        self.reading_tools.add(find_row, expand=True, minimum=self._find_tools_width)
         find_row.bind('<Configure>', self._layout_find)
         ToolTip(self.find_prev_button, lambda: tr('Find Prev')+' (Shift+Enter)')
         ToolTip(self.find_next_button, lambda: tr('Find Next')+' (Enter)')
@@ -701,13 +706,24 @@ class PreviewPage(tk.Frame):
 
 
     def _layout_file_tools(self, _event=None):
-        font = tkfont.nametofont('TkDefaultFont')
-        needed = sum(font.measure(tr(s)) for s in ('File <<', 'File >>', 'View:'))+80
-        needed += self.mode_combo.winfo_reqwidth()+self.wrap_check.winfo_reqwidth()
-        if self.markdown_frame.winfo_ismapped(): needed += self.markdown_check.winfo_reqwidth()+8
-        compact = self.file_row.winfo_width() < needed
+        compact = self.file_row.winfo_width() < self._file_tools_width()
         self.file_previous.configure(text='‹' if compact else tr('File <<'))
         self.file_next.configure(text='›' if compact else tr('File >>'))
+        self.reading_tools.schedule()
+
+    def _file_tools_width(self):
+        font = tkfont.nametofont('TkDefaultFont')
+        width = sum(font.measure(tr(s)) for s in ('File <<', 'File >>', 'View:'))+80
+        width += self.mode_combo.winfo_reqwidth()+self.wrap_check.winfo_reqwidth()
+        if self.markdown_frame.winfo_manager(): width += self.markdown_check.winfo_reqwidth()+8
+        return width
+
+    def _find_tools_width(self):
+        font = tkfont.nametofont('TkDefaultFont')
+        labels = ('Find:', 'Find Prev', 'Find Next', 'Case sensitive')
+        width = sum(font.measure(tr(s)) for s in labels)+font.measure('M'*12)+110
+        if self.find_all_matched_button.winfo_manager(): width += font.measure(tr('Find All Matched'))+10
+        return width
 
     def _layout_find(self, _event=None):
         font = tkfont.nametofont('TkDefaultFont')
@@ -718,6 +734,7 @@ class PreviewPage(tk.Frame):
         self.find_next_button.configure(text='↓' if compact else tr('Find Next'))
         self.case_check.configure(text='Aa' if compact else tr('Case sensitive'))
         self.find_all_matched_button.configure(text=tr('Find All') if compact else tr('Find All Matched'))
+        self.reading_tools.schedule()
 
     def _layout_markdown_tools(self):
         fixed=(self.md_back,self.md_fold,self.md_more,self.md_task_label,self.md_cancel)

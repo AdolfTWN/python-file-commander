@@ -11,6 +11,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.': ('改善：預覽、文字比較及批次改名依實際寬度群組控制項，寬視窗減少換行且不縮小字體。','改善：预览、文本比较及批量重命名按实际宽度分组控件，宽窗口减少换行且不缩小字体。','개선: 미리보기, 텍스트 비교 및 일괄 이름 변경은 실제 너비로 컨트롤을 묶어 글꼴 축소 없이 넓은 창의 줄 수를 줄입니다.'),
+    'Improved: Search keeps progress and elapsed details near the query and fits result actions to their labels.': ('改善：搜尋進度與耗時資訊保持在查詢區附近，結果按鈕依各自標籤寬度排列。','改善：搜索进度与耗时信息保持在查询区附近，结果按钮按各自标签宽度排列。','개선: 검색 진행과 경과 시간은 검색 조건 가까이에 표시되며 결과 버튼은 각 레이블 너비에 맞춥니다.'),
+    'Improved: Settings use inline selectors and optional examples for General and Paths & Operations.': ('改善：設定選取欄位採同列排列，一般及路徑與操作的示意預覽改為按需展開。','改善：设置选择字段采用同行排列，常规及路径与操作的示意预览改为按需展开。','개선: 설정 선택기를 같은 줄에 배치하고 일반 및 경로/작업 예시는 필요할 때 펼칠 수 있습니다.'),
+    'Show preview': ('顯示示意預覽','显示示意预览','예시 미리보기 표시'),
+    'Hide preview': ('收起示意預覽','收起示意预览','예시 미리보기 숨기기'),
     'Improved: CSV/TSV preview supports complete multiline cells with Wrap, stable manual widths and retained selection when changing header mode.': ('改善：CSV／TSV 預覽支援完整多行儲存格及換行，手動欄寬保持穩定，切換表頭模式時保留選取資料。','改善：CSV/TSV 预览支持完整多行单元格及换行，手动列宽保持稳定，切换表头模式时保留选中数据。','개선: CSV/TSV 미리보기는 전체 셀 줄바꿈, 안정적인 열 너비와 헤더 모드 변경 시 선택 유지를 지원합니다.'),
     'Fixed: Visual preview redraws no longer undo manual panning after search; oversized value dialogs stay responsive and preserve full-value Copy.': ('修正：視覺預覽搜尋後重繪不再取消手動捲動；超長值視窗保持回應，複製仍保留完整內容。','修正：视觉预览搜索后重绘不再取消手动滚动；超长值窗口保持响应，复制仍保留完整内容。','수정: 시각 미리보기 검색 후 다시 그릴 때 수동 이동을 유지하며 큰 값 창은 응답성과 전체 값 복사를 유지합니다.'),
     'Improved: Shared render reliability checks cover all six structured extensions, table reflow cancellation, source fallback and scaled controls.': ('改善：共用 Render 可靠度測試涵蓋六種階層副檔名、表格排版取消、原文備援及控制項縮放。','改善：共用 Render 可靠性测试覆盖六种层级扩展名、表格排版取消、原文回退及控件缩放。','개선: 공유 렌더 신뢰성 검사는 여섯 구조화 확장자, 표 재배치 취소, 원문 대체 및 컨트롤 배율을 포함합니다.'),

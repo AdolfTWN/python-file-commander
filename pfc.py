@@ -21,6 +21,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.': ('改善：預覽、文字比較及批次改名依實際寬度群組控制項，寬視窗減少換行且不縮小字體。','改善：预览、文本比较及批量重命名按实际宽度分组控件，宽窗口减少换行且不缩小字体。','개선: 미리보기, 텍스트 비교 및 일괄 이름 변경은 실제 너비로 컨트롤을 묶어 글꼴 축소 없이 넓은 창의 줄 수를 줄입니다.'),
+    'Improved: Search keeps progress and elapsed details near the query and fits result actions to their labels.': ('改善：搜尋進度與耗時資訊保持在查詢區附近，結果按鈕依各自標籤寬度排列。','改善：搜索进度与耗时信息保持在查询区附近，结果按钮按各自标签宽度排列。','개선: 검색 진행과 경과 시간은 검색 조건 가까이에 표시되며 결과 버튼은 각 레이블 너비에 맞춥니다.'),
+    'Improved: Settings use inline selectors and optional examples for General and Paths & Operations.': ('改善：設定選取欄位採同列排列，一般及路徑與操作的示意預覽改為按需展開。','改善：设置选择字段采用同行排列，常规及路径与操作的示意预览改为按需展开。','개선: 설정 선택기를 같은 줄에 배치하고 일반 및 경로/작업 예시는 필요할 때 펼칠 수 있습니다.'),
+    'Show preview': ('顯示示意預覽','显示示意预览','예시 미리보기 표시'),
+    'Hide preview': ('收起示意預覽','收起示意预览','예시 미리보기 숨기기'),
     'Improved: CSV/TSV preview supports complete multiline cells with Wrap, stable manual widths and retained selection when changing header mode.': ('改善：CSV／TSV 預覽支援完整多行儲存格及換行，手動欄寬保持穩定，切換表頭模式時保留選取資料。','改善：CSV/TSV 预览支持完整多行单元格及换行，手动列宽保持稳定，切换表头模式时保留选中数据。','개선: CSV/TSV 미리보기는 전체 셀 줄바꿈, 안정적인 열 너비와 헤더 모드 변경 시 선택 유지를 지원합니다.'),
     'Fixed: Visual preview redraws no longer undo manual panning after search; oversized value dialogs stay responsive and preserve full-value Copy.': ('修正：視覺預覽搜尋後重繪不再取消手動捲動；超長值視窗保持回應，複製仍保留完整內容。','修正：视觉预览搜索后重绘不再取消手动滚动；超长值窗口保持响应，复制仍保留完整内容。','수정: 시각 미리보기 검색 후 다시 그릴 때 수동 이동을 유지하며 큰 값 창은 응답성과 전체 값 복사를 유지합니다.'),
     'Improved: Shared render reliability checks cover all six structured extensions, table reflow cancellation, source fallback and scaled controls.': ('改善：共用 Render 可靠度測試涵蓋六種階層副檔名、表格排版取消、原文備援及控制項縮放。','改善：共用 Render 可靠性测试覆盖六种层级扩展名、表格排版取消、原文回退及控件缩放。','개선: 공유 렌더 신뢰성 검사는 여섯 구조화 확장자, 표 재배치 취소, 원문 대체 및 컨트롤 배율을 포함합니다.'),
@@ -8453,6 +8458,7 @@ class SettingsDialog(tk.Toplevel):
         self._shot_sources = {}
         self._shot_job = None
         self._page_top_job = None
+        self._preview_expanded = set()
         self._build()
         self._work_area = area = popup_work_area(app)
         sw, sh = area[2]-area[0], area[3]-area[1]
@@ -8517,8 +8523,10 @@ class SettingsDialog(tk.Toplevel):
         body.bind('<Configure>', self._layout_navigation)
         for _key, label in SETTINGS_CATEGORIES: self.nav.insert('end', tr(label))
         self.nav.bind('<<ListboxSelect>>', self._select)
-        right = ttk.Frame(body); right.pack(fill='both', expand=True)
-        self.title_label = ttk.Label(right, style='PrefsTitle.TLabel'); self.title_label.pack(anchor='w', pady=(0,6))
+        right = self.content_area = ttk.Frame(body); right.pack(fill='both', expand=True)
+        title_bar=ttk.Frame(right);title_bar.pack(fill='x',pady=(0,6))
+        self.title_label = ttk.Label(title_bar, style='PrefsTitle.TLabel'); self.title_label.pack(side='left')
+        self.preview_toggle=ttk.Button(title_bar,style='Prefs.TButton',width=0,command=self.toggle_preview)
         # At large reading scales let preview + controls scroll together. A fixed
         # preview must never consume the whole viewport and hide every setting.
         self._whole_page_scroll = True
@@ -8554,10 +8562,10 @@ class SettingsDialog(tk.Toplevel):
             self._compact_navigation = compact
             if compact:
                 self.nav.pack_forget()
-                self.compact_nav.pack(side='top', fill='x', pady=(0,8), before=self.title_label.master)
+                self.compact_nav.pack(side='top', fill='x', pady=(0,8), before=self.content_area)
             else:
                 self.compact_nav.pack_forget()
-                self.nav.pack(side='left', fill='y', padx=(0,14), before=self.title_label.master)
+                self.nav.pack(side='left', fill='y', padx=(0,14), before=self.content_area)
         if not compact:
             self.nav.configure(width=max(8,min(24,round((longest+18)/max(1,self.font.measure('0'))))))
 
@@ -8626,6 +8634,31 @@ class SettingsDialog(tk.Toplevel):
         selection=self.nav.curselection()
         if selection:self.show_page(SETTINGS_CATEGORIES[selection[0]][0])
 
+    def toggle_preview(self):
+        if self.category not in ('general','navigation'):return
+        if self.category in self._preview_expanded:self._preview_expanded.remove(self.category)
+        else:self._preview_expanded.add(self.category)
+        self._sync_comparison_visibility()
+        self._changed()
+        if self._page_top_job is not None:self.after_cancel(self._page_top_job)
+        self._page_top_job=self.after_idle(self._show_page_top)
+
+    def _sync_comparison_visibility(self):
+        optional=self.category in ('general','navigation')
+        expanded=not optional or self.category in self._preview_expanded
+        if optional:
+            self.preview_toggle.configure(text=tr('Hide preview' if expanded else 'Show preview'))
+            self.preview_toggle.pack(side='right')
+        else:self.preview_toggle.pack_forget()
+        if not expanded:
+            self.comparison.pack_forget()
+            return
+        if optional and self.page_preview is None:
+            self.page_preview=SettingsSamplePreview(self.comparison,self.category,self.font)
+            self.page_preview.pack(fill='x')
+        self.comparison.pack(before=self.intro if self._whole_page_scroll else self.canvas.master,
+                             fill='x',pady=(0,8))
+
     def _label(self, parent, text, heading=False):
         label=ttk.Label(parent,text=tr(text),style='PrefsTitle.TLabel' if heading else 'Prefs.TLabel',wraplength=480)
         label.pack(anchor='w',fill='x',pady=(8 if heading else 2,6))
@@ -8654,27 +8687,29 @@ class SettingsDialog(tk.Toplevel):
             'general':'Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.',
         }
         self.intro.configure(text=tr(notes[category]))
-        self.comparison.pack(before=self.intro if self._whole_page_scroll else self.canvas.master,fill='x',pady=(0,8))
         if category in ('appearance','layout'):
             self._previews()
-        else:
+        elif category not in ('general','navigation'):
             self.page_preview=SettingsSamplePreview(self.comparison,category,self.font)
             self.page_preview.pack(fill='x')
+        self._sync_comparison_visibility()
         group=None
         for key,cat,title,label,choices,_method in self.specs:
             if cat!=category:continue
-            compact=category in ('appearance','layout')
-            if title!=group and not compact:
+            compact=choices is not None
+            if title!=group and category not in ('appearance','layout'):
                 if group is not None:ttk.Separator(self.page).pack(fill='x',pady=8)
-                self._label(self.page,title,True); group=title
+                if not compact or label!=title:self._label(self.page,title,True)
+                group=title
             if choices is None:
                 container=self.page
-                if key=='auto_font_size':
+                if key in ('auto_font_size','onedrive_overlay'):
                     container=ttk.Frame(self.page);container.pack(fill='x',pady=5)
+                if key=='auto_font_size':
                     ttk.Button(container,text=tr('Details…'),style='Prefs.TButton',command=lambda:messagebox.showinfo(
                         tr('Auto Font Size'),tr('Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.'),parent=self)).pack(side='right',padx=(6,0))
                 control=ttk.Checkbutton(container,text=tr(label),variable=self.vars[key],style='Prefs.TCheckbutton')
-                control.pack(side='left' if key=='auto_font_size' else 'top',anchor='w',pady=0 if key=='auto_font_size' else 5)
+                control.pack(side='left' if container is not self.page else 'top',anchor='w',pady=0 if container is not self.page else 5)
             else:
                 container=self.page
                 if compact:
@@ -8703,7 +8738,10 @@ class SettingsDialog(tk.Toplevel):
                 'ui_language':'Changes the interface after Apply, not your file names.',
                 'auto_start':'Auto Start writes a Windows sign-in entry only when applied. Follow your organization’s software policy. Updates remain a manual action in Help.',
             }
-            if key in hints:self._label(self.page,hints[key])
+            if key=='onedrive_overlay':
+                ttk.Button(container,text=tr('Details…'),style='Prefs.TButton',width=0,
+                    command=lambda text=hints[key]:messagebox.showinfo(tr('OneDrive Sync Overlay'),tr(text),parent=self)).pack(side='right',padx=(6,0))
+            elif key in hints:self._label(self.page,hints[key])
             if key=='recycle_bin':self.danger_note=self._label(self.page,'')
             if key=='time_style':self.date_example=self._label(self.page,'')
         if category=='navigation':self._prefix_rows()
@@ -9344,6 +9382,82 @@ class ActionBarLayout:
             button.configure(style='Action.TButton')
             button.place(x=x, y=0, width=max(1, width - 2), height=height)
             x += width
+
+
+# Source: pycommander/flowlayout.py
+"""Measured, task-grouped toolbars without shrinking fonts or equal-width waste."""
+from tkinter import ttk
+
+
+def toolbar_rows(width, sizes, gap=6):
+    """Greedily retain adjacent semantic groups; exact fits stay on one row."""
+    rows, row, used = [], [], 0
+    for index, size in enumerate(sizes):
+        size = max(1, int(size))
+        if row and used + gap + size > max(1, width):
+            rows.append(row); row, used = [], 0
+        used += (gap if row else 0) + size
+        row.append(index)
+    if row: rows.append(row)
+    return rows
+
+
+class FlowToolbar(ttk.Frame):
+    """Place whole groups by measured minimum widths; expand only useful inputs.
+
+    Children keep their pack/grid layout internally. Requested geometry is never
+    derived from the width just assigned by us (avoids resize feedback loops).
+    No polling, file I/O, font reduction, or widget recreation during reflow.
+    """
+    def __init__(self, master, *, gap=6, row_gap=3, **kwargs):
+        super().__init__(master, **kwargs)
+        self.gap, self.row_gap = gap, row_gap
+        self.groups = []
+        self.rows = []
+        self._flow_job = None
+        self._flow_signature = None
+        self.bind('<Configure>', self.schedule, add='+')
+        self.bind('<Map>', self.schedule, add='+')
+        self.bind('<<ThemeChanged>>', self.schedule, add='+')
+        self.bind('<Destroy>', self._flow_destroy, add='+')
+
+    def add(self, widget, *, expand=False, minimum=None):
+        self.groups.append((widget, expand, minimum))
+        widget.bind('<Configure>', self.schedule, add='+')
+        self.schedule()
+
+    def schedule(self, _event=None):
+        if self._flow_job is None:
+            self._flow_job = self.after_idle(self.layout)
+
+    def _flow_destroy(self, event):
+        if event.widget is self and self._flow_job is not None:
+            self.after_cancel(self._flow_job)
+            self._flow_job = None
+
+    def layout(self):
+        self._flow_job = None
+        width = max(1, self.winfo_width())
+        sizes = [max(1, int(minimum() if callable(minimum) else minimum or w.winfo_reqwidth()))
+                 for w, _, minimum in self.groups]
+        heights = [w.winfo_reqheight() for w, _, _ in self.groups]
+        signature = (width, tuple(sizes), tuple(heights))
+        if signature == self._flow_signature: return
+        self._flow_signature = signature
+        self.rows = toolbar_rows(width, sizes, self.gap)
+        y = 0
+        for row in self.rows:
+            height = max(heights[i] for i in row)
+            spare = max(0, width-sum(sizes[i] for i in row)-self.gap*(len(row)-1))
+            growing = [i for i in row if self.groups[i][1]]
+            x = 0
+            for i in row:
+                extra = (spare//len(growing)+(i == growing[-1])*(spare % len(growing))) if i in growing else 0
+                allocated = min(width, sizes[i]+extra)
+                self.groups[i][0].place(x=x, y=y, width=allocated, height=height)
+                x += allocated+self.gap
+            y += height+self.row_gap
+        self.configure(height=max(1, y-self.row_gap))
 
 
 # Source: pycommander/vcsui.py
@@ -11569,6 +11683,7 @@ from tkinter import font as tkfont, messagebox, ttk, filedialog, simpledialog
 
 
 
+
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
                  ".ini", ".cfg", ".log", ".yaml", ".yml", ".sql", ".bat", ".ps1", ".c", ".h",
                  ".cpp", ".hpp", ".java", ".csv", ".tsv"}
@@ -11828,8 +11943,9 @@ class SideBySideText(ttk.Frame):
         self.save_left, self.save_right = save_left, save_right
         self.visible_rows = []
         self.left_title, self.right_title = str(left_title), str(right_title)
-        toolbar = ttk.Frame(self); toolbar.pack(fill="x")
-        diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
+        toolbar = self.navigation_tools = FlowToolbar(self)
+        toolbar.pack(fill='x')
+        diff_row = ttk.Frame(toolbar)
         self.diff_row = diff_row
         self.status_factory = status_factory or (lambda: status_text)
         self.previous_button = ttk.Button(diff_row, text='F7 ◀', width=0, command=self.previous)
@@ -11858,7 +11974,7 @@ class SideBySideText(ttk.Frame):
             self.save_left_button.pack(side="right")
         self._build_marker_menu(); self._update_marker_button()
         self.diff_status.pack(side="left", fill='x', expand=True, padx=6)
-        find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
+        find_row = ttk.Frame(toolbar)
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
         self.search = ttk.Entry(find_row, textvariable=self.search_var, width=10)
         self.search.bind("<Return>", lambda _event: self.find_next())
@@ -11875,6 +11991,9 @@ class SideBySideText(ttk.Frame):
         ToolTip(self.find_status, lambda: self.find_status.cget('text'))
         self.search.pack(side="left", fill="x", expand=True, padx=(3, 4))
         self._update_case_button()
+        toolbar.add(diff_row, expand=True, minimum=lambda:
+            diff_row.winfo_reqwidth()+tkfont.nametofont('TkDefaultFont').measure('M'*12))
+        toolbar.add(find_row, expand=True)
         body = ttk.Frame(self); self.body = body
         body.pack(fill="both", expand=True, pady=(3, 0))
         body.rowconfigure(1, weight=1)
@@ -12065,6 +12184,7 @@ class SideBySideText(ttk.Frame):
 
     def apply_scale(self, scale: float) -> None:
         self.difference_map.apply_scale(scale)
+        self.navigation_tools.schedule()
         padding = max(3, round(3 * scale))
         self.left_path_label.configure(padx=padding * 2, pady=padding)
         self.right_path_label.configure(padx=padding * 2, pady=padding)
@@ -36797,6 +36917,7 @@ from urllib.parse import quote
 
 
 
+
 TEXT_EXTENSIONS = {
     ".txt", ".md", ".csv", ".tsv", ".log", ".py", ".ini", ".json", ".xml",
     ".yaml", ".yml", ".html", ".htm", ".css", ".js", ".ps1", ".bat", ".cmd",
@@ -37226,7 +37347,9 @@ class PreviewPage(tk.Frame):
         preview_diagnostic(self, 'preview.page.state.ready')
 
         toolbar = ttk.Frame(self, padding=(6, 5)); toolbar.pack(fill="x")
-        file_row = ttk.Frame(toolbar); file_row.pack(fill="x")
+        self.reading_tools = FlowToolbar(toolbar)
+        self.reading_tools.pack(fill='x')
+        file_row = ttk.Frame(self.reading_tools)
         self.file_row = file_row
         self.file_previous = ttk.Button(file_row, text=tr("File <<"), width=0, command=self.previous_file)
         self.file_previous.pack(side="left")
@@ -37252,7 +37375,7 @@ class PreviewPage(tk.Frame):
         file_row.bind('<Configure>', self._layout_file_tools)
         self.markdown_frame.bind('<Map>', self._layout_file_tools)
         ToolTip(self.markdown_check, lambda: tr('Rendered')+' / '+tr('Source'))
-        find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(4, 0))
+        find_row = ttk.Frame(self.reading_tools)
         self.find_row = find_row
         ttk.Label(find_row, text=tr("Find:")).pack(side="left", padx=(0, 3))
         self.search = ttk.Entry(find_row, textvariable=self.search_var, width=12)
@@ -37269,6 +37392,8 @@ class PreviewPage(tk.Frame):
         self.case_check.pack(side="left", padx=(8, 0))
         ToolTip(self.case_check, lambda: tr('Case sensitive'))
         self.search.pack(side="left", fill="x", expand=True)
+        self.reading_tools.add(file_row, minimum=self._file_tools_width)
+        self.reading_tools.add(find_row, expand=True, minimum=self._find_tools_width)
         find_row.bind('<Configure>', self._layout_find)
         ToolTip(self.find_prev_button, lambda: tr('Find Prev')+' (Shift+Enter)')
         ToolTip(self.find_next_button, lambda: tr('Find Next')+' (Enter)')
@@ -37469,13 +37594,24 @@ class PreviewPage(tk.Frame):
 
 
     def _layout_file_tools(self, _event=None):
-        font = tkfont.nametofont('TkDefaultFont')
-        needed = sum(font.measure(tr(s)) for s in ('File <<', 'File >>', 'View:'))+80
-        needed += self.mode_combo.winfo_reqwidth()+self.wrap_check.winfo_reqwidth()
-        if self.markdown_frame.winfo_ismapped(): needed += self.markdown_check.winfo_reqwidth()+8
-        compact = self.file_row.winfo_width() < needed
+        compact = self.file_row.winfo_width() < self._file_tools_width()
         self.file_previous.configure(text='‹' if compact else tr('File <<'))
         self.file_next.configure(text='›' if compact else tr('File >>'))
+        self.reading_tools.schedule()
+
+    def _file_tools_width(self):
+        font = tkfont.nametofont('TkDefaultFont')
+        width = sum(font.measure(tr(s)) for s in ('File <<', 'File >>', 'View:'))+80
+        width += self.mode_combo.winfo_reqwidth()+self.wrap_check.winfo_reqwidth()
+        if self.markdown_frame.winfo_manager(): width += self.markdown_check.winfo_reqwidth()+8
+        return width
+
+    def _find_tools_width(self):
+        font = tkfont.nametofont('TkDefaultFont')
+        labels = ('Find:', 'Find Prev', 'Find Next', 'Case sensitive')
+        width = sum(font.measure(tr(s)) for s in labels)+font.measure('M'*12)+110
+        if self.find_all_matched_button.winfo_manager(): width += font.measure(tr('Find All Matched'))+10
+        return width
 
     def _layout_find(self, _event=None):
         font = tkfont.nametofont('TkDefaultFont')
@@ -37486,6 +37622,7 @@ class PreviewPage(tk.Frame):
         self.find_next_button.configure(text='↓' if compact else tr('Find Next'))
         self.case_check.configure(text='Aa' if compact else tr('Case sensitive'))
         self.find_all_matched_button.configure(text=tr('Find All') if compact else tr('Find All Matched'))
+        self.reading_tools.schedule()
 
     def _layout_markdown_tools(self):
         fixed=(self.md_back,self.md_fold,self.md_more,self.md_task_label,self.md_cancel)
@@ -38431,6 +38568,7 @@ from tkinter import messagebox, simpledialog, ttk
 
 
 
+
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
 CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
@@ -38613,10 +38751,9 @@ class SearchWindow(tk.Toplevel):
         self.progress = ttk.Progressbar(activity, mode='determinate', value=0, length=120)
         self.progress.grid(row=0,column=1,sticky='ew')
         self.progress_eta = ttk.Label(activity, anchor='w')
-        self.progress_eta.grid(row=1,column=0,columnspan=2,sticky='ew')
-        activity.bind('<Configure>',lambda e:(self.status.configure(wraplength=max(160,e.width-150)),
-                                               self.progress_eta.configure(wraplength=max(160,e.width-20))))
-        actions = self.result_actions = ttk.Frame(self,padding=(7,2))
+        activity.bind('<Configure>',lambda e:self._layout_activity())
+        action_container = ttk.Frame(self,padding=(7,2)); action_container.pack(fill='x')
+        actions = self.result_actions = FlowToolbar(action_container, gap=4, row_gap=2)
         actions.pack(fill='x')
         self.result_buttons=[]
         for label,command in (('Go to File',self.go_selected),('List → New Tab',self.send_listing),
@@ -38624,6 +38761,8 @@ class SearchWindow(tk.Toplevel):
                 ('F9 Compare',self.compare_selected),('F11 Copy Path',self.copy_paths)):
             button=ttk.Button(actions,text=tr(label),width=0,command=command,state='disabled')
             self.result_buttons.append(button)
+            actions.add(button,minimum=lambda b=button:max(b.winfo_reqwidth(),
+                tkfont.nametofont('TkDefaultFont').measure(b.cget('text'))+12))
         ToolTip(self.result_buttons[1],lambda:tr('Send Listing to New Tab'))
         ToolTip(self.result_buttons[0],lambda:tr('Double-click locates and closes search; Enter / Go to File keeps search open. F3 previews; F9 compares.'))
         self.bind('<Configure>',self._layout_controls,add='+')
@@ -38668,12 +38807,24 @@ class SearchWindow(tk.Toplevel):
         narrow=self.size_controls.winfo_reqwidth()+self.days_controls.winfo_reqwidth()+12>available
         self.days_controls.grid_configure(row=1 if narrow else 0,column=0 if narrow else 1,
                                           sticky='w' if narrow else 'e',padx=0 if narrow else (8,0))
-        # Equal-width columns must fit the widest label, not just the sum of
-        # unequal requested widths (Windows fonts exposed clipping otherwise).
-        widest=max(b.winfo_reqwidth()+4 for b in self.result_buttons)
-        columns=next((n for n in (6,3,2,1) if widest*n<=available),1)
-        for col in range(6):self.result_actions.columnconfigure(col,weight=1 if col<columns else 0,uniform='actions' if col<columns else '')
-        for i,button in enumerate(self.result_buttons):button.grid(row=i//columns,column=i%columns,sticky='ew',padx=2,pady=1)
+        self.result_actions.schedule()
+        self._layout_activity()
+
+    def _layout_activity(self):
+        # Never reserve an empty elapsed/ETA line. While running, keep activity
+        # close to the query; move detail below only when the labels need it.
+        width=max(1,self.activity.winfo_width()-14)
+        detail=bool(self.progress_eta.cget('text'))
+        reserve=140 if self.progress.winfo_manager() else 0
+        font=tkfont.nametofont('TkDefaultFont')
+        heading=tkfont.nametofont('TkHeadingFont')
+        same_row=heading.measure(self.status.cget('text'))+font.measure(self.progress_eta.cget('text'))+reserve+24<=width
+        self.status.configure(wraplength=max(160,width-reserve-8))
+        self.progress_eta.configure(wraplength=max(160,width-8))
+        if detail:
+            self.progress_eta.grid(row=0 if same_row else 1,column=2 if same_row else 0,
+                                   columnspan=1 if same_row else 3,sticky='w',padx=(8,0) if same_row else 0)
+        else:self.progress_eta.grid_remove()
 
     def _sync_result_actions(self):
         selected=len(self.tree.selection());busy=self.search_state in ('running','cancelling','resetting')
@@ -39033,6 +39184,7 @@ class SearchWindow(tk.Toplevel):
             detail=tr('Elapsed {minutes:02d}:{seconds:02d} · Folders scanned: {folders} · Unreadable: {skipped}',
                 minutes=elapsed//60,seconds=elapsed%60,folders=self._scanned_folders,skipped=self._skipped)
             if self.progress_eta.cget('text')!=detail:self.progress_eta.configure(text=detail)
+        self._layout_activity()
         hints={'ready':'Enter a name or mask, then choose Find.', 'resetting':'Waiting for the current read to stop…',
                'running':'Searching… results will appear here.',
                'cancelling':'Waiting for the current read to stop…',
@@ -39169,6 +39321,7 @@ from tkinter import messagebox, ttk
 
 
 
+
 INVALID_NAME_CHARS = set('<>:"/\\|?*')
 
 
@@ -39277,26 +39430,31 @@ class MultiRenameWindow(tk.Toplevel):
         self.start_var, self.digits_var = tk.IntVar(value=1), tk.IntVar(value=2)
         self.case_var, self.extension_var = tk.BooleanVar(value=False), tk.BooleanVar(value=True)
         controls = ttk.Frame(self, padding=8); controls.pack(fill="x")
-        ttk.Label(controls, text=tr("Name mask:")).grid(row=0, column=0, sticky="w")
-        self.mask_entry = ttk.Entry(controls, textvariable=self.mask_var)
-        self.mask_entry.grid(row=0, column=1, columnspan=3, sticky="ew", padx=(4, 8))
+        self.naming_tools = FlowToolbar(controls)
+        self.naming_tools.pack(fill='x')
+        self.replace_tools = FlowToolbar(controls)
+        self.replace_tools.pack(fill='x',pady=(3,0))
+        def field(bar, label, variable, *, spin=None):
+            group=ttk.Frame(bar)
+            ttk.Label(group,text=tr(label)).pack(side='left',padx=(0,4))
+            entry=(ttk.Spinbox(group,from_=spin[0],to=spin[1],textvariable=variable,
+                               width=7 if spin[1]==999999 else 3,command=self.update_preview) if spin else
+                   ttk.Entry(group,textvariable=variable,width=10))
+            entry.pack(side='left',fill='x',expand=True)
+            bar.add(group,expand=spin is None)
+            return entry
+        self.mask_entry = field(self.naming_tools,'Name mask:',self.mask_var)
         ToolTip(self.mask_entry, lambda: tr('[N] original   [C] counter   [E] extension'))
-        ttk.Label(controls, text=tr("Find:")).grid(row=1, column=0, sticky="w", pady=(6, 0))
-        ttk.Entry(controls, textvariable=self.find_var, width=8).grid(row=1, column=1, sticky="ew", padx=(4, 8), pady=(6, 0))
-        ttk.Label(controls, text=tr("Replace:")).grid(row=1, column=2, sticky="w", pady=(6, 0))
-        ttk.Entry(controls, textvariable=self.replace_var, width=8).grid(row=1, column=3, sticky="ew", padx=(4, 8), pady=(6, 0))
-        case = ttk.Checkbutton(controls, text='Aa', variable=self.case_var, command=self.update_preview)
-        case.grid(row=1, column=4, sticky="w", pady=(6, 0))
+        extension=ttk.Checkbutton(self.naming_tools,text=tr('Keep extension'),variable=self.extension_var,
+                                  command=self.update_preview)
+        self.naming_tools.add(extension)
+        field(self.naming_tools,'Start:',self.start_var,spin=(0,999999))
+        field(self.naming_tools,'Digits:',self.digits_var,spin=(1,12))
+        self.find_entry=field(self.replace_tools,'Find:',self.find_var)
+        self.replace_entry=field(self.replace_tools,'Replace:',self.replace_var)
+        case = ttk.Checkbutton(self.replace_tools, text='Aa', variable=self.case_var, command=self.update_preview)
+        self.replace_tools.add(case)
         ToolTip(case, lambda: tr('Case sensitive'))
-        ttk.Checkbutton(controls, text=tr("Keep extension"), variable=self.extension_var,
-                        command=self.update_preview).grid(row=0, column=4, sticky="w")
-        ttk.Label(controls, text=tr("Start:")).grid(row=2, column=0, sticky="w", pady=(6, 0))
-        ttk.Spinbox(controls, from_=0, to=999999, textvariable=self.start_var, width=7,
-                    command=self.update_preview).grid(row=2, column=1, sticky="w", padx=(4, 8), pady=(6, 0))
-        ttk.Label(controls, text=tr("Digits:")).grid(row=2, column=2, sticky="w", pady=(6, 0))
-        ttk.Spinbox(controls, from_=1, to=12, textvariable=self.digits_var, width=5,
-                    command=self.update_preview).grid(row=2, column=3, sticky="w", padx=(4, 8), pady=(6, 0))
-        controls.columnconfigure(1, weight=1); controls.columnconfigure(3, weight=1)
         self.tree = ttk.Treeview(self, columns=("old", "new", "status"), show="headings")
         for column, width in (("old", 360), ("new", 360), ("status", 150)):
             self.tree.heading(column, text=tr(column.title())); self.tree.column(column, width=width)
@@ -39353,6 +39511,7 @@ class MultiRenameWindow(tk.Toplevel):
         self.title(tr("PFC Multi-Rename"))
         for column in ("old", "new", "status"):
             self.tree.heading(column, text=tr(column.title()))
+        self.naming_tools.schedule(); self.replace_tools.schedule()
         self.update_preview()
 
     def _plan(self):
@@ -41071,7 +41230,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.43"
+__version__ = "0.18.44"
 
 
 
@@ -41189,8 +41348,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/25"
+BUILD_DATE = "2026/10/28"
 VERSION_HISTORY = (
+    ("v0.18.44", "2026/10/28", (
+        "Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.",
+        "Improved: Search keeps progress and elapsed details near the query and fits result actions to their labels.",
+        "Improved: Settings use inline selectors and optional examples for General and Paths & Operations.",
+    )),
     ("v0.18.43", "2026/10/25", (
         "Improved: CSV/TSV preview supports complete multiline cells with Wrap, stable manual widths and retained selection when changing header mode.",
         "Fixed: Visual preview redraws no longer undo manual panning after search; oversized value dialogs stay responsive and preserve full-value Copy.",

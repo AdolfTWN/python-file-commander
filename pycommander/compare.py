@@ -27,6 +27,7 @@ from .workbookui import WorkbookCompare
 from .archivereviewui import ArchiveReviewCompare
 from .comparecolors import comparison_colors, style_comparison_text
 from .columnsettings import font_snapshot
+from .flowlayout import FlowToolbar
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -288,8 +289,9 @@ class SideBySideText(ttk.Frame):
         self.save_left, self.save_right = save_left, save_right
         self.visible_rows = []
         self.left_title, self.right_title = str(left_title), str(right_title)
-        toolbar = ttk.Frame(self); toolbar.pack(fill="x")
-        diff_row = ttk.Frame(toolbar); diff_row.pack(fill="x")
+        toolbar = self.navigation_tools = FlowToolbar(self)
+        toolbar.pack(fill='x')
+        diff_row = ttk.Frame(toolbar)
         self.diff_row = diff_row
         self.status_factory = status_factory or (lambda: status_text)
         self.previous_button = ttk.Button(diff_row, text='F7 ◀', width=0, command=self.previous)
@@ -318,7 +320,7 @@ class SideBySideText(ttk.Frame):
             self.save_left_button.pack(side="right")
         self._build_marker_menu(); self._update_marker_button()
         self.diff_status.pack(side="left", fill='x', expand=True, padx=6)
-        find_row = ttk.Frame(toolbar); find_row.pack(fill="x", pady=(3, 2))
+        find_row = ttk.Frame(toolbar)
         ttk.Label(find_row, text=tr("Find:")).pack(side="left")
         self.search = ttk.Entry(find_row, textvariable=self.search_var, width=10)
         self.search.bind("<Return>", lambda _event: self.find_next())
@@ -335,6 +337,9 @@ class SideBySideText(ttk.Frame):
         ToolTip(self.find_status, lambda: self.find_status.cget('text'))
         self.search.pack(side="left", fill="x", expand=True, padx=(3, 4))
         self._update_case_button()
+        toolbar.add(diff_row, expand=True, minimum=lambda:
+            diff_row.winfo_reqwidth()+tkfont.nametofont('TkDefaultFont').measure('M'*12))
+        toolbar.add(find_row, expand=True)
         body = ttk.Frame(self); self.body = body
         body.pack(fill="both", expand=True, pady=(3, 0))
         body.rowconfigure(1, weight=1)
@@ -525,6 +530,7 @@ class SideBySideText(ttk.Frame):
 
     def apply_scale(self, scale: float) -> None:
         self.difference_map.apply_scale(scale)
+        self.navigation_tools.schedule()
         padding = max(3, round(3 * scale))
         self.left_path_label.configure(padx=padding * 2, pady=padding)
         self.right_path_label.configure(padx=padding * 2, pady=padding)

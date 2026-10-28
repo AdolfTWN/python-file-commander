@@ -200,6 +200,7 @@ class SettingsDialog(tk.Toplevel):
         self._shot_sources = {}
         self._shot_job = None
         self._page_top_job = None
+        self._preview_expanded = set()
         self._build()
         self._work_area = area = popup_work_area(app)
         sw, sh = area[2]-area[0], area[3]-area[1]
@@ -264,8 +265,10 @@ class SettingsDialog(tk.Toplevel):
         body.bind('<Configure>', self._layout_navigation)
         for _key, label in SETTINGS_CATEGORIES: self.nav.insert('end', tr(label))
         self.nav.bind('<<ListboxSelect>>', self._select)
-        right = ttk.Frame(body); right.pack(fill='both', expand=True)
-        self.title_label = ttk.Label(right, style='PrefsTitle.TLabel'); self.title_label.pack(anchor='w', pady=(0,6))
+        right = self.content_area = ttk.Frame(body); right.pack(fill='both', expand=True)
+        title_bar=ttk.Frame(right);title_bar.pack(fill='x',pady=(0,6))
+        self.title_label = ttk.Label(title_bar, style='PrefsTitle.TLabel'); self.title_label.pack(side='left')
+        self.preview_toggle=ttk.Button(title_bar,style='Prefs.TButton',width=0,command=self.toggle_preview)
         # At large reading scales let preview + controls scroll together. A fixed
         # preview must never consume the whole viewport and hide every setting.
         self._whole_page_scroll = True
@@ -301,10 +304,10 @@ class SettingsDialog(tk.Toplevel):
             self._compact_navigation = compact
             if compact:
                 self.nav.pack_forget()
-                self.compact_nav.pack(side='top', fill='x', pady=(0,8), before=self.title_label.master)
+                self.compact_nav.pack(side='top', fill='x', pady=(0,8), before=self.content_area)
             else:
                 self.compact_nav.pack_forget()
-                self.nav.pack(side='left', fill='y', padx=(0,14), before=self.title_label.master)
+                self.nav.pack(side='left', fill='y', padx=(0,14), before=self.content_area)
         if not compact:
             self.nav.configure(width=max(8,min(24,round((longest+18)/max(1,self.font.measure('0'))))))
 
@@ -373,6 +376,31 @@ class SettingsDialog(tk.Toplevel):
         selection=self.nav.curselection()
         if selection:self.show_page(SETTINGS_CATEGORIES[selection[0]][0])
 
+    def toggle_preview(self):
+        if self.category not in ('general','navigation'):return
+        if self.category in self._preview_expanded:self._preview_expanded.remove(self.category)
+        else:self._preview_expanded.add(self.category)
+        self._sync_comparison_visibility()
+        self._changed()
+        if self._page_top_job is not None:self.after_cancel(self._page_top_job)
+        self._page_top_job=self.after_idle(self._show_page_top)
+
+    def _sync_comparison_visibility(self):
+        optional=self.category in ('general','navigation')
+        expanded=not optional or self.category in self._preview_expanded
+        if optional:
+            self.preview_toggle.configure(text=tr('Hide preview' if expanded else 'Show preview'))
+            self.preview_toggle.pack(side='right')
+        else:self.preview_toggle.pack_forget()
+        if not expanded:
+            self.comparison.pack_forget()
+            return
+        if optional and self.page_preview is None:
+            self.page_preview=SettingsSamplePreview(self.comparison,self.category,self.font)
+            self.page_preview.pack(fill='x')
+        self.comparison.pack(before=self.intro if self._whole_page_scroll else self.canvas.master,
+                             fill='x',pady=(0,8))
+
     def _label(self, parent, text, heading=False):
         label=ttk.Label(parent,text=tr(text),style='PrefsTitle.TLabel' if heading else 'Prefs.TLabel',wraplength=480)
         label.pack(anchor='w',fill='x',pady=(8 if heading else 2,6))
@@ -401,27 +429,29 @@ class SettingsDialog(tk.Toplevel):
             'general':'Choose the interface language and Windows sign-in behavior. Updates remain a manual action in Help.',
         }
         self.intro.configure(text=tr(notes[category]))
-        self.comparison.pack(before=self.intro if self._whole_page_scroll else self.canvas.master,fill='x',pady=(0,8))
         if category in ('appearance','layout'):
             self._previews()
-        else:
+        elif category not in ('general','navigation'):
             self.page_preview=SettingsSamplePreview(self.comparison,category,self.font)
             self.page_preview.pack(fill='x')
+        self._sync_comparison_visibility()
         group=None
         for key,cat,title,label,choices,_method in self.specs:
             if cat!=category:continue
-            compact=category in ('appearance','layout')
-            if title!=group and not compact:
+            compact=choices is not None
+            if title!=group and category not in ('appearance','layout'):
                 if group is not None:ttk.Separator(self.page).pack(fill='x',pady=8)
-                self._label(self.page,title,True); group=title
+                if not compact or label!=title:self._label(self.page,title,True)
+                group=title
             if choices is None:
                 container=self.page
-                if key=='auto_font_size':
+                if key in ('auto_font_size','onedrive_overlay'):
                     container=ttk.Frame(self.page);container.pack(fill='x',pady=5)
+                if key=='auto_font_size':
                     ttk.Button(container,text=tr('Details…'),style='Prefs.TButton',command=lambda:messagebox.showinfo(
                         tr('Auto Font Size'),tr('Fits up to 30 filenames in Panels 1–2 when enabled or after window width, monitor or manual layout changes. Keeps the scale while browsing folders, tabs and scrolling. Range: 100–300%; Panels 3–4 are ignored.'),parent=self)).pack(side='right',padx=(6,0))
                 control=ttk.Checkbutton(container,text=tr(label),variable=self.vars[key],style='Prefs.TCheckbutton')
-                control.pack(side='left' if key=='auto_font_size' else 'top',anchor='w',pady=0 if key=='auto_font_size' else 5)
+                control.pack(side='left' if container is not self.page else 'top',anchor='w',pady=0 if container is not self.page else 5)
             else:
                 container=self.page
                 if compact:
@@ -450,7 +480,10 @@ class SettingsDialog(tk.Toplevel):
                 'ui_language':'Changes the interface after Apply, not your file names.',
                 'auto_start':'Auto Start writes a Windows sign-in entry only when applied. Follow your organization’s software policy. Updates remain a manual action in Help.',
             }
-            if key in hints:self._label(self.page,hints[key])
+            if key=='onedrive_overlay':
+                ttk.Button(container,text=tr('Details…'),style='Prefs.TButton',width=0,
+                    command=lambda text=hints[key]:messagebox.showinfo(tr('OneDrive Sync Overlay'),tr(text),parent=self)).pack(side='right',padx=(6,0))
+            elif key in hints:self._label(self.page,hints[key])
             if key=='recycle_bin':self.danger_note=self._label(self.page,'')
             if key=='time_style':self.date_example=self._label(self.page,'')
         if category=='navigation':self._prefix_rows()

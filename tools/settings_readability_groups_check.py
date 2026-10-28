@@ -32,7 +32,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-reading-groups-') as raw:
                 assert d.canvas.winfo_height()>=65,(scale,category,d.canvas.winfo_height())
                 assert d.footer.winfo_rooty()+d.footer.winfo_height()<=d.winfo_rooty()+d.winfo_height()+1
                 if d._whole_page_scroll:
-                    assert d.comparison.winfo_rooty()<d.page.winfo_rooty()
+                    if category not in ('general','navigation'):
+                        assert d.comparison.winfo_rooty()<d.page.winfo_rooty()
+                    else:assert not d.comparison.winfo_ismapped()
                     d.canvas.yview_moveto(1);settle(app)
                     control=list(d.controls.values())[-1]
                     control.focus_force();settle(app)

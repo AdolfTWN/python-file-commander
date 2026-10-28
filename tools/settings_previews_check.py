@@ -47,7 +47,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-previews-') as raw:
         d.vars['onedrive_overlay'].set(True);d.vars['vcs_overlay'].set(True)
         on=len([i for i in sample.canvas.find_all() if sample.canvas.type(i)=='image'])
         assert on==off+2
-        d.show_page('navigation');settle(app);sample=d.page_preview
+        d.show_page('navigation');settle(app)
+        assert d.page_preview is None and not d.comparison.winfo_ismapped()
+        d.preview_toggle.invoke();settle(app);sample=d.page_preview
         d.vars['recycle_bin'].set(False)
         assert 'Permanent' in text_items(sample,'delete-policy')[0]
         d.vars['continue_errors'].set(False)
@@ -59,7 +61,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-previews-') as raw:
         d.vars['extension_effect'].set(False)
         assert '# Notes' in text_items(sample,'markdown-source')
         assert not sample.canvas.find_withtag('markdown-table')
-        d.show_page('general');settle(app);sample=d.page_preview
+        d.show_page('general');settle(app)
+        assert d.page_preview is None and not d.comparison.winfo_ismapped()
+        d.preview_toggle.invoke();settle(app);sample=d.page_preview
         d.vars['ui_language'].set('zh_TW')
         assert '檔案' in text_items(sample,'language-menu')
         assert pfc.tr('Files')=='Files', 'Draft language must not change running UI'
@@ -80,6 +84,13 @@ with tempfile.TemporaryDirectory(prefix='pfc-settings-previews-') as raw:
                     d.geometry(geometry);settle(app)
                     for category,_ in pfc.SETTINGS_CATEGORIES:
                         d.show_page(category);settle(app)
+                        if category in ('general','navigation'):
+                            if category in d._preview_expanded:d.preview_toggle.invoke();settle(app)
+                            assert not d.comparison.winfo_ismapped()
+                            assert d.preview_toggle.winfo_ismapped()
+                            saved_vars={k:v.get() for k,v in d.vars.items()}
+                            d.preview_toggle.invoke();settle(app)
+                            assert saved_vars=={k:v.get() for k,v in d.vars.items()}
                         assert d.comparison.winfo_ismapped(), category
                         bottom=d.comparison.winfo_rooty()+d.comparison.winfo_height()
                         assert bottom<=(d.page if d._whole_page_scroll else d.canvas).winfo_rooty(),(category,geometry)

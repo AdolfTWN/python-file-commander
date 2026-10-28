@@ -131,7 +131,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-control-scale-') as raw:
             compare.apply_scale(app._font_scales[level]); settle(app)
             expected = tkfont.nametofont('TkDefaultFont').metrics('linespace')
             widgets = {'Compare': frame.view.search, 'Workflow': picker.entry,
-                       'Rename check': next(w for w in rename.winfo_children()[0].winfo_children()
+                       'Rename check': next(w for w,_,_ in rename.naming_tools.groups
                                             if isinstance(w, ttk.Checkbutton)),
                        'Default check': check, 'Default radio': radio, 'Spinbox': spin}
             result = {'scale': round(app._font_scales[level]*100), 'expected': expected,

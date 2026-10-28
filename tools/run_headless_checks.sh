@@ -26,6 +26,8 @@ xvfb-run -a python3 tools/review_compare_check.py
 xvfb-run -a python3 tools/review_compare_check.py pfc
 xvfb-run -a python3 tools/compact_chrome_check.py
 xvfb-run -a python3 tools/compact_chrome_check.py pfc
+xvfb-run -a python3 tools/compact_tasks_check.py
+xvfb-run -a python3 tools/compact_tasks_check.py pfc
 xvfb-run -a python3 tools/settings_readability_groups_check.py
 xvfb-run -a python3 tools/settings_readability_groups_check.py pfc
 xvfb-run -a python3 tools/interaction_layout_check.py

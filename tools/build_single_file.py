@@ -14,7 +14,7 @@ MODULES = (
     "cloudstatus", "marquee", "detailcells", "singlepanel", "windowplacement",
     "settingsshots", "workflowdata", "debuglog", "dialogs", "workflows",
     "workspaces", "syncprogress", "settingspreview", "settings", "vcsactions",
-    "actionbar", "vcsui", "comparecolors", "reviewcore", "reviewstorage",
+    "actionbar", "flowlayout", "vcsui", "comparecolors", "reviewcore", "reviewstorage",
     "workbook", "reviewjobs", "reviewui", "workbookui", "archivereview",
     "archivereviewui", "textio", "compare", "mdworkspace", "mdworkspaceui",
     "mdlinks", "mdjobs", "markdownblocks", "previewassets", "rendercore", "renderbrowser", "wraptree", "renderui", "preview", "search", "multirename",
