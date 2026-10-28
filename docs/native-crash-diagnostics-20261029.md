@@ -30,6 +30,9 @@ made that the original crash has been fixed.
   `process.native_crash` → photograph the summary. It shows version, system time,
   type/code, captured Python stack context and runtime together. Details retain
   structured fields; exporting a file is not required.
+- The event list reserves two full rows using the current scaled row/header
+  dimensions and scrolls the selected incident into view. Its old fixed-height
+  strip could clip the selected row at 200% even when the summary fit.
 - The Python stack is context, **not proof of the native crash location**. A
   failure in a native-only thread can lack a Python frame. A native DLL/address
   or memory dump is not fabricated from the Python stack.
@@ -45,8 +48,8 @@ made that the original crash has been fixed.
 
 ## Limits
 
-This is best-effort capture of Python-supported native fatal events after
-diagnostic initialization. Power loss, force-kill, pre-initialization failures,
+This is best-effort capture of Python-supported native fatal events while
+diagnostics are active. Power loss, force-kill, pre-initialization/after-close failures,
 unwritable storage, severe stack/memory corruption, or another component replacing
 the fatal handler can prevent a usable record. No guarantee of every crash or
 recovery from corruption is made. Ordinary handled operation errors still need

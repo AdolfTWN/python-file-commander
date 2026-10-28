@@ -5339,6 +5339,17 @@ class Commander(tk.Tk):
         horizontal = ttk.Scrollbar(listing,orient='horizontal',command=table.xview)
         horizontal.grid(row=1,column=0,sticky='ew')
         table.configure(yscrollcommand=scroll.set,xscrollcommand=horizontal.set)
+        listing_height=None
+        def size_listing(event=None):
+            nonlocal listing_height
+            # Two complete rows at the current font/row scale, not a fixed
+            # 130-pixel strip which clips the selected incident at 200%.
+            wanted=table.winfo_reqheight()+horizontal.winfo_reqheight()
+            if listing_height != wanted:
+                listing_height=wanted
+                listing.configure(height=wanted)
+        table.bind('<Configure>',size_listing,add='+')
+        size_listing()
         detail = ttk.Frame(body); detail.pack(fill='both',expand=True)
         text = tk.Text(detail,wrap='word',font='TkTextFont',height=13,state='disabled')
         text.pack(side='left',fill='both',expand=True)
@@ -5349,6 +5360,7 @@ class Commander(tk.Tk):
         def show_details(event=None):
             selection=table.selection()
             if selection:
+                table.see(selection[0])
                 row=rows[int(selection[0])]
                 content=json.dumps(row,ensure_ascii=False,indent=2) if raw_view else diagnostic_summary(row)
             else:

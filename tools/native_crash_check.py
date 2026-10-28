@@ -127,6 +127,8 @@ with tempfile.TemporaryDirectory() as raw:
         width = min(1500, app.winfo_screenwidth()-40)
         height = min(1000, app.winfo_screenheight()-80)
         win.geometry(f'{width}x{height}+20+20'); app.update()
+        box = table.bbox(iid)
+        assert box and box[1]+box[3] <= table.winfo_height(), 'Selected crash row clipped at 200%'
         assert text.dlineinfo(text.index('end-1c')) is not None, '200% photo card requires scrolling'
         if os.name == 'nt':
             capture_window(win, Path(__file__).parent/'evidence-native-crash-200.bmp')
