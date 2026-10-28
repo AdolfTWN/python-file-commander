@@ -58,7 +58,7 @@ external crash service, runtime dependency or guest networking is introduced.
 
 ## Acceptance evidence
 
-Pending final validation. The test intentionally crashes **only a disposable
+The test intentionally crashes **only a disposable
 child process**: POSIX abort with core dumps disabled, or a Windows native thread
 with an invalid entry point. The latter must exit with actual `0xC0000005`, not a
 Python exception translated by ctypes. The parent stays alive, restarts the log,
@@ -66,3 +66,57 @@ checks the old version/time/runtime, views the existing summary and tests Clear.
 Normal GUI regressions then run separately. VM/network/desktop ownership remain
 under the leased dual-runtime adapter; ARM Windows x64 application emulation is
 not native x64 Windows acceptance.
+
+Final code commit: `95d6195`; portable v0.18.45, build date 2026/10/29, SHA-256
+`d28663ed39f57cac65da3c5af0fa87dea8c972409472e73e990a655e17ddcc6a`.
+The portable reproduces byte-for-byte from source. The selected Windows scripts
+and artifact match the clean Linux test worktree; unrelated owner edits to four
+maintenance/test files were preserved and excluded from the release.
+
+- **Linux full suite:** 119 groups passed, **553.5587 seconds**, four workers.
+  Includes 483 unit tests, with nine explicit platform-conditional skips, and
+  source/portable GUI checks. No code/test changes occurred during that suite.
+- **Windows ARM64:** Python 3.13.15, PE ARM64, Tk 8.6.15; all five checks passed,
+  request `6baf56ce1f314fec9c7c7ee0056668f0`, 302.5819 seconds whole invocation.
+- **Windows x64 emulated:** Python 3.13.15, PE x64 on ARM64 Windows, Tk 8.6.15;
+  same five checks passed, request `432f0e14eadb4aae8934d0ffc3bc5728`,
+  381.8992 seconds whole invocation.
+- Checks on each runtime: native crash capture, Preview tabs/diagnostics, large
+  Compare, Render reliability, general reliability. Native capture takes 5.430 s
+  (ARM64) / 7.857 s (x64); it verifies a live second process is not consumed, clean
+  exit leaves no false crash, an actual child exit `0xC0000005` is recovered
+  without Debug mode, crash version/time are retained, Clear still works, and
+  the selected event row plus summary fit at 200%.
+- GDI captures at 100%/200% retained privately. Both final 200% captures were
+  visually inspected: the event row is fully visible, and version, zoned system
+  time, native code, Python stack context and runtime fit in the summary without
+  scrolling. Large fixture geometry is not certification of every window size.
+- Both invocations report cleanup `[]`; the final lease pool has no active lease
+  or waiting request. No VM networking, hardware, model or THP setting changed.
+
+These deliberately injected crashes prove capture of the same **class** of
+native failure, not reproduction or repair of the earlier intermittent Compare
+failure. Its root cause remains unknown. No unexpected native crash occurred in
+the final acceptance checks. Post-push updater/reference/mirror acceptance is
+required separately by the release gate; its private trace is the release proof.
+
+### Failed experiments retained
+
+The first ARM64 fixture used entry point `0x1` and exited `0xC00000AA`, failing
+the exact access-violation assertion; x64 passed that candidate. The fixture now
+uses an aligned unmapped address in Windows' reserved low 64 KiB and still
+requires exact `0xC0000005` on both runtimes. No assertions/timeouts were removed.
+
+The intermediate `7131a160…` artifact passed ARM64 capture, but the strengthened
+x64 200%-row assertion exposed the clipped incident list. During correction the
+matrix's final hash guard also rejected an artifact change. That invocation is
+**not accepted as a matching matrix**. The adapter resolves the primary repository
+even when invoked from a different working directory; do not infer isolation from
+cwd. The corrected `d28663ed…` artifact was frozen and both profiles rerun to
+completion; source/selected-script equality with the clean worktree was checked.
+
+The intermediate full Linux suite passed 119 groups in 553.6053 s. After the UI
+correction, the complete suite was rerun, yielding the final result above. These
+are repeated validations, not failed tests or proof of an optimization. There is
+no controlled comparable performance baseline for this diagnostic addition.
+Official token counters are unavailable: token usage and savings are **unknown**.
