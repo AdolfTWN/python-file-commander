@@ -17,6 +17,9 @@ import shutil
 
 if os.name == 'nt':
     import faulthandler
+    # Keep the fatal thread's stack, not only a slow-test snapshot. Existing
+    # deadlines and functional assertions remain unchanged.
+    faulthandler.enable(all_threads=True)
     faulthandler.dump_traceback_later(45, repeat=True)
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
@@ -127,6 +130,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     print('Compare fixture: large text aligned', flush=True)
     timings['20MiB_load_diff_seconds']=round(time.monotonic()-started,3)
     assert len(view.alignment.differences)==1
+    print('Compare fixture: draft edit/save/cancel', flush=True)
     started=time.monotonic();view.next();pump()
     timings['navigation_seconds_including_100ms_pump']=round(time.monotonic()-started,3)
     assert view.top==100000
@@ -154,6 +158,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     assert view.texts[0]==view.texts[1] and not view.history
     view.destroy();pump()
     a.write_bytes(''.join(f'{n}\n' for n in range(1000000)).encode())
+    print('Compare fixture: million-line alignment', flush=True)
     b.write_bytes(a.read_bytes().replace(b'999999\n',b'LAST-CHANGE\n'))
     started=time.monotonic();view=api.ReviewCompare(app,a,b);view.pack(fill='both',expand=True)
     until(lambda:not view.busy)
@@ -162,6 +167,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     view.next();assert view.top==999999
     view.destroy();pump()
     # Million-character single lines reveal the changed position, not only head.
+    print('Compare fixture: wide-line scaling', flush=True)
     a.write_text('x'*1000000+'LEFT\n',encoding='utf-8');b.write_text('x'*1000000+'RIGHT\n',encoding='utf-8')
     view=api.ReviewCompare(app,a,b);view.pack(fill='both',expand=True);until(lambda:not view.busy)
     view.next();assert view.column[0]>999000 and 'LEFT' in view.widgets[0].get('1.0','end')
@@ -179,6 +185,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
         shot(f'text-{scale}-{width}')
     view.destroy();pump()
     a.write_text('# Review heading\n\n**Important source**\n',encoding='utf-8')
+    print('Compare fixture: reading preview', flush=True)
     b.write_text('# Review heading\n\n**Important draft**\n',encoding='utf-8')
     view=api.ReviewCompare(app,a,b);view.pack(fill='both',expand=True);until(lambda:not view.busy)
     view.toggle_preview()
@@ -190,11 +197,13 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     for name in ('TkDefaultFont','TkTextFont','TkFixedFont','TkMenuFont','TkHeadingFont'):font.nametofont(name).configure(size=11)
     app.geometry('1360x850+0+0')
     # Real key events belong to Compare, never the Commander's global F3/F8.
+    print('Compare fixture: window and editor keyboard routing', flush=True)
     a.write_text('needle one\nneedle two\n');b.write_text('needle one\nneedle changed\n')
     leaked=[]
     app.bind_all('<F3>',lambda e:leaked.append('main preview'))
     app.bind_all('<F8>',lambda e:leaked.append('main VCS'))
     for kind in ('Review','Text'):
+        print('Compare fixture: keyboard '+kind, flush=True)
         cw=compare.CompareWindow(app,configparser.ConfigParser(),lambda:None)
         frame=cw.add(a,b,requested=kind);target=getattr(frame,'view',frame)
         if kind=='Review':until(lambda:not frame.busy)
@@ -230,6 +239,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
         shot('text-'+theme)
     text_view.destroy();pump()
     # Read-only workbook UI exposes the change, full cell and rule modes.
+    print('Compare fixture: workbook', flush=True)
     ca=root/'left.csv';cb=root/'right.csv'
     ca.write_text('id,value\none,10\ntwo,20\n');cb.write_text('id,value\none,11\ntwo,21\n')
     grid=tables.WorkbookCompare(app,ca,cb);grid.pack(fill='both',expand=True)
