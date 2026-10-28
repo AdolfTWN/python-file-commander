@@ -46,7 +46,7 @@ from .cloudstatus import CLOUD_LABELS, CLOUD_DETAILS, CloudStatusCache
 from .marquee import NameMarquee
 from .detailcells import SizeUnitCells
 from .columnsettings import modified_text
-from .flowlayout import FlowToolbar, wrapped_control_text
+from .flowlayout import FlowToolbar, wrapped_control_text, guard_dialog_keys
 from .windowplacement import position_popup_in_work_area
 from .directorydata import DirectoryItem, directory_items, listing_items, listing_signature, ordered_listing
 from .workflowdata import WorkflowRecords
@@ -2478,7 +2478,7 @@ class ConflictDialog(tk.Toplevel):
             button = ttk.Button(buttons, text=tr(text),width=0,command=lambda value=action: self.choose(value))
             buttons.add(button);self.buttons[action]=button
         self.bind("<Escape>", lambda _event: self.choose("cancel"))
-        self.bind('<KeyPress>',lambda e:'break',add='+')
+        guard_dialog_keys(self)
         self.bind('<Return>',self._accept)
         self.protocol("WM_DELETE_WINDOW", lambda: self.choose("cancel"))
         self.geometry(f'{width}x{height}');self.minsize(min(500,width),min(240,height))

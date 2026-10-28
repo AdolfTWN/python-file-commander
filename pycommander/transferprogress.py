@@ -8,6 +8,7 @@ from tkinter import ttk, font as tkfont
 
 from .fileops import OperationFailure, OperationResult
 from .i18n import tr
+from .flowlayout import guard_dialog_keys
 from .windowplacement import popup_work_area, position_popup_in_work_area
 
 
@@ -60,7 +61,7 @@ class TransferProgress(tk.Toplevel):
         self.detail.pack(fill='x',pady=8)
         self.cancel_button=ttk.Button(area,text=tr('Cancel'),command=self.cancel)
         self.cancel_button.pack(anchor='e')
-        self.bind('<KeyPress>',lambda e:'break');self.bind('<Escape>',lambda e:self.cancel())
+        guard_dialog_keys(self);self.bind('<Escape>',lambda e:self.cancel())
         self.protocol('WM_DELETE_WINDOW',self.cancel)
         self.bind('<Configure>',self._wrap)
         work_area=popup_work_area(master)
@@ -122,6 +123,8 @@ class TransferProgress(tk.Toplevel):
         # next worker triggers GC. Release our sole Tk variable on its UI thread
         # while the interpreter is alive, not during that later collection.
         self.target_var=None
+        job=getattr(self,'_poll_job',None)
+        if job is not None:self.after_cancel(job);self._poll_job=None
         super().destroy()
 
     def poll(self):

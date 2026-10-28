@@ -1,7 +1,7 @@
 """Recoverable operation results with a scannable list and full selected detail."""
 import tkinter as tk
 from tkinter import ttk, font as tkfont
-from .flowlayout import FlowToolbar
+from .flowlayout import FlowToolbar, guard_dialog_keys
 from .i18n import tr
 from .windowplacement import popup_work_area, position_popup_in_work_area
 
@@ -48,7 +48,7 @@ class OperationResultWindow(tk.Toplevel):
                 self.destroy();retry(failed)
             self.retry_button=ttk.Button(self.actions,text=tr('Retry Failed'),width=0,command=retry_failed);self.actions.add(self.retry_button)
         self.close_button=ttk.Button(self.actions,text=tr('Close'),width=0,command=self.destroy);self.actions.add(self.close_button)
-        self.bind('<Escape>',lambda e:self.destroy());self.bind('<KeyPress>',lambda e:'break')
+        self.bind('<Escape>',lambda e:self.destroy());guard_dialog_keys(self)
         self.bind('<Return>',lambda e:self.focus_get().invoke() if isinstance(self.focus_get(),ttk.Button) else 'break')
         self.bind('<Configure>',lambda e:self.heading.configure(wraplength=max(100,e.width-24)) if e.widget is self else None)
         area=popup_work_area(master);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')

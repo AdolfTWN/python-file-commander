@@ -2,7 +2,7 @@
 import tkinter as tk
 import math
 from tkinter import ttk, messagebox, simpledialog, font as tkfont
-from .flowlayout import FlowToolbar
+from .flowlayout import FlowToolbar, guard_dialog_keys
 from .i18n import tr
 from .windowplacement import popup_work_area, position_popup_in_work_area
 
@@ -52,6 +52,7 @@ class ScaledMessageDialog(tk.Toplevel):
             footer.add(button)
             self.buttons[choice] = button
         self.cancel_value = 'cancel' if 'cancel' in choices else 'no' if 'no' in choices else choices[0]
+        guard_dialog_keys(self)
         self.bind('<Escape>', lambda _e: self.choose(self.cancel_value))
         def accept(_event=None):
             focused=self.focus_get()
@@ -140,7 +141,7 @@ class ScaledInputDialog(tk.Toplevel):
         self.ok_button=ttk.Button(self.actions,text=tr('OK'),width=0,command=self.accept)
         self.cancel_button=ttk.Button(self.actions,text=tr('Cancel'),width=0,command=self.cancel)
         self.actions.add(self.ok_button);self.actions.add(self.cancel_button)
-        self.bind('<KeyPress>',lambda e:'break')
+        guard_dialog_keys(self)
         self.bind('<Escape>',lambda e:self.cancel())
         self.bind('<Return>',self._return)
         self.protocol('WM_DELETE_WINDOW',self.cancel)

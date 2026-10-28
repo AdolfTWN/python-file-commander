@@ -1,5 +1,26 @@
 """Measured, task-grouped toolbars without shrinking fonts or equal-width waste."""
-from tkinter import ttk
+from tkinter import ttk, TclError
+
+
+def guard_dialog_keys(window):
+    """Keep main-window shortcuts out, without swallowing focus traversal.
+
+    Text has its own Tab class binding, so readonly detail widgets need an
+    earlier widget binding as well as the toplevel's normal traversal guard.
+    """
+    def traverse(_event=None,back=False):
+        current=window.focus_get() or window
+        target=current.tk_focusPrev() if back else current.tk_focusNext()
+        if target is not None:target.focus_set()
+        return 'break'
+    window.bind('<KeyPress>',lambda e:'break')
+    pending=[window]
+    while pending:
+        widget=pending.pop();pending.extend(widget.winfo_children())
+        widget.bind('<Tab>',traverse)
+        widget.bind('<Shift-Tab>',lambda e:traverse(e,True))
+        try:widget.bind('<ISO_Left_Tab>',lambda e:traverse(e,True))
+        except TclError:pass
 
 
 def wrapped_control_text(text,measure,width):

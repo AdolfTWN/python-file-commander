@@ -390,6 +390,31 @@ class DeepTasks(unittest.TestCase):
         dialog.buttons['cancel'].event_generate('<Return>');pump(self.app)
         self.assertEqual('cancel',dialog.result)
 
+    def test_dialog_tab_traverses_readonly_details_without_main_shortcut_leak(self):
+        module=pfc if pfc.__name__=='pfc' else importlib.import_module('pycommander.dialogs')
+        leaked=[];self.app.bind_all('<F3>',lambda e:leaked.append(True))
+        factories=(
+            lambda:module.ScaledInputDialog(self.app,'Name','Readonly prompt'),
+            lambda:module.ScaledMessageDialog(self.app,dict(type='okcancel',message='Readonly details')),
+            lambda:pfc.ConflictDialog(self.app,self.folder/'alpha.md',self.root/'alpha.md'),
+            lambda:pfc.OperationResultWindow(self.app,'Copy',pfc.OperationResult(skipped=[self.folder/'alpha.md'])),
+            lambda:pfc.TransferProgress(self.app,'Copy',lambda *a:pfc.OperationResult(),[],self.root,lambda *a:'skip',True),
+            lambda:pfc.SyncProgress(self.app,[],lambda *a:'skip',True))
+        with patch.object(pfc.threading,'Thread'):
+            for factory in factories:
+                window=factory();pump(self.app,.04)
+                start=next((getattr(window,name) for name in ('entry','text','path_text','detail','cancel_button')
+                            if isinstance(getattr(window,name,None),(pfc.ttk.Entry,pfc.tk.Text,pfc.ttk.Button))),None)
+                start.focus_force();pump(self.app,.02)
+                start.event_generate('<Tab>');pump(self.app,.02)
+                target=window.focus_get()
+                self.assertIsNot(start,target,type(window).__name__)
+                self.assertIs(target.winfo_toplevel(),window)
+                target.event_generate('<Shift-Tab>');pump(self.app,.02)
+                self.assertIs(window.focus_get(),start,type(window).__name__)
+                start.event_generate('<F3>');pump(self.app,.02);self.assertFalse(leaked)
+                window.destroy();pump(self.app,.06)
+
     def test_conflict_cancel_is_safe_default_and_restores_modal(self):
         outer=pfc.tk.Toplevel(self.app);outer.grab_set()
         entry=pfc.ttk.Entry(outer);entry.pack();entry.focus_force();pump(self.app)

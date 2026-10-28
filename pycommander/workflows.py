@@ -6,7 +6,7 @@ from .i18n import tr
 from .workflowdata import WorkflowRecords
 from .tooltip import ToolTip
 from .columnsettings import font_snapshot
-from .flowlayout import FlowToolbar
+from .flowlayout import FlowToolbar, guard_dialog_keys
 from .windowplacement import popup_work_area, position_popup_in_work_area
 
 
@@ -19,16 +19,7 @@ def workflow_dialog_geometry(window, master, width=650, height=420):
     window.minsize(min(420, width), min(280, height))
     window.transient(master.winfo_toplevel())
     position_popup_in_work_area(window,master,area)
-    window.bind('<KeyPress>', lambda e: 'break')
-    def traverse(back=False):
-        current = window.focus_get() or window
-        target = current.tk_focusPrev() if back else current.tk_focusNext()
-        if target is not None: target.focus_set()
-        return 'break'
-    window.bind('<Tab>', lambda e: traverse())
-    window.bind('<Shift-Tab>', lambda e: traverse(True))
-    try:window.bind('<ISO_Left_Tab>', lambda e: traverse(True))
-    except tk.TclError:pass  # X11 keysym is not available in every Windows Tk.
+    guard_dialog_keys(window)
 
 
 def style_workflow_controls(window):

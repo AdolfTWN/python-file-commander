@@ -11,6 +11,7 @@ from .workflowdata import compare_path_blocked
 from .workflows import style_workflow_controls
 from .i18n import tr
 from .transferprogress import resolve_progress_conflict, merge_progress_conflicts
+from .flowlayout import guard_dialog_keys
 
 
 class SyncProgress(tk.Toplevel):
@@ -19,8 +20,9 @@ class SyncProgress(tk.Toplevel):
         self.title(tr('Safe Sync')); self.transient(master); self.resizable(False, False)
         self.cancelled = threading.Event(); self.messages = queue.Queue(); self.result = OperationResult()
         self.plans = list(plans); self.resolver = resolver;self.conflict_failures=[]
+        self._poll_job=None
         self.protocol('WM_DELETE_WINDOW', self.cancel)
-        self.bind('<Escape>', lambda e: self.cancel()); self.bind('<KeyPress>', lambda e: 'break')
+        self.bind('<Escape>', lambda e: self.cancel())
         area = ttk.Frame(self,padding=12);area.pack(fill='both',expand=True)
         self.label = ttk.Label(area,text=tr('Preparing…'),width=46,wraplength=460)
         self.label.pack(fill='x')
@@ -30,6 +32,7 @@ class SyncProgress(tk.Toplevel):
         self.detail.pack(fill='x')
         self.cancel_button = ttk.Button(area,text=tr('Cancel'),command=self.cancel)
         self.cancel_button.pack(anchor='e',pady=(10,0))
+        guard_dialog_keys(self)
         style_workflow_controls(self)
         self.update_idletasks()
         self.geometry(f'+{max(0,master.winfo_rootx()+80)}+{max(0,master.winfo_rooty()+90)}')
@@ -73,13 +76,18 @@ class SyncProgress(tk.Toplevel):
                 result.failures.append(OperationFailure(Path('.'),None,str(exc)))
             messages.put(('done',result))
         self.worker = threading.Thread(target=worker,daemon=True,name='PFC-Compare-Copy')
-        self.worker.start();self.after(40,self.poll)
+        self.worker.start();self._poll_job=self.after(40,self.poll)
+
+    def destroy(self):
+        if self._poll_job is not None:self.after_cancel(self._poll_job);self._poll_job=None
+        super().destroy()
 
     def cancel(self):
         self.cancelled.set();self.cancel_button.state(['disabled'])
         self.detail.configure(text=tr('Stopping after the current file…'))
 
     def poll(self):
+        self._poll_job=None
         deadline=time.monotonic()+.01
         while time.monotonic()<deadline:
             try: item=self.messages.get_nowait()
@@ -93,4 +101,4 @@ class SyncProgress(tk.Toplevel):
                 self.label.configure(text=f'{item[1]} / {len(self.plans)} · {item[2][:70]}')
             elif item[0]=='done':
                 self.result=merge_progress_conflicts(item[1],self.conflict_failures);self.grab_release();self.destroy();return
-        self.after(40,self.poll)
+        self._poll_job=self.after(40,self.poll)

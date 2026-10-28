@@ -231,6 +231,17 @@ with tempfile.TemporaryDirectory() as raw:
         win.show(paths,paths[0]);settle(app)
         win.show(paths,md);settle(app)
         assert win.active_page is mdpage and mdpage._md_folded==folded
+        # An in-flight background stat probe did not replace this document.
+        # Switching away must not turn it into a full reload and lose folds.
+        for pending in (False,True):
+            before_model=mdpage._md_model
+            mdpage._queue_markdown(probe=True)
+            if pending:mdpage._poll_markdown()
+            win.show(paths,paths[0]);settle(app)
+            with patch.object(mdpage,'load',side_effect=AssertionError('A stat probe must not reload an unchanged tab')):
+                win.show(paths,md);settle(app)
+            assert mdpage._md_model is before_model and mdpage._md_folded==folded
+            assert not mdpage._md_auto_suspended
         assert sum(p._md_jobs.process is not None for p in win.pages.values())<=1
         win.show(paths,paths[0]);settle(app)
         win.cycle(1);app.update();assert win.active_page is not page

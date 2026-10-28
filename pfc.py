@@ -7508,6 +7508,7 @@ class ScaledMessageDialog(tk.Toplevel):
             footer.add(button)
             self.buttons[choice] = button
         self.cancel_value = 'cancel' if 'cancel' in choices else 'no' if 'no' in choices else choices[0]
+        guard_dialog_keys(self)
         self.bind('<Escape>', lambda _e: self.choose(self.cancel_value))
         def accept(_event=None):
             focused=self.focus_get()
@@ -7596,7 +7597,7 @@ class ScaledInputDialog(tk.Toplevel):
         self.ok_button=ttk.Button(self.actions,text=tr('OK'),width=0,command=self.accept)
         self.cancel_button=ttk.Button(self.actions,text=tr('Cancel'),width=0,command=self.cancel)
         self.actions.add(self.ok_button);self.actions.add(self.cancel_button)
-        self.bind('<KeyPress>',lambda e:'break')
+        guard_dialog_keys(self)
         self.bind('<Escape>',lambda e:self.cancel())
         self.bind('<Return>',self._return)
         self.protocol('WM_DELETE_WINDOW',self.cancel)
@@ -7661,16 +7662,7 @@ def workflow_dialog_geometry(window, master, width=650, height=420):
     window.minsize(min(420, width), min(280, height))
     window.transient(master.winfo_toplevel())
     position_popup_in_work_area(window,master,area)
-    window.bind('<KeyPress>', lambda e: 'break')
-    def traverse(back=False):
-        current = window.focus_get() or window
-        target = current.tk_focusPrev() if back else current.tk_focusNext()
-        if target is not None: target.focus_set()
-        return 'break'
-    window.bind('<Tab>', lambda e: traverse())
-    window.bind('<Shift-Tab>', lambda e: traverse(True))
-    try:window.bind('<ISO_Left_Tab>', lambda e: traverse(True))
-    except tk.TclError:pass  # X11 keysym is not available in every Windows Tk.
+    guard_dialog_keys(window)
 
 
 def style_workflow_controls(window):
@@ -8058,14 +8050,16 @@ from tkinter import ttk
 
 
 
+
 class SyncProgress(tk.Toplevel):
     def __init__(self, master, plans, resolver, continue_errors):
         super().__init__(master)
         self.title(tr('Safe Sync')); self.transient(master); self.resizable(False, False)
         self.cancelled = threading.Event(); self.messages = queue.Queue(); self.result = OperationResult()
         self.plans = list(plans); self.resolver = resolver;self.conflict_failures=[]
+        self._poll_job=None
         self.protocol('WM_DELETE_WINDOW', self.cancel)
-        self.bind('<Escape>', lambda e: self.cancel()); self.bind('<KeyPress>', lambda e: 'break')
+        self.bind('<Escape>', lambda e: self.cancel())
         area = ttk.Frame(self,padding=12);area.pack(fill='both',expand=True)
         self.label = ttk.Label(area,text=tr('Preparing…'),width=46,wraplength=460)
         self.label.pack(fill='x')
@@ -8075,6 +8069,7 @@ class SyncProgress(tk.Toplevel):
         self.detail.pack(fill='x')
         self.cancel_button = ttk.Button(area,text=tr('Cancel'),command=self.cancel)
         self.cancel_button.pack(anchor='e',pady=(10,0))
+        guard_dialog_keys(self)
         style_workflow_controls(self)
         self.update_idletasks()
         self.geometry(f'+{max(0,master.winfo_rootx()+80)}+{max(0,master.winfo_rooty()+90)}')
@@ -8118,13 +8113,18 @@ class SyncProgress(tk.Toplevel):
                 result.failures.append(OperationFailure(Path('.'),None,str(exc)))
             messages.put(('done',result))
         self.worker = threading.Thread(target=worker,daemon=True,name='PFC-Compare-Copy')
-        self.worker.start();self.after(40,self.poll)
+        self.worker.start();self._poll_job=self.after(40,self.poll)
+
+    def destroy(self):
+        if self._poll_job is not None:self.after_cancel(self._poll_job);self._poll_job=None
+        super().destroy()
 
     def cancel(self):
         self.cancelled.set();self.cancel_button.state(['disabled'])
         self.detail.configure(text=tr('Stopping after the current file…'))
 
     def poll(self):
+        self._poll_job=None
         deadline=time.monotonic()+.01
         while time.monotonic()<deadline:
             try: item=self.messages.get_nowait()
@@ -8138,7 +8138,7 @@ class SyncProgress(tk.Toplevel):
                 self.label.configure(text=f'{item[1]} / {len(self.plans)} · {item[2][:70]}')
             elif item[0]=='done':
                 self.result=merge_progress_conflicts(item[1],self.conflict_failures);self.grab_release();self.destroy();return
-        self.after(40,self.poll)
+        self._poll_job=self.after(40,self.poll)
 
 
 # Source: pycommander/transferprogress.py
@@ -8149,6 +8149,7 @@ import time
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, font as tkfont
+
 
 
 
@@ -8204,7 +8205,7 @@ class TransferProgress(tk.Toplevel):
         self.detail.pack(fill='x',pady=8)
         self.cancel_button=ttk.Button(area,text=tr('Cancel'),command=self.cancel)
         self.cancel_button.pack(anchor='e')
-        self.bind('<KeyPress>',lambda e:'break');self.bind('<Escape>',lambda e:self.cancel())
+        guard_dialog_keys(self);self.bind('<Escape>',lambda e:self.cancel())
         self.protocol('WM_DELETE_WINDOW',self.cancel)
         self.bind('<Configure>',self._wrap)
         work_area=popup_work_area(master)
@@ -8266,6 +8267,8 @@ class TransferProgress(tk.Toplevel):
         # next worker triggers GC. Release our sole Tk variable on its UI thread
         # while the interpreter is alive, not during that later collection.
         self.target_var=None
+        job=getattr(self,'_poll_job',None)
+        if job is not None:self.after_cancel(job);self._poll_job=None
         super().destroy()
 
     def poll(self):
@@ -8343,7 +8346,7 @@ class OperationResultWindow(tk.Toplevel):
                 self.destroy();retry(failed)
             self.retry_button=ttk.Button(self.actions,text=tr('Retry Failed'),width=0,command=retry_failed);self.actions.add(self.retry_button)
         self.close_button=ttk.Button(self.actions,text=tr('Close'),width=0,command=self.destroy);self.actions.add(self.close_button)
-        self.bind('<Escape>',lambda e:self.destroy());self.bind('<KeyPress>',lambda e:'break')
+        self.bind('<Escape>',lambda e:self.destroy());guard_dialog_keys(self)
         self.bind('<Return>',lambda e:self.focus_get().invoke() if isinstance(self.focus_get(),ttk.Button) else 'break')
         self.bind('<Configure>',lambda e:self.heading.configure(wraplength=max(100,e.width-24)) if e.widget is self else None)
         area=popup_work_area(master);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')
@@ -9838,7 +9841,28 @@ class ActionBarLayout:
 
 # Source: pycommander/flowlayout.py
 """Measured, task-grouped toolbars without shrinking fonts or equal-width waste."""
-from tkinter import ttk
+from tkinter import ttk, TclError
+
+
+def guard_dialog_keys(window):
+    """Keep main-window shortcuts out, without swallowing focus traversal.
+
+    Text has its own Tab class binding, so readonly detail widgets need an
+    earlier widget binding as well as the toplevel's normal traversal guard.
+    """
+    def traverse(_event=None,back=False):
+        current=window.focus_get() or window
+        target=current.tk_focusPrev() if back else current.tk_focusNext()
+        if target is not None:target.focus_set()
+        return 'break'
+    window.bind('<KeyPress>',lambda e:'break')
+    pending=[window]
+    while pending:
+        widget=pending.pop();pending.extend(widget.winfo_children())
+        widget.bind('<Tab>',traverse)
+        widget.bind('<Shift-Tab>',lambda e:traverse(e,True))
+        try:widget.bind('<ISO_Left_Tab>',lambda e:traverse(e,True))
+        except TclError:pass
 
 
 def wrapped_control_text(text,measure,width):
@@ -38180,7 +38204,7 @@ class PreviewPage(tk.Frame):
             else:
                 self.activity_progress.stop();self.activity_progress.place_forget()
 
-    def cancel_markdown(self):
+    def cancel_markdown(self,*,quiet=False):
         if self._md_insert:
             self._md_model={};self._md_display_path=None
             self.text.configure(state='normal');self.text.delete('1.0','end');self.text.configure(state='disabled')
@@ -38188,9 +38212,9 @@ class PreviewPage(tk.Frame):
         self._md_jobs.cancel();self._md_request=None;self._md_queued=None;self._md_insert=None
         self.md_cancel.state(['disabled'])
         self.text.configure(state='disabled')
-        self.status.configure(text=tr('Preview canceled; press F5 to retry'))
+        if not quiet:self.status.configure(text=tr('Preview canceled; press F5 to retry'))
         self._md_last_probe=time.monotonic()
-        self._md_auto_suspended=True
+        self._md_auto_suspended=not quiet
         self._sync_preview_activity()
 
     def _poll_markdown(self):
@@ -38958,7 +38982,12 @@ class PreviewWindow(tk.Toplevel):
             if previous is not None:
                 previous._remember_markdown_position()
                 if previous._md_jobs.pending or previous._md_queued or previous._md_insert:
-                    previous.cancel_markdown(); previous._loaded = False
+                    contexts=[c for c in (previous._md_request,previous._md_queued) if c is not None]
+                    probe_only=bool(contexts) and not previous._md_insert and all(c.get('probe') for c in contexts)
+                    # A background stat probe never replaced the displayed
+                    # model. Cancel it without reloading/resetting folds later.
+                    previous.cancel_markdown(quiet=probe_only)
+                    if not probe_only:previous._loaded=False
                 previous._md_jobs.close()
                 if previous._format_jobs.pending or previous._format_queued or previous.render_view._tree_revealing:
                     previous._cancel_format();previous._loaded=False
@@ -44194,7 +44223,7 @@ class ConflictDialog(tk.Toplevel):
             button = ttk.Button(buttons, text=tr(text),width=0,command=lambda value=action: self.choose(value))
             buttons.add(button);self.buttons[action]=button
         self.bind("<Escape>", lambda _event: self.choose("cancel"))
-        self.bind('<KeyPress>',lambda e:'break',add='+')
+        guard_dialog_keys(self)
         self.bind('<Return>',self._accept)
         self.protocol("WM_DELETE_WINDOW", lambda: self.choose("cancel"))
         self.geometry(f'{width}x{height}');self.minsize(min(500,width),min(240,height))

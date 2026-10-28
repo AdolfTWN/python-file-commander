@@ -819,7 +819,7 @@ class PreviewPage(tk.Frame):
             else:
                 self.activity_progress.stop();self.activity_progress.place_forget()
 
-    def cancel_markdown(self):
+    def cancel_markdown(self,*,quiet=False):
         if self._md_insert:
             self._md_model={};self._md_display_path=None
             self.text.configure(state='normal');self.text.delete('1.0','end');self.text.configure(state='disabled')
@@ -827,9 +827,9 @@ class PreviewPage(tk.Frame):
         self._md_jobs.cancel();self._md_request=None;self._md_queued=None;self._md_insert=None
         self.md_cancel.state(['disabled'])
         self.text.configure(state='disabled')
-        self.status.configure(text=tr('Preview canceled; press F5 to retry'))
+        if not quiet:self.status.configure(text=tr('Preview canceled; press F5 to retry'))
         self._md_last_probe=time.monotonic()
-        self._md_auto_suspended=True
+        self._md_auto_suspended=not quiet
         self._sync_preview_activity()
 
     def _poll_markdown(self):
@@ -1597,7 +1597,12 @@ class PreviewWindow(tk.Toplevel):
             if previous is not None:
                 previous._remember_markdown_position()
                 if previous._md_jobs.pending or previous._md_queued or previous._md_insert:
-                    previous.cancel_markdown(); previous._loaded = False
+                    contexts=[c for c in (previous._md_request,previous._md_queued) if c is not None]
+                    probe_only=bool(contexts) and not previous._md_insert and all(c.get('probe') for c in contexts)
+                    # A background stat probe never replaced the displayed
+                    # model. Cancel it without reloading/resetting folds later.
+                    previous.cancel_markdown(quiet=probe_only)
+                    if not probe_only:previous._loaded=False
                 previous._md_jobs.close()
                 if previous._format_jobs.pending or previous._format_queued or previous.render_view._tree_revealing:
                     previous._cancel_format();previous._loaded=False
