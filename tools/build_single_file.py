@@ -12,7 +12,7 @@ MODULES = (
     "i18n", "fileops", "directorydata", "clipboard", "icons", "startup", "dirwatch", "vcs",
     "tabicons", "tabs", "tooltip", "columnsettings", "pathbar", "homeprefix",
     "cloudstatus", "marquee", "detailcells", "singlepanel", "windowplacement",
-    "settingsshots", "workflowdata", "debuglog", "dialogs", "workflows",
+    "settingsshots", "workflowdata", "nativecrash", "debuglog", "dialogs", "workflows",
     "workspaces", "syncprogress", "transferprogress", "operationui", "settingspreview", "settings", "vcsactions",
     "actionbar", "flowlayout", "vcsui", "comparecolors", "reviewcore", "reviewstorage",
     "workbook", "reviewjobs", "reviewui", "workbookui", "archivereview",

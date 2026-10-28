@@ -6,11 +6,16 @@ Initially the Windows VM was held for a separate maintenance conversation.
 On 2026-10-28 the owner reported it repaired; leased dual-runtime PFC acceptance
 has resumed. This task does not take over VM repair or lifecycle experiments.
 
-Final verification completed on 2026-10-29: code commit `a590c0e`, unpublished
+Historical verification completed on 2026-10-29: code commit `a590c0e`, unpublished
 v0.18.45 candidate. The final full suite and both Windows runtime matrices pass.
 **Publication remains held pending the owner's risk decision**: one earlier x64
 native Compare access violation remains unexplained; later passes do not prove
-it fixed. No GitHub/GitLab update or version tag has been pushed for this work.
+it fixed. At that checkpoint no GitHub/GitLab update or version tag was pushed.
+**Subsequent owner decision:** publish after adding and validating automatic
+native-crash capture for photographic reporting. The follow-up and its final
+artifact/test evidence are recorded in
+[native crash diagnostics](native-crash-diagnostics-20261029.md). This supersedes
+the publication hold below, not the unresolved root cause or historical results.
 
 ## User tasks, not just widget bounds
 
@@ -399,5 +404,5 @@ probe forced a full reload. Queued/in-flight probe regressions now verify the
 correction. The final artifact's complete original-order group passed on both
 runtimes, including x64 Compare in 77.736 s. The intermittent native access
 violation remains an open reliability issue, not a claimed application fix or a
-reason to silently disable diagnostics. The owner was asked whether to publish
-with that known risk or continue holding; no answer has been received yet.
+reason to silently disable diagnostics. At completion the owner had not yet
+answered the publication-risk question; the subsequent decision is linked above.

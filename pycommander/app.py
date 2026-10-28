@@ -147,7 +147,9 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
-    ("v0.18.45", "2026/10/28", (
+    ("v0.18.45", "2026/10/29", (
+        "Improved: Native crash diagnostics recover automatically on restart with the crashing version, system time, runtime and a photo-friendly summary.",
+        "Known issue: An intermittent native Compare crash remains unexplained; diagnostic capture is not a root-cause fix.",
         "Improved: Copy and move keep the interface responsive, resolve conflicts on the UI thread and allow stopping after the current item.",
         "Improved: Scaled prompts and recovery dialogs preserve safe keyboard choices, nested focus, scrollable details and reachable actions.",
         "Improved: Saved workflows support filtering and accessible full details; operation results list failures first with targeted retry.",

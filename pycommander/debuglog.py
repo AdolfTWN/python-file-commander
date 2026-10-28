@@ -13,6 +13,7 @@ import uuid
 import threading
 import sys
 import warnings
+from .nativecrash import NativeCrashCapture
 
 
 def diagnostic_records(*snapshots):
@@ -56,8 +57,10 @@ def diagnostic_summary(row):
     frames=row.get('frames',[])
     if frames:
         root=frames[-1]
-        lines.append('Location: '+str(root.get('module','?'))+':'+str(root.get('line','?'))+' · '+str(root.get('function','?')))
+        label='Python stack: ' if row.get('event')=='process.native_crash' else 'Location: '
+        lines.append(label+str(root.get('module','?'))+':'+str(root.get('line','?'))+' · '+str(root.get('function','?')))
     if row.get('reason'):lines.append(str(row['reason']))
+    if row.get('native_code'):lines[0]+=' · '+str(row['native_code'])
     runtime=row.get('runtime',{})
     if runtime:
         lines.append('Runtime: '+' · '.join(str(runtime[k]) for k in ('python','platform','machine','tk') if k in runtime))
@@ -84,6 +87,7 @@ class DiagnosticLog:
         self._recent = deque(maxlen=64)
         self._hooks = []
         self._logging_handler = None
+        self._native_capture = None
         if automatic:
             try:
                 self.error_path.parent.mkdir(parents=True, exist_ok=True)
@@ -122,8 +126,24 @@ class DiagnosticLog:
                                 logger=record.name, module=record.module, line=record.lineno)
         self._logging_handler = ErrorHandler(logging.WARNING)
         logging.getLogger().addHandler(self._logging_handler)
+        if self.error_handler:
+            self._native_capture = NativeCrashCapture(self.path.parent, self.version, self.session,
+                                                     self.runtime, self._recover_native_record)
+            issue = self._native_capture.start()
+            if issue:
+                self.event('diagnostics.native_capture.unavailable', severity='WARNING', reason=issue)
+
+    def _recover_native_record(self, record):
+        # Retain the CRASH version/session/time, not the recovering executable's.
+        with self._lock:
+            if not self.error_handler:
+                return False
+            return self._write(self.error_handler, json.dumps(record, ensure_ascii=True))
 
     def close(self):
+        if self._native_capture:
+            self._native_capture.close()
+            self._native_capture = None
         for obj,name,new,old in reversed(self._hooks):
             if getattr(obj,name) is new: setattr(obj,name,old)
         self._hooks.clear()
@@ -191,8 +211,10 @@ class DiagnosticLog:
             if handler.shouldRollover(logging.makeLogRecord({'msg':payload})):
                 handler.doRollover()
             handler.stream.write(payload+'\n'); handler.flush()
+            return True
         except (OSError, ValueError):
             self.error = 'diagnostic-write-failed'
+            return False
 
     def file(self, event, path, **metadata):
         if self.handler is None and self.error_handler is None: return

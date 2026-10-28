@@ -21,6 +21,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Native crash diagnostics recover automatically on restart with the crashing version, system time, runtime and a photo-friendly summary.': ('改善：原生崩潰紀錄在重啟後自動整理，保留故障版本、系統時間、執行環境及便於拍照的摘要。','改善：原生崩溃记录在重启后自动整理，保留故障版本、系统时间、运行环境及便于拍照的摘要。','개선: 재시작 시 네이티브 충돌 기록을 자동 복구하며 충돌 버전, 시스템 시간, 실행 환경과 촬영용 요약을 보존합니다.'),
+    'Known issue: An intermittent native Compare crash remains unexplained; diagnostic capture is not a root-cause fix.': ('已知問題：比較功能偶發原生崩潰的原因仍未確認；新增診斷並不代表根因已修復。','已知问题：比较功能偶发原生崩溃的原因仍未确认；新增诊断并不代表根因已修复。','알려진 문제: 간헐적인 비교 기능 네이티브 충돌 원인은 아직 불명확하며 진단 수집은 근본 원인 수정이 아닙니다.'),
     'Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.': ('修正：預覽讀取器在開啟前拒絕特殊串流，並核對已開啟檔案，避免被替換的管線阻塞。','修正：预览读取器在打开前拒绝特殊流，并核对已打开文件，避免被替换的管道阻塞。','수정: 미리보기는 특수 스트림을 열기 전에 거부하고 열린 파일을 검증하여 교체된 파이프로 인한 차단을 방지합니다.'),
     'Fixed: Switching Markdown tabs during background checks retains folds and reading state.': ('修正：背景檢查時切換 Markdown 分頁，保留摺疊及閱讀狀態。','修正：后台检查时切换 Markdown 标签页，保留折叠及阅读状态。','수정: 백그라운드 확인 중 Markdown 탭을 전환해도 접기 및 읽기 상태를 유지합니다.'),
     'Fixed: Closed workflow and rename dialogs release owned variable traces instead of retaining destroyed windows.': ('修正：關閉工作區及改名視窗時釋放自有變數追蹤，避免殘留已銷毀視窗。','修正：关闭工作区及重命名窗口时释放自有变量跟踪，避免残留已销毁窗口。','수정: 워크플로/이름 변경 창을 닫으면 소유 변수 추적을 해제하여 삭제된 창이 남지 않게 합니다.'),
@@ -7186,6 +7188,152 @@ def resolve_reading_anchor(model, saved, signature):
     return ('fraction', 0., True)
 
 
+# Source: pycommander/nativecrash.py
+"""Crash-safe native stacks, recovered as private structured incidents on restart.
+
+The fatal handler only writes to an already-open descriptor: no Python logging,
+Tk calls, allocation of crash metadata, or locks run in a corrupted process.
+"""
+from datetime import datetime, timezone
+import faulthandler
+import json
+import os
+from pathlib import Path
+import platform
+import re
+
+
+def _native_journal_lock(stream):
+    """Nonblocking lifetime lock: never recover another running PFC's journal."""
+    stream.seek(0)
+    if os.name == 'nt':
+        import msvcrt
+        msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+        fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def native_crash_record(header, dump, timestamp):
+    """Allowlisted classification and basename-only frames, never source/locals."""
+    kinds = (
+        ('Windows fatal exception: access violation', 'NativeAccessViolation', '0xC0000005'),
+        ('Windows fatal exception: stack overflow', 'NativeStackOverflow', '0xC00000FD'),
+        ('Windows fatal exception:', 'NativeWindowsException', None),
+        ('Fatal Python error: Segmentation fault', 'NativeSegmentationFault', None),
+        ('Fatal Python error: Aborted', 'NativeAbort', None),
+        ('Fatal Python error: Bus error', 'NativeBusError', None),
+        ('Fatal Python error: Illegal instruction', 'NativeIllegalInstruction', None),
+        ('Fatal Python error:', 'NativeFatalError', None),
+    )
+    kind = next(((name, code) for marker, name, code in kinds if marker in dump), None)
+    if kind is None:
+        return None  # clean exit / force-kill / a timeout dump is NOT a native crash
+    # A previous watchdog dump may precede the fatal event in the same stream.
+    dump = dump[min(dump.index(marker) for marker, _, _ in kinds if marker in dump):]
+    frames = []
+    # faulthandler lists the faulting/current thread first, innermost frame first.
+    # Keep its first bounded Python stack; this is context, NOT proof that the
+    # crash occurred in that Python frame (the fatal thread may be native-only).
+    for line in dump.splitlines():
+        match = re.fullmatch(r'  File "([^"]+)", line (\d+) in ([\w<>. -]+)', line)
+        if match:
+            frames.append(dict(module=match[1].replace('\\', '/').rsplit('/', 1)[-1][:100],
+                               line=int(match[2]), function=match[3][:100]))
+            if len(frames) == 16:
+                break
+        elif frames:
+            break
+    moment = datetime.fromtimestamp(timestamp, timezone.utc)
+    record = dict(event='process.native_crash', severity='CRITICAL', error=kind[0],
+                  time=moment.astimezone().isoformat(), utc_time=moment.isoformat(),
+                  version=header['version'], session=header['session'],
+                  incident='native-' + header['session'], frames=list(reversed(frames)),
+                  runtime=header.get('runtime', {}), started_at=header.get('started_at'),
+                  recovered_at=datetime.now().astimezone().isoformat(),
+                  crash_time_source='journal_mtime',
+                  reason='Native process crash; recovered on next start. Time is the last crash-journal write.')
+    if kind[1]:
+        record['native_code'] = kind[1]
+    elif kind[0] == 'NativeWindowsException':
+        code = re.search(r'Windows fatal exception: code (0x[0-9a-fA-F]{8})\b', dump)
+        if code:
+            record['native_code'] = '0x' + code[1][2:].upper()
+    return record
+
+
+class NativeCrashCapture:
+    """Own one fatal-handler descriptor; no global watchdog or per-operation I/O."""
+    def __init__(self, directory, version, session, runtime, write_record):
+        self.directory = Path(directory)
+        self.path = self.directory / ('pfc-native-' + session + '.log')
+        self.stream = None
+        self.enabled = False
+        self.write_record = write_record
+        self.header = dict(version=version, session=session,
+                           started_at=datetime.now().astimezone().isoformat(),
+                           runtime=dict(python=platform.python_version(),
+                                        platform=platform.system(), machine=platform.machine(), **{
+                                            k: v for k, v in runtime.items()
+                                            if k not in ('python', 'platform', 'machine')}))
+
+    def recover(self):
+        try:
+            paths = list(self.directory.glob('pfc-native-*.log'))
+        except OSError:
+            return
+        for path in paths:
+            try:
+                if path == self.path or path.is_symlink():
+                    continue
+                with path.open('r+b', buffering=0) as stream:
+                    _native_journal_lock(stream)
+                    stream.seek(0)
+                    header = json.loads(stream.readline(8192))
+                    if not (isinstance(header, dict) and
+                            isinstance(header.get('version'), str) and
+                            re.fullmatch(r'[a-f0-9]{12}', header.get('session', ''))):
+                        continue
+                    dump = stream.read(2 * 1024 * 1024).decode('utf-8', errors='replace')
+                    record = native_crash_record(header, dump, os.fstat(stream.fileno()).st_mtime)
+                    # A failed append retains the journal for a future start.
+                    if record and not self.write_record(record):
+                        continue
+                path.unlink()
+            except (OSError, ValueError, TypeError):
+                continue  # unavailable/live/corrupt journal must not break startup
+
+    def start(self):
+        self.recover()
+        if faulthandler.is_enabled():
+            return 'native-handler-already-installed'
+        try:
+            self.directory.mkdir(parents=True, exist_ok=True)
+            self.stream = open(self.path, 'x+b', buffering=0,
+                               opener=lambda name, flags: os.open(name, flags, 0o600))
+            _native_journal_lock(self.stream)
+            self.stream.write((json.dumps(self.header, ensure_ascii=True) + '\n').encode('utf-8'))
+            self.stream.flush()
+            faulthandler.enable(file=self.stream, all_threads=True)
+            self.enabled = True
+            return None
+        except (OSError, ValueError, RuntimeError):
+            self.close()
+            return 'native-crash-log-unavailable'
+
+    def close(self):
+        if self.enabled:
+            faulthandler.disable()
+            self.enabled = False
+        if self.stream:
+            self.stream.close()
+            self.stream = None
+            try:
+                self.path.unlink()
+            except OSError:
+                pass
+
+
 # Source: pycommander/debuglog.py
 """Bounded automatic errors with recent context; never log document content."""
 from collections import deque
@@ -7202,6 +7350,7 @@ import uuid
 import threading
 import sys
 import warnings
+
 
 
 def diagnostic_records(*snapshots):
@@ -7245,8 +7394,10 @@ def diagnostic_summary(row):
     frames=row.get('frames',[])
     if frames:
         root=frames[-1]
-        lines.append('Location: '+str(root.get('module','?'))+':'+str(root.get('line','?'))+' · '+str(root.get('function','?')))
+        label='Python stack: ' if row.get('event')=='process.native_crash' else 'Location: '
+        lines.append(label+str(root.get('module','?'))+':'+str(root.get('line','?'))+' · '+str(root.get('function','?')))
     if row.get('reason'):lines.append(str(row['reason']))
+    if row.get('native_code'):lines[0]+=' · '+str(row['native_code'])
     runtime=row.get('runtime',{})
     if runtime:
         lines.append('Runtime: '+' · '.join(str(runtime[k]) for k in ('python','platform','machine','tk') if k in runtime))
@@ -7273,6 +7424,7 @@ class DiagnosticLog:
         self._recent = deque(maxlen=64)
         self._hooks = []
         self._logging_handler = None
+        self._native_capture = None
         if automatic:
             try:
                 self.error_path.parent.mkdir(parents=True, exist_ok=True)
@@ -7311,8 +7463,24 @@ class DiagnosticLog:
                                 logger=record.name, module=record.module, line=record.lineno)
         self._logging_handler = ErrorHandler(logging.WARNING)
         logging.getLogger().addHandler(self._logging_handler)
+        if self.error_handler:
+            self._native_capture = NativeCrashCapture(self.path.parent, self.version, self.session,
+                                                     self.runtime, self._recover_native_record)
+            issue = self._native_capture.start()
+            if issue:
+                self.event('diagnostics.native_capture.unavailable', severity='WARNING', reason=issue)
+
+    def _recover_native_record(self, record):
+        # Retain the CRASH version/session/time, not the recovering executable's.
+        with self._lock:
+            if not self.error_handler:
+                return False
+            return self._write(self.error_handler, json.dumps(record, ensure_ascii=True))
 
     def close(self):
+        if self._native_capture:
+            self._native_capture.close()
+            self._native_capture = None
         for obj,name,new,old in reversed(self._hooks):
             if getattr(obj,name) is new: setattr(obj,name,old)
         self._hooks.clear()
@@ -7380,8 +7548,10 @@ class DiagnosticLog:
             if handler.shouldRollover(logging.makeLogRecord({'msg':payload})):
                 handler.doRollover()
             handler.stream.write(payload+'\n'); handler.flush()
+            return True
         except (OSError, ValueError):
             self.error = 'diagnostic-write-failed'
+            return False
 
     def file(self, event, path, **metadata):
         if self.handler is None and self.error_handler is None: return
@@ -41918,9 +42088,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/28"
+BUILD_DATE = "2026/10/29"
 VERSION_HISTORY = (
-    ("v0.18.45", "2026/10/28", (
+    ("v0.18.45", "2026/10/29", (
+        "Improved: Native crash diagnostics recover automatically on restart with the crashing version, system time, runtime and a photo-friendly summary.",
+        "Known issue: An intermittent native Compare crash remains unexplained; diagnostic capture is not a root-cause fix.",
         "Improved: Copy and move keep the interface responsive, resolve conflicts on the UI thread and allow stopping after the current item.",
         "Improved: Scaled prompts and recovery dialogs preserve safe keyboard choices, nested focus, scrollable details and reachable actions.",
         "Improved: Saved workflows support filtering and accessible full details; operation results list failures first with targeted retry.",

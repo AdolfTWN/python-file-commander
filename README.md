@@ -1,11 +1,12 @@
 # Python File Commander
 
-Current code: **v0.18.45 development candidate — not published**.
-Final Linux full regression and ten Windows checks per ARM64/emulated-x64
-runtime passed against the same portable artifact. Release is held for an owner
-decision: an earlier candidate had one intermittent x64 Compare native access
-violation; unchanged reruns passed, but its cause is not confirmed. This is not
-native x64 Windows acceptance. See the investigation and limits below.
+Current code: **v0.18.45**.
+Includes the deep task/compact-UI improvements and automatic native-crash
+diagnostics. An earlier candidate had an intermittent native Compare access
+violation; its cause remains unconfirmed. Diagnostic capture is not a claim
+that the crash is fixed. The owner requested publication with that known risk
+after capture validation. ARM Windows application emulation is not native x64
+Windows acceptance. See the investigation and limits below.
 
 **Task-focused improvements:** copy/move I/O runs outside Tk; conflict choices
 remain on the UI thread with Cancel initially focused. Cancel/closing requests
@@ -97,6 +98,17 @@ handled condition or a guarantee of detecting every bug; forced termination and
 failures before application initialization may leave no entry. Storage failures
 must not interrupt normal file operations. Records omit raw messages and document
 contents; source module/line, exception type and OS error codes identify failures.
+
+**After a native crash:** restart PFC, open **Help → Error / Warning log**, select
+`process.native_crash` and photograph the summary. No debug switch or file export
+is required. It retains the crashing version, system time, runtime, Windows error
+code when recognized, and captured Python stack context. The time is the fatal
+journal's last system write; restart time is recorded separately. Native stack
+capture uses a private, already-open journal and is imported automatically on the
+next start. It does not guarantee capture after force-kill, power loss, failures
+before initialization, storage failure or severe corruption. An external fatal
+handler is respected, with a warning when PFC cannot install its own. See
+[capture design, validation and limits](docs/native-crash-diagnostics-20261029.md).
 
 **Automatic diagnostics:** No Debug/Verbose switch is needed. Recent operation
 metadata stays in a bounded in-memory buffer (64 records, at most 1 KiB each).

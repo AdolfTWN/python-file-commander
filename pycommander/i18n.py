@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Native crash diagnostics recover automatically on restart with the crashing version, system time, runtime and a photo-friendly summary.': ('改善：原生崩潰紀錄在重啟後自動整理，保留故障版本、系統時間、執行環境及便於拍照的摘要。','改善：原生崩溃记录在重启后自动整理，保留故障版本、系统时间、运行环境及便于拍照的摘要。','개선: 재시작 시 네이티브 충돌 기록을 자동 복구하며 충돌 버전, 시스템 시간, 실행 환경과 촬영용 요약을 보존합니다.'),
+    'Known issue: An intermittent native Compare crash remains unexplained; diagnostic capture is not a root-cause fix.': ('已知問題：比較功能偶發原生崩潰的原因仍未確認；新增診斷並不代表根因已修復。','已知问题：比较功能偶发原生崩溃的原因仍未确认；新增诊断并不代表根因已修复。','알려진 문제: 간헐적인 비교 기능 네이티브 충돌 원인은 아직 불명확하며 진단 수집은 근본 원인 수정이 아닙니다.'),
     'Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.': ('修正：預覽讀取器在開啟前拒絕特殊串流，並核對已開啟檔案，避免被替換的管線阻塞。','修正：预览读取器在打开前拒绝特殊流，并核对已打开文件，避免被替换的管道阻塞。','수정: 미리보기는 특수 스트림을 열기 전에 거부하고 열린 파일을 검증하여 교체된 파이프로 인한 차단을 방지합니다.'),
     'Fixed: Switching Markdown tabs during background checks retains folds and reading state.': ('修正：背景檢查時切換 Markdown 分頁，保留摺疊及閱讀狀態。','修正：后台检查时切换 Markdown 标签页，保留折叠及阅读状态。','수정: 백그라운드 확인 중 Markdown 탭을 전환해도 접기 및 읽기 상태를 유지합니다.'),
     'Fixed: Closed workflow and rename dialogs release owned variable traces instead of retaining destroyed windows.': ('修正：關閉工作區及改名視窗時釋放自有變數追蹤，避免殘留已銷毀視窗。','修正：关闭工作区及重命名窗口时释放自有变量跟踪，避免残留已销毁窗口。','수정: 워크플로/이름 변경 창을 닫으면 소유 변수 추적을 해제하여 삭제된 창이 남지 않게 합니다.'),
