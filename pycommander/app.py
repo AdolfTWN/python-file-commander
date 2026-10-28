@@ -46,10 +46,15 @@ from .cloudstatus import CLOUD_LABELS, CLOUD_DETAILS, CloudStatusCache
 from .marquee import NameMarquee
 from .detailcells import SizeUnitCells
 from .columnsettings import modified_text
+from .flowlayout import FlowToolbar, wrapped_control_text
+from .windowplacement import position_popup_in_work_area
+from .directorydata import DirectoryItem, directory_items, listing_items, listing_signature, ordered_listing
 from .workflowdata import WorkflowRecords
 from .workflows import CommandPalette
 from .workspaces import show_workspaces, restore_workspace
 from .syncprogress import SyncProgress
+from .transferprogress import TransferProgress
+from .operationui import OperationResultWindow
 from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard, popup_work_area
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
@@ -142,6 +147,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.45", "2026/10/28", (
+        "Improved: Copy and move keep the interface responsive, resolve conflicts on the UI thread and allow stopping after the current item.",
+        "Improved: Scaled prompts and recovery dialogs preserve safe keyboard choices, nested focus, scrollable details and reachable actions.",
+        "Improved: Saved workflows support filtering and accessible full details; operation results list failures first with targeted retry.",
+        "Fixed: Folder lists reuse metadata for filtering and sorting, retain state on read failure and preserve explicit search-result tab scope.",
+        "Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.",
+    )),
     ("v0.18.44", "2026/10/28", (
         "Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.",
         "Improved: Search keeps progress and elapsed details near the query and fits result actions to their labels.",
@@ -1053,6 +1065,11 @@ class FilePane(ttk.Frame):
         self.locked_path: Path | None = None
         self.on_locked_navigation = lambda _path: None
         self._signature = None
+        self._listing_rows = ()
+        self._listing_snapshot_key = None
+        self._prepared_listing = None
+        self._result_listing_paths = ()
+        self._listing_failure_key=None
         self._search_reveal_path = None
         self.quick_filter_var = tk.StringVar()
         self._drag_press_item = None
@@ -1076,6 +1093,8 @@ class FilePane(ttk.Frame):
         self._vcs_loading = False
         self._vcs_inflight = None
         self._vcs_results = queue.Queue()
+        self._vcs_poll_job=None
+        self.bind('<Destroy>',self._dispose_file_pane,add='+')
 
         # Keep the command target visible even when the panel has no selected row.
         self.active_indicator = tk.Frame(self, height=3, background="#9aa7b3",
@@ -1169,7 +1188,7 @@ class FilePane(ttk.Frame):
         self.status.pack(fill="x", pady=(3, 0))
         self.quick_filter_bar.pack(fill="x", pady=(2, 0))
         install_button_tooltips(self)
-        self.after(150, self._poll_vcs_results)
+        self._vcs_poll_job=self.after(150, self._poll_vcs_results)
         self.navigate(self.path)
         try:
             self.shell_drop_target = ShellFileDropTarget(
@@ -1381,9 +1400,10 @@ class FilePane(ttk.Frame):
         if not tags or tags[0] == "PFC_INLINE_PLACEHOLDER":
             return ""
         path = Path(tags[0])
-        visible = path.name if path.is_dir() or self.show_extensions else path.stem
-        if self.view_mode == "list":
-            return f"[{visible}]" if path.is_dir() else visible
+        is_dir=self.tree.set(iid,'size')=='<DIR>'
+        visible = path.name if is_dir or self.show_extensions else path.stem
+        if self.view_mode == "list" or self.mode!='files':
+            return f"[{visible}]" if is_dir else visible
         current = str(self.tree.item(iid, "text"))
         prefix = "└─ " if current.startswith("└─ ") else "├─ " if current.startswith("├─ ") else ""
         return prefix + visible
@@ -1429,6 +1449,7 @@ class FilePane(ttk.Frame):
         self._vcs_loading = True
         generation = self._vcs_generation
         self._vcs_inflight = generation
+        results=self._vcs_results
         def load():
             issue=None
             try:
@@ -1439,7 +1460,8 @@ class FilePane(ttk.Frame):
                 statuses.update(getattr(exc,'statuses',{}))
                 issue=dict(backend=getattr(exc,'backend','vcs'),reason=getattr(exc,'reason','query-failed'),
                            error=type(exc).__name__,returncode=getattr(exc,'returncode',None))
-            self._vcs_results.put((generation, path, statuses, issue))
+            # Do not retain a FilePane/Tk root until a slow Git process exits.
+            results.put((generation, path, statuses, issue))
         try:
             threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
         except RuntimeError:
@@ -1448,6 +1470,7 @@ class FilePane(ttk.Frame):
             self._vcs_path = None
 
     def _poll_vcs_results(self) -> None:
+        self._vcs_poll_job=None
         try:
             while True:
                 generation, path, statuses, issue = self._vcs_results.get_nowait()
@@ -1469,9 +1492,18 @@ class FilePane(ttk.Frame):
         except queue.Empty:
             pass
         try:
-            self.after(150, self._poll_vcs_results)
+            self._vcs_poll_job=self.after(150, self._poll_vcs_results)
         except tk.TclError:
             pass
+
+    def _dispose_file_pane(self,event):
+        if event.widget is not self:return
+        for name in ('_vcs_poll_job','_column_resize_job'):
+            job=getattr(self,name,None)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
 
     def _apply_vcs_icons(self, previous: dict[str, str] | None = None) -> None:
         previous = previous or {}
@@ -1492,31 +1524,21 @@ class FilePane(ttk.Frame):
 
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
-            entries = [path for path in folder.iterdir()
-                       if (self.show_hidden or not is_hidden(path)) and
-                       (self.show_system or not is_system(path))]
+            entries = directory_items(folder,self.show_hidden,self.show_system)
         except OSError:
             return 0
         needle = self.quick_filter_var.get().strip().casefold()
         if needle:
-            entries = [path for path in entries if needle in path.name.casefold()]
+            entries = [row for row in entries if needle in row.path.name.casefold()]
         if self.view_mode == "folder":
-            entries = [path for path in entries if path.is_dir()]
-        def sort_key(path: Path):
-            try:
-                stat = path.stat()
-                values = {"name": path.name.casefold(), "ext": path.suffix.casefold(),
-                          "size": stat.st_size, "modified": stat.st_mtime}
-                return values[self.sort_column]
-            except OSError:
-                return path.name.casefold()
-        entries.sort(key=sort_key, reverse=self.reverse)
-        if not self.mix_sorting:
-            entries.sort(key=lambda path: not path.is_dir())
+            entries = [row for row in entries if row.is_dir]
+        entries=ordered_listing(entries,self.sort_column,self.reverse,self.mix_sorting)
         added = 0
-        for index, path in enumerate(entries):
+        for index, row in enumerate(entries):
+            path=row.path
+            if row.metadata is None:continue
             try:
-                stat, is_dir = path.stat(), path.is_dir()
+                stat, is_dir = row.metadata, row.is_dir
                 iid = self.tree.insert(parent_iid, "end",
                                        text=self._tree_label(path, is_dir,
                                                             index == len(entries) - 1),
@@ -1777,6 +1799,10 @@ class FilePane(ttk.Frame):
             if not bypass_lock and self.lock_mode == "locked" and path != self.path:
                 self.on_locked_navigation(path)
                 return False
+            # Validate the listing before committing history, path or widgets.
+            # Reuse this exact snapshot in refresh rather than scanning twice.
+            reveal=self._search_reveal_path if getattr(self,'_search_reveal_path',None) is not None and self._search_reveal_path.parent==path else None
+            prepared=directory_items(path,self.show_hidden,self.show_system,reveal)
             previous = self.path
             focused = self.tree.focus()
             if not focused and self.tree.selection():
@@ -1794,6 +1820,7 @@ class FilePane(ttk.Frame):
             if getattr(self, '_search_reveal_path', None) is not None and self._search_reveal_path.parent != path:
                 self._search_reveal_path = None
             self.mode = "files"
+            self._prepared_listing=(self._listing_key(),prepared)
             if self.archive_session is not None and self.archive_session.contains(path):
                 relative = self.archive_session.relative_path(path)
                 self.display_title = (relative.name if relative.parts
@@ -1807,6 +1834,8 @@ class FilePane(ttk.Frame):
             return True
         except OSError as exc:
             self.path_var.set(str(self.path))
+            log=getattr(self.winfo_toplevel(),'debug_log',None)
+            if log is not None:log.exception('navigation.failed',exc)
             messagebox.showerror(tr("Cannot open folder"), str(exc))
             return False
 
@@ -1899,10 +1928,22 @@ class FilePane(ttk.Frame):
             marker = (" ▲" if not self.reverse else " ▼") if col == self.sort_column else ""
             target = "#0" if col == "name" else col
             self.tree.heading(target, text=self.heading_labels[col] + marker)
-        self.refresh()
+        self.refresh(_reuse_listing=True)
         self.on_change()
 
-    def refresh(self) -> None:
+    def _listing_key(self):
+        return (self.mode,self.path,self.show_hidden,self.show_system,self._search_reveal_path,
+                self._result_listing_paths if self.mode=='search_results' else ())
+
+    def _listing_failed(self,exc):
+        self.status.configure(text=tr('Cannot read folder; previous list retained'))
+        key=(self.path,type(exc).__name__,getattr(exc,'errno',None),getattr(exc,'winerror',None))
+        if key!=self._listing_failure_key:
+            log=getattr(self.winfo_toplevel(),'debug_log',None)
+            if log is not None:log.exception('directory.read.failed',exc,severity='WARNING')
+        self._listing_failure_key=key
+
+    def refresh(self, *, _reuse_listing=False) -> None:
         if self._inline_editor is not None:
             return
         # Preserve Treeview IDs from mouse-down through drop. A filesystem
@@ -1912,6 +1953,23 @@ class FilePane(ttk.Frame):
             self._refresh_after_drag = True
             return
         self._refresh_after_drag = False
+        key=self._listing_key()
+        fresh=True
+        try:
+            if self._prepared_listing is not None and self._prepared_listing[0]==key:
+                rows=self._prepared_listing[1]
+            elif (_reuse_listing and self._listing_snapshot_key==key
+                  and (self.view_mode=='list' or self.mode=='search_results')):
+                rows=self._listing_rows;fresh=False
+            elif self.mode=='search_results':rows=listing_items(self._result_listing_paths)
+            else:rows=directory_items(self.path,self.show_hidden,self.show_system,self._search_reveal_path)
+        except OSError as exc:
+            self._listing_failed(exc)
+            messagebox.showerror(tr('Cannot read folder'),str(exc),parent=self.winfo_toplevel())
+            return
+        finally:self._prepared_listing=None
+        self._listing_rows=rows;self._listing_snapshot_key=key
+        if fresh:self._listing_failure_key=None
         self.name_marquee.stop()
         self.size_units.hide()
         reset_view = getattr(self, "_reset_view_on_refresh", False)
@@ -1935,10 +1993,7 @@ class FilePane(ttk.Frame):
         try:
             self._request_vcs_statuses()
             if self.mode == "files" and self.view_mode != "list":
-                visible_entries = [p for p in self.path.iterdir()
-                                   if (self.show_hidden or not is_hidden(p)) and
-                                   (self.show_system or not is_system(p))]
-                self._signature = self.signature_for(visible_entries)
+                self._signature = listing_signature(rows)
                 root_stat = self.path.stat()
                 root_label = self.path.name or str(self.path)
                 root_iid = self.tree.insert("", "end", text=root_label,
@@ -1968,28 +2023,19 @@ class FilePane(ttk.Frame):
                 self._schedule_column_autosize()
                 return
             reveal = getattr(self, '_search_reveal_path', None)
-            entries = [p for p in self.path.iterdir()
-                       if p == reveal or ((self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p)))]
-            self._signature = self.signature_for(entries)
+            entries = rows
+            self._signature = listing_signature(rows)
             needle = self.quick_filter_var.get().strip().casefold()
             if needle:
-                entries = [path for path in entries if path == reveal or needle in path.name.casefold()]
-            def key(p: Path):
-                try:
-                    stat = p.stat()
-                    values = {"name": p.name.lower(), "ext": p.suffix.lower(), "size": stat.st_size,
-                              "modified": stat.st_mtime}
-                    return values[self.sort_column]
-                except OSError:
-                    return p.name.lower()
-            entries.sort(key=key, reverse=self.reverse)
-            if not self.mix_sorting:
-                entries.sort(key=lambda path: not path.is_dir())
+                entries = [row for row in entries if row.path == reveal or needle in row.path.name.casefold()]
+            entries=ordered_listing(entries,self.sort_column,self.reverse,self.mix_sorting)
             total = 0
-            for p in entries:
+            for row in entries:
+                p=row.path
+                if row.metadata is None:continue
                 try:
-                    stat = p.stat()
-                    is_dir = p.is_dir()
+                    stat = row.metadata
+                    is_dir = row.is_dir
                     total += 0 if is_dir else stat.st_size
                     visible_name = p.name if is_dir or self.show_extensions else p.stem
                     name = f"[{visible_name}]" if is_dir else visible_name
@@ -2004,8 +2050,12 @@ class FilePane(ttk.Frame):
                 except OSError:
                     continue
             filter_status = tr(" — filter: {filter}", filter=self.quick_filter_var.get().strip()) if needle else ""
-            self.status.configure(text=tr("{count} items   {size}", count=len(entries),
+            self.status.configure(text=tr("{count} items   {size}", count=len(self.tree.get_children()),
                                           size=format_size(total)) + filter_status)
+            unavailable=sum(row.metadata is None for row in entries)
+            if unavailable:self.status.configure(text=self.status.cget('text')+tr(' · {count} unavailable',count=unavailable))
+            if self._listing_failure_key is not None:
+                self.status.configure(text=self.status.cget('text')+' · '+tr('Cannot read folder; previous list retained'))
             current = self.tree.selection()
             children = self.tree.get_children()
             if not current and children:
@@ -2096,14 +2146,14 @@ class FilePane(ttk.Frame):
             return False
         self._request_vcs_statuses()
         try:
-            reveal = self._search_reveal_path
-            entries = [p for p in self.path.iterdir()
-                       if p == reveal or ((self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p)))]
-            signature = self.signature_for(entries)
-        except OSError:
+            rows=directory_items(self.path,self.show_hidden,self.show_system,self._search_reveal_path)
+            signature = listing_signature(rows)
+        except OSError as exc:
+            self._listing_failed(exc)
             return False
-        if signature == self._signature:
+        if signature == self._signature and self._listing_failure_key is None:
             return False
+        self._prepared_listing=(self._listing_key(),rows)
         self.refresh()
         return True
 
@@ -2135,8 +2185,8 @@ class FilePane(ttk.Frame):
         self.tree.focus_set()
 
     def _quick_filter_changed(self, *_args) -> None:
-        if self.mode == "files":
-            self.refresh()
+        if self.mode in ("files","search_results"):
+            self.refresh(_reuse_listing=True)
             self.on_change()
 
     def set_quick_filter(self, value: str) -> None:
@@ -2242,31 +2292,11 @@ class FilePane(ttk.Frame):
     def show_file_listing(self, paths, title: str) -> None:
         """Show arbitrary search results as an actionable temporary panel tab."""
         self.mode = "search_results"
+        self._result_listing_paths=tuple(dict.fromkeys(Path(path) for path in paths))
         self.display_title = title
         self.path_bar.set_location(f"[{title}]")
-        self.tree.delete(*self.tree.get_children())
-        self._row_icons.clear()
-        self._date_values.clear()
-        total = 0
-        for item in paths:
-            path = Path(item)
-            try:
-                stat, is_dir = path.stat(), path.is_dir()
-                total += 0 if is_dir else stat.st_size
-                self.tree.insert("", "end", text=f"[{path.name}]" if is_dir else path.name,
-                                 image=self._icon(path, is_dir),
-                                 values=("" if is_dir else path.suffix[1:].upper(),
-                                         "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                                         self.format_modified(stat.st_mtime, path)),
-                                 tags=(str(path),))
-            except OSError:
-                continue
-        self.status.configure(text=tr("{count} items   {size}",
-                                      count=len(self.tree.get_children()), size=format_size(total)))
-        children = self.tree.get_children()
-        if children:
-            self.tree.selection_set(children[0]); self.tree.focus(children[0]); self.tree.see(children[0])
-        self._schedule_column_autosize(); self.on_change(); self.focus_file_list()
+        self._reset_view_on_refresh=True
+        self.refresh();self.on_change();self.focus_file_list()
 
     def toggle_hidden(self) -> None:
         self.show_hidden = not self.show_hidden
@@ -2293,7 +2323,7 @@ class FilePane(ttk.Frame):
         icon_size = max(16, round(scaled_tree_row_height(linespace, scale) * .9))
         if self.icons.size != icon_size:
             self.icons = ShellIconProvider(icon_size)
-        self.refresh()
+        self.refresh(_reuse_listing=True)
         self._schedule_column_autosize()
 
 
@@ -2413,33 +2443,61 @@ class PaneTabs(ChamferNotebook):
 class ConflictDialog(tk.Toplevel):
     def __init__(self, parent, source: Path, target: Path) -> None:
         super().__init__(parent)
+        self.withdraw()
+        self.previous_grab=parent.grab_current();self.previous_focus=parent.focus_get()
         self.result = ("cancel", False)
         self.apply_all = tk.BooleanVar(value=False)
-        self.title(tr("File conflict")); self.resizable(False, False); self.transient(parent)
+        self.title(tr("File conflict")); self.transient(parent.winfo_toplevel())
+        area=popup_work_area(parent);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')
+        ratio=max(1,line/20)
+        width=min(round(740*ratio),area[2]-area[0]-48)
+        height=min(round(330*ratio),area[3]-area[1]-64)
         body = ttk.Frame(self, padding=12); body.pack(fill="both", expand=True)
-        ttk.Label(body, text=tr("An item with the same name already exists."),
-                  font=tkfont.nametofont("TkHeadingFont")).pack(anchor="w", pady=(0, 8))
-        ttk.Label(body, text=f"{tr('Source')}: {source}\n{tr('Destination')}: {target}", justify="left",
-                  wraplength=720).pack(anchor="w")
-        ttk.Checkbutton(body, text=tr("Apply this choice to all remaining conflicts"),
-                        variable=self.apply_all).pack(anchor="w", pady=(12, 8))
-        buttons = ttk.Frame(body); buttons.pack(fill="x")
-        first_button = None
+        heading=ttk.Label(body, text=tr("An item with the same name already exists."),
+                  font=tkfont.nametofont("TkHeadingFont"),wraplength=width-40)
+        heading.pack(fill='x',pady=(0,6))
+        paths=ttk.Frame(body);paths.pack(fill='both',expand=True)
+        self.path_text=tk.Text(paths,font='TkDefaultFont',wrap='word',height=4,highlightthickness=0,borderwidth=0,takefocus=True)
+        palette=getattr(parent._root(),'palette',{})
+        self.path_text.configure(background=palette.get('content','#ffffff'),foreground=palette.get('text','#101010'))
+        scroll=ttk.Scrollbar(paths,command=self.path_text.yview);scroll.pack(side='right',fill='y')
+        self.path_text.configure(yscrollcommand=scroll.set)
+        self.path_text.pack(side='left',fill='both',expand=True)
+        self.path_text.insert('1.0',f"{tr('Source')}: {source}\n\n{tr('Destination')}: {target}")
+        self.path_text.configure(state='disabled')
+        self.all_label=tr('Apply this choice to all remaining conflicts')
+        self.all_check=ttk.Checkbutton(body,text=self.all_label,variable=self.apply_all)
+        self.all_check.pack(side='bottom',anchor='w',pady=(12,8),before=heading)
+        font=tkfont.nametofont('TkDefaultFont')
+        body.bind('<Configure>',lambda e:self.all_check.configure(text=wrapped_control_text(
+            self.all_label,font.measure,e.width-60)),add='+')
+        buttons = FlowToolbar(body); buttons.pack(side='bottom',fill='x',before=self.all_check)
+        self.buttons={}
         for text, action in (("Replace existing", "replace"), ("Skip", "skip"),
                              ("Keep both", "keep_both"), ("Cancel", "cancel")):
-            button = ttk.Button(buttons, text=tr(text), command=lambda value=action: self.choose(value))
-            button.pack(side="left", padx=3)
-            if first_button is None: first_button = button
+            button = ttk.Button(buttons, text=tr(text),width=0,command=lambda value=action: self.choose(value))
+            buttons.add(button);self.buttons[action]=button
         self.bind("<Escape>", lambda _event: self.choose("cancel"))
+        self.bind('<KeyPress>',lambda e:'break',add='+')
+        self.bind('<Return>',self._accept)
         self.protocol("WM_DELETE_WINDOW", lambda: self.choose("cancel"))
-        self.update_idletasks()
-        self.geometry(f"+{parent.winfo_rootx() + 60}+{parent.winfo_rooty() + 80}")
-        self.grab_set(); self.lift(); self.focus_force()
-        if first_button is not None: first_button.focus_set()
+        self.geometry(f'{width}x{height}');self.minsize(min(500,width),min(240,height))
+        self.bind('<Configure>',lambda e:heading.configure(wraplength=max(160,e.width-40)) if e.widget is self else None)
+        self.deiconify();position_popup_in_work_area(self,parent,area)
+        self.grab_set();self.lift();self.buttons['cancel'].focus_force()
+
+    def _accept(self,_event=None):
+        focused=self.focus_get()
+        if focused in self.buttons.values():focused.invoke()
+        return 'break'
 
     def choose(self, action: str) -> None:
         self.result = (action, self.apply_all.get() if action != "cancel" else False)
         self.destroy()
+        try:
+            if self.previous_grab is not None and self.previous_grab.winfo_exists():self.previous_grab.grab_set()
+            if self.previous_focus is not None and self.previous_focus.winfo_exists():self.previous_focus.focus_set()
+        except tk.TclError:pass
 
     @classmethod
     def ask(cls, parent, source: Path, target: Path) -> tuple[str, bool]:
@@ -2467,6 +2525,7 @@ class Commander(tk.Tk):
         self.debug_log = DiagnosticLog(__version__, automatic=True,
                                       runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
+        self.bind('<Destroy>',self._close_diagnostics,add='+')
         diagnostic_log = self.debug_log
         self.bind('<Destroy>', lambda event: diagnostic_log.close()
                   if event.widget is self else None, add='+')
@@ -3041,7 +3100,18 @@ class Commander(tk.Tk):
         warning.pack(fill="x", before=self.split)
         self.after(10000, lambda: warning.destroy() if warning.winfo_exists() else None)
 
+    def _close_diagnostics(self,event):
+        if event.widget is self:
+            try:self.debug_log.close()
+            except OSError:pass  # Diagnostic storage must never prevent exit.
+
     def close_app(self) -> None:
+        running=[w for w in getattr(self,'_progress_operations',set()) if w.winfo_exists()]
+        if running:
+            running[0].lift();return
+        transfer=getattr(self,'_transfer_dialog',None)
+        if transfer is not None and transfer.winfo_exists():
+            transfer.cancel();return
         pending_sync = getattr(self, '_sync_dialog', None)
         if pending_sync is not None and pending_sync.winfo_exists():
             pending_sync.cancel()
@@ -3085,6 +3155,14 @@ class Commander(tk.Tk):
         for session in list(self._archive_sessions):
             self._close_archive_session(session, retries=0)
         self._archive_sessions.clear()
+        self._ready=False
+        # This Tk root owns its interpreter. Cancel its remaining Tcl callbacks
+        # before deleting their Python command registrations during destruction.
+        for job in self.tk.call('after','info'):
+            # Owning widgets delete their registered commands on destruction.
+            # root.after_cancel would delete a child's command twice.
+            try:self.tk.call('after','cancel',job)
+            except tk.TclError:pass
         self.destroy()
 
     def _sync_auto_start(self, show_error: bool = True) -> bool:
@@ -4413,24 +4491,41 @@ class Commander(tk.Tk):
 
     def _run_progress_operation(self, title: str, work, done) -> None:
         window = tk.Toplevel(self)
+        if not hasattr(self,'_progress_operations'):self._progress_operations=set()
+        self._progress_operations.add(window)
         window.title(tr(title)); window.transient(self)
-        window.resizable(False, False); window.protocol("WM_DELETE_WINDOW", lambda: None)
+        window.resizable(True, True); window.protocol("WM_DELETE_WINDOW", lambda: None)
         frame = ttk.Frame(window, padding=16); frame.pack(fill="both", expand=True)
-        ttk.Label(frame, text=tr(title), anchor="w").pack(fill="x", pady=(0, 8))
+        heading=ttk.Label(frame,text=tr(title),anchor='w');heading.pack(fill='x',pady=(0,8))
+        eta_label=ttk.Label(frame,text=tr('Preparing…'),anchor='w')
+        eta_label.pack(side='bottom',fill='x',pady=(6,0))
         progress = ttk.Progressbar(frame, mode="indeterminate", maximum=100, value=0, length=360)
         progress.pack(fill="x")
-        detail_label = ttk.Label(frame, text="", anchor="w")
-        detail_label.pack(fill="x", pady=(6, 0))
-        eta_label = ttk.Label(frame, text=tr("Preparing…"), anchor="w")
-        eta_label.pack(fill="x", pady=(6, 0))
+        details=ttk.Frame(frame);details.pack(fill='both',expand=True,pady=(6,0))
+        detail_scroll=ttk.Scrollbar(details);detail_scroll.pack(side='right',fill='y')
+        detail_text=tk.Text(details,font='TkDefaultFont',height=2,wrap='word',borderwidth=0,
+            highlightthickness=0,background=self.palette['window'],foreground=self.palette['text'],
+            yscrollcommand=detail_scroll.set,state='disabled')
+        detail_text.pack(fill='both',expand=True);detail_scroll.configure(command=detail_text.yview)
+        def wrap_progress(event):
+            if event.widget is window:
+                for label in (heading,eta_label):label.configure(wraplength=max(100,event.width-36))
+        window.bind('<Configure>',wrap_progress)
+        work_area=popup_work_area(self);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')
+        width=min(round(640*max(1,line/20)),work_area[2]-work_area[0]-48)
+        height=min(max(220,line*8+70),work_area[3]-work_area[1]-64)
+        window.geometry(f'{width}x{height}');window.minsize(min(width,360),min(height,200))
         window.update_idletasks()
-        x = self.winfo_rootx() + max(0, (self.winfo_width() - window.winfo_reqwidth()) // 2)
-        y = self.winfo_rooty() + max(0, (self.winfo_height() - window.winfo_reqheight()) // 3)
-        window.geometry(f"+{x}+{y}"); window.lift(); window.focus_force()
+        position_popup_in_work_area(window,self,work_area);window.lift();window.focus_force()
         results = queue.Queue(); started = time.monotonic(); progress.start(12)
+        progress_lock=threading.Lock();latest_progress=None
 
         def report(completed: int, total: int, detail: str = "") -> None:
-            results.put(("progress", max(0, completed), max(0, total), detail))
+            nonlocal latest_progress
+            # Intermediate progress is replaceable; terminal results are not.
+            # A fast recursive operation must not enqueue thousands of redraws
+            # or make Tk drain an unbounded queue before handling input.
+            with progress_lock:latest_progress=(max(0,completed),max(0,total),detail)
 
         def runner():
             try:
@@ -4443,12 +4538,13 @@ class Commander(tk.Tk):
         worker = threading.Thread(target=runner, daemon=True, name=f"PFC-{title}")
         worker.start()
 
-        finished = False; target_percent = 0.0; displayed_percent = 0.0
+        finished = False; target_percent = 0.0
         def finish_window():
             nonlocal finished
             if finished:
                 return
             finished = True
+            self._progress_operations.discard(window)
             try: progress.stop()
             except tk.TclError: pass
             try:
@@ -4457,33 +4553,30 @@ class Commander(tk.Tk):
                 pass
 
         def poll():
-            nonlocal target_percent, displayed_percent
+            nonlocal target_percent, latest_progress
             result = None
-            while True:
-                try: message = results.get_nowait()
-                except queue.Empty: break
-                if message[0] == "progress":
-                    _kind, completed, total, detail = message
-                    if total > 0:
-                        if str(progress.cget("mode")) == "indeterminate":
-                            progress.stop()
-                            progress.configure(mode="determinate", value=0)
-                            eta_label.configure(text=tr("Estimated time remaining: calculating…"))
-                        target_percent = max(target_percent, min(99.0, completed * 100 / total))
-                    if detail:
-                        detail_label.configure(text=detail)
-                else:
-                    result = message
-            if displayed_percent < target_percent:
-                displayed_percent = min(target_percent, displayed_percent + min(5, max(1, target_percent - displayed_percent)))
-                progress.configure(value=displayed_percent)
+            with progress_lock:
+                update=latest_progress;latest_progress=None
+            if update is not None:
+                completed,total,detail=update
+                if total>0:
+                    if str(progress.cget('mode'))=='indeterminate':
+                        progress.stop();progress.configure(mode='determinate',value=0)
+                    target_percent=max(target_percent,min(99.0,completed*100/total))
+                    progress.configure(value=target_percent)
+                if detail:
+                    detail_text.configure(state='normal');detail_text.delete('1.0','end')
+                    detail_text.insert('1.0',detail);detail_text.configure(state='disabled')
+            try:result=results.get_nowait()
+            except queue.Empty:pass
+            if target_percent>0:
                 elapsed = max(.001, time.monotonic() - started)
-                if displayed_percent >= 1:
-                    remaining = max(0, round(elapsed * (100 - displayed_percent) / displayed_percent))
+                if target_percent >= 1:
+                    remaining = max(0, round(elapsed * (100 - target_percent) / target_percent))
                     eta_label.configure(text=tr("Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds",
                                                 minutes=remaining // 60, seconds=remaining % 60))
             if result is None:
-                if not worker.is_alive():
+                if not worker.is_alive() and results.empty():
                     finish_window()
                     messagebox.showerror(tr(title), tr("The operation ended without a result."),
                                          parent=self)
@@ -6026,33 +6119,14 @@ class Commander(tk.Tk):
     def _show_operation_result(self, verb: str, result: OperationResult, retry=None) -> None:
         if not result.failures and not result.skipped:
             return
-        display_verb = tr(verb)
-        details = [tr("{verb}: {completed} completed, {skipped} skipped, {failed} failed.",
-                      verb=display_verb, completed=len(result.completed),
-                      skipped=len(result.skipped), failed=len(result.failures)), ""]
-        details.extend(f"SKIPPED: {path}" for path in result.skipped)
-        for failure in result.failures:
-            destination = f" -> {failure.target}" if failure.target else ""
-            details.append(f"FAILED: {failure.source}{destination}\n  {failure.message}")
-        report = "\n".join(details)
-        dialog = tk.Toplevel(self); dialog.title(tr("{verb} result", verb=display_verb)); dialog.transient(self)
-        dialog.geometry("760x420"); dialog.minsize(540, 280)
-        ttk.Label(dialog, text=details[0], font=tkfont.nametofont("TkHeadingFont"),
-                  padding=(8, 8, 8, 4)).pack(anchor="w")
-        text = tk.Text(dialog, wrap="word", height=12, font=tkfont.nametofont("TkFixedFont"))
-        text.insert("1.0", report); text.configure(state="disabled"); text.pack(fill="both", expand=True, padx=8)
-        buttons = ttk.Frame(dialog, padding=8); buttons.pack(fill="x")
-        def copy_report():
-            self.clipboard_clear(); self.clipboard_append(report); self.update_idletasks()
-        ttk.Button(buttons, text=tr("Copy Details"), command=copy_report).pack(side="left")
-        if retry is not None and result.failures:
-            def retry_failed():
-                failed = [failure.source for failure in result.failures]
-                dialog.destroy(); retry(failed)
-            ttk.Button(buttons, text=tr("Retry Failed"), command=retry_failed).pack(side="left", padx=4)
-        ttk.Button(buttons, text=tr("Close"), command=dialog.destroy).pack(side="right")
-        dialog.bind("<Escape>", lambda _event: dialog.destroy())
-        dialog.lift(); dialog.focus_force()
+        if result.failures:
+            # Known operations and counts only: never emit raw paths/messages
+            # from handled filesystem failures to the automatic audit stream.
+            operation=verb if verb in ('Copy','Move','Paste','Recycle','Permanent delete','Delete from Archive','Safe Sync') else 'File operation'
+            self.debug_log.event('operation.partial.failed',severity='ERROR',operation=operation,
+                completed=len(result.completed),skipped=len(result.skipped),failed=len(result.failures),
+                reason=f'{operation}: {len(result.completed)} completed, {len(result.skipped)} skipped, {len(result.failures)} failed.')
+        return OperationResultWindow(self,verb,result,retry)
 
     def _execute_transfer(self, verb: str, operation, items: list[Path], destination: Path,
                           confirm: bool = True, allow_retry: bool = True) -> OperationResult | None:
@@ -6064,10 +6138,16 @@ class Commander(tk.Tk):
                                                    verb=display_verb, count=len(items), destination=destination),
                                                 parent=self):
             return None
+        existing=getattr(self,'_transfer_dialog',None)
+        if existing is not None and existing.winfo_exists():
+            existing.lift();return None
+        dialog=TransferProgress(self,verb,operation,items,destination,
+                                self._conflict_resolver(),self.continue_errors_var.get())
+        self._transfer_dialog=dialog
         try:
-            result = operation(items, destination, self._conflict_resolver(), self.continue_errors_var.get())
-        except (OSError, shutil.Error) as exc:
-            result = OperationResult(failures=[OperationFailure(items[0], destination, str(exc))])
+            self.wait_window(dialog)
+            result=dialog.result
+        finally:self._transfer_dialog=None
         changed_paths = [destination]
         if operation is move_items:
             changed_paths.extend(items)

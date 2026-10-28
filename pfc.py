@@ -21,6 +21,28 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.': ('修正：預覽讀取器在開啟前拒絕特殊串流，並核對已開啟檔案，避免被替換的管線阻塞。','修正：预览读取器在打开前拒绝特殊流，并核对已打开文件，避免被替换的管道阻塞。','수정: 미리보기는 특수 스트림을 열기 전에 거부하고 열린 파일을 검증하여 교체된 파이프로 인한 차단을 방지합니다.'),
+    'Yes': ('是','是','예'),
+    'No': ('否','否','아니요'),
+    'Abort': ('中止','中止','중단'),
+    'Retry': ('重試','重试','다시 시도'),
+    'Ignore': ('略過','忽略','무시'),
+    'Conflict selection failed. No changes were made to this item.': ('衝突選擇失敗；此項目未變更。','冲突选择失败；此项目未更改。','충돌 선택에 실패했습니다. 이 항목은 변경되지 않았습니다.'),
+    'Improved: Copy and move keep the interface responsive, resolve conflicts on the UI thread and allow stopping after the current item.': ('改善：複製與搬移保持介面回應，衝突選擇留在主介面，並可在目前項目完成後停止。','改善：复制与移动保持界面响应，冲突选择留在主界面，并可在当前项目完成后停止。','개선: 복사/이동 중 UI 응답을 유지하며 UI에서 충돌을 해결하고 현재 항목 완료 후 중지할 수 있습니다.'),
+    'Improved: Scaled prompts and recovery dialogs preserve safe keyboard choices, nested focus, scrollable details and reachable actions.': ('改善：輸入及復原視窗隨字級縮放，保留安全鍵盤選擇、巢狀焦點、可捲動明細及可見操作。','改善：输入及恢复窗口随字号缩放，保留安全键盘选择、嵌套焦点、可滚动明细及可见操作。','개선: 입력/복구 창은 글꼴 배율, 안전한 키보드 선택, 중첩 포커스, 스크롤 가능한 상세와 접근 가능한 동작을 유지합니다.'),
+    'Improved: Saved workflows support filtering and accessible full details; operation results list failures first with targeted retry.': ('改善：已儲存工作流程可篩選及查看完整明細；操作結果優先列出失敗項目並可針對重試。','改善：已保存工作流程可筛选及查看完整明细；操作结果优先列出失败项目并可针对重试。','개선: 저장된 작업을 검색하고 전체 상세를 볼 수 있으며 작업 결과는 실패 항목 우선 및 선택적 재시도를 제공합니다.'),
+    'Fixed: Folder lists reuse metadata for filtering and sorting, retain state on read failure and preserve explicit search-result tab scope.': ('修正：資料夾清單篩選與排序重用 metadata，讀取失敗保留原狀態，搜尋結果分頁保持明確範圍。','修正：文件夹列表筛选与排序复用 metadata，读取失败保留原状态，搜索结果分页保持明确范围。','수정: 필터/정렬에 메타데이터를 재사용하며 읽기 실패 시 상태와 검색 결과 탭의 범위를 유지합니다.'),
+    ' · {count} unavailable': (' · {count} 項無法讀取',' · {count} 项无法读取',' · {count}개 읽기 불가'),
+    'Cannot read folder; previous list retained': ('無法讀取資料夾；保留原清單','无法读取文件夹；保留原列表','폴더를 읽을 수 없어 이전 목록을 유지합니다'),
+    'Enter a start from 0 to 999999 and digits from 1 to 12.': ('起始值須為 0–999999，位數須為 1–12。','起始值须为 0–999999，位数须为 1–12。','시작 값은 0–999999, 자릿수는 1–12를 입력하세요.'),
+    'Enter a valid number ({minimum}–{maximum}).': ('請輸入有效數值（{minimum}–{maximum}）。','请输入有效数值（{minimum}–{maximum}）。','유효한 숫자를 입력하세요 ({minimum}–{maximum}).'),
+    'No matching entries.': ('沒有符合的項目。','没有匹配的项目。','일치하는 항목이 없습니다.'),
+    'Remove': ('移除','移除','제거'),
+    'Failed': ('失敗','失败','실패'),
+    'Skipped': ('略過','跳过','건너뜀'),
+    'Cancel stops after the current item, including its contents.': ('取消會在目前項目（含其內容）完成後停止。','取消会在当前项目（含其内容）完成后停止。','취소하면 현재 항목과 그 내용의 처리가 끝난 후 중지합니다.'),
+    'Stopping after the current item…': ('正在等待目前項目完成後停止…','正在等待当前项目完成后停止…','현재 항목 완료 후 중지하는 중…'),
+    '{completed} / {total} items · {seconds}s elapsed': ('{completed} / {total} 項 · 已用 {seconds} 秒','{completed} / {total} 项 · 已用 {seconds} 秒','{completed} / {total} 항목 · {seconds}초 경과'),
     'Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.': ('改善：預覽、文字比較及批次改名依實際寬度群組控制項，寬視窗減少換行且不縮小字體。','改善：预览、文本比较及批量重命名按实际宽度分组控件，宽窗口减少换行且不缩小字体。','개선: 미리보기, 텍스트 비교 및 일괄 이름 변경은 실제 너비로 컨트롤을 묶어 글꼴 축소 없이 넓은 창의 줄 수를 줄입니다.'),
     'Improved: Search keeps progress and elapsed details near the query and fits result actions to their labels.': ('改善：搜尋進度與耗時資訊保持在查詢區附近，結果按鈕依各自標籤寬度排列。','改善：搜索进度与耗时信息保持在查询区附近，结果按钮按各自标签宽度排列。','개선: 검색 진행과 경과 시간은 검색 조건 가까이에 표시되며 결과 버튼은 각 레이블 너비에 맞춥니다.'),
     'Improved: Settings use inline selectors and optional examples for General and Paths & Operations.': ('改善：設定選取欄位採同列排列，一般及路徑與操作的示意預覽改為按需展開。','改善：设置选择字段采用同行排列，常规及路径与操作的示意预览改为按需展开。','개선: 설정 선택기를 같은 줄에 배치하고 일반 및 경로/작업 예시는 필요할 때 펼칠 수 있습니다.'),
@@ -1916,6 +1938,62 @@ def is_hidden(path: Path) -> bool:
         return False
     attributes = ctypes.windll.kernel32.GetFileAttributesW(str(path))
     return attributes not in (-1, 0xffffffff) and bool(attributes & 2)
+
+
+# Source: pycommander/directorydata.py
+"""Per-listing metadata snapshots: one stat per item, no persistent disk cache."""
+from dataclasses import dataclass
+from pathlib import Path
+import stat as statlib
+
+
+
+
+@dataclass(frozen=True)
+class DirectoryItem:
+    path: Path
+    metadata: object
+
+    @property
+    def is_dir(self):
+        return self.metadata is not None and statlib.S_ISDIR(self.metadata.st_mode)
+
+
+def listing_items(paths):
+    rows=[]
+    for path in paths:
+        try:metadata=path.stat()
+        except OSError:metadata=None
+        rows.append(DirectoryItem(path,metadata))
+    return tuple(rows)
+
+
+def directory_items(folder,show_hidden=False,show_system=False,reveal=None):
+    # Preserve GetFileAttributesW visibility semantics for Windows links rather
+    # than substituting the followed target's stat attributes.
+    return listing_items(path for path in folder.iterdir() if path==reveal or
+        ((show_hidden or not is_hidden(path)) and (show_system or not is_system(path))))
+
+
+def listing_signature(rows):
+    # Results may span folders and share a basename. Keep their full identity,
+    # and never compare unavailable None metadata with another row's numbers.
+    records=((str(row.path),row.metadata.st_size,row.metadata.st_mtime_ns,row.metadata.st_mode)
+             if row.metadata is not None else (str(row.path),None,None,None) for row in rows)
+    return tuple(sorted(records,key=lambda record:record[0]))
+
+
+def ordered_listing(rows,column='name',reverse=False,mix=True):
+    def key(row):
+        if column=='name':return row.path.name.lower()
+        if column=='ext':return row.path.suffix.lower()
+        # Unreadable entries still participate in the signature, but never mix
+        # a string key into an otherwise numeric sort.
+        value=(row.metadata.st_size if column=='size' else row.metadata.st_mtime) if row.metadata is not None else 0
+        return value
+    rows=sorted(rows,key=key,reverse=reverse)
+    if not mix:rows.sort(key=lambda row:not row.is_dir)
+    return rows
 
 
 # Source: pycommander/clipboard.py
@@ -4913,7 +4991,8 @@ from datetime import datetime
 
 
 def modified_text(timestamp, date_order="ymd", time_style="24"):
-    value = datetime.fromtimestamp(timestamp)
+    try:value = datetime.fromtimestamp(timestamp)
+    except (OSError,ValueError,OverflowError):return '—'
     date = value.strftime("%m/%d/%Y" if date_order == "mdy" else "%Y/%m/%d")
     if time_style == "none":
         return date
@@ -6384,15 +6463,16 @@ class RootFolderTree(ttk.Frame):
             if len(candidates) >= 32: break
         if not candidates: return
         cancel = self._probe_cancel = threading.Event()
+        stop, results = self.stop, self._probe_results
         def work():
             deadline = time.monotonic()+1
             try:
                 for iid, path in candidates:
-                    if cancel.is_set() or self.stop.is_set() or time.monotonic() > deadline: break
+                    if cancel.is_set() or stop.is_set() or time.monotonic() > deadline: break
                     value = folder_has_children(path, cancel)
-                    self._probe_results.put((cancel, iid, value))
+                    results.put((cancel, iid, value))
             finally:
-                self._probe_results.put((cancel, None, None))
+                results.put((cancel, None, None))
         threading.Thread(target=work, daemon=True, name='PFC-folder-hints').start()
 
     def _poll_probes(self):
@@ -6513,6 +6593,9 @@ class RootFolderTree(ttk.Frame):
         self.failed.discard(iid)
         # Workers never touch Tk. Two daemon workers maximum, even if an offline
         # drive blocks a system call; stale/late results are ignored.
+        # Do not retain the widget/root until a slow OS call returns either:
+        # releasing its final Python reference on a worker can finalize Tk there.
+        slots, stop, results = self.slots, self.stop, self.results
         def work():
             try:
                 # Keep cloud/link folders visible for manual navigation, but
@@ -6525,8 +6608,8 @@ class RootFolderTree(ttk.Frame):
             except Exception as exc:
                 result = ([], False, str(exc))
             finally:
-                self.slots.release()
-            if not self.stop.is_set(): self.results.put((iid, token, result))
+                slots.release()
+            if not stop.is_set(): results.put((iid, token, result))
         threading.Thread(target=work, daemon=True, name='PFC-folder-tree').start()
         return True
 
@@ -7374,11 +7457,14 @@ class DiagnosticLog:
 """PFC message dialogs that inherit interface fonts and preserve modal ownership."""
 import tkinter as tk
 import math
-from tkinter import ttk, messagebox, font as tkfont
+from tkinter import ttk, messagebox, simpledialog, font as tkfont
+
 
 
 
 _NativeMessage = messagebox.Message
+_NATIVE_INPUTS={kind:getattr(getattr(simpledialog,'ask'+kind),'_pfc_native_input',
+                           getattr(simpledialog,'ask'+kind)) for kind in ('string','integer','float')}
 
 
 class ScaledMessageDialog(tk.Toplevel):
@@ -7398,12 +7484,12 @@ class ScaledMessageDialog(tk.Toplevel):
         pad = max(10, round(line*.5))
         area = popup_work_area(parent)
         width = min(area[2]-area[0]-48, round(620*ratio))
-        footer = ttk.Frame(self, padding=pad); footer.pack(side='bottom', fill='x')
+        footer = FlowToolbar(self, padding=pad); footer.pack(side='bottom', fill='x')
         body = ttk.Frame(self, padding=pad); body.pack(fill='both', expand=True)
         scroll = ttk.Scrollbar(body); scroll.pack(side='right', fill='y')
         self.text = tk.Text(body, font='TkDefaultFont', wrap='word', borderwidth=0,
                             highlightthickness=0, background=background, foreground=foreground,
-                            yscrollcommand=scroll.set, cursor='arrow', takefocus=False)
+                            yscrollcommand=scroll.set, cursor='arrow', takefocus=True)
         self.text.pack(fill='both', expand=True); scroll.configure(command=self.text.yview)
         message = str(options.get('message') or '')
         if options.get('detail'): message += '\n\n'+str(options['detail'])
@@ -7418,17 +7504,23 @@ class ScaledMessageDialog(tk.Toplevel):
         default = str(options.get('default') or choices[0])
         self.buttons = {}
         for index, choice in enumerate(choices):
-            button = ttk.Button(footer, text=tr(choice.title()), command=lambda c=choice: self.choose(c))
-            button.grid(row=0, column=index, padx=(0, pad//2), sticky='e')
+            button = ttk.Button(footer, text=tr(choice.title()), width=0, command=lambda c=choice: self.choose(c))
+            footer.add(button)
             self.buttons[choice] = button
-        footer.columnconfigure(0, weight=1)
         self.cancel_value = 'cancel' if 'cancel' in choices else 'no' if 'no' in choices else choices[0]
         self.bind('<Escape>', lambda _e: self.choose(self.cancel_value))
-        self.bind('<Return>', lambda _e: self.choose(default if default in choices else choices[0]))
+        def accept(_event=None):
+            focused=self.focus_get()
+            if focused in self.buttons.values():focused.invoke()
+            else:self.choose(default if default in choices else choices[0])
+            return 'break'
+        self.bind('<Return>',accept)
         self.protocol('WM_DELETE_WINDOW', lambda: self.choose(self.cancel_value))
         self.geometry(f'{width}x{height}')
         self.update_idletasks()
-        self.minsize(min(width, footer.winfo_reqwidth()+2*pad), min(height, 5*line))
+        minimum=max(240,sum(button.winfo_reqwidth() for button in self.buttons.values())+
+                    footer.gap*(len(self.buttons)-1)+2*pad)
+        self.minsize(min(width,minimum), min(height, 5*line))
         self.deiconify(); position_popup_in_work_area(self, parent, area); self.lift()
         self.buttons.get(default, self.buttons[choices[0]]).focus_force()
 
@@ -7461,6 +7553,90 @@ def install_scaled_messageboxes(root):
     root._pfc_scaled_messages = True
     if not getattr(messagebox.Message, '_pfc_scaled_message', False):
         messagebox.Message = _ScaledMessage
+    for kind in _NATIVE_INPUTS:
+        current=getattr(simpledialog,'ask'+kind)
+        if not getattr(current,'_pfc_scaled_input',False):
+            def ask(title,prompt,_kind=kind,**options):
+                parent=options.get('parent') or tk._default_root
+                if parent is None or not getattr(parent._root(),'_pfc_scaled_messages',False):
+                    return _NATIVE_INPUTS[_kind](title,prompt,**options)
+                dialog=ScaledInputDialog(parent,title,prompt,_kind,options)
+                parent.wait_window(dialog)
+                return dialog.result
+            ask._pfc_scaled_input=True
+            ask._pfc_native_input=_NATIVE_INPUTS[kind]
+            setattr(simpledialog,'ask'+kind,ask)
+
+
+class ScaledInputDialog(tk.Toplevel):
+    """PFC-only typed prompts; focused Cancel, nested grabs and font scale work."""
+    def __init__(self,parent,title,prompt,kind='string',options=None):
+        super().__init__(parent);self.withdraw();options=options or {}
+        self.previous_grab=parent.grab_current();self.previous_focus=parent.focus_get()
+        self.result=None;self.kind=kind;self.options=options
+        self.title(title);self.transient(parent.winfo_toplevel())
+        area=popup_work_area(parent);font=tkfont.nametofont('TkDefaultFont')
+        line=font.metrics('linespace');width=min(round(620*max(1,line/20)),area[2]-area[0]-48)
+        outer=ttk.Frame(self,padding=12);outer.pack(fill='both',expand=True)
+        message=ttk.Frame(outer);message.pack(fill='both',expand=True,pady=(0,8))
+        scroll=ttk.Scrollbar(message);scroll.pack(side='right',fill='y')
+        palette=getattr(parent._root(),'palette',{})
+        self.prompt=tk.Text(message,font='TkDefaultFont',wrap='word',height=3,
+                            borderwidth=0,highlightthickness=0,takefocus=True,
+                            background=palette.get('window','#eeeeee'),foreground=palette.get('text','#101010'),
+                            yscrollcommand=scroll.set)
+        self.prompt.insert('1.0',prompt);self.prompt.configure(state='disabled')
+        self.prompt.pack(fill='both',expand=True);scroll.configure(command=self.prompt.yview)
+        self.entry=ttk.Entry(outer,font='TkDefaultFont',show=options.get('show',''),width=12)
+        self.entry.pack(fill='x')
+        if options.get('initialvalue') is not None:self.entry.insert(0,str(options['initialvalue']))
+        self.error=ttk.Label(outer,text='',wraplength=width-32)
+        self.actions=FlowToolbar(outer);self.actions.pack(side='bottom',fill='x',pady=(10,0),before=message)
+        self.entry.pack(side='bottom',fill='x',before=message)
+        self.ok_button=ttk.Button(self.actions,text=tr('OK'),width=0,command=self.accept)
+        self.cancel_button=ttk.Button(self.actions,text=tr('Cancel'),width=0,command=self.cancel)
+        self.actions.add(self.ok_button);self.actions.add(self.cancel_button)
+        self.bind('<KeyPress>',lambda e:'break')
+        self.bind('<Escape>',lambda e:self.cancel())
+        self.bind('<Return>',self._return)
+        self.protocol('WM_DELETE_WINDOW',self.cancel)
+        self.bind('<Configure>',lambda e:self._wrap(e.width) if e.widget is self else None)
+        self.geometry(f'{width}x{min(area[3]-area[1]-64,max(180,6*line+70))}')
+        self.minsize(min(420,width),min(170,area[3]-area[1]-64))
+        self.deiconify();position_popup_in_work_area(self,parent,area)
+        self.grab_set();self.entry.focus_force();self.entry.selection_range(0,'end')
+
+    def _wrap(self,width):
+        self.error.configure(wraplength=max(120,width-32))
+
+    def _return(self,_event=None):
+        if self.focus_get() is self.cancel_button:self.cancel()
+        else:self.accept()
+        return 'break'
+
+    def accept(self):
+        try:
+            raw=self.entry.get()
+            value=raw if self.kind=='string' else self.tk.getint(raw) if self.kind=='integer' else self.tk.getdouble(raw)
+            if self.kind!='string':
+                if not math.isfinite(value):raise ValueError()
+                if self.options.get('minvalue') is not None and value<self.options['minvalue']:raise ValueError()
+                if self.options.get('maxvalue') is not None and value>self.options['maxvalue']:raise ValueError()
+        except (tk.TclError,ValueError,OverflowError):
+            low=self.options.get('minvalue','−∞');high=self.options.get('maxvalue','∞')
+            self.error.configure(text=tr('Enter a valid number ({minimum}–{maximum}).',minimum=low,maximum=high))
+            self.error.pack(side='bottom',fill='x',before=self.entry,pady=(5,0));self.entry.focus_set()
+            return
+        self.result=value;self._finish()
+
+    def cancel(self):self._finish()
+
+    def _finish(self):
+        self.destroy()
+        try:
+            if self.previous_grab is not None and self.previous_grab.winfo_exists():self.previous_grab.grab_set()
+            if self.previous_focus is not None and self.previous_focus.winfo_exists():self.previous_focus.focus_set()
+        except tk.TclError:pass
 
 
 # Source: pycommander/workflows.py
@@ -7474,14 +7650,17 @@ from tkinter import ttk, messagebox, simpledialog, font as tkfont
 
 
 
+
+
 def workflow_dialog_geometry(window, master, width=650, height=420):
-    width = min(width, master.winfo_screenwidth() - 60)
-    height = min(height, master.winfo_screenheight() - 100)
-    x = max(0, min(master.winfo_screenwidth() - width, master.winfo_rootx() + 60))
-    y = max(0, min(master.winfo_screenheight() - height, master.winfo_rooty() + 70))
-    window.geometry(f'{width}x{height}+{x}+{y}')
+    area=popup_work_area(master)
+    ratio=max(1,tkfont.nametofont('TkDefaultFont',root=master).metrics('linespace')/20)
+    width=min(round(width*ratio),area[2]-area[0]-48)
+    height=min(round(height*ratio),area[3]-area[1]-64)
+    window.geometry(f'{width}x{height}')
     window.minsize(min(420, width), min(280, height))
-    window.transient(master)
+    window.transient(master.winfo_toplevel())
+    position_popup_in_work_area(window,master,area)
     window.bind('<KeyPress>', lambda e: 'break')
     def traverse(back=False):
         current = window.focus_get() or window
@@ -7490,7 +7669,8 @@ def workflow_dialog_geometry(window, master, width=650, height=420):
         return 'break'
     window.bind('<Tab>', lambda e: traverse())
     window.bind('<Shift-Tab>', lambda e: traverse(True))
-    window.bind('<ISO_Left_Tab>', lambda e: traverse(True))
+    try:window.bind('<ISO_Left_Tab>', lambda e: traverse(True))
+    except tk.TclError:pass  # X11 keysym is not available in every Windows Tk.
 
 
 def style_workflow_controls(window):
@@ -7519,12 +7699,16 @@ def style_workflow_controls(window):
 class WorkflowPicker(tk.Toplevel):
     def __init__(self, master, title, records, save_config, capture, activate, describe):
         super().__init__(master)
+        self.previous_grab=master.grab_current();self.previous_focus=master.focus_get()
         self.title(tr(title)); workflow_dialog_geometry(self, master)
         self.records, self.save_config = records, save_config
         self.capture, self.activate, self.describe = capture, activate, describe
         area = ttk.Frame(self, padding=10); area.pack(fill='both', expand=True)
         area.columnconfigure(0, weight=1); area.rowconfigure(1, weight=1)
-        ttk.Label(area, text=tr(title), font='TkHeadingFont').grid(row=0, column=0, sticky='w', pady=(0, 6))
+        header=ttk.Frame(area);header.grid(row=0,column=0,sticky='ew',pady=(0,6));header.columnconfigure(1,weight=1)
+        ttk.Label(header,text=tr('Find:')).grid(row=0,column=0,sticky='w',padx=(0,6))
+        self.query=tk.StringVar(self)
+        self.entry=ttk.Entry(header,textvariable=self.query);self.entry.grid(row=0,column=1,sticky='ew')
         frame = ttk.Frame(area); frame.grid(row=1, column=0, sticky='nsew')
         self.list = tk.Listbox(frame, exportselection=False, activestyle='dotbox', borderwidth=0,
                                highlightthickness=1, font='TkDefaultFont')
@@ -7539,14 +7723,15 @@ class WorkflowPicker(tk.Toplevel):
         self.detail_tooltip = ToolTip(self.detail, '')
         self.detail.grid(row=2, column=0, sticky='ew', pady=8)
         self.bind('<Configure>', lambda e: self.detail.configure(wraplength=max(200, self.winfo_width()-30)))
-        bar = ttk.Frame(area); bar.grid(row=3, column=0, sticky='ew')
-        self.save_button = ttk.Button(bar, text=tr('Save current')+'…', command=self.save_current)
-        self.save_button.pack(side='left')
-        self.remove_button = ttk.Button(bar, text=tr('Remove'), command=self.remove)
-        self.remove_button.pack(side='left', padx=5)
-        self.open_button = ttk.Button(bar, text=tr('Open'), command=self.open)
-        self.open_button.pack(side='right')
-        ttk.Button(bar, text=tr('Close'), command=self.close).pack(side='right', padx=5)
+        bar = FlowToolbar(area); bar.grid(row=3, column=0, sticky='ew')
+        self.save_button = ttk.Button(bar, text=tr('Save current')+'…', width=0, command=self.save_current)
+        self.remove_button = ttk.Button(bar, text=tr('Remove'), width=0, command=self.remove)
+        self.open_button = ttk.Button(bar, text=tr('Open'), width=0, command=self.open)
+        self.details_button=ttk.Button(bar,text=tr('Details…'),width=0,command=self.show_details)
+        for button in (self.save_button,self.remove_button,self.details_button,self.open_button,
+                       ttk.Button(bar,text=tr('Close'),width=0,command=self.close)):bar.add(button)
+        self.query.trace_add('write',lambda *a:self.refresh())
+        self.entry.bind('<Down>',lambda e:self.step(1));self.entry.bind('<Up>',lambda e:self.step(-1))
         self.list.bind('<<ListboxSelect>>', lambda e: self.selected())
         self.list.bind('<Double-1>', lambda e: self.open())
         self.bind('<Return>', lambda e: (self.focus_get().invoke(), 'break')[1]
@@ -7554,10 +7739,13 @@ class WorkflowPicker(tk.Toplevel):
         self.bind('<Escape>', lambda e: self.close())
         self.protocol('WM_DELETE_WINDOW', self.close)
         style_workflow_controls(self)
-        self.refresh(); self.grab_set(); self.list.focus_set()
+        self.refresh(); self.grab_set(); self.entry.focus_set()
 
     def refresh(self):
-        self.entries = self.records.read()
+        self.all_entries=self.records.read()
+        words=self.query.get().casefold().split()
+        self.entries=[item for item in self.all_entries if all(word in
+            (item['name']+' '+str(self.describe(item['data']))).casefold() for word in words)]
         self.list.delete(0, 'end')
         for item in self.entries: self.list.insert('end', item['name'])
         if self.entries: self.list.selection_set(0)
@@ -7568,19 +7756,33 @@ class WorkflowPicker(tk.Toplevel):
         has = bool(selected)
         self.open_button.state(['!disabled'] if has else ['disabled'])
         self.remove_button.state(['!disabled'] if has else ['disabled'])
-        value = self.describe(self.entries[selected[0]]['data']) if has else tr('Nothing saved yet. Use Save current to create a named entry.')
+        self.details_button.state(['!disabled'] if has else ['disabled'])
+        value = self.describe(self.entries[selected[0]]['data']) if has else tr('No matching entries.') if self.all_entries else tr('Nothing saved yet. Use Save current to create a named entry.')
         self.detail_tooltip.text = str(value)
         # Keep the list usable with long paths. Full path remains in the saved
         # record; the focused item's concise context is not a second document.
         lines = str(value).splitlines()[:3]
         self.detail.configure(text='\n'.join(line if len(line) <= 110 else line[:45]+'…'+line[-60:] for line in lines))
 
+    def step(self,direction):
+        selected=self.list.curselection()
+        if self.entries:
+            index=max(0,min(len(self.entries)-1,(selected[0] if selected else 0)+direction))
+            self.list.selection_clear(0,'end');self.list.selection_set(index);self.list.see(index);self.selected()
+        return 'break'
+
+    def show_details(self):
+        selected=self.list.curselection()
+        if selected:
+            item=self.entries[selected[0]]
+            messagebox.showinfo(item['name'],item['name']+'\n\n'+str(self.describe(item['data'])),parent=self)
+
     def save_current(self):
         name = simpledialog.askstring(self.title(), tr('Name'), parent=self)
         # Python's simpledialog releases its own grab without restoring ours.
         if self.winfo_exists(): self.grab_set()
         if name is None: return
-        if any(r['name'].casefold() == name.strip().casefold() for r in self.entries):
+        if any(r['name'].casefold() == name.strip().casefold() for r in self.all_entries):
             if not messagebox.askyesno(self.title(), tr('Replace this saved entry?'), parent=self): return
         try:
             data = self.capture()
@@ -7608,7 +7810,15 @@ class WorkflowPicker(tk.Toplevel):
 
     def close(self):
         self.grab_release(); self.destroy()
+        _restore_workflow_owner(self.previous_grab,self.previous_focus)
         return 'break'
+
+
+def _restore_workflow_owner(grab,focus):
+    try:
+        if grab is not None and grab.winfo_exists():grab.grab_set()
+        if focus is not None and focus.winfo_exists():focus.focus_set()
+    except tk.TclError:pass
 
 
 def command_matches(commands, query):
@@ -7623,6 +7833,7 @@ class CommandPalette(tk.Toplevel):
         self.title(tr('Command search')); workflow_dialog_geometry(self, master, 680, 390)
         self.commands = commands
         self.previous_focus = master.focus_get()
+        self.previous_grab=master.grab_current()
         area = ttk.Frame(self, padding=10); area.pack(fill='both', expand=True)
         area.columnconfigure(0, weight=1); area.rowconfigure(1, weight=1)
         self.query = tk.StringVar()
@@ -7636,8 +7847,13 @@ class CommandPalette(tk.Toplevel):
         self.list.column('category', width=150, minwidth=90, stretch=False)
         self.list.column('key', width=110, minwidth=85, stretch=False)
         self.list.grid(row=1, column=0, sticky='nsew')
+        scroll=ttk.Scrollbar(area,command=self.list.yview);scroll.grid(row=1,column=1,sticky='ns')
+        self.horizontal=ttk.Scrollbar(area,orient='horizontal',command=self.list.xview)
+        self.horizontal.grid(row=2,column=0,sticky='ew')
+        self.list.configure(yscrollcommand=scroll.set,xscrollcommand=self.horizontal.set)
+        self.list.bind('<Configure>',lambda e:self.fit_columns(e.width))
         self.hint = ttk.Label(area, text=tr('Type to filter • ↑ ↓ select • Enter run • Esc close'), anchor='w', wraplength=640)
-        self.hint.grid(row=2, column=0, sticky='ew', pady=(7, 0))
+        self.hint.grid(row=3, column=0, sticky='ew', pady=(7, 0))
         self.bind('<Configure>', lambda e: self.hint.configure(wraplength=max(200,self.winfo_width()-30)))
         self.query.trace_add('write', lambda *args: self.refresh())
         self.entry.bind('<Down>', lambda e: self.step(1)); self.entry.bind('<Up>', lambda e: self.step(-1))
@@ -7645,6 +7861,19 @@ class CommandPalette(tk.Toplevel):
         self.bind('<Escape>', lambda e: self.close()); self.protocol('WM_DELETE_WINDOW', self.close)
         style_workflow_controls(self)
         self.refresh(); self.grab_set(); self.entry.focus_set()
+
+    def fit_columns(self,width):
+        font=tkfont.nametofont('TkDefaultFont',root=self)
+        key_width=max([font.measure(tr('Shortcut'))]+[font.measure(str(item[2])) for item in self.commands])+24
+        category_width=max([font.measure(tr('Category'))]+[font.measure(str(item[1])) for item in self.commands])+24
+        name_min=font.measure('M'*10)+24
+        show_category=width>=key_width+category_width+name_min+20
+        self.list.configure(displaycolumns=('category','key') if show_category else ('key',))
+        self.list.column('key',width=key_width,minwidth=key_width,stretch=False)
+        self.list.column('category',width=category_width,minwidth=category_width,stretch=False)
+        self.list.column('#0',minwidth=name_min,width=max(name_min,width-key_width-(category_width if show_category else 0)-4))
+        if name_min+key_width+(category_width if show_category else 0)>width:self.horizontal.grid()
+        else:self.horizontal.grid_remove()
 
     def refresh(self):
         self.filtered = command_matches(self.commands, self.query.get())
@@ -7672,7 +7901,7 @@ class CommandPalette(tk.Toplevel):
 
     def close(self):
         self.grab_release(); self.destroy()
-        if self.previous_focus is not None and self.previous_focus.winfo_exists(): self.previous_focus.focus_set()
+        _restore_workflow_owner(self.previous_grab,self.previous_focus)
         return 'break'
 
 
@@ -7817,9 +8046,11 @@ def show_workspaces(app):
 """File-only comparison copy plans, with UI-thread conflicts and worker I/O."""
 import queue
 import threading
+import time
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
+
 
 
 
@@ -7832,7 +8063,7 @@ class SyncProgress(tk.Toplevel):
         super().__init__(master)
         self.title(tr('Safe Sync')); self.transient(master); self.resizable(False, False)
         self.cancelled = threading.Event(); self.messages = queue.Queue(); self.result = OperationResult()
-        self.plans = list(plans); self.resolver = resolver
+        self.plans = list(plans); self.resolver = resolver;self.conflict_failures=[]
         self.protocol('WM_DELETE_WINDOW', self.cancel)
         self.bind('<Escape>', lambda e: self.cancel()); self.bind('<KeyPress>', lambda e: 'break')
         area = ttk.Frame(self,padding=12);area.pack(fill='both',expand=True)
@@ -7849,21 +8080,22 @@ class SyncProgress(tk.Toplevel):
         self.geometry(f'+{max(0,master.winfo_rootx()+80)}+{max(0,master.winfo_rooty()+90)}')
         self.grab_set()
 
+        plans,cancelled,messages=self.plans,self.cancelled,self.messages
         def conflict(source, target):
             reply = queue.Queue(maxsize=1)
-            self.messages.put(('conflict',source,target,reply))
+            messages.put(('conflict',source,target,reply))
             while True:
                 try: return reply.get(timeout=.1)
                 except queue.Empty:
-                    if self.cancelled.is_set(): return 'cancel'
+                    if cancelled.is_set(): return 'cancel'
 
         def worker():
             result = OperationResult()
             try:
-                for index,(source,target) in enumerate(self.plans):
-                    if self.cancelled.is_set():
-                        result.skipped.extend(p for p,_ in self.plans[index:]);break
-                    self.messages.put(('progress',index,source.name))
+                for index,(source,target) in enumerate(plans):
+                    if cancelled.is_set():
+                        result.skipped.extend(p for p,_ in plans[index:]);break
+                    messages.put(('progress',index,source.name))
                     try:
                         # Never execute an out-of-date plan as a recursive copy
                         # or traverse a replacement link in its destination.
@@ -7879,12 +8111,12 @@ class SyncProgress(tk.Toplevel):
                         partial = OperationResult(failures=[OperationFailure(source,target,str(exc))])
                     result.completed.extend(partial.completed); result.skipped.extend(partial.skipped)
                     result.failures.extend(partial.failures)
-                    self.messages.put(('progress',index+1,source.name))
+                    messages.put(('progress',index+1,source.name))
                     if partial.failures and not continue_errors:
-                        result.skipped.extend(p for p,_ in self.plans[index+1:]);break
+                        result.skipped.extend(p for p,_ in plans[index+1:]);break
             except Exception as exc:
                 result.failures.append(OperationFailure(Path('.'),None,str(exc)))
-            self.messages.put(('done',result))
+            messages.put(('done',result))
         self.worker = threading.Thread(target=worker,daemon=True,name='PFC-Compare-Copy')
         self.worker.start();self.after(40,self.poll)
 
@@ -7893,22 +8125,242 @@ class SyncProgress(tk.Toplevel):
         self.detail.configure(text=tr('Stopping after the current file…'))
 
     def poll(self):
-        while True:
+        deadline=time.monotonic()+.01
+        while time.monotonic()<deadline:
             try: item=self.messages.get_nowait()
             except queue.Empty: break
             if item[0]=='conflict':
                 _,source,target,reply=item
-                try: action='cancel' if self.cancelled.is_set() else self.resolver(source,target)
-                except Exception: action='cancel'
-                if action=='cancel': self.cancelled.set()
-                reply.put(action)
+                reply.put(resolve_progress_conflict(self,source,target))
                 self.grab_set()
             elif item[0]=='progress':
                 self.progress.configure(value=item[1])
                 self.label.configure(text=f'{item[1]} / {len(self.plans)} · {item[2][:70]}')
             elif item[0]=='done':
-                self.result=item[1];self.grab_release();self.destroy();return
+                self.result=merge_progress_conflicts(item[1],self.conflict_failures);self.grab_release();self.destroy();return
         self.after(40,self.poll)
+
+
+# Source: pycommander/transferprogress.py
+"""General copy/move I/O off Tk, preserving conflict and partial-result semantics."""
+import queue
+import threading
+import time
+from pathlib import Path
+import tkinter as tk
+from tkinter import ttk, font as tkfont
+
+
+
+
+
+
+def resolve_progress_conflict(owner,source,target):
+    """UI-thread reply; resolver faults must not masquerade as user Cancel."""
+    try:action='cancel' if owner.cancelled.is_set() else owner.resolver(source,target)
+    except Exception as exc:
+        log=getattr(owner._root(),'debug_log',None)
+        if log is not None:log.exception('operation.conflict.failed',exc)
+        owner.conflict_failures.append(OperationFailure(source,target,tr('Conflict selection failed. No changes were made to this item.')))
+        action='cancel'
+    if action=='cancel':owner.cancelled.set()
+    return action
+
+
+def merge_progress_conflicts(result,failures):
+    if failures:
+        failed={failure.source for failure in failures}
+        result.skipped=[path for path in result.skipped if path not in failed]
+        result.failures.extend(failures)
+    return result
+
+
+class TransferProgress(tk.Toplevel):
+    """Cancel at an item boundary; never pretend to interrupt a filesystem write.
+
+    The worker never reads a Tk variable or calls Tk. Conflict replies cross a
+    queue and are resolved by the Tk thread, including the existing Apply All.
+    The caller may wait_window without blocking input, repaint or other timers.
+    """
+    def __init__(self,master,verb,operation,items,destination,resolver,continue_errors):
+        super().__init__(master);self.withdraw();self.transient(master.winfo_toplevel())
+        self.title(tr(verb));self.result=OperationResult()
+        self.items=tuple(items);self.destination=Path(destination)
+        self.previous_grab=master.grab_current();self.previous_focus=master.focus_get()
+        self.cancelled=threading.Event();self.messages=queue.Queue();self.resolver=resolver
+        self.conflict_failures=[];log=getattr(master._root(),'debug_log',None)
+        self.started=time.monotonic();self._poll_job=None;self._finished=False
+        self.done_count=0;self.current_name='';self.verb=verb
+        area=ttk.Frame(self,padding=12);area.pack(fill='both',expand=True)
+        self.status=ttk.Label(area,text=tr('Preparing…'),font='TkHeadingFont');self.status.pack(fill='x')
+        self.activity=ttk.Progressbar(area,mode='indeterminate');self.activity.pack(fill='x',pady=8)
+        self.item_label=ttk.Label(area,text='',wraplength=520);self.item_label.pack(fill='x')
+        target=ttk.Frame(area);target.pack(fill='x',pady=(6,0))
+        ttk.Label(target,text=tr('Destination')+':').pack(side='left',padx=(0,6))
+        self.target_var=tk.StringVar(self,value=str(self.destination))
+        self.target_entry=ttk.Entry(target,textvariable=self.target_var,state='readonly',font='TkDefaultFont')
+        self.target_entry.pack(side='left',fill='x',expand=True)
+        self.detail=ttk.Label(area,text=tr('Cancel stops after the current item, including its contents.'),wraplength=520)
+        self.detail.pack(fill='x',pady=8)
+        self.cancel_button=ttk.Button(area,text=tr('Cancel'),command=self.cancel)
+        self.cancel_button.pack(anchor='e')
+        self.bind('<KeyPress>',lambda e:'break');self.bind('<Escape>',lambda e:self.cancel())
+        self.protocol('WM_DELETE_WINDOW',self.cancel)
+        self.bind('<Configure>',self._wrap)
+        work_area=popup_work_area(master)
+        font=tkfont.nametofont('TkDefaultFont',root=self)
+        width=min(round(560*max(1,font.metrics('linespace')/20)),work_area[2]-work_area[0]-48)
+        self.geometry(f'{width}x{min(work_area[3]-work_area[1]-64,max(270,font.metrics("linespace")*10+80))}')
+        self.minsize(min(width,400),min(230,work_area[3]-work_area[1]-64))
+        self.deiconify();position_popup_in_work_area(self,master,work_area)
+        self.grab_set();self.cancel_button.focus_force();self.activity.start(20)
+
+        items,destination=self.items,self.destination
+        cancelled,messages=self.cancelled,self.messages
+        def conflict(source,target):
+            reply=queue.Queue(maxsize=1)
+            messages.put(('conflict',source,target,reply))
+            while not cancelled.is_set():
+                try:return reply.get(timeout=.1)
+                except queue.Empty:pass
+            return 'cancel'
+
+        def worker():
+            result=OperationResult();index=-1;source=Path('.')
+            try:
+                for index,source in enumerate(items):
+                    if cancelled.is_set():
+                        result.skipped.extend(items[index:]);break
+                    messages.put(('progress',index,source.name))
+                    try:
+                        partial=operation([source],destination,conflict,continue_errors)
+                        if not isinstance(partial,OperationResult):raise TypeError('Invalid file operation result.')
+                    except Exception as exc:
+                        if log is not None:log.exception('transfer.worker.failed',exc)
+                        partial=OperationResult(failures=[OperationFailure(source,destination/source.name,str(exc))])
+                    result.completed.extend(partial.completed);result.skipped.extend(partial.skipped)
+                    result.failures.extend(partial.failures)
+                    messages.put(('progress',index+1,source.name))
+                    if (partial.failures and not continue_errors) or cancelled.is_set():
+                        result.skipped.extend(items[index+1:]);break
+            except BaseException as exc:
+                # Even an unexpected backend/bookkeeping fault must publish a
+                # terminal result, never strand a modal window waiting forever.
+                if log is not None:log.exception('transfer.worker.failed',exc)
+                result.failures.append(OperationFailure(source,None,str(exc)))
+                result.skipped.extend(items[index+1:])
+            finally:messages.put(('done',result))
+        self.worker=threading.Thread(target=worker,name='PFC-Transfer',daemon=True)
+        self.worker.start();self._poll_job=self.after(30,self.poll)
+
+    def _wrap(self,event):
+        if event.widget is self:
+            for label in (self.item_label,self.detail,self.status):label.configure(wraplength=max(100,event.width-28))
+
+    def cancel(self):
+        self.cancelled.set();self.cancel_button.state(['disabled'])
+        self.detail.configure(text=tr('Stopping after the current item…'))
+
+    def destroy(self):
+        # A destroyed modal can remain in a callback/exception cycle until the
+        # next worker triggers GC. Release our sole Tk variable on its UI thread
+        # while the interpreter is alive, not during that later collection.
+        self.target_var=None
+        super().destroy()
+
+    def poll(self):
+        self._poll_job=None
+        deadline=time.monotonic()+.01
+        while time.monotonic()<deadline:
+            try:item=self.messages.get_nowait()
+            except queue.Empty:break
+            if item[0]=='conflict':
+                _,source,target,reply=item
+                reply.put(resolve_progress_conflict(self,source,target));self.grab_set()
+            elif item[0]=='progress':self.done_count,self.current_name=item[1:]
+            elif item[0]=='done':
+                self.result=merge_progress_conflicts(item[1],self.conflict_failures);self._finished=True;self.activity.stop()
+                self.grab_release();self.destroy()
+                try:
+                    if self.previous_grab is not None and self.previous_grab.winfo_exists():self.previous_grab.grab_set()
+                    if self.previous_focus is not None and self.previous_focus.winfo_exists():self.previous_focus.focus_set()
+                except tk.TclError:pass
+                return
+        self.status.configure(text=tr('{completed} / {total} items · {seconds}s elapsed',
+            completed=self.done_count,total=len(self.items),seconds=int(time.monotonic()-self.started)))
+        self.item_label.configure(text=self.current_name)
+        self._poll_job=self.after(30,self.poll)
+
+
+# Source: pycommander/operationui.py
+"""Recoverable operation results with a scannable list and full selected detail."""
+import tkinter as tk
+from tkinter import ttk, font as tkfont
+
+
+
+
+
+class OperationResultWindow(tk.Toplevel):
+    def __init__(self,master,verb,result,retry=None):
+        super().__init__(master);self.withdraw();self.transient(master.winfo_toplevel())
+        self.title(tr('{verb} result',verb=tr(verb)))
+        self.summary=tr('{verb}: {completed} completed, {skipped} skipped, {failed} failed.',
+            verb=tr(verb),completed=len(result.completed),skipped=len(result.skipped),failed=len(result.failures))
+        outer=ttk.Frame(self,padding=10);outer.pack(fill='both',expand=True)
+        self.heading=ttk.Label(outer,text=self.summary,font='TkHeadingFont',wraplength=700)
+        self.heading.pack(fill='x',pady=(0,8))
+        # Reserve actions before expanding data; very large reading fonts must
+        # never push recovery/close controls below the window.
+        self.actions=FlowToolbar(outer);self.actions.pack(side='bottom',fill='x')
+        body=ttk.Frame(outer);body.pack(fill='both',expand=True)
+        body.columnconfigure(0,weight=1);body.rowconfigure(0,weight=1)
+        self.tree=ttk.Treeview(body,columns=('status',),show='tree headings',selectmode='browse',height=7)
+        self.tree.heading('#0',text=tr('File'));self.tree.heading('status',text=tr('Status'))
+        status_width=max(tkfont.nametofont('TkDefaultFont').measure(tr(label)) for label in ('Failed','Skipped','Status'))+24
+        self.tree.column('#0',width=500,minwidth=100);self.tree.column('status',width=status_width,minwidth=status_width,stretch=False)
+        vertical=ttk.Scrollbar(body,command=self.tree.yview);horizontal=ttk.Scrollbar(body,orient='horizontal',command=self.tree.xview)
+        self.tree.configure(yscrollcommand=vertical.set,xscrollcommand=horizontal.set)
+        self.tree.grid(row=0,column=0,sticky='nsew');vertical.grid(row=0,column=1,sticky='ns');horizontal.grid(row=1,column=0,sticky='ew')
+        full=ttk.Frame(outer);full.pack(fill='both',expand=True,pady=8)
+        scroll=ttk.Scrollbar(full);scroll.pack(side='right',fill='y')
+        palette=getattr(master,'palette',{})
+        self.detail=tk.Text(full,height=5,wrap='word',font='TkDefaultFont',yscrollcommand=scroll.set,takefocus=True,
+            background=palette.get('content','#ffffff'),foreground=palette.get('text','#101010'))
+        self.detail.pack(fill='both',expand=True);scroll.configure(command=self.detail.yview)
+        self.records=[]
+        for failure in result.failures:
+            self.records.append((failure.source,tr('Failed'),str(failure.source)+
+                ('\n→ '+str(failure.target) if failure.target else '')+'\n'+failure.message))
+        for path in result.skipped:self.records.append((path,tr('Skipped'),str(path)+'\n'+tr('Skipped')))
+        for index,(path,status,_) in enumerate(self.records):self.tree.insert('','end',iid=str(index),text=str(path),values=(status,))
+        self.report=self.summary+'\n\n'+'\n\n'.join(detail for _,_,detail in self.records)
+        self.tree.bind('<<TreeviewSelect>>',lambda e:self.select())
+        self.copy_button=ttk.Button(self.actions,text=tr('Copy Details'),width=0,command=self.copy_report);self.actions.add(self.copy_button)
+        if retry is not None and result.failures:
+            def retry_failed():
+                failed=list(dict.fromkeys(failure.source for failure in result.failures))
+                self.destroy();retry(failed)
+            self.retry_button=ttk.Button(self.actions,text=tr('Retry Failed'),width=0,command=retry_failed);self.actions.add(self.retry_button)
+        self.close_button=ttk.Button(self.actions,text=tr('Close'),width=0,command=self.destroy);self.actions.add(self.close_button)
+        self.bind('<Escape>',lambda e:self.destroy());self.bind('<KeyPress>',lambda e:'break')
+        self.bind('<Return>',lambda e:self.focus_get().invoke() if isinstance(self.focus_get(),ttk.Button) else 'break')
+        self.bind('<Configure>',lambda e:self.heading.configure(wraplength=max(100,e.width-24)) if e.widget is self else None)
+        area=popup_work_area(master);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')
+        width=min(round(800*max(1,line/20)),area[2]-area[0]-48)
+        height=min(round(500*max(1,line/20)),area[3]-area[1]-64)
+        self.geometry(f'{width}x{height}');self.minsize(min(420,width),min(300,height))
+        if self.records:self.tree.selection_set('0');self.tree.focus('0');self.select()
+        self.deiconify();position_popup_in_work_area(self,master,area);self.lift();self.tree.focus_force()
+
+    def select(self):
+        selected=self.tree.selection()
+        self.detail.configure(state='normal');self.detail.delete('1.0','end')
+        if selected:self.detail.insert('1.0',self.records[int(selected[0])][2])
+        self.detail.configure(state='disabled')
+
+    def copy_report(self):
+        self.clipboard_clear();self.clipboard_append(self.report);self.update_idletasks()
 
 
 # Source: pycommander/settingspreview.py
@@ -9389,6 +9841,22 @@ class ActionBarLayout:
 from tkinter import ttk
 
 
+def wrapped_control_text(text,measure,width):
+    """Measured multiline labels for controls without native wraplength."""
+    lines=[]
+    for paragraph in text.split('\n'):
+        line=''
+        for char in paragraph:
+            if line and measure(line+char)>max(20,width):
+                split=line.rfind(' ')
+                if split>len(line)//2:
+                    lines.append(line[:split]);line=line[split+1:]+char
+                else:lines.append(line);line=char
+            else:line+=char
+        lines.append(line)
+    return '\n'.join(lines)
+
+
 def toolbar_rows(width, sizes, gap=6):
     """Greedily retain adjacent semantic groups; exact fits stay on one row."""
     rows, row, used = [], [], 0
@@ -9437,11 +9905,16 @@ class FlowToolbar(ttk.Frame):
 
     def layout(self):
         self._flow_job = None
-        width = max(1, self.winfo_width())
+        values=[self.winfo_pixels(p) for p in self.tk.splitlist(self.cget('padding'))]
+        if len(values)==1:values*=4
+        elif len(values)==2:values*=2
+        elif len(values)==3:values.append(values[1])
+        left,top,right,bottom=values or (0,0,0,0)
+        width = max(1, self.winfo_width()-left-right)
         sizes = [max(1, int(minimum() if callable(minimum) else minimum or w.winfo_reqwidth()))
                  for w, _, minimum in self.groups]
         heights = [w.winfo_reqheight() for w, _, _ in self.groups]
-        signature = (width, tuple(sizes), tuple(heights))
+        signature = (width, tuple(sizes), tuple(heights),top,bottom)
         if signature == self._flow_signature: return
         self._flow_signature = signature
         self.rows = toolbar_rows(width, sizes, self.gap)
@@ -9457,7 +9930,7 @@ class FlowToolbar(ttk.Frame):
                 self.groups[i][0].place(x=x, y=y, width=allocated, height=height)
                 x += allocated+self.gap
             y += height+self.row_gap
-        self.configure(height=max(1, y-self.row_gap))
+        self.configure(height=max(1, y-self.row_gap+top+bottom))
 
 
 # Source: pycommander/vcsui.py
@@ -36896,6 +37369,8 @@ import re
 import time
 import tokenize
 import tempfile
+import stat as statlib
+from contextlib import contextmanager
 import tkinter as tk
 import tkinter.font as tkfont
 from pathlib import Path
@@ -36927,6 +37402,23 @@ TEXT_EXTENSIONS |= RENDER_EXTENSIONS
 TEXT_LIMIT = 8 * 1024 * 1024
 HEX_LIMIT = 1024 * 1024
 SYNTAX_BATCH_SIZE = 600
+
+
+@contextmanager
+def regular_preview_stream(path: Path):
+    """Reject devices/streams before opening, then verify the opened descriptor.
+
+    POSIX nonblocking open also closes the regular-file → FIFO replacement
+    race. All preview readers share this boundary; linked Markdown additionally
+    keeps its existing vault/path-boundary checks.
+    """
+    if not statlib.S_ISREG(path.stat().st_mode):raise OSError('Preview requires an ordinary file.')
+    flags=os.O_RDONLY | (getattr(os,'O_NONBLOCK',0) if os.name!='nt' else 0)
+    fd=os.open(path,flags)
+    with os.fdopen(fd,'rb') as stream:
+        info=os.fstat(stream.fileno())
+        if not statlib.S_ISREG(info.st_mode):raise OSError('Preview requires an ordinary file.')
+        yield stream,info
 
 CODE_EXTENSIONS = {
     ".py": "Python", ".js": "JavaScript", ".jsx": "JavaScript",
@@ -37162,9 +37654,7 @@ def markdown_worker_main():
                 if request.get('boundary'):
                     data,signature=read_linked_markdown(path,request['boundary'],TEXT_LIMIT)
                 else:
-                    with path.open('rb') as stream:
-                        info=os.fstat(stream.fileno())
-                        if not __import__('stat').S_ISREG(info.st_mode): raise ValueError('Target is not a regular file')
+                    with regular_preview_stream(path) as (stream,info):
                         signature=(info.st_mtime_ns,info.st_size);data=stream.read(TEXT_LIMIT+1)
                 truncated=len(data)>TEXT_LIMIT
                 source,encoding=decode_text(data[:TEXT_LIMIT]);notice=''
@@ -37193,7 +37683,6 @@ def markdown_worker_main():
 def format_worker_main():
     """Bounded parser / disposable browser worker; documents are never executed."""
     import sys
-    import stat
     from_locale=globals().get('set_language')
     if from_locale is None:
         from .i18n import set_language as from_locale
@@ -37206,11 +37695,7 @@ def format_worker_main():
         request={};source='';encoding='';signature=None;truncated=False
         try:
             request=json.loads(raw);from_locale(request.get('language','en'));path=Path(request['path'])
-            flags=os.O_RDONLY | (getattr(os,'O_NONBLOCK',0) if os.name!='nt' else 0)
-            fd=os.open(path,flags)
-            with os.fdopen(fd,'rb') as stream:
-                info=os.fstat(stream.fileno())
-                if not stat.S_ISREG(info.st_mode):raise ValueError('Target is not a regular file')
+            with regular_preview_stream(path) as (stream,info):
                 suffix=path.suffix.casefold();limit=8*1024*1024 if suffix=='.ipynb' else RENDER_INPUT_LIMIT
                 signature=[info.st_mtime_ns,info.st_size];data=stream.read(limit+1)
                 after=os.fstat(stream.fileno())
@@ -38189,8 +38674,8 @@ class PreviewPage(tk.Frame):
                     ("[DIR]  " if item.is_dir() else "       ") + item.name for item in entries)
                 shown_mode = tr("Folder view")
             else:
-                size = path.stat().st_size
-                with path.open("rb") as stream:
+                with regular_preview_stream(path) as (stream,info):
+                    size=info.st_size
                     sample = stream.read(4096); stream.seek(0)
                     chosen = "Text" if mode == "Text" or (mode == "Auto" and looks_text(path, sample)) else "Hex"
                     limit = TEXT_LIMIT if chosen == "Text" else HEX_LIMIT
@@ -38555,6 +39040,7 @@ import time
 import zipfile
 import zlib
 import math
+import stat as statlib
 from datetime import datetime, timedelta
 from pathlib import Path
 import tkinter as tk
@@ -39023,10 +39509,8 @@ class SearchWindow(tk.Toplevel):
         for name, label in labels.items():
             marker = (" ▲" if not self.sort_reverse else " ▼") if name == column else ""
             self.tree.heading("#0" if name == "name" else name, text=label + marker)
-        for index, iid in enumerate(sorted(self.tree.get_children(),
-                                            key=lambda item: self.item_data[item][column],
-                                            reverse=self.sort_reverse)):
-            self.tree.move(iid, "", index)
+        ordered=sorted(self.tree.get_children(),key=lambda item:self.item_data[item][column],reverse=self.sort_reverse)
+        self.tree.set_children('',*ordered)
 
     def criteria(self):
         def number(value, factor=1):
@@ -39086,14 +39570,16 @@ class SearchWindow(tk.Toplevel):
                     if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
                     try:
                         stat = path.stat()
+                        is_file=statlib.S_ISREG(stat.st_mode)
+                        is_dir=statlib.S_ISDIR(stat.st_mode)
                         if not name_matches(path.name, c["masks"], c["case"]): continue
-                        if path.is_file() and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
-                        if path.is_file() and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
+                        if is_file and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
+                        if is_file and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
                         if c["since"] is not None and datetime.fromtimestamp(stat.st_mtime) < c["since"]: continue
-                        if path.is_file() and not content_matches(path, c["content"], c["case"],on_error=lambda:self.messages.put(('skipped',))): continue
-                        if path.is_dir() and c["content"]: continue
+                        if is_file and not content_matches(path, c["content"], c["case"],on_error=lambda:self.messages.put(('skipped',))): continue
+                        if is_dir and c["content"]: continue
                         self.messages.put(("item", path, stat)); count += 1
-                    except OSError: self.messages.put(('skipped',)); continue
+                    except (OSError,ValueError,OverflowError): self.messages.put(('skipped',)); continue
             self.messages.put(("done", count, self.cancel_event.is_set(), count >= RESULT_LIMIT))
         except BaseException as exc:
             log=getattr(getattr(self,'master',None),'debug_log',None)
@@ -39103,23 +39589,26 @@ class SearchWindow(tk.Toplevel):
     def _poll(self):
         self.poll_job = None
         processed = 0
-        while processed < 250:
+        deadline=time.monotonic()+.012
+        while processed < 250 and time.monotonic()<deadline:
             try: message = self.messages.get_nowait()
             except queue.Empty: break
             processed += 1
             if message[0] == "item":
                 _, path, stat = message; self.results.append(path)
+                is_dir=statlib.S_ISDIR(stat.st_mode)
                 folder = str(path.parent)
-                size_text = "<DIR>" if path.is_dir() else f"{stat.st_size:,}"
-                modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
-                extension = "" if path.is_dir() else path.suffix[1:].upper()
+                size_text = "<DIR>" if is_dir else f"{stat.st_size:,}"
+                try:modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+                except (OSError,ValueError,OverflowError):modified='—'
+                extension = "" if is_dir else path.suffix[1:].upper()
                 attributes = search_attributes(path, stat)
                 iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
                                        values=(folder, size_text, modified, extension, attributes))
                 self._measure_result(path.name, folder, size_text, modified, extension, attributes)
                 self.item_data[iid] = {"name": path.name.casefold(), "folder": str(path.parent).casefold(),
                                        "size": stat.st_size, "modified": stat.st_mtime,
-                                       "ext": ("" if path.is_dir() else path.suffix[1:]).casefold(),
+                                       "ext": ("" if is_dir else path.suffix[1:]).casefold(),
                                        "attributes": attributes.casefold()}
             elif message[0] == "done":
                 _, count, cancelled, limited = message
@@ -39429,6 +39918,8 @@ class MultiRenameWindow(tk.Toplevel):
         self.find_var, self.replace_var = tk.StringVar(), tk.StringVar()
         self.start_var, self.digits_var = tk.IntVar(value=1), tk.IntVar(value=2)
         self.case_var, self.extension_var = tk.BooleanVar(value=False), tk.BooleanVar(value=True)
+        self._preview_job=None
+        self.bind('<Destroy>',self._destroy_preview,add='+')
         controls = ttk.Frame(self, padding=8); controls.pack(fill="x")
         self.naming_tools = FlowToolbar(controls)
         self.naming_tools.pack(fill='x')
@@ -39474,12 +39965,12 @@ class MultiRenameWindow(tk.Toplevel):
         ToolTip(self.undo_button, lambda: tr('Ctrl+Z Undo'))
         bottom.bind('<Configure>', self._layout_actions)
         for variable in (self.mask_var, self.find_var, self.replace_var, self.start_var, self.digits_var):
-            variable.trace_add("write", lambda *_args: self.after_idle(self.update_preview))
+            variable.trace_add("write", self._schedule_preview)
         self.bind("<Escape>", lambda _event: self.destroy())
         self.bind("<Control-Return>", lambda _event: self.apply())
         self.bind("<Control-z>", lambda _event: self.undo())
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
-        self.update_preview(); self.after_idle(self._activate)
+        self.update_preview(); self._activate_job=self.after_idle(self._activate)
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -39504,6 +39995,7 @@ class MultiRenameWindow(tk.Toplevel):
         self.undo_button.configure(text=tr('Undo' if compact else 'Ctrl+Z Undo'))
 
     def _activate(self):
+        self._activate_job=None
         self.deiconify(); self.lift(); self.focus_force(); self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end")
 
     def apply_language(self, old_language: str) -> None:
@@ -39517,14 +40009,29 @@ class MultiRenameWindow(tk.Toplevel):
     def _plan(self):
         try:
             start, digits = self.start_var.get(), self.digits_var.get()
-        except tk.TclError:
-            start, digits = 1, 2
+            if not 0<=start<=999999 or not 1<=digits<=12:raise ValueError()
+        except (tk.TclError,ValueError):
+            return [(path,path,'Enter a start from 0 to 999999 and digits from 1 to 12.') for path in self.paths]
         names = [render_rename(path, self.mask_var.get(), self.find_var.get(), self.replace_var.get(),
                                start + index, digits, self.case_var.get(), self.extension_var.get())
                  for index, path in enumerate(self.paths)]
         return validate_rename_plan(self.paths, names)
 
+    def _schedule_preview(self,*_args):
+        if self._preview_job is None:self._preview_job=self.after_idle(self._preview_due)
+
+    def _preview_due(self):
+        self._preview_job=None;self.update_preview()
+
+    def _destroy_preview(self,event):
+        if event.widget is self:
+            for name in ('_preview_job','_activate_job'):
+                job=getattr(self,name,None)
+                if job is not None:self.after_cancel(job);setattr(self,name,None)
+
     def update_preview(self):
+        if self._preview_job is not None:
+            self.after_cancel(self._preview_job);self._preview_job=None
         if not self.winfo_exists(): return
         plan = self._plan(); self.tree.delete(*self.tree.get_children())
         errors = changed = 0
@@ -39533,7 +40040,8 @@ class MultiRenameWindow(tk.Toplevel):
             if not problem: changed += 1
             self.tree.insert("", "end", values=(source.name, target.name, tr(problem or "Ready")),
                              tags=('unchanged' if problem=='Unchanged' else 'error' if problem else 'ok',))
-        self.status.configure(text=tr("{changed} rename(s), {errors} error(s)", changed=changed, errors=errors))
+        detail=tr('Enter a start from 0 to 999999 and digits from 1 to 12.') if any(p=='Enter a start from 0 to 999999 and digits from 1 to 12.' for _,_,p in plan) else tr("{changed} rename(s), {errors} error(s)", changed=changed, errors=errors)
+        self.status.configure(text=detail)
         self.apply_button.state(["disabled"] if errors or not changed else ["!disabled"])
         self.undo_button.state(["!disabled"] if self.undo_stack else ["disabled"])
 
@@ -41230,7 +41738,12 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.44"
+__version__ = "0.18.45"
+
+
+
+
+
 
 
 
@@ -41350,6 +41863,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/10/28"
 VERSION_HISTORY = (
+    ("v0.18.45", "2026/10/28", (
+        "Improved: Copy and move keep the interface responsive, resolve conflicts on the UI thread and allow stopping after the current item.",
+        "Improved: Scaled prompts and recovery dialogs preserve safe keyboard choices, nested focus, scrollable details and reachable actions.",
+        "Improved: Saved workflows support filtering and accessible full details; operation results list failures first with targeted retry.",
+        "Fixed: Folder lists reuse metadata for filtering and sorting, retain state on read failure and preserve explicit search-result tab scope.",
+        "Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.",
+    )),
     ("v0.18.44", "2026/10/28", (
         "Improved: Preview, text comparison and batch rename group controls by measured width; wide windows reclaim rows without shrinking fonts.",
         "Improved: Search keeps progress and elapsed details near the query and fits result actions to their labels.",
@@ -42261,6 +42781,11 @@ class FilePane(ttk.Frame):
         self.locked_path: Path | None = None
         self.on_locked_navigation = lambda _path: None
         self._signature = None
+        self._listing_rows = ()
+        self._listing_snapshot_key = None
+        self._prepared_listing = None
+        self._result_listing_paths = ()
+        self._listing_failure_key=None
         self._search_reveal_path = None
         self.quick_filter_var = tk.StringVar()
         self._drag_press_item = None
@@ -42284,6 +42809,8 @@ class FilePane(ttk.Frame):
         self._vcs_loading = False
         self._vcs_inflight = None
         self._vcs_results = queue.Queue()
+        self._vcs_poll_job=None
+        self.bind('<Destroy>',self._dispose_file_pane,add='+')
 
         # Keep the command target visible even when the panel has no selected row.
         self.active_indicator = tk.Frame(self, height=3, background="#9aa7b3",
@@ -42377,7 +42904,7 @@ class FilePane(ttk.Frame):
         self.status.pack(fill="x", pady=(3, 0))
         self.quick_filter_bar.pack(fill="x", pady=(2, 0))
         install_button_tooltips(self)
-        self.after(150, self._poll_vcs_results)
+        self._vcs_poll_job=self.after(150, self._poll_vcs_results)
         self.navigate(self.path)
         try:
             self.shell_drop_target = ShellFileDropTarget(
@@ -42589,9 +43116,10 @@ class FilePane(ttk.Frame):
         if not tags or tags[0] == "PFC_INLINE_PLACEHOLDER":
             return ""
         path = Path(tags[0])
-        visible = path.name if path.is_dir() or self.show_extensions else path.stem
-        if self.view_mode == "list":
-            return f"[{visible}]" if path.is_dir() else visible
+        is_dir=self.tree.set(iid,'size')=='<DIR>'
+        visible = path.name if is_dir or self.show_extensions else path.stem
+        if self.view_mode == "list" or self.mode!='files':
+            return f"[{visible}]" if is_dir else visible
         current = str(self.tree.item(iid, "text"))
         prefix = "└─ " if current.startswith("└─ ") else "├─ " if current.startswith("├─ ") else ""
         return prefix + visible
@@ -42637,6 +43165,7 @@ class FilePane(ttk.Frame):
         self._vcs_loading = True
         generation = self._vcs_generation
         self._vcs_inflight = generation
+        results=self._vcs_results
         def load():
             issue=None
             try:
@@ -42647,7 +43176,8 @@ class FilePane(ttk.Frame):
                 statuses.update(getattr(exc,'statuses',{}))
                 issue=dict(backend=getattr(exc,'backend','vcs'),reason=getattr(exc,'reason','query-failed'),
                            error=type(exc).__name__,returncode=getattr(exc,'returncode',None))
-            self._vcs_results.put((generation, path, statuses, issue))
+            # Do not retain a FilePane/Tk root until a slow Git process exits.
+            results.put((generation, path, statuses, issue))
         try:
             threading.Thread(target=load, name="PFC-VCS", daemon=True).start()
         except RuntimeError:
@@ -42656,6 +43186,7 @@ class FilePane(ttk.Frame):
             self._vcs_path = None
 
     def _poll_vcs_results(self) -> None:
+        self._vcs_poll_job=None
         try:
             while True:
                 generation, path, statuses, issue = self._vcs_results.get_nowait()
@@ -42677,9 +43208,18 @@ class FilePane(ttk.Frame):
         except queue.Empty:
             pass
         try:
-            self.after(150, self._poll_vcs_results)
+            self._vcs_poll_job=self.after(150, self._poll_vcs_results)
         except tk.TclError:
             pass
+
+    def _dispose_file_pane(self,event):
+        if event.widget is not self:return
+        for name in ('_vcs_poll_job','_column_resize_job'):
+            job=getattr(self,name,None)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
 
     def _apply_vcs_icons(self, previous: dict[str, str] | None = None) -> None:
         previous = previous or {}
@@ -42700,31 +43240,21 @@ class FilePane(ttk.Frame):
 
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
-            entries = [path for path in folder.iterdir()
-                       if (self.show_hidden or not is_hidden(path)) and
-                       (self.show_system or not is_system(path))]
+            entries = directory_items(folder,self.show_hidden,self.show_system)
         except OSError:
             return 0
         needle = self.quick_filter_var.get().strip().casefold()
         if needle:
-            entries = [path for path in entries if needle in path.name.casefold()]
+            entries = [row for row in entries if needle in row.path.name.casefold()]
         if self.view_mode == "folder":
-            entries = [path for path in entries if path.is_dir()]
-        def sort_key(path: Path):
-            try:
-                stat = path.stat()
-                values = {"name": path.name.casefold(), "ext": path.suffix.casefold(),
-                          "size": stat.st_size, "modified": stat.st_mtime}
-                return values[self.sort_column]
-            except OSError:
-                return path.name.casefold()
-        entries.sort(key=sort_key, reverse=self.reverse)
-        if not self.mix_sorting:
-            entries.sort(key=lambda path: not path.is_dir())
+            entries = [row for row in entries if row.is_dir]
+        entries=ordered_listing(entries,self.sort_column,self.reverse,self.mix_sorting)
         added = 0
-        for index, path in enumerate(entries):
+        for index, row in enumerate(entries):
+            path=row.path
+            if row.metadata is None:continue
             try:
-                stat, is_dir = path.stat(), path.is_dir()
+                stat, is_dir = row.metadata, row.is_dir
                 iid = self.tree.insert(parent_iid, "end",
                                        text=self._tree_label(path, is_dir,
                                                             index == len(entries) - 1),
@@ -42985,6 +43515,10 @@ class FilePane(ttk.Frame):
             if not bypass_lock and self.lock_mode == "locked" and path != self.path:
                 self.on_locked_navigation(path)
                 return False
+            # Validate the listing before committing history, path or widgets.
+            # Reuse this exact snapshot in refresh rather than scanning twice.
+            reveal=self._search_reveal_path if getattr(self,'_search_reveal_path',None) is not None and self._search_reveal_path.parent==path else None
+            prepared=directory_items(path,self.show_hidden,self.show_system,reveal)
             previous = self.path
             focused = self.tree.focus()
             if not focused and self.tree.selection():
@@ -43002,6 +43536,7 @@ class FilePane(ttk.Frame):
             if getattr(self, '_search_reveal_path', None) is not None and self._search_reveal_path.parent != path:
                 self._search_reveal_path = None
             self.mode = "files"
+            self._prepared_listing=(self._listing_key(),prepared)
             if self.archive_session is not None and self.archive_session.contains(path):
                 relative = self.archive_session.relative_path(path)
                 self.display_title = (relative.name if relative.parts
@@ -43015,6 +43550,8 @@ class FilePane(ttk.Frame):
             return True
         except OSError as exc:
             self.path_var.set(str(self.path))
+            log=getattr(self.winfo_toplevel(),'debug_log',None)
+            if log is not None:log.exception('navigation.failed',exc)
             messagebox.showerror(tr("Cannot open folder"), str(exc))
             return False
 
@@ -43107,10 +43644,22 @@ class FilePane(ttk.Frame):
             marker = (" ▲" if not self.reverse else " ▼") if col == self.sort_column else ""
             target = "#0" if col == "name" else col
             self.tree.heading(target, text=self.heading_labels[col] + marker)
-        self.refresh()
+        self.refresh(_reuse_listing=True)
         self.on_change()
 
-    def refresh(self) -> None:
+    def _listing_key(self):
+        return (self.mode,self.path,self.show_hidden,self.show_system,self._search_reveal_path,
+                self._result_listing_paths if self.mode=='search_results' else ())
+
+    def _listing_failed(self,exc):
+        self.status.configure(text=tr('Cannot read folder; previous list retained'))
+        key=(self.path,type(exc).__name__,getattr(exc,'errno',None),getattr(exc,'winerror',None))
+        if key!=self._listing_failure_key:
+            log=getattr(self.winfo_toplevel(),'debug_log',None)
+            if log is not None:log.exception('directory.read.failed',exc,severity='WARNING')
+        self._listing_failure_key=key
+
+    def refresh(self, *, _reuse_listing=False) -> None:
         if self._inline_editor is not None:
             return
         # Preserve Treeview IDs from mouse-down through drop. A filesystem
@@ -43120,6 +43669,23 @@ class FilePane(ttk.Frame):
             self._refresh_after_drag = True
             return
         self._refresh_after_drag = False
+        key=self._listing_key()
+        fresh=True
+        try:
+            if self._prepared_listing is not None and self._prepared_listing[0]==key:
+                rows=self._prepared_listing[1]
+            elif (_reuse_listing and self._listing_snapshot_key==key
+                  and (self.view_mode=='list' or self.mode=='search_results')):
+                rows=self._listing_rows;fresh=False
+            elif self.mode=='search_results':rows=listing_items(self._result_listing_paths)
+            else:rows=directory_items(self.path,self.show_hidden,self.show_system,self._search_reveal_path)
+        except OSError as exc:
+            self._listing_failed(exc)
+            messagebox.showerror(tr('Cannot read folder'),str(exc),parent=self.winfo_toplevel())
+            return
+        finally:self._prepared_listing=None
+        self._listing_rows=rows;self._listing_snapshot_key=key
+        if fresh:self._listing_failure_key=None
         self.name_marquee.stop()
         self.size_units.hide()
         reset_view = getattr(self, "_reset_view_on_refresh", False)
@@ -43143,10 +43709,7 @@ class FilePane(ttk.Frame):
         try:
             self._request_vcs_statuses()
             if self.mode == "files" and self.view_mode != "list":
-                visible_entries = [p for p in self.path.iterdir()
-                                   if (self.show_hidden or not is_hidden(p)) and
-                                   (self.show_system or not is_system(p))]
-                self._signature = self.signature_for(visible_entries)
+                self._signature = listing_signature(rows)
                 root_stat = self.path.stat()
                 root_label = self.path.name or str(self.path)
                 root_iid = self.tree.insert("", "end", text=root_label,
@@ -43176,28 +43739,19 @@ class FilePane(ttk.Frame):
                 self._schedule_column_autosize()
                 return
             reveal = getattr(self, '_search_reveal_path', None)
-            entries = [p for p in self.path.iterdir()
-                       if p == reveal or ((self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p)))]
-            self._signature = self.signature_for(entries)
+            entries = rows
+            self._signature = listing_signature(rows)
             needle = self.quick_filter_var.get().strip().casefold()
             if needle:
-                entries = [path for path in entries if path == reveal or needle in path.name.casefold()]
-            def key(p: Path):
-                try:
-                    stat = p.stat()
-                    values = {"name": p.name.lower(), "ext": p.suffix.lower(), "size": stat.st_size,
-                              "modified": stat.st_mtime}
-                    return values[self.sort_column]
-                except OSError:
-                    return p.name.lower()
-            entries.sort(key=key, reverse=self.reverse)
-            if not self.mix_sorting:
-                entries.sort(key=lambda path: not path.is_dir())
+                entries = [row for row in entries if row.path == reveal or needle in row.path.name.casefold()]
+            entries=ordered_listing(entries,self.sort_column,self.reverse,self.mix_sorting)
             total = 0
-            for p in entries:
+            for row in entries:
+                p=row.path
+                if row.metadata is None:continue
                 try:
-                    stat = p.stat()
-                    is_dir = p.is_dir()
+                    stat = row.metadata
+                    is_dir = row.is_dir
                     total += 0 if is_dir else stat.st_size
                     visible_name = p.name if is_dir or self.show_extensions else p.stem
                     name = f"[{visible_name}]" if is_dir else visible_name
@@ -43212,8 +43766,12 @@ class FilePane(ttk.Frame):
                 except OSError:
                     continue
             filter_status = tr(" — filter: {filter}", filter=self.quick_filter_var.get().strip()) if needle else ""
-            self.status.configure(text=tr("{count} items   {size}", count=len(entries),
+            self.status.configure(text=tr("{count} items   {size}", count=len(self.tree.get_children()),
                                           size=format_size(total)) + filter_status)
+            unavailable=sum(row.metadata is None for row in entries)
+            if unavailable:self.status.configure(text=self.status.cget('text')+tr(' · {count} unavailable',count=unavailable))
+            if self._listing_failure_key is not None:
+                self.status.configure(text=self.status.cget('text')+' · '+tr('Cannot read folder; previous list retained'))
             current = self.tree.selection()
             children = self.tree.get_children()
             if not current and children:
@@ -43304,14 +43862,14 @@ class FilePane(ttk.Frame):
             return False
         self._request_vcs_statuses()
         try:
-            reveal = self._search_reveal_path
-            entries = [p for p in self.path.iterdir()
-                       if p == reveal or ((self.show_hidden or not is_hidden(p)) and (self.show_system or not is_system(p)))]
-            signature = self.signature_for(entries)
-        except OSError:
+            rows=directory_items(self.path,self.show_hidden,self.show_system,self._search_reveal_path)
+            signature = listing_signature(rows)
+        except OSError as exc:
+            self._listing_failed(exc)
             return False
-        if signature == self._signature:
+        if signature == self._signature and self._listing_failure_key is None:
             return False
+        self._prepared_listing=(self._listing_key(),rows)
         self.refresh()
         return True
 
@@ -43343,8 +43901,8 @@ class FilePane(ttk.Frame):
         self.tree.focus_set()
 
     def _quick_filter_changed(self, *_args) -> None:
-        if self.mode == "files":
-            self.refresh()
+        if self.mode in ("files","search_results"):
+            self.refresh(_reuse_listing=True)
             self.on_change()
 
     def set_quick_filter(self, value: str) -> None:
@@ -43450,31 +44008,11 @@ class FilePane(ttk.Frame):
     def show_file_listing(self, paths, title: str) -> None:
         """Show arbitrary search results as an actionable temporary panel tab."""
         self.mode = "search_results"
+        self._result_listing_paths=tuple(dict.fromkeys(Path(path) for path in paths))
         self.display_title = title
         self.path_bar.set_location(f"[{title}]")
-        self.tree.delete(*self.tree.get_children())
-        self._row_icons.clear()
-        self._date_values.clear()
-        total = 0
-        for item in paths:
-            path = Path(item)
-            try:
-                stat, is_dir = path.stat(), path.is_dir()
-                total += 0 if is_dir else stat.st_size
-                self.tree.insert("", "end", text=f"[{path.name}]" if is_dir else path.name,
-                                 image=self._icon(path, is_dir),
-                                 values=("" if is_dir else path.suffix[1:].upper(),
-                                         "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                                         self.format_modified(stat.st_mtime, path)),
-                                 tags=(str(path),))
-            except OSError:
-                continue
-        self.status.configure(text=tr("{count} items   {size}",
-                                      count=len(self.tree.get_children()), size=format_size(total)))
-        children = self.tree.get_children()
-        if children:
-            self.tree.selection_set(children[0]); self.tree.focus(children[0]); self.tree.see(children[0])
-        self._schedule_column_autosize(); self.on_change(); self.focus_file_list()
+        self._reset_view_on_refresh=True
+        self.refresh();self.on_change();self.focus_file_list()
 
     def toggle_hidden(self) -> None:
         self.show_hidden = not self.show_hidden
@@ -43501,7 +44039,7 @@ class FilePane(ttk.Frame):
         icon_size = max(16, round(scaled_tree_row_height(linespace, scale) * .9))
         if self.icons.size != icon_size:
             self.icons = ShellIconProvider(icon_size)
-        self.refresh()
+        self.refresh(_reuse_listing=True)
         self._schedule_column_autosize()
 
 
@@ -43621,33 +44159,61 @@ class PaneTabs(ChamferNotebook):
 class ConflictDialog(tk.Toplevel):
     def __init__(self, parent, source: Path, target: Path) -> None:
         super().__init__(parent)
+        self.withdraw()
+        self.previous_grab=parent.grab_current();self.previous_focus=parent.focus_get()
         self.result = ("cancel", False)
         self.apply_all = tk.BooleanVar(value=False)
-        self.title(tr("File conflict")); self.resizable(False, False); self.transient(parent)
+        self.title(tr("File conflict")); self.transient(parent.winfo_toplevel())
+        area=popup_work_area(parent);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')
+        ratio=max(1,line/20)
+        width=min(round(740*ratio),area[2]-area[0]-48)
+        height=min(round(330*ratio),area[3]-area[1]-64)
         body = ttk.Frame(self, padding=12); body.pack(fill="both", expand=True)
-        ttk.Label(body, text=tr("An item with the same name already exists."),
-                  font=tkfont.nametofont("TkHeadingFont")).pack(anchor="w", pady=(0, 8))
-        ttk.Label(body, text=f"{tr('Source')}: {source}\n{tr('Destination')}: {target}", justify="left",
-                  wraplength=720).pack(anchor="w")
-        ttk.Checkbutton(body, text=tr("Apply this choice to all remaining conflicts"),
-                        variable=self.apply_all).pack(anchor="w", pady=(12, 8))
-        buttons = ttk.Frame(body); buttons.pack(fill="x")
-        first_button = None
+        heading=ttk.Label(body, text=tr("An item with the same name already exists."),
+                  font=tkfont.nametofont("TkHeadingFont"),wraplength=width-40)
+        heading.pack(fill='x',pady=(0,6))
+        paths=ttk.Frame(body);paths.pack(fill='both',expand=True)
+        self.path_text=tk.Text(paths,font='TkDefaultFont',wrap='word',height=4,highlightthickness=0,borderwidth=0,takefocus=True)
+        palette=getattr(parent._root(),'palette',{})
+        self.path_text.configure(background=palette.get('content','#ffffff'),foreground=palette.get('text','#101010'))
+        scroll=ttk.Scrollbar(paths,command=self.path_text.yview);scroll.pack(side='right',fill='y')
+        self.path_text.configure(yscrollcommand=scroll.set)
+        self.path_text.pack(side='left',fill='both',expand=True)
+        self.path_text.insert('1.0',f"{tr('Source')}: {source}\n\n{tr('Destination')}: {target}")
+        self.path_text.configure(state='disabled')
+        self.all_label=tr('Apply this choice to all remaining conflicts')
+        self.all_check=ttk.Checkbutton(body,text=self.all_label,variable=self.apply_all)
+        self.all_check.pack(side='bottom',anchor='w',pady=(12,8),before=heading)
+        font=tkfont.nametofont('TkDefaultFont')
+        body.bind('<Configure>',lambda e:self.all_check.configure(text=wrapped_control_text(
+            self.all_label,font.measure,e.width-60)),add='+')
+        buttons = FlowToolbar(body); buttons.pack(side='bottom',fill='x',before=self.all_check)
+        self.buttons={}
         for text, action in (("Replace existing", "replace"), ("Skip", "skip"),
                              ("Keep both", "keep_both"), ("Cancel", "cancel")):
-            button = ttk.Button(buttons, text=tr(text), command=lambda value=action: self.choose(value))
-            button.pack(side="left", padx=3)
-            if first_button is None: first_button = button
+            button = ttk.Button(buttons, text=tr(text),width=0,command=lambda value=action: self.choose(value))
+            buttons.add(button);self.buttons[action]=button
         self.bind("<Escape>", lambda _event: self.choose("cancel"))
+        self.bind('<KeyPress>',lambda e:'break',add='+')
+        self.bind('<Return>',self._accept)
         self.protocol("WM_DELETE_WINDOW", lambda: self.choose("cancel"))
-        self.update_idletasks()
-        self.geometry(f"+{parent.winfo_rootx() + 60}+{parent.winfo_rooty() + 80}")
-        self.grab_set(); self.lift(); self.focus_force()
-        if first_button is not None: first_button.focus_set()
+        self.geometry(f'{width}x{height}');self.minsize(min(500,width),min(240,height))
+        self.bind('<Configure>',lambda e:heading.configure(wraplength=max(160,e.width-40)) if e.widget is self else None)
+        self.deiconify();position_popup_in_work_area(self,parent,area)
+        self.grab_set();self.lift();self.buttons['cancel'].focus_force()
+
+    def _accept(self,_event=None):
+        focused=self.focus_get()
+        if focused in self.buttons.values():focused.invoke()
+        return 'break'
 
     def choose(self, action: str) -> None:
         self.result = (action, self.apply_all.get() if action != "cancel" else False)
         self.destroy()
+        try:
+            if self.previous_grab is not None and self.previous_grab.winfo_exists():self.previous_grab.grab_set()
+            if self.previous_focus is not None and self.previous_focus.winfo_exists():self.previous_focus.focus_set()
+        except tk.TclError:pass
 
     @classmethod
     def ask(cls, parent, source: Path, target: Path) -> tuple[str, bool]:
@@ -43675,6 +44241,7 @@ class Commander(tk.Tk):
         self.debug_log = DiagnosticLog(__version__, automatic=True,
                                       runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
+        self.bind('<Destroy>',self._close_diagnostics,add='+')
         diagnostic_log = self.debug_log
         self.bind('<Destroy>', lambda event: diagnostic_log.close()
                   if event.widget is self else None, add='+')
@@ -44249,7 +44816,18 @@ class Commander(tk.Tk):
         warning.pack(fill="x", before=self.split)
         self.after(10000, lambda: warning.destroy() if warning.winfo_exists() else None)
 
+    def _close_diagnostics(self,event):
+        if event.widget is self:
+            try:self.debug_log.close()
+            except OSError:pass  # Diagnostic storage must never prevent exit.
+
     def close_app(self) -> None:
+        running=[w for w in getattr(self,'_progress_operations',set()) if w.winfo_exists()]
+        if running:
+            running[0].lift();return
+        transfer=getattr(self,'_transfer_dialog',None)
+        if transfer is not None and transfer.winfo_exists():
+            transfer.cancel();return
         pending_sync = getattr(self, '_sync_dialog', None)
         if pending_sync is not None and pending_sync.winfo_exists():
             pending_sync.cancel()
@@ -44293,6 +44871,14 @@ class Commander(tk.Tk):
         for session in list(self._archive_sessions):
             self._close_archive_session(session, retries=0)
         self._archive_sessions.clear()
+        self._ready=False
+        # This Tk root owns its interpreter. Cancel its remaining Tcl callbacks
+        # before deleting their Python command registrations during destruction.
+        for job in self.tk.call('after','info'):
+            # Owning widgets delete their registered commands on destruction.
+            # root.after_cancel would delete a child's command twice.
+            try:self.tk.call('after','cancel',job)
+            except tk.TclError:pass
         self.destroy()
 
     def _sync_auto_start(self, show_error: bool = True) -> bool:
@@ -45621,24 +46207,41 @@ class Commander(tk.Tk):
 
     def _run_progress_operation(self, title: str, work, done) -> None:
         window = tk.Toplevel(self)
+        if not hasattr(self,'_progress_operations'):self._progress_operations=set()
+        self._progress_operations.add(window)
         window.title(tr(title)); window.transient(self)
-        window.resizable(False, False); window.protocol("WM_DELETE_WINDOW", lambda: None)
+        window.resizable(True, True); window.protocol("WM_DELETE_WINDOW", lambda: None)
         frame = ttk.Frame(window, padding=16); frame.pack(fill="both", expand=True)
-        ttk.Label(frame, text=tr(title), anchor="w").pack(fill="x", pady=(0, 8))
+        heading=ttk.Label(frame,text=tr(title),anchor='w');heading.pack(fill='x',pady=(0,8))
+        eta_label=ttk.Label(frame,text=tr('Preparing…'),anchor='w')
+        eta_label.pack(side='bottom',fill='x',pady=(6,0))
         progress = ttk.Progressbar(frame, mode="indeterminate", maximum=100, value=0, length=360)
         progress.pack(fill="x")
-        detail_label = ttk.Label(frame, text="", anchor="w")
-        detail_label.pack(fill="x", pady=(6, 0))
-        eta_label = ttk.Label(frame, text=tr("Preparing…"), anchor="w")
-        eta_label.pack(fill="x", pady=(6, 0))
+        details=ttk.Frame(frame);details.pack(fill='both',expand=True,pady=(6,0))
+        detail_scroll=ttk.Scrollbar(details);detail_scroll.pack(side='right',fill='y')
+        detail_text=tk.Text(details,font='TkDefaultFont',height=2,wrap='word',borderwidth=0,
+            highlightthickness=0,background=self.palette['window'],foreground=self.palette['text'],
+            yscrollcommand=detail_scroll.set,state='disabled')
+        detail_text.pack(fill='both',expand=True);detail_scroll.configure(command=detail_text.yview)
+        def wrap_progress(event):
+            if event.widget is window:
+                for label in (heading,eta_label):label.configure(wraplength=max(100,event.width-36))
+        window.bind('<Configure>',wrap_progress)
+        work_area=popup_work_area(self);line=tkfont.nametofont('TkDefaultFont').metrics('linespace')
+        width=min(round(640*max(1,line/20)),work_area[2]-work_area[0]-48)
+        height=min(max(220,line*8+70),work_area[3]-work_area[1]-64)
+        window.geometry(f'{width}x{height}');window.minsize(min(width,360),min(height,200))
         window.update_idletasks()
-        x = self.winfo_rootx() + max(0, (self.winfo_width() - window.winfo_reqwidth()) // 2)
-        y = self.winfo_rooty() + max(0, (self.winfo_height() - window.winfo_reqheight()) // 3)
-        window.geometry(f"+{x}+{y}"); window.lift(); window.focus_force()
+        position_popup_in_work_area(window,self,work_area);window.lift();window.focus_force()
         results = queue.Queue(); started = time.monotonic(); progress.start(12)
+        progress_lock=threading.Lock();latest_progress=None
 
         def report(completed: int, total: int, detail: str = "") -> None:
-            results.put(("progress", max(0, completed), max(0, total), detail))
+            nonlocal latest_progress
+            # Intermediate progress is replaceable; terminal results are not.
+            # A fast recursive operation must not enqueue thousands of redraws
+            # or make Tk drain an unbounded queue before handling input.
+            with progress_lock:latest_progress=(max(0,completed),max(0,total),detail)
 
         def runner():
             try:
@@ -45651,12 +46254,13 @@ class Commander(tk.Tk):
         worker = threading.Thread(target=runner, daemon=True, name=f"PFC-{title}")
         worker.start()
 
-        finished = False; target_percent = 0.0; displayed_percent = 0.0
+        finished = False; target_percent = 0.0
         def finish_window():
             nonlocal finished
             if finished:
                 return
             finished = True
+            self._progress_operations.discard(window)
             try: progress.stop()
             except tk.TclError: pass
             try:
@@ -45665,33 +46269,30 @@ class Commander(tk.Tk):
                 pass
 
         def poll():
-            nonlocal target_percent, displayed_percent
+            nonlocal target_percent, latest_progress
             result = None
-            while True:
-                try: message = results.get_nowait()
-                except queue.Empty: break
-                if message[0] == "progress":
-                    _kind, completed, total, detail = message
-                    if total > 0:
-                        if str(progress.cget("mode")) == "indeterminate":
-                            progress.stop()
-                            progress.configure(mode="determinate", value=0)
-                            eta_label.configure(text=tr("Estimated time remaining: calculating…"))
-                        target_percent = max(target_percent, min(99.0, completed * 100 / total))
-                    if detail:
-                        detail_label.configure(text=detail)
-                else:
-                    result = message
-            if displayed_percent < target_percent:
-                displayed_percent = min(target_percent, displayed_percent + min(5, max(1, target_percent - displayed_percent)))
-                progress.configure(value=displayed_percent)
+            with progress_lock:
+                update=latest_progress;latest_progress=None
+            if update is not None:
+                completed,total,detail=update
+                if total>0:
+                    if str(progress.cget('mode'))=='indeterminate':
+                        progress.stop();progress.configure(mode='determinate',value=0)
+                    target_percent=max(target_percent,min(99.0,completed*100/total))
+                    progress.configure(value=target_percent)
+                if detail:
+                    detail_text.configure(state='normal');detail_text.delete('1.0','end')
+                    detail_text.insert('1.0',detail);detail_text.configure(state='disabled')
+            try:result=results.get_nowait()
+            except queue.Empty:pass
+            if target_percent>0:
                 elapsed = max(.001, time.monotonic() - started)
-                if displayed_percent >= 1:
-                    remaining = max(0, round(elapsed * (100 - displayed_percent) / displayed_percent))
+                if target_percent >= 1:
+                    remaining = max(0, round(elapsed * (100 - target_percent) / target_percent))
                     eta_label.configure(text=tr("Estimated time remaining: {minutes:02d} minutes {seconds:02d} seconds",
                                                 minutes=remaining // 60, seconds=remaining % 60))
             if result is None:
-                if not worker.is_alive():
+                if not worker.is_alive() and results.empty():
                     finish_window()
                     messagebox.showerror(tr(title), tr("The operation ended without a result."),
                                          parent=self)
@@ -47234,33 +47835,14 @@ class Commander(tk.Tk):
     def _show_operation_result(self, verb: str, result: OperationResult, retry=None) -> None:
         if not result.failures and not result.skipped:
             return
-        display_verb = tr(verb)
-        details = [tr("{verb}: {completed} completed, {skipped} skipped, {failed} failed.",
-                      verb=display_verb, completed=len(result.completed),
-                      skipped=len(result.skipped), failed=len(result.failures)), ""]
-        details.extend(f"SKIPPED: {path}" for path in result.skipped)
-        for failure in result.failures:
-            destination = f" -> {failure.target}" if failure.target else ""
-            details.append(f"FAILED: {failure.source}{destination}\n  {failure.message}")
-        report = "\n".join(details)
-        dialog = tk.Toplevel(self); dialog.title(tr("{verb} result", verb=display_verb)); dialog.transient(self)
-        dialog.geometry("760x420"); dialog.minsize(540, 280)
-        ttk.Label(dialog, text=details[0], font=tkfont.nametofont("TkHeadingFont"),
-                  padding=(8, 8, 8, 4)).pack(anchor="w")
-        text = tk.Text(dialog, wrap="word", height=12, font=tkfont.nametofont("TkFixedFont"))
-        text.insert("1.0", report); text.configure(state="disabled"); text.pack(fill="both", expand=True, padx=8)
-        buttons = ttk.Frame(dialog, padding=8); buttons.pack(fill="x")
-        def copy_report():
-            self.clipboard_clear(); self.clipboard_append(report); self.update_idletasks()
-        ttk.Button(buttons, text=tr("Copy Details"), command=copy_report).pack(side="left")
-        if retry is not None and result.failures:
-            def retry_failed():
-                failed = [failure.source for failure in result.failures]
-                dialog.destroy(); retry(failed)
-            ttk.Button(buttons, text=tr("Retry Failed"), command=retry_failed).pack(side="left", padx=4)
-        ttk.Button(buttons, text=tr("Close"), command=dialog.destroy).pack(side="right")
-        dialog.bind("<Escape>", lambda _event: dialog.destroy())
-        dialog.lift(); dialog.focus_force()
+        if result.failures:
+            # Known operations and counts only: never emit raw paths/messages
+            # from handled filesystem failures to the automatic audit stream.
+            operation=verb if verb in ('Copy','Move','Paste','Recycle','Permanent delete','Delete from Archive','Safe Sync') else 'File operation'
+            self.debug_log.event('operation.partial.failed',severity='ERROR',operation=operation,
+                completed=len(result.completed),skipped=len(result.skipped),failed=len(result.failures),
+                reason=f'{operation}: {len(result.completed)} completed, {len(result.skipped)} skipped, {len(result.failures)} failed.')
+        return OperationResultWindow(self,verb,result,retry)
 
     def _execute_transfer(self, verb: str, operation, items: list[Path], destination: Path,
                           confirm: bool = True, allow_retry: bool = True) -> OperationResult | None:
@@ -47272,10 +47854,16 @@ class Commander(tk.Tk):
                                                    verb=display_verb, count=len(items), destination=destination),
                                                 parent=self):
             return None
+        existing=getattr(self,'_transfer_dialog',None)
+        if existing is not None and existing.winfo_exists():
+            existing.lift();return None
+        dialog=TransferProgress(self,verb,operation,items,destination,
+                                self._conflict_resolver(),self.continue_errors_var.get())
+        self._transfer_dialog=dialog
         try:
-            result = operation(items, destination, self._conflict_resolver(), self.continue_errors_var.get())
-        except (OSError, shutil.Error) as exc:
-            result = OperationResult(failures=[OperationFailure(items[0], destination, str(exc))])
+            self.wait_window(dialog)
+            result=dialog.result
+        finally:self._transfer_dialog=None
         changed_paths = [destination]
         if operation is move_items:
             changed_paths.extend(items)

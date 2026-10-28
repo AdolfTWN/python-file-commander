@@ -1,6 +1,20 @@
 # Python File Commander
 
-Current version: **v0.18.43**
+Current code: **v0.18.45 development candidate**. Windows ARM64/emulated-x64
+validation and release publication are pending; this is not a Windows acceptance claim.
+
+**Task-focused improvements:** copy/move I/O runs outside Tk; conflict choices
+remain on the UI thread with Cancel initially focused. Cancel/closing requests
+stop after the current selected item (including a selected folder's contents),
+not halfway through a write. Progress identifies the destination, processed item
+count and elapsed time without inventing a byte percentage. Failure reports list
+failed items first, show full selected details with scrollbars, and retry only
+failed sources. Handled operation failures log safe counts; voluntary cancellation
+is not an error. Saved workflows have direct Find and keyboard-accessible Details.
+Folder filter/sort reuses the current metadata snapshot; refresh/watch obtains
+fresh data, retains the list on read failure and clears the warning after recovery.
+Search-result tabs retain their explicit file set when filtered, sorted or refreshed.
+See the [deep exploration, measurements and remaining limits](docs/deep-ux-exploration-20261028.md).
 
 **F3 readers:** JSON/JSONL/YAML/TOML structure, CSV/TSV tables, SVG, Mermaid,
 saved Notebook outputs, diff/patch review and static HTML. Rendered/Source and
@@ -352,7 +366,7 @@ Right-click a local file or folder to open the native Windows File Explorer menu
 
 Long names in file panels are clipped without rewriting their middle or shrinking the font. **View > File Columns → Name settings → Long Filename Scrolling** (on by default) scrolls only the focused selected row in the active file list. It holds the beginning for one second, moves left at 36 pixels/second at 100% font size (scaled with zoom), holds the ending for 1.5 seconds, and repeats. Icons, row height and other columns stay still. Editing, dragging, menus and leaving the list pause animation; offscreen or inactive rows do not animate. Turning scrolling off leaves names statically clipped with full-name hover help. Both new preferences are saved in the INI.
 
-Copy, move, and clipboard paste detect name conflicts and offer Replace, Skip, Keep Both, Cancel, and Apply to All. Multi-item operations open a copyable result window listing exact failed paths with Retry Failed. The file context menu includes Run as Admin for supported Windows executables/scripts, ZIP compression, ZIP/7z extraction with asynchronously calculated folder/file counts, CMD/PowerShell shortcuts opened at the clicked location, and creation of native shortcuts placed on the clipboard as a cut operation. Search, compression, extraction, update download, and archive opening show smooth progress with an estimated remaining time; archive work runs outside the UI thread. ZIP/7z extraction writes directly to its checked destination to avoid Windows long-path failures caused by a second temporary copy. **Files > File Operation Settings > Continue After File Errors** controls whether remaining items continue after a failure and defaults on. The header follows five predictable areas: **Files** for file operations, **Go** for navigation and paths, **View** for presentation, **Tools** for preview/compare/analyze/native integration, and **Help** for updates and release information.
+Copy, move, and clipboard paste detect name conflicts and offer Replace, Skip, Keep Both, Cancel, and Apply to All. Multi-item operations open a copyable result window listing exact failed paths with Retry Failed. The file context menu includes Run as Admin for supported Windows executables/scripts, ZIP compression, ZIP/7z extraction with asynchronously calculated folder/file counts, CMD/PowerShell shortcuts opened at the clicked location, and creation of native shortcuts placed on the clipboard as a cut operation. Search, copy/move and archive work expose activity and truthful terminal states outside the UI thread. Counted compression/extraction operations may show an estimated remaining time; unknown totals use activity instead. ZIP/7z extraction writes directly to its checked destination to avoid Windows long-path failures caused by a second temporary copy. **Files > File Operation Settings > Continue After File Errors** controls whether remaining items continue after a failure and defaults on. The header follows five predictable areas: **Files** for file operations, **Go** for navigation and paths, **View** for presentation, **Tools** for preview/compare/analyze/native integration, and **Help** for updates and release information.
 
 Favorites and the 20 most recent folders are stored in `pfc.ini`. Ctrl+D adds/removes the current folder, Ctrl+B opens Favorites, and Ctrl+Shift+R opens Recent Folders. All entries are also available from the Go menu.
 

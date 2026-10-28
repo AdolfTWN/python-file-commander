@@ -8,6 +8,8 @@ import re
 import time
 import tokenize
 import tempfile
+import stat as statlib
+from contextlib import contextmanager
 import tkinter as tk
 import tkinter.font as tkfont
 from pathlib import Path
@@ -39,6 +41,23 @@ TEXT_EXTENSIONS |= RENDER_EXTENSIONS
 TEXT_LIMIT = 8 * 1024 * 1024
 HEX_LIMIT = 1024 * 1024
 SYNTAX_BATCH_SIZE = 600
+
+
+@contextmanager
+def regular_preview_stream(path: Path):
+    """Reject devices/streams before opening, then verify the opened descriptor.
+
+    POSIX nonblocking open also closes the regular-file → FIFO replacement
+    race. All preview readers share this boundary; linked Markdown additionally
+    keeps its existing vault/path-boundary checks.
+    """
+    if not statlib.S_ISREG(path.stat().st_mode):raise OSError('Preview requires an ordinary file.')
+    flags=os.O_RDONLY | (getattr(os,'O_NONBLOCK',0) if os.name!='nt' else 0)
+    fd=os.open(path,flags)
+    with os.fdopen(fd,'rb') as stream:
+        info=os.fstat(stream.fileno())
+        if not statlib.S_ISREG(info.st_mode):raise OSError('Preview requires an ordinary file.')
+        yield stream,info
 
 CODE_EXTENSIONS = {
     ".py": "Python", ".js": "JavaScript", ".jsx": "JavaScript",
@@ -274,9 +293,7 @@ def markdown_worker_main():
                 if request.get('boundary'):
                     data,signature=read_linked_markdown(path,request['boundary'],TEXT_LIMIT)
                 else:
-                    with path.open('rb') as stream:
-                        info=os.fstat(stream.fileno())
-                        if not __import__('stat').S_ISREG(info.st_mode): raise ValueError('Target is not a regular file')
+                    with regular_preview_stream(path) as (stream,info):
                         signature=(info.st_mtime_ns,info.st_size);data=stream.read(TEXT_LIMIT+1)
                 truncated=len(data)>TEXT_LIMIT
                 source,encoding=decode_text(data[:TEXT_LIMIT]);notice=''
@@ -305,7 +322,6 @@ def markdown_worker_main():
 def format_worker_main():
     """Bounded parser / disposable browser worker; documents are never executed."""
     import sys
-    import stat
     from_locale=globals().get('set_language')
     if from_locale is None:
         from .i18n import set_language as from_locale
@@ -318,11 +334,7 @@ def format_worker_main():
         request={};source='';encoding='';signature=None;truncated=False
         try:
             request=json.loads(raw);from_locale(request.get('language','en'));path=Path(request['path'])
-            flags=os.O_RDONLY | (getattr(os,'O_NONBLOCK',0) if os.name!='nt' else 0)
-            fd=os.open(path,flags)
-            with os.fdopen(fd,'rb') as stream:
-                info=os.fstat(stream.fileno())
-                if not stat.S_ISREG(info.st_mode):raise ValueError('Target is not a regular file')
+            with regular_preview_stream(path) as (stream,info):
                 suffix=path.suffix.casefold();limit=8*1024*1024 if suffix=='.ipynb' else RENDER_INPUT_LIMIT
                 signature=[info.st_mtime_ns,info.st_size];data=stream.read(limit+1)
                 after=os.fstat(stream.fileno())
@@ -1301,8 +1313,8 @@ class PreviewPage(tk.Frame):
                     ("[DIR]  " if item.is_dir() else "       ") + item.name for item in entries)
                 shown_mode = tr("Folder view")
             else:
-                size = path.stat().st_size
-                with path.open("rb") as stream:
+                with regular_preview_stream(path) as (stream,info):
+                    size=info.st_size
                     sample = stream.read(4096); stream.seek(0)
                     chosen = "Text" if mode == "Text" or (mode == "Auto" and looks_text(path, sample)) else "Hex"
                     limit = TEXT_LIMIT if chosen == "Text" else HEX_LIMIT

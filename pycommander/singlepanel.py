@@ -501,15 +501,16 @@ class RootFolderTree(ttk.Frame):
             if len(candidates) >= 32: break
         if not candidates: return
         cancel = self._probe_cancel = threading.Event()
+        stop, results = self.stop, self._probe_results
         def work():
             deadline = time.monotonic()+1
             try:
                 for iid, path in candidates:
-                    if cancel.is_set() or self.stop.is_set() or time.monotonic() > deadline: break
+                    if cancel.is_set() or stop.is_set() or time.monotonic() > deadline: break
                     value = folder_has_children(path, cancel)
-                    self._probe_results.put((cancel, iid, value))
+                    results.put((cancel, iid, value))
             finally:
-                self._probe_results.put((cancel, None, None))
+                results.put((cancel, None, None))
         threading.Thread(target=work, daemon=True, name='PFC-folder-hints').start()
 
     def _poll_probes(self):
@@ -630,6 +631,9 @@ class RootFolderTree(ttk.Frame):
         self.failed.discard(iid)
         # Workers never touch Tk. Two daemon workers maximum, even if an offline
         # drive blocks a system call; stale/late results are ignored.
+        # Do not retain the widget/root until a slow OS call returns either:
+        # releasing its final Python reference on a worker can finalize Tk there.
+        slots, stop, results = self.slots, self.stop, self.results
         def work():
             try:
                 # Keep cloud/link folders visible for manual navigation, but
@@ -642,8 +646,8 @@ class RootFolderTree(ttk.Frame):
             except Exception as exc:
                 result = ([], False, str(exc))
             finally:
-                self.slots.release()
-            if not self.stop.is_set(): self.results.put((iid, token, result))
+                slots.release()
+            if not stop.is_set(): results.put((iid, token, result))
         threading.Thread(target=work, daemon=True, name='PFC-folder-tree').start()
         return True
 

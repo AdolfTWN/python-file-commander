@@ -333,6 +333,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                     data=guest.image_data(directory+'\\evidence-compact-'+name+'.bmp')
                     (evidence_dir/('compact-'+name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('compact-'+name+'.png'))
+            if result['status']=='passed' and 'surface_walkthrough_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('conflict','confirmation','input','saved-workflows','operation-result','transfer'):
+                    data=guest.image_data(directory+'\\evidence-deep-'+name+'.bmp')
+                    (evidence_dir/('deep-'+name+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('deep-'+name+'.png'))
             if result['status']=='passed' and 'ux_walkthrough_check.py' in checks:
                 from PIL import Image
                 import io

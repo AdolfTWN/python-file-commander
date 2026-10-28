@@ -2,6 +2,22 @@
 from tkinter import ttk
 
 
+def wrapped_control_text(text,measure,width):
+    """Measured multiline labels for controls without native wraplength."""
+    lines=[]
+    for paragraph in text.split('\n'):
+        line=''
+        for char in paragraph:
+            if line and measure(line+char)>max(20,width):
+                split=line.rfind(' ')
+                if split>len(line)//2:
+                    lines.append(line[:split]);line=line[split+1:]+char
+                else:lines.append(line);line=char
+            else:line+=char
+        lines.append(line)
+    return '\n'.join(lines)
+
+
 def toolbar_rows(width, sizes, gap=6):
     """Greedily retain adjacent semantic groups; exact fits stay on one row."""
     rows, row, used = [], [], 0
@@ -50,11 +66,16 @@ class FlowToolbar(ttk.Frame):
 
     def layout(self):
         self._flow_job = None
-        width = max(1, self.winfo_width())
+        values=[self.winfo_pixels(p) for p in self.tk.splitlist(self.cget('padding'))]
+        if len(values)==1:values*=4
+        elif len(values)==2:values*=2
+        elif len(values)==3:values.append(values[1])
+        left,top,right,bottom=values or (0,0,0,0)
+        width = max(1, self.winfo_width()-left-right)
         sizes = [max(1, int(minimum() if callable(minimum) else minimum or w.winfo_reqwidth()))
                  for w, _, minimum in self.groups]
         heights = [w.winfo_reqheight() for w, _, _ in self.groups]
-        signature = (width, tuple(sizes), tuple(heights))
+        signature = (width, tuple(sizes), tuple(heights),top,bottom)
         if signature == self._flow_signature: return
         self._flow_signature = signature
         self.rows = toolbar_rows(width, sizes, self.gap)
@@ -70,4 +91,4 @@ class FlowToolbar(ttk.Frame):
                 self.groups[i][0].place(x=x, y=y, width=allocated, height=height)
                 x += allocated+self.gap
             y += height+self.row_gap
-        self.configure(height=max(1, y-self.row_gap))
+        self.configure(height=max(1, y-self.row_gap+top+bottom))

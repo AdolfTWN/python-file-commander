@@ -3,7 +3,8 @@ from datetime import datetime
 
 
 def modified_text(timestamp, date_order="ymd", time_style="24"):
-    value = datetime.fromtimestamp(timestamp)
+    try:value = datetime.fromtimestamp(timestamp)
+    except (OSError,ValueError,OverflowError):return '—'
     date = value.strftime("%m/%d/%Y" if date_order == "mdy" else "%Y/%m/%d")
     if time_style == "none":
         return date

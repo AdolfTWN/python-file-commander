@@ -33,11 +33,12 @@ with tempfile.TemporaryDirectory(prefix='pfc-leaf-') as raw:
         (root/name).mkdir(parents=True)
     (root/'rules'/'instructions.md').write_text('rules, not a child folder')
     real_probe = module.folder_has_children
-    held = threading.Event(); reads = []; active = 0; maximum = 0
+    held = threading.Event(); blocked=threading.Event();reads = []; active = 0; maximum = 0
     def probe(path, cancel):
         global active, maximum
         active += 1; maximum = max(maximum, active); reads.append(path)
         try:
+            if not held.is_set():blocked.set()
             held.wait(4)
             if path.name == 'Unknown': return None
             return real_probe(path, cancel)
@@ -124,8 +125,12 @@ with tempfile.TemporaryDirectory(prefix='pfc-leaf-') as raw:
             settle(); assert badge(node(root/'rules'))
             # Refresh during a blocked hint ignores its stale result and never
             # starts a replacement worker while the old OS call is outstanding.
-            held.clear(); nav.refresh()
-            wait_for(lambda: nav._probe_cancel is not None)
+            # A non-None token can belong to a completed worker whose terminal
+            # queue message has not been drained. Require the actual held
+            # probe to enter before asserting blocked-call cancellation.
+            wait_for(lambda: nav._probe_cancel is None)
+            held.clear();blocked.clear();nav.refresh()
+            wait_for(blocked.is_set)
             old_cancel = nav._probe_cancel; nav.refresh(); settle()
             assert old_cancel.is_set() and nav._probe_cancel is old_cancel and maximum == 1
             held.set(); wait_for(lambda: nav._child_hints.get(node(root/'rules')) is True if

@@ -6,16 +6,19 @@ from .i18n import tr
 from .workflowdata import WorkflowRecords
 from .tooltip import ToolTip
 from .columnsettings import font_snapshot
+from .flowlayout import FlowToolbar
+from .windowplacement import popup_work_area, position_popup_in_work_area
 
 
 def workflow_dialog_geometry(window, master, width=650, height=420):
-    width = min(width, master.winfo_screenwidth() - 60)
-    height = min(height, master.winfo_screenheight() - 100)
-    x = max(0, min(master.winfo_screenwidth() - width, master.winfo_rootx() + 60))
-    y = max(0, min(master.winfo_screenheight() - height, master.winfo_rooty() + 70))
-    window.geometry(f'{width}x{height}+{x}+{y}')
+    area=popup_work_area(master)
+    ratio=max(1,tkfont.nametofont('TkDefaultFont',root=master).metrics('linespace')/20)
+    width=min(round(width*ratio),area[2]-area[0]-48)
+    height=min(round(height*ratio),area[3]-area[1]-64)
+    window.geometry(f'{width}x{height}')
     window.minsize(min(420, width), min(280, height))
-    window.transient(master)
+    window.transient(master.winfo_toplevel())
+    position_popup_in_work_area(window,master,area)
     window.bind('<KeyPress>', lambda e: 'break')
     def traverse(back=False):
         current = window.focus_get() or window
@@ -24,7 +27,8 @@ def workflow_dialog_geometry(window, master, width=650, height=420):
         return 'break'
     window.bind('<Tab>', lambda e: traverse())
     window.bind('<Shift-Tab>', lambda e: traverse(True))
-    window.bind('<ISO_Left_Tab>', lambda e: traverse(True))
+    try:window.bind('<ISO_Left_Tab>', lambda e: traverse(True))
+    except tk.TclError:pass  # X11 keysym is not available in every Windows Tk.
 
 
 def style_workflow_controls(window):
@@ -53,12 +57,16 @@ def style_workflow_controls(window):
 class WorkflowPicker(tk.Toplevel):
     def __init__(self, master, title, records, save_config, capture, activate, describe):
         super().__init__(master)
+        self.previous_grab=master.grab_current();self.previous_focus=master.focus_get()
         self.title(tr(title)); workflow_dialog_geometry(self, master)
         self.records, self.save_config = records, save_config
         self.capture, self.activate, self.describe = capture, activate, describe
         area = ttk.Frame(self, padding=10); area.pack(fill='both', expand=True)
         area.columnconfigure(0, weight=1); area.rowconfigure(1, weight=1)
-        ttk.Label(area, text=tr(title), font='TkHeadingFont').grid(row=0, column=0, sticky='w', pady=(0, 6))
+        header=ttk.Frame(area);header.grid(row=0,column=0,sticky='ew',pady=(0,6));header.columnconfigure(1,weight=1)
+        ttk.Label(header,text=tr('Find:')).grid(row=0,column=0,sticky='w',padx=(0,6))
+        self.query=tk.StringVar(self)
+        self.entry=ttk.Entry(header,textvariable=self.query);self.entry.grid(row=0,column=1,sticky='ew')
         frame = ttk.Frame(area); frame.grid(row=1, column=0, sticky='nsew')
         self.list = tk.Listbox(frame, exportselection=False, activestyle='dotbox', borderwidth=0,
                                highlightthickness=1, font='TkDefaultFont')
@@ -73,14 +81,15 @@ class WorkflowPicker(tk.Toplevel):
         self.detail_tooltip = ToolTip(self.detail, '')
         self.detail.grid(row=2, column=0, sticky='ew', pady=8)
         self.bind('<Configure>', lambda e: self.detail.configure(wraplength=max(200, self.winfo_width()-30)))
-        bar = ttk.Frame(area); bar.grid(row=3, column=0, sticky='ew')
-        self.save_button = ttk.Button(bar, text=tr('Save current')+'…', command=self.save_current)
-        self.save_button.pack(side='left')
-        self.remove_button = ttk.Button(bar, text=tr('Remove'), command=self.remove)
-        self.remove_button.pack(side='left', padx=5)
-        self.open_button = ttk.Button(bar, text=tr('Open'), command=self.open)
-        self.open_button.pack(side='right')
-        ttk.Button(bar, text=tr('Close'), command=self.close).pack(side='right', padx=5)
+        bar = FlowToolbar(area); bar.grid(row=3, column=0, sticky='ew')
+        self.save_button = ttk.Button(bar, text=tr('Save current')+'…', width=0, command=self.save_current)
+        self.remove_button = ttk.Button(bar, text=tr('Remove'), width=0, command=self.remove)
+        self.open_button = ttk.Button(bar, text=tr('Open'), width=0, command=self.open)
+        self.details_button=ttk.Button(bar,text=tr('Details…'),width=0,command=self.show_details)
+        for button in (self.save_button,self.remove_button,self.details_button,self.open_button,
+                       ttk.Button(bar,text=tr('Close'),width=0,command=self.close)):bar.add(button)
+        self.query.trace_add('write',lambda *a:self.refresh())
+        self.entry.bind('<Down>',lambda e:self.step(1));self.entry.bind('<Up>',lambda e:self.step(-1))
         self.list.bind('<<ListboxSelect>>', lambda e: self.selected())
         self.list.bind('<Double-1>', lambda e: self.open())
         self.bind('<Return>', lambda e: (self.focus_get().invoke(), 'break')[1]
@@ -88,10 +97,13 @@ class WorkflowPicker(tk.Toplevel):
         self.bind('<Escape>', lambda e: self.close())
         self.protocol('WM_DELETE_WINDOW', self.close)
         style_workflow_controls(self)
-        self.refresh(); self.grab_set(); self.list.focus_set()
+        self.refresh(); self.grab_set(); self.entry.focus_set()
 
     def refresh(self):
-        self.entries = self.records.read()
+        self.all_entries=self.records.read()
+        words=self.query.get().casefold().split()
+        self.entries=[item for item in self.all_entries if all(word in
+            (item['name']+' '+str(self.describe(item['data']))).casefold() for word in words)]
         self.list.delete(0, 'end')
         for item in self.entries: self.list.insert('end', item['name'])
         if self.entries: self.list.selection_set(0)
@@ -102,19 +114,33 @@ class WorkflowPicker(tk.Toplevel):
         has = bool(selected)
         self.open_button.state(['!disabled'] if has else ['disabled'])
         self.remove_button.state(['!disabled'] if has else ['disabled'])
-        value = self.describe(self.entries[selected[0]]['data']) if has else tr('Nothing saved yet. Use Save current to create a named entry.')
+        self.details_button.state(['!disabled'] if has else ['disabled'])
+        value = self.describe(self.entries[selected[0]]['data']) if has else tr('No matching entries.') if self.all_entries else tr('Nothing saved yet. Use Save current to create a named entry.')
         self.detail_tooltip.text = str(value)
         # Keep the list usable with long paths. Full path remains in the saved
         # record; the focused item's concise context is not a second document.
         lines = str(value).splitlines()[:3]
         self.detail.configure(text='\n'.join(line if len(line) <= 110 else line[:45]+'…'+line[-60:] for line in lines))
 
+    def step(self,direction):
+        selected=self.list.curselection()
+        if self.entries:
+            index=max(0,min(len(self.entries)-1,(selected[0] if selected else 0)+direction))
+            self.list.selection_clear(0,'end');self.list.selection_set(index);self.list.see(index);self.selected()
+        return 'break'
+
+    def show_details(self):
+        selected=self.list.curselection()
+        if selected:
+            item=self.entries[selected[0]]
+            messagebox.showinfo(item['name'],item['name']+'\n\n'+str(self.describe(item['data'])),parent=self)
+
     def save_current(self):
         name = simpledialog.askstring(self.title(), tr('Name'), parent=self)
         # Python's simpledialog releases its own grab without restoring ours.
         if self.winfo_exists(): self.grab_set()
         if name is None: return
-        if any(r['name'].casefold() == name.strip().casefold() for r in self.entries):
+        if any(r['name'].casefold() == name.strip().casefold() for r in self.all_entries):
             if not messagebox.askyesno(self.title(), tr('Replace this saved entry?'), parent=self): return
         try:
             data = self.capture()
@@ -142,7 +168,15 @@ class WorkflowPicker(tk.Toplevel):
 
     def close(self):
         self.grab_release(); self.destroy()
+        _restore_workflow_owner(self.previous_grab,self.previous_focus)
         return 'break'
+
+
+def _restore_workflow_owner(grab,focus):
+    try:
+        if grab is not None and grab.winfo_exists():grab.grab_set()
+        if focus is not None and focus.winfo_exists():focus.focus_set()
+    except tk.TclError:pass
 
 
 def command_matches(commands, query):
@@ -157,6 +191,7 @@ class CommandPalette(tk.Toplevel):
         self.title(tr('Command search')); workflow_dialog_geometry(self, master, 680, 390)
         self.commands = commands
         self.previous_focus = master.focus_get()
+        self.previous_grab=master.grab_current()
         area = ttk.Frame(self, padding=10); area.pack(fill='both', expand=True)
         area.columnconfigure(0, weight=1); area.rowconfigure(1, weight=1)
         self.query = tk.StringVar()
@@ -170,8 +205,13 @@ class CommandPalette(tk.Toplevel):
         self.list.column('category', width=150, minwidth=90, stretch=False)
         self.list.column('key', width=110, minwidth=85, stretch=False)
         self.list.grid(row=1, column=0, sticky='nsew')
+        scroll=ttk.Scrollbar(area,command=self.list.yview);scroll.grid(row=1,column=1,sticky='ns')
+        self.horizontal=ttk.Scrollbar(area,orient='horizontal',command=self.list.xview)
+        self.horizontal.grid(row=2,column=0,sticky='ew')
+        self.list.configure(yscrollcommand=scroll.set,xscrollcommand=self.horizontal.set)
+        self.list.bind('<Configure>',lambda e:self.fit_columns(e.width))
         self.hint = ttk.Label(area, text=tr('Type to filter • ↑ ↓ select • Enter run • Esc close'), anchor='w', wraplength=640)
-        self.hint.grid(row=2, column=0, sticky='ew', pady=(7, 0))
+        self.hint.grid(row=3, column=0, sticky='ew', pady=(7, 0))
         self.bind('<Configure>', lambda e: self.hint.configure(wraplength=max(200,self.winfo_width()-30)))
         self.query.trace_add('write', lambda *args: self.refresh())
         self.entry.bind('<Down>', lambda e: self.step(1)); self.entry.bind('<Up>', lambda e: self.step(-1))
@@ -179,6 +219,19 @@ class CommandPalette(tk.Toplevel):
         self.bind('<Escape>', lambda e: self.close()); self.protocol('WM_DELETE_WINDOW', self.close)
         style_workflow_controls(self)
         self.refresh(); self.grab_set(); self.entry.focus_set()
+
+    def fit_columns(self,width):
+        font=tkfont.nametofont('TkDefaultFont',root=self)
+        key_width=max([font.measure(tr('Shortcut'))]+[font.measure(str(item[2])) for item in self.commands])+24
+        category_width=max([font.measure(tr('Category'))]+[font.measure(str(item[1])) for item in self.commands])+24
+        name_min=font.measure('M'*10)+24
+        show_category=width>=key_width+category_width+name_min+20
+        self.list.configure(displaycolumns=('category','key') if show_category else ('key',))
+        self.list.column('key',width=key_width,minwidth=key_width,stretch=False)
+        self.list.column('category',width=category_width,minwidth=category_width,stretch=False)
+        self.list.column('#0',minwidth=name_min,width=max(name_min,width-key_width-(category_width if show_category else 0)-4))
+        if name_min+key_width+(category_width if show_category else 0)>width:self.horizontal.grid()
+        else:self.horizontal.grid_remove()
 
     def refresh(self):
         self.filtered = command_matches(self.commands, self.query.get())
@@ -206,5 +259,5 @@ class CommandPalette(tk.Toplevel):
 
     def close(self):
         self.grab_release(); self.destroy()
-        if self.previous_focus is not None and self.previous_focus.winfo_exists(): self.previous_focus.focus_set()
+        _restore_workflow_owner(self.previous_grab,self.previous_focus)
         return 'break'

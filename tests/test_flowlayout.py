@@ -1,9 +1,14 @@
 import unittest
 
-from pycommander.flowlayout import toolbar_rows
+from pycommander.flowlayout import toolbar_rows,wrapped_control_text
 
 
 class ToolbarRowsTests(unittest.TestCase):
+    def test_control_wrap_preserves_text_and_handles_cjk(self):
+        for value in ('Apply this to all remaining conflicts','将此选择套用至所有剩余冲突'):
+            wrapped=wrapped_control_text(value,lambda s:len(s)*10,100)
+            self.assertEqual(value.replace(' ',''),wrapped.replace('\n','').replace(' ',''))
+            self.assertTrue(all(len(line)<=10 for line in wrapped.splitlines()))
     def test_exact_fit_keeps_one_row(self):
         self.assertEqual(toolbar_rows(206, [100, 100]), [[0, 1]])
 

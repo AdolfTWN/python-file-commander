@@ -8,6 +8,7 @@ import time
 import zipfile
 import zlib
 import math
+import stat as statlib
 from datetime import datetime, timedelta
 from pathlib import Path
 import tkinter as tk
@@ -476,10 +477,8 @@ class SearchWindow(tk.Toplevel):
         for name, label in labels.items():
             marker = (" ▲" if not self.sort_reverse else " ▼") if name == column else ""
             self.tree.heading("#0" if name == "name" else name, text=label + marker)
-        for index, iid in enumerate(sorted(self.tree.get_children(),
-                                            key=lambda item: self.item_data[item][column],
-                                            reverse=self.sort_reverse)):
-            self.tree.move(iid, "", index)
+        ordered=sorted(self.tree.get_children(),key=lambda item:self.item_data[item][column],reverse=self.sort_reverse)
+        self.tree.set_children('',*ordered)
 
     def criteria(self):
         def number(value, factor=1):
@@ -539,14 +538,16 @@ class SearchWindow(tk.Toplevel):
                     if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
                     try:
                         stat = path.stat()
+                        is_file=statlib.S_ISREG(stat.st_mode)
+                        is_dir=statlib.S_ISDIR(stat.st_mode)
                         if not name_matches(path.name, c["masks"], c["case"]): continue
-                        if path.is_file() and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
-                        if path.is_file() and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
+                        if is_file and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
+                        if is_file and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
                         if c["since"] is not None and datetime.fromtimestamp(stat.st_mtime) < c["since"]: continue
-                        if path.is_file() and not content_matches(path, c["content"], c["case"],on_error=lambda:self.messages.put(('skipped',))): continue
-                        if path.is_dir() and c["content"]: continue
+                        if is_file and not content_matches(path, c["content"], c["case"],on_error=lambda:self.messages.put(('skipped',))): continue
+                        if is_dir and c["content"]: continue
                         self.messages.put(("item", path, stat)); count += 1
-                    except OSError: self.messages.put(('skipped',)); continue
+                    except (OSError,ValueError,OverflowError): self.messages.put(('skipped',)); continue
             self.messages.put(("done", count, self.cancel_event.is_set(), count >= RESULT_LIMIT))
         except BaseException as exc:
             log=getattr(getattr(self,'master',None),'debug_log',None)
@@ -556,23 +557,26 @@ class SearchWindow(tk.Toplevel):
     def _poll(self):
         self.poll_job = None
         processed = 0
-        while processed < 250:
+        deadline=time.monotonic()+.012
+        while processed < 250 and time.monotonic()<deadline:
             try: message = self.messages.get_nowait()
             except queue.Empty: break
             processed += 1
             if message[0] == "item":
                 _, path, stat = message; self.results.append(path)
+                is_dir=statlib.S_ISDIR(stat.st_mode)
                 folder = str(path.parent)
-                size_text = "<DIR>" if path.is_dir() else f"{stat.st_size:,}"
-                modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
-                extension = "" if path.is_dir() else path.suffix[1:].upper()
+                size_text = "<DIR>" if is_dir else f"{stat.st_size:,}"
+                try:modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+                except (OSError,ValueError,OverflowError):modified='—'
+                extension = "" if is_dir else path.suffix[1:].upper()
                 attributes = search_attributes(path, stat)
                 iid = self.tree.insert("", "end", text=path.name, tags=(str(path),),
                                        values=(folder, size_text, modified, extension, attributes))
                 self._measure_result(path.name, folder, size_text, modified, extension, attributes)
                 self.item_data[iid] = {"name": path.name.casefold(), "folder": str(path.parent).casefold(),
                                        "size": stat.st_size, "modified": stat.st_mtime,
-                                       "ext": ("" if path.is_dir() else path.suffix[1:]).casefold(),
+                                       "ext": ("" if is_dir else path.suffix[1:]).casefold(),
                                        "attributes": attributes.casefold()}
             elif message[0] == "done":
                 _, count, cancelled, limited = message

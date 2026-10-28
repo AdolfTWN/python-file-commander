@@ -121,6 +121,8 @@ class MultiRenameWindow(tk.Toplevel):
         self.find_var, self.replace_var = tk.StringVar(), tk.StringVar()
         self.start_var, self.digits_var = tk.IntVar(value=1), tk.IntVar(value=2)
         self.case_var, self.extension_var = tk.BooleanVar(value=False), tk.BooleanVar(value=True)
+        self._preview_job=None
+        self.bind('<Destroy>',self._destroy_preview,add='+')
         controls = ttk.Frame(self, padding=8); controls.pack(fill="x")
         self.naming_tools = FlowToolbar(controls)
         self.naming_tools.pack(fill='x')
@@ -166,12 +168,12 @@ class MultiRenameWindow(tk.Toplevel):
         ToolTip(self.undo_button, lambda: tr('Ctrl+Z Undo'))
         bottom.bind('<Configure>', self._layout_actions)
         for variable in (self.mask_var, self.find_var, self.replace_var, self.start_var, self.digits_var):
-            variable.trace_add("write", lambda *_args: self.after_idle(self.update_preview))
+            variable.trace_add("write", self._schedule_preview)
         self.bind("<Escape>", lambda _event: self.destroy())
         self.bind("<Control-Return>", lambda _event: self.apply())
         self.bind("<Control-z>", lambda _event: self.undo())
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
-        self.update_preview(); self.after_idle(self._activate)
+        self.update_preview(); self._activate_job=self.after_idle(self._activate)
 
     def apply_color_scheme(self, palette) -> None:
         self.palette = palette
@@ -196,6 +198,7 @@ class MultiRenameWindow(tk.Toplevel):
         self.undo_button.configure(text=tr('Undo' if compact else 'Ctrl+Z Undo'))
 
     def _activate(self):
+        self._activate_job=None
         self.deiconify(); self.lift(); self.focus_force(); self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end")
 
     def apply_language(self, old_language: str) -> None:
@@ -209,14 +212,29 @@ class MultiRenameWindow(tk.Toplevel):
     def _plan(self):
         try:
             start, digits = self.start_var.get(), self.digits_var.get()
-        except tk.TclError:
-            start, digits = 1, 2
+            if not 0<=start<=999999 or not 1<=digits<=12:raise ValueError()
+        except (tk.TclError,ValueError):
+            return [(path,path,'Enter a start from 0 to 999999 and digits from 1 to 12.') for path in self.paths]
         names = [render_rename(path, self.mask_var.get(), self.find_var.get(), self.replace_var.get(),
                                start + index, digits, self.case_var.get(), self.extension_var.get())
                  for index, path in enumerate(self.paths)]
         return validate_rename_plan(self.paths, names)
 
+    def _schedule_preview(self,*_args):
+        if self._preview_job is None:self._preview_job=self.after_idle(self._preview_due)
+
+    def _preview_due(self):
+        self._preview_job=None;self.update_preview()
+
+    def _destroy_preview(self,event):
+        if event.widget is self:
+            for name in ('_preview_job','_activate_job'):
+                job=getattr(self,name,None)
+                if job is not None:self.after_cancel(job);setattr(self,name,None)
+
     def update_preview(self):
+        if self._preview_job is not None:
+            self.after_cancel(self._preview_job);self._preview_job=None
         if not self.winfo_exists(): return
         plan = self._plan(); self.tree.delete(*self.tree.get_children())
         errors = changed = 0
@@ -225,7 +243,8 @@ class MultiRenameWindow(tk.Toplevel):
             if not problem: changed += 1
             self.tree.insert("", "end", values=(source.name, target.name, tr(problem or "Ready")),
                              tags=('unchanged' if problem=='Unchanged' else 'error' if problem else 'ok',))
-        self.status.configure(text=tr("{changed} rename(s), {errors} error(s)", changed=changed, errors=errors))
+        detail=tr('Enter a start from 0 to 999999 and digits from 1 to 12.') if any(p=='Enter a start from 0 to 999999 and digits from 1 to 12.' for _,_,p in plan) else tr("{changed} rename(s), {errors} error(s)", changed=changed, errors=errors)
+        self.status.configure(text=detail)
         self.apply_button.state(["disabled"] if errors or not changed else ["!disabled"])
         self.undo_button.state(["!disabled"] if self.undo_stack else ["disabled"])
 
