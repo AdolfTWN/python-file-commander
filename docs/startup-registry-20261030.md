@@ -40,14 +40,40 @@ Registry value-type reference: [Microsoft Learn](https://learn.microsoft.com/en-
 
 ## Verification
 
-Pending final same-artifact acceptance. New source/portable GUI tasks cover saved
+Verified candidate: code commit `389608c90769eea24a73793b083283936a503b21`,
+portable SHA-256 `71180bf0f078ae000ce379c17132ff85b678acc2576dcee7ec940a105b9c17f5`.
+Subsequent evidence-only documentation does not change that artifact.
+
+New source/portable GUI tasks cover saved
 ascending/descending sorts, both panes, filtered lists, selected second tabs,
 normal-refresh position retention, F3 Registry entry, UTF-16, color spans, Find,
 Rendered/source/Hex, Wrap, theme and 200% zoom, large-input highlight notice and
 tail search, tab switching, unchanged file bytes and absence of the unique
 fixture key in the Windows registry. Four unit cases exercise tokens/escaping,
 encodings, malformed text and bounded adversarial inputs. Existing native crash
-capture and cross-format Preview regression must remain intact.
+capture and cross-format Preview regression also passed.
+
+- Clean-worktree full suite: 121 groups passed in 560.272 seconds with four
+  isolated Xvfb workers; unit inventory: 487 cases, nine platform-conditional skips.
+- Retained failed experiment: the first full run (565.718 seconds) had two
+  portable failures: a static-browser channel closed while rendering a notebook,
+  and a structure-search tree-state assertion after fixture modification.
+  Both passed isolated retries (35.741 / 10.403 seconds), then the entire suite
+  passed unchanged. The cause of those intermittent failures is unconfirmed;
+  neither a root-cause fix nor a performance improvement is claimed.
+- Windows ARM64 request `8ed6ca3bc6fd4a45a7e64573f5f4d5ac`: five checks passed,
+  296.176 seconds including environment/staging; startup/Registry check 27.357 seconds.
+- Windows x64 request `528bbae52e334df7aacba78e016ba0c6`: the same five checks
+  passed, 363.455 seconds including environment/staging; startup/Registry 35.854 seconds.
+  Both verified Python 3.13.15 / Tk 8.6.15 and the identical portable hash, with
+  no cleanup errors. The lease pool was empty afterward.
+- Actual GDI captures from both profiles were visually inspected: sorted first
+  content is at the top in both panels; Registry colors, red deletions and Find
+  remain readable in light and dark/200% modes. Narrower layout uses the existing
+  responsive two-row toolbar rather than clipping the search controls.
+- Evidence is private in the workflow run's logs and `windows-evidence/`;
+  test documents are synthetic, not user documents. UI/UX review kept the existing
+  reading surface and controls rather than introducing a separate Registry editor.
 
 Windows checks use both independent Python runtimes on Win11-ARM64-VM. x64 is
 application emulation, not native x64 Windows certification. No performance
