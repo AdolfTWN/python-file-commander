@@ -147,6 +147,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.46", "2026/10/30", (
+        "Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.",
+        "Added: Read-only Registry (.reg) syntax preview highlights keys, values, types, comments and deletions without importing registry data.",
+    )),
     ("v0.18.45", "2026/10/29", (
         "Improved: Native crash diagnostics recover automatically on restart with the crashing version, system time, runtime and a photo-friendly summary.",
         "Known issue: An intermittent native Compare crash remains unexplained; diagnostic capture is not a root-cause fix.",
@@ -2186,6 +2190,10 @@ class FilePane(ttk.Frame):
                 self.tree.selection_set(target)
             self.tree.focus(target)
             self.tree.see(target)
+            if target == children[0]:
+                # see() before first layout can otherwise leave row zero
+                # just above the viewport when the widget acquires height.
+                self.tree.yview_moveto(0)
         self.tree.focus_set()
 
     def _quick_filter_changed(self, *_args) -> None:
@@ -2995,6 +3003,9 @@ class Commander(tk.Tk):
             for col in pane.all_sort_columns:
                 marker = (" ▼" if descending else " ▲") if col == pane.sort_column else ""
                 pane.tree.heading("#0" if col == "name" else col, text=pane.heading_labels[col] + marker)
+            # Startup's provisional name-sorted selection must not survive
+            # restoration of the actual sort/filter. Ordinary refresh retains it.
+            pane._reset_view_on_refresh = True
             pane.refresh()
 
     def _schedule_save(self, _event=None) -> None:

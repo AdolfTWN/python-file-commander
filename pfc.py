@@ -21,6 +21,10 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.': ('修正：啟動還原排序與篩選後才選取首筆，避免舊選取讓清單捲到底部。','修正：启动还原排序与筛选后才选取首项，避免旧选取让列表滚到底部。','수정: 저장된 정렬과 필터를 복원한 뒤 첫 항목을 선택하여 시작 시 목록 하단으로 이동하지 않습니다.'),
+    'Added: Read-only Registry (.reg) syntax preview highlights keys, values, types, comments and deletions without importing registry data.': ('新增：登錄檔（.reg）唯讀語法預覽，上色區分鍵、值、類型、註解與刪除，不匯入登錄內容。','新增：注册表文件（.reg）只读语法预览，上色区分键、值、类型、注释与删除，不导入注册表内容。','추가: 레지스트리(.reg) 읽기 전용 구문 미리보기에서 키, 값, 유형, 주석, 삭제를 구분하며 데이터를 가져오지 않습니다.'),
+    'Syntax highlighting limited; text and search remain available': ('語法上色已達限制；仍可閱讀及搜尋文字','语法上色已达限制；仍可阅读及搜索文本','구문 강조 제한에 도달했습니다. 텍스트 읽기와 검색은 계속 사용할 수 있습니다'),
+    'Registry': ('登錄檔','注册表','레지스트리'),
     'Improved: Native crash diagnostics recover automatically on restart with the crashing version, system time, runtime and a photo-friendly summary.': ('改善：原生崩潰紀錄在重啟後自動整理，保留故障版本、系統時間、執行環境及便於拍照的摘要。','改善：原生崩溃记录在重启后自动整理，保留故障版本、系统时间、运行环境及便于拍照的摘要。','개선: 재시작 시 네이티브 충돌 기록을 자동 복구하며 충돌 버전, 시스템 시간, 실행 환경과 촬영용 요약을 보존합니다.'),
     'Known issue: An intermittent native Compare crash remains unexplained; diagnostic capture is not a root-cause fix.': ('已知問題：比較功能偶發原生崩潰的原因仍未確認；新增診斷並不代表根因已修復。','已知问题：比较功能偶发原生崩溃的原因仍未确认；新增诊断并不代表根因已修复。','알려진 문제: 간헐적인 비교 기능 네이티브 충돌 원인은 아직 불명확하며 진단 수집은 근본 원인 수정이 아닙니다.'),
     'Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.': ('修正：預覽讀取器在開啟前拒絕特殊串流，並核對已開啟檔案，避免被替換的管線阻塞。','修正：预览读取器在打开前拒绝特殊流，并核对已打开文件，避免被替换的管道阻塞。','수정: 미리보기는 특수 스트림을 열기 전에 거부하고 열린 파일을 검증하여 교체된 파이프로 인한 차단을 방지합니다.'),
@@ -37615,7 +37619,7 @@ from urllib.parse import quote
 TEXT_EXTENSIONS = {
     ".txt", ".md", ".csv", ".tsv", ".log", ".py", ".ini", ".json", ".xml",
     ".yaml", ".yml", ".html", ".htm", ".css", ".js", ".ps1", ".bat", ".cmd",
-    ".sql", ".srt", ".cfg", ".conf",
+    ".sql", ".srt", ".cfg", ".conf", ".reg",
 }
 TEXT_EXTENSIONS |= RENDER_EXTENSIONS
 TEXT_LIMIT = 8 * 1024 * 1024
@@ -37649,8 +37653,45 @@ CODE_EXTENSIONS = {
     ".xml": "XML", ".html": "HTML", ".htm": "HTML", ".xhtml": "HTML",
     ".svg": "SVG", ".css": "CSS", ".scss": "SCSS",
     ".yaml": "YAML", ".yml": "YAML", ".ini": "INI",
-    ".cfg": "Config", ".conf": "Config", ".md": "Markdown",
+    ".cfg": "Config", ".conf": "Config", ".md": "Markdown", ".reg": "Registry",
 }
+
+REG_SYNTAX_TEXT_LIMIT = 512 * 1024
+REG_SYNTAX_SPAN_LIMIT = 20000
+_REG_SYNTAX_PATTERN = re.compile(
+    r'(?P<header>^[ \t]*(?:Windows Registry Editor Version 5\.00|REGEDIT4)[ \t]*\r?$)'
+    r'|(?P<section>^[ \t]*\[[^\]\r\n]*\])'
+    r'|(?P<string>"(?:\\[^\r\n]|[^"\\\r\n])*")'
+    r'|(?P<comment>;[^\r\n]*)'
+    r'|(?P<type>\b(?:dword|hex(?:\([0-9a-f]+\))?):)'
+    r'|(?P<default>@(?=[ \t]*=))'
+    r'|(?P<delete>-(?=[ \t]*(?:;[^\r\n]*)?\r?$))'
+    r'|(?P<number>\b[0-9a-f]+\b)'
+    r'|(?P<operator>[=,\\])', re.MULTILINE | re.IGNORECASE)
+
+
+def registry_syntax_spans(text):
+    """Lossless, bounded lexical color only; never parse/execute registry edits.
+
+    Token order protects semicolons and hex-like words inside quoted strings
+    and key paths. Unfinished/invalid input remains readable as original text.
+    """
+    spans=[]
+    for match in _REG_SYNTAX_PATTERN.finditer(text, 0, REG_SYNTAX_TEXT_LIMIT):
+        kind=match.lastgroup
+        if kind=='section':
+            tag='syntax_deletion' if match[0].lstrip().startswith('[-') else 'syntax_heading'
+        elif kind=='string':
+            end=match.end()
+            while end<len(text) and text[end] in ' \t':end+=1
+            tag='syntax_keyword' if end<len(text) and text[end]=='=' else 'syntax_string'
+        else:
+            tag={'header':'syntax_heading','comment':'syntax_comment','type':'syntax_keyword',
+                 'default':'syntax_keyword','delete':'syntax_deletion','number':'syntax_number',
+                 'operator':'syntax_operator'}[kind]
+        spans.append((*match.span(),tag))
+        if len(spans)>=REG_SYNTAX_SPAN_LIMIT:break
+    return spans
 
 COMMON_KEYWORDS = set("""
 abstract as async await break case catch class const continue def default delete do
@@ -37671,6 +37712,8 @@ def _line_offsets(text: str) -> list[int]:
 def syntax_spans(text: str, suffix: str) -> list[tuple[int, int, str]]:
     """Return lightweight syntax spans without requiring third-party packages."""
     suffix = suffix.casefold()
+    if suffix == '.reg':
+        return registry_syntax_spans(text)
     if suffix == ".py":
         offsets = _line_offsets(text)
         spans = []
@@ -38776,6 +38819,7 @@ class PreviewPage(tk.Frame):
             "syntax_comment": "#9aa7b0" if dark else "#66737d",
             "syntax_number": "#f2a65a" if dark else "#b35900",
             "syntax_operator": "#d2a8ff" if dark else "#7a3e9d",
+            "syntax_deletion": "#ff9298" if dark else "#b42318",
             "syntax_heading": "#79c0ff" if dark else "#174f86",
             "syntax_link": "#58a6ff" if dark else "#0969da",
         }
@@ -38907,16 +38951,19 @@ class PreviewPage(tk.Frame):
                     if self.extension_effect and suffix == ".md" and markdown_mode == "rendered":
                         content, spans = render_markdown(content)
                         shown_mode = tr("Markdown rendered")
-                    elif self.extension_effect and suffix in CODE_EXTENSIONS:
+                    elif (self.extension_effect and suffix in CODE_EXTENSIONS
+                          and (suffix!='.reg' or markdown_mode=='rendered')):
                         spans = syntax_spans(content, suffix)
                         shown_mode = tr("{language} syntax", language=CODE_EXTENSIONS[suffix])
+                        if suffix=='.reg' and (len(content)>REG_SYNTAX_TEXT_LIMIT or len(spans)>=REG_SYNTAX_SPAN_LIMIT):
+                            shown_mode += ' · '+tr('Syntax highlighting limited; text and search remain available')
                 else:
                     content = render_hex(data); shown_mode = tr("Hex")
                 size = path.stat().st_size
             self.text.insert("1.0", content)
             preview_diagnostic(self,'preview.text.insert.complete',characters=len(content),encoding=encoding,truncated=truncated)
             self._apply_spans(spans)
-            show_markdown = (path.is_file() and path.suffix.casefold() == ".md"
+            show_markdown = (path.is_file() and path.suffix.casefold() in {".md", ".reg"}
                              and chosen == "Text" and self.extension_effect)
             if show_markdown:
                 self.markdown_frame.pack(side="left", padx=(4, 0))
@@ -41965,7 +42012,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.45"
+__version__ = "0.18.46"
 
 
 
@@ -42088,8 +42135,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/29"
+BUILD_DATE = "2026/10/30"
 VERSION_HISTORY = (
+    ("v0.18.46", "2026/10/30", (
+        "Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.",
+        "Added: Read-only Registry (.reg) syntax preview highlights keys, values, types, comments and deletions without importing registry data.",
+    )),
     ("v0.18.45", "2026/10/29", (
         "Improved: Native crash diagnostics recover automatically on restart with the crashing version, system time, runtime and a photo-friendly summary.",
         "Known issue: An intermittent native Compare crash remains unexplained; diagnostic capture is not a root-cause fix.",
@@ -44129,6 +44180,10 @@ class FilePane(ttk.Frame):
                 self.tree.selection_set(target)
             self.tree.focus(target)
             self.tree.see(target)
+            if target == children[0]:
+                # see() before first layout can otherwise leave row zero
+                # just above the viewport when the widget acquires height.
+                self.tree.yview_moveto(0)
         self.tree.focus_set()
 
     def _quick_filter_changed(self, *_args) -> None:
@@ -44938,6 +44993,9 @@ class Commander(tk.Tk):
             for col in pane.all_sort_columns:
                 marker = (" ▼" if descending else " ▲") if col == pane.sort_column else ""
                 pane.tree.heading("#0" if col == "name" else col, text=pane.heading_labels[col] + marker)
+            # Startup's provisional name-sorted selection must not survive
+            # restoration of the actual sort/filter. Ordinary refresh retains it.
+            pane._reset_view_on_refresh = True
             pane.refresh()
 
     def _schedule_save(self, _event=None) -> None:

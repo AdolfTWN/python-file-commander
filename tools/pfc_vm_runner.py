@@ -348,6 +348,12 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                     data=guest.image_data(directory+'\\evidence-ux-'+name+'.bmp')
                     (evidence_dir/('ux-'+name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('ux-'+name+'.png'))
+            if result['status']=='passed' and 'startup_registry_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('startup-fixed','registry-light','registry-dark'):
+                    data=guest.image_data(directory+'\\evidence-'+name+'.bmp')
+                    Image.open(io.BytesIO(data)).save(evidence_dir/(name+'.png'))
             if result['status']=='passed' and 'native_crash_check.py' in checks:
                 from PIL import Image
                 import io

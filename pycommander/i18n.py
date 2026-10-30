@@ -11,6 +11,10 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.': ('修正：啟動還原排序與篩選後才選取首筆，避免舊選取讓清單捲到底部。','修正：启动还原排序与筛选后才选取首项，避免旧选取让列表滚到底部。','수정: 저장된 정렬과 필터를 복원한 뒤 첫 항목을 선택하여 시작 시 목록 하단으로 이동하지 않습니다.'),
+    'Added: Read-only Registry (.reg) syntax preview highlights keys, values, types, comments and deletions without importing registry data.': ('新增：登錄檔（.reg）唯讀語法預覽，上色區分鍵、值、類型、註解與刪除，不匯入登錄內容。','新增：注册表文件（.reg）只读语法预览，上色区分键、值、类型、注释与删除，不导入注册表内容。','추가: 레지스트리(.reg) 읽기 전용 구문 미리보기에서 키, 값, 유형, 주석, 삭제를 구분하며 데이터를 가져오지 않습니다.'),
+    'Syntax highlighting limited; text and search remain available': ('語法上色已達限制；仍可閱讀及搜尋文字','语法上色已达限制；仍可阅读及搜索文本','구문 강조 제한에 도달했습니다. 텍스트 읽기와 검색은 계속 사용할 수 있습니다'),
+    'Registry': ('登錄檔','注册表','레지스트리'),
     'Improved: Native crash diagnostics recover automatically on restart with the crashing version, system time, runtime and a photo-friendly summary.': ('改善：原生崩潰紀錄在重啟後自動整理，保留故障版本、系統時間、執行環境及便於拍照的摘要。','改善：原生崩溃记录在重启后自动整理，保留故障版本、系统时间、运行环境及便于拍照的摘要。','개선: 재시작 시 네이티브 충돌 기록을 자동 복구하며 충돌 버전, 시스템 시간, 실행 환경과 촬영용 요약을 보존합니다.'),
     'Known issue: An intermittent native Compare crash remains unexplained; diagnostic capture is not a root-cause fix.': ('已知問題：比較功能偶發原生崩潰的原因仍未確認；新增診斷並不代表根因已修復。','已知问题：比较功能偶发原生崩溃的原因仍未确认；新增诊断并不代表根因已修复。','알려진 문제: 간헐적인 비교 기능 네이티브 충돌 원인은 아직 불명확하며 진단 수집은 근본 원인 수정이 아닙니다.'),
     'Fixed: Preview readers reject special streams before opening and verify opened files without blocking on a replaced pipe.': ('修正：預覽讀取器在開啟前拒絕特殊串流，並核對已開啟檔案，避免被替換的管線阻塞。','修正：预览读取器在打开前拒绝特殊流，并核对已打开文件，避免被替换的管道阻塞。','수정: 미리보기는 특수 스트림을 열기 전에 거부하고 열린 파일을 검증하여 교체된 파이프로 인한 차단을 방지합니다.'),

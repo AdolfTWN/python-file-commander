@@ -35,7 +35,7 @@ from .flowlayout import FlowToolbar
 TEXT_EXTENSIONS = {
     ".txt", ".md", ".csv", ".tsv", ".log", ".py", ".ini", ".json", ".xml",
     ".yaml", ".yml", ".html", ".htm", ".css", ".js", ".ps1", ".bat", ".cmd",
-    ".sql", ".srt", ".cfg", ".conf",
+    ".sql", ".srt", ".cfg", ".conf", ".reg",
 }
 TEXT_EXTENSIONS |= RENDER_EXTENSIONS
 TEXT_LIMIT = 8 * 1024 * 1024
@@ -69,8 +69,45 @@ CODE_EXTENSIONS = {
     ".xml": "XML", ".html": "HTML", ".htm": "HTML", ".xhtml": "HTML",
     ".svg": "SVG", ".css": "CSS", ".scss": "SCSS",
     ".yaml": "YAML", ".yml": "YAML", ".ini": "INI",
-    ".cfg": "Config", ".conf": "Config", ".md": "Markdown",
+    ".cfg": "Config", ".conf": "Config", ".md": "Markdown", ".reg": "Registry",
 }
+
+REG_SYNTAX_TEXT_LIMIT = 512 * 1024
+REG_SYNTAX_SPAN_LIMIT = 20000
+_REG_SYNTAX_PATTERN = re.compile(
+    r'(?P<header>^[ \t]*(?:Windows Registry Editor Version 5\.00|REGEDIT4)[ \t]*\r?$)'
+    r'|(?P<section>^[ \t]*\[[^\]\r\n]*\])'
+    r'|(?P<string>"(?:\\[^\r\n]|[^"\\\r\n])*")'
+    r'|(?P<comment>;[^\r\n]*)'
+    r'|(?P<type>\b(?:dword|hex(?:\([0-9a-f]+\))?):)'
+    r'|(?P<default>@(?=[ \t]*=))'
+    r'|(?P<delete>-(?=[ \t]*(?:;[^\r\n]*)?\r?$))'
+    r'|(?P<number>\b[0-9a-f]+\b)'
+    r'|(?P<operator>[=,\\])', re.MULTILINE | re.IGNORECASE)
+
+
+def registry_syntax_spans(text):
+    """Lossless, bounded lexical color only; never parse/execute registry edits.
+
+    Token order protects semicolons and hex-like words inside quoted strings
+    and key paths. Unfinished/invalid input remains readable as original text.
+    """
+    spans=[]
+    for match in _REG_SYNTAX_PATTERN.finditer(text, 0, REG_SYNTAX_TEXT_LIMIT):
+        kind=match.lastgroup
+        if kind=='section':
+            tag='syntax_deletion' if match[0].lstrip().startswith('[-') else 'syntax_heading'
+        elif kind=='string':
+            end=match.end()
+            while end<len(text) and text[end] in ' \t':end+=1
+            tag='syntax_keyword' if end<len(text) and text[end]=='=' else 'syntax_string'
+        else:
+            tag={'header':'syntax_heading','comment':'syntax_comment','type':'syntax_keyword',
+                 'default':'syntax_keyword','delete':'syntax_deletion','number':'syntax_number',
+                 'operator':'syntax_operator'}[kind]
+        spans.append((*match.span(),tag))
+        if len(spans)>=REG_SYNTAX_SPAN_LIMIT:break
+    return spans
 
 COMMON_KEYWORDS = set("""
 abstract as async await break case catch class const continue def default delete do
@@ -91,6 +128,8 @@ def _line_offsets(text: str) -> list[int]:
 def syntax_spans(text: str, suffix: str) -> list[tuple[int, int, str]]:
     """Return lightweight syntax spans without requiring third-party packages."""
     suffix = suffix.casefold()
+    if suffix == '.reg':
+        return registry_syntax_spans(text)
     if suffix == ".py":
         offsets = _line_offsets(text)
         spans = []
@@ -1196,6 +1235,7 @@ class PreviewPage(tk.Frame):
             "syntax_comment": "#9aa7b0" if dark else "#66737d",
             "syntax_number": "#f2a65a" if dark else "#b35900",
             "syntax_operator": "#d2a8ff" if dark else "#7a3e9d",
+            "syntax_deletion": "#ff9298" if dark else "#b42318",
             "syntax_heading": "#79c0ff" if dark else "#174f86",
             "syntax_link": "#58a6ff" if dark else "#0969da",
         }
@@ -1327,16 +1367,19 @@ class PreviewPage(tk.Frame):
                     if self.extension_effect and suffix == ".md" and markdown_mode == "rendered":
                         content, spans = render_markdown(content)
                         shown_mode = tr("Markdown rendered")
-                    elif self.extension_effect and suffix in CODE_EXTENSIONS:
+                    elif (self.extension_effect and suffix in CODE_EXTENSIONS
+                          and (suffix!='.reg' or markdown_mode=='rendered')):
                         spans = syntax_spans(content, suffix)
                         shown_mode = tr("{language} syntax", language=CODE_EXTENSIONS[suffix])
+                        if suffix=='.reg' and (len(content)>REG_SYNTAX_TEXT_LIMIT or len(spans)>=REG_SYNTAX_SPAN_LIMIT):
+                            shown_mode += ' · '+tr('Syntax highlighting limited; text and search remain available')
                 else:
                     content = render_hex(data); shown_mode = tr("Hex")
                 size = path.stat().st_size
             self.text.insert("1.0", content)
             preview_diagnostic(self,'preview.text.insert.complete',characters=len(content),encoding=encoding,truncated=truncated)
             self._apply_spans(spans)
-            show_markdown = (path.is_file() and path.suffix.casefold() == ".md"
+            show_markdown = (path.is_file() and path.suffix.casefold() in {".md", ".reg"}
                              and chosen == "Text" and self.extension_effect)
             if show_markdown:
                 self.markdown_frame.pack(side="left", padx=(4, 0))

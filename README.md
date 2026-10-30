@@ -1,6 +1,13 @@
 # Python File Commander
 
-Current code: **v0.18.45**.
+Current code: **v0.18.46**.
+Startup now chooses the first row after restoring saved sorting and filters,
+including descending lists and the selected tab; ordinary refresh retains its
+selection and scroll position. F3 adds read-only `.reg` syntax preview with
+Rendered/Source, Wrap, Find and Hex. Keys, value names, strings, numeric/hex data,
+comments and deletions are distinguished without importing registry data.
+See [scope and verification](docs/startup-registry-20261030.md).
+
 Includes the deep task/compact-UI improvements and automatic native-crash
 diagnostics. An earlier candidate had an intermittent native Compare access
 violation; its cause remains unconfirmed. Diagnostic capture is not a claim
