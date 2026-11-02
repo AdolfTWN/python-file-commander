@@ -380,7 +380,7 @@ class ReliabilityTests(unittest.TestCase):
 
     def test_vcs_invalidated_worker_cannot_repopulate_cache(self):
         vcs.invalidate_vcs_cache()
-        def invalidate(_folder):
+        def invalidate(_folder, **_options):
             vcs.invalidate_vcs_cache()
             return {"old": "modified"}
         with patch.object(vcs, "_git_status", side_effect=invalidate), \

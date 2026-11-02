@@ -145,6 +145,40 @@ def main():
             wait_for_vcs(app, pane)
             assert not image_updates, "Unchanged Git status repainted file-list icons"
 
+            # Simulate a cold index-read timeout, then allow real Git to recover.
+            # No navigation/refresh action may be needed after the failure.
+            wait_for_vcs(app,pane)
+            vcs.invalidate_vcs_cache()
+            attempts=[];pulses=[];running=True
+            def pulse():
+                if running:pulses.append(time.monotonic());app.after(20,pulse)
+            pulse()
+            original_run=vcs.subprocess.run
+            def cold_index(cmd,*args,**kwargs):
+                if ('ls-files' in cmd and cmd[-1].replace('\\','/')=='sub-1'
+                        and str(repository) in cmd):
+                    attempts.append(kwargs['timeout'])
+                    if len(attempts)==1:
+                        time.sleep(.2)
+                        raise subprocess.TimeoutExpired(cmd,kwargs['timeout'])
+                return original_run(cmd,*args,**kwargs)
+            with patch.object(vcs.subprocess,'run',side_effect=cold_index):
+                assert pane.navigate(repository/'sub-1')
+                wait_for_vcs(app,pane)
+                assert pane._vcs_last_issue['reason']=='tracked-files-timeout'
+                target=repository/'sub-1'/'file-000.txt'
+                assert status_for(pane._vcs_statuses,target) is None,'Unknown files were labeled clean'
+                end=time.monotonic()+12
+                while time.monotonic()<end and status_for(pane._vcs_statuses,target)!='clean':
+                    app.update();time.sleep(.01)
+                assert status_for(pane._vcs_statuses,target)=='clean','Idle pane did not recover overlays'
+                assert attempts==[4,8],attempts
+                assert pane._vcs_retry_at is None
+                assert len(pulses)>15,'Retry blocked Tk event processing'
+                print('Injected tracked timeout recovered automatically; real backend retry budgets:',attempts,
+                      'UI heartbeats:',len(pulses),flush=True)
+            running=False
+
             started = time.monotonic()
             assert pane.navigate(repository / ".git")
             app.update()

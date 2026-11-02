@@ -1,6 +1,11 @@
 # Python File Commander
 
-Current code: **v0.18.46**.
+Current code: **v0.18.47**.
+Git overlay timeout recovery now makes one bounded background retry without
+manual folder navigation/refresh. Unknown entries are not guessed clean;
+diagnostics include attempt, per-command budget and query time.
+See [scope and verification](docs/git-overlay-retry-20261102.md).
+
 Startup now chooses the first row after restoring saved sorting and filters,
 including descending lists and the selected tab; ordinary refresh retains its
 selection and scroll position. F3 adds read-only `.reg` syntax preview with

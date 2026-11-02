@@ -21,6 +21,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Git overlay queries retry once in the background after a timeout, restoring known states without changing folders or refreshing manually.': ('修正：Git 狀態查詢逾時後在背景重試一次，不必切換資料夾或手動重新整理便可恢復已確認的圖示。','修正：Git 状态查询超时后在后台重试一次，无须切换文件夹或手动刷新即可恢复已确认的图标。','수정: Git 상태 조회 시간 초과 후 백그라운드에서 한 번 재시도하여 폴더 이동이나 수동 새로 고침 없이 확인된 표시를 복구합니다.'),
+    'Improved: Git timeout diagnostics include attempt, command budget and query duration; unknown files are never labeled clean.': ('改善：Git 逾時紀錄包含嘗試次數、指令時限與查詢耗時；不把未知狀態標成乾淨。','改善：Git 超时记录包含尝试次数、命令时限与查询耗时；不把未知状态标成干净。','개선: Git 시간 초과 기록에 시도 횟수, 명령 제한 시간과 조회 시간을 포함합니다. 알 수 없는 상태를 정상으로 표시하지 않습니다.'),
     'Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.': ('修正：啟動還原排序與篩選後才選取首筆，避免舊選取讓清單捲到底部。','修正：启动还原排序与筛选后才选取首项，避免旧选取让列表滚到底部。','수정: 저장된 정렬과 필터를 복원한 뒤 첫 항목을 선택하여 시작 시 목록 하단으로 이동하지 않습니다.'),
     'Added: Read-only Registry (.reg) syntax preview highlights keys, values, types, comments and deletions without importing registry data.': ('新增：登錄檔（.reg）唯讀語法預覽，上色區分鍵、值、類型、註解與刪除，不匯入登錄內容。','新增：注册表文件（.reg）只读语法预览，上色区分键、值、类型、注释与删除，不导入注册表内容。','추가: 레지스트리(.reg) 읽기 전용 구문 미리보기에서 키, 값, 유형, 주석, 삭제를 구분하며 데이터를 가져오지 않습니다.'),
     'Syntax highlighting limited; text and search remain available': ('語法上色已達限制；仍可閱讀及搜尋文字','语法上色已达限制；仍可阅读及搜索文本','구문 강조 제한에 도달했습니다. 텍스트 읽기와 검색은 계속 사용할 수 있습니다'),
@@ -3539,7 +3541,7 @@ def _child_repository_statuses(folder: Path) -> dict[str, str]:
     return statuses
 
 
-def _git_status(folder: Path) -> dict[str, str] | None:
+def _git_status(folder: Path, *, timeout=4) -> dict[str, str] | None:
     root = _find_root(folder, ".git")
     if root is None:
         return None
@@ -3547,7 +3549,7 @@ def _git_status(folder: Path) -> dict[str, str] | None:
     command = [_overlay_cli("git"), "-C", str(root), "status", "--porcelain=v1", "-z",
                "--untracked-files=all", "--", relative]
     try:
-        result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
+        result = subprocess.run(command, capture_output=True, timeout=timeout, **_run_options())
     except subprocess.TimeoutExpired:
         raise VcsOverlayError('status-timeout') from None
     if result.returncode:
@@ -3569,7 +3571,7 @@ def _git_status(folder: Path) -> dict[str, str] | None:
         _merge(statuses, root / raw_path, status, root)
     try:
         tracked = subprocess.run([_overlay_cli("git"), "-C", str(root), "ls-files", "-z", "--", relative],
-                                 capture_output=True, timeout=4, **_run_options())
+                                 capture_output=True, timeout=timeout, **_run_options())
     except subprocess.TimeoutExpired:
         raise VcsOverlayError('tracked-files-timeout',statuses=statuses) from None
     if tracked.returncode:
@@ -3610,7 +3612,7 @@ def _svn_status(folder: Path) -> dict[str, str] | None:
     return statuses
 
 
-def folder_statuses(folder: Path) -> dict[str, str]:
+def folder_statuses(folder: Path, *, timeout=4) -> dict[str, str]:
     """Return Git/SVN overlay states keyed by normalized absolute path."""
     if is_metadata_path(folder):
         return {}
@@ -3622,7 +3624,7 @@ def folder_statuses(folder: Path) -> dict[str, str]:
     if inherited is not None:
         return inherited
     try:
-        statuses = _git_status(folder)
+        statuses = _git_status(folder, timeout=timeout)
         if statuses is None:
             statuses = _svn_status(folder)
         covered = statuses is not None
@@ -42012,7 +42014,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.46"
+__version__ = "0.18.47"
 
 
 
@@ -42135,8 +42137,12 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/10/30"
+BUILD_DATE = "2026/11/02"
 VERSION_HISTORY = (
+    ("v0.18.47", "2026/11/02", (
+        "Fixed: Git overlay queries retry once in the background after a timeout, restoring known states without changing folders or refreshing manually.",
+        "Improved: Git timeout diagnostics include attempt, command budget and query duration; unknown files are never labeled clean.",
+    )),
     ("v0.18.46", "2026/10/30", (
         "Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.",
         "Added: Read-only Registry (.reg) syntax preview highlights keys, values, types, comments and deletions without importing registry data.",
@@ -43092,6 +43098,8 @@ class FilePane(ttk.Frame):
         self._vcs_inflight = None
         self._vcs_results = queue.Queue()
         self._vcs_poll_job=None
+        self._vcs_retry_at = None
+        self._vcs_retry_used = False
         self.bind('<Destroy>',self._dispose_file_pane,add='+')
 
         # Keep the command target visible even when the panel has no selected row.
@@ -43429,7 +43437,7 @@ class FilePane(ttk.Frame):
         self.name_marquee.request()
         self.size_units.request()
 
-    def _request_vcs_statuses(self) -> None:
+    def _request_vcs_statuses(self, *, retry=False) -> None:
         if not self.winfo_toplevel().vcs_overlay_var.get():
             return
         if self.archive_session is not None:
@@ -43438,10 +43446,13 @@ class FilePane(ttk.Frame):
         now, path = time.monotonic(), self.path
         if self._vcs_path != path:
             self._vcs_statuses = cached_folder_statuses(path) or {}
+            self._vcs_retry_at = None
+            self._vcs_retry_used = False
         if self._vcs_inflight is not None:
             return
-        if self._vcs_path == path and now - self._vcs_requested_at < 10.0:
+        if not retry and self._vcs_path == path and now - self._vcs_requested_at < 10.0:
             return
+        self._vcs_retry_at = None  # A newer query supersedes a delayed retry.
         self._vcs_path = path; self._vcs_requested_at = now
         self._vcs_generation += 1
         self._vcs_loading = True
@@ -43450,14 +43461,18 @@ class FilePane(ttk.Frame):
         results=self._vcs_results
         def load():
             issue=None
+            started=time.monotonic()
+            timeout=8 if retry else 4
             try:
-                statuses = folder_statuses(path)
+                statuses = folder_statuses(path, timeout=timeout) if retry else folder_statuses(path)
             except Exception as exc:
                 try:statuses = dict(cached_folder_statuses(path) or {})
                 except OSError:statuses = {}
                 statuses.update(getattr(exc,'statuses',{}))
                 issue=dict(backend=getattr(exc,'backend','vcs'),reason=getattr(exc,'reason','query-failed'),
-                           error=type(exc).__name__,returncode=getattr(exc,'returncode',None))
+                           error=type(exc).__name__,returncode=getattr(exc,'returncode',None),
+                           attempt=2 if retry else 1,command_timeout_seconds=timeout,
+                           query_seconds=round(time.monotonic()-started,3))
             # Do not retain a FilePane/Tk root until a slow Git process exits.
             results.put((generation, path, statuses, issue))
         try:
@@ -43485,10 +43500,21 @@ class FilePane(ttk.Frame):
                     if statuses != previous:
                         self._vcs_statuses = statuses
                         self._apply_vcs_icons(previous)
+                    if (issue and issue.get('reason') in {'status-timeout','tracked-files-timeout'}
+                            and not getattr(self,'_vcs_retry_used',False)):
+                        # A cold Git/index read must not leave an idle pane
+                        # permanently blank. One delayed worker retry only.
+                        self._vcs_retry_used = True
+                        self._vcs_retry_at = (path,time.monotonic()+1.0)
                 else:
                     self._request_vcs_statuses()
         except queue.Empty:
             pass
+        pending=getattr(self,'_vcs_retry_at',None)
+        if pending is not None and self._vcs_inflight is None and time.monotonic()>=pending[1]:
+            self._vcs_retry_at=None
+            if pending[0]==self.path and self.archive_session is None and self.winfo_toplevel().vcs_overlay_var.get():
+                self._request_vcs_statuses(retry=True)
         try:
             self._vcs_poll_job=self.after(150, self._poll_vcs_results)
         except tk.TclError:

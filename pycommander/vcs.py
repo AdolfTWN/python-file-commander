@@ -149,7 +149,7 @@ def _child_repository_statuses(folder: Path) -> dict[str, str]:
     return statuses
 
 
-def _git_status(folder: Path) -> dict[str, str] | None:
+def _git_status(folder: Path, *, timeout=4) -> dict[str, str] | None:
     root = _find_root(folder, ".git")
     if root is None:
         return None
@@ -157,7 +157,7 @@ def _git_status(folder: Path) -> dict[str, str] | None:
     command = [_overlay_cli("git"), "-C", str(root), "status", "--porcelain=v1", "-z",
                "--untracked-files=all", "--", relative]
     try:
-        result = subprocess.run(command, capture_output=True, timeout=4, **_run_options())
+        result = subprocess.run(command, capture_output=True, timeout=timeout, **_run_options())
     except subprocess.TimeoutExpired:
         raise VcsOverlayError('status-timeout') from None
     if result.returncode:
@@ -179,7 +179,7 @@ def _git_status(folder: Path) -> dict[str, str] | None:
         _merge(statuses, root / raw_path, status, root)
     try:
         tracked = subprocess.run([_overlay_cli("git"), "-C", str(root), "ls-files", "-z", "--", relative],
-                                 capture_output=True, timeout=4, **_run_options())
+                                 capture_output=True, timeout=timeout, **_run_options())
     except subprocess.TimeoutExpired:
         raise VcsOverlayError('tracked-files-timeout',statuses=statuses) from None
     if tracked.returncode:
@@ -220,7 +220,7 @@ def _svn_status(folder: Path) -> dict[str, str] | None:
     return statuses
 
 
-def folder_statuses(folder: Path) -> dict[str, str]:
+def folder_statuses(folder: Path, *, timeout=4) -> dict[str, str]:
     """Return Git/SVN overlay states keyed by normalized absolute path."""
     if is_metadata_path(folder):
         return {}
@@ -232,7 +232,7 @@ def folder_statuses(folder: Path) -> dict[str, str]:
     if inherited is not None:
         return inherited
     try:
-        statuses = _git_status(folder)
+        statuses = _git_status(folder, timeout=timeout)
         if statuses is None:
             statuses = _svn_status(folder)
         covered = statuses is not None

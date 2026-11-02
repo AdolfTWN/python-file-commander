@@ -147,6 +147,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.47", "2026/11/02", (
+        "Fixed: Git overlay queries retry once in the background after a timeout, restoring known states without changing folders or refreshing manually.",
+        "Improved: Git timeout diagnostics include attempt, command budget and query duration; unknown files are never labeled clean.",
+    )),
     ("v0.18.46", "2026/10/30", (
         "Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.",
         "Added: Read-only Registry (.reg) syntax preview highlights keys, values, types, comments and deletions without importing registry data.",
@@ -1102,6 +1106,8 @@ class FilePane(ttk.Frame):
         self._vcs_inflight = None
         self._vcs_results = queue.Queue()
         self._vcs_poll_job=None
+        self._vcs_retry_at = None
+        self._vcs_retry_used = False
         self.bind('<Destroy>',self._dispose_file_pane,add='+')
 
         # Keep the command target visible even when the panel has no selected row.
@@ -1439,7 +1445,7 @@ class FilePane(ttk.Frame):
         self.name_marquee.request()
         self.size_units.request()
 
-    def _request_vcs_statuses(self) -> None:
+    def _request_vcs_statuses(self, *, retry=False) -> None:
         if not self.winfo_toplevel().vcs_overlay_var.get():
             return
         if self.archive_session is not None:
@@ -1448,10 +1454,13 @@ class FilePane(ttk.Frame):
         now, path = time.monotonic(), self.path
         if self._vcs_path != path:
             self._vcs_statuses = cached_folder_statuses(path) or {}
+            self._vcs_retry_at = None
+            self._vcs_retry_used = False
         if self._vcs_inflight is not None:
             return
-        if self._vcs_path == path and now - self._vcs_requested_at < 10.0:
+        if not retry and self._vcs_path == path and now - self._vcs_requested_at < 10.0:
             return
+        self._vcs_retry_at = None  # A newer query supersedes a delayed retry.
         self._vcs_path = path; self._vcs_requested_at = now
         self._vcs_generation += 1
         self._vcs_loading = True
@@ -1460,14 +1469,18 @@ class FilePane(ttk.Frame):
         results=self._vcs_results
         def load():
             issue=None
+            started=time.monotonic()
+            timeout=8 if retry else 4
             try:
-                statuses = folder_statuses(path)
+                statuses = folder_statuses(path, timeout=timeout) if retry else folder_statuses(path)
             except Exception as exc:
                 try:statuses = dict(cached_folder_statuses(path) or {})
                 except OSError:statuses = {}
                 statuses.update(getattr(exc,'statuses',{}))
                 issue=dict(backend=getattr(exc,'backend','vcs'),reason=getattr(exc,'reason','query-failed'),
-                           error=type(exc).__name__,returncode=getattr(exc,'returncode',None))
+                           error=type(exc).__name__,returncode=getattr(exc,'returncode',None),
+                           attempt=2 if retry else 1,command_timeout_seconds=timeout,
+                           query_seconds=round(time.monotonic()-started,3))
             # Do not retain a FilePane/Tk root until a slow Git process exits.
             results.put((generation, path, statuses, issue))
         try:
@@ -1495,10 +1508,21 @@ class FilePane(ttk.Frame):
                     if statuses != previous:
                         self._vcs_statuses = statuses
                         self._apply_vcs_icons(previous)
+                    if (issue and issue.get('reason') in {'status-timeout','tracked-files-timeout'}
+                            and not getattr(self,'_vcs_retry_used',False)):
+                        # A cold Git/index read must not leave an idle pane
+                        # permanently blank. One delayed worker retry only.
+                        self._vcs_retry_used = True
+                        self._vcs_retry_at = (path,time.monotonic()+1.0)
                 else:
                     self._request_vcs_statuses()
         except queue.Empty:
             pass
+        pending=getattr(self,'_vcs_retry_at',None)
+        if pending is not None and self._vcs_inflight is None and time.monotonic()>=pending[1]:
+            self._vcs_retry_at=None
+            if pending[0]==self.path and self.archive_session is None and self.winfo_toplevel().vcs_overlay_var.get():
+                self._request_vcs_statuses(retry=True)
         try:
             self._vcs_poll_job=self.after(150, self._poll_vcs_results)
         except tk.TclError:

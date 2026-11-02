@@ -11,6 +11,14 @@ from pycommander.vcs import (_CACHE, _git_root_summary, _git_status, folder_stat
 
 
 class VCSOverlayTests(unittest.TestCase):
+    def test_retry_budget_is_applied_to_both_git_commands(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw).resolve();(root/'.git').mkdir()
+            result=subprocess.CompletedProcess([],0,stdout=b'',stderr=b'')
+            with patch.object(vcs,'_overlay_cli',return_value='git'),patch.object(vcs.subprocess,'run',return_value=result) as run:
+                self.assertEqual(vcs.folder_statuses(root,timeout=8),{})
+            self.assertEqual([c.kwargs['timeout'] for c in run.call_args_list],[8,8])
+
     def test_tracked_listing_timeout_preserves_confirmed_changes(self):
         with tempfile.TemporaryDirectory() as raw:
             root=Path(raw).resolve();(root/'.git').mkdir()
