@@ -92,9 +92,22 @@ with tempfile.TemporaryDirectory(prefix='pfc-search-visible-') as raw:
         for key,value in app._font_scales.items():
             if value==2.0:
                 app.font_size_var.set(key);app.apply_font_size(save=False);break
+        if os.name=='nt':
+            # Keep the shared VM display unchanged. Simulate a smaller laptop
+            # work area while still moving/measuring an actual native frame.
+            backend=s._window_visibility.backend
+            native_snapshot=backend.snapshot
+            def laptop_snapshot():
+                state=native_snapshot()
+                if state is None:return None
+                return state[0],((0,0,1280,680),),state[2]
+            backend.snapshot=laptop_snapshot
         s.geometry('2200x1400+50+50');s.activate();until(app,lambda:visible(s))
         assert s.find_button.winfo_ismapped() and s.mask_entry.winfo_ismapped()
         assert s.tree.winfo_height()>=60,'Fitted search has no usable results area'
+        if os.name=='nt':
+            assert s.winfo_width()<=1280 and s.winfo_height()<=680
+            print('Actual native frame fitted within simulated laptop work area 1280x680 at 200%',flush=True)
         capture(s,'zoom200')
         before=(s.winfo_rootx(),s.winfo_rooty(),s.winfo_width(),s.winfo_height())
         settle(app,2.5)
