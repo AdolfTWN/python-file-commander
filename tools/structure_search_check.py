@@ -18,7 +18,11 @@ def ready(root,page,timeout=25):
         root.update();time.sleep(.01)
         if not (page._format_jobs.pending or page._format_queued or page._format_request
                 or page.render_view._insert_job or page._format_find_job or getattr(page.render_view.tree,'_layout_job',None)):
-            root.update();return
+            root.update()
+            # The final event drain can itself start an automatic reload.
+            if not (page._format_jobs.pending or page._format_queued or page._format_request
+                    or page.render_view._insert_job or page._format_find_job or getattr(page.render_view.tree,'_layout_job',None)):
+                return
     raise AssertionError('Structure request did not finish')
 
 def capture(window,name):
@@ -91,8 +95,16 @@ with tempfile.TemporaryDirectory() as raw:
         assert 'of 3' in page.status.cget('text') and view.tree is tree
         page.find_next();page._cancel_format_ui();ready(root,page)
         assert view.tree is tree and 'Search canceled' in page.status.cget('text')
+        # Test stale-source rejection independently of the two-second file
+        # watcher. A legitimate automatic reload replaces the Treeview, so
+        # requiring its old identity while that watcher runs is a timer race.
+        if page._refresh_job is not None:page.after_cancel(page._refresh_job)
+        page._refresh_job=None
         path.write_text(source+' ',encoding='utf-8')
         find('AW27');assert 'reload' in page.status.cget('text').lower()
+        page._auto_refresh();ready(root,page)
+        assert view.model['kind']=='tree' and view.tree is not tree and view.text is None
+        assert page._signature==page._path_signature(),'Automatic refresh did not load the new source'
         for name,content in (('sample.yaml','nested:\n  device: AW27\n'),('sample.toml','[nested]\ndevice="AW27"\n'),('sample.jsonl','{"nested":{"device":"AW27"}}\n')):
             phase='format-switch'
             other=Path(raw)/name;other.write_text(content,encoding='utf-8')
