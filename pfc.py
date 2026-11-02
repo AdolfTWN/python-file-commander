@@ -21,6 +21,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: F4 Search recovers saved or disconnected-monitor positions and fits the current work area on activation and display changes.': ('修正：F4 搜尋視窗可從儲存的螢幕外座標或已拔除的螢幕位置回復，開啟及螢幕配置變更時會配合目前工作區。','修正：F4 搜索窗口可从保存的屏幕外坐标或已断开的屏幕位置恢复，打开及显示配置变更时适配当前工作区。','수정: F4 검색 창의 화면 밖 저장 위치나 연결 해제된 모니터 위치를 복구하고 활성화 및 디스플레이 변경 시 현재 작업 영역에 맞춥니다.'),
+    'Improved: Search window recovery retains results and selection without disturbing normal dragging, minimization or valid maximization.': ('改善：搜尋視窗回復位置時保留結果與選取，不干擾正常拖曳、最小化或有效的最大化。','改善：搜索窗口恢复位置时保留结果与选择，不干扰正常拖动、最小化或有效的最大化。','개선: 검색 창 복구 시 결과와 선택을 유지하며 정상 드래그, 최소화 및 유효한 최대화를 방해하지 않습니다.'),
     'Fixed: Git overlay queries retry once in the background after a timeout, restoring known states without changing folders or refreshing manually.': ('修正：Git 狀態查詢逾時後在背景重試一次，不必切換資料夾或手動重新整理便可恢復已確認的圖示。','修正：Git 状态查询超时后在后台重试一次，无须切换文件夹或手动刷新即可恢复已确认的图标。','수정: Git 상태 조회 시간 초과 후 백그라운드에서 한 번 재시도하여 폴더 이동이나 수동 새로 고침 없이 확인된 표시를 복구합니다.'),
     'Improved: Git timeout diagnostics include attempt, command budget and query duration; unknown files are never labeled clean.': ('改善：Git 逾時紀錄包含嘗試次數、指令時限與查詢耗時；不把未知狀態標成乾淨。','改善：Git 超时记录包含尝试次数、命令时限与查询耗时；不把未知状态标成干净。','개선: Git 시간 초과 기록에 시도 횟수, 명령 제한 시간과 조회 시간을 포함합니다. 알 수 없는 상태를 정상으로 표시하지 않습니다.'),
     'Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.': ('修正：啟動還原排序與篩選後才選取首筆，避免舊選取讓清單捲到底部。','修正：启动还原排序与筛选后才选取首项，避免旧选取让列表滚到底部。','수정: 저장된 정렬과 필터를 복원한 뒤 첫 항목을 선택하여 시작 시 목록 하단으로 이동하지 않습니다.'),
@@ -6869,7 +6871,7 @@ def position_popup_in_work_area(widget, owner, area):
         widget.geometry(f'{x:+d}{y:+d}')
 
 
-def visible_window_target(rect, work_areas, frame_margin=8):
+def visible_window_target(rect, work_areas, frame_margin=8, *, fit=False):
     """Return a centered (x, y, width, height), or None if the title is reachable.
 
     Work areas are individual monitors, primary first, not the virtual desktop's
@@ -6884,6 +6886,13 @@ def visible_window_target(rect, work_areas, frame_margin=8):
         # Permit the usual invisible resize border and partially offscreen sides,
         # but require a usable strip of the actual title bar, not just file rows.
         if overlap >= min(160, width) and y1-frame_margin <= top <= y2-40:
+            if fit:
+                if (x1-frame_margin<=left<=x1 and y1-frame_margin<=top<=y1
+                        and x2<=right<=x2+frame_margin and y2<=bottom<=y2+frame_margin):
+                    return None  # Keep a valid maximized frame/resize border.
+                w,h=min(width,x2-x1),min(height,y2-y1)
+                x,y=max(x1,min(left,x2-w)),max(y1,min(top,y2-h))
+                if (x,y,w,h)!=(left,top,width,height):return x,y,w,h
             return None
     x1, y1, x2, y2 = work_areas[0]
     width, height = min(width, x2-x1), min(height, y2-y1)
@@ -6962,11 +6971,13 @@ class WindowsWindowPlacement:
 
 class WindowVisibilityGuard:
     """Lightweight Tk-thread check at startup, after undocking, and after resume."""
-    def __init__(self, widget, backend=None):
+    def __init__(self, widget, backend=None, *, fit_to_monitor=False):
         self.widget = widget
         self.backend = backend if backend is not None else (
             WindowsWindowPlacement(widget) if os.name == 'nt' else None)
         self.previous = None
+        self.work_areas = None
+        self.fit_to_monitor = fit_to_monitor
         self.job = widget.after(250, self._tick)
         widget.bind('<Destroy>', self._destroyed, add='+')
 
@@ -6979,7 +6990,12 @@ class WindowVisibilityGuard:
             self.widget.after_cancel(self.job)
             self.job = None
 
-    def check(self):
+    def recover(self):
+        """Best-effort immediate recovery after an explicit window activation."""
+        try:self.check(force=True)
+        except (tk.TclError,OSError):self.previous=None
+
+    def check(self, *, force=False):
         if self.widget.state() in ('withdrawn', 'iconic') or not self.widget.winfo_ismapped():
             self.previous = None
             return
@@ -6991,8 +7007,12 @@ class WindowVisibilityGuard:
                         ((0, 0, self.widget.winfo_screenwidth(), self.widget.winfo_screenheight()),))
         # Wait for two stable observations, so changing display/DPI configurations
         # and normal window moves can settle before we intervene.
-        if snapshot is not None and snapshot == self.previous:
-            target = visible_window_target(*snapshot)
+        if snapshot is not None and (force or snapshot == self.previous):
+            # Popup size is fitted only on activation/topology change, not
+            # after every user drag or intentional partial placement.
+            fit=self.fit_to_monitor and (force or snapshot[1]!=self.work_areas)
+            target = visible_window_target(*snapshot,fit=fit)
+            self.work_areas=snapshot[1]
             if target is not None:
                 if self.backend is not None:
                     self.backend.move(target)
@@ -39328,6 +39348,7 @@ from tkinter import messagebox, simpledialog, ttk
 
 
 
+
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
 CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
@@ -39558,6 +39579,7 @@ class SearchWindow(tk.Toplevel):
         self._update_criteria_summary()
         self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
+        self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True)
         install_button_tooltips(self); self.after_idle(self.activate)
 
     def _layout_controls(self,event=None):
@@ -39673,6 +39695,7 @@ class SearchWindow(tk.Toplevel):
         style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
         self._reset_column_measurements()
         self.after_idle(self._layout_controls)
+        self.after_idle(self._window_visibility.recover)
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
@@ -39693,6 +39716,8 @@ class SearchWindow(tk.Toplevel):
     def activate(self):
         self.reset_for_open()
         self.deiconify(); self.lift(); self.focus_force()
+        self.update_idletasks()
+        self._window_visibility.recover()
         self._update_criteria_summary()
         if self.mask_entry is not None:
             self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end"); self.mask_entry.icursor("end")
@@ -42014,7 +42039,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.47"
+__version__ = "0.18.48"
 
 
 
@@ -42139,6 +42164,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/11/02"
 VERSION_HISTORY = (
+    ("v0.18.48", "2026/11/02", (
+        "Fixed: F4 Search recovers saved or disconnected-monitor positions and fits the current work area on activation and display changes.",
+        "Improved: Search window recovery retains results and selection without disturbing normal dragging, minimization or valid maximization.",
+    )),
     ("v0.18.47", "2026/11/02", (
         "Fixed: Git overlay queries retry once in the background after a timeout, restoring known states without changing folders or refreshing manually.",
         "Improved: Git timeout diagnostics include attempt, command budget and query duration; unknown files are never labeled clean.",

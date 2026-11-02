@@ -354,6 +354,12 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                 for name in ('startup-fixed','registry-light','registry-dark'):
                     data=guest.image_data(directory+'\\evidence-'+name+'.bmp')
                     Image.open(io.BytesIO(data)).save(evidence_dir/(name+'.png'))
+            if result['status']=='passed' and 'search_visibility_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('startup','results','zoom200'):
+                    data=guest.image_data(directory+'\\evidence-search-visibility-'+name+'.bmp')
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('search-visibility-'+name+'.png'))
             if result['status']=='passed' and 'native_crash_check.py' in checks:
                 from PIL import Image
                 import io

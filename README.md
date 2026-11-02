@@ -1,6 +1,11 @@
 # Python File Commander
 
-Current code: **v0.18.47**.
+Current code: **v0.18.48**.
+F4 Search now recovers offscreen saved positions, fits oversized windows to the
+available monitor work area, and monitors display changes without resetting
+active results or snapping normal user moves back. See
+[scope and verification](docs/search-visibility-20261102.md).
+
 Git overlay timeout recovery now makes one bounded background retry without
 manual folder navigation/refresh. Unknown entries are not guessed clean;
 diagnostics include attempt, per-command budget and query time.

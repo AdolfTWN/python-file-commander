@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: F4 Search recovers saved or disconnected-monitor positions and fits the current work area on activation and display changes.': ('修正：F4 搜尋視窗可從儲存的螢幕外座標或已拔除的螢幕位置回復，開啟及螢幕配置變更時會配合目前工作區。','修正：F4 搜索窗口可从保存的屏幕外坐标或已断开的屏幕位置恢复，打开及显示配置变更时适配当前工作区。','수정: F4 검색 창의 화면 밖 저장 위치나 연결 해제된 모니터 위치를 복구하고 활성화 및 디스플레이 변경 시 현재 작업 영역에 맞춥니다.'),
+    'Improved: Search window recovery retains results and selection without disturbing normal dragging, minimization or valid maximization.': ('改善：搜尋視窗回復位置時保留結果與選取，不干擾正常拖曳、最小化或有效的最大化。','改善：搜索窗口恢复位置时保留结果与选择，不干扰正常拖动、最小化或有效的最大化。','개선: 검색 창 복구 시 결과와 선택을 유지하며 정상 드래그, 최소화 및 유효한 최대화를 방해하지 않습니다.'),
     'Fixed: Git overlay queries retry once in the background after a timeout, restoring known states without changing folders or refreshing manually.': ('修正：Git 狀態查詢逾時後在背景重試一次，不必切換資料夾或手動重新整理便可恢復已確認的圖示。','修正：Git 状态查询超时后在后台重试一次，无须切换文件夹或手动刷新即可恢复已确认的图标。','수정: Git 상태 조회 시간 초과 후 백그라운드에서 한 번 재시도하여 폴더 이동이나 수동 새로 고침 없이 확인된 표시를 복구합니다.'),
     'Improved: Git timeout diagnostics include attempt, command budget and query duration; unknown files are never labeled clean.': ('改善：Git 逾時紀錄包含嘗試次數、指令時限與查詢耗時；不把未知狀態標成乾淨。','改善：Git 超时记录包含尝试次数、命令时限与查询耗时；不把未知状态标成干净。','개선: Git 시간 초과 기록에 시도 횟수, 명령 제한 시간과 조회 시간을 포함합니다. 알 수 없는 상태를 정상으로 표시하지 않습니다.'),
     'Fixed: Startup selects the first row after restoring saved sorting and filters, instead of scrolling to an old selection near the bottom.': ('修正：啟動還原排序與篩選後才選取首筆，避免舊選取讓清單捲到底部。','修正：启动还原排序与筛选后才选取首项，避免旧选取让列表滚到底部。','수정: 저장된 정렬과 필터를 복원한 뒤 첫 항목을 선택하여 시작 시 목록 하단으로 이동하지 않습니다.'),

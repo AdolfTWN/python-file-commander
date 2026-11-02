@@ -19,6 +19,45 @@ class WindowPlacementTests(unittest.TestCase):
         self.assertEqual(visible_window_target((2100, 100, 3300, 820), [self.primary]),
                          (360, 160, 1200, 720))
 
+    def test_popup_fits_full_frame_on_activation_but_main_policy_unchanged(self):
+        area=(0,0,1280,680)
+        rect=(1100,100,2600,1000)
+        self.assertIsNone(visible_window_target(rect,[area]))
+        self.assertEqual(visible_window_target(rect,[area],fit=True),(0,0,1280,680))
+
+    def test_popup_fit_preserves_connected_negative_monitor(self):
+        area=(-1600,-200,0,760)
+        rect=(-1500,-100,-200,600)
+        self.assertIsNone(visible_window_target(rect,[self.primary,area],fit=True))
+
+    def test_popup_topology_fit_does_not_snap_back_normal_user_moves(self):
+        widget,backend=Mock(),Mock()
+        widget.state.return_value='normal';widget.winfo_ismapped.return_value=True
+        area=(0,0,1280,680)
+        backend.snapshot.return_value=((100,100,1100,650),(area,),8)
+        guard=WindowVisibilityGuard(widget,backend,fit_to_monitor=True)
+        guard.check(force=True);backend.move.assert_not_called()
+        # A user can deliberately leave part of a window offscreen.
+        backend.snapshot.return_value=((1100,100,2100,650),(area,),8)
+        guard.check();guard.check();backend.move.assert_not_called()
+        # A smaller work area is fitted after stable topology observations.
+        backend.snapshot.return_value=((1100,100,2100,650),((0,0,1200,600),),8)
+        guard.check();guard.check()
+        backend.move.assert_called_once_with((100,25,1000,550))
+        guard.close()
+
+    def test_popup_fitting_preserves_native_maximized_border(self):
+        self.assertIsNone(visible_window_target((-12,-12,1932,1052),[self.primary],12,fit=True))
+
+    def test_immediate_recovery_tolerates_display_api_transition_failure(self):
+        widget,backend=Mock(),Mock()
+        widget.state.return_value='normal';widget.winfo_ismapped.return_value=True
+        backend.snapshot.side_effect=OSError('display changing')
+        guard=WindowVisibilityGuard(widget,backend,fit_to_monitor=True)
+        guard.recover();backend.move.assert_not_called()
+        self.assertIsNone(guard.previous)
+        guard.close()
+
     def test_valid_second_display_is_preserved(self):
         rect = (2100, 100, 3300, 820)
         self.assertIsNone(visible_window_target(rect, [self.primary, (1920, 0, 3840, 1040)]))

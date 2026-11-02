@@ -147,6 +147,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.48", "2026/11/02", (
+        "Fixed: F4 Search recovers saved or disconnected-monitor positions and fits the current work area on activation and display changes.",
+        "Improved: Search window recovery retains results and selection without disturbing normal dragging, minimization or valid maximization.",
+    )),
     ("v0.18.47", "2026/11/02", (
         "Fixed: Git overlay queries retry once in the background after a timeout, restoring known states without changing folders or refreshing manually.",
         "Improved: Git timeout diagnostics include attempt, command budget and query duration; unknown files are never labeled clean.",

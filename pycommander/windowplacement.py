@@ -37,7 +37,7 @@ def position_popup_in_work_area(widget, owner, area):
         widget.geometry(f'{x:+d}{y:+d}')
 
 
-def visible_window_target(rect, work_areas, frame_margin=8):
+def visible_window_target(rect, work_areas, frame_margin=8, *, fit=False):
     """Return a centered (x, y, width, height), or None if the title is reachable.
 
     Work areas are individual monitors, primary first, not the virtual desktop's
@@ -52,6 +52,13 @@ def visible_window_target(rect, work_areas, frame_margin=8):
         # Permit the usual invisible resize border and partially offscreen sides,
         # but require a usable strip of the actual title bar, not just file rows.
         if overlap >= min(160, width) and y1-frame_margin <= top <= y2-40:
+            if fit:
+                if (x1-frame_margin<=left<=x1 and y1-frame_margin<=top<=y1
+                        and x2<=right<=x2+frame_margin and y2<=bottom<=y2+frame_margin):
+                    return None  # Keep a valid maximized frame/resize border.
+                w,h=min(width,x2-x1),min(height,y2-y1)
+                x,y=max(x1,min(left,x2-w)),max(y1,min(top,y2-h))
+                if (x,y,w,h)!=(left,top,width,height):return x,y,w,h
             return None
     x1, y1, x2, y2 = work_areas[0]
     width, height = min(width, x2-x1), min(height, y2-y1)
@@ -130,11 +137,13 @@ class WindowsWindowPlacement:
 
 class WindowVisibilityGuard:
     """Lightweight Tk-thread check at startup, after undocking, and after resume."""
-    def __init__(self, widget, backend=None):
+    def __init__(self, widget, backend=None, *, fit_to_monitor=False):
         self.widget = widget
         self.backend = backend if backend is not None else (
             WindowsWindowPlacement(widget) if os.name == 'nt' else None)
         self.previous = None
+        self.work_areas = None
+        self.fit_to_monitor = fit_to_monitor
         self.job = widget.after(250, self._tick)
         widget.bind('<Destroy>', self._destroyed, add='+')
 
@@ -147,7 +156,12 @@ class WindowVisibilityGuard:
             self.widget.after_cancel(self.job)
             self.job = None
 
-    def check(self):
+    def recover(self):
+        """Best-effort immediate recovery after an explicit window activation."""
+        try:self.check(force=True)
+        except (tk.TclError,OSError):self.previous=None
+
+    def check(self, *, force=False):
         if self.widget.state() in ('withdrawn', 'iconic') or not self.widget.winfo_ismapped():
             self.previous = None
             return
@@ -159,8 +173,12 @@ class WindowVisibilityGuard:
                         ((0, 0, self.widget.winfo_screenwidth(), self.widget.winfo_screenheight()),))
         # Wait for two stable observations, so changing display/DPI configurations
         # and normal window moves can settle before we intervene.
-        if snapshot is not None and snapshot == self.previous:
-            target = visible_window_target(*snapshot)
+        if snapshot is not None and (force or snapshot == self.previous):
+            # Popup size is fitted only on activation/topology change, not
+            # after every user drag or intentional partial placement.
+            fit=self.fit_to_monitor and (force or snapshot[1]!=self.work_areas)
+            target = visible_window_target(*snapshot,fit=fit)
+            self.work_areas=snapshot[1]
             if target is not None:
                 if self.backend is not None:
                     self.backend.move(target)

@@ -25,7 +25,7 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = 1
 GROUPS = {
-    'search': ('search_results', 'search_archive', 'ux_walkthrough', 'compact_tasks', 'deep_tasks'),
+    'search': ('search_visibility', 'search_results', 'search_archive', 'ux_walkthrough', 'compact_tasks', 'deep_tasks'),
     'tooltip': ('tooltip', 'nested_menu', 'context_settings', 'pathbar'),
     'tree': ('folder_scroll', 'folder_navigation', 'folder_sticky', 'folder_hierarchy', 'folder_leaf'),
     'preview': ('startup_registry', 'preview_tabs', 'markdown_reading', 'markdown_workspace', 'render_formats', 'structure_search', 'render_reliability', 'structure_matches', 'structure_wrap', 'structure_expand'),

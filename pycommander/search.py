@@ -21,6 +21,7 @@ from .tabs import color_scheme
 from .settings import readable_check_style
 from .multirename import execute_rename_pairs
 from .flowlayout import FlowToolbar
+from .windowplacement import WindowVisibilityGuard
 
 
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
@@ -253,6 +254,7 @@ class SearchWindow(tk.Toplevel):
         self._update_criteria_summary()
         self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
+        self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True)
         install_button_tooltips(self); self.after_idle(self.activate)
 
     def _layout_controls(self,event=None):
@@ -368,6 +370,7 @@ class SearchWindow(tk.Toplevel):
         style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
         self._reset_column_measurements()
         self.after_idle(self._layout_controls)
+        self.after_idle(self._window_visibility.recover)
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
@@ -388,6 +391,8 @@ class SearchWindow(tk.Toplevel):
     def activate(self):
         self.reset_for_open()
         self.deiconify(); self.lift(); self.focus_force()
+        self.update_idletasks()
+        self._window_visibility.recover()
         self._update_criteria_summary()
         if self.mask_entry is not None:
             self.mask_entry.focus_set(); self.mask_entry.selection_range(0, "end"); self.mask_entry.icursor("end")
