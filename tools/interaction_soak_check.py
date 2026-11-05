@@ -105,9 +105,22 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
     original_error=pfc.messagebox.showerror
     pfc.messagebox.showerror=lambda *a,**k:failures.append(('error-dialog',str(a[0]) if a else 'error'))
     original_exception=app.debug_log.exception
+    def safe_background_records(sessions):
+        records=[]
+        for line in app.debug_log.snapshot(automatic=True).splitlines():
+            try:record=json.loads(line)
+            except ValueError:continue
+            if record.get('session') in sessions and record.get('event')=='tk.background.failed':
+                records.append({key:record[key] for key in
+                    ('event','version','time','session','error','reason','callback','frames') if key in record})
+        return records
     def diagnostic_exception(event,exc,severity='ERROR'):
         if severity in ('ERROR','CRITICAL'):failures.append(('automatic-diagnostic',event,type(exc).__name__))
-        return original_exception(event,exc,severity)
+        result=original_exception(event,exc,severity)
+        if event=='tk.background.failed':
+            print(json.dumps({'event':'interaction.safe.background','cycle':cycle,'stage':stage[0],
+                              'records':safe_background_records({app.debug_log.session})}),flush=True)
+        return result
     app.debug_log.exception=diagnostic_exception
     last=[time.monotonic()];beat_job=[None];stage=['initialization']
     def beat():
@@ -133,6 +146,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
                       'candidate_kind':'source-bundle' if source_bundle else 'portable',
                       'python':sys.version.split()[0],'duration_target_s':DURATION,'memory_instrumented':MEMORY,
                       'fixture_formats':len(documents),'diagnostic_session':app.debug_log.session}),flush=True)
+    # Only this campaign's known failed test session; no document or raw Tcl text.
+    prior=safe_background_records({'4cf3c5fb5137'})
+    if prior:print(json.dumps({'event':'interaction.prior.safe.background','records':prior}),flush=True)
     try:
         app.auto_font_size_var.set(False)
         for pane in app.visible_panes():pane.navigate(folder)
