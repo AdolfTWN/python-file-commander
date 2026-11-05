@@ -5,6 +5,7 @@ import threading
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
+from tkinter import TclError
 
 from pycommander.app import admin_launch_spec
 from pycommander.spaceanalyzer import (
@@ -79,13 +80,32 @@ class SpaceAnalyzerTests(unittest.TestCase):
     def test_go_to_only_runs_after_confirmation(self):
         node = SpaceNode(Path("C:/Temp/example.txt"), 10, False)
         locate = Mock()
-        window = SimpleNamespace(_click_job=object(), on_locate=locate)
+        pending=object()
+        window = SimpleNamespace(_click_job=pending, on_locate=locate,after_cancel=Mock())
         with patch("pycommander.spaceanalyzer.messagebox.askyesno",
                    side_effect=[False, True]):
             SpaceAnalyzerWindow._confirm_go_to(window, node)
             locate.assert_not_called()
             SpaceAnalyzerWindow._confirm_go_to(window, node)
         locate.assert_called_once_with(node.path)
+        window.after_cancel.assert_called_once_with(pending)
+        self.assertIsNone(window._click_job)
+
+    def test_synchronous_redraw_consumes_pending_resize(self):
+        window=SimpleNamespace(_resize_job='pending',after_cancel=Mock(),
+                               canvas=Mock(),_rectangles=[],root_node=None)
+        SpaceAnalyzerWindow._redraw(window)
+        window.after_cancel.assert_called_once_with('pending')
+        self.assertIsNone(window._resize_job)
+        window.canvas.delete.assert_called_once_with('all')
+
+    def test_expired_click_timer_does_not_prevent_confirmation(self):
+        node=SpaceNode(Path('fixture.txt'),10,False)
+        window=SimpleNamespace(_click_job='expired',after_cancel=Mock(side_effect=TclError()),on_locate=Mock())
+        with patch('pycommander.spaceanalyzer.messagebox.askyesno',return_value=True):
+            SpaceAnalyzerWindow._confirm_go_to(window,node)
+        self.assertIsNone(window._click_job)
+        window.on_locate.assert_called_once_with(node.path)
 
     def test_remove_choice_passes_explicit_recycle_or_permanent_action(self):
         node = SpaceNode(Path("C:/Temp/example.txt"), 10, False)
