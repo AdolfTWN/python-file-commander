@@ -13,6 +13,15 @@ class TranslationTests(unittest.TestCase):
         set_language("unknown")
         self.assertEqual(tr("Files"), "Files")
 
+    def test_search_ready_hint_uses_the_visible_action_in_every_language(self):
+        for language,_ in LANGUAGES:
+            set_language(language)
+            action=tr('Search')
+            hint=tr('Enter a name or mask, then choose {action}.',action=action)
+            self.assertIn(action,hint)
+            self.assertNotIn('{action}',hint)
+            if language!='en':self.assertNotIn('Enter a name',hint)
+
     def test_file_manager_terms_use_native_conventions(self):
         expected = {
             "zh_TW": ("檔案", "資料夾", "資源回收筒", "批次重新命名"),

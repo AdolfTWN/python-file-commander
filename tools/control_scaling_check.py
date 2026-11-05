@@ -110,6 +110,18 @@ with tempfile.TemporaryDirectory(prefix='pfc-control-scale-') as raw:
             assert int(tabs.bar.cget('highlightthickness')) == 2
             app.active.focus_file_list(); settle(app, .02)
         app.search(); search = app.search_window
+        # States must look different, not merely reject clicks internally.
+        for scheme in ('light','dark','light'):
+            app.color_scheme_var.set(scheme);app.apply_color_scheme(save=False);settle(app,.03)
+            style=ttk.Style(app);palette=app.palette
+            for kind in ('TButton','PFCWorkflow.TButton','PFCCompareChrome.TButton'):
+                assert style.lookup(kind,'foreground',('disabled',))==palette['muted'],(scheme,kind,'disabled foreground')
+                assert style.lookup(kind,'foreground',('disabled','active','pressed'))==palette['muted']
+                assert style.lookup(kind,'background',('active','pressed'))==palette['selection']
+                assert style.lookup(kind,'background',('disabled','active','pressed'))==palette['surface_alt']
+            assert search.result_buttons[0].instate(('disabled',))
+            capture(search,'search-states-'+scheme)
+        assert str(search.find_button.cget('text')) in str(search.empty_hint.cget('text')), 'Ready hint names a different action'
         search.geometry('1100x760+0+0')
         rename = pfc.MultiRenameWindow(app, files, [], lambda: None); windows.append(rename)
         compare = pfc.CompareWindow(app, app.config_data, lambda: None); windows.append(compare)

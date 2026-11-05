@@ -214,7 +214,8 @@ _SINGLE_PANEL_TRANSLATIONS = {
     'Search incomplete — {count} found; some items could not be read': ('搜尋未完整 — 找到 {count} 個，部分項目無法讀取', '搜索未完整 — 找到 {count} 个，部分项目无法读取', '검색 불완전 — {count}개 발견, 일부 항목 읽기 불가'),
     'Search failed — {count} partial results': ('搜尋失敗 — 保留 {count} 個部分結果', '搜索失败 — 保留 {count} 个部分结果', '검색 실패 — 부분 결과 {count}개'),
     'Elapsed {minutes:02d}:{seconds:02d} · Folders scanned: {folders} · Unreadable: {skipped}': ('耗時 {minutes:02d}:{seconds:02d} · 已掃描資料夾 {folders} · 無法讀取 {skipped}', '耗时 {minutes:02d}:{seconds:02d} · 已扫描文件夹 {folders} · 无法读取 {skipped}', '경과 {minutes:02d}:{seconds:02d} · 스캔 폴더 {folders} · 읽기 불가 {skipped}'),
-    'Enter a name or mask, then choose Find.': ('輸入名稱或萬用字元，然後按「尋找」。', '输入名称或通配符，然后按“查找”。', '이름 또는 패턴을 입력하고 찾기를 선택하세요.'),
+    'Enter a name or mask, then choose {action}.': ('輸入名稱或萬用字元，然後按「{action}」。', '输入名称或通配符，然后按“{action}”。', '이름 또는 패턴을 입력하고 {action}을 선택하세요.'),
+    'Improved: Disabled and pressed buttons have distinct states in both themes; search hints name the visible action.': ('改善：明暗主題清楚區分停用與按下按鈕，搜尋提示使用畫面上的按鈕名稱。','改善：明暗主题清晰区分禁用和按下的按钮，搜索提示使用画面上的按钮名称。','개선: 두 테마에서 비활성화 및 눌린 버튼 상태를 구분하고 검색 안내에 표시된 작업 이름을 사용합니다.'),
     'Searching… results will appear here.': ('搜尋中…結果會顯示在這裡。', '搜索中…结果会显示在这里。', '검색 중… 여기에 결과가 표시됩니다.'),
     'Waiting for the current read to stop…': ('正在等待目前的讀取作業停止…', '正在等待当前的读取操作停止…', '현재 읽기 작업이 멈추기를 기다리는 중…'),
     'No matching items. Try another name or folder.': ('沒有符合的項目，請嘗試其他名稱或資料夾。', '没有符合的项目，请尝试其他名称或文件夹。', '일치하는 항목이 없습니다. 다른 이름이나 폴더를 사용하세요.'),
@@ -3920,9 +3921,10 @@ def configure_ttk_theme(root, palette: dict[str, str]) -> None:
     style.configure("TButton", background=palette["button"], foreground=palette["text"],
                     bordercolor=palette["border"], lightcolor=palette["button"],
                     darkcolor=palette["border"])
-    style.map("TButton", background=[("active", palette["button_active"]),
-                                     ("pressed", palette["selection"])],
-              foreground=[("pressed", "#ffffff")])
+    style.map("TButton", background=[("disabled", palette["surface_alt"]),
+                                     ("pressed", palette["selection"]),
+                                     ("active", palette["button_active"])],
+              foreground=[("disabled", palette["muted"]), ("pressed", "#ffffff")])
     for name in ("TCheckbutton", "TRadiobutton"):
         style.configure(name, background=palette["window"], foreground=palette["text"])
         style.map(name, background=[("active", palette["window"])],
@@ -40233,7 +40235,7 @@ class SearchWindow(tk.Toplevel):
                 minutes=elapsed//60,seconds=elapsed%60,folders=self._scanned_folders,skipped=self._skipped)
             if self.progress_eta.cget('text')!=detail:self.progress_eta.configure(text=detail)
         self._layout_activity()
-        hints={'ready':'Enter a name or mask, then choose Find.', 'resetting':'Waiting for the current read to stop…',
+        hints={'ready':'Enter a name or mask, then choose {action}.', 'resetting':'Waiting for the current read to stop…',
                'running':'Searching… results will appear here.',
                'cancelling':'Waiting for the current read to stop…',
                'complete':'No matching items. Try another name or folder.',
@@ -40243,7 +40245,7 @@ class SearchWindow(tk.Toplevel):
                'failed':'Search failed. Check the error and try again.'}
         if count:self.empty_hint.place_forget()
         else:
-            hint=tr(hints[self.search_state])
+            hint=tr(hints[self.search_state],action=self.find_button.cget('text'))
             if self.empty_hint.cget('text')!=hint:self.empty_hint.configure(text=hint)
             if not self.empty_hint.winfo_manager():
                 self.empty_hint.place(relx=.5,rely=.35,anchor='center');self.empty_hint.lift()
@@ -42464,6 +42466,7 @@ VERSION_HISTORY = (
         "Improved: Folder-heavy searches coalesce progress updates while preserving exact counts and live completion status.",
         "Improved: Automatic diagnostics cover finalizer, Tcl callback and early settings failures with version, time and safe context.",
         "Improved: Extreme-scale laptop layouts keep bottom shortcuts and zoom reachable when compact actions need to wrap.",
+        "Improved: Disabled and pressed buttons have distinct states in both themes; search hints name the visible action.",
     )),
     ("v0.18.49", "2026/11/05", (
         "Fixed: Laptop layouts reserve bottom shortcuts, zoom and panel filters before allocating the file viewport at enlarged reading scales.",

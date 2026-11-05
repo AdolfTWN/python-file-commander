@@ -133,9 +133,10 @@ def configure_ttk_theme(root, palette: dict[str, str]) -> None:
     style.configure("TButton", background=palette["button"], foreground=palette["text"],
                     bordercolor=palette["border"], lightcolor=palette["button"],
                     darkcolor=palette["border"])
-    style.map("TButton", background=[("active", palette["button_active"]),
-                                     ("pressed", palette["selection"])],
-              foreground=[("pressed", "#ffffff")])
+    style.map("TButton", background=[("disabled", palette["surface_alt"]),
+                                     ("pressed", palette["selection"]),
+                                     ("active", palette["button_active"])],
+              foreground=[("disabled", palette["muted"]), ("pressed", "#ffffff")])
     for name in ("TCheckbutton", "TRadiobutton"):
         style.configure(name, background=palette["window"], foreground=palette["text"])
         style.map(name, background=[("active", palette["window"])],

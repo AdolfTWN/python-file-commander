@@ -674,7 +674,7 @@ class SearchWindow(tk.Toplevel):
                 minutes=elapsed//60,seconds=elapsed%60,folders=self._scanned_folders,skipped=self._skipped)
             if self.progress_eta.cget('text')!=detail:self.progress_eta.configure(text=detail)
         self._layout_activity()
-        hints={'ready':'Enter a name or mask, then choose Find.', 'resetting':'Waiting for the current read to stop…',
+        hints={'ready':'Enter a name or mask, then choose {action}.', 'resetting':'Waiting for the current read to stop…',
                'running':'Searching… results will appear here.',
                'cancelling':'Waiting for the current read to stop…',
                'complete':'No matching items. Try another name or folder.',
@@ -684,7 +684,7 @@ class SearchWindow(tk.Toplevel):
                'failed':'Search failed. Check the error and try again.'}
         if count:self.empty_hint.place_forget()
         else:
-            hint=tr(hints[self.search_state])
+            hint=tr(hints[self.search_state],action=self.find_button.cget('text'))
             if self.empty_hint.cget('text')!=hint:self.empty_hint.configure(text=hint)
             if not self.empty_hint.winfo_manager():
                 self.empty_hint.place(relx=.5,rely=.35,anchor='center');self.empty_hint.lift()

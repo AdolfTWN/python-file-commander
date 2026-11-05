@@ -6,6 +6,8 @@ data-safe interrupted moves, cancelled background work and startup/settings
 diagnostics. Selective search and column sizing avoid repeated metadata work.
 Folder-heavy searches coalesce progress snapshots rather than queuing thousands
 of status updates; exact result, unreadable-item and folder counts are retained.
+Disabled and pressed buttons are visually distinct in both themes, and search
+guidance uses the actual button name.
 Verification results, measured benefits and unavailable hardware scenarios are
 tracked in the [reliability campaign report](docs/reliability-marathon-20261105.md).
 

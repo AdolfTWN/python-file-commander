@@ -165,6 +165,17 @@ wide-line Markdown Review pair and records whether it completed before closure;
 the native GDI fixture repeats Text, Folder and large Review in every cycle.
 This is additional test coverage, not another application-code change.
 
+Direct inspection of the final Windows screenshots found another usability gap
+despite passing functional checks: disabled buttons looked enabled, and the ready
+hint named Find while the visible action was Search. The global button map had
+overridden the theme's disabled foreground and put hover before pressed state.
+The next candidate restores distinct disabled text/background and prioritizes
+disabled/pressed over hover in both themes. Search hints interpolate the actual
+localized action label. A real-Tk regression fails before/pass after and covers
+inherited Workflow/Compare styles; translation tests cover all four languages.
+The earlier native batch was explicitly interrupted, with confirmed cleanup;
+its partial passes are retained, not accepted as complete final verification.
+
 ## Display coverage boundaries
 
 Win11-ARM64-VM currently enumerates only one head and 1920x1080 / 32bpp / 64Hz.

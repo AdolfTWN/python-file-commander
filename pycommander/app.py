@@ -154,6 +154,7 @@ VERSION_HISTORY = (
         "Improved: Folder-heavy searches coalesce progress updates while preserving exact counts and live completion status.",
         "Improved: Automatic diagnostics cover finalizer, Tcl callback and early settings failures with version, time and safe context.",
         "Improved: Extreme-scale laptop layouts keep bottom shortcuts and zoom reachable when compact actions need to wrap.",
+        "Improved: Disabled and pressed buttons have distinct states in both themes; search hints name the visible action.",
     )),
     ("v0.18.49", "2026/11/05", (
         "Fixed: Laptop layouts reserve bottom shortcuts, zoom and panel filters before allocating the file viewport at enlarged reading scales.",
