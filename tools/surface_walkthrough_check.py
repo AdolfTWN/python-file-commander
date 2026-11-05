@@ -40,7 +40,7 @@ def reachable(widget,window):
     x,y=widget.winfo_rootx()-window.winfo_rootx(),widget.winfo_rooty()-window.winfo_rooty()
     assert 0<=x and 0<=y and x+widget.winfo_width()<=window.winfo_width()+2 and y+widget.winfo_height()<=window.winfo_height()+2,(str(widget),x,y,window.geometry())
 
-with tempfile.TemporaryDirectory(prefix='pfc-surface-') as raw:
+with tempfile.TemporaryDirectory(prefix='pfc-surface-29-') as raw:
     root=Path(raw);folder=root/'Deep project';folder.mkdir()
     files=[folder/'notes.md',folder/'settings.json',folder/'report.csv']
     for path,text in zip(files,('# Notes\n\nalpha beta\n',json.dumps(dict(device=dict(name='alpha',description='long value '*40))), 'Name,Value\nalpha,1\n')):path.write_text(text,encoding='utf-8')
@@ -92,12 +92,18 @@ with tempfile.TemporaryDirectory(prefix='pfc-surface-') as raw:
                 for control in (prompt.error,prompt.entry,prompt.ok_button,prompt.cancel_button):reachable(control,prompt)
                 prompt.cancel()
             records_store=data.WorkflowRecords(app.config_data,'audit')
-            for n in range(30):records_store.put('Project '+str(n),dict(path=str(long_path)+str(n)))
+            for n in range(30):records_store.put('SurfaceProject'+str(n)+'Marker',dict(path=str(long_path)+str(n)))
             picker=work.WorkflowPicker(app,'Workspaces',records_store,lambda:None,lambda:None,lambda d:False,lambda d:d['path'])
             picker.geometry(f'{min(width,1100)}x750+0+0');pump(app)
             if index==1:capture(picker,'saved-workflows')
             if not baseline:
-                picker.query.set('Project 29');pump(app);assert len(picker.entries)==1
+                # Descriptions include the temporary path. Bare "29" can also
+                # occur there, legitimately matching every record; use a unique
+                # name token, then separately require description/path matching.
+                picker.query.set('SurfaceProject29Marker');pump(app);assert len(picker.entries)==1
+                assert picker.entries[0]['name']=='SurfaceProject29Marker'
+                picker.query.set(str(root));pump(app);assert len(picker.entries)==30
+                picker.query.set('SurfaceProject29Marker');pump(app);assert len(picker.entries)==1
                 for b in (picker.open_button,picker.remove_button,picker.save_button,picker.details_button):reachable(b,picker)
             picker.close()
             result=pfc.OperationResult(skipped=[long_path],failures=[pfc.OperationFailure(long_path,root/'Archive', 'Destination is read-only. '+('Full recoverable detail '*12))])
