@@ -111,6 +111,13 @@ portable form (57,600 operation scenarios per form), with byte hashes and an
 untouched sentinel inside disposable roots. This is file-operation correctness
 coverage, not a performance comparison or substitute for GUI endurance.
 
+Extending immediate-close coverage from Markdown to static visual rendering and
+nested folder-comparison tabs exposed additional orphaned raster/focus callbacks.
+The pending focus now belongs to the actual target widget, so closing a detail
+tab cancels it even while the comparison container remains open. Initial image
+drawing uses the same owned-idle lifetime primitive. The new before-failing
+regression is part of the existing early-close check in source/portable forms.
+
 ## Display coverage boundaries
 
 Win11-ARM64-VM currently enumerates only one head and 1920x1080 / 32bpp / 64Hz.

@@ -2307,7 +2307,7 @@ class FolderCompare(_FolderCompareLogic):
 
     def _show_summary(self):
         self.session_tabs.select(self.summary)
-        self.after_idle(self.left_tree.focus_set)
+        schedule_owned_idle(self.left_tree,'folder-focus',self.left_tree.focus_set)
 
     def open_nested_detail(self, left: Path, right: Path, relative: str, kind=None):
         key = (str(left), str(right), kind)
@@ -2315,7 +2315,8 @@ class FolderCompare(_FolderCompareLogic):
             if details["key"] == key:
                 self.session_tabs.select(page)
                 view = getattr(details["detail"], "view", details["detail"])
-                self.after_idle(lambda target=getattr(view, "left", view): target.focus_set())
+                target=getattr(view,"left",view)
+                schedule_owned_idle(target,'folder-focus',target.focus_set)
                 return "break"
 
         page = ttk.Frame(self.session_tabs)
@@ -2349,7 +2350,8 @@ class FolderCompare(_FolderCompareLogic):
         scale_handler = getattr(detail, "apply_scale", None)
         if callable(scale_handler):
             scale_handler(self.scale)
-        self.after_idle(lambda: getattr(view, "left", view).focus_set())
+        target=getattr(view,"left",view)
+        schedule_owned_idle(target,'folder-focus',target.focus_set)
         return "break"
 
     def close_nested_detail(self):

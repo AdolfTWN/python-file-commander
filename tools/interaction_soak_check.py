@@ -62,6 +62,16 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         'settings.toml':'[tool]\nname="NEEDLE"\nvalues=[1,2,3]\n',
         'settings.yaml':'name: NEEDLE\nitems:\n  - alpha\n  - beta\n',
         'script.reg':'Windows Registry Editor Version 5.00\n\n[HKEY_CURRENT_USER\\Software\\PFC-Fixture]\n"Name"="NEEDLE"\n',
+        'events.jsonl':'{"event":"NEEDLE start"}\n{"event":"NEEDLE done"}\n',
+        'table.tsv':'name\tvalue\nNEEDLE\t001\n',
+        'diagram.svg':'<svg xmlns="http://www.w3.org/2000/svg" width="320" height="80"><rect width="320" height="80" fill="white"/><text x="10" y="45">NEEDLE</text></svg>',
+        'flow.mmd':'flowchart LR\n A[NEEDLE] --> B[Result]',
+        'report.html':'<h1>NEEDLE</h1><p>Saved static report.</p>',
+        'change.patch':'--- a/sample\n+++ b/sample\n@@ -1 +1 @@\n-old\n+NEEDLE\n',
+        'notebook.ipynb':json.dumps({'nbformat':4,'nbformat_minor':5,'metadata':{},'cells':[
+            {'cell_type':'markdown','source':['# NEEDLE'],'metadata':{}},
+            {'cell_type':'code','source':['print("never execute")'],'metadata':{},'execution_count':1,
+             'outputs':[{'output_type':'stream','name':'stdout','text':['NEEDLE stored output']}]}]}),
     }
     for name,data in documents.items():(folder/name).write_text(data,encoding='utf-8')
     for n in range(120):(folder/f'{n:03} Searchable file.txt').write_text('NEEDLE')
@@ -108,7 +118,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
     print(json.dumps({'event':'interaction.soak.start','version':pfc.__version__,
                       'system_time':datetime.now().astimezone().isoformat(),'candidate_sha256':candidate.hexdigest(),
                       'candidate_kind':'source-bundle' if source_bundle else 'portable',
-                      'python':sys.version.split()[0],'duration_target_s':DURATION,'memory_instrumented':MEMORY}),flush=True)
+                      'python':sys.version.split()[0],'duration_target_s':DURATION,'memory_instrumented':MEMORY,
+                      'fixture_formats':len(documents)}),flush=True)
     try:
         app.auto_font_size_var.set(False)
         for pane in app.visible_panes():pane.navigate(folder)
@@ -126,7 +137,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
             dialog.show_page(pfc.SETTINGS_CATEGORIES[cycle%len(pfc.SETTINGS_CATEGORIES)][0]);pump(app,.02)
             stage[0]='settings-close';dialog.cancel();pump(app,.02)
             paths=[folder/name for name in documents];selected=paths[cycle%len(paths)]
-            stage[0]='preview-open';app.preview_paths(paths,selected);pump(app,.03 if cycle%2 else .2)
+            # A period coprime to the format count exercises every format with
+            # both rapid-close and longer-settled loads, not only odd/even ones.
+            stage[0]='preview-open';app.preview_paths(paths,selected);pump(app,.03 if cycle%3 else .25)
             preview=app.preview_window
             if preview and preview.winfo_exists():
                 page=preview.active_page
@@ -150,7 +163,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
                 resources=sample(app,cycle);sample_count+=1
                 # This fixture has bounded input/cache diversity. Use a warmed
                 # baseline and broad regression guardrails, not production caps.
-                if cycle>=32 and resource_baseline is None:resource_baseline=resources
+                if cycle>=64 and resource_baseline is None:resource_baseline=resources
                 if resource_baseline is not None:
                     for key,allowance in resource_allowance.items():
                         if key in resources:

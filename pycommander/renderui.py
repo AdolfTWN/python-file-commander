@@ -11,6 +11,7 @@ from .tooltip import ToolTip
 from .rendercore import STRUCTURE_REVEAL_LIMIT
 from .wraptree import WrappedTreeview
 from .dialogs import release_owned_images
+from .flowlayout import schedule_owned_idle
 
 
 def preview_cell_text(value):
@@ -300,7 +301,7 @@ class FormatRenderView(ttk.Frame):
         self.canvas.bind('<MouseWheel>',lambda e:self.canvas.yview_scroll(-int(e.delta/120) if e.delta else 0,'units'))
         self.canvas.bind('<Button-4>',lambda e:self.canvas.yview_scroll(-3,'units'))
         self.canvas.bind('<Button-5>',lambda e:self.canvas.yview_scroll(3,'units'))
-        self.after_idle(self._draw_image)
+        schedule_owned_idle(self,'draw-image',self._draw_image)
     def _draw_image(self):
         if not self.canvas or not self.canvas.winfo_exists():return
         value=self.choice.get();width=self.original.width()
