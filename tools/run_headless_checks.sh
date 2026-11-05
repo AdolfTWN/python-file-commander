@@ -23,6 +23,8 @@ xvfb-run -a python3 tools/flow_lifetime_check.py
 xvfb-run -a python3 tools/flow_lifetime_check.py pfc
 xvfb-run -a python3 tools/settings_reentry_check.py
 xvfb-run -a python3 tools/settings_reentry_check.py pfc
+xvfb-run -a python3 tools/settings_diagnostics_check.py
+xvfb-run -a python3 tools/settings_diagnostics_check.py pfc
 xvfb-run -a python3 tools/search_worker_lifetime_check.py
 xvfb-run -a python3 tools/search_worker_lifetime_check.py pfc
 xvfb-run -a python3 tools/space_worker_check.py

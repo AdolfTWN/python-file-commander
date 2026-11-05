@@ -147,6 +147,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.19.0", "2026/11/06", (
+        "Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.",
+        "Fixed: Failed replacement moves preserve recovery copies; stale space scans no longer replace newer results.",
+        "Improved: Settings reuses style fonts; column sizing and selective search avoid repeated metadata work without changing results.",
+        "Improved: Automatic diagnostics cover finalizer, Tcl callback and early settings failures with version, time and safe context.",
+        "Improved: Extreme-scale laptop layouts keep bottom shortcuts and zoom reachable when compact actions need to wrap.",
+    )),
     ("v0.18.49", "2026/11/05", (
         "Fixed: Laptop layouts reserve bottom shortcuts, zoom and panel filters before allocating the file viewport at enlarged reading scales.",
         "Fixed: Startup and display changes fit the main window to the available monitor work area; narrow panels retain useful filename space with horizontal scrolling for details.",
@@ -2574,12 +2581,8 @@ class Commander(tk.Tk):
         self.iconphoto(True, *self._app_icon_images)
         self._ready = False
         self._config_warning_shown = False
-        self.ini_path = self._find_ini_path()
-        self.config_data = configparser.ConfigParser()
-        self.config_data.read(self.ini_path, encoding="utf-8")
-        ensure_config_defaults(self.config_data)
-        # Legacy debug settings no longer control automatic diagnostics.
-        self.config_data.remove_section('debug')
+        # Observe early configuration failures too. A malformed INI must not
+        # terminate startup before the automatic exception hook exists.
         self.debug_log = DiagnosticLog(__version__, automatic=True,
                                       runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
@@ -2591,6 +2594,12 @@ class Commander(tk.Tk):
         diagnostic_log = self.debug_log
         self.bind('<Destroy>', lambda event: diagnostic_log.close()
                   if event.widget is self else None, add='+')
+        self.ini_path = self._find_ini_path()
+        self.config_data = configparser.ConfigParser()
+        self.config_data.read(self.ini_path, encoding="utf-8")
+        ensure_config_defaults(self.config_data)
+        # Legacy debug settings no longer control automatic diagnostics.
+        self.config_data.remove_section('debug')
         self.home_prefixes = discover_home_prefixes()
         self.cloud_status = CloudStatusCache([p for p, kind in self.home_prefixes if kind == 'cloud']
                                             if os.name == 'nt' else [])
@@ -3163,6 +3172,7 @@ class Commander(tk.Tk):
         if self._config_warning_shown or not self.winfo_exists():
             return
         self._config_warning_shown = True
+        self.debug_log.exception('settings.save.failed',error,severity='WARNING')
         warning = ttk.Label(self, text=tr("Settings could not be saved: {error}", error=error),
                             anchor="w", padding=(8, 4), style="Warning.TLabel")
         warning.pack(fill="x", before=self.split)

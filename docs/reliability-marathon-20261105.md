@@ -118,6 +118,14 @@ tab cancels it even while the comparison container remains open. Initial image
 drawing uses the same owned-idle lifetime primitive. The new before-failing
 regression is part of the existing early-close check in source/portable forms.
 
+Startup diagnostics previously began after INI parsing, so malformed preference
+files could abort before the automatic hook was installed. Diagnostics now start
+before reading preferences; the original file is neither reset nor overwritten.
+A failed atomic settings save now records one Warning per session instead of
+only showing a temporary banner. Regression checks use a real failing child
+startup and injected save denial, verify version/time and redaction, and preserve
+the configuration bytes measured immediately before the failure.
+
 ## Display coverage boundaries
 
 Win11-ARM64-VM currently enumerates only one head and 1920x1080 / 32bpp / 64Hz.

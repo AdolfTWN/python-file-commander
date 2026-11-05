@@ -1,6 +1,12 @@
 # Python File Commander
 
-Current code: **v0.18.49**.
+Current code: **v0.19.0** — stabilization milestone.
+The current reliability campaign covers Tk resource/deferred-callback ownership,
+data-safe interrupted moves, cancelled background work and startup/settings
+diagnostics. Selective search and column sizing avoid repeated metadata work.
+Verification results, measured benefits and unavailable hardware scenarios are
+tracked in the [reliability campaign report](docs/reliability-marathon-20261105.md).
+
 Laptop layouts reserve bottom shortcuts, zoom and panel filters before the file
 viewport, including enlarged reading scales. The main window now fits the current
 work area on startup/display changes; narrow panels retain useful filename space,
