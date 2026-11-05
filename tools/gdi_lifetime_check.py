@@ -37,6 +37,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-gdi-lifetime-') as raw:
     compare_roots=[root/'left',root/'right']
     for directory in compare_roots:
         directory.mkdir();(directory/'note.txt').write_text(directory.name+'\n')
+    review_paths=[root/'wide-left.md',root/'wide-right.md']
+    content=''.join(f'{n:05}: '+('wide review '*100)+'\n' for n in range(2048))
+    for side,path in enumerate(review_paths):path.write_text(content.replace('00064:','CHANGED:' if side else '00064:',1))
     pfc.Commander._find_ini_path=staticmethod(lambda:root/'pfc.ini')
     pfc.Commander._sync_auto_start=lambda *a,**k:True
     pfc.Commander._start_windows_tray=lambda *a:None
@@ -53,8 +56,9 @@ with tempfile.TemporaryDirectory(prefix='pfc-gdi-lifetime-') as raw:
             sample(app,cycle,'preview-closed')
             app.search();pump(app,.04);app.search_window.close();pump(app,.03)
             sample(app,cycle,'search-closed')
-            pair=compare_roots if cycle%2 else [directory/'note.txt' for directory in compare_roots]
-            app.compare_paths(*pair);pump(app,.1);app.compare_window.close();pump(app,.03)
+            for pair in ([directory/'note.txt' for directory in compare_roots],compare_roots,review_paths):
+                app.compare_paths(*pair);pump(app,.2 if pair is review_paths else .1)
+                app.compare_window.close();pump(app,.03)
             closed.append(sample(app,cycle,'compare-closed'))
         for phase in range(3):
             counts=[row['gdi'] for row in closed if row['cycle']>=6 and row['cycle']%3==phase]

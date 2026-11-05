@@ -160,6 +160,10 @@ as Settings/Preview/Search. A real injected Tcl background error verifies that
 the existing automatic diagnostics and endurance observer reject it; the
 suspected observation gap was not reproduced, so no logging-hook change was
 needed. The negative control uses its own temporary diagnostic directory.
+The final endurance definition also periodically loads a multi-megabyte,
+wide-line Markdown Review pair and records whether it completed before closure;
+the native GDI fixture repeats Text, Folder and large Review in every cycle.
+This is additional test coverage, not another application-code change.
 
 ## Display coverage boundaries
 

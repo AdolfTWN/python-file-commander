@@ -79,6 +79,11 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
     for side,directory in enumerate(compare_roots):
         directory.mkdir()
         (directory/'note.txt').write_text(''.join(f'line {n}: {"changed" if side and n==64 else "same"}\n' for n in range(256)))
+    review_paths=[root/'wide-left.md',root/'wide-right.md']
+    review_source=''.join(f'{n:05}: '+('NEEDLE wide review '*60)+'\n' for n in range(2048))
+    for side,path in enumerate(review_paths):
+        path.write_text(review_source.replace('00064:','CHANGED:' if side else '00064:',1))
+    review_hashes=[hashlib.sha256(path.read_bytes()).digest() for path in review_paths]
     pfc.Commander._find_ini_path=staticmethod(lambda:root/'pfc.ini')
     pfc.Commander._sync_auto_start=lambda *a,**k:True
     pfc.Commander._start_windows_tray=lambda *a:None
@@ -112,6 +117,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         if gap>5 and not MEMORY:failures.append(('event-loop-stall',stage[0],gap))
         beat_job[0]=app.after(20,beat)
     started=time.monotonic();sample_count=0;resource_baseline=None;compare_cycles=0;nested_cycles=0
+    review_cycles=0;review_completed=0
     resource_allowance={'commands':400,'images':512,'fonts':100,'timers':100,'threads':16,
                         'gdi_objects':512,'user_objects':256,'private_bytes':256*1024**2}
     if DURATION>180:faulthandler.dump_traceback_later(90,repeat=True)
@@ -159,10 +165,20 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
             if cycle%5==0:
                 stage[0]='compare-open'
                 is_folder=cycle%10!=0
-                pair=compare_roots if is_folder else [directory/'note.txt' for directory in compare_roots]
-                app.compare_paths(*pair);pump(app,.05 if cycle%3 else .2)
+                is_review=cycle%100==0
+                pair=(review_paths if is_review else compare_roots if is_folder else
+                      [directory/'note.txt' for directory in compare_roots])
+                app.compare_paths(*pair);pump(app,1.0 if is_review else .05 if cycle%3 else .2)
                 window=app.compare_window;assert window is not None and window.winfo_exists()
                 frame=window.current_comparison()
+                if is_review:
+                    assert type(frame).__name__=='ReviewCompare','Wide fixture did not use the large-file Review engine'
+                    review_cycles+=1;review_completed+=not getattr(frame,'busy',False)
+                    if not frame.busy:
+                        frame.next();frame.mark_reviewed();assert frame.checked
+                        frame.mark_reviewed();assert not frame.checked
+                        frame.search_var.set('NEEDLE');window._shortcut('find_next')
+                        frame.wrap.set(cycle%200==0);frame.render();pump(app,.02)
                 if is_folder and not frame._scanning:
                     frame.open_nested_detail(*(directory/'note.txt' for directory in compare_roots),'note.txt')
                     pump(app,.02);frame.close_nested_detail();nested_cycles+=1
@@ -192,13 +208,15 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         pump(app,1);gc.collect();pump(app,.2)
         sample(app,cycle);sample_count+=1
         assert not failures,failures
+        assert [hashlib.sha256(path.read_bytes()).digest() for path in review_paths]==review_hashes,'Read-only review changed fixture bytes'
         assert cycle>=min(8,DURATION//2),('Too few completed scenarios',cycle)
         if not MEMORY:assert maximum_gap[0]<5,('Event loop stalled',maximum_gap[0])
         print(json.dumps({'event':'interaction.soak.stopped' if stopped else 'interaction.soak.passed','cycles':cycle,
                           'seconds':round(time.monotonic()-started,3),
                           'max_heartbeat_gap_s':maximum_gap[0],'samples':sample_count,
                           'timing_acceptance':not MEMORY,'target_complete':not stopped,
-                          'compare_cycles':compare_cycles,'nested_compare_cycles':nested_cycles}),flush=True)
+                          'compare_cycles':compare_cycles,'nested_compare_cycles':nested_cycles,
+                          'wide_review_cycles':review_cycles,'wide_review_completed':review_completed}),flush=True)
     finally:
         if beat_job[0] is not None:app.after_cancel(beat_job[0])
         app.close_app();pfc.messagebox.showerror=original_error
