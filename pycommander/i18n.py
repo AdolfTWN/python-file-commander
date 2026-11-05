@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Laptop layouts reserve bottom shortcuts, zoom and panel filters before allocating the file viewport at enlarged reading scales.': ('修正：筆電使用放大字體時，先保留底部快捷列、縮放與面板篩選，再分配檔案清單空間。','修正：笔记本使用放大字体时，先保留底部快捷栏、缩放与面板筛选，再分配文件列表空间。','수정: 노트북의 확대 글꼴에서도 파일 목록보다 하단 단축키, 확대 및 패널 필터 공간을 먼저 확보합니다.'),
+    'Fixed: Startup and display changes fit the main window to the available monitor work area; narrow panels retain useful filename space with horizontal scrolling for details.': ('修正：啟動及螢幕變更時，主視窗配合可用工作區；窄面板保留可用的檔名寬度，細節欄可水平捲動。','修正：启动及屏幕变更时，主窗口适配可用工作区；窄面板保留可用的文件名宽度，详情列可水平滚动。','수정: 시작 및 화면 변경 시 기본 창을 작업 영역에 맞춥니다. 좁은 패널에서도 파일명 공간을 확보하고 세부 정보는 가로로 스크롤할 수 있습니다.'),
     'Fixed: F4 Search recovers saved or disconnected-monitor positions and fits the current work area on activation and display changes.': ('修正：F4 搜尋視窗可從儲存的螢幕外座標或已拔除的螢幕位置回復，開啟及螢幕配置變更時會配合目前工作區。','修正：F4 搜索窗口可从保存的屏幕外坐标或已断开的屏幕位置恢复，打开及显示配置变更时适配当前工作区。','수정: F4 검색 창의 화면 밖 저장 위치나 연결 해제된 모니터 위치를 복구하고 활성화 및 디스플레이 변경 시 현재 작업 영역에 맞춥니다.'),
     'Improved: Search window recovery retains results and selection without disturbing normal dragging, minimization or valid maximization.': ('改善：搜尋視窗回復位置時保留結果與選取，不干擾正常拖曳、最小化或有效的最大化。','改善：搜索窗口恢复位置时保留结果与选择，不干扰正常拖动、最小化或有效的最大化。','개선: 검색 창 복구 시 결과와 선택을 유지하며 정상 드래그, 최소화 및 유효한 최대화를 방해하지 않습니다.'),
     'Fixed: Git overlay queries retry once in the background after a timeout, restoring known states without changing folders or refreshing manually.': ('修正：Git 狀態查詢逾時後在背景重試一次，不必切換資料夾或手動重新整理便可恢復已確認的圖示。','修正：Git 状态查询超时后在后台重试一次，无须切换文件夹或手动刷新即可恢复已确认的图标。','수정: Git 상태 조회 시간 초과 후 백그라운드에서 한 번 재시도하여 폴더 이동이나 수동 새로 고침 없이 확인된 표시를 복구합니다.'),

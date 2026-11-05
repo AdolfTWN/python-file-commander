@@ -319,6 +319,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
             for test in result.get('tests', []):
                 name = test['check']
                 (evidence_dir/(name+'.log')).write_bytes(guest.read(directory+'\\'+name+'.log'))
+            if result['status']=='passed' and 'laptop_layout_check.py' in checks:
+                from PIL import Image
+                import io
+                for scale in ('150','200'):
+                    data=guest.image_data(directory+'\\evidence-laptop-'+scale+'.bmp')
+                    (evidence_dir/('laptop-'+scale+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('laptop-'+scale+'.png'))
             if result['status']=='passed' and 'cloud_overlay_check.py' in checks:
                 from PIL import Image
                 import io

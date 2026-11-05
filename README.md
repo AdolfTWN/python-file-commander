@@ -1,6 +1,12 @@
 # Python File Commander
 
-Current code: **v0.18.48**.
+Current code: **v0.18.49**.
+Laptop layouts reserve bottom shortcuts, zoom and panel filters before the file
+viewport, including enlarged reading scales. The main window now fits the current
+work area on startup/display changes; narrow panels retain useful filename space,
+with horizontal scrolling for detail fields that cannot fit. See
+[scope and verification](docs/laptop-layout-20261105.md).
+
 F4 Search now recovers offscreen saved positions, fits oversized windows to the
 available monitor work area, and monitors display changes without resetting
 active results or snapping normal user moves back. See

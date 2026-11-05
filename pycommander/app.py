@@ -147,6 +147,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.18.49", "2026/11/05", (
+        "Fixed: Laptop layouts reserve bottom shortcuts, zoom and panel filters before allocating the file viewport at enlarged reading scales.",
+        "Fixed: Startup and display changes fit the main window to the available monitor work area; narrow panels retain useful filename space with horizontal scrolling for details.",
+    )),
     ("v0.18.48", "2026/11/02", (
         "Fixed: F4 Search recovers saved or disconnected-monitor positions and fits the current work area on activation and display changes.",
         "Improved: Search window recovery retains results and selection without disturbing normal dragging, minimization or valid maximization.",
@@ -1203,8 +1207,10 @@ class FilePane(ttk.Frame):
         self.quick_filter_entry.bind("<Return>", lambda _event: self.focus_file_list())
         self.quick_filter_var.trace_add("write", self._quick_filter_changed)
         self.status = ttk.Label(self, anchor="w")
-        self.status.pack(fill="x", pady=(3, 0))
-        self.quick_filter_bar.pack(fill="x", pady=(2, 0))
+        # Reserve controls before the expanding file list. Pack allocation is
+        # ordered: packing them last can silently unmap them on small displays.
+        self.quick_filter_bar.pack(side="bottom", fill="x", pady=(2, 0), before=frame)
+        self.status.pack(side="bottom", fill="x", pady=(3, 0), before=frame)
         install_button_tooltips(self)
         self._vcs_poll_job=self.after(150, self._poll_vcs_results)
         self.navigate(self.path)
@@ -2147,7 +2153,10 @@ class FilePane(ttk.Frame):
             self.tree.column(column, width=width, minwidth=minimum, stretch=False)
             fixed_total += width
         available = max(1, self.tree.winfo_width() - 4)
-        self.tree.column("#0", width=max(120, available - fixed_total), minwidth=120,
+        # Detail fields keep their readable sizes, but must not crush Name to
+        # one icon and a character. Overflow belongs in the horizontal scrollbar.
+        name_minimum = max(120, min(round(available * .45), font.measure('M' * 18)))
+        self.tree.column("#0", width=max(name_minimum, available - fixed_total), minwidth=name_minimum,
                          stretch=True)
         self._fit_visible_names()
         owner = self.winfo_toplevel()
@@ -2755,7 +2764,7 @@ class Commander(tk.Tk):
         self.apply_font_size(save=False)
         self.apply_tab_style(save=False)
         actions = ttk.Frame(self); self.actions_frame = actions
-        actions.pack(fill="x", padx=5, pady=(0, 5))
+        actions.pack(side="bottom", fill="x", padx=5, pady=(0, 5), before=split)
         self._build_zoom_controls(actions)
         action_commands = ttk.Frame(actions)
         action_commands.pack(side="left", fill="x", expand=True)
@@ -2869,7 +2878,8 @@ class Commander(tk.Tk):
         self._schedule_clipboard_summary(250)
         self._schedule_auto_font_size(delay=300)
 
-        self._window_visibility = WindowVisibilityGuard(self)
+        self._window_visibility = WindowVisibilityGuard(self, fit_to_monitor=True)
+        self.after_idle(self._window_visibility.recover)
 
     def _settings_are_open(self):
         dialog=getattr(self,'settings_window',None)

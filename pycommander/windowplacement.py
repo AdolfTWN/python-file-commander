@@ -38,10 +38,11 @@ def position_popup_in_work_area(widget, owner, area):
 
 
 def visible_window_target(rect, work_areas, frame_margin=8, *, fit=False):
-    """Return a centered (x, y, width, height), or None if the title is reachable.
+    """Return a safe (x, y, width, height), or None when already reachable.
 
     Work areas are individual monitors, primary first, not the virtual desktop's
     bounding box (which can contain gaps). Coordinates may be negative.
+    With fit=True, keep the complete frame in the work area, not just its title.
     """
     left, top, right, bottom = rect
     width, height = right-left, bottom-top

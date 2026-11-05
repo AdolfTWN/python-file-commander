@@ -19,7 +19,7 @@ class WindowPlacementTests(unittest.TestCase):
         self.assertEqual(visible_window_target((2100, 100, 3300, 820), [self.primary]),
                          (360, 160, 1200, 720))
 
-    def test_popup_fits_full_frame_on_activation_but_main_policy_unchanged(self):
+    def test_full_frame_fit_is_opt_in_for_title_reachable_windows(self):
         area=(0,0,1280,680)
         rect=(1100,100,2600,1000)
         self.assertIsNone(visible_window_target(rect,[area]))

@@ -125,6 +125,8 @@ xvfb-run -a python3 tools/archive_exit_check.py
 xvfb-run -a python3 tools/archive_exit_check.py pfc
 xvfb-run -a python3 tools/zoom_check.py
 xvfb-run -a python3 tools/zoom_check.py pfc
+xvfb-run -a python3 tools/laptop_layout_check.py
+xvfb-run -a python3 tools/laptop_layout_check.py pfc
 xvfb-run -a python3 tools/pathbar_check.py
 xvfb-run -a python3 tools/pathbar_check.py pfc
 xvfb-run -a python3 tools/pathbar_resume_check.py
