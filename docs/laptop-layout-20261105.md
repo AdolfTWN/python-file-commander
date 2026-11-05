@@ -44,8 +44,7 @@ v0.18.48 F4 Search evidence remains valid for Search, not main-window acceptance
 
 ## Validation
 
-Final source/portable and dual-runtime Windows results are recorded below after
-verification. The new check tests 125%, 150%, 175% and 200%, visible containment of
+The new check tests 125%, 150%, 175% and 200%, visible containment of
 every bottom action and zoom control, populated file lists, Quick Filters,
 usable filename space, stable recovery and a separate-process application restart.
 On Windows only work-area reporting is simulated (1280x720); actual native
@@ -62,6 +61,43 @@ while the Settings draft was open. A focused INI comparison showed only window
 geometry changed, not preferences. Immediate initial-idle recovery removes the
 delay; the original unmodified cancel/no-write assertion subsequently passed.
 Release-note translations were also caught by and added for the unit suite.
+
+Visual review caught a native fixture problem after initial-idle recovery was
+added: a pending startup frame could overwrite the test's immediate size request,
+producing a larger capture. The check now waits for startup layout and asserts
+the actual client is exactly 1260x650 before both 150% and 200% captures. It also
+asserts the two panel filters align. Earlier large captures are not used as
+laptop-size acceptance; the strengthened check is rerun on the same PFC bytes.
+
+### Recorded acceptance
+
+- Portable SHA-256:
+  `64271dacce2fb60c70a65b9987e799fd53991f0914fca5d2ee95e5220014016a`.
+- Clean-worktree full regression: all 125 groups passed in 589.398 seconds,
+  including 500 unit tests (nine platform-conditional skips). Settings profile:
+  all 25 groups passed in 402.690 seconds. These suites overlapped on a shared
+  host with independent Xvfb displays; durations are not additive or controlled
+  performance comparisons.
+- The strengthened exact-client-size source/portable checks then passed on a
+  1280x720 Xvfb display in 15.297 / 15.603 seconds. Application bytes were unchanged
+  from the full regression; only the laptop fixture's size/alignment assertions
+  were strengthened afterward.
+- Windows ARM64 Python 3.13.15 / Tk 8.6.15: final exact-size laptop request
+  `6df4b24e1cf0430e909babced6fbad21` passed in 25.560 seconds (whole stage 133.994
+  seconds including preparation/staging). Native 1260x650 captures at 150% and
+  200% were visually reviewed: actions/zoom and both filters remained visible,
+  aligned, and files remained browsable. At 200%, some details require the
+  horizontal scrollbar; fonts are not silently reduced.
+- Windows-emulated x64 Python 3.13.15 / Tk 8.6.15: final exact-size request
+  `2d70730369424c2581fa9ea3a25987bd` passed in 29.006 seconds (whole stage 138.934
+  seconds). Both 1260x650 captures were visually reviewed with the same outcome.
+  Both runtimes used the hash above, reported empty cleanup errors and released
+  the lease; the pool was empty afterward. This is ARM Windows emulation, not
+  native-x64 certification.
+- The same final PFC bytes also passed control-scaling, startup/registry and F4
+  recovery on ARM64 request `b3602b95dc284f35abb980b4e2f1aa29` and emulated-x64
+  request `0bdeee033bb84a40b414ebda2c1299bb`. Their earlier larger laptop captures
+  are superseded by the exact-size checks, not accepted as small-screen proof.
 
 Physical laptop reboot/DPI transition and native-x64 Windows acceptance remain
 outside this VM evidence. Task timing has no comparable controlled baseline;

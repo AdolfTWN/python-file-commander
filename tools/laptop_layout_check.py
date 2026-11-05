@@ -36,6 +36,8 @@ def usable(app):
         assert contained(pane.quick_filter_entry, pane), 'Quick Filter clipped'
         assert pane.tree.winfo_height() >= 80, 'No usable file viewport'
         assert pane.tree.column('#0', 'width') >= 190, 'Filename crushed by detail columns'
+    filters = [pane.quick_filter_entry.winfo_rooty() for pane in app.visible_panes()]
+    assert max(filters)-min(filters) <= 2, 'Panel footer rows are misaligned'
 
 
 def capture(app, name):
@@ -88,16 +90,21 @@ with tempfile.TemporaryDirectory(prefix='pfc-laptop-') as raw:
     observed_old_failure = False
     app.report_callback_exception = lambda *exc: errors.append(str(exc))
     try:
+        # Let the saved-geometry startup recovery finish before requesting the
+        # laptop fixture. Native startup frames can lag a pending Tk geometry.
+        settle(app, .5)
         for pane in app.visible_panes(): pane.navigate(directory)
         # Exact client size: unlike screenshots of empty/default-size windows,
         # this must retain the recovery control at the owner's laptop scale.
         app.geometry('1260x650+0+0')
         app.font_size_var.set('xl'); app.select_manual_font_size()
         settle(app)
+        assert (app.winfo_width(), app.winfo_height()) == (1260, 650), app.geometry()
         capture(app, '200')
         usable(app)
         app.zoom_minus.invoke(); app.zoom_minus.invoke(); settle(app)
         assert app.zoom_percent_var.get() == '150%'
+        assert (app.winfo_width(), app.winfo_height()) == (1260, 650), app.geometry()
         usable(app); capture(app, '150')
         for level in ('medium', '175', 'xl', 'large'):
             app.font_size_var.set(level); app.select_manual_font_size(); settle(app)
