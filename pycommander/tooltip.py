@@ -108,7 +108,14 @@ class ToolTip:
         # can be intercepted. Escape and owner input also dismiss immediately.
         self.popup.bind("<Enter>", self.hide, add="+")
         self.popup.bind("<ButtonPress>", self.hide, add="+")
-        self.popup.deiconify()
+        popup=self.popup
+        popup.deiconify()
+        # Native activation can synchronously hide/reopen help or destroy its
+        # target. Do not overwrite the replacement popup's expiry token with
+        # another timer (which would survive the target's later destruction).
+        if self.popup is not popup:return
+        if not self._eligible():
+            self.hide();return
         self.expire_job = self.widget.after(self.lifetime_ms, self.hide)
 
     def hide(self, _event=None):

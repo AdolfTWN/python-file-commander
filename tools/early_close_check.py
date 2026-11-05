@@ -54,6 +54,22 @@ with tempfile.TemporaryDirectory(prefix='pfc-early-close-') as raw:
         folder_view.open_nested_detail(left/'note.txt',right/'note.txt','note.txt')
         folder_view.close_nested_detail();pump(app)
         folder_view._show_summary();folder_view.destroy();pump(app)
+        # Deiconifying a native tooltip can reenter owner focus/hover handlers.
+        # A replacement popup must retain exactly its own expiry timer.
+        button=pfc.ttk.Button(app,text='Tooltip lifecycle fixture');button.pack();pump(app)
+        tip=pfc.ToolTip(button,'Fixture');tip._eligible=lambda:True;tip.lifetime_ms=80
+        original=pfc.tk.Toplevel.deiconify;entered=[False]
+        def reenter(popup):
+            if entered[0]:return original(popup)
+            entered[0]=True;tip.hide();tip.show()
+        with patch.object(pfc.tk.Toplevel,'deiconify',reenter):tip.show()
+        tip.hide();button.destroy();pump(app)
+        # Closing the target during native activation must not arm a late timer.
+        button=pfc.ttk.Button(app,text='Lost tooltip target');button.pack();pump(app)
+        tip=pfc.ToolTip(button,'Fixture');tip._eligible=lambda:True
+        with patch.object(pfc.tk.Toplevel,'deiconify',lambda popup:button.destroy()):tip.show()
+        assert tip.expire_job is None,'Expiry armed after target destruction'
+        button.destroy();pump(app)
         # Constructor failures leave a real partial toplevel under the root.
         # Cleanup must not require controls whose construction never finished.
         with patch.object(pfc.ttk,'Progressbar',side_effect=pfc.tk.TclError('fixture-constructor-failure')):

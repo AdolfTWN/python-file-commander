@@ -21,6 +21,7 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Reentrant tooltip display no longer leaves expiry callbacks for destroyed controls.': ('修正：提示視窗顯示重入時，不再替已銷毀的控制項留下到期回呼。','修正：提示窗口显示重入时，不再为已销毁的控件留下到期回调。','수정: 툴팁 표시가 재진입해도 삭제된 컨트롤의 만료 콜백이 남지 않습니다.'),
     'Improved: Folder-heavy searches coalesce progress updates while preserving exact counts and live completion status.': ('改善：大量資料夾搜尋合併進度更新，保留精確計數與即時完成狀態。','改善：大量文件夹搜索合并进度更新，保留精确计数与实时完成状态。','개선: 폴더가 많은 검색의 진행 업데이트를 통합하면서 정확한 개수와 실시간 완료 상태를 유지합니다.'),
     'Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.': ('修正：關閉對話框、預覽與比較分頁時，釋放專屬 Tk 資源並取消延後的介面工作。','修正：关闭对话框、预览与比较标签页时，释放专属 Tk 资源并取消延后的界面任务。','수정: 대화 상자, 미리보기 및 비교 탭을 닫을 때 소유한 Tk 리소스를 해제하고 지연된 UI 작업을 취소합니다.'),
     'Fixed: Failed replacement moves preserve recovery copies; stale space scans no longer replace newer results.': ('修正：取代移動失敗時保留復原副本；過期的空間掃描不再覆蓋新結果。','修正：替换移动失败时保留恢复副本；过期的空间扫描不再覆盖新结果。','수정: 바꾸기 이동 실패 시 복구 사본을 보존하며 이전 공간 검사 결과가 최신 결과를 덮어쓰지 않습니다.'),
@@ -4945,7 +4946,14 @@ class ToolTip:
         # can be intercepted. Escape and owner input also dismiss immediately.
         self.popup.bind("<Enter>", self.hide, add="+")
         self.popup.bind("<ButtonPress>", self.hide, add="+")
-        self.popup.deiconify()
+        popup=self.popup
+        popup.deiconify()
+        # Native activation can synchronously hide/reopen help or destroy its
+        # target. Do not overwrite the replacement popup's expiry token with
+        # another timer (which would survive the target's later destruction).
+        if self.popup is not popup:return
+        if not self._eligible():
+            self.hide();return
         self.expire_job = self.widget.after(self.lifetime_ms, self.hide)
 
     def hide(self, _event=None):
@@ -42457,7 +42465,7 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/11/05"
+BUILD_DATE = "2026/11/06"
 VERSION_HISTORY = (
     ("v0.19.0", "2026/11/06", (
         "Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.",
@@ -42467,6 +42475,7 @@ VERSION_HISTORY = (
         "Improved: Automatic diagnostics cover finalizer, Tcl callback and early settings failures with version, time and safe context.",
         "Improved: Extreme-scale laptop layouts keep bottom shortcuts and zoom reachable when compact actions need to wrap.",
         "Improved: Disabled and pressed buttons have distinct states in both themes; search hints name the visible action.",
+        "Fixed: Reentrant tooltip display no longer leaves expiry callbacks for destroyed controls.",
     )),
     ("v0.18.49", "2026/11/05", (
         "Fixed: Laptop layouts reserve bottom shortcuts, zoom and panel filters before allocating the file viewport at enlarged reading scales.",
