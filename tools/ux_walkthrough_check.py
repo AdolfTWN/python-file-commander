@@ -64,7 +64,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-ux-') as raw:
     pfc.Commander._find_ini_path=staticmethod(lambda:root/'pfc.ini')
     pfc.Commander._sync_auto_start=lambda *a,**kw:True
     pfc.Commander._start_windows_tray=lambda *a:None
-    app=pfc.Commander();errors=[];gate=threading.Event()
+    app=pfc.Commander();errors=[];gate=threading.Event();original=search.search_files
     app.report_callback_exception=lambda *exc:errors.append(str(exc))
     try:
         app.auto_font_size_var.set(False);app.active.navigate(root)
@@ -75,18 +75,18 @@ with tempfile.TemporaryDirectory(prefix='pfc-ux-') as raw:
         for key,_ in pfc.SETTINGS_CATEGORIES:
             settings.show_page(key);pump(app);assert settings.footer.winfo_ismapped()
         settings.cancel()
-        app.search();pump(app);s=app.search_window;s.path_var.set(str(root));original=s._search
-        def slow(criteria):
-            s.messages.put(('progress',1,100))
+        app.search();pump(app);s=app.search_window;s.path_var.set(str(root));original=search.search_files
+        def slow(criteria,cancel,messages,log=None):
+            messages.put(('progress',1,100))
             while not gate.wait(.02):
-                if s.cancel_event.is_set():
-                    s.messages.put(('done',0,True,False));return
-            s.messages.put(('done',0,False,False))
+                if cancel.is_set():
+                    messages.put(('done',0,True,False));return
+            messages.put(('done',0,False,False))
         for scale,key,width,language,theme in (('100','small',1180,'en','light'),('200','xl',1180,'zh_TW','dark'),('narrow','175',760,'zh_CN','light')):
             app.ui_language_var.set(language);app.apply_ui_language();pump(app)
             app.color_scheme_var.set(theme);app.apply_color_scheme(save=False);pump(app)
             app.font_size_var.set(key);app.apply_font_size(save=False)
-            s.geometry(f'{width}x740+0+0');pump(app);gate.clear();s._search=slow;s.start();pump(app)
+            s.geometry(f'{width}x740+0+0');pump(app);gate.clear();search.search_files=slow;s.start();pump(app)
             face=pfc.tkfont.nametofont('TkDefaultFont')
             for button in s.result_buttons:
                 assert button.winfo_width()>=face.measure(button.cget('text'))+12, (language,button.cget('text'))
@@ -102,7 +102,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-ux-') as raw:
             s.cancel();pump(app,lambda:s.worker is None)
             assert s.search_state=='cancelled' and float(s.progress.cget('value'))!=100
             assert s.mask_entry.instate(['!disabled']) and s.depth_combo.instate(['readonly'])
-        s._search=original;s.mask_var.set('no-such-result');s.start();pump(app,lambda:s.worker is None)
+        search.search_files=original;s.mask_var.set('no-such-result');s.start();pump(app,lambda:s.worker is None)
         assert s.search_state=='complete' and not s.results and s.empty_hint.winfo_ismapped()
         assert s.status.cget('text')==pfc.tr('Search complete — {count} found',count=0)
         assert not s.progress.winfo_ismapped()
@@ -118,25 +118,25 @@ with tempfile.TemporaryDirectory(prefix='pfc-ux-') as raw:
             s.start();pump(app,lambda:s.worker is None)
         assert s.search_state=='partial' and s._skipped==1
         gate.clear()
-        def partial(criteria):
-            s.messages.put(('item',md,md.stat()))
+        def partial(criteria,cancel,messages,log=None):
+            messages.put(('item',md,md.stat()))
             while not gate.wait(.02):
-                if s.cancel_event.is_set():
-                    s.messages.put(('done',1,True,False));return
-            s.messages.put(('done',1,False,True))
-        s._search=partial;s.start();pump(app,lambda:bool(s.results))
+                if cancel.is_set():
+                    messages.put(('done',1,True,False));return
+            messages.put(('done',1,False,True))
+        search.search_files=partial;s.start();pump(app,lambda:bool(s.results))
         assert s.search_state=='running' and not s.empty_hint.winfo_ismapped()
         gate.set();pump(app,lambda:s.worker is None)
         assert s.search_state=='limited' and float(s.progress.cget('value'))!=100
         # Reopen before a cancelled worker has returned: show the reason Find waits.
         gate.clear()
-        def winding_down(criteria):
-            gate.wait(5);s.messages.put(('done',0,True,False))
-        s._search=winding_down;s.start();pump(app);s.reset_for_open();pump(app)
+        def winding_down(criteria,cancel,messages,log=None):
+            gate.wait(5);messages.put(('done',0,True,False))
+        search.search_files=winding_down;s.start();pump(app);s.reset_for_open();pump(app)
         assert s.search_state=='resetting' and s.find_button.instate(['disabled'])
         gate.set();pump(app,lambda:s._reset_job is None)
         assert s.search_state=='ready' and not s.results
-        s._search=original;s.close()
+        search.search_files=original;s.close()
         app.preview_paths([md],md);page=app.preview_window.active_page
         assert str(page.text.cget('state'))=='disabled','Loading Preview is editable'
         before=page.text.get('1.0','end');page.text.insert('1.0','must not appear')
@@ -157,4 +157,5 @@ with tempfile.TemporaryDirectory(prefix='pfc-ux-') as raw:
         assert not errors,errors
         print('PASS: waiting/zero/complete/cancel/error/limit/unreadable; 100/200/narrow; 1–4 panels; Settings pages; Preview/Folder status')
     finally:
+        search.search_files=original
         gate.set();app.close_app()

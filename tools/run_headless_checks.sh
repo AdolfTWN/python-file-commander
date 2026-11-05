@@ -16,9 +16,13 @@ command -v xvfb-run >/dev/null 2>&1 || {
 exec python3 tools/pfc_workflow.py auto-test --profile full --jobs 2 "$@"
 
 python3 -m unittest discover -s tests -v
-python3 tools/filesystem_boundary_check.py
-python3 tools/filesystem_boundary_check.py pfc
-python3 tools/gdi_lifetime_check.py
+xvfb-run -a python3 tools/filesystem_boundary_check.py
+xvfb-run -a python3 tools/filesystem_boundary_check.py pfc
+xvfb-run -a python3 tools/gdi_lifetime_check.py
+xvfb-run -a python3 tools/flow_lifetime_check.py
+xvfb-run -a python3 tools/flow_lifetime_check.py pfc
+xvfb-run -a python3 tools/settings_reentry_check.py
+xvfb-run -a python3 tools/settings_reentry_check.py pfc
 xvfb-run -a python3 tools/search_worker_lifetime_check.py
 xvfb-run -a python3 tools/search_worker_lifetime_check.py pfc
 xvfb-run -a python3 tools/space_worker_check.py

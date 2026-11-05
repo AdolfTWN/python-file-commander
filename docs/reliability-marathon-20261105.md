@@ -88,6 +88,16 @@ new scan, partial Search construction cleanup, real cross-filesystem movement
 on Linux, and link-safe deletion of disposable fixtures. Full relevant suites,
 dual-runtime validation and final release acceptance are still in progress.
 
+A second pre-guard source probe failed after 1,323.8 seconds / over 624 cycles:
+dead Search buttons were referenced by deferred toolbar sizing, followed by a
+native Ttk font/world-change crash inside recursive Search activation idle
+processing. This real crash was also recovered automatically with version/time.
+The next source candidate closes toolbars before destroying children, consumes
+pending callbacks on manual reflow, excludes deleted groups, and defers Settings
+focus and Search activation work instead of recursively pumping Tk. Focus during
+sibling teardown and toolbar lifetime regressions fail before/pass after. These
+remain pending long-run and dual-runtime final-candidate acceptance.
+
 ## Display coverage boundaries
 
 Win11-ARM64-VM currently enumerates only one head and 1920x1080 / 32bpp / 64Hz.

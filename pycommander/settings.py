@@ -17,6 +17,7 @@ from .settingspreview import SettingsSamplePreview, SettingsLayoutPreview
 from .windowplacement import popup_work_area, position_popup_in_work_area
 from .icons import _distance_to_segment, _hex_rgba, _rgba_png_downsample
 from .dialogs import release_owned_variables, release_owned_images, release_owned_fonts
+from .flowlayout import schedule_owned_idle
 
 
 SETTINGS_CATEGORIES = (
@@ -811,7 +812,14 @@ class SettingsDialog(tk.Toplevel):
         if getattr(self,'_destroying',False):return
         widget=event.widget
         if not str(widget).startswith(str(self.page)+'.'):return
-        self.update_idletasks()
+        # Focus can be delivered synchronously while another page child is
+        # being destroyed. Never enter a nested Tk idle loop from that event.
+        schedule_owned_idle(self,'reveal-focus',self._reveal_current_focus)
+
+    def _reveal_current_focus(self):
+        if getattr(self,'_destroying',False):return
+        widget=self.focus_get()
+        if widget is None or not str(widget).startswith(str(self.page)+'.'):return
         y=widget.winfo_rooty()-self.sheet.winfo_rooty()
         top=self.canvas.canvasy(0);height=self.canvas.winfo_height()
         if y<top:self.canvas.yview_moveto(y/max(1,self.sheet.winfo_height()))

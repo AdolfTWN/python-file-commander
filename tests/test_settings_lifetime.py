@@ -13,7 +13,8 @@ class SettingsLifetimeTests(unittest.TestCase):
         for name,args in (('_layout_navigation',(None,)),('_resize',(None,)),
                           ('_scroll_region',()),('_layout_cards',(500,)),
                           ('show_page',('appearance',)),('_show_page_top',()),
-                          ('_schedule_shots',()),('_update_shots',()),('_reveal_focus',(None,))):
+                          ('_schedule_shots',()),('_update_shots',()),('_reveal_focus',(None,)),
+                          ('_reveal_current_focus',())):
             with self.subTest(callback=name):getattr(SettingsDialog,name)(owner,*args)
 
 

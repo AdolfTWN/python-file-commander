@@ -423,9 +423,16 @@ class SearchWindow(tk.Toplevel):
         self._show_search_state()
 
     def activate(self):
+        if getattr(self,'_destroying',False):return
         self.reset_for_open()
         self.deiconify(); self.lift(); self.focus_force()
-        self.update_idletasks()
+        # Let the current Tk dispatch finish before fitting/focusing controls.
+        # Recursive update_idletasks here can run stale toolbar/font callbacks
+        # while another window's native destruction/layout is still active.
+        schedule_owned_idle(self,'activate-ready',self._finish_activation)
+
+    def _finish_activation(self):
+        if getattr(self,'_destroying',False):return
         self._window_visibility.recover()
         self._update_criteria_summary()
         if self.mask_entry is not None:

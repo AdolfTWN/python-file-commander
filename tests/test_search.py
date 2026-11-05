@@ -3,6 +3,7 @@ import unittest
 import threading
 import queue
 from unittest.mock import patch
+from unittest.mock import Mock
 from pathlib import Path
 
 from pycommander.search import SearchWindow, content_matches, name_matches, search_column_widths, search_attributes
@@ -11,6 +12,17 @@ from types import SimpleNamespace
 
 
 class SearchTests(unittest.TestCase):
+    def test_activation_defers_geometry_without_recursively_pumping_tk(self):
+        window=SimpleNamespace(_destroying=False,reset_for_open=Mock(),deiconify=Mock(),
+            lift=Mock(),focus_force=Mock(),update_idletasks=Mock(),_finish_activation=Mock())
+        with patch('pycommander.search.schedule_owned_idle') as schedule:
+            SearchWindow.activate(window)
+        window.update_idletasks.assert_not_called()
+        schedule.assert_called_once_with(window,'activate-ready',window._finish_activation)
+        window._destroying=True
+        SearchWindow.activate(window)
+        self.assertEqual(window.reset_for_open.call_count,1)
+
     def test_selective_search_does_not_stat_unmatched_names_and_still_descends_unmatched_folders(self):
         with tempfile.TemporaryDirectory() as raw:
             root=Path(raw);nested=root/'not-a-markdown-folder';nested.mkdir()
