@@ -19,6 +19,21 @@ def pump(app, seconds=.25):
         time.sleep(.01)
 
 
+def preview_ready(app,page,phase):
+    """Wait for completion, not a machine-dependent one-second sleep."""
+    started=time.monotonic();deadline=started+12
+    def pending():
+        return bool(page._format_jobs.pending or page._format_queued or page._format_request
+                    or page._format_searching or page.render_view._tree_revealing
+                    or page.render_view._insert_job is not None)
+    initial=dict(kind=page.render_view.model.get('kind'),pending=pending())
+    while pending() and time.monotonic()<deadline:pump(app,.03)
+    print(json.dumps({'event':'compact.preview.ready','phase':phase,'initial':initial,
+                      'kind':page.render_view.model.get('kind'),
+                      'wait_seconds':round(time.monotonic()-started,3),'pending':pending()}),flush=True)
+    assert not pending(),('Preview completion timed out',phase)
+
+
 def capture(window, name):
     window.lift(); pump(window)
     if os.name == 'nt':
@@ -97,6 +112,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-compact-tasks-') as raw:
             measurements.append(dict(view='preview', scale=scale, width=width,
                 chrome=page.activity_controls.winfo_rooty()-page.file_row.winfo_rooty()))
             if not baseline:
+                preview_ready(app,page,'initial-'+scale)
                 inside(page.search, win)
                 assert page.search.winfo_width() >= 70
                 toolbar_usable(page.reading_tools,win)
@@ -104,9 +120,10 @@ with tempfile.TemporaryDirectory(prefix='pfc-compact-tasks-') as raw:
                     assert len(page.reading_tools.rows)==1, 'Wide reading toolbar still wraps'
                     capture(win,'wide')
                 if scale=='xl':capture(win,'narrow')
-                page.search_var.set('alpha'); page.find_all_matched(); pump(app, 1)
+                page.search_var.set('alpha'); page.find_all_matched();preview_ready(app,page,'matched-'+scale)
                 assert page.markdown_var.get() == pfc.tr('Rendered')
                 assert page.render_view.model.get('kind') == 'tree'
+                assert page._structure_match_count==20,('Incomplete matching hierarchy',page._structure_match_count)
                 if scale=='small':
                     tree=page.render_view.tree
                     selection=tree.selection()
