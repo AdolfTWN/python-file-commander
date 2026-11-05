@@ -9044,6 +9044,7 @@ from functools import lru_cache
 
 
 
+
 SETTINGS_CATEGORIES = (
     ('appearance', 'Appearance'), ('layout', 'Layout & Tabs'),
     ('columns', 'File Columns'), ('navigation', 'Paths & Operations'),
@@ -9836,7 +9837,14 @@ class SettingsDialog(tk.Toplevel):
         if getattr(self,'_destroying',False):return
         widget=event.widget
         if not str(widget).startswith(str(self.page)+'.'):return
-        self.update_idletasks()
+        # Focus can be delivered synchronously while another page child is
+        # being destroyed. Never enter a nested Tk idle loop from that event.
+        schedule_owned_idle(self,'reveal-focus',self._reveal_current_focus)
+
+    def _reveal_current_focus(self):
+        if getattr(self,'_destroying',False):return
+        widget=self.focus_get()
+        if widget is None or not str(widget).startswith(str(self.page)+'.'):return
         y=widget.winfo_rooty()-self.sheet.winfo_rooty()
         top=self.canvas.canvasy(0);height=self.canvas.winfo_height()
         if y<top:self.canvas.yview_moveto(y/max(1,self.sheet.winfo_height()))
@@ -10294,6 +10302,7 @@ class FlowToolbar(ttk.Frame):
         self.rows = []
         self._flow_job = None
         self._flow_signature = None
+        self._flow_closed = False
         self.bind('<Configure>', self.schedule, add='+')
         self.bind('<Map>', self.schedule, add='+')
         self.bind('<<ThemeChanged>>', self.schedule, add='+')
@@ -10305,16 +10314,35 @@ class FlowToolbar(ttk.Frame):
         self.schedule()
 
     def schedule(self, _event=None):
+        if self._flow_closed:return
         if self._flow_job is None:
             self._flow_job = self.after_idle(self.layout)
 
+    def destroy(self):
+        # Mark closed BEFORE recursively destroying children. Their native
+        # destroy/focus/configure handlers can otherwise reenter layout while
+        # minimum-width callbacks already reference deleted buttons.
+        self._flow_closed=True
+        self._cancel_flow_job()
+        self.groups.clear();self.rows.clear()
+        super().destroy()
+
+    def _cancel_flow_job(self):
+        if self._flow_job is not None:
+            try:self.after_cancel(self._flow_job)
+            except TclError:pass
+            self._flow_job=None
+
     def _flow_destroy(self, event):
-        if event.widget is self and self._flow_job is not None:
-            self.after_cancel(self._flow_job)
-            self._flow_job = None
+        if event.widget is self:
+            self._flow_closed=True;self._cancel_flow_job()
 
     def layout(self):
-        self._flow_job = None
+        if self._flow_closed:return
+        # Also support a synchronous/manual layout without orphaning the idle
+        # callback that schedule() already registered.
+        self._cancel_flow_job()
+        self.groups=[group for group in self.groups if group[0].winfo_exists()]
         values=[self.winfo_pixels(p) for p in self.tk.splitlist(self.cget('padding'))]
         if len(values)==1:values*=4
         elif len(values)==2:values*=2
@@ -39945,9 +39973,16 @@ class SearchWindow(tk.Toplevel):
         self._show_search_state()
 
     def activate(self):
+        if getattr(self,'_destroying',False):return
         self.reset_for_open()
         self.deiconify(); self.lift(); self.focus_force()
-        self.update_idletasks()
+        # Let the current Tk dispatch finish before fitting/focusing controls.
+        # Recursive update_idletasks here can run stale toolbar/font callbacks
+        # while another window's native destruction/layout is still active.
+        schedule_owned_idle(self,'activate-ready',self._finish_activation)
+
+    def _finish_activation(self):
+        if getattr(self,'_destroying',False):return
         self._window_visibility.recover()
         self._update_criteria_summary()
         if self.mask_entry is not None:
