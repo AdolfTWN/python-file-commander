@@ -28,6 +28,7 @@ from .windowplacement import WindowVisibilityGuard
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
 CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
+SEARCH_PROGRESS_INTERVAL = 0.1
 
 
 def search_attributes(path: Path, metadata) -> str:
@@ -108,6 +109,7 @@ def content_matches(path: Path, needle: str, case_sensitive: bool, *, on_error=N
 def search_files(c,cancel_event,messages,log=None):
     """Filesystem-only worker: never retain a Tk window/interpreter."""
     count = 0; processed_folders = 0; discovered_folders = 1
+    reported_folders=0;progress_at=0.0
     try:
         for current, dirs, files in os.walk(c["root"],onerror=lambda exc:messages.put(('skipped',))):
             if cancel_event.is_set() or count >= RESULT_LIMIT: break
@@ -116,7 +118,12 @@ def search_files(c,cancel_event,messages,log=None):
             if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
             discovered_folders += len(dirs)
             processed_folders += 1
-            messages.put(("progress", processed_folders, discovered_folders))
+            # Progress is a current snapshot, not an event that must be replayed
+            # for every folder. Bound UI traffic while keeping slow scans live.
+            now=time.monotonic()
+            if processed_folders==1 or now-progress_at>=SEARCH_PROGRESS_INTERVAL:
+                messages.put(("progress",processed_folders,discovered_folders))
+                reported_folders=processed_folders;progress_at=now
             candidates = ([Path(current) / name for name in folder_names] if c["folders"] else []) + ([Path(current) / name for name in files] if c["files"] else [])
             for path in candidates:
                 if cancel_event.is_set() or count >= RESULT_LIMIT: break
@@ -132,6 +139,8 @@ def search_files(c,cancel_event,messages,log=None):
                     if is_dir and c["content"]: continue
                     messages.put(("item", path, stat)); count += 1
                 except (OSError,ValueError,OverflowError): messages.put(('skipped',)); continue
+        if processed_folders!=reported_folders:
+            messages.put(("progress",processed_folders,discovered_folders))
         messages.put(("done", count, cancel_event.is_set(), count >= RESULT_LIMIT))
     except BaseException as exc:
         if log:log.exception('search.worker.failed',exc)

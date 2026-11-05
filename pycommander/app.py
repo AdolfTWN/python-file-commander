@@ -151,6 +151,7 @@ VERSION_HISTORY = (
         "Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.",
         "Fixed: Failed replacement moves preserve recovery copies; stale space scans no longer replace newer results.",
         "Improved: Settings reuses style fonts; column sizing and selective search avoid repeated metadata work without changing results.",
+        "Improved: Folder-heavy searches coalesce progress updates while preserving exact counts and live completion status.",
         "Improved: Automatic diagnostics cover finalizer, Tcl callback and early settings failures with version, time and safe context.",
         "Improved: Extreme-scale laptop layouts keep bottom shortcuts and zoom reachable when compact actions need to wrap.",
     )),

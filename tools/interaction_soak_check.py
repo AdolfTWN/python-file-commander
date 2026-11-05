@@ -75,9 +75,16 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
     }
     for name,data in documents.items():(folder/name).write_text(data,encoding='utf-8')
     for n in range(120):(folder/f'{n:03} Searchable file.txt').write_text('NEEDLE')
+    compare_roots=[root/'compare-left',root/'compare-right']
+    for side,directory in enumerate(compare_roots):
+        directory.mkdir()
+        (directory/'note.txt').write_text(''.join(f'line {n}: {"changed" if side and n==64 else "same"}\n' for n in range(256)))
     pfc.Commander._find_ini_path=staticmethod(lambda:root/'pfc.ini')
     pfc.Commander._sync_auto_start=lambda *a,**k:True
     pfc.Commander._start_windows_tray=lambda *a:None
+    if '--inject-tcl-error' in sys.argv:
+        original_log=pfc.DiagnosticLog
+        pfc.DiagnosticLog=lambda version,**kwargs:original_log(version,directory=root/'diagnostics',**kwargs)
     app=pfc.Commander();failures=[];maximum_gap=[0.0];cycle=0
     if MEMORY:tracemalloc.start()
     previous_unraisable=sys.unraisablehook;previous_thread=threading.excepthook
@@ -104,7 +111,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         if gap>1:print(json.dumps({'event':'interaction.heartbeat.slow','stage':stage[0],'seconds':gap}),flush=True)
         if gap>5 and not MEMORY:failures.append(('event-loop-stall',stage[0],gap))
         beat_job[0]=app.after(20,beat)
-    started=time.monotonic();sample_count=0;resource_baseline=None
+    started=time.monotonic();sample_count=0;resource_baseline=None;compare_cycles=0;nested_cycles=0
     resource_allowance={'commands':400,'images':512,'fonts':100,'timers':100,'threads':16,
                         'gdi_objects':512,'user_objects':256,'private_bytes':256*1024**2}
     if DURATION>180:faulthandler.dump_traceback_later(90,repeat=True)
@@ -119,11 +126,13 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
                       'system_time':datetime.now().astimezone().isoformat(),'candidate_sha256':candidate.hexdigest(),
                       'candidate_kind':'source-bundle' if source_bundle else 'portable',
                       'python':sys.version.split()[0],'duration_target_s':DURATION,'memory_instrumented':MEMORY,
-                      'fixture_formats':len(documents)}),flush=True)
+                      'fixture_formats':len(documents),'diagnostic_session':app.debug_log.session}),flush=True)
     try:
         app.auto_font_size_var.set(False)
         for pane in app.visible_panes():pane.navigate(folder)
         pump(app,.4);beat();sample(app,0);sample_count+=1
+        if '--inject-tcl-error' in sys.argv:
+            app.tk.call('after','idle','pfc_fixture_deleted_callback')
         stopped=False
         while time.monotonic()-started<DURATION:
             if STOP_FILE is not None and STOP_FILE.exists():stopped=True;break
@@ -147,6 +156,17 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
                     page.search_var.set('NEEDLE');page.find_next()
                     if cycle%3==0:page.find_all_matched()
                 pump(app,.025);stage[0]='preview-close';preview.close()
+            if cycle%5==0:
+                stage[0]='compare-open'
+                is_folder=cycle%10!=0
+                pair=compare_roots if is_folder else [directory/'note.txt' for directory in compare_roots]
+                app.compare_paths(*pair);pump(app,.05 if cycle%3 else .2)
+                window=app.compare_window;assert window is not None and window.winfo_exists()
+                frame=window.current_comparison()
+                if is_folder and not frame._scanning:
+                    frame.open_nested_detail(*(directory/'note.txt' for directory in compare_roots),'note.txt')
+                    pump(app,.02);frame.close_nested_detail();nested_cycles+=1
+                stage[0]='compare-close';window.close();pump(app,.02);compare_cycles+=1
             stage[0]='search-open-run-close'
             app.search();pump(app,.02);search=app.search_window
             search.path_var.set(str(folder));search.mask_var.set('*.txt');search.start()
@@ -177,7 +197,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         print(json.dumps({'event':'interaction.soak.stopped' if stopped else 'interaction.soak.passed','cycles':cycle,
                           'seconds':round(time.monotonic()-started,3),
                           'max_heartbeat_gap_s':maximum_gap[0],'samples':sample_count,
-                          'timing_acceptance':not MEMORY,'target_complete':not stopped}),flush=True)
+                          'timing_acceptance':not MEMORY,'target_complete':not stopped,
+                          'compare_cycles':compare_cycles,'nested_compare_cycles':nested_cycles}),flush=True)
     finally:
         if beat_job[0] is not None:app.after_cancel(beat_job[0])
         app.close_app();pfc.messagebox.showerror=original_error

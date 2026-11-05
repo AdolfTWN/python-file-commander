@@ -4,6 +4,8 @@ Current code: **v0.19.0** — stabilization milestone.
 The current reliability campaign covers Tk resource/deferred-callback ownership,
 data-safe interrupted moves, cancelled background work and startup/settings
 diagnostics. Selective search and column sizing avoid repeated metadata work.
+Folder-heavy searches coalesce progress snapshots rather than queuing thousands
+of status updates; exact result, unreadable-item and folder counts are retained.
 Verification results, measured benefits and unavailable hardware scenarios are
 tracked in the [reliability campaign report](docs/reliability-marathon-20261105.md).
 

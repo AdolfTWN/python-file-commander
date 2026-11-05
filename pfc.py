@@ -21,6 +21,7 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Improved: Folder-heavy searches coalesce progress updates while preserving exact counts and live completion status.': ('改善：大量資料夾搜尋合併進度更新，保留精確計數與即時完成狀態。','改善：大量文件夹搜索合并进度更新，保留精确计数与实时完成状态。','개선: 폴더가 많은 검색의 진행 업데이트를 통합하면서 정확한 개수와 실시간 완료 상태를 유지합니다.'),
     'Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.': ('修正：關閉對話框、預覽與比較分頁時，釋放專屬 Tk 資源並取消延後的介面工作。','修正：关闭对话框、预览与比较标签页时，释放专属 Tk 资源并取消延后的界面任务。','수정: 대화 상자, 미리보기 및 비교 탭을 닫을 때 소유한 Tk 리소스를 해제하고 지연된 UI 작업을 취소합니다.'),
     'Fixed: Failed replacement moves preserve recovery copies; stale space scans no longer replace newer results.': ('修正：取代移動失敗時保留復原副本；過期的空間掃描不再覆蓋新結果。','修正：替换移动失败时保留恢复副本；过期的空间扫描不再覆盖新结果。','수정: 바꾸기 이동 실패 시 복구 사본을 보존하며 이전 공간 검사 결과가 최신 결과를 덮어쓰지 않습니다.'),
     'Improved: Settings reuses style fonts; column sizing and selective search avoid repeated metadata work without changing results.': ('改善：設定頁重用樣式字型；欄寬計算及條件搜尋減少重複讀取中繼資料，並保留原有結果。','改善：设置页复用样式字体；列宽计算及条件搜索减少重复读取元数据，并保留原有结果。','개선: 설정의 스타일 글꼴을 재사용하고 열 너비 계산 및 선택 검색의 중복 메타데이터 작업을 줄이며 결과는 유지합니다.'),
@@ -39586,6 +39587,7 @@ from tkinter import messagebox, simpledialog, ttk
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
 CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
+SEARCH_PROGRESS_INTERVAL = 0.1
 
 
 def search_attributes(path: Path, metadata) -> str:
@@ -39666,6 +39668,7 @@ def content_matches(path: Path, needle: str, case_sensitive: bool, *, on_error=N
 def search_files(c,cancel_event,messages,log=None):
     """Filesystem-only worker: never retain a Tk window/interpreter."""
     count = 0; processed_folders = 0; discovered_folders = 1
+    reported_folders=0;progress_at=0.0
     try:
         for current, dirs, files in os.walk(c["root"],onerror=lambda exc:messages.put(('skipped',))):
             if cancel_event.is_set() or count >= RESULT_LIMIT: break
@@ -39674,7 +39677,12 @@ def search_files(c,cancel_event,messages,log=None):
             if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
             discovered_folders += len(dirs)
             processed_folders += 1
-            messages.put(("progress", processed_folders, discovered_folders))
+            # Progress is a current snapshot, not an event that must be replayed
+            # for every folder. Bound UI traffic while keeping slow scans live.
+            now=time.monotonic()
+            if processed_folders==1 or now-progress_at>=SEARCH_PROGRESS_INTERVAL:
+                messages.put(("progress",processed_folders,discovered_folders))
+                reported_folders=processed_folders;progress_at=now
             candidates = ([Path(current) / name for name in folder_names] if c["folders"] else []) + ([Path(current) / name for name in files] if c["files"] else [])
             for path in candidates:
                 if cancel_event.is_set() or count >= RESULT_LIMIT: break
@@ -39690,6 +39698,8 @@ def search_files(c,cancel_event,messages,log=None):
                     if is_dir and c["content"]: continue
                     messages.put(("item", path, stat)); count += 1
                 except (OSError,ValueError,OverflowError): messages.put(('skipped',)); continue
+        if processed_folders!=reported_folders:
+            messages.put(("progress",processed_folders,discovered_folders))
         messages.put(("done", count, cancel_event.is_set(), count >= RESULT_LIMIT))
     except BaseException as exc:
         if log:log.exception('search.worker.failed',exc)
@@ -42451,6 +42461,7 @@ VERSION_HISTORY = (
         "Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.",
         "Fixed: Failed replacement moves preserve recovery copies; stale space scans no longer replace newer results.",
         "Improved: Settings reuses style fonts; column sizing and selective search avoid repeated metadata work without changing results.",
+        "Improved: Folder-heavy searches coalesce progress updates while preserving exact counts and live completion status.",
         "Improved: Automatic diagnostics cover finalizer, Tcl callback and early settings failures with version, time and safe context.",
         "Improved: Extreme-scale laptop layouts keep bottom shortcuts and zoom reachable when compact actions need to wrap.",
     )),

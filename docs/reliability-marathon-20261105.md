@@ -58,6 +58,21 @@ are measured observations rather than a universal percentage guarantee. Earlier
 fixtures stored their INI beside data; the final comparison separates preferences
 from the active folder to avoid configuration writes triggering folder refreshes.
 
+A second bottleneck appeared in folder-heavy F4 searches with few/no matches.
+For the same 12,000 folders and 12,000 nonmatching files, the worker took about
+0.38 seconds, but one progress message per folder delayed visible completion to
+2.08 seconds and accumulated roughly 10,000 queued snapshots. Coalescing progress
+to live 100-ms snapshots plus an exact final count reduced measured completion
+to 0.38 seconds, with about five progress messages and a peak queue of two.
+An independent ABBA run without queue-count instrumentation confirmed completion
+medians of 2.06–2.09 seconds before and 0.38–0.42 seconds after; worker medians
+remained about 0.37–0.39 seconds. This is UI backlog removal, not a claim of faster
+disk scanning or a native-Windows performance percentage. Inputs/preferences
+were isolated; host load remained shared. Item/error/done messages are unchanged.
+Regression coverage verifies exact final/cancelled folder counts, live updates
+on slow scans, 2,999 retained matches plus one unreadable item, and visible
+zero-result completion on a real 3,001-folder GUI fixture.
+
 For a separate actual F4 search of 50,000 fixed files (500 name-mask hits), ABBA
 completion medians were 0.60–0.64 seconds before and about 0.38 seconds after
 checking the name mask before stat. Result sets stayed identical; file-stat calls
@@ -132,6 +147,19 @@ Before-failing boundary tests now preserve known byte sizes with an unavailable
 date marker, while ordinary date formatting is unchanged. The native comparison
 fixture attempts a real year-10000 timestamp only inside its disposable root and
 explicitly distinguishes filesystem support/clamping from injected metadata.
+
+The first complete C11 suite failed one obsolete smoke assertion that hardcoded
+the last release-history group as v0.18.x. The actual Help menu correctly included
+v0.19.x. The check now verifies grouping/order against history, requires the
+current series first and preserves all legacy groups; the focused smoke rerun
+passes. This was a test expectation repair, not a GUI menu defect.
+
+Endurance additionally rotates real Text/Folder Compare opens/closes and rapid
+nested-detail closure. Native GDI attribution includes comparison cycles as well
+as Settings/Preview/Search. A real injected Tcl background error verifies that
+the existing automatic diagnostics and endurance observer reject it; the
+suspected observation gap was not reproduced, so no logging-hook change was
+needed. The negative control uses its own temporary diagnostic directory.
 
 ## Display coverage boundaries
 

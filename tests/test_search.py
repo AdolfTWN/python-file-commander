@@ -6,12 +6,61 @@ from unittest.mock import patch
 from unittest.mock import Mock
 from pathlib import Path
 
-from pycommander.search import SearchWindow, content_matches, name_matches, search_column_widths, search_attributes
+from pycommander.search import SearchWindow, content_matches, name_matches, search_column_widths, search_attributes, search_files
 from pycommander.i18n import tr
 from types import SimpleNamespace
 
 
 class SearchTests(unittest.TestCase):
+    def test_fast_folder_progress_is_coalesced_and_final_count_remains_exact(self):
+        root=Path('fixture');messages=queue.Queue();cancel=threading.Event()
+        names=[f'folder-{n}' for n in range(500)]
+        walk=[(root,names,[])]+[(root/name,[],[]) for name in names]
+        criteria=dict(root=root,masks='*.missing',case=False,max_depth=None,files=True,folders=False,
+                      min_size=None,max_size=None,since=None,content='')
+        with patch('pycommander.search.os.walk',return_value=walk),\
+                patch('pycommander.search.time.monotonic',return_value=0):
+            search_files(criteria,cancel,messages)
+        rows=list(messages.queue);progress=[row for row in rows if row[0]=='progress']
+        self.assertEqual(progress[0],('progress',1,501))
+        self.assertEqual(progress[-1],('progress',501,501))
+        self.assertLessEqual(len(progress),2,'Every fast directory still queues redundant UI work')
+        self.assertEqual(rows[-1],('done',0,False,False))
+
+    def test_slow_folder_progress_stays_live_during_cancel(self):
+        root=Path('fixture');messages=queue.Queue();cancel=threading.Event()
+        criteria=dict(root=root,masks='*.missing',case=False,max_depth=None,files=True,folders=False,
+                      min_size=None,max_size=None,since=None,content='')
+        def walk(*a,**k):
+            yield root,['one','two','three'],[]
+            yield root/'one',[],[]
+            yield root/'two',[],[]
+            cancel.set()
+            yield root/'three',[],[]
+        with patch('pycommander.search.os.walk',walk),\
+                patch('pycommander.search.time.monotonic',side_effect=[0,.11,.22]):
+            search_files(criteria,cancel,messages)
+        rows=list(messages.queue)
+        self.assertEqual([row[1] for row in rows if row[0]=='progress'],[1,2,3])
+        self.assertEqual(rows[-1],('done',0,True,False))
+
+    def test_fast_cancel_flushes_the_last_processed_folder_count(self):
+        root=Path('fixture');messages=queue.Queue();cancel=threading.Event()
+        criteria=dict(root=root,masks='*.missing',case=False,max_depth=None,files=True,folders=False,
+                      min_size=None,max_size=None,since=None,content='')
+        def walk(*a,**k):
+            yield root,['one','two','three'],[]
+            yield root/'one',[],[]
+            yield root/'two',[],[]
+            cancel.set()
+            yield root/'three',[],[]
+        with patch('pycommander.search.os.walk',walk),\
+                patch('pycommander.search.time.monotonic',side_effect=[0,.01,.02]):
+            search_files(criteria,cancel,messages)
+        rows=list(messages.queue)
+        self.assertEqual([row[1] for row in rows if row[0]=='progress'],[1,3])
+        self.assertEqual(rows[-1],('done',0,True,False))
+
     def test_activation_defers_geometry_without_recursively_pumping_tk(self):
         window=SimpleNamespace(_destroying=False,reset_for_open=Mock(),deiconify=Mock(),
             lift=Mock(),focus_force=Mock(),update_idletasks=Mock(),_finish_activation=Mock())

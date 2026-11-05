@@ -27,6 +27,8 @@ xvfb-run -a python3 tools/settings_diagnostics_check.py
 xvfb-run -a python3 tools/settings_diagnostics_check.py pfc
 xvfb-run -a python3 tools/search_worker_lifetime_check.py
 xvfb-run -a python3 tools/search_worker_lifetime_check.py pfc
+xvfb-run -a python3 tools/search_progress_check.py
+xvfb-run -a python3 tools/search_progress_check.py pfc
 xvfb-run -a python3 tools/space_worker_check.py
 xvfb-run -a python3 tools/space_worker_check.py pfc
 xvfb-run -a python3 tools/space_lifetime_check.py
@@ -154,6 +156,8 @@ xvfb-run -a python3 tools/operation_soak_check.py
 xvfb-run -a python3 tools/operation_soak_check.py pfc
 xvfb-run -a python3 tools/interaction_soak_check.py
 xvfb-run -a python3 tools/interaction_soak_check.py pfc
+xvfb-run -a python3 tools/soak_diagnostics_check.py
+xvfb-run -a python3 tools/soak_diagnostics_check.py pfc
 xvfb-run -a python3 tools/dialog_lifecycle_check.py
 xvfb-run -a python3 tools/dialog_lifecycle_check.py pfc
 xvfb-run -a python3 tools/early_close_check.py

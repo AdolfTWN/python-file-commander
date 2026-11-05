@@ -272,8 +272,10 @@ def main() -> None:
             version_labels = [app.versions_menu.entrycget(index, "label")
                               for index in range(app.versions_menu.index("end") + 1)
                               if app.versions_menu.type(index) in {"command", "cascade"}]
-            expected_series = ("v0.18.x", "v0.17.x", "v0.16.x", "v0.15.x", "v0.14.x", "v0.13.x", "v0.12.x",
-                               "v0.11.x", "v0.10.x", "v0.9.x", "v0.8.x")
+            expected_series = tuple(dict.fromkeys(version.rsplit('.',1)[0]+'.x'
+                                    for version,_date,_notes in pfc.VERSION_HISTORY))
+            assert expected_series[0]=='v'+pfc.__version__.rsplit('.',1)[0]+'.x'
+            assert {f'v0.{minor}.x' for minor in range(8,19)}.issubset(expected_series)
             assert version_labels == ([f"Current version: v{pfc.__version__}", "Check Update", "Error / Warning log…"] +
                                       [f"{series} Changes" for series in expected_series] +
                                       ["Yoda — Portable App Advocate"])
