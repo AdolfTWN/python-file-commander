@@ -10,6 +10,11 @@ Disabled and pressed buttons are visually distinct in both themes, and search
 guidance uses the actual button name.
 Verification results, measured benefits and unavailable hardware scenarios are
 tracked in the [reliability campaign report](docs/reliability-marathon-20261105.md).
+The Windows tooltip acceptance suite still has known hover failures; this is
+not a zero-known-issues release. Physical mixed-DPI/multi-monitor and native-x64
+hardware acceptance remain outside the available VM coverage.
+Final dual-Python focused/short checks passed, but x64 long-run acceptance was
+blocked by the VM result transport; recovered partial telemetry is not a pass.
 
 Laptop layouts reserve bottom shortcuts, zoom and panel filters before the file
 viewport, including enlarged reading scales. The main window now fits the current
