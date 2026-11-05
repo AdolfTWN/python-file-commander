@@ -3791,6 +3791,7 @@ from tkinter import ttk
 
 
 
+
 def virtual_screen_bounds(widget) -> tuple[int, int, int, int]:
     """Return the complete desktop bounds, including negative monitor origins."""
     if os.name == "nt":
@@ -3967,6 +3968,11 @@ def _register_scaled_indicator(menu: tk.Menu, variable, value) -> None:
     if not hasattr(menu, "_pfc_scaled_indicators"):
         menu._pfc_scaled_indicators = []
         menu.configure(postcommand=lambda target=menu: _refresh_scaled_indicators(target))
+        # Variables are borrowed from the owning window, not owned by menus.
+        # Release references when a menu dies without touching shared values.
+        def destroyed(event):
+            if event.widget is menu:menu._pfc_scaled_indicators.clear()
+        menu.bind('<Destroy>',destroyed,add='+')
     index = menu.index('end')
     menu._pfc_scaled_indicators = [entry for entry in menu._pfc_scaled_indicators
                                    if entry[0] < index]
@@ -4326,6 +4332,11 @@ class _HeaderPopup:
 
 
 class ChamferNotebook(ttk.Frame):
+    def destroy(self):
+        super().destroy()
+        release_owned_fonts(self,'_active_title_font','_group_font')
+        release_owned_images(self,'_lock_images')
+
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
     def __init__(self, master, on_color_changed=None, on_lock_changed=None,
@@ -5049,6 +5060,7 @@ from tkinter import ttk
 
 
 
+
 def path_ancestors(path):
     """Keep real targets, including drive/UNC roots, separate from labels."""
     return [(p.name or str(p), p) for p in [*reversed(path.parents), path]]
@@ -5129,7 +5141,9 @@ class PathBar(ttk.Frame):
                 self._redraw_job = None
             self._owner.unbind("<FocusIn>", self._focus_binding)
             self.variable.trace_remove("write", self._trace)
+            self.variable=None  # Borrowed from the pane; do not retain it in a destroyed cycle.
             self.tooltip.hide()
+            release_owned_fonts(self,'normal','link','bold')
 
     def _changed(self, *_):
         if not self.editing:
@@ -5872,6 +5886,7 @@ from tkinter import ttk
 
 
 
+
 class SizeUnitCells:
     def __init__(self, pane):
         self.pane, self.tree = pane, pane.tree
@@ -5984,6 +5999,7 @@ class SizeUnitCells:
         if event.widget is self.tree:
             self.closed = True
             self.hide()
+            release_owned_fonts(self,'bold')
 
 
 # Source: pycommander/singlepanel.py
@@ -9190,9 +9206,16 @@ class SettingsDialog(tk.Toplevel):
         # Snapshot the actual interface font, including automatic scaling.
         # Draft changes do not move controls until Apply; never shrink reading text.
         base = tkfont.nametofont('TkDefaultFont')
-        self.font = tkfont.Font(self, **font_snapshot(base))
-        self.heading_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size'), weight='bold'))
-        self.small_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size')))
+        # Ttk's resource cache and readable-choice styles retain font names.
+        # Reuse root-owned names instead of feeding them a new, subsequently
+        # deleted font on every reopen (native GDI handles then keep growing).
+        fonts=getattr(app,'_settings_fonts',None)
+        if fonts is None:
+            fonts=app._settings_fonts={role:tkfont.Font(app) for role in ('normal','heading','small')}
+        self.font,self.heading_font,self.small_font=(fonts[role] for role in ('normal','heading','small'))
+        self.font.configure(**font_snapshot(base))
+        self.heading_font.configure(**font_snapshot(self.font,weight='bold'))
+        self.small_font.configure(**font_snapshot(self.font))
         self.specs = preference_specs(app)
         self.vars, self.original = {}, {}
         for key, _cat, _group, _label, choices, _method in self.specs:
@@ -9307,6 +9330,7 @@ class SettingsDialog(tk.Toplevel):
         self.show_page(self.category)
 
     def _layout_navigation(self, event):
+        if getattr(self,'_destroying',False):return
         if event.widget is not self.nav.master: return
         longest = max(self.font.measure(tr(label)) for _,label in SETTINGS_CATEGORIES)
         compact = longest > event.width*.26
@@ -9329,6 +9353,7 @@ class SettingsDialog(tk.Toplevel):
         readable_check_style(self, self.font, dark, 'Prefs')
 
     def _resize(self, event):
+        if getattr(self,'_destroying',False):return
         self.canvas.itemconfigure(self.page_id,width=event.width)
         self._scroll_region()
         self.intro.configure(wraplength=max(100,event.width-12))
@@ -9338,6 +9363,7 @@ class SettingsDialog(tk.Toplevel):
         self._layout_cards(event.width)
 
     def _scroll_region(self):
+        if getattr(self,'_destroying',False):return
         bounds = self.canvas.bbox('all')
         if bounds:
             self.canvas.configure(scrollregion=(0, 0, max(bounds[2], self.canvas.winfo_width()),
@@ -9362,6 +9388,7 @@ class SettingsDialog(tk.Toplevel):
         self._schedule_shots()
 
     def _layout_cards(self, width):
+        if getattr(self,'_destroying',False):return
         cards = getattr(self, '_comparison_cards', [])
         # Readable titles and diagrams take precedence over a forced two-column
         # layout. Keep Before first, After second in compact/high-scale windows.
@@ -9418,6 +9445,7 @@ class SettingsDialog(tk.Toplevel):
         return label
 
     def show_page(self, category):
+        if getattr(self,'_destroying',False):return
         self.category=category
         index=[key for key,_label in SETTINGS_CATEGORIES].index(category)
         self.compact_nav.current(index)
@@ -9509,6 +9537,7 @@ class SettingsDialog(tk.Toplevel):
         self._page_top_job=self.after_idle(self._show_page_top)
 
     def _show_page_top(self):
+        if getattr(self,'_destroying',False):return
         # Rebuilding a differently sized page changes the scrollregion after
         # show_page returns. Reset after geometry settles, not against the old
         # page's region (which can strand the preview above the viewport).
@@ -9608,9 +9637,11 @@ class SettingsDialog(tk.Toplevel):
         popup.update_idletasks();button.focus_force()
 
     def _schedule_shots(self):
+        if getattr(self,'_destroying',False):return
         if self._shot_job is None:self._shot_job=self.after_idle(self._update_shots)
 
     def _update_shots(self):
+        if getattr(self,'_destroying',False):return
         if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
         width=max(120,(self.comparison.winfo_width()-26)//2)
         # Crop the relevant tab/path/list detail, then resize with smaller steps
@@ -9781,7 +9812,8 @@ class SettingsDialog(tk.Toplevel):
         release_owned_images(self,'_shot_sources','images')
         for label,_values in getattr(self,'preview_labels',[]):
             release_owned_images(label,'image')
-        release_owned_fonts(self,'font','heading_font','small_font','sample_font')
+        release_owned_fonts(self,'sample_font')
+        self.font=self.heading_font=self.small_font=None  # Borrowed root-owned style fonts.
         # All are draft-owned, never the application's shared preferences.
         release_owned_variables(self,'vars','status_var','prefix_rows')
 
@@ -9801,6 +9833,7 @@ class SettingsDialog(tk.Toplevel):
         return self._scroll(-1 if event.delta>0 else 1)
 
     def _reveal_focus(self,event):
+        if getattr(self,'_destroying',False):return
         widget=event.widget
         if not str(widget).startswith(str(self.page)+'.'):return
         self.update_idletasks()
@@ -10167,6 +10200,15 @@ from tkinter import ttk, TclError
 
 def schedule_owned_idle(widget, key, callback):
     """Coalesce idle work and cancel it before its widget's Tcl commands die."""
+    return _schedule_owned_callback(widget,key,callback)
+
+
+def schedule_owned_after(widget,key,delay,callback):
+    """One pending timed callback per key, cancelled with its owning widget."""
+    return _schedule_owned_callback(widget,key,callback,delay)
+
+
+def _schedule_owned_callback(widget,key,callback,delay=None):
     try:
         if not widget.winfo_exists():return None
     except TclError:return None
@@ -10184,7 +10226,7 @@ def schedule_owned_idle(widget, key, callback):
     def run():
         jobs.pop(key,None)
         if widget.winfo_exists():callback()
-    jobs[key]=widget.after_idle(run)
+    jobs[key]=widget.after_idle(run) if delay is None else widget.after(delay,run)
     return jobs[key]
 
 
@@ -12525,6 +12567,7 @@ from tkinter import font as tkfont, messagebox, ttk, filedialog, simpledialog
 
 
 
+
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
                  ".ini", ".cfg", ".log", ".yaml", ".yml", ".sql", ".bat", ".ps1", ".c", ".h",
                  ".cpp", ".hpp", ".java", ".csv", ".tsv"}
@@ -12766,6 +12809,10 @@ class DifferenceMap(tk.Canvas):
 
 
 class SideBySideText(ttk.Frame):
+    def destroy(self):
+        super().destroy()
+        release_owned_variables(self,'search_var','case_var','view_mode_var','marker_position_var')
+
     def __init__(self, master, left_lines, right_lines, differences, status_text="", status_factory=None,
                  left_title="", right_title="", marker_position="middle", marker_changed=None,
                  editable=False, save_left=None, save_right=None):
@@ -13454,6 +13501,18 @@ class SyncPlanDialog(tk.Toplevel):
 
 
 class _FolderCompareLogic(ttk.Frame):
+    def destroy(self):
+        cancel=getattr(self,'_cancel_event',None)
+        if cancel is not None:cancel.set()
+        progress=getattr(self,'activity_progress',None)
+        if progress is not None:
+            try:progress.stop()
+            except tk.TclError:pass
+        super().destroy()
+        release_owned_variables(self,'mask_var','recursive_var','content_var','text_equivalent_var',
+                                'view_mode_var','search_var','case_var','marker_position_var','exclude_var')
+        release_owned_images(self,'_diff_icons')
+
     DIFF_FILTERS = {
         "all": None,
         "differences": {"Different", "Type mismatch", "Unknown", "Left newer", "Right newer",
@@ -13776,17 +13835,17 @@ class _FolderCompareLogic(ttk.Frame):
             except OSError as exc:
                 results.put((cancel, [], str(exc)))
         threading.Thread(target=worker, daemon=True).start()
-        self.after(60, self._poll_scan)
+        schedule_owned_after(self,'scan-poll',60,self._poll_scan)
         return "break"
 
     def _poll_scan(self):
         try:
             cancel, rows, error = self._scan_queue.get_nowait()
         except queue.Empty:
-            if self.winfo_exists() and self._scanning: self.after(60, self._poll_scan)
+            if self.winfo_exists() and self._scanning:schedule_owned_after(self,'scan-poll',60,self._poll_scan)
             return
         if cancel is not self._cancel_event:
-            if self.winfo_exists() and self._scanning: self.after(60, self._poll_scan)
+            if self.winfo_exists() and self._scanning:schedule_owned_after(self,'scan-poll',60,self._poll_scan)
             return
         self._scanning = False
         if hasattr(self,'activity_progress'):
@@ -14911,6 +14970,15 @@ class TableCompare(TextCompare):
 
 
 class CompareWindow(tk.Toplevel):
+    def destroy(self):
+        job=getattr(self,'_refresh_job',None)
+        if job is not None:
+            try:self.after_cancel(job)
+            except tk.TclError:pass
+            self._refresh_job=None
+        super().destroy()
+        getattr(self,'comparisons',{}).clear()
+
     def __init__(self, master, config, save_config, sync_executor=None):
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
@@ -15124,7 +15192,7 @@ class CompareWindow(tk.Toplevel):
         handler = getattr(frame, "apply_scale", None)
         if callable(handler):
             handler(self.scale)
-        self.notebook.select(frame); self.after_idle(self.activate)
+        self.notebook.select(frame);schedule_owned_idle(self,'activate',self.activate)
         return frame
 
     def activate(self):
@@ -39559,6 +39627,39 @@ def content_matches(path: Path, needle: str, case_sensitive: bool, *, on_error=N
         return False
 
 
+def search_files(c,cancel_event,messages,log=None):
+    """Filesystem-only worker: never retain a Tk window/interpreter."""
+    count = 0; processed_folders = 0; discovered_folders = 1
+    try:
+        for current, dirs, files in os.walk(c["root"],onerror=lambda exc:messages.put(('skipped',))):
+            if cancel_event.is_set() or count >= RESULT_LIMIT: break
+            depth = len(Path(current).relative_to(c["root"]).parts)
+            folder_names = list(dirs)
+            if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
+            discovered_folders += len(dirs)
+            processed_folders += 1
+            messages.put(("progress", processed_folders, discovered_folders))
+            candidates = ([Path(current) / name for name in folder_names] if c["folders"] else []) + ([Path(current) / name for name in files] if c["files"] else [])
+            for path in candidates:
+                if cancel_event.is_set() or count >= RESULT_LIMIT: break
+                try:
+                    if not name_matches(path.name, c["masks"], c["case"]): continue
+                    stat = path.stat()
+                    is_file=statlib.S_ISREG(stat.st_mode)
+                    is_dir=statlib.S_ISDIR(stat.st_mode)
+                    if is_file and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
+                    if is_file and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
+                    if c["since"] is not None and datetime.fromtimestamp(stat.st_mtime) < c["since"]: continue
+                    if is_file and not content_matches(path, c["content"], c["case"],on_error=lambda:messages.put(('skipped',))): continue
+                    if is_dir and c["content"]: continue
+                    messages.put(("item", path, stat)); count += 1
+                except (OSError,ValueError,OverflowError): messages.put(('skipped',)); continue
+        messages.put(("done", count, cancel_event.is_set(), count >= RESULT_LIMIT))
+    except BaseException as exc:
+        if log:log.exception('search.worker.failed',exc)
+        messages.put(("error", str(exc)))
+
+
 class SearchWindow(tk.Toplevel):
     def __init__(self, master, config, save_config, start_path, on_go, on_preview,
                  on_compare=None, on_send_listing=None):
@@ -39980,39 +40081,16 @@ class SearchWindow(tk.Toplevel):
         self._progress_started = time.monotonic(); self._elapsed_finished = None
         self.progress.stop(); self.progress.configure(mode="indeterminate", maximum=100, value=0); self.progress.start(30)
         self._show_search_state()
-        self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
+        self.worker = threading.Thread(target=search_files,
+            args=(criteria,self.cancel_event,self.messages,getattr(self.master,'debug_log',None)),
+            name='PFC-Search',daemon=True)
+        self.worker.start(); self._poll()
 
     def _search(self, c):
-        count = 0; processed_folders = 0; discovered_folders = 1
-        try:
-            for current, dirs, files in os.walk(c["root"],onerror=lambda exc:self.messages.put(('skipped',))):
-                if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
-                depth = len(Path(current).relative_to(c["root"]).parts)
-                folder_names = list(dirs)
-                if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
-                discovered_folders += len(dirs)
-                processed_folders += 1
-                self.messages.put(("progress", processed_folders, discovered_folders))
-                candidates = ([Path(current) / name for name in folder_names] if c["folders"] else []) + ([Path(current) / name for name in files] if c["files"] else [])
-                for path in candidates:
-                    if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
-                    try:
-                        stat = path.stat()
-                        is_file=statlib.S_ISREG(stat.st_mode)
-                        is_dir=statlib.S_ISDIR(stat.st_mode)
-                        if not name_matches(path.name, c["masks"], c["case"]): continue
-                        if is_file and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
-                        if is_file and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
-                        if c["since"] is not None and datetime.fromtimestamp(stat.st_mtime) < c["since"]: continue
-                        if is_file and not content_matches(path, c["content"], c["case"],on_error=lambda:self.messages.put(('skipped',))): continue
-                        if is_dir and c["content"]: continue
-                        self.messages.put(("item", path, stat)); count += 1
-                    except (OSError,ValueError,OverflowError): self.messages.put(('skipped',)); continue
-            self.messages.put(("done", count, self.cancel_event.is_set(), count >= RESULT_LIMIT))
-        except BaseException as exc:
-            log=getattr(getattr(self,'master',None),'debug_log',None)
-            if log:log.exception('search.worker.failed',exc)
-            self.messages.put(("error", str(exc)))
+        # Compatibility for direct backend callers; the actual Thread target
+        # is the data-only function above, never this bound window method.
+        return search_files(c,self.cancel_event,self.messages,
+                            getattr(getattr(self,'master',None),'debug_log',None))
 
     def _poll(self):
         self.poll_job = None
@@ -40216,15 +40294,18 @@ class SearchWindow(tk.Toplevel):
     def destroy(self):
         if getattr(self,'_destroying',False):return
         self._destroying=True
-        self.cancel_event.set()
+        cancel=getattr(self,'cancel_event',None)
+        if cancel is not None:cancel.set()
         for name in ('_reset_job','poll_job','_column_resize_job'):
             job=getattr(self,name,None)
             if job is not None:
                 try:self.after_cancel(job)
                 except tk.TclError:pass
                 setattr(self,name,None)
-        try:self.progress.stop()
-        except tk.TclError:pass
+        progress=getattr(self,'progress',None)
+        if progress is not None:
+            try:progress.stop()
+            except tk.TclError:pass
         super().destroy()
         release_owned_variables(self,'path_var','mask_var','content_var','case_var','depth_var',
                                 'files_var','folders_var','min_size_var','max_size_var',
@@ -41033,6 +41114,7 @@ from tkinter import messagebox, ttk
 
 
 
+
 @dataclass
 class SpaceNode:
     path: Path
@@ -41236,15 +41318,16 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         self.stop_button.state(["!disabled"])
         self.scan_button.state(["disabled"])
 
+        cancel,messages=self._cancel_event,self._messages
         def worker():
             try:
-                self._messages.put(("done", scan_space(target, self._cancel_event)))
+                messages.put((cancel,"done", scan_space(target, cancel)))
             except InterruptedError:
-                self._messages.put(("cancelled", None))
+                messages.put((cancel,"cancelled", None))
             except Exception as exc:
-                self._messages.put(("error", exc))
+                messages.put((cancel,"error", exc))
 
-        self._worker = threading.Thread(target=worker, daemon=True)
+        self._worker = threading.Thread(target=worker,name='PFC-Space-Scan',daemon=True)
         self._worker.start()
         if self._poll_job is None:
             self._poll()
@@ -41252,7 +41335,9 @@ class SpaceAnalyzerWindow(tk.Toplevel):
     def _poll(self) -> None:
         self._poll_job = None
         try:
-            kind, value = self._messages.get_nowait()
+            while True:
+                token,kind,value=self._messages.get_nowait()
+                if token is self._cancel_event:break
         except queue.Empty:
             if self.winfo_exists():
                 self._poll_job = self.after(80, self._poll)
@@ -41423,14 +41508,19 @@ class SpaceAnalyzerWindow(tk.Toplevel):
             self._confirm_go_to(self.selected_node)
 
     def close(self) -> None:
-        self._cancel_event.set()
-        if self._poll_job is not None:
-            self.after_cancel(self._poll_job)
-            self._poll_job = None
-        if self._click_job is not None:
-            self.after_cancel(self._click_job)
-            self._click_job = None
         self.destroy()
+
+    def destroy(self):
+        cancel=getattr(self,'_cancel_event',None)
+        if cancel is not None:cancel.set()
+        for name in ('_poll_job','_click_job','_resize_job'):
+            job=getattr(self,name,None)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
+        super().destroy()
+        release_owned_variables(self,'path_var','status_var')
 
 
 def palette_color(palette: dict, key: str, fallback: str) -> str:
@@ -43691,6 +43781,10 @@ class FilePane(ttk.Frame):
                 try:self.after_cancel(job)
                 except tk.TclError:pass
                 setattr(self,name,None)
+        release_owned_variables(self,'quick_filter_var','path_var','_view_mode_selection')
+        release_owned_images(self,'_row_icons','_home_images','_home_menu_images')
+        icons=getattr(self,'icons',None)
+        if icons is not None:release_owned_images(icons,'cache','blank')
 
     def _apply_vcs_icons(self, previous: dict[str, str] | None = None) -> None:
         previous = previous or {}

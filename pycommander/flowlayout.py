@@ -4,6 +4,15 @@ from tkinter import ttk, TclError
 
 def schedule_owned_idle(widget, key, callback):
     """Coalesce idle work and cancel it before its widget's Tcl commands die."""
+    return _schedule_owned_callback(widget,key,callback)
+
+
+def schedule_owned_after(widget,key,delay,callback):
+    """One pending timed callback per key, cancelled with its owning widget."""
+    return _schedule_owned_callback(widget,key,callback,delay)
+
+
+def _schedule_owned_callback(widget,key,callback,delay=None):
     try:
         if not widget.winfo_exists():return None
     except TclError:return None
@@ -21,7 +30,7 @@ def schedule_owned_idle(widget, key, callback):
     def run():
         jobs.pop(key,None)
         if widget.winfo_exists():callback()
-    jobs[key]=widget.after_idle(run)
+    jobs[key]=widget.after_idle(run) if delay is None else widget.after(delay,run)
     return jobs[key]
 
 

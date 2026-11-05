@@ -5,6 +5,7 @@ from tkinter import ttk
 
 from .marquee import forward_tree_event
 from .columnsettings import font_snapshot
+from .dialogs import release_owned_fonts
 
 
 class SizeUnitCells:
@@ -119,3 +120,4 @@ class SizeUnitCells:
         if event.widget is self.tree:
             self.closed = True
             self.hide()
+            release_owned_fonts(self,'bold')

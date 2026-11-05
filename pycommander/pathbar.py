@@ -8,6 +8,7 @@ from tkinter import ttk
 from .i18n import tr
 from .tooltip import ToolTip
 from .columnsettings import font_snapshot
+from .dialogs import release_owned_fonts
 
 
 def path_ancestors(path):
@@ -90,7 +91,9 @@ class PathBar(ttk.Frame):
                 self._redraw_job = None
             self._owner.unbind("<FocusIn>", self._focus_binding)
             self.variable.trace_remove("write", self._trace)
+            self.variable=None  # Borrowed from the pane; do not retain it in a destroyed cycle.
             self.tooltip.hide()
+            release_owned_fonts(self,'normal','link','bold')
 
     def _changed(self, *_):
         if not self.editing:

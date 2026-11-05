@@ -181,9 +181,16 @@ class SettingsDialog(tk.Toplevel):
         # Snapshot the actual interface font, including automatic scaling.
         # Draft changes do not move controls until Apply; never shrink reading text.
         base = tkfont.nametofont('TkDefaultFont')
-        self.font = tkfont.Font(self, **font_snapshot(base))
-        self.heading_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size'), weight='bold'))
-        self.small_font = tkfont.Font(self, **dict(self.font.actual(), size=self.font.cget('size')))
+        # Ttk's resource cache and readable-choice styles retain font names.
+        # Reuse root-owned names instead of feeding them a new, subsequently
+        # deleted font on every reopen (native GDI handles then keep growing).
+        fonts=getattr(app,'_settings_fonts',None)
+        if fonts is None:
+            fonts=app._settings_fonts={role:tkfont.Font(app) for role in ('normal','heading','small')}
+        self.font,self.heading_font,self.small_font=(fonts[role] for role in ('normal','heading','small'))
+        self.font.configure(**font_snapshot(base))
+        self.heading_font.configure(**font_snapshot(self.font,weight='bold'))
+        self.small_font.configure(**font_snapshot(self.font))
         self.specs = preference_specs(app)
         self.vars, self.original = {}, {}
         for key, _cat, _group, _label, choices, _method in self.specs:
@@ -298,6 +305,7 @@ class SettingsDialog(tk.Toplevel):
         self.show_page(self.category)
 
     def _layout_navigation(self, event):
+        if getattr(self,'_destroying',False):return
         if event.widget is not self.nav.master: return
         longest = max(self.font.measure(tr(label)) for _,label in SETTINGS_CATEGORIES)
         compact = longest > event.width*.26
@@ -320,6 +328,7 @@ class SettingsDialog(tk.Toplevel):
         readable_check_style(self, self.font, dark, 'Prefs')
 
     def _resize(self, event):
+        if getattr(self,'_destroying',False):return
         self.canvas.itemconfigure(self.page_id,width=event.width)
         self._scroll_region()
         self.intro.configure(wraplength=max(100,event.width-12))
@@ -329,6 +338,7 @@ class SettingsDialog(tk.Toplevel):
         self._layout_cards(event.width)
 
     def _scroll_region(self):
+        if getattr(self,'_destroying',False):return
         bounds = self.canvas.bbox('all')
         if bounds:
             self.canvas.configure(scrollregion=(0, 0, max(bounds[2], self.canvas.winfo_width()),
@@ -353,6 +363,7 @@ class SettingsDialog(tk.Toplevel):
         self._schedule_shots()
 
     def _layout_cards(self, width):
+        if getattr(self,'_destroying',False):return
         cards = getattr(self, '_comparison_cards', [])
         # Readable titles and diagrams take precedence over a forced two-column
         # layout. Keep Before first, After second in compact/high-scale windows.
@@ -409,6 +420,7 @@ class SettingsDialog(tk.Toplevel):
         return label
 
     def show_page(self, category):
+        if getattr(self,'_destroying',False):return
         self.category=category
         index=[key for key,_label in SETTINGS_CATEGORIES].index(category)
         self.compact_nav.current(index)
@@ -500,6 +512,7 @@ class SettingsDialog(tk.Toplevel):
         self._page_top_job=self.after_idle(self._show_page_top)
 
     def _show_page_top(self):
+        if getattr(self,'_destroying',False):return
         # Rebuilding a differently sized page changes the scrollregion after
         # show_page returns. Reset after geometry settles, not against the old
         # page's region (which can strand the preview above the viewport).
@@ -599,9 +612,11 @@ class SettingsDialog(tk.Toplevel):
         popup.update_idletasks();button.focus_force()
 
     def _schedule_shots(self):
+        if getattr(self,'_destroying',False):return
         if self._shot_job is None:self._shot_job=self.after_idle(self._update_shots)
 
     def _update_shots(self):
+        if getattr(self,'_destroying',False):return
         if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
         width=max(120,(self.comparison.winfo_width()-26)//2)
         # Crop the relevant tab/path/list detail, then resize with smaller steps
@@ -772,7 +787,8 @@ class SettingsDialog(tk.Toplevel):
         release_owned_images(self,'_shot_sources','images')
         for label,_values in getattr(self,'preview_labels',[]):
             release_owned_images(label,'image')
-        release_owned_fonts(self,'font','heading_font','small_font','sample_font')
+        release_owned_fonts(self,'sample_font')
+        self.font=self.heading_font=self.small_font=None  # Borrowed root-owned style fonts.
         # All are draft-owned, never the application's shared preferences.
         release_owned_variables(self,'vars','status_var','prefix_rows')
 
@@ -792,6 +808,7 @@ class SettingsDialog(tk.Toplevel):
         return self._scroll(-1 if event.delta>0 else 1)
 
     def _reveal_focus(self,event):
+        if getattr(self,'_destroying',False):return
         widget=event.widget
         if not str(widget).startswith(str(self.page)+'.'):return
         self.update_idletasks()

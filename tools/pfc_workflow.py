@@ -25,14 +25,14 @@ import uuid
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = 1
 GROUPS = {
-    'search': ('search_visibility', 'search_results', 'search_archive', 'ux_walkthrough', 'compact_tasks', 'deep_tasks'),
+    'search': ('search_visibility', 'search_results', 'search_archive', 'ux_walkthrough', 'compact_tasks', 'deep_tasks', 'search_worker_lifetime', 'early_close'),
     'tooltip': ('tooltip', 'nested_menu', 'context_settings', 'pathbar'),
     'tree': ('folder_scroll', 'folder_navigation', 'folder_sticky', 'folder_hierarchy', 'folder_leaf'),
-    'preview': ('startup_registry', 'preview_tabs', 'markdown_reading', 'markdown_workspace', 'render_formats', 'structure_search', 'render_reliability', 'structure_matches', 'structure_wrap', 'structure_expand'),
-    'settings': ('laptop_layout', 'control_scaling', 'settings', 'settings_previews', 'settings_layout', 'column_menu', 'settings_readability_groups', 'interaction_layout', 'compact_chrome', 'compact_tasks', 'surface_walkthrough', 'zoom'),
-    'tabs': ('startup_registry', 'single_panel', 'tab_panel_drag', 'tab_lock', 'workflow_features', 'deep_tasks', 'surface_walkthrough'),
+    'preview': ('startup_registry', 'preview_tabs', 'markdown_reading', 'markdown_workspace', 'render_formats', 'structure_search', 'render_reliability', 'structure_matches', 'structure_wrap', 'structure_expand', 'tk_ownership', 'early_close'),
+    'settings': ('laptop_layout', 'control_scaling', 'settings', 'settings_previews', 'settings_layout', 'column_menu', 'settings_readability_groups', 'interaction_layout', 'compact_chrome', 'compact_tasks', 'surface_walkthrough', 'zoom', 'screen_transition', 'column_layout', 'dialog_lifecycle', 'early_close', 'tk_ownership', 'gdi_lifetime'),
+    'tabs': ('startup_registry', 'single_panel', 'tab_panel_drag', 'tab_lock', 'workflow_features', 'deep_tasks', 'surface_walkthrough', 'tk_ownership'),
     'vcs': ('vcs_actions', 'vcs_gui'),
-    'compare': ('review_compare', 'workflow_features', 'compact_chrome', 'compact_tasks', 'deep_tasks'),
+    'compare': ('review_compare', 'workflow_features', 'compact_chrome', 'compact_tasks', 'deep_tasks', 'tk_ownership'),
     'workflow': (),
 }
 

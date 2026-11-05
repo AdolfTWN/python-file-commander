@@ -58,7 +58,7 @@ from .operationui import OperationResultWindow
 from .singlepanel import RootFolderTree, SharedTabBar
 from .windowplacement import WindowVisibilityGuard, popup_work_area
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
-from .dialogs import install_scaled_messageboxes, release_owned_variables
+from .dialogs import install_scaled_messageboxes, release_owned_variables, release_owned_images
 from .debuglog import DiagnosticLog, diagnostic_records, diagnostic_incidents, diagnostic_summary
 from .columnsettings import font_snapshot
 from .actionbar import ActionBarLayout
@@ -1535,6 +1535,10 @@ class FilePane(ttk.Frame):
                 try:self.after_cancel(job)
                 except tk.TclError:pass
                 setattr(self,name,None)
+        release_owned_variables(self,'quick_filter_var','path_var','_view_mode_selection')
+        release_owned_images(self,'_row_icons','_home_images','_home_menu_images')
+        icons=getattr(self,'icons',None)
+        if icons is not None:release_owned_images(icons,'cache','blank')
 
     def _apply_vcs_icons(self, previous: dict[str, str] | None = None) -> None:
         previous = previous or {}

@@ -2,13 +2,23 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock
 
-from pycommander.flowlayout import schedule_owned_idle
+from pycommander.flowlayout import schedule_owned_idle, schedule_owned_after
 
 
 class OwnedIdleTests(unittest.TestCase):
     def widget(self):
         return SimpleNamespace(winfo_exists=Mock(return_value=True),
-                               after_idle=Mock(return_value='token'),after_cancel=Mock(),bind=Mock())
+                               after_idle=Mock(return_value='token'),after=Mock(return_value='timed'),after_cancel=Mock(),bind=Mock())
+
+    def test_timer_and_idle_share_ownership_but_different_keys(self):
+        widget=self.widget();callback=Mock()
+        self.assertEqual(schedule_owned_after(widget,'poll',60,callback),'timed')
+        schedule_owned_after(widget,'poll',60,callback)
+        widget.after.assert_called_once()
+        widget.after.call_args.args[1]()
+        callback.assert_called_once_with()
+        schedule_owned_idle(widget,'layout',Mock())
+        self.assertEqual(widget.bind.call_count,1)
 
     def test_duplicate_layout_is_coalesced_and_callback_can_schedule_again(self):
         widget=self.widget();callback=Mock()

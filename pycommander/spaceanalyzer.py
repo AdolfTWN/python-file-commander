@@ -12,6 +12,7 @@ from tkinter import messagebox, ttk
 from .fileops import format_size, _is_linklike
 from .i18n import retranslate_widgets, tr
 from .tooltip import ToolTip
+from .dialogs import release_owned_variables
 
 
 @dataclass
@@ -217,15 +218,16 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         self.stop_button.state(["!disabled"])
         self.scan_button.state(["disabled"])
 
+        cancel,messages=self._cancel_event,self._messages
         def worker():
             try:
-                self._messages.put(("done", scan_space(target, self._cancel_event)))
+                messages.put((cancel,"done", scan_space(target, cancel)))
             except InterruptedError:
-                self._messages.put(("cancelled", None))
+                messages.put((cancel,"cancelled", None))
             except Exception as exc:
-                self._messages.put(("error", exc))
+                messages.put((cancel,"error", exc))
 
-        self._worker = threading.Thread(target=worker, daemon=True)
+        self._worker = threading.Thread(target=worker,name='PFC-Space-Scan',daemon=True)
         self._worker.start()
         if self._poll_job is None:
             self._poll()
@@ -233,7 +235,9 @@ class SpaceAnalyzerWindow(tk.Toplevel):
     def _poll(self) -> None:
         self._poll_job = None
         try:
-            kind, value = self._messages.get_nowait()
+            while True:
+                token,kind,value=self._messages.get_nowait()
+                if token is self._cancel_event:break
         except queue.Empty:
             if self.winfo_exists():
                 self._poll_job = self.after(80, self._poll)
@@ -404,14 +408,19 @@ class SpaceAnalyzerWindow(tk.Toplevel):
             self._confirm_go_to(self.selected_node)
 
     def close(self) -> None:
-        self._cancel_event.set()
-        if self._poll_job is not None:
-            self.after_cancel(self._poll_job)
-            self._poll_job = None
-        if self._click_job is not None:
-            self.after_cancel(self._click_job)
-            self._click_job = None
         self.destroy()
+
+    def destroy(self):
+        cancel=getattr(self,'_cancel_event',None)
+        if cancel is not None:cancel.set()
+        for name in ('_poll_job','_click_job','_resize_job'):
+            job=getattr(self,name,None)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
+        super().destroy()
+        release_owned_variables(self,'path_var','status_var')
 
 
 def palette_color(palette: dict, key: str, fallback: str) -> str:

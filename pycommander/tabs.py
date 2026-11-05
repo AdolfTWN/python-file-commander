@@ -6,6 +6,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import ttk
 from .i18n import tr
+from .dialogs import release_owned_fonts, release_owned_images
 from .tabicons import tab_lock_icon_png
 from .tooltip import ToolTip
 
@@ -186,6 +187,11 @@ def _register_scaled_indicator(menu: tk.Menu, variable, value) -> None:
     if not hasattr(menu, "_pfc_scaled_indicators"):
         menu._pfc_scaled_indicators = []
         menu.configure(postcommand=lambda target=menu: _refresh_scaled_indicators(target))
+        # Variables are borrowed from the owning window, not owned by menus.
+        # Release references when a menu dies without touching shared values.
+        def destroyed(event):
+            if event.widget is menu:menu._pfc_scaled_indicators.clear()
+        menu.bind('<Destroy>',destroyed,add='+')
     index = menu.index('end')
     menu._pfc_scaled_indicators = [entry for entry in menu._pfc_scaled_indicators
                                    if entry[0] < index]
@@ -545,6 +551,11 @@ class _HeaderPopup:
 
 
 class ChamferNotebook(ttk.Frame):
+    def destroy(self):
+        super().destroy()
+        release_owned_fonts(self,'_active_title_font','_group_font')
+        release_owned_images(self,'_lock_images')
+
     """A small Notebook-compatible container with canvas-drawn colored tabs."""
 
     def __init__(self, master, on_color_changed=None, on_lock_changed=None,

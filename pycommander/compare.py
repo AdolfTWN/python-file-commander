@@ -27,7 +27,8 @@ from .workbookui import WorkbookCompare
 from .archivereviewui import ArchiveReviewCompare
 from .comparecolors import comparison_colors, style_comparison_text
 from .columnsettings import font_snapshot
-from .flowlayout import FlowToolbar
+from .flowlayout import FlowToolbar, schedule_owned_idle, schedule_owned_after
+from .dialogs import release_owned_variables, release_owned_images
 
 
 TEXT_SUFFIXES = {".txt", ".md", ".py", ".json", ".xml", ".html", ".htm", ".css", ".js",
@@ -271,6 +272,10 @@ class DifferenceMap(tk.Canvas):
 
 
 class SideBySideText(ttk.Frame):
+    def destroy(self):
+        super().destroy()
+        release_owned_variables(self,'search_var','case_var','view_mode_var','marker_position_var')
+
     def __init__(self, master, left_lines, right_lines, differences, status_text="", status_factory=None,
                  left_title="", right_title="", marker_position="middle", marker_changed=None,
                  editable=False, save_left=None, save_right=None):
@@ -959,6 +964,18 @@ class SyncPlanDialog(tk.Toplevel):
 
 
 class _FolderCompareLogic(ttk.Frame):
+    def destroy(self):
+        cancel=getattr(self,'_cancel_event',None)
+        if cancel is not None:cancel.set()
+        progress=getattr(self,'activity_progress',None)
+        if progress is not None:
+            try:progress.stop()
+            except tk.TclError:pass
+        super().destroy()
+        release_owned_variables(self,'mask_var','recursive_var','content_var','text_equivalent_var',
+                                'view_mode_var','search_var','case_var','marker_position_var','exclude_var')
+        release_owned_images(self,'_diff_icons')
+
     DIFF_FILTERS = {
         "all": None,
         "differences": {"Different", "Type mismatch", "Unknown", "Left newer", "Right newer",
@@ -1281,17 +1298,17 @@ class _FolderCompareLogic(ttk.Frame):
             except OSError as exc:
                 results.put((cancel, [], str(exc)))
         threading.Thread(target=worker, daemon=True).start()
-        self.after(60, self._poll_scan)
+        schedule_owned_after(self,'scan-poll',60,self._poll_scan)
         return "break"
 
     def _poll_scan(self):
         try:
             cancel, rows, error = self._scan_queue.get_nowait()
         except queue.Empty:
-            if self.winfo_exists() and self._scanning: self.after(60, self._poll_scan)
+            if self.winfo_exists() and self._scanning:schedule_owned_after(self,'scan-poll',60,self._poll_scan)
             return
         if cancel is not self._cancel_event:
-            if self.winfo_exists() and self._scanning: self.after(60, self._poll_scan)
+            if self.winfo_exists() and self._scanning:schedule_owned_after(self,'scan-poll',60,self._poll_scan)
             return
         self._scanning = False
         if hasattr(self,'activity_progress'):
@@ -2416,6 +2433,15 @@ class TableCompare(TextCompare):
 
 
 class CompareWindow(tk.Toplevel):
+    def destroy(self):
+        job=getattr(self,'_refresh_job',None)
+        if job is not None:
+            try:self.after_cancel(job)
+            except tk.TclError:pass
+            self._refresh_job=None
+        super().destroy()
+        getattr(self,'comparisons',{}).clear()
+
     def __init__(self, master, config, save_config, sync_executor=None):
         super().__init__(master)
         self.config_data, self.save_config = config, save_config
@@ -2629,7 +2655,7 @@ class CompareWindow(tk.Toplevel):
         handler = getattr(frame, "apply_scale", None)
         if callable(handler):
             handler(self.scale)
-        self.notebook.select(frame); self.after_idle(self.activate)
+        self.notebook.select(frame);schedule_owned_idle(self,'activate',self.activate)
         return frame
 
     def activate(self):

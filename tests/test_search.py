@@ -1,5 +1,8 @@
 import tempfile
 import unittest
+import threading
+import queue
+from unittest.mock import patch
 from pathlib import Path
 
 from pycommander.search import SearchWindow, content_matches, name_matches, search_column_widths, search_attributes
@@ -8,6 +11,24 @@ from types import SimpleNamespace
 
 
 class SearchTests(unittest.TestCase):
+    def test_selective_search_does_not_stat_unmatched_names_and_still_descends_unmatched_folders(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw);nested=root/'not-a-markdown-folder';nested.mkdir()
+            (root/'ignored.txt').write_text('unrelated')
+            hit=nested/'report.md';hit.write_text('NEEDLE')
+            window=SimpleNamespace(cancel_event=threading.Event(),messages=queue.Queue())
+            criteria=dict(root=root,masks='*.md',case=False,max_depth=None,files=True,folders=True,
+                          min_size=None,max_size=None,since=None,content='NEEDLE')
+            original=Path.stat;calls=[]
+            def stat(path,*a,**kw):
+                calls.append(path);return original(path,*a,**kw)
+            with patch.object(Path,'stat',stat):SearchWindow._search(window,criteria)
+            messages=list(window.messages.queue)
+            self.assertEqual([row[1] for row in messages if row[0]=='item'],[hit])
+            self.assertNotIn(root/'ignored.txt',calls);self.assertNotIn(nested,calls)
+            self.assertEqual(calls,[hit])
+            self.assertEqual(messages[-1],('done',1,False,False))
+
     def test_size_units_and_validation(self):
         def var(value):return SimpleNamespace(get=lambda:value)
         window=SimpleNamespace(depth_values={},depth_var=var('All'),path_var=var('.'),

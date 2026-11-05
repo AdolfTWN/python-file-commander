@@ -1,5 +1,7 @@
 import tempfile
 import unittest
+import queue
+import threading
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -10,6 +12,27 @@ from pycommander.spaceanalyzer import (
 
 
 class SpaceAnalyzerTests(unittest.TestCase):
+    def poll_owner(self):
+        token=threading.Event()
+        return SimpleNamespace(_poll_job=None,_cancel_event=token,_messages=queue.Queue(),
+            winfo_exists=Mock(return_value=True),after=Mock(return_value='poll'),
+            scan_button=Mock(),stop_button=Mock(),status_var=Mock(),_redraw=Mock(),_poll=Mock(),root_node=None)
+
+    def test_stale_cancel_does_not_finish_a_newer_scan(self):
+        window=self.poll_owner();window._messages.put((threading.Event(),'cancelled',None))
+        SpaceAnalyzerWindow._poll(window)
+        window.scan_button.state.assert_not_called();window.status_var.set.assert_not_called()
+        window.after.assert_called_once();self.assertEqual(window._poll_job,'poll')
+
+    def test_newest_result_survives_older_success_and_failure(self):
+        window=self.poll_owner();node=SpaceNode(Path('new'),10,True)
+        window._messages.put((threading.Event(),'done',SpaceNode(Path('old'),1,True)))
+        window._messages.put((threading.Event(),'error',OSError('old scan failed')))
+        window._messages.put((window._cancel_event,'done',node))
+        SpaceAnalyzerWindow._poll(window)
+        self.assertIs(window.root_node,node);window._redraw.assert_called_once_with()
+        window.scan_button.state.assert_called_once_with(['!disabled'])
+
     def test_scan_space_totals_nested_files(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)

@@ -58,6 +58,36 @@ are measured observations rather than a universal percentage guarantee. Earlier
 fixtures stored their INI beside data; the final comparison separates preferences
 from the active folder to avoid configuration writes triggering folder refreshes.
 
+For a separate actual F4 search of 50,000 fixed files (500 name-mask hits), ABBA
+completion medians were 0.60–0.64 seconds before and about 0.38 seconds after
+checking the name mask before stat. Result sets stayed identical; file-stat calls
+fell from 50,000 to 500. This is selective-mask evidence on Linux with shared
+host load, not a general filesystem/Windows speed guarantee.
+
+## Failures found by endurance, not covered by short-suite success
+
+The first C4 source/portable suite passed 143 checks, but its separate source
+long-lived process crashed after 1,270.8 seconds / roughly 592 cycles. The
+automatic native-crash mechanism recovered the real SIGSEGV with version/time
+and a sanitized Python stack. Core inspection locates Tk 8.6.14's pack-manager
+unlink path during Settings preview destruction. The precise application-level
+cause remains under investigation; teardown guards are a candidate defense,
+not yet a claim that the native crash is fixed.
+
+C4 Windows ARM64 and x64 endurance attempts both stopped near cycle 296 on the
+same resource-growth guardrail: approximately two native GDI handles added per
+cycle, exceeding a warmed baseline by 528 handles. Stage attribution showed
+Settings reopen/close caused growth, while settled Preview/Search added none.
+The next candidate reuses root-owned Settings style-font names, keeping them
+valid for Ttk/readable-choice caches. Initial ARM64 stage tests are bounded;
+x64 and renewed hour-long checks remain required. Guardrails were not raised.
+
+Further regressions cover closed file-tab/Compare resource disposal, cancelled
+Search workers retaining no Tk window, stale disk-space scans not stranding a
+new scan, partial Search construction cleanup, real cross-filesystem movement
+on Linux, and link-safe deletion of disposable fixtures. Full relevant suites,
+dual-runtime validation and final release acceptance are still in progress.
+
 ## Display coverage boundaries
 
 Win11-ARM64-VM currently enumerates only one head and 1920x1080 / 32bpp / 64Hz.

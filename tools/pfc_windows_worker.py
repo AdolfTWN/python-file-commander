@@ -22,6 +22,9 @@ ALLOWED = {'deep_tasks_check.py', 'surface_walkthrough_check.py', 'compact_tasks
            'interaction_soak_check.py', 'move_recovery_check.py',
            'dialog_lifecycle_check.py', 'early_close_check.py', 'tcl_diagnostics_check.py',
            'tk_ownership_check.py',
+           'gdi_lifetime_check.py',
+           'search_worker_lifetime_check.py','space_worker_check.py','filesystem_boundary_check.py',
+           'workflow_windows_check.py',
            'folder_scroll_check.py', 'folder_navigation_check.py', 'folder_leaf_check.py', 'settings_readability_groups_check.py',
            'laptop_layout_check.py', 'search_visibility_check.py', 'startup_registry_check.py', 'native_crash_check.py', 'interaction_layout_check.py', 'compact_chrome_check.py', 'review_compare_check.py', 'control_scaling_check.py', 'render_formats_check.py', 'structure_search_check.py', 'render_reliability_check.py', 'markdown_reading_check.py', 'structure_matches_check.py', 'structure_wrap_check.py', 'structure_expand_check.py'}
 

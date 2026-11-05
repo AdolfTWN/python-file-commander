@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import tempfile
 import time
+from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 pfc=importlib.import_module('pfc' if 'pfc' in sys.argv else 'pycommander.app')
@@ -32,6 +33,16 @@ with tempfile.TemporaryDirectory(prefix='pfc-early-close-') as raw:
             window.apply_scale(2.0);window.close();pump(app)
             app.preview_paths([md],md);preview=app.preview_window
             preview.apply_scale(2.0);preview.close();pump(app)
+        # Constructor failures leave a real partial toplevel under the root.
+        # Cleanup must not require controls whose construction never finished.
+        with patch.object(pfc.ttk,'Progressbar',side_effect=pfc.tk.TclError('fixture-constructor-failure')):
+            try:app.search()
+            except pfc.tk.TclError:pass
+            else:raise AssertionError('Fixture did not interrupt Search construction')
+        partials=[w for w in app.winfo_children() if isinstance(w,pfc.SearchWindow)]
+        assert partials,'Expected a partial Search toplevel'
+        for window in partials:window.destroy()
+        pump(app)
         native=app.tk.splitlist(app.tk.call('set','::pfc_test_bgerrors'))
         assert not native,('Native Tcl errors after immediate close',native)
         assert not errors,errors

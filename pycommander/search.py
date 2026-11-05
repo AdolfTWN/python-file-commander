@@ -105,6 +105,39 @@ def content_matches(path: Path, needle: str, case_sensitive: bool, *, on_error=N
         return False
 
 
+def search_files(c,cancel_event,messages,log=None):
+    """Filesystem-only worker: never retain a Tk window/interpreter."""
+    count = 0; processed_folders = 0; discovered_folders = 1
+    try:
+        for current, dirs, files in os.walk(c["root"],onerror=lambda exc:messages.put(('skipped',))):
+            if cancel_event.is_set() or count >= RESULT_LIMIT: break
+            depth = len(Path(current).relative_to(c["root"]).parts)
+            folder_names = list(dirs)
+            if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
+            discovered_folders += len(dirs)
+            processed_folders += 1
+            messages.put(("progress", processed_folders, discovered_folders))
+            candidates = ([Path(current) / name for name in folder_names] if c["folders"] else []) + ([Path(current) / name for name in files] if c["files"] else [])
+            for path in candidates:
+                if cancel_event.is_set() or count >= RESULT_LIMIT: break
+                try:
+                    if not name_matches(path.name, c["masks"], c["case"]): continue
+                    stat = path.stat()
+                    is_file=statlib.S_ISREG(stat.st_mode)
+                    is_dir=statlib.S_ISDIR(stat.st_mode)
+                    if is_file and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
+                    if is_file and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
+                    if c["since"] is not None and datetime.fromtimestamp(stat.st_mtime) < c["since"]: continue
+                    if is_file and not content_matches(path, c["content"], c["case"],on_error=lambda:messages.put(('skipped',))): continue
+                    if is_dir and c["content"]: continue
+                    messages.put(("item", path, stat)); count += 1
+                except (OSError,ValueError,OverflowError): messages.put(('skipped',)); continue
+        messages.put(("done", count, cancel_event.is_set(), count >= RESULT_LIMIT))
+    except BaseException as exc:
+        if log:log.exception('search.worker.failed',exc)
+        messages.put(("error", str(exc)))
+
+
 class SearchWindow(tk.Toplevel):
     def __init__(self, master, config, save_config, start_path, on_go, on_preview,
                  on_compare=None, on_send_listing=None):
@@ -526,39 +559,16 @@ class SearchWindow(tk.Toplevel):
         self._progress_started = time.monotonic(); self._elapsed_finished = None
         self.progress.stop(); self.progress.configure(mode="indeterminate", maximum=100, value=0); self.progress.start(30)
         self._show_search_state()
-        self.worker = threading.Thread(target=self._search, args=(criteria,), daemon=True); self.worker.start(); self._poll()
+        self.worker = threading.Thread(target=search_files,
+            args=(criteria,self.cancel_event,self.messages,getattr(self.master,'debug_log',None)),
+            name='PFC-Search',daemon=True)
+        self.worker.start(); self._poll()
 
     def _search(self, c):
-        count = 0; processed_folders = 0; discovered_folders = 1
-        try:
-            for current, dirs, files in os.walk(c["root"],onerror=lambda exc:self.messages.put(('skipped',))):
-                if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
-                depth = len(Path(current).relative_to(c["root"]).parts)
-                folder_names = list(dirs)
-                if c["max_depth"] is not None and depth >= c["max_depth"]: dirs[:] = []
-                discovered_folders += len(dirs)
-                processed_folders += 1
-                self.messages.put(("progress", processed_folders, discovered_folders))
-                candidates = ([Path(current) / name for name in folder_names] if c["folders"] else []) + ([Path(current) / name for name in files] if c["files"] else [])
-                for path in candidates:
-                    if self.cancel_event.is_set() or count >= RESULT_LIMIT: break
-                    try:
-                        stat = path.stat()
-                        is_file=statlib.S_ISREG(stat.st_mode)
-                        is_dir=statlib.S_ISDIR(stat.st_mode)
-                        if not name_matches(path.name, c["masks"], c["case"]): continue
-                        if is_file and c["min_size"] is not None and stat.st_size < c["min_size"]: continue
-                        if is_file and c["max_size"] is not None and stat.st_size > c["max_size"]: continue
-                        if c["since"] is not None and datetime.fromtimestamp(stat.st_mtime) < c["since"]: continue
-                        if is_file and not content_matches(path, c["content"], c["case"],on_error=lambda:self.messages.put(('skipped',))): continue
-                        if is_dir and c["content"]: continue
-                        self.messages.put(("item", path, stat)); count += 1
-                    except (OSError,ValueError,OverflowError): self.messages.put(('skipped',)); continue
-            self.messages.put(("done", count, self.cancel_event.is_set(), count >= RESULT_LIMIT))
-        except BaseException as exc:
-            log=getattr(getattr(self,'master',None),'debug_log',None)
-            if log:log.exception('search.worker.failed',exc)
-            self.messages.put(("error", str(exc)))
+        # Compatibility for direct backend callers; the actual Thread target
+        # is the data-only function above, never this bound window method.
+        return search_files(c,self.cancel_event,self.messages,
+                            getattr(getattr(self,'master',None),'debug_log',None))
 
     def _poll(self):
         self.poll_job = None
@@ -762,15 +772,18 @@ class SearchWindow(tk.Toplevel):
     def destroy(self):
         if getattr(self,'_destroying',False):return
         self._destroying=True
-        self.cancel_event.set()
+        cancel=getattr(self,'cancel_event',None)
+        if cancel is not None:cancel.set()
         for name in ('_reset_job','poll_job','_column_resize_job'):
             job=getattr(self,name,None)
             if job is not None:
                 try:self.after_cancel(job)
                 except tk.TclError:pass
                 setattr(self,name,None)
-        try:self.progress.stop()
-        except tk.TclError:pass
+        progress=getattr(self,'progress',None)
+        if progress is not None:
+            try:progress.stop()
+            except tk.TclError:pass
         super().destroy()
         release_owned_variables(self,'path_var','mask_var','content_var','case_var','depth_var',
                                 'files_var','folders_var','min_size_var','max_size_var',

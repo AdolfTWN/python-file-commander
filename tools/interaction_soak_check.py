@@ -2,6 +2,7 @@
 import ctypes
 import faulthandler
 import gc
+import hashlib
 import importlib
 import json
 import os
@@ -11,6 +12,7 @@ import tempfile
 import threading
 import time
 import tracemalloc
+from datetime import datetime
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 pfc=importlib.import_module('pfc' if 'pfc' in sys.argv else 'pycommander.app')
@@ -96,7 +98,16 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
     resource_allowance={'commands':400,'images':512,'fonts':100,'timers':100,'threads':16,
                         'gdi_objects':512,'user_objects':256,'private_bytes':256*1024**2}
     if DURATION>180:faulthandler.dump_traceback_later(90,repeat=True)
+    module_path=Path(pfc.__file__)
+    source_bundle=module_path.name=='app.py'
+    files=sorted(module_path.parent.glob('*.py')) if source_bundle else [module_path]
+    candidate=hashlib.sha256()
+    for file in files:
+        if source_bundle:candidate.update(file.name.encode())
+        candidate.update(file.read_bytes())
     print(json.dumps({'event':'interaction.soak.start','version':pfc.__version__,
+                      'system_time':datetime.now().astimezone().isoformat(),'candidate_sha256':candidate.hexdigest(),
+                      'candidate_kind':'source-bundle' if source_bundle else 'portable',
                       'python':sys.version.split()[0],'duration_target_s':DURATION,'memory_instrumented':MEMORY}),flush=True)
     try:
         app.auto_font_size_var.set(False)
