@@ -46,11 +46,19 @@ try:
         assert len(invoked)==40 and all(args==(node,) and kwargs=={'permanent':False} for args,kwargs in invoked)
         if max(menus[5:])!=min(menus[5:]):failures.append(('Context menu count grows',menus[0],menus[-1]))
         if max(commands[5:])-min(commands[5:])>2:failures.append(('Tcl commands grow',commands[5],commands[-1]))
+        with patch.object(window,'_node_at',return_value=node),patch.object(module.messagebox,'askyesno',return_value=False):
+            window._click(SimpleNamespace(x=2,y=2))
+            pending_click=window._click_job
+            window.locate_selected()
+            assert pending_click not in root.tk.splitlist(root.tk.call('after','info')),'Direct Locate lost a pending click callback'
+        # A synchronous selection/scan/scale redraw must consume any delayed
+        # resize callback, not lose its token and leave it alive after close.
+        window._schedule_redraw();window._redraw()
         window.apply_scale(1.5);window.close();window=None
         deadline=time.monotonic()+.2
         while time.monotonic()<deadline:root.update();time.sleep(.005)
         native=root.tk.splitlist(root.tk.call('set','::space_errors'))
-        if native:failures.append(('Native callbacks after close',len(native)))
+        if native:failures.append(('Native callbacks after close',native))
         assert not errors,errors
         assert not failures,failures
         print('PASS: 40 context menu openings retain one menu/bounded commands; scale-close leaves no orphaned callback')

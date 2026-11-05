@@ -279,6 +279,12 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         self._resize_job = self.after(100, self._redraw)
 
     def _redraw(self) -> None:
+        # Also called synchronously by selection/scan/theme changes. Consume
+        # the pending resize timer before clearing its token, or close() can
+        # no longer cancel that callback after the canvas has been destroyed.
+        if self._resize_job is not None:
+            try:self.after_cancel(self._resize_job)
+            except tk.TclError:pass
         self._resize_job = None
         self.canvas.delete("all")
         self._rectangles.clear()
@@ -390,6 +396,11 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         self._redraw()
 
     def _confirm_go_to(self, node: SpaceNode) -> None:
+        # Locate can invoke this before the single-click delay has fired.
+        # Cancel that pending action before dropping its cancellation token.
+        if self._click_job is not None:
+            try:self.after_cancel(self._click_job)
+            except tk.TclError:pass
         self._click_job = None
         if messagebox.askyesno(
                 tr("Go to"),

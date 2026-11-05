@@ -130,7 +130,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         if gap>5 and not MEMORY:failures.append(('event-loop-stall',stage[0],gap))
         beat_job[0]=app.after(20,beat)
     started=time.monotonic();sample_count=0;resource_baseline=None;compare_cycles=0;nested_cycles=0
-    review_cycles=0;review_completed=0
+    review_cycles=0;review_completed=0;space_cycles=0
     resource_allowance={'commands':400,'images':512,'fonts':100,'timers':100,'threads':16,
                         'gdi_objects':512,'user_objects':256,'private_bytes':256*1024**2}
     if DURATION>180:faulthandler.dump_traceback_later(90,repeat=True)
@@ -205,6 +205,14 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
             pump(app,.01 if cycle%2 else .12)
             if search.search_state in ('running','cancelling'):search.cancel()
             search.close();pump(app,.04)
+            if cycle%11==0:
+                stage[0]='space-open-redraw-close'
+                app.show_space_analyzer(folder);pump(app,.03)
+                space=app.space_analyzer_window
+                assert space is not None and space.winfo_exists()
+                space._schedule_redraw();space._redraw()
+                space.apply_scale(1.5);space.close();pump(app,.02)
+                space_cycles+=1
             if cycle%7==0:
                 # Keep inputs bounded during multi-hour runs so resource trends
                 # are not confused with an ever-growing number of files.
@@ -232,7 +240,8 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
                           'max_heartbeat_gap_s':maximum_gap[0],'samples':sample_count,
                           'timing_acceptance':not MEMORY,'target_complete':not stopped,
                           'compare_cycles':compare_cycles,'nested_compare_cycles':nested_cycles,
-                          'wide_review_cycles':review_cycles,'wide_review_completed':review_completed}),flush=True)
+                          'wide_review_cycles':review_cycles,'wide_review_completed':review_completed,
+                          'space_cycles':space_cycles}),flush=True)
     finally:
         if beat_job[0] is not None:app.after_cancel(beat_job[0])
         app.close_app();pfc.messagebox.showerror=original_error
