@@ -64,7 +64,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
     pfc.Commander._find_ini_path=staticmethod(lambda:root/'pfc.ini')
     pfc.Commander._sync_auto_start=lambda *a,**k:True
     pfc.Commander._start_windows_tray=lambda *a:None
-    app=pfc.Commander();failures=[];heartbeat=[];cycle=0
+    app=pfc.Commander();failures=[];maximum_gap=[0.0];cycle=0
     if MEMORY:tracemalloc.start()
     previous_unraisable=sys.unraisablehook;previous_thread=threading.excepthook
     def unraisable(event):
@@ -80,16 +80,18 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
     pfc.messagebox.showerror=lambda *a,**k:failures.append(('error-dialog',str(a[0]) if a else 'error'))
     last=[time.monotonic()];beat_job=[None];stage=['initialization']
     def beat():
-        now=time.monotonic();heartbeat.append(now-last[0]);last[0]=now
-        if heartbeat[-1]>1:print(json.dumps({'event':'interaction.heartbeat.slow','stage':stage[0],'seconds':heartbeat[-1]}),flush=True)
+        now=time.monotonic();gap=now-last[0];last[0]=now
+        maximum_gap[0]=max(maximum_gap[0],gap)
+        if gap>1:print(json.dumps({'event':'interaction.heartbeat.slow','stage':stage[0],'seconds':gap}),flush=True)
+        if gap>5 and not MEMORY:failures.append(('event-loop-stall',stage[0],gap))
         beat_job[0]=app.after(20,beat)
-    started=time.monotonic();snapshots=[]
+    started=time.monotonic();sample_count=0
     print(json.dumps({'event':'interaction.soak.start','version':pfc.__version__,
                       'python':sys.version.split()[0],'duration_target_s':DURATION,'memory_instrumented':MEMORY}),flush=True)
     try:
         app.auto_font_size_var.set(False)
         for pane in app.visible_panes():pane.navigate(folder)
-        pump(app,.4);beat();snapshots.append(sample(app,0))
+        pump(app,.4);beat();sample(app,0);sample_count+=1
         stopped=False
         while time.monotonic()-started<DURATION:
             if STOP_FILE is not None and STOP_FILE.exists():stopped=True;break
@@ -122,16 +124,16 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
                 (folder/f'download-{(cycle//7)%16}.txt').write_text('new file')
                 app.active.refresh();pump(app,.04)
             cycle+=1
-            if cycle%8==0:snapshots.append(sample(app,cycle))
+            if cycle%8==0:sample(app,cycle);sample_count+=1
             assert not failures,failures
         pump(app,1);gc.collect();pump(app,.2)
-        snapshots.append(sample(app,cycle))
+        sample(app,cycle);sample_count+=1
         assert not failures,failures
         assert cycle>=min(8,DURATION//2),('Too few completed scenarios',cycle)
-        if not MEMORY:assert max(heartbeat,default=0)<5,('Event loop stalled',max(heartbeat))
+        if not MEMORY:assert maximum_gap[0]<5,('Event loop stalled',maximum_gap[0])
         print(json.dumps({'event':'interaction.soak.stopped' if stopped else 'interaction.soak.passed','cycles':cycle,
                           'seconds':round(time.monotonic()-started,3),
-                          'max_heartbeat_gap_s':max(heartbeat),'samples':len(snapshots),
+                          'max_heartbeat_gap_s':maximum_gap[0],'samples':sample_count,
                           'timing_acceptance':not MEMORY,'target_complete':not stopped}),flush=True)
     finally:
         if beat_job[0] is not None:app.after_cancel(beat_job[0])
