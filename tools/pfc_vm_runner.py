@@ -448,7 +448,8 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
             if result['status']=='passed' and 'control_scaling_check.py' in checks:
                 from PIL import Image
                 import io
-                for name in ('compare-200', 'rename-200', 'settings-appearance-200', 'settings-layout-200', 'confirmation-200'):
+                for name in ('compare-200', 'rename-200', 'settings-appearance-200', 'settings-layout-200', 'confirmation-200',
+                             'search-states-light', 'search-states-dark'):
                     data=guest.image_data(directory+'\\evidence-control-'+name+'.bmp')
                     (evidence_dir/('control-'+name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('control-'+name+'.png'))
