@@ -16,6 +16,7 @@ from .settingsshots import SETTINGS_SHOTS
 from .settingspreview import SettingsSamplePreview, SettingsLayoutPreview
 from .windowplacement import popup_work_area, position_popup_in_work_area
 from .icons import _distance_to_segment, _hex_rgba, _rgba_png_downsample
+from .dialogs import release_owned_variables
 
 
 SETTINGS_CATEGORIES = (
@@ -413,6 +414,7 @@ class SettingsDialog(tk.Toplevel):
         self.compact_nav.current(index)
         if self.nav.curselection()!=(index,):
             self.nav.selection_clear(0,'end');self.nav.selection_set(index);self.nav.activate(index)
+        release_owned_variables(self,'prefix_rows')
         for child in self.page.winfo_children():child.destroy()
         for child in self.comparison.winfo_children():child.destroy()
         self.controls={};self.images=[];self.wrap_labels=[];self.preview_labels=[];self.date_example=None
@@ -751,10 +753,21 @@ class SettingsDialog(tk.Toplevel):
         self.title(tr('PFC Settings'));self._build();self.nav.focus_set()
 
     def cancel(self):
-        if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
-        if self._page_top_job is not None:self.after_cancel(self._page_top_job);self._page_top_job=None
         self.grab_release();self.destroy()
         self.app._schedule_auto_font_size()
+
+    def destroy(self):
+        if getattr(self,'_destroying',False):return
+        self._destroying=True
+        for name in ('_shot_job','_page_top_job'):
+            job=getattr(self,name,None)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
+        super().destroy()
+        # All are draft-owned, never the application's shared preferences.
+        release_owned_variables(self,'vars','status_var','prefix_rows')
 
     def _key_event(self,event):
         if event.keysym in ('Tab','ISO_Left_Tab'):

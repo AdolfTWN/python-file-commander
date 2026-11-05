@@ -2,6 +2,29 @@
 from tkinter import ttk, TclError
 
 
+def schedule_owned_idle(widget, key, callback):
+    """Coalesce idle work and cancel it before its widget's Tcl commands die."""
+    try:
+        if not widget.winfo_exists():return None
+    except TclError:return None
+    jobs=getattr(widget,'_pfc_owned_idle_jobs',None)
+    if jobs is None:
+        jobs={};widget._pfc_owned_idle_jobs=jobs
+        def destroyed(event):
+            if event.widget is not widget:return
+            for token in tuple(jobs.values()):
+                try:widget.after_cancel(token)
+                except TclError:pass
+            jobs.clear()
+        widget.bind('<Destroy>',destroyed,add='+')
+    if key in jobs:return jobs[key]
+    def run():
+        jobs.pop(key,None)
+        if widget.winfo_exists():callback()
+    jobs[key]=widget.after_idle(run)
+    return jobs[key]
+
+
 def guard_dialog_keys(window):
     """Keep main-window shortcuts out, without swallowing focus traversal.
 

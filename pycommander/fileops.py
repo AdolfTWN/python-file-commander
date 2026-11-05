@@ -92,12 +92,25 @@ def _replace_transactional(source: Path, target: Path, move: bool) -> None:
     target.rename(backup)
     try:
         _copy_or_move(source, target, move)
-    except (OSError, shutil.Error):
+    except (OSError, shutil.Error) as exc:
+        recovery = None
         try:
-            if os.path.lexists(filesystem_path(target)): _remove_existing(target)
+            if os.path.lexists(filesystem_path(target)):
+                if move:
+                    # Cross-filesystem shutil.move copies then removes source
+                    # children. A failure during removal can leave the ONLY
+                    # remaining copy in target. Never delete it during rollback.
+                    recovery = unique_target(target.with_name(f".{target.name}.pfc-failed-move"))
+                    target.rename(recovery)
+                else:
+                    _remove_existing(target)
             backup.rename(target)
-        except OSError:
-            pass
+        except OSError as rollback_error:
+            raise OSError(f"{exc}; rollback incomplete ({rollback_error}). "
+                          f"Original destination backup: {backup}; "
+                          f"move recovery: {recovery or target}") from exc
+        if recovery is not None:
+            raise OSError(f"{exc}; move recovery copy retained at {recovery}") from exc
         raise
     try:
         _remove_existing(backup)

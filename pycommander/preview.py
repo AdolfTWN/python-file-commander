@@ -29,7 +29,7 @@ from .settings import readable_check_style
 from .rendercore import RENDER_EXTENSIONS,RENDER_INPUT_LIMIT,structured_preview,structured_search,table_preview,patch_preview
 from .renderbrowser import raster_preview
 from .renderui import FormatRenderView
-from .flowlayout import FlowToolbar
+from .flowlayout import FlowToolbar, schedule_owned_idle
 
 
 TEXT_EXTENSIONS = {
@@ -1212,11 +1212,12 @@ class PreviewPage(tk.Frame):
         self._configure_effect_fonts()
         self.apply_color_scheme(self.palette)
         if self._format_active:self.render_view.rescale()
-        self.after_idle(self._layout_markdown_tools)
-        self.after_idle(self._layout_find)
-        self.after_idle(self._layout_file_tools)
+        schedule_owned_idle(self,'markdown-tools',self._layout_markdown_tools)
+        schedule_owned_idle(self,'find-tools',self._layout_find)
+        schedule_owned_idle(self,'file-tools',self._layout_file_tools)
         if self._format_active and self.render_view.model.get('kind')=='image':
-            if self.host.active_page is self:self.after_idle(self.load)
+            if self.host.active_page is self:
+                schedule_owned_idle(self,'image-reload',lambda:self.load() if self.host.active_page is self else None)
             else:self._loaded=False
 
     def apply_color_scheme(self, palette) -> None:

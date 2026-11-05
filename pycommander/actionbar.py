@@ -1,4 +1,4 @@
-"""Single-line action bar: measured widths, stable zoom, no font shrinking."""
+"""Measured action bar: compact first, wrap only when even hotkeys cannot fit."""
 
 import tkinter as tk
 import tkinter.font as tkfont
@@ -83,17 +83,22 @@ class ActionBarLayout:
                 if sum(widths(labels)) <= available:
                     break
         measured = widths(labels)
-        total = sum(measured)
-        spare = max(0, available - total)
         height = font.metrics('linespace') + padding + 4
-        if self.frame.winfo_reqheight() != height:
-            self.frame.configure(height=height)
-        x = 0
-        for i, (button, key, _) in enumerate(self.app.action_buttons):
-            width = measured[i] + spare // len(keys) + (1 if i < spare % len(keys) else 0)
-            # All supported main-window sizes fit the key-only baseline.
-            if button.cget('text') != labels[i]:
-                button.configure(text=labels[i])
-            button.configure(style='Action.TButton')
-            button.place(x=x, y=0, width=max(1, width - 2), height=height)
-            x += width
+        rows = [[]]
+        used = 0
+        for i, width in enumerate(measured):
+            if rows[-1] and used+width > available:
+                rows.append([]);used=0
+            rows[-1].append(i);used+=width
+        if len(rows)>1:self.mode='wrapped'
+        if self.frame.winfo_reqheight() != height*len(rows):
+            self.frame.configure(height=height*len(rows))
+        for row, indices in enumerate(rows):
+            spare=max(0,available-sum(measured[i] for i in indices));x=0
+            for position,i in enumerate(indices):
+                button,key,_=self.app.action_buttons[i]
+                width=measured[i]+spare//len(indices)+(1 if position<spare%len(indices) else 0)
+                if button.cget('text')!=labels[i]:button.configure(text=labels[i])
+                button.configure(style='Action.TButton')
+                button.place(x=x,y=row*height,width=max(1,width-2),height=height)
+                x+=width

@@ -127,6 +127,22 @@ xvfb-run -a python3 tools/zoom_check.py
 xvfb-run -a python3 tools/zoom_check.py pfc
 xvfb-run -a python3 tools/laptop_layout_check.py
 xvfb-run -a python3 tools/laptop_layout_check.py pfc
+xvfb-run -a python3 tools/screen_transition_check.py
+xvfb-run -a python3 tools/screen_transition_check.py pfc
+xvfb-run -a python3 tools/column_layout_check.py
+xvfb-run -a python3 tools/column_layout_check.py pfc
+xvfb-run -a python3 tools/move_recovery_check.py
+xvfb-run -a python3 tools/move_recovery_check.py pfc
+xvfb-run -a python3 tools/operation_soak_check.py
+xvfb-run -a python3 tools/operation_soak_check.py pfc
+xvfb-run -a python3 tools/interaction_soak_check.py
+xvfb-run -a python3 tools/interaction_soak_check.py pfc
+xvfb-run -a python3 tools/dialog_lifecycle_check.py
+xvfb-run -a python3 tools/dialog_lifecycle_check.py pfc
+xvfb-run -a python3 tools/early_close_check.py
+xvfb-run -a python3 tools/early_close_check.py pfc
+xvfb-run -a python3 tools/tcl_diagnostics_check.py
+xvfb-run -a python3 tools/tcl_diagnostics_check.py pfc
 xvfb-run -a python3 tools/pathbar_check.py
 xvfb-run -a python3 tools/pathbar_check.py pfc
 xvfb-run -a python3 tools/pathbar_resume_check.py

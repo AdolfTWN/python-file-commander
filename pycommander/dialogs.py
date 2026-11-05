@@ -17,13 +17,19 @@ def release_owned_variables(owner,*names):
     Tcl trace commands can retain a destroyed tool window until the interpreter
     exits. Never sweep arbitrary attributes: they may be shared preferences.
     """
+    def detach(value):
+        if isinstance(value,tk.Variable):
+            try:
+                for modes,command in value.trace_info():value.trace_remove(modes,command)
+            except tk.TclError:pass  # An already-destroyed interpreter has no traces.
+        elif isinstance(value,dict):
+            for item in value.values():detach(item)
+        elif isinstance(value,(list,tuple)):
+            for item in value:detach(item)
     for name in names:
-        variable=getattr(owner,name,None)
-        if not isinstance(variable,tk.Variable):continue
-        try:
-            for modes,command in variable.trace_info():variable.trace_remove(modes,command)
-        except tk.TclError:pass  # An already-destroyed interpreter has no traces.
-        setattr(owner,name,None)
+        value=getattr(owner,name,None)
+        detach(value)
+        if isinstance(value,(tk.Variable,dict,list,tuple)):setattr(owner,name,None)
 
 
 class ScaledMessageDialog(tk.Toplevel):

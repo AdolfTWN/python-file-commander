@@ -1444,17 +1444,6 @@ class FilePane(ttk.Frame):
         full = self._full_item_name(iid)
         return full if full and self.name_marquee.clipped(iid) else ""
 
-    def _fit_visible_names(self) -> None:
-        def fit(parent=""):
-            for iid in self.tree.get_children(parent):
-                full = self._full_item_name(iid)
-                if full:
-                    self.tree.item(iid, text=full)
-                fit(iid)
-        fit()
-        self.name_marquee.request()
-        self.size_units.request()
-
     def _request_vcs_statuses(self, *, retry=False) -> None:
         if not self.winfo_toplevel().vcs_overlay_var.get():
             return
@@ -2131,6 +2120,7 @@ class FilePane(ttk.Frame):
         self.size_units.sync_font()
         ext_width = extension_column_width(font.measure)
         children = self.tree.get_children()
+        rows = None
         fixed_total = 0
         for value_index, column in enumerate(self.columns):
             if column not in self.tree.cget('displaycolumns'):
@@ -2143,10 +2133,18 @@ class FilePane(ttk.Frame):
             measure = self.size_units.measure if column == "size" else font.measure
             heading_width = font.measure(str(self.tree.heading(column, "text"))) + cell_padding
             measured = heading_width
-            for iid in children:
-                values = self.tree.item(iid, "values")
+            if rows is None:
+                # One immutable Tk snapshot per sizing pass, shared by details.
+                # No persistent cache: edits, font/theme changes and refreshes
+                # must always see the current rows and current measurement font.
+                rows = [self.tree.item(iid, "values") for iid in children]
+            widths = {}
+            for values in rows:
                 if value_index < len(values):
-                    measured = max(measured, measure(str(values[value_index])) + cell_padding)
+                    text = str(values[value_index])
+                    if text not in widths:
+                        widths[text] = measure(text) + cell_padding
+                    measured = max(measured, widths[text])
             minimum, maximum = (heading_width, measured)
             maximum = max(maximum, heading_width)
             width = max(minimum, min(measured, maximum))
@@ -2158,7 +2156,11 @@ class FilePane(ttk.Frame):
         name_minimum = max(120, min(round(available * .45), font.measure('M' * 18)))
         self.tree.column("#0", width=max(name_minimum, available - fixed_total), minwidth=name_minimum,
                          stretch=True)
-        self._fit_visible_names()
+        # Names are already set at insertion/refresh; scrolling uses a clipped
+        # canvas, not destructive label shortening. Do not rewrite every row on
+        # each geometry change (or erase relative-path search labels).
+        self.name_marquee.request()
+        self.size_units.request()
         owner = self.winfo_toplevel()
         if hasattr(owner, '_schedule_auto_font_size') and owner._last_auto_window_size is None:
             owner._schedule_auto_font_size()
@@ -2577,6 +2579,10 @@ class Commander(tk.Tk):
         self.debug_log = DiagnosticLog(__version__, automatic=True,
                                       runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
+        # Tcl may report an already-deleted idle command without entering a
+        # Python callback. Route that separate error channel to automatic logs.
+        background_error=self._register(self._report_tcl_background_error)
+        self.tk.call('proc','bgerror','message',background_error+' $message')
         self.bind('<Destroy>',self._close_diagnostics,add='+')
         diagnostic_log = self.debug_log
         self.bind('<Destroy>', lambda event: diagnostic_log.close()
@@ -3049,6 +3055,8 @@ class Commander(tk.Tk):
     def _schedule_save(self, _event=None) -> None:
         if not self._ready:
             return
+        if _event is not None and _event.widget is not self:
+            return  # Descendant redraws/marquees do not change saved geometry.
         if self._save_job is not None:
             self.after_cancel(self._save_job)
         self._save_job = self.after(250, self.save_config)
@@ -5345,6 +5353,12 @@ class Commander(tk.Tk):
             self.debug_log.exception('preview.request.failed', exc)
             messagebox.showerror(tr('PFC Preview'), tr('Cannot preview file')+'\n'+
                 tr('Diagnostics were recorded automatically. Save them from Help > Error / Warning log.'), parent=self)
+
+    def _report_tcl_background_error(self,message):
+        log=getattr(self,'debug_log',None)
+        if log:log.exception('tk.background.failed',tk.TclError(message))
+        # Never copy arbitrary Tcl text/document values to the console either.
+        super().report_callback_exception(tk.TclError,tk.TclError('Tcl background error; automatic diagnostics recorded.'),None)
 
     def report_callback_exception(self, kind, exc, tb):
         log = getattr(self, 'debug_log', None)

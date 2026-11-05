@@ -1704,12 +1704,25 @@ def _replace_transactional(source: Path, target: Path, move: bool) -> None:
     target.rename(backup)
     try:
         _copy_or_move(source, target, move)
-    except (OSError, shutil.Error):
+    except (OSError, shutil.Error) as exc:
+        recovery = None
         try:
-            if os.path.lexists(filesystem_path(target)): _remove_existing(target)
+            if os.path.lexists(filesystem_path(target)):
+                if move:
+                    # Cross-filesystem shutil.move copies then removes source
+                    # children. A failure during removal can leave the ONLY
+                    # remaining copy in target. Never delete it during rollback.
+                    recovery = unique_target(target.with_name(f".{target.name}.pfc-failed-move"))
+                    target.rename(recovery)
+                else:
+                    _remove_existing(target)
             backup.rename(target)
-        except OSError:
-            pass
+        except OSError as rollback_error:
+            raise OSError(f"{exc}; rollback incomplete ({rollback_error}). "
+                          f"Original destination backup: {backup}; "
+                          f"move recovery: {recovery or target}") from exc
+        if recovery is not None:
+            raise OSError(f"{exc}; move recovery copy retained at {recovery}") from exc
         raise
     try:
         _remove_existing(backup)
@@ -7372,6 +7385,7 @@ import json
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import re
 from pathlib import Path
 import platform
 import traceback
@@ -7617,6 +7631,13 @@ class DiagnosticLog:
             data['reason']='Geometry: int() received a Tcl pixel object.'
         if isinstance(exc, OSError): data.update(errno=exc.errno, winerror=getattr(exc,'winerror',None))
         if isinstance(exc, NameError) and getattr(exc,'name',None): data['name'] = exc.name
+        if tkmodule is not None and isinstance(exc,tkmodule.TclError):
+            missing=re.fullmatch(r'invalid command name "[0-9]+([A-Za-z_][A-Za-z_0-9]{0,60})"',str(exc))
+            if missing:
+                data['reason']='Deleted Tk callback'
+                data['callback']=missing.group(1)
+            elif str(exc).startswith('bad window path name '):
+                data['reason']='Widget no longer exists'
         self.event(event, severity=severity, **data)
 
     def snapshot(self, automatic=False):
@@ -7674,13 +7695,19 @@ def release_owned_variables(owner,*names):
     Tcl trace commands can retain a destroyed tool window until the interpreter
     exits. Never sweep arbitrary attributes: they may be shared preferences.
     """
+    def detach(value):
+        if isinstance(value,tk.Variable):
+            try:
+                for modes,command in value.trace_info():value.trace_remove(modes,command)
+            except tk.TclError:pass  # An already-destroyed interpreter has no traces.
+        elif isinstance(value,dict):
+            for item in value.values():detach(item)
+        elif isinstance(value,(list,tuple)):
+            for item in value:detach(item)
     for name in names:
-        variable=getattr(owner,name,None)
-        if not isinstance(variable,tk.Variable):continue
-        try:
-            for modes,command in variable.trace_info():variable.trace_remove(modes,command)
-        except tk.TclError:pass  # An already-destroyed interpreter has no traces.
-        setattr(owner,name,None)
+        value=getattr(owner,name,None)
+        detach(value)
+        if isinstance(value,(tk.Variable,dict,list,tuple)):setattr(owner,name,None)
 
 
 class ScaledMessageDialog(tk.Toplevel):
@@ -8955,6 +8982,7 @@ from functools import lru_cache
 
 
 
+
 SETTINGS_CATEGORIES = (
     ('appearance', 'Appearance'), ('layout', 'Layout & Tabs'),
     ('columns', 'File Columns'), ('navigation', 'Paths & Operations'),
@@ -9350,6 +9378,7 @@ class SettingsDialog(tk.Toplevel):
         self.compact_nav.current(index)
         if self.nav.curselection()!=(index,):
             self.nav.selection_clear(0,'end');self.nav.selection_set(index);self.nav.activate(index)
+        release_owned_variables(self,'prefix_rows')
         for child in self.page.winfo_children():child.destroy()
         for child in self.comparison.winfo_children():child.destroy()
         self.controls={};self.images=[];self.wrap_labels=[];self.preview_labels=[];self.date_example=None
@@ -9688,10 +9717,21 @@ class SettingsDialog(tk.Toplevel):
         self.title(tr('PFC Settings'));self._build();self.nav.focus_set()
 
     def cancel(self):
-        if self._shot_job is not None:self.after_cancel(self._shot_job);self._shot_job=None
-        if self._page_top_job is not None:self.after_cancel(self._page_top_job);self._page_top_job=None
         self.grab_release();self.destroy()
         self.app._schedule_auto_font_size()
+
+    def destroy(self):
+        if getattr(self,'_destroying',False):return
+        self._destroying=True
+        for name in ('_shot_job','_page_top_job'):
+            job=getattr(self,name,None)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
+        super().destroy()
+        # All are draft-owned, never the application's shared preferences.
+        release_owned_variables(self,'vars','status_var','prefix_rows')
 
     def _key_event(self,event):
         if event.keysym in ('Tab','ISO_Left_Tab'):
@@ -9962,7 +10002,7 @@ def vcs_dialog_command(executable, context, action):
 
 
 # Source: pycommander/actionbar.py
-"""Single-line action bar: measured widths, stable zoom, no font shrinking."""
+"""Measured action bar: compact first, wrap only when even hotkeys cannot fit."""
 
 import tkinter as tk
 import tkinter.font as tkfont
@@ -10047,25 +10087,53 @@ class ActionBarLayout:
                 if sum(widths(labels)) <= available:
                     break
         measured = widths(labels)
-        total = sum(measured)
-        spare = max(0, available - total)
         height = font.metrics('linespace') + padding + 4
-        if self.frame.winfo_reqheight() != height:
-            self.frame.configure(height=height)
-        x = 0
-        for i, (button, key, _) in enumerate(self.app.action_buttons):
-            width = measured[i] + spare // len(keys) + (1 if i < spare % len(keys) else 0)
-            # All supported main-window sizes fit the key-only baseline.
-            if button.cget('text') != labels[i]:
-                button.configure(text=labels[i])
-            button.configure(style='Action.TButton')
-            button.place(x=x, y=0, width=max(1, width - 2), height=height)
-            x += width
+        rows = [[]]
+        used = 0
+        for i, width in enumerate(measured):
+            if rows[-1] and used+width > available:
+                rows.append([]);used=0
+            rows[-1].append(i);used+=width
+        if len(rows)>1:self.mode='wrapped'
+        if self.frame.winfo_reqheight() != height*len(rows):
+            self.frame.configure(height=height*len(rows))
+        for row, indices in enumerate(rows):
+            spare=max(0,available-sum(measured[i] for i in indices));x=0
+            for position,i in enumerate(indices):
+                button,key,_=self.app.action_buttons[i]
+                width=measured[i]+spare//len(indices)+(1 if position<spare%len(indices) else 0)
+                if button.cget('text')!=labels[i]:button.configure(text=labels[i])
+                button.configure(style='Action.TButton')
+                button.place(x=x,y=row*height,width=max(1,width-2),height=height)
+                x+=width
 
 
 # Source: pycommander/flowlayout.py
 """Measured, task-grouped toolbars without shrinking fonts or equal-width waste."""
 from tkinter import ttk, TclError
+
+
+def schedule_owned_idle(widget, key, callback):
+    """Coalesce idle work and cancel it before its widget's Tcl commands die."""
+    try:
+        if not widget.winfo_exists():return None
+    except TclError:return None
+    jobs=getattr(widget,'_pfc_owned_idle_jobs',None)
+    if jobs is None:
+        jobs={};widget._pfc_owned_idle_jobs=jobs
+        def destroyed(event):
+            if event.widget is not widget:return
+            for token in tuple(jobs.values()):
+                try:widget.after_cancel(token)
+                except TclError:pass
+            jobs.clear()
+        widget.bind('<Destroy>',destroyed,add='+')
+    if key in jobs:return jobs[key]
+    def run():
+        jobs.pop(key,None)
+        if widget.winfo_exists():callback()
+    jobs[key]=widget.after_idle(run)
+    return jobs[key]
 
 
 def guard_dialog_keys(window):
@@ -38821,11 +38889,12 @@ class PreviewPage(tk.Frame):
         self._configure_effect_fonts()
         self.apply_color_scheme(self.palette)
         if self._format_active:self.render_view.rescale()
-        self.after_idle(self._layout_markdown_tools)
-        self.after_idle(self._layout_find)
-        self.after_idle(self._layout_file_tools)
+        schedule_owned_idle(self,'markdown-tools',self._layout_markdown_tools)
+        schedule_owned_idle(self,'find-tools',self._layout_find)
+        schedule_owned_idle(self,'file-tools',self._layout_file_tools)
         if self._format_active and self.render_view.model.get('kind')=='image':
-            if self.host.active_page is self:self.after_idle(self.load)
+            if self.host.active_page is self:
+                schedule_owned_idle(self,'image-reload',lambda:self.load() if self.host.active_page is self else None)
             else:self._loaded=False
 
     def apply_color_scheme(self, palette) -> None:
@@ -39352,6 +39421,7 @@ from tkinter import messagebox, simpledialog, ttk
 
 
 
+
 OFFICE_XML = {".docx", ".xlsx", ".pptx", ".odt", ".ods", ".odp"}
 CONTENT_LIMIT = 32 * 1024 * 1024
 RESULT_LIMIT = 10000
@@ -39583,7 +39653,7 @@ class SearchWindow(tk.Toplevel):
         self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True)
-        install_button_tooltips(self); self.after_idle(self.activate)
+        install_button_tooltips(self); schedule_owned_idle(self,'activate',self.activate)
 
     def _layout_controls(self,event=None):
         if event is not None and event.widget is not self:return
@@ -39697,8 +39767,8 @@ class SearchWindow(tk.Toplevel):
                         rowheight=search_row_height(default_font.metrics("linespace"), scale))
         style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
         self._reset_column_measurements()
-        self.after_idle(self._layout_controls)
-        self.after_idle(self._window_visibility.recover)
+        schedule_owned_idle(self,'layout',self._layout_controls)
+        schedule_owned_idle(self,'recover',self._window_visibility.recover)
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
@@ -39710,7 +39780,7 @@ class SearchWindow(tk.Toplevel):
         self.depth_combo.configure(values=tuple(self.depth_values))
         self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
         self.title(tr("PFC Search"))
-        self.after_idle(self._layout_controls)
+        schedule_owned_idle(self,'layout',self._layout_controls)
         self._apply_sort()
         self._reset_column_measurements()
         self._update_criteria_summary()
@@ -40070,14 +40140,6 @@ class SearchWindow(tk.Toplevel):
     def escape(self): self.cancel() if self.worker and self.worker.is_alive() else self.close()
     def close(self):
         self.cancel_event.set()
-        if getattr(self, '_reset_job', None) is not None:
-            self.after_cancel(self._reset_job)
-        if self.poll_job is not None:
-            try: self.after_cancel(self.poll_job)
-            except tk.TclError: pass
-        if self._column_resize_job is not None:
-            try: self.after_cancel(self._column_resize_job)
-            except tk.TclError: pass
         if not self.config_data.has_section("search"): self.config_data.add_section("search")
         for key in ("mask", "content"):
             self.config_data.remove_option("search", key)
@@ -40093,6 +40155,23 @@ class SearchWindow(tk.Toplevel):
                            ("modified_days", self.days_var.get())):
             self.config_data.set("search", key, value.replace("%", "%%"))
         self.save_config(); self.destroy()
+
+    def destroy(self):
+        if getattr(self,'_destroying',False):return
+        self._destroying=True
+        self.cancel_event.set()
+        for name in ('_reset_job','poll_job','_column_resize_job'):
+            job=getattr(self,name,None)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
+        try:self.progress.stop()
+        except tk.TclError:pass
+        super().destroy()
+        release_owned_variables(self,'path_var','mask_var','content_var','case_var','depth_var',
+                                'files_var','folders_var','min_size_var','max_size_var',
+                                'days_var','size_unit_var')
 
 
 # Source: pycommander/multirename.py
@@ -42042,7 +42121,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.18.49"
+__version__ = "0.19.0"
 
 
 
@@ -43464,17 +43543,6 @@ class FilePane(ttk.Frame):
         full = self._full_item_name(iid)
         return full if full and self.name_marquee.clipped(iid) else ""
 
-    def _fit_visible_names(self) -> None:
-        def fit(parent=""):
-            for iid in self.tree.get_children(parent):
-                full = self._full_item_name(iid)
-                if full:
-                    self.tree.item(iid, text=full)
-                fit(iid)
-        fit()
-        self.name_marquee.request()
-        self.size_units.request()
-
     def _request_vcs_statuses(self, *, retry=False) -> None:
         if not self.winfo_toplevel().vcs_overlay_var.get():
             return
@@ -44151,6 +44219,7 @@ class FilePane(ttk.Frame):
         self.size_units.sync_font()
         ext_width = extension_column_width(font.measure)
         children = self.tree.get_children()
+        rows = None
         fixed_total = 0
         for value_index, column in enumerate(self.columns):
             if column not in self.tree.cget('displaycolumns'):
@@ -44163,10 +44232,18 @@ class FilePane(ttk.Frame):
             measure = self.size_units.measure if column == "size" else font.measure
             heading_width = font.measure(str(self.tree.heading(column, "text"))) + cell_padding
             measured = heading_width
-            for iid in children:
-                values = self.tree.item(iid, "values")
+            if rows is None:
+                # One immutable Tk snapshot per sizing pass, shared by details.
+                # No persistent cache: edits, font/theme changes and refreshes
+                # must always see the current rows and current measurement font.
+                rows = [self.tree.item(iid, "values") for iid in children]
+            widths = {}
+            for values in rows:
                 if value_index < len(values):
-                    measured = max(measured, measure(str(values[value_index])) + cell_padding)
+                    text = str(values[value_index])
+                    if text not in widths:
+                        widths[text] = measure(text) + cell_padding
+                    measured = max(measured, widths[text])
             minimum, maximum = (heading_width, measured)
             maximum = max(maximum, heading_width)
             width = max(minimum, min(measured, maximum))
@@ -44178,7 +44255,11 @@ class FilePane(ttk.Frame):
         name_minimum = max(120, min(round(available * .45), font.measure('M' * 18)))
         self.tree.column("#0", width=max(name_minimum, available - fixed_total), minwidth=name_minimum,
                          stretch=True)
-        self._fit_visible_names()
+        # Names are already set at insertion/refresh; scrolling uses a clipped
+        # canvas, not destructive label shortening. Do not rewrite every row on
+        # each geometry change (or erase relative-path search labels).
+        self.name_marquee.request()
+        self.size_units.request()
         owner = self.winfo_toplevel()
         if hasattr(owner, '_schedule_auto_font_size') and owner._last_auto_window_size is None:
             owner._schedule_auto_font_size()
@@ -44597,6 +44678,10 @@ class Commander(tk.Tk):
         self.debug_log = DiagnosticLog(__version__, automatic=True,
                                       runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
+        # Tcl may report an already-deleted idle command without entering a
+        # Python callback. Route that separate error channel to automatic logs.
+        background_error=self._register(self._report_tcl_background_error)
+        self.tk.call('proc','bgerror','message',background_error+' $message')
         self.bind('<Destroy>',self._close_diagnostics,add='+')
         diagnostic_log = self.debug_log
         self.bind('<Destroy>', lambda event: diagnostic_log.close()
@@ -45069,6 +45154,8 @@ class Commander(tk.Tk):
     def _schedule_save(self, _event=None) -> None:
         if not self._ready:
             return
+        if _event is not None and _event.widget is not self:
+            return  # Descendant redraws/marquees do not change saved geometry.
         if self._save_job is not None:
             self.after_cancel(self._save_job)
         self._save_job = self.after(250, self.save_config)
@@ -47365,6 +47452,12 @@ class Commander(tk.Tk):
             self.debug_log.exception('preview.request.failed', exc)
             messagebox.showerror(tr('PFC Preview'), tr('Cannot preview file')+'\n'+
                 tr('Diagnostics were recorded automatically. Save them from Help > Error / Warning log.'), parent=self)
+
+    def _report_tcl_background_error(self,message):
+        log=getattr(self,'debug_log',None)
+        if log:log.exception('tk.background.failed',tk.TclError(message))
+        # Never copy arbitrary Tcl text/document values to the console either.
+        super().report_callback_exception(tk.TclError,tk.TclError('Tcl background error; automatic diagnostics recorded.'),None)
 
     def report_callback_exception(self, kind, exc, tb):
         log = getattr(self, 'debug_log', None)

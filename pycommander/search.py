@@ -20,7 +20,8 @@ from .i18n import retranslate_widgets, tr
 from .tabs import color_scheme
 from .settings import readable_check_style
 from .multirename import execute_rename_pairs
-from .flowlayout import FlowToolbar
+from .flowlayout import FlowToolbar, schedule_owned_idle
+from .dialogs import release_owned_variables
 from .windowplacement import WindowVisibilityGuard
 
 
@@ -255,7 +256,7 @@ class SearchWindow(tk.Toplevel):
         self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
         self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True)
-        install_button_tooltips(self); self.after_idle(self.activate)
+        install_button_tooltips(self); schedule_owned_idle(self,'activate',self.activate)
 
     def _layout_controls(self,event=None):
         if event is not None and event.widget is not self:return
@@ -369,8 +370,8 @@ class SearchWindow(tk.Toplevel):
                         rowheight=search_row_height(default_font.metrics("linespace"), scale))
         style.configure("PFCSearch.Treeview.Heading", font=tkfont.nametofont("TkHeadingFont"))
         self._reset_column_measurements()
-        self.after_idle(self._layout_controls)
-        self.after_idle(self._window_visibility.recover)
+        schedule_owned_idle(self,'layout',self._layout_controls)
+        schedule_owned_idle(self,'recover',self._window_visibility.recover)
 
     def apply_language(self, old_language: str) -> None:
         depth = self.depth_values.get(self.depth_var.get(), self.depth_var.get())
@@ -382,7 +383,7 @@ class SearchWindow(tk.Toplevel):
         self.depth_combo.configure(values=tuple(self.depth_values))
         self.depth_var.set(next(label for label, value in self.depth_values.items() if value == depth))
         self.title(tr("PFC Search"))
-        self.after_idle(self._layout_controls)
+        schedule_owned_idle(self,'layout',self._layout_controls)
         self._apply_sort()
         self._reset_column_measurements()
         self._update_criteria_summary()
@@ -742,14 +743,6 @@ class SearchWindow(tk.Toplevel):
     def escape(self): self.cancel() if self.worker and self.worker.is_alive() else self.close()
     def close(self):
         self.cancel_event.set()
-        if getattr(self, '_reset_job', None) is not None:
-            self.after_cancel(self._reset_job)
-        if self.poll_job is not None:
-            try: self.after_cancel(self.poll_job)
-            except tk.TclError: pass
-        if self._column_resize_job is not None:
-            try: self.after_cancel(self._column_resize_job)
-            except tk.TclError: pass
         if not self.config_data.has_section("search"): self.config_data.add_section("search")
         for key in ("mask", "content"):
             self.config_data.remove_option("search", key)
@@ -765,3 +758,20 @@ class SearchWindow(tk.Toplevel):
                            ("modified_days", self.days_var.get())):
             self.config_data.set("search", key, value.replace("%", "%%"))
         self.save_config(); self.destroy()
+
+    def destroy(self):
+        if getattr(self,'_destroying',False):return
+        self._destroying=True
+        self.cancel_event.set()
+        for name in ('_reset_job','poll_job','_column_resize_job'):
+            job=getattr(self,name,None)
+            if job is not None:
+                try:self.after_cancel(job)
+                except tk.TclError:pass
+                setattr(self,name,None)
+        try:self.progress.stop()
+        except tk.TclError:pass
+        super().destroy()
+        release_owned_variables(self,'path_var','mask_var','content_var','case_var','depth_var',
+                                'files_var','folders_var','min_size_var','max_size_var',
+                                'days_var','size_unit_var')

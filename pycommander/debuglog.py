@@ -6,6 +6,7 @@ import json
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import re
 from pathlib import Path
 import platform
 import traceback
@@ -251,6 +252,13 @@ class DiagnosticLog:
             data['reason']='Geometry: int() received a Tcl pixel object.'
         if isinstance(exc, OSError): data.update(errno=exc.errno, winerror=getattr(exc,'winerror',None))
         if isinstance(exc, NameError) and getattr(exc,'name',None): data['name'] = exc.name
+        if tkmodule is not None and isinstance(exc,tkmodule.TclError):
+            missing=re.fullmatch(r'invalid command name "[0-9]+([A-Za-z_][A-Za-z_0-9]{0,60})"',str(exc))
+            if missing:
+                data['reason']='Deleted Tk callback'
+                data['callback']=missing.group(1)
+            elif str(exc).startswith('bad window path name '):
+                data['reason']='Widget no longer exists'
         self.event(event, severity=severity, **data)
 
     def snapshot(self, automatic=False):

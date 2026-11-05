@@ -319,6 +319,13 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
             for test in result.get('tests', []):
                 name = test['check']
                 (evidence_dir/(name+'.log')).write_bytes(guest.read(directory+'\\'+name+'.log'))
+            if result['status']=='passed' and 'screen_transition_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('800-300','1260-xl'):
+                    data=guest.image_data(directory+'\\evidence-screen-'+name+'.bmp')
+                    (evidence_dir/('screen-'+name+'.bmp')).write_bytes(data)
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('screen-'+name+'.png'))
             if result['status']=='passed' and 'laptop_layout_check.py' in checks:
                 from PIL import Image
                 import io
