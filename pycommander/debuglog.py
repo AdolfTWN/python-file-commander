@@ -103,6 +103,7 @@ class DiagnosticLog:
         """Observe unhandled failures/warnings, preserving normal Python handling."""
         if self._hooks or self._logging_handler: return
         old_sys, old_thread, old_warning = sys.excepthook, threading.excepthook, warnings.showwarning
+        old_unraisable=sys.unraisablehook
         def system(kind, exc, tb):
             self.exception('python.unhandled', exc.with_traceback(tb))
             old_sys(kind, exc, tb)
@@ -114,8 +115,16 @@ class DiagnosticLog:
             self.event('python.warning', severity='WARNING', category=category.__name__,
                        module=Path(filename).name, line=lineno)
             old_warning(message, category, filename, lineno, file, line)
+        def unraisable(args):
+            # Finalizer failures do not reach excepthook/threading.excepthook.
+            # Record safe exception metadata, never repr(object)/err_msg, which
+            # may include document text or private application values.
+            if isinstance(args.exc_value,BaseException):
+                self.exception('python.unraisable',args.exc_value.with_traceback(args.exc_traceback))
+            old_unraisable(args)
         for obj, name, new, old in ((sys,'excepthook',system,old_sys),
-                (threading,'excepthook',thread,old_thread), (warnings,'showwarning',warning,old_warning)):
+                (threading,'excepthook',thread,old_thread), (warnings,'showwarning',warning,old_warning),
+                (sys,'unraisablehook',unraisable,old_unraisable)):
             setattr(obj,name,new); self._hooks.append((obj,name,new,old))
         owner = self
         class ErrorHandler(logging.Handler):
@@ -250,6 +259,8 @@ class DiagnosticLog:
         # (which may contain paths, source lines or NDA document values).
         if isinstance(exc,TypeError) and exc.args == ("int() argument must be a string, a bytes-like object or a real number, not '_tkinter.Tcl_Obj'",):
             data['reason']='Geometry: int() received a Tcl pixel object.'
+        if isinstance(exc,RuntimeError) and exc.args==('main thread is not in main loop',):
+            data['reason']='Tk resource accessed outside the UI thread'
         if isinstance(exc, OSError): data.update(errno=exc.errno, winerror=getattr(exc,'winerror',None))
         if isinstance(exc, NameError) and getattr(exc,'name',None): data['name'] = exc.name
         if tkmodule is not None and isinstance(exc,tkmodule.TclError):

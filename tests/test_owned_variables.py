@@ -1,13 +1,36 @@
 import tkinter as tk
+from tkinter import font as tkfont
 import unittest
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from pycommander.app import Commander
-from pycommander.dialogs import release_owned_variables
+from pycommander.dialogs import release_owned_variables, release_owned_images, release_owned_fonts
 
 
 class OwnedVariableTests(unittest.TestCase):
+    def test_owned_fonts_are_deleted_once_without_deleting_borrowed_named_fonts(self):
+        font=tkfont.Font.__new__(tkfont.Font);font.delete_font=True
+        shared=tkfont.Font.__new__(tkfont.Font);shared.delete_font=False
+        owner=SimpleNamespace(owned=font,styles={'same':font,'borrowed':shared})
+        with patch.object(tkfont.Font,'__del__',autospec=True) as dispose:
+            release_owned_fonts(owner,'owned','styles')
+            dispose.assert_called_once_with(font)
+        self.assertFalse(font.delete_font);self.assertFalse(shared.delete_font)
+        self.assertIsNone(owner.owned);self.assertIsNone(owner.styles)
+
+    def test_owned_images_are_disposed_on_close_and_duplicate_references_are_safe(self):
+        image=tk.Image.__new__(tk.Image);image.name='pyimage1'
+        shared=Mock(spec=tk.Image);shared.name='shared'
+        owner=SimpleNamespace(images=[image],original=image,shared=shared)
+        with patch.object(tk.Image,'__del__',autospec=True) as dispose:
+            release_owned_images(owner,'images','original')
+            dispose.assert_called_once_with(image)
+        self.assertIsNone(image.name)
+        self.assertIsNone(owner.images);self.assertIsNone(owner.original)
+        self.assertEqual(shared.name,'shared')
+        release_owned_images(owner,'images','original')
+
     def variable(self):
         variable=Mock(spec=tk.Variable)
         variable.trace_info.return_value=[(('write',),'owned_callback')]

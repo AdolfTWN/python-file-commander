@@ -10,6 +10,7 @@ from .i18n import tr
 from .tooltip import ToolTip
 from .rendercore import STRUCTURE_REVEAL_LIMIT
 from .wraptree import WrappedTreeview
+from .dialogs import release_owned_images
 
 
 def preview_cell_text(value):
@@ -55,6 +56,7 @@ class FormatRenderView(ttk.Frame):
             if self._insert_job is not None:
                 try:self.after_cancel(self._insert_job)
                 except tk.TclError:pass
+            release_owned_images(self,'_tree_icons','images','original','display_image')
     def clear(self):
         self.cancel_tree_reveal()
         self._generation+=1
@@ -65,7 +67,7 @@ class FormatRenderView(ttk.Frame):
             else:self._grid_widths=tuple(self.tree.column(c,'width') for c in self.tree['columns'])
         for child in self.body.winfo_children():child.destroy()
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
-        self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
+        self.images=[];self._tree_icons=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         self._row_lookup={};self._search_extra=[]
         self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._grid_hit=None;self._header_match=None;self._image_match=None;self._image_view_key=None

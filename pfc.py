@@ -7482,6 +7482,7 @@ class DiagnosticLog:
         """Observe unhandled failures/warnings, preserving normal Python handling."""
         if self._hooks or self._logging_handler: return
         old_sys, old_thread, old_warning = sys.excepthook, threading.excepthook, warnings.showwarning
+        old_unraisable=sys.unraisablehook
         def system(kind, exc, tb):
             self.exception('python.unhandled', exc.with_traceback(tb))
             old_sys(kind, exc, tb)
@@ -7493,8 +7494,16 @@ class DiagnosticLog:
             self.event('python.warning', severity='WARNING', category=category.__name__,
                        module=Path(filename).name, line=lineno)
             old_warning(message, category, filename, lineno, file, line)
+        def unraisable(args):
+            # Finalizer failures do not reach excepthook/threading.excepthook.
+            # Record safe exception metadata, never repr(object)/err_msg, which
+            # may include document text or private application values.
+            if isinstance(args.exc_value,BaseException):
+                self.exception('python.unraisable',args.exc_value.with_traceback(args.exc_traceback))
+            old_unraisable(args)
         for obj, name, new, old in ((sys,'excepthook',system,old_sys),
-                (threading,'excepthook',thread,old_thread), (warnings,'showwarning',warning,old_warning)):
+                (threading,'excepthook',thread,old_thread), (warnings,'showwarning',warning,old_warning),
+                (sys,'unraisablehook',unraisable,old_unraisable)):
             setattr(obj,name,new); self._hooks.append((obj,name,new,old))
         owner = self
         class ErrorHandler(logging.Handler):
@@ -7629,6 +7638,8 @@ class DiagnosticLog:
         # (which may contain paths, source lines or NDA document values).
         if isinstance(exc,TypeError) and exc.args == ("int() argument must be a string, a bytes-like object or a real number, not '_tkinter.Tcl_Obj'",):
             data['reason']='Geometry: int() received a Tcl pixel object.'
+        if isinstance(exc,RuntimeError) and exc.args==('main thread is not in main loop',):
+            data['reason']='Tk resource accessed outside the UI thread'
         if isinstance(exc, OSError): data.update(errno=exc.errno, winerror=getattr(exc,'winerror',None))
         if isinstance(exc, NameError) and getattr(exc,'name',None): data['name'] = exc.name
         if tkmodule is not None and isinstance(exc,tkmodule.TclError):
@@ -7687,6 +7698,40 @@ from tkinter import ttk, messagebox, simpledialog, font as tkfont
 _NativeMessage = messagebox.Message
 _NATIVE_INPUTS={kind:getattr(getattr(simpledialog,'ask'+kind),'_pfc_native_input',
                            getattr(simpledialog,'ask'+kind)) for kind in ('string','integer','float')}
+
+
+def release_owned_images(owner,*names):
+    """Dispose explicitly owned images now, not in a later worker GC cycle.
+
+    Destroyed widget graphs can survive as Python cycles. Tcl images must be
+    deleted on their interpreter's thread even if Python collects those cycles
+    elsewhere. Named containers must not contain shared/application images.
+    """
+    def dispose(value):
+        if isinstance(value,tk.Image):
+            if value.name:
+                value.__del__()
+                value.name=None  # A later Python finalizer must not call Tcl.
+        elif isinstance(value,dict):
+            for item in value.values():dispose(item)
+        elif isinstance(value,(list,tuple)):
+            for item in value:dispose(item)
+    for name in names:
+        value=getattr(owner,name,None)
+        dispose(value)
+        if isinstance(value,(tk.Image,dict,list,tuple)):setattr(owner,name,None)
+
+
+def release_owned_fonts(owner,*names):
+    """Delete only explicitly owned named fonts on the UI thread."""
+    for name in names:
+        value=getattr(owner,name,None)
+        fonts=value.values() if isinstance(value,dict) else (value,)
+        for font in fonts:
+            if isinstance(font,tkfont.Font) and font.delete_font:
+                font.__del__()
+                font.delete_font=False
+        if isinstance(value,(tkfont.Font,dict)):setattr(owner,name,None)
 
 
 def release_owned_variables(owner,*names):
@@ -9379,6 +9424,9 @@ class SettingsDialog(tk.Toplevel):
         if self.nav.curselection()!=(index,):
             self.nav.selection_clear(0,'end');self.nav.selection_set(index);self.nav.activate(index)
         release_owned_variables(self,'prefix_rows')
+        # Labels may survive in destroyed widget cycles. Drop their image
+        # references on the UI thread; source images remain in the live cache.
+        for label,_values in getattr(self,'preview_labels',[]):label.image=None
         for child in self.page.winfo_children():child.destroy()
         for child in self.comparison.winfo_children():child.destroy()
         self.controls={};self.images=[];self.wrap_labels=[];self.preview_labels=[];self.date_example=None
@@ -9730,6 +9778,10 @@ class SettingsDialog(tk.Toplevel):
                 except tk.TclError:pass
                 setattr(self,name,None)
         super().destroy()
+        release_owned_images(self,'_shot_sources','images')
+        for label,_values in getattr(self,'preview_labels',[]):
+            release_owned_images(label,'image')
+        release_owned_fonts(self,'font','heading_font','small_font','sample_font')
         # All are draft-owned, never the application's shared preferences.
         release_owned_variables(self,'vars','status_var','prefix_rows')
 
@@ -37165,6 +37217,7 @@ from tkinter import ttk
 
 
 
+
 def preview_cell_text(value):
     """Single-line display only; the original value remains available to copy."""
     return value.replace('\r\n','\n').replace('\r','\n').replace('\n',' ↵ ')
@@ -37208,6 +37261,7 @@ class FormatRenderView(ttk.Frame):
             if self._insert_job is not None:
                 try:self.after_cancel(self._insert_job)
                 except tk.TclError:pass
+            release_owned_images(self,'_tree_icons','images','original','display_image')
     def clear(self):
         self.cancel_tree_reveal()
         self._generation+=1
@@ -37218,7 +37272,7 @@ class FormatRenderView(ttk.Frame):
             else:self._grid_widths=tuple(self.tree.column(c,'width') for c in self.tree['columns'])
         for child in self.body.winfo_children():child.destroy()
         if getattr(self,'menu',None) is not None:self.menu.destroy();self.menu=None
-        self.images=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
+        self.images=[];self._tree_icons=[];self.tree=None;self.text=None;self.canvas=None;self.choice.pack_forget();self.tree_actions.pack_forget();self.match_index=-1
         self._row_lookup={};self._search_extra=[]
         self._tree_search_key=None;self._tree_search_rows=set();self._tree_revealing=False
         self._grid_search_row=None;self._grid_hit=None;self._header_match=None;self._image_match=None;self._image_view_key=None
@@ -37692,6 +37746,7 @@ import tkinter.font as tkfont
 from pathlib import Path
 from tkinter import ttk
 from urllib.parse import quote
+
 
 
 
@@ -39191,6 +39246,8 @@ class PreviewPage(tk.Frame):
                 except tk.TclError:pass
                 setattr(self,name,None)
         super().destroy()
+        release_owned_variables(self,'mode_var','wrap_var','case_var','search_var','markdown_var')
+        release_owned_fonts(self,'effect_fonts')
 
 
 class PreviewWindow(tk.Toplevel):

@@ -30,6 +30,7 @@ from .rendercore import RENDER_EXTENSIONS,RENDER_INPUT_LIMIT,structured_preview,
 from .renderbrowser import raster_preview
 from .renderui import FormatRenderView
 from .flowlayout import FlowToolbar, schedule_owned_idle
+from .dialogs import release_owned_variables, release_owned_fonts
 
 
 TEXT_EXTENSIONS = {
@@ -1514,6 +1515,8 @@ class PreviewPage(tk.Frame):
                 except tk.TclError:pass
                 setattr(self,name,None)
         super().destroy()
+        release_owned_variables(self,'mode_var','wrap_var','case_var','search_var','markdown_var')
+        release_owned_fonts(self,'effect_fonts')
 
 
 class PreviewWindow(tk.Toplevel):

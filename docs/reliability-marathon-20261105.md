@@ -30,6 +30,22 @@ Asia/Singapore. Final-hour convergence begins 02:49:24. Trace:
   version/time and safe callback categories; document/message text is not logged.
 - Child-widget Configure events no longer repeatedly reschedule main-window
   geometry saves. Root geometry and explicit requests retain their debounce.
+- An uninstrumented x64 interaction run exposed a real Tk image-finalizer
+  failure on a background thread. A deterministic worker-GC fixture reproduced
+  retained Preview toolbar icons, Settings thumbnails and Preview variables.
+  Explicit UI-thread cleanup passed source/portable and both Windows runtimes.
+  A follow-up fixture also exposed four orphaned Settings named fonts; explicit
+  owned-font cleanup passed the source/portable regression. Native endurance
+  coverage of the newest combined candidate is still pending.
+- Automatic diagnostics now also observe Python unraisable/finalizer failures,
+  chain and restore the original hook, and retain safe exception frames plus
+  version/time. No arbitrary finalizer object representation/message is logged.
+  A known Tk thread-access error receives a safe explanatory reason.
+- Endurance uses the existing leased Windows adapter with an explicit bounded
+  duration, validated fixture arguments, progress watchdog and a task lifetime
+  covering that duration. Default short-test limits remain unchanged. The matrix
+  verifies hashes of selected checks/support files as well as the application;
+  timing scopes include the requested duration. These are test-only extensions.
 
 ## Performance evidence boundaries
 

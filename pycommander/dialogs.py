@@ -11,6 +11,40 @@ _NATIVE_INPUTS={kind:getattr(getattr(simpledialog,'ask'+kind),'_pfc_native_input
                            getattr(simpledialog,'ask'+kind)) for kind in ('string','integer','float')}
 
 
+def release_owned_images(owner,*names):
+    """Dispose explicitly owned images now, not in a later worker GC cycle.
+
+    Destroyed widget graphs can survive as Python cycles. Tcl images must be
+    deleted on their interpreter's thread even if Python collects those cycles
+    elsewhere. Named containers must not contain shared/application images.
+    """
+    def dispose(value):
+        if isinstance(value,tk.Image):
+            if value.name:
+                value.__del__()
+                value.name=None  # A later Python finalizer must not call Tcl.
+        elif isinstance(value,dict):
+            for item in value.values():dispose(item)
+        elif isinstance(value,(list,tuple)):
+            for item in value:dispose(item)
+    for name in names:
+        value=getattr(owner,name,None)
+        dispose(value)
+        if isinstance(value,(tk.Image,dict,list,tuple)):setattr(owner,name,None)
+
+
+def release_owned_fonts(owner,*names):
+    """Delete only explicitly owned named fonts on the UI thread."""
+    for name in names:
+        value=getattr(owner,name,None)
+        fonts=value.values() if isinstance(value,dict) else (value,)
+        for font in fonts:
+            if isinstance(font,tkfont.Font) and font.delete_font:
+                font.__del__()
+                font.delete_font=False
+        if isinstance(value,(tkfont.Font,dict)):setattr(owner,name,None)
+
+
 def release_owned_variables(owner,*names):
     """Detach only explicitly owned variables/traces on the UI thread.
 

@@ -5,6 +5,9 @@ import unittest
 import logging
 import warnings
 import threading
+import sys
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
@@ -12,6 +15,32 @@ from pycommander.debuglog import DiagnosticLog, diagnostic_records, diagnostic_i
 
 
 class DebugLogTests(unittest.TestCase):
+    def test_finalizer_failures_are_automatically_recorded_without_private_values_and_hook_is_restored(self):
+        with tempfile.TemporaryDirectory() as raw:
+            previous=Mock()
+            with patch.object(sys,'unraisablehook',previous):
+                log=DiagnosticLog('0.19.test',raw,automatic=True)
+                try:
+                    log.install_hooks()
+                    try:raise RuntimeError('PRIVATE DOCUMENT VALUE')
+                    except RuntimeError as exc:
+                        args=SimpleNamespace(exc_value=exc,exc_traceback=exc.__traceback__,
+                                             object='PRIVATE OBJECT',err_msg='PRIVATE MESSAGE')
+                        sys.unraisablehook(args)
+                    previous.assert_called_once_with(args)
+                    rows=diagnostic_records(log.snapshot(automatic=True))
+                    row=next(row for row in rows if row['event']=='python.unraisable')
+                    self.assertEqual(row['severity'],'ERROR');self.assertEqual(row['error'],'RuntimeError')
+                    self.assertEqual(row['version'],'0.19.test');self.assertTrue(row['time'])
+                    self.assertTrue(row['frames'])
+                    self.assertNotIn('PRIVATE',log.snapshot(automatic=True))
+                    self.assertFalse(log.path.exists())
+                    log.exception('fixture.tk.finalizer',RuntimeError('main thread is not in main loop'))
+                    safe=next(row for row in diagnostic_records(log.snapshot(automatic=True)) if row['event']=='fixture.tk.finalizer')
+                    self.assertEqual(safe['reason'],'Tk resource accessed outside the UI thread')
+                finally:log.close()
+                self.assertIs(sys.unraisablehook,previous)
+
     def test_photo_card_folds_only_same_exception_and_shows_root_first(self):
         with tempfile.TemporaryDirectory() as raw:
             log=DiagnosticLog('test',raw,automatic=True)

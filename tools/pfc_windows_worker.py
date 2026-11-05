@@ -21,6 +21,7 @@ ALLOWED = {'deep_tasks_check.py', 'surface_walkthrough_check.py', 'compact_tasks
            'screen_transition_check.py', 'column_layout_check.py', 'operation_soak_check.py',
            'interaction_soak_check.py', 'move_recovery_check.py',
            'dialog_lifecycle_check.py', 'early_close_check.py', 'tcl_diagnostics_check.py',
+           'tk_ownership_check.py',
            'folder_scroll_check.py', 'folder_navigation_check.py', 'folder_leaf_check.py', 'settings_readability_groups_check.py',
            'laptop_layout_check.py', 'search_visibility_check.py', 'startup_registry_check.py', 'native_crash_check.py', 'interaction_layout_check.py', 'compact_chrome_check.py', 'review_compare_check.py', 'control_scaling_check.py', 'render_formats_check.py', 'structure_search_check.py', 'render_reliability_check.py', 'markdown_reading_check.py', 'structure_matches_check.py', 'structure_wrap_check.py', 'structure_expand_check.py'}
 
@@ -65,6 +66,20 @@ def atomic_report(path, record):
 
 class DisplayUnavailable(OSError):
     pass
+
+
+def validate_check_arguments(checks,arguments=None):
+    """Only the fixed endurance fixture accepts a bounded duration argument."""
+    arguments={} if arguments is None else arguments
+    if not isinstance(arguments,dict) or set(arguments)-set(checks):
+        raise ValueError('Invalid check arguments')
+    for name,values in arguments.items():
+        if (name!='interaction_soak_check.py' or not isinstance(values,list) or len(values)!=2
+                or values[0]!='--seconds' or not isinstance(values[1],str)
+                or not values[1].isascii() or not values[1].isdecimal()
+                or not 5<=int(values[1])<=10800):
+            raise ValueError('Invalid endurance duration')
+    return arguments
 
 
 @contextmanager
@@ -113,6 +128,7 @@ def execute(request_path):
             return 2
     if any(name not in ALLOWED for name in request['checks']):
         raise ValueError('Unknown check')
+    validate_check_arguments(request['checks'],request.get('check_arguments'))
     try:
         with visible_test_display():
             return run_checks(directory,request,result,report)
@@ -140,8 +156,10 @@ def run_checks(directory,request,result,report):
             from display_matrix_check import NativeModes
             display_restore = NativeModes()
         with (directory/(name+'.log')).open('wb') as output:
-            process = subprocess.Popen([sys.executable, str(directory/name), 'pfc'],
+            arguments=request.get('check_arguments',{}).get(name,[])
+            process = subprocess.Popen([sys.executable, str(directory/name), 'pfc',*arguments],
                                        cwd=directory, stdout=output, stderr=subprocess.STDOUT)
+            last_output=started;last_size=0
             try:
                 while process.poll() is None:
                     if not desktop_ready():
@@ -149,6 +167,11 @@ def run_checks(directory,request,result,report):
                         raise subprocess.TimeoutExpired(name, 0)
                     if time.monotonic()-started > request.get('test_timeout', 180):
                         raise subprocess.TimeoutExpired(name, request.get('test_timeout', 180))
+                    if arguments:
+                        size=os.fstat(output.fileno()).st_size
+                        if size!=last_size:last_size=size;last_output=time.monotonic()
+                        if time.monotonic()-last_output>120:
+                            raise subprocess.TimeoutExpired(name,120)
                     time.sleep(.2)
                 code = process.returncode
             except subprocess.TimeoutExpired:

@@ -16,7 +16,7 @@ from .settingsshots import SETTINGS_SHOTS
 from .settingspreview import SettingsSamplePreview, SettingsLayoutPreview
 from .windowplacement import popup_work_area, position_popup_in_work_area
 from .icons import _distance_to_segment, _hex_rgba, _rgba_png_downsample
-from .dialogs import release_owned_variables
+from .dialogs import release_owned_variables, release_owned_images, release_owned_fonts
 
 
 SETTINGS_CATEGORIES = (
@@ -415,6 +415,9 @@ class SettingsDialog(tk.Toplevel):
         if self.nav.curselection()!=(index,):
             self.nav.selection_clear(0,'end');self.nav.selection_set(index);self.nav.activate(index)
         release_owned_variables(self,'prefix_rows')
+        # Labels may survive in destroyed widget cycles. Drop their image
+        # references on the UI thread; source images remain in the live cache.
+        for label,_values in getattr(self,'preview_labels',[]):label.image=None
         for child in self.page.winfo_children():child.destroy()
         for child in self.comparison.winfo_children():child.destroy()
         self.controls={};self.images=[];self.wrap_labels=[];self.preview_labels=[];self.date_example=None
@@ -766,6 +769,10 @@ class SettingsDialog(tk.Toplevel):
                 except tk.TclError:pass
                 setattr(self,name,None)
         super().destroy()
+        release_owned_images(self,'_shot_sources','images')
+        for label,_values in getattr(self,'preview_labels',[]):
+            release_owned_images(label,'image')
+        release_owned_fonts(self,'font','heading_font','small_font','sample_font')
         # All are draft-owned, never the application's shared preferences.
         release_owned_variables(self,'vars','status_var','prefix_rows')
 

@@ -20,7 +20,7 @@ import zlib
 from xml.sax.saxutils import escape
 
 from pfc_workflow import ROOT, Store, digest
-from pfc_windows_worker import ALLOWED
+from pfc_windows_worker import ALLOWED, validate_check_arguments
 
 MANAGER = Path('/srv/yoder-ai/vm-management')
 PYTHON = r'C:\PFC-Test\Python313\python.exe'
@@ -192,7 +192,7 @@ class Guest:
             raise Blocked('image-transfer-integrity-failed') from None
 
 
-def task_xml(directory):
+def task_xml(directory,execution_seconds=1200):
     # InteractiveToken: no password, service desktop, admin elevation or login.
     arguments = subprocess.list2cmdline([directory+'\\pfc_windows_worker.py', directory+'\\request.json'])
     return ('<?xml version="1.0" encoding="UTF-16"?>'
@@ -202,7 +202,7 @@ def task_xml(directory):
             '</Principal></Principals><Settings><MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>'
             '<DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>'
             '<StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>'
-            '<ExecutionTimeLimit>PT20M</ExecutionTimeLimit></Settings>'
+            '<ExecutionTimeLimit>PT'+str(max(1200,min(11280,int(execution_seconds))))+'S</ExecutionTimeLimit></Settings>'
             '<Actions Context="Author"><Exec><Command>'+escape(PYTHON)+'</Command>'
             '<Arguments>'+escape(arguments)+'</Arguments><WorkingDirectory>'+escape(directory)+
             '</WorkingDirectory></Exec></Actions></Task>').encode('utf-16')
@@ -244,7 +244,8 @@ def stop_request_checks(guest, directory, checks):
                   ['-NoProfile', '-NonInteractive', '-Command', script], timeout=30)
 
 
-def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evidence_dir=None):
+def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evidence_dir=None,check_arguments=None):
+    check_arguments=validate_check_arguments(checks,check_arguments)
     # A cheap, read-only execution probe comes before staging or UI interaction.
     print('Windows: checking Python execution', flush=True)
     guest.execute(PYTHON, ['-c', 'import sys; assert sys.version_info >= (3, 10)'])
@@ -285,8 +286,9 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
         data = path.read_bytes(); hashes[name] = digest(data)
         guest.put(data, directory+'\\'+name)
     request = dict(request_id=request_id, checks=checks, files=hashes, test_timeout=test_timeout)
+    if check_arguments:request['check_arguments']=check_arguments
     guest.put(json.dumps(request).encode(), directory+'\\request.json')
-    guest.put(task_xml(directory), directory+'\\task.xml')
+    guest.put(task_xml(directory,test_timeout*len(checks)+ready_timeout+120), directory+'\\task.xml')
     task = 'PFC-Workflow-'+request_id
     created = False
     result = None
@@ -450,7 +452,7 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                     data=guest.image_data(directory+'\\evidence-control-'+name+'.bmp')
                     (evidence_dir/('control-'+name+'.bmp')).write_bytes(data)
                     Image.open(io.BytesIO(data)).save(evidence_dir/('control-'+name+'.png'))
-        return {**result, 'artifact_sha256': hashes['pfc.py'],
+        return {**result, 'artifact_sha256': hashes['pfc.py'], 'artifact_hashes':hashes,
                 'desktop_preparation': desktop_status, 'cleanup': cleanup}
     finally:
         if created:
@@ -470,11 +472,12 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
                 cleanup.append('task-removal-unconfirmed')
 
 
-def run_vm(store, run_id, selected, ready_timeout=120, test_timeout=180, manager=MANAGER):
+def run_vm(store, run_id, selected, ready_timeout=120, test_timeout=180, manager=MANAGER,check_arguments=None):
     if store.get(run_id)['status'] != 'running':
         raise ValueError('Run already finished')
     if not selected or len(selected) > 5 or any(name not in ALLOWED for name in selected):
         raise ValueError('Select 1–5 supported checks')
+    check_arguments=validate_check_arguments(selected,check_arguments)
     store.mark(run_id, 'environment')
     definitions = digest(b''.join((ROOT/'tools'/name).read_bytes() for name in sorted(selected)))
     sys.path.insert(0, str(manager))
@@ -518,7 +521,7 @@ def run_vm(store, run_id, selected, ready_timeout=120, test_timeout=180, manager
                 time.sleep(1)
         output['stage'] = 'execution-readiness'
         output.update(windows_checks(guest, selected, ready_timeout, test_timeout, output['cleanup'],
-                                     store.directory/run_id/'windows-evidence'))
+                                     store.directory/run_id/'windows-evidence',**({'check_arguments':check_arguments} if check_arguments else {})))
     except (Blocked, OSError, ValueError, KeyError) as exc:
         output.update(status='blocked', reason=str(exc) if isinstance(exc, Blocked) else type(exc).__name__)
     except KeyboardInterrupt:
@@ -558,8 +561,10 @@ def run_vm(store, run_id, selected, ready_timeout=120, test_timeout=180, manager
                 output['cleanup'].append('lease-release-unconfirmed')
         if output['cleanup']:
             output['status'] = 'blocked'
+        scope=[selected, definitions, output.get('vm_id'), output.get('environment')]
+        if check_arguments:scope.append(check_arguments)
         store.stage(run_id, 'windows', output['status'], time.monotonic()-started,
-                    scope=digest(json.dumps([selected, definitions, output.get('vm_id'), output.get('environment')]).encode()), result=output)
+                    scope=digest(json.dumps(scope).encode()), result=output)
     return output
 
 

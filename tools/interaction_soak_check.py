@@ -1,5 +1,6 @@
 """One long-lived GUI: rapid dialogs, background cancellation and resource trends."""
 import ctypes
+import faulthandler
 import gc
 import importlib
 import json
@@ -29,6 +30,7 @@ def sample(app,cycle):
             'images':len(app.tk.splitlist(app.tk.call('image','names'))),
             'timers':len(app.tk.splitlist(app.tk.call('after','info'))),
             'commands':len(app.tk.splitlist(app.tk.call('info','commands'))),
+            'fonts':len(app.tk.splitlist(app.tk.call('font','names'))),
             'python_current_bytes':tracemalloc.get_traced_memory()[0] if tracemalloc.is_tracing() else None}
     if os.name=='nt':
         from ctypes import wintypes as w
@@ -78,6 +80,11 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
     app.report_callback_exception=callback_error
     original_error=pfc.messagebox.showerror
     pfc.messagebox.showerror=lambda *a,**k:failures.append(('error-dialog',str(a[0]) if a else 'error'))
+    original_exception=app.debug_log.exception
+    def diagnostic_exception(event,exc,severity='ERROR'):
+        if severity in ('ERROR','CRITICAL'):failures.append(('automatic-diagnostic',event,type(exc).__name__))
+        return original_exception(event,exc,severity)
+    app.debug_log.exception=diagnostic_exception
     last=[time.monotonic()];beat_job=[None];stage=['initialization']
     def beat():
         now=time.monotonic();gap=now-last[0];last[0]=now
@@ -85,7 +92,10 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         if gap>1:print(json.dumps({'event':'interaction.heartbeat.slow','stage':stage[0],'seconds':gap}),flush=True)
         if gap>5 and not MEMORY:failures.append(('event-loop-stall',stage[0],gap))
         beat_job[0]=app.after(20,beat)
-    started=time.monotonic();sample_count=0
+    started=time.monotonic();sample_count=0;resource_baseline=None
+    resource_allowance={'commands':400,'images':512,'fonts':100,'timers':100,'threads':16,
+                        'gdi_objects':512,'user_objects':256,'private_bytes':256*1024**2}
+    if DURATION>180:faulthandler.dump_traceback_later(90,repeat=True)
     print(json.dumps({'event':'interaction.soak.start','version':pfc.__version__,
                       'python':sys.version.split()[0],'duration_target_s':DURATION,'memory_instrumented':MEMORY}),flush=True)
     try:
@@ -95,6 +105,7 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         stopped=False
         while time.monotonic()-started<DURATION:
             if STOP_FILE is not None and STOP_FILE.exists():stopped=True;break
+            if DURATION>180:faulthandler.dump_traceback_later(90,repeat=True)
             stage[0]='font-and-panel-layout'
             app.geometry(f'{1260 if cycle%2 else 1000}x700+0+0')
             app.font_size_var.set(('small','large','xl')[cycle%3]);app.select_manual_font_size()
@@ -124,7 +135,15 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
                 (folder/f'download-{(cycle//7)%16}.txt').write_text('new file')
                 app.active.refresh();pump(app,.04)
             cycle+=1
-            if cycle%8==0:sample(app,cycle);sample_count+=1
+            if cycle%8==0:
+                resources=sample(app,cycle);sample_count+=1
+                # This fixture has bounded input/cache diversity. Use a warmed
+                # baseline and broad regression guardrails, not production caps.
+                if cycle>=32 and resource_baseline is None:resource_baseline=resources
+                if resource_baseline is not None:
+                    for key,allowance in resource_allowance.items():
+                        if key in resources:
+                            assert resources[key]<=resource_baseline[key]+allowance,('Resource growth',key,resource_baseline[key],resources[key])
             assert not failures,failures
         pump(app,1);gc.collect();pump(app,.2)
         sample(app,cycle);sample_count+=1
@@ -140,3 +159,4 @@ with tempfile.TemporaryDirectory(prefix='pfc-interaction-soak-') as raw:
         app.close_app();pfc.messagebox.showerror=original_error
         sys.unraisablehook=previous_unraisable;threading.excepthook=previous_thread
         tracemalloc.stop()
+        if DURATION>180:faulthandler.cancel_dump_traceback_later()

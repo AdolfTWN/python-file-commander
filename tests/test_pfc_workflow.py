@@ -154,6 +154,27 @@ class TrackingTests(unittest.TestCase):
 
 
 class VmRunnerTests(unittest.TestCase):
+    def test_scheduled_task_limit_covers_explicit_endurance_but_remains_bounded(self):
+        from xml.etree import ElementTree
+        namespace={'t':'http://schemas.microsoft.com/windows/2004/02/mit/task'}
+        for duration,expected in ((100,1200),(3930,3930),(999999,11280)):
+            root=ElementTree.fromstring(vm.task_xml('C:\\PFC-Test\\fixture',duration))
+            self.assertEqual(root.find('t:Settings/t:ExecutionTimeLimit',namespace).text,f'PT{expected}S')
+
+    def test_endurance_arguments_are_fixed_bounded_and_do_not_enable_arbitrary_flags(self):
+        checks=['interaction_soak_check.py']
+        valid={'interaction_soak_check.py':['--seconds','3600']}
+        self.assertEqual(worker.validate_check_arguments(checks,valid),valid)
+        for arguments in ({'other.py':['--seconds','10']},
+                          {'interaction_soak_check.py':['--stop-file','somewhere']},
+                          {'interaction_soak_check.py':['--seconds','10801']},
+                          {'interaction_soak_check.py':['--seconds','-1']},
+                          {'interaction_soak_check.py':['--seconds','1e4']},
+                          {'interaction_soak_check.py':['--seconds',10]},[],):
+            with self.subTest(arguments=arguments),self.assertRaises(ValueError):
+                worker.validate_check_arguments(checks,arguments)
+        self.assertEqual(worker.validate_check_arguments(checks),{})
+
     def test_atomic_report_retries_transient_sharing_and_preserves_old_json(self):
         with tempfile.TemporaryDirectory() as raw:
             path=Path(raw)/'result.json';worker.atomic_report(path,{'status':'running'})
