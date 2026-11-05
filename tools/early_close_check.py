@@ -70,6 +70,15 @@ with tempfile.TemporaryDirectory(prefix='pfc-early-close-') as raw:
         with patch.object(pfc.tk.Toplevel,'deiconify',lambda popup:button.destroy()):tip.show()
         assert tip.expire_job is None,'Expiry armed after target destruction'
         button.destroy();pump(app)
+        # Another owner handler may dismiss help before Tk reaches the cached
+        # tooltip handler later in the same event's multi-command script.
+        button=pfc.ttk.Button(app,text='Owner binding fixture');button.pack();pump(app)
+        tip=pfc.ToolTip(button,'Fixture');tip._eligible=lambda:True
+        def dismiss_earlier(event,help=tip):
+            help.hide();app.update_idletasks()
+        token=app.bind('<FocusOut>',dismiss_earlier,add='+')
+        tip._schedule();app.event_generate('<FocusOut>',when='now');pump(app)
+        app.unbind('<FocusOut>',token);button.destroy();pump(app)
         # Constructor failures leave a real partial toplevel under the root.
         # Cleanup must not require controls whose construction never finished.
         with patch.object(pfc.ttk,'Progressbar',side_effect=pfc.tk.TclError('fixture-constructor-failure')):

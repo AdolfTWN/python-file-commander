@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tkinter as tk
 from tkinter import ttk
+from .flowlayout import schedule_owned_after
 
 
 BUTTON_HELP = {
@@ -52,8 +53,11 @@ class ToolTip:
             return
         # Bind only for the lifetime of a pending/visible tooltip. No root-wide
         # permanent callbacks accumulating as preview tabs/menus are destroyed.
+        bindings=self.owner_bindings
+        def dismiss(event):
+            if self.owner_bindings is bindings:self.hide(event)
         for sequence in ("<FocusOut>", "<KeyPress>", "<ButtonPress>", "<Unmap>"):
-            token = self.owner.bind(sequence, self.hide, add="+")
+            token = self.owner.bind(sequence, dismiss, add="+")
             self.owner_bindings.append((sequence, token))
         self.job = self.widget.after(self.delay, self.show)
         self.watch_job = self.widget.after(self.poll_ms, self._watch)
@@ -123,10 +127,15 @@ class ToolTip:
                 try: self.widget.after_cancel(token)
                 except tk.TclError: pass
                 setattr(self, name, None)
-        for sequence, token in self.owner_bindings:
-            try: self.owner.unbind(sequence, token)
-            except tk.TclError: pass
-        self.owner_bindings.clear()
+        bindings,self.owner_bindings=self.owner_bindings,[]
+        if bindings:
+            def detach():
+                for sequence,token in bindings:
+                    try:self.owner.unbind(sequence,token)
+                    except tk.TclError:pass
+            # Tk may still be executing a cached multi-handler event script.
+            # Retire logically now, delete Tcl commands after that dispatch.
+            schedule_owned_after(self.owner,('tooltip-unbind',id(bindings)),0,detach)
         if self.popup is not None:
             try: self.popup.destroy()
             except tk.TclError: pass
