@@ -98,6 +98,19 @@ focus and Search activation work instead of recursively pumping Tk. Focus during
 sibling teardown and toolbar lifetime regressions fail before/pass after. These
 remain pending long-run and dual-runtime final-candidate acceptance.
 
+Another deterministic exploration found three Space Analyzer defects: 40 context
+menu openings retained 40 menus and grew Tcl commands from 244 to 345; scaling
+then immediately closing left an invalid native callback; cancellation inside
+the final child subtree was swallowed as an unreadable item. Local fixes reuse
+one menu while deleting old entry commands, own/coalesce the scale callback, and
+propagate InterruptedError before the best-effort OSError handler. Before-failing
+regressions now pass in source; combined/portable/native acceptance is pending.
+
+One hundred deterministic operation seeds passed separately in source and
+portable form (57,600 operation scenarios per form), with byte hashes and an
+untouched sentinel inside disposable roots. This is file-operation correctness
+coverage, not a performance comparison or substitute for GUI endurance.
+
 ## Display coverage boundaries
 
 Win11-ARM64-VM currently enumerates only one head and 1920x1080 / 32bpp / 64Hz.

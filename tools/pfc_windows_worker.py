@@ -23,6 +23,7 @@ ALLOWED = {'deep_tasks_check.py', 'surface_walkthrough_check.py', 'compact_tasks
            'dialog_lifecycle_check.py', 'early_close_check.py', 'tcl_diagnostics_check.py',
            'tk_ownership_check.py',
            'gdi_lifetime_check.py',
+           'flow_lifetime_check.py','settings_reentry_check.py','space_lifetime_check.py',
            'search_worker_lifetime_check.py','space_worker_check.py','filesystem_boundary_check.py',
            'workflow_windows_check.py',
            'folder_scroll_check.py', 'folder_navigation_check.py', 'folder_leaf_check.py', 'settings_readability_groups_check.py',

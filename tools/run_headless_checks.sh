@@ -27,6 +27,8 @@ xvfb-run -a python3 tools/search_worker_lifetime_check.py
 xvfb-run -a python3 tools/search_worker_lifetime_check.py pfc
 xvfb-run -a python3 tools/space_worker_check.py
 xvfb-run -a python3 tools/space_worker_check.py pfc
+xvfb-run -a python3 tools/space_lifetime_check.py
+xvfb-run -a python3 tools/space_lifetime_check.py pfc
 xvfb-run -a python3 tools/tk_ownership_check.py
 xvfb-run -a python3 tools/tk_ownership_check.py pfc
 xvfb-run -a python3 tools/startup_registry_check.py

@@ -45,6 +45,18 @@ class SpaceAnalyzerTests(unittest.TestCase):
             self.assertEqual({node.path.name for node in result.children},
                              {"a.bin", "folder"})
 
+    def test_cancel_inside_last_child_is_not_swallowed_as_unreadable(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw);child=root/'last';child.mkdir()
+            cancel=threading.Event();original=scan_space
+            def interrupted(path,event):
+                if path==child:
+                    event.set()
+                    raise InterruptedError
+                return original(path,event)
+            with patch('pycommander.spaceanalyzer.scan_space',interrupted):
+                with self.assertRaises(InterruptedError):original(root,cancel)
+
     def test_rectangle_area_tracks_node_size(self):
         small = SpaceNode(Path("small"), 25, False)
         large = SpaceNode(Path("large"), 75, False)

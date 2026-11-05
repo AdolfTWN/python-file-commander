@@ -41150,6 +41150,7 @@ from tkinter import messagebox, ttk
 
 
 
+
 @dataclass
 class SpaceNode:
     path: Path
@@ -41196,6 +41197,10 @@ def scan_space(path: Path, cancel_event: threading.Event | None = None) -> Space
             else:
                 children.append(SpaceNode(
                     child, entry.stat(follow_symlinks=False).st_size, False))
+        except InterruptedError:
+            # Cancellation is control flow, not an unreadable child. In
+            # particular, cancellation in the final subtree must propagate.
+            raise
         except OSError:
             children.append(SpaceNode(child, 0, False))
     children.sort(key=lambda node: node.size, reverse=True)
@@ -41311,7 +41316,7 @@ class SpaceAnalyzerWindow(tk.Toplevel):
                   padding=(8, 4)).pack(fill="x")
 
     def apply_scale(self, _scale: float) -> None:
-        self.after_idle(self._redraw)
+        schedule_owned_idle(self,'space-scale',self._redraw)
 
     def apply_color_scheme(self, palette: dict) -> None:
         self.palette = palette
@@ -41493,8 +41498,14 @@ class SpaceAnalyzerWindow(tk.Toplevel):
         if node is None:
             return
         self._select_node(node)
-        menu = tk.Menu(
-            self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        menu = getattr(self,'_context_menu',None)
+        if menu is None:
+            menu = self._context_menu = tk.Menu(
+                self, tearoff=False, font=tkfont.nametofont("TkMenuFont"))
+        else:
+            # Menu.delete also removes each entry's registered Tcl command.
+            # Reconfiguring command= alone would retain old node closures.
+            menu.delete(0,'end')
         menu.add_command(
             label=tr("Move to Recycle Bin"),
             command=lambda target=node: self._confirm_remove(
