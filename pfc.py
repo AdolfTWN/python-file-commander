@@ -12580,7 +12580,6 @@ import subprocess
 import tempfile
 import threading
 import unicodedata
-from datetime import datetime
 from pathlib import Path
 import tkinter as tk
 from tkinter import font as tkfont, messagebox, ttk, filedialog, simpledialog
@@ -13837,7 +13836,8 @@ class _FolderCompareLogic(ttk.Frame):
         try:
             if path.is_dir(): return "<DIR>"
             stat = path.stat()
-            return f"{stat.st_size:,} B  {datetime.fromtimestamp(stat.st_mtime):%Y-%m-%d %H:%M}"
+            stamp=modified_text(stat.st_mtime).replace('/','-')
+            return f"{stat.st_size:,} B  {stamp}"
         except OSError:
             return "?"
 

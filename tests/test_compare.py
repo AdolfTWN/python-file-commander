@@ -2,14 +2,30 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
+from datetime import datetime
 
-from pycommander.compare import (FolderCompare, aligned_text, compare_row_height,
+from pycommander.compare import (FolderCompare, _FolderCompareLogic, aligned_text, compare_row_height,
                                  detect_compare_type, extract_compare_archive, file_hash,
                                  folder_rows, is_compare_archive, nested_source_label,
                                  text_files_equivalent, editable_aligned_content)
 
 
 class CompareTests(unittest.TestCase):
+    def test_unrepresentable_modified_dates_keep_known_size_without_breaking_compare(self):
+        for timestamp in (float('nan'),float('inf'),1e30):
+            with self.subTest(timestamp=timestamp):
+                path=SimpleNamespace(is_dir=lambda:False,
+                    stat=lambda:SimpleNamespace(st_size=12345,st_mtime=timestamp))
+                self.assertEqual(_FolderCompareLogic._detail(path),'12,345 B  —')
+
+    def test_valid_compare_detail_date_format_is_unchanged(self):
+        timestamp=1700000000
+        path=SimpleNamespace(is_dir=lambda:False,
+            stat=lambda:SimpleNamespace(st_size=12345,st_mtime=timestamp))
+        self.assertEqual(_FolderCompareLogic._detail(path),
+                         f'12,345 B  {datetime.fromtimestamp(timestamp):%Y-%m-%d %H:%M}')
+
     def test_compare_row_height_scales_without_clipping(self):
         self.assertEqual(compare_row_height(16, 1.0), 24)
         self.assertGreater(compare_row_height(32, 2.0), 32)

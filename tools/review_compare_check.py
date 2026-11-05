@@ -30,6 +30,10 @@ compare=api if portable else importlib.import_module('pycommander.compare')
 app=tk.Tk();app.geometry('1360x850+0+0');errors=[];timings={}
 app.report_callback_exception=lambda *args:errors.append(str(args))
 print('Compare fixture: Tk ready', flush=True)
+for timestamp in (float('nan'),float('inf'),1e30):
+    unusual=SimpleNamespace(is_dir=lambda:False,
+        stat=lambda:SimpleNamespace(st_size=12345,st_mtime=timestamp))
+    assert compare._FolderCompareLogic._detail(unusual)=='12,345 B  —'
 
 
 def pump(seconds=.1):
@@ -117,6 +121,19 @@ def shot(name):
 
 with tempfile.TemporaryDirectory(prefix='pfc-review-check-') as raw:
     root=Path(raw);a=root/'Left.md';b=root/'Right.md'
+    odd=root/'unusual-time.txt';odd.write_bytes(b'fixture')
+    try:
+        os.utime(odd,(253402300800,253402300800))  # First second of year 10000.
+        observed=odd.stat().st_mtime
+    except (OSError,OverflowError,ValueError):
+        print('Compare date boundary: filesystem cannot set year 10000; injected cases covered',flush=True)
+    else:
+        if observed>=253402300800:
+            assert compare._FolderCompareLogic._detail(odd)=='7 B  —'
+            print('Compare date boundary: real out-of-range file timestamp handled',flush=True)
+        else:
+            print('Compare date boundary: filesystem clamped timestamp; injected cases covered',flush=True)
+    odd.unlink()
     text=''.join(f'{n:06} | Project review | '+('sample '*22)+'\n' for n in range(115000))
     assert len(text.encode())<=20*1024*1024
     a.write_bytes(text.encode());b.write_bytes(text.replace('100000 | Project review','100000 | CHANGED').encode())

@@ -10,7 +10,6 @@ import subprocess
 import tempfile
 import threading
 import unicodedata
-from datetime import datetime
 from pathlib import Path
 import tkinter as tk
 from tkinter import font as tkfont, messagebox, ttk, filedialog, simpledialog
@@ -26,7 +25,7 @@ from .reviewui import ReviewCompare
 from .workbookui import WorkbookCompare
 from .archivereviewui import ArchiveReviewCompare
 from .comparecolors import comparison_colors, style_comparison_text
-from .columnsettings import font_snapshot
+from .columnsettings import font_snapshot, modified_text
 from .flowlayout import FlowToolbar, schedule_owned_idle, schedule_owned_after
 from .dialogs import release_owned_variables, release_owned_images
 
@@ -1267,7 +1266,8 @@ class _FolderCompareLogic(ttk.Frame):
         try:
             if path.is_dir(): return "<DIR>"
             stat = path.stat()
-            return f"{stat.st_size:,} B  {datetime.fromtimestamp(stat.st_mtime):%Y-%m-%d %H:%M}"
+            stamp=modified_text(stat.st_mtime).replace('/','-')
+            return f"{stat.st_size:,} B  {stamp}"
         except OSError:
             return "?"
 

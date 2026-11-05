@@ -126,6 +126,13 @@ only showing a temporary banner. Regression checks use a real failing child
 startup and injected save denial, verify version/time and redaction, and preserve
 the configuration bytes measured immediately before the failure.
 
+Folder comparison also reused the file list's safe modified-date formatting:
+non-finite or out-of-range timestamps previously raised from the UI formatter.
+Before-failing boundary tests now preserve known byte sizes with an unavailable
+date marker, while ordinary date formatting is unchanged. The native comparison
+fixture attempts a real year-10000 timestamp only inside its disposable root and
+explicitly distinguishes filesystem support/clamping from injected metadata.
+
 ## Display coverage boundaries
 
 Win11-ARM64-VM currently enumerates only one head and 1920x1080 / 32bpp / 64Hz.
