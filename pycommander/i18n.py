@@ -621,6 +621,7 @@ _MARKDOWN_READING_TRANSLATIONS = {
     "Rendering limit reached; showing source text": ("已達轉譯限制，改顯示原始文字", "已达渲染限制，改为显示原始文本", "렌더링 한도 초과. 소스 텍스트 표시"),
     "Memory protection unavailable; showing source text": ("無法啟用記憶體保護，改顯示原始文字", "无法启用内存保护，改为显示原始文本", "메모리 보호 불가. 소스 텍스트 표시"),
     "Loaded portion only": ("僅涵蓋已載入部分", "仅涵盖已加载部分", "불러온 부분만 해당"),
+    "Table layout limit reached; oversized tables shown as text": ("已達表格排版上限；過大的表格以文字顯示", "已达到表格排版上限；过大的表格以文本显示", "표 레이아웃 한도에 도달하여 큰 표는 텍스트로 표시됩니다"),
     "Showing the first 5,000 search matches": ("僅顯示前 5,000 個搜尋結果", "仅显示前 5,000 个搜索结果", "처음 5,000개 검색 결과만 표시"),
     "More links: use Ctrl+click in text": ("其他連結：在內文按 Ctrl＋點擊", "其他链接：在正文按 Ctrl＋点击", "추가 링크: 본문에서 Ctrl+클릭"),
     "Ctrl+click: ": ("Ctrl＋點擊：", "Ctrl＋点击：", "Ctrl+클릭: "),

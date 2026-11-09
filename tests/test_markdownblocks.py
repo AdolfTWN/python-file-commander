@@ -1,7 +1,7 @@
 import unittest
 
 from pycommander.markdownblocks import markdown_blocks, table_cells, property_rows, render_grid, display_width
-from pycommander.preview import render_markdown
+from pycommander.preview import markdown_document, render_markdown
 
 
 class MarkdownBlocksTests(unittest.TestCase):
@@ -54,6 +54,29 @@ class MarkdownBlocksTests(unittest.TestCase):
         result = render_grid(rows)
         self.assertEqual(result.count('END'), 500)
         self.assertIn('\t', result)
+
+    def test_pixel_tables_keep_ranges_empty_cells_and_multiline_rows(self):
+        model = markdown_document(
+            '# 摘要😀\n\n| 欄名 | Value | 數量 |\n| --- | :---: | ---: |\n'
+            '| **接頭** | 中<br>英 | 2 |\n| 短列 | raw |\n\n# Next\n',
+            pixel_tables=True)
+        start, end, aligns = model['tables'][0]
+        lines = model['content'][start:end].splitlines()
+        self.assertEqual(aligns, ['left', 'center', 'right'])
+        self.assertEqual([line.split('\t')[1::2] for line in lines], [
+            ['欄名', 'Value', '數量'], ['接頭', '中', '2'],
+            ['', '英', ''], ['短列', 'raw', '']])
+        self.assertIn((start, start+len(lines[0]), 'markdown_table_header'), model['spans'])
+        self.assertEqual(model['headings'][1]['start'], end+1)
+
+    def test_pixel_table_layout_limit_keeps_data_and_later_tables(self):
+        cells = '|'.join(['extra']*65)
+        model = markdown_document('A|B\n---|---\n'+cells+'\n\nC|D\n---|---\nlast|value',
+                                  pixel_tables=True)
+        self.assertTrue(model['table_layout_limited'])
+        self.assertEqual(model['content'].count('extra'), 65)
+        self.assertEqual(len(model['tables']), 1)
+        self.assertIn('last', model['content'][model['tables'][0][0]:])
 
 
 if __name__ == '__main__': unittest.main()

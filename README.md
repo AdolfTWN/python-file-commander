@@ -1,7 +1,10 @@
 # Python File Commander
 
-Current code: **v0.19.0** — stabilization milestone.
-The current reliability campaign covers Tk resource/deferred-callback ownership,
+Current code: **v0.19.1** — F3 Markdown tables keep columns aligned when mixing
+CJK, Latin text and emoji. Long cells use multiple lines; wide tables can scroll
+horizontally without changing the source file. Find and Copy work in Rendered view.
+
+The v0.19.0 reliability campaign covers Tk resource/deferred-callback ownership,
 data-safe interrupted moves, cancelled background work and startup/settings
 diagnostics. Selective search and column sizing avoid repeated metadata work.
 Folder-heavy searches coalesce progress snapshots rather than queuing thousands

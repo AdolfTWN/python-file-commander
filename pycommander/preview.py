@@ -18,7 +18,7 @@ from urllib.parse import quote
 from .tooltip import install_button_tooltips, ToolTip
 from .i18n import retranslate_widgets, tr, get_language
 from .tabs import color_scheme
-from .markdownblocks import markdown_blocks, property_rows, render_grid
+from .markdownblocks import markdown_blocks, pixel_grid, property_rows, render_grid
 from .mdlinks import markdown_destination, read_linked_markdown
 from .mdjobs import MarkdownJobs, limit_markdown_worker_memory
 from .mdworkspace import wiki_destination, scan_markdown_workspace
@@ -183,10 +183,11 @@ def syntax_spans(text: str, suffix: str) -> list[tuple[int, int, str]]:
     return spans
 
 
-def markdown_document(text: str):
+def markdown_document(text: str, *, pixel_tables=False):
     """Render a bounded, read-only document model; no filesystem/link lookups."""
     output, spans, length = [], [], 0
-    headings, links, tasks = [], [], [0,0]
+    headings, links, tasks, tables = [], [], [0,0], []
+    table_budget, table_layout_limited = 24000, False
     callout = None
 
     def append(value: str, tag: str | None = None) -> None:
@@ -228,6 +229,34 @@ def markdown_document(text: str):
             cursor = match.end()
         append(value[cursor:])
 
+    def table(rows, aligns=()):
+        nonlocal table_budget, table_layout_limited
+        if not pixel_tables:
+            append(render_grid(rows, aligns), 'markdown_table')
+            return
+        # Bound Tk font-measurement work across the entire loaded document.
+        # Oversized grids remain selectable text with every cell preserved.
+        grid = pixel_grid(rows, table_budget) if len(tables) < 512 else None
+        if grid is None:
+            table_layout_limited = True
+            append(''.join('\t'.join(row)+'\n' for row in rows), 'markdown_table')
+            return
+        content, ends, used = grid
+        table_budget -= used
+        start = length
+        append(content, 'markdown_table')
+        columns = max(map(len, rows))
+        tables.append((start, length, [*aligns, *(['left']*(columns-len(aligns)))]))
+        for row in range(0, len(ends), 2):
+            line = ends[row-1] if row else 0
+            tag = 'markdown_table_stripe' if row else 'markdown_table_header'
+            while line < ends[row]:
+                newline = content.index('\n', line, ends[row])
+                # Do not paint the newline: Tk extends its background all
+                # the way to the viewport edge, past this table's last rule.
+                spans.append((start+line, start+newline, tag))
+                line = newline+1
+
     for kind, raw in markdown_blocks(text):
         if length>2*1024*1024 or len(spans)>20000:
             raise ValueError('Markdown rendering limit reached')
@@ -235,13 +264,13 @@ def markdown_document(text: str):
             start=length
             append(tr('Properties (read-only)')+'\n', 'markdown_h3')
             body=length
-            append(render_grid([[tr('Property'),tr('Value')]]+property_rows(raw)), 'markdown_table')
+            table([[tr('Property'),tr('Value')]]+property_rows(raw))
             headings.append({'title':tr('Properties (read-only)'),'level':0,'start':start,'body':body,'end':length})
             continue
         if kind == 'table':
             rows, aligns = raw
             # Flatten inline presentation inside a grid, preserving all words,
-            # URLs and line breaks. Keep a uniform fixed font for alignment.
+            # URLs and line breaks. Keep values selectable in the document.
             plain_rows=[]
             for row in rows:
                 plain=[]
@@ -251,7 +280,7 @@ def markdown_document(text: str):
                     plain.append(''.join(output[start:]))
                     del output[start:]; del spans[old_spans:];del links[old_links:]; length=old_length
                 plain_rows.append(plain)
-            append(render_grid(plain_rows, aligns), 'markdown_table')
+            table(plain_rows, aligns)
             continue
         if kind == 'code':
             callout=None
@@ -300,7 +329,8 @@ def markdown_document(text: str):
         source='\n'.join(match[2].splitlines());start=content.find(source,cursor)
         if start>=0 and len(diagrams)<20:
             diagrams.append(dict(source=source,start=start,end=start+len(source)));cursor=start+len(source)
-    return {'content':content,'spans':spans,'headings':headings,'links':links,'tasks':tasks,'diagrams':diagrams}
+    return {'content':content,'spans':spans,'headings':headings,'links':links,'tasks':tasks,'diagrams':diagrams,
+            'tables':tables,'table_layout_limited':table_layout_limited}
 
 
 def render_markdown(text: str) -> tuple[str, list[tuple[int, int, str]]]:
@@ -342,7 +372,7 @@ def markdown_worker_main():
                     try:
                         if not memory_limited: raise ValueError('Memory protection unavailable')
                         if len(source)>512*1024: raise ValueError('Markdown rendering limit reached')
-                        result=markdown_document(source)
+                        result=markdown_document(source, pixel_tables=True)
                     except (ValueError,RecursionError,MemoryError):
                         result={'content':source[:512*1024],'spans':[]};rendered=False
                         truncated=truncated or len(source)>512*1024
@@ -504,6 +534,7 @@ class PreviewPage(tk.Frame):
         self._md_boundary=Path(os.path.abspath(selected)).parent
         self._md_folded=set();self._md_poll_job=None;self._md_last_probe=0
         self._md_display_path=None;self._md_signature=None
+        self._md_table_font_key=None
         self._md_auto_suspended=False
         self.bind('<Destroy>',lambda e:self._md_jobs.close() if e.widget is self else None,add='+')
         self.bind('<Destroy>',lambda e:self._format_jobs.close() if e.widget is self else None,add='+')
@@ -930,6 +961,7 @@ class PreviewPage(tk.Frame):
         self._md_display_path=Path(context['request']['path'])
         self._md_signature=result['signature'];self._md_model=result;self._md_folded.clear()
         self.text.configure(state='normal');self.text.delete('1.0','end')
+        self._clear_markdown_table_layout()
         for tag in self.text.tag_names():
             if tag.startswith(('md_link_','md_fold_','md_diagram_')): self.text.tag_delete(tag)
         self.text.configure(state='disabled')
@@ -949,6 +981,7 @@ class PreviewPage(tk.Frame):
         self.md_cancel.state(['disabled'])
         # Text's '+Nc' modifier counts Unicode characters, unlike Tcl string
         # length / Text.count, which can count UTF-16 units. Keep Python offsets.
+        self._layout_markdown_tables()
         self._apply_spans(result['spans'])
         for number,item in enumerate(result.get('links',[])):
             tag=f'md_link_{number}'
@@ -995,6 +1028,7 @@ class PreviewPage(tk.Frame):
         detail=f"{mode}   {result['size']:,} bytes   {result['encoding']}"
         if result.get('truncated'): detail+='   '+tr('Loaded portion only')
         if result.get('notice'): detail+='   '+tr(result['notice'])
+        if result.get('table_layout_limited'): detail+='   '+tr('Table layout limit reached; oversized tables shown as text')
         self.status.configure(text=detail)
         self.find_all()
         context=job['context']
@@ -1007,6 +1041,45 @@ class PreviewPage(tk.Frame):
             saved = next((item['data'] for item in WorkflowRecords(self.config_data, 'reading_positions').read()
                           if item['data'].get('path') == str(self._md_display_path)), None)
             if saved: self._restore_reading_position(saved)
+
+    def _clear_markdown_table_layout(self):
+        tags = [tag for tag in self.text.tag_names() if tag.startswith('md_table_')]
+        if tags:
+            self.text.tag_delete(*tags)
+        self._md_table_font_key = None
+
+    def _layout_markdown_tables(self):
+        tables = self._md_model.get('tables')
+        if not tables or self._md_insert:
+            return
+        font = tkfont.nametofont('TkFixedFont')
+        key = (tuple(sorted(font.actual().items())), font.measure('0'), font.metrics('linespace'))
+        if key == self._md_table_font_key:
+            return
+        first_layout = self._md_table_font_key is None
+        content = self._md_model['content']
+        rule_width = font.measure('│')
+        padding = max(3, font.measure(' '))
+        measured = {'': 0}
+        for number, (start, end, aligns) in enumerate(tables):
+            widths = [0]*len(aligns)
+            for line in content[start:end].splitlines():
+                for column, value in enumerate(line.split('\t')[1::2]):
+                    pixels = measured.get(value)
+                    if pixels is None:
+                        pixels = measured[value] = font.measure(value)
+                    widths[column] = max(widths[column], pixels)
+            stops, edge = [], 0
+            for pixels, align in zip(widths, aligns):
+                inside = edge + rule_width + padding
+                anchor = pixels if align == 'right' else pixels//2 if align == 'center' else 0
+                edge = inside + pixels + padding
+                stops.extend((inside + anchor, align, edge, 'left'))
+            tag = f'md_table_{number}'
+            self.text.tag_configure(tag, tabs=tuple(stops), tabstyle='tabular')
+            if first_layout:
+                self.text.tag_add(tag, f'1.0+{start}c', f'1.0+{end}c')
+        self._md_table_font_key = key
 
     def _open_diagram(self,number):
         diagrams=self._md_model.get('diagrams',[])
@@ -1212,6 +1285,7 @@ class PreviewPage(tk.Frame):
     def apply_scale(self, _scale: float) -> None:
         self._configure_effect_fonts()
         self.apply_color_scheme(self.palette)
+        self._layout_markdown_tables()
         if self._format_active:self.render_view.rescale()
         schedule_owned_idle(self,'markdown-tools',self._layout_markdown_tools)
         schedule_owned_idle(self,'find-tools',self._layout_find)
@@ -1258,7 +1332,11 @@ class PreviewPage(tk.Frame):
             self.text.tag_configure('markdown_callout_'+kind,background=dark_color if dark else light,
                                     foreground=palette['text'],lmargin1=8,lmargin2=8,spacing1=3,spacing3=3)
         self.text.tag_configure('markdown_table', font=tkfont.nametofont('TkFixedFont'),
-                                background=palette['surface_alt'], wrap='none', spacing1=0, spacing3=0)
+                                wrap='none', spacing1=0, spacing3=0)
+        self.text.tag_configure('markdown_table_header', background=palette['header'], foreground=palette['header_text'])
+        self.text.tag_configure('markdown_table_stripe', background=palette['surface_alt'])
+        for tag in ('match', 'current_match', 'sel'):
+            self.text.tag_raise(tag)
         for level in (1, 2, 3):
             self.text.tag_configure(f"markdown_h{level}", font=self.effect_fonts[f"h{level}"],
                                     foreground=colors["syntax_heading"], spacing1=8, spacing3=4)
@@ -1339,6 +1417,7 @@ class PreviewPage(tk.Frame):
         self._remember_markdown_position()
         if self._md_jobs.pending or self._md_queued: self.cancel_markdown()
         self._md_model={};self._md_insert=None;self.md_tools.pack_forget()
+        self._clear_markdown_table_layout()
         for tag in self.text.tag_names():
             if tag.startswith(('md_fold_','md_link_')): self.text.tag_delete(tag)
         if self._span_job is not None:

@@ -101,6 +101,33 @@ def wrap_cell(text, width):
     return result
 
 
+def pixel_grid(rows, budget):
+    """Serialize a bounded grid into selectable Text lines and row boundaries.
+
+    Tabs are placed by Tk using the actual font, not by Unicode cell counts.
+    Each visual line contains two tabs per column: before the value and before
+    its right-hand rule. Real tabs in values are expanded by wrap_cell.
+    """
+    count = max(map(len, rows), default=0)
+    if not 0 < count <= 64 or count*len(rows) > budget:
+        return None
+    output, row_ends, used, offset = [], [], 0, 0
+    for row in rows:
+        cells = [wrap_cell(value, 60) for value in row]
+        height = max(map(len, cells), default=1)
+        used += count*height
+        if used > budget:
+            return None
+        for line in range(height):
+            values = [cell[line] if line < len(cell) else '' for cell in cells]
+            values.extend(['']*(count-len(values)))
+            rendered = '│\t'+'\t│\t'.join(values)+'\t│\n'
+            output.append(rendered)
+            offset += len(rendered)
+        row_ends.append(offset)
+    return ''.join(output), row_ends, used
+
+
 def render_grid(rows, aligns=()):
     """Readable/selectable grid, wrapping wide cells without truncation.
 

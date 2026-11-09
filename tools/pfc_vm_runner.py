@@ -321,6 +321,12 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
             for test in result.get('tests', []):
                 name = test['check']
                 (evidence_dir/(name+'.log')).write_bytes(guest.read(directory+'\\'+name+'.log'))
+            if result['status']=='passed' and 'markdown_preview_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('mixed-150', 'wide-150'):
+                    data=guest.image_data(directory+'\\evidence-md-table-'+name+'.bmp')
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('md-table-'+name+'.png'))
             if result['status']=='passed' and 'screen_transition_check.py' in checks:
                 from PIL import Image
                 import io
