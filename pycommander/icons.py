@@ -12,6 +12,8 @@ from functools import lru_cache
 from pathlib import Path
 from tkinter import PhotoImage
 
+from .latency import latency_call
+
 
 VCS_BADGE_SPECS = {
     "clean": ("#218838", "check", "#ffffff"),
@@ -396,10 +398,11 @@ class ShellIconProvider:
     """Bounded native icon cache. Widgets must retain images while displaying them."""
 
     def __init__(self, size: int = 16, text_gap: int | None = None,
-                 *, cache_limit: int = 512) -> None:
+                 *, cache_limit: int = 512, latency=None) -> None:
         self.size = size
         self.text_gap = max(4, round(size * 0.3)) if text_gap is None else text_gap
         self.cache_limit = max(1, cache_limit)
+        self._ui_latency = latency
         self.cache: OrderedDict[tuple, PhotoImage] = OrderedDict()
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
@@ -417,7 +420,8 @@ class ShellIconProvider:
             base_key = ('type', suffix)
         key = (base_key, overlay or '', cloud or '')
         if key not in self.cache:
-            icon = self._load(path, is_dir)
+            icon = latency_call(self._ui_latency, 'Load Windows Shell icon', self._load,
+                                path, is_dir, item=path, is_dir=is_dir)
             if icon is None:
                 # A transient Shell lookup failure must not hide known status
                 # badges or poison the cache with an invisible image.

@@ -47,7 +47,40 @@ def diagnostic_incidents(*snapshots):
             first=groups[key]
             if row['event'] not in first['events']:first['events'].append(row['event'])
             if len(row.get('frames',[]))>len(first.get('frames',[])):first['frames']=row['frames']
+            if isinstance(row.get('latency'), dict):
+                previous = first.get('latency')
+                first['latency'] = {**(previous if isinstance(previous, dict) else {}), **row['latency']}
     return result
+
+
+def _diagnostic_latency_lines(latency):
+    lines = []
+    if isinstance(latency, dict):
+        lines.append('Action: '+str(latency.get('action','Main window (unclassified)')))
+        try:
+            if 'pending_phase' in latency:
+                lines.append('Waiting at capture: '+str(latency['pending_phase'])+
+                             (f" ({latency['pending_type']})" if latency.get('pending_type') else '')+
+                             f" · {latency['pending_ms']/1000:.2f} s")
+            if 'duration_ms' in latency:
+                lines.append(f"Operation finished: {latency['duration_ms']/1000:.2f} s"+
+                             (f" · {latency['rows']:,} entries" if 'rows' in latency else ''))
+            if 'resumed_ms' in latency:
+                lines.append(f"UI responded again after {latency['resumed_ms']/1000:.2f} s")
+            elif 'stalled_ms' in latency:
+                lines.append(f"UI unresponsive at capture: ≥ {latency['stalled_ms']/1000:.2f} s")
+            for phase in latency.get('phases', [])[:4]:
+                if phase['elapsed_ms'] < 100 and not phase['slow_calls']:
+                    continue
+                lines.append(f"  {phase['phase']}: {phase['elapsed_ms']/1000:.2f} s"
+                             f" · calls: {phase['calls']:,}, delayed: {phase['slow_calls']:,}"
+                             f" · max {phase['longest_ms']/1000:.2f} s"+
+                             (f" ({phase['file_type']})" if phase.get('file_type') else ''))
+            if 'other_ui_ms' in latency:
+                lines.append(f"  Other UI work (not timed separately): {latency['other_ui_ms']/1000:.2f} s")
+        except (KeyError, TypeError, ValueError, OverflowError):
+            lines.append('Some timing details could not be read.')
+    return lines
 
 
 def diagnostic_summary(row):
@@ -55,6 +88,7 @@ def diagnostic_summary(row):
     lines=['PFC '+str(row.get('version','—'))+' · '+str(row.get('severity','—'))+
            ' · '+str(row.get('error') or row.get('event','—')),
            str(row.get('time','—'))]
+    lines.extend(_diagnostic_latency_lines(row.get('latency')))
     frames=row.get('frames',[])
     if frames:
         root=frames[-1]
@@ -69,7 +103,8 @@ def diagnostic_summary(row):
         for frame in reversed(frames[-3:-1]):
             lines.append('  '+str(frame.get('module','?'))+':'+str(frame.get('line','?'))+' · '+str(frame.get('function','?')))
     events=row.get('events',[])
-    lines.append(('Same incident: '+' → '.join(events)) if len(events)>1 else 'Event: '+str(row.get('event','—')))
+    if not row.get('latency'):
+        lines.append(('Same incident: '+' → '.join(events)) if len(events)>1 else 'Event: '+str(row.get('event','—')))
     lines.append('Incident: '+str(row.get('incident','—')))
     return '\n'.join(lines)
 
@@ -188,7 +223,7 @@ class DiagnosticLog:
             self.handler = None
             return False
 
-    def event(self, event, severity='INFO', automatic=False, **metadata):
+    def event(self, event, severity='INFO', automatic=False, include_context=True, **metadata):
         with self._lock:
             handlers = [h for h in (self.handler, self.error_handler
                         if automatic or severity in ('WARNING','ERROR','CRITICAL') else None) if h]
@@ -197,7 +232,7 @@ class DiagnosticLog:
                             utc_time=datetime.now(timezone.utc).isoformat(), version=self.version,
                             session=self.session, event=event, severity=severity)
             serious = severity in ('WARNING','ERROR','CRITICAL')
-            if serious and self.error_handler and self._recent:
+            if serious and include_context and self.error_handler and self._recent:
                 metadata['context'] = [json.loads(record) for record in self._recent]
             try:
                 payload = json.dumps(metadata, ensure_ascii=True)
@@ -208,9 +243,9 @@ class DiagnosticLog:
             # No normal-operation disk stream: keep a bounded, detached snapshot
             # for the next failure, without recursively buffering old contexts.
             metadata.pop('context',None)
-            if serious:
+            if serious and include_context:
                 self._recent.clear()
-            elif self.error_handler:
+            elif not serious and self.error_handler:
                 recent=json.dumps(metadata,ensure_ascii=True)
                 if len(recent)<=1024:self._recent.append(recent)
 

@@ -1,6 +1,15 @@
 # Python File Commander
 
-Current code: **v0.19.1** — F3 Markdown tables keep columns aligned when mixing
+Current code: **v0.19.2** — Help > Error / Warning log automatically records an
+unresponsive UI after 5 seconds and summarizes unusually slow folder opens,
+refreshes, and icon loads. The photo summary shows the current or slowest known
+step, durations and counts. The new records omit filenames and file contents
+and are stored locally.
+Tracked operations also report after 3 seconds overall, 1 second in one step,
+or five calls taking at least 100 ms each. Reports distinguish delayed work
+from a stalled UI; some native freezes can also stop the watchdog itself.
+
+Since **v0.19.1**, F3 Markdown tables keep columns aligned when mixing
 CJK, Latin text and emoji. Long cells use multiple lines; wide tables can scroll
 horizontally without changing the source file. Find and Copy work in Rendered view.
 

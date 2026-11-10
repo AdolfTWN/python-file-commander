@@ -60,6 +60,7 @@ from .windowplacement import WindowVisibilityGuard, popup_work_area
 from .settings import SettingsDialog, SETTINGS_CATEGORIES, preference_specs, refresh_control_styles
 from .dialogs import install_scaled_messageboxes, release_owned_variables, release_owned_images
 from .debuglog import DiagnosticLog, diagnostic_records, diagnostic_incidents, diagnostic_summary
+from .latency import UiLatencyMonitor, latency_action, latency_call, latency_user_wait
 from .columnsettings import font_snapshot
 from .actionbar import ActionBarLayout
 from .vcsui import VcsActions
@@ -147,6 +148,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.19.2", "2026/11/10", (
+        "Added: The automatic Error / Warning log records prolonged UI stalls while they are happening and summarizes slow folder operations without collecting filenames or file contents.",
+        "Fixed in v0.19.1: F3 Markdown table columns stay aligned with mixed-language text and enlarged fonts.",
+    )),
     ("v0.19.0", "2026/11/06", (
         "Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.",
         "Fixed: Failed replacement moves preserve recovery copies; stale space scans no longer replace newer results.",
@@ -1112,7 +1117,8 @@ class FilePane(ttk.Frame):
         self._inline_placeholder = False
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified")}
-        self.icons = ShellIconProvider()
+        self._ui_latency = getattr(self.winfo_toplevel(), '_ui_latency', None)
+        self.icons = ShellIconProvider(latency=self._ui_latency)
         # Treeview stores Tcl image names, not Python references. Pin displayed
         # images independently of the bounded provider cache (and zoom changes).
         self._row_icons = {}
@@ -1550,6 +1556,7 @@ class FilePane(ttk.Frame):
         icons=getattr(self,'icons',None)
         if icons is not None:release_owned_images(icons,'cache','blank')
 
+    @latency_action('Apply Git/SVN icons')
     def _apply_vcs_icons(self, previous: dict[str, str] | None = None) -> None:
         previous = previous or {}
         def apply(parent=""):
@@ -1558,7 +1565,9 @@ class FilePane(ttk.Frame):
                 if tags and tags[0] != "PFC_INLINE_PLACEHOLDER":
                     path = Path(tags[0])
                     if status_for(previous, path) != status_for(self._vcs_statuses, path):
-                        try: self.tree.item(iid, image=self._icon(path, path.is_dir()))
+                        try:
+                            is_dir = latency_call(self._ui_latency, 'Read file metadata', path.is_dir, item=path)
+                            self.tree.item(iid, image=self._icon(path, is_dir))
                         except OSError: pass
                 apply(iid)
         apply()
@@ -1567,9 +1576,10 @@ class FilePane(ttk.Frame):
         visible = path.name if is_dir or self.show_extensions else path.stem
         return ("└─ " if is_last else "├─ ") + visible
 
+    @latency_action('Expand folder tree')
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
-            entries = directory_items(folder,self.show_hidden,self.show_system)
+            entries = self._read_directory(folder)
         except OSError:
             return 0
         needle = self.quick_filter_var.get().strip().casefold()
@@ -1836,10 +1846,12 @@ class FilePane(ttk.Frame):
         if self._inline_editor is not None:
             self._finish_inline_name(False, lambda _name: None)
 
+    @latency_action('Open folder')
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
         try:
-            path = path.expanduser().resolve()
-            if not path.is_dir():
+            monitor = getattr(self, '_ui_latency', None)
+            path = latency_call(monitor, 'Resolve folder path', path.expanduser().resolve)
+            if not latency_call(monitor, 'Check folder path', path.is_dir):
                 raise NotADirectoryError(path)
             if not bypass_lock and self.lock_mode == "locked" and path != self.path:
                 self.on_locked_navigation(path)
@@ -1847,7 +1859,7 @@ class FilePane(ttk.Frame):
             # Validate the listing before committing history, path or widgets.
             # Reuse this exact snapshot in refresh rather than scanning twice.
             reveal=self._search_reveal_path if getattr(self,'_search_reveal_path',None) is not None and self._search_reveal_path.parent==path else None
-            prepared=directory_items(path,self.show_hidden,self.show_system,reveal)
+            prepared=self._read_directory(path,reveal)
             previous = self.path
             focused = self.tree.focus()
             if not focused and self.tree.selection():
@@ -1872,7 +1884,7 @@ class FilePane(ttk.Frame):
                                       else self.archive_session.archive_path.name)
             else:
                 self.display_title = path.name or str(path)
-            self.path_bar.set_location(self.display_path())
+            latency_call(monitor, 'Update breadcrumb', self.path_bar.set_location, self.display_path())
             self.drive.set(path.anchor or os.sep)
             self.refresh()
             self.on_change()
@@ -1881,7 +1893,7 @@ class FilePane(ttk.Frame):
             self.path_var.set(str(self.path))
             log=getattr(self.winfo_toplevel(),'debug_log',None)
             if log is not None:log.exception('navigation.failed',exc)
-            messagebox.showerror(tr("Cannot open folder"), str(exc))
+            latency_user_wait(monitor, messagebox.showerror, tr("Cannot open folder"), str(exc))
             return False
 
     def up(self) -> None:
@@ -1980,6 +1992,15 @@ class FilePane(ttk.Frame):
         return (self.mode,self.path,self.show_hidden,self.show_system,self._search_reveal_path,
                 self._result_listing_paths if self.mode=='search_results' else ())
 
+    def _read_directory(self, folder, reveal=None):
+        monitor = getattr(self, '_ui_latency', None)
+        if monitor is None:
+            return directory_items(folder, self.show_hidden, self.show_system, reveal)
+        rows = monitor.measure('Enumerate folder', directory_items, folder, self.show_hidden,
+                               self.show_system, reveal, latency=monitor)
+        monitor.rows(len(rows))
+        return rows
+
     def _listing_failed(self,exc):
         self.status.configure(text=tr('Cannot read folder; previous list retained'))
         key=(self.path,type(exc).__name__,getattr(exc,'errno',None),getattr(exc,'winerror',None))
@@ -1988,6 +2009,7 @@ class FilePane(ttk.Frame):
             if log is not None:log.exception('directory.read.failed',exc,severity='WARNING')
         self._listing_failure_key=key
 
+    @latency_action('Refresh file list')
     def refresh(self, *, _reuse_listing=False) -> None:
         if self._inline_editor is not None:
             return
@@ -1998,6 +2020,7 @@ class FilePane(ttk.Frame):
             self._refresh_after_drag = True
             return
         self._refresh_after_drag = False
+        monitor = getattr(self, '_ui_latency', None)
         key=self._listing_key()
         fresh=True
         try:
@@ -2006,14 +2029,16 @@ class FilePane(ttk.Frame):
             elif (_reuse_listing and self._listing_snapshot_key==key
                   and (self.view_mode=='list' or self.mode=='search_results')):
                 rows=self._listing_rows;fresh=False
-            elif self.mode=='search_results':rows=listing_items(self._result_listing_paths)
-            else:rows=directory_items(self.path,self.show_hidden,self.show_system,self._search_reveal_path)
+            elif self.mode=='search_results':rows=listing_items(self._result_listing_paths,latency=monitor)
+            else:rows=self._read_directory(self.path,self._search_reveal_path)
         except OSError as exc:
             self._listing_failed(exc)
-            messagebox.showerror(tr('Cannot read folder'),str(exc),parent=self.winfo_toplevel())
+            latency_user_wait(monitor, messagebox.showerror, tr('Cannot read folder'),str(exc),
+                              parent=self.winfo_toplevel())
             return
         finally:self._prepared_listing=None
         self._listing_rows=rows;self._listing_snapshot_key=key
+        if monitor is not None: monitor.rows(len(rows))
         if fresh:self._listing_failure_key=None
         self.name_marquee.stop()
         self.size_units.hide()
@@ -2032,14 +2057,14 @@ class FilePane(ttk.Frame):
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         if reset_view:
             selected, expanded, scroll_position = set(), set(), 0.0
-        self.tree.delete(*self.tree.get_children())
+        latency_call(monitor, 'Clear previous file rows', self.tree.delete, *self.tree.get_children())
         self._row_icons.clear()
         self._date_values.clear()
         try:
-            self._request_vcs_statuses()
+            latency_call(monitor, 'Prepare Git/SVN status', self._request_vcs_statuses)
             if self.mode == "files" and self.view_mode != "list":
                 self._signature = listing_signature(rows)
-                root_stat = self.path.stat()
+                root_stat = latency_call(monitor, 'Read file metadata', self.path.stat, item=self.path, is_dir=True)
                 root_label = self.path.name or str(self.path)
                 root_iid = self.tree.insert("", "end", text=root_label,
                                             image=self._icon(self.path, True),
@@ -2073,27 +2098,9 @@ class FilePane(ttk.Frame):
             needle = self.quick_filter_var.get().strip().casefold()
             if needle:
                 entries = [row for row in entries if row.path == reveal or needle in row.path.name.casefold()]
-            entries=ordered_listing(entries,self.sort_column,self.reverse,self.mix_sorting)
-            total = 0
-            for row in entries:
-                p=row.path
-                if row.metadata is None:continue
-                try:
-                    stat = row.metadata
-                    is_dir = row.is_dir
-                    total += 0 if is_dir else stat.st_size
-                    visible_name = p.name if is_dir or self.show_extensions else p.stem
-                    name = f"[{visible_name}]" if is_dir else visible_name
-                    values = ("" if is_dir else p.suffix[1:].upper(),
-                              "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                              self.format_modified(stat.st_mtime, p))
-                    iid = self.tree.insert("", "end", text=name, image=self._icon(p, is_dir), values=values, tags=(str(p),))
-                    if str(p) in selected:
-                        self.tree.selection_add(iid)
-                        if str(p) == focused_path:
-                            self.tree.focus(iid)
-                except OSError:
-                    continue
+            entries=latency_call(monitor, 'Sort file rows', ordered_listing, entries,
+                                 self.sort_column,self.reverse,self.mix_sorting)
+            total = latency_call(monitor, 'Build file rows', self._build_file_rows, entries, selected, focused_path)
             filter_status = tr(" — filter: {filter}", filter=self.quick_filter_var.get().strip()) if needle else ""
             self.status.configure(text=tr("{count} items   {size}", count=len(self.tree.get_children()),
                                           size=format_size(total)) + filter_status)
@@ -2114,7 +2121,30 @@ class FilePane(ttk.Frame):
                 self.tree.yview_moveto(scroll_position)
             self._schedule_column_autosize()
         except OSError as exc:
-            messagebox.showerror(tr("Cannot read folder"), str(exc))
+            latency_user_wait(monitor, messagebox.showerror, tr("Cannot read folder"), str(exc))
+
+    def _build_file_rows(self, entries, selected, focused_path):
+        total = 0
+        for row in entries:
+            p = row.path
+            if row.metadata is None:
+                continue
+            try:
+                stat, is_dir = row.metadata, row.is_dir
+                total += 0 if is_dir else stat.st_size
+                visible_name = p.name if is_dir or self.show_extensions else p.stem
+                name = f"[{visible_name}]" if is_dir else visible_name
+                values = ("" if is_dir else p.suffix[1:].upper(),
+                          "<DIR>" if is_dir else compact_file_size(stat.st_size),
+                          self.format_modified(stat.st_mtime, p))
+                iid = self.tree.insert("", "end", text=name, image=self._icon(p, is_dir), values=values, tags=(str(p),))
+                if str(p) in selected:
+                    self.tree.selection_add(iid)
+                    if str(p) == focused_path:
+                        self.tree.focus(iid)
+            except OSError:
+                continue
+        return total
 
     def _schedule_column_autosize(self) -> None:
         if self._column_resize_job is not None:
@@ -2124,6 +2154,7 @@ class FilePane(ttk.Frame):
                 pass
         self._column_resize_job = self.after_idle(self._autosize_columns)
 
+    @latency_action('Measure file columns')
     def _autosize_columns(self) -> None:
         """Fit detail fields to visible data and give all remaining width to Name."""
         self._column_resize_job = None
@@ -2202,13 +2233,15 @@ class FilePane(ttk.Frame):
                 signature.append((path.name, None, None, None))
         return tuple(sorted(signature))
 
+    @latency_action('Check folder for changes')
     def refresh_if_changed(self) -> bool:
         if self.mode != "files" or self._inline_editor is not None:
             return False
-        self._request_vcs_statuses()
+        monitor = getattr(self, '_ui_latency', None)
+        latency_call(monitor, 'Prepare Git/SVN status', self._request_vcs_statuses)
         try:
-            rows=directory_items(self.path,self.show_hidden,self.show_system,self._search_reveal_path)
-            signature = listing_signature(rows)
+            rows=self._read_directory(self.path,self._search_reveal_path)
+            signature = latency_call(monitor, 'Compare file-list snapshot', listing_signature, rows)
         except OSError as exc:
             self._listing_failed(exc)
             return False
@@ -2387,7 +2420,7 @@ class FilePane(ttk.Frame):
         linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
         icon_size = max(16, round(scaled_tree_row_height(linespace, scale) * .9))
         if self.icons.size != icon_size:
-            self.icons = ShellIconProvider(icon_size)
+            self.icons = ShellIconProvider(icon_size, latency=self._ui_latency)
         self.refresh(_reuse_listing=True)
         self._schedule_column_autosize()
 
@@ -2589,6 +2622,8 @@ class Commander(tk.Tk):
         self.debug_log = DiagnosticLog(__version__, automatic=True,
                                       runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
+        self._ui_latency = UiLatencyMonitor(self.debug_log) if self.debug_log.error_handler else None
+        self._ui_latency_job = self.after(500, self._ui_latency_tick) if self._ui_latency is not None else None
         # Tcl may report an already-deleted idle command without entering a
         # Python callback. Route that separate error channel to automatic logs.
         background_error=self._register(self._report_tcl_background_error)
@@ -3183,8 +3218,17 @@ class Commander(tk.Tk):
 
     def _close_diagnostics(self,event):
         if event.widget is self:
+            if self._ui_latency_job is not None:
+                self.after_cancel(self._ui_latency_job)
+                self._ui_latency_job = None
+            if self._ui_latency is not None:
+                self._ui_latency.close()
             try:self.debug_log.close()
             except OSError:pass  # Diagnostic storage must never prevent exit.
+
+    def _ui_latency_tick(self):
+        self._ui_latency.heartbeat()
+        self._ui_latency_job = self.after(500, self._ui_latency_tick)
 
     def close_app(self) -> None:
         running=[w for w in getattr(self,'_progress_operations',set()) if w.winfo_exists()]
@@ -3372,6 +3416,7 @@ class Commander(tk.Tk):
                     rows.append((pane, iid, Path(tags[0])))
         return rows
 
+    @latency_action('Apply OneDrive icons')
     def _update_cloud_icons(self, rows):
         for pane, iid, path in rows:
             if pane._drag_press_item is None:

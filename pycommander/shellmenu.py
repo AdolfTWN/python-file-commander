@@ -5,6 +5,7 @@ from __future__ import annotations
 import ctypes
 import os
 from pathlib import Path
+from .latency import latency_user_wait
 
 
 S_OK = 0
@@ -127,8 +128,9 @@ def show_shell_context_menu(hwnd: int, paths, x_root: int, y_root: int) -> bool:
         if _failed(status):
             raise OSError("Windows could populate the Explorer context menu.")
         user32.SetForegroundWindow(ctypes.c_void_p(hwnd))
-        command = user32.TrackPopupMenu(ctypes.c_void_p(menu), TPM_RIGHTBUTTON | TPM_RETURNCMD,
-                                        int(x_root), int(y_root), 0, ctypes.c_void_p(hwnd), None)
+        command = latency_user_wait(None, user32.TrackPopupMenu, ctypes.c_void_p(menu),
+                                    TPM_RIGHTBUTTON | TPM_RETURNCMD, int(x_root), int(y_root),
+                                    0, ctypes.c_void_p(hwnd), None)
         if command:
             invoke = _method(context, 4, ctypes.POINTER(_CMINVOKECOMMANDINFO))
             info = _CMINVOKECOMMANDINFO(

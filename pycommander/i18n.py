@@ -11,6 +11,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Added: The automatic Error / Warning log records prolonged UI stalls while they are happening and summarizes slow folder operations without collecting filenames or file contents.': ('新增：自動錯誤／警告日誌會在介面長時間無回應時留下紀錄，並摘要耗時的資料夾操作，不收集檔名或檔案內容。','新增：自动错误／警告日志会在界面长时间无响应时留下记录，并摘要耗时的文件夹操作，不收集文件名或文件内容。','추가: 자동 오류/경고 로그는 UI가 오래 응답하지 않을 때 즉시 기록하고, 파일명이나 내용을 수집하지 않고 느린 폴더 작업을 요약합니다.'),
+    'Fixed in v0.19.1: F3 Markdown table columns stay aligned with mixed-language text and enlarged fonts.': ('v0.19.1 修正：F3 Markdown 表格在混合語言及放大字體時仍保持欄位對齊。','v0.19.1 修正：F3 Markdown 表格在混合语言及放大字体时仍保持列对齐。','v0.19.1 수정: F3 Markdown 표에서 여러 언어를 섞거나 글꼴을 확대해도 열 정렬이 유지됩니다.'),
     'Fixed: Reentrant tooltip display no longer leaves expiry callbacks for destroyed controls.': ('修正：提示視窗顯示重入時，不再替已銷毀的控制項留下到期回呼。','修正：提示窗口显示重入时，不再为已销毁的控件留下到期回调。','수정: 툴팁 표시가 재진입해도 삭제된 컨트롤의 만료 콜백이 남지 않습니다.'),
     'Improved: Folder-heavy searches coalesce progress updates while preserving exact counts and live completion status.': ('改善：大量資料夾搜尋合併進度更新，保留精確計數與即時完成狀態。','改善：大量文件夹搜索合并进度更新，保留精确计数与实时完成状态。','개선: 폴더가 많은 검색의 진행 업데이트를 통합하면서 정확한 개수와 실시간 완료 상태를 유지합니다.'),
     'Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.': ('修正：關閉對話框、預覽與比較分頁時，釋放專屬 Tk 資源並取消延後的介面工作。','修正：关闭对话框、预览与比较标签页时，释放专属 Tk 资源并取消延后的界面任务。','수정: 대화 상자, 미리보기 및 비교 탭을 닫을 때 소유한 Tk 리소스를 해제하고 지연된 UI 작업을 취소합니다.'),

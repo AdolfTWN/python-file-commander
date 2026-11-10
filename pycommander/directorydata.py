@@ -16,20 +16,31 @@ class DirectoryItem:
         return self.metadata is not None and statlib.S_ISDIR(self.metadata.st_mode)
 
 
-def listing_items(paths):
+def listing_items(paths, *, latency=None):
     rows=[]
+    measure = latency.measure if latency is not None else None
     for path in paths:
-        try:metadata=path.stat()
+        try:
+            metadata = path.stat() if measure is None else measure('Read file metadata', path.stat, item=path)
         except OSError:metadata=None
         rows.append(DirectoryItem(path,metadata))
     return tuple(rows)
 
 
-def directory_items(folder,show_hidden=False,show_system=False,reveal=None):
+def directory_items(folder,show_hidden=False,show_system=False,reveal=None, *, latency=None):
     # Preserve GetFileAttributesW visibility semantics for Windows links rather
     # than substituting the followed target's stat attributes.
-    return listing_items(path for path in folder.iterdir() if path==reveal or
-        ((show_hidden or not is_hidden(path)) and (show_system or not is_system(path))))
+    def visible(path):
+        return (show_hidden or not is_hidden(path)) and (show_system or not is_system(path))
+    if show_hidden and show_system:
+        return listing_items(folder.iterdir(), latency=latency)
+    if latency is not None:
+        measure = latency.measure
+        def checked(path):
+            return measure('Read visibility attributes', visible, path, item=path)
+    else:
+        checked = visible
+    return listing_items((path for path in folder.iterdir() if path==reveal or checked(path)), latency=latency)
 
 
 def listing_signature(rows):

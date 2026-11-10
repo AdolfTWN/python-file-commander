@@ -21,6 +21,8 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Added: The automatic Error / Warning log records prolonged UI stalls while they are happening and summarizes slow folder operations without collecting filenames or file contents.': ('新增：自動錯誤／警告日誌會在介面長時間無回應時留下紀錄，並摘要耗時的資料夾操作，不收集檔名或檔案內容。','新增：自动错误／警告日志会在界面长时间无响应时留下记录，并摘要耗时的文件夹操作，不收集文件名或文件内容。','추가: 자동 오류/경고 로그는 UI가 오래 응답하지 않을 때 즉시 기록하고, 파일명이나 내용을 수집하지 않고 느린 폴더 작업을 요약합니다.'),
+    'Fixed in v0.19.1: F3 Markdown table columns stay aligned with mixed-language text and enlarged fonts.': ('v0.19.1 修正：F3 Markdown 表格在混合語言及放大字體時仍保持欄位對齊。','v0.19.1 修正：F3 Markdown 表格在混合语言及放大字体时仍保持列对齐。','v0.19.1 수정: F3 Markdown 표에서 여러 언어를 섞거나 글꼴을 확대해도 열 정렬이 유지됩니다.'),
     'Fixed: Reentrant tooltip display no longer leaves expiry callbacks for destroyed controls.': ('修正：提示視窗顯示重入時，不再替已銷毀的控制項留下到期回呼。','修正：提示窗口显示重入时，不再为已销毁的控件留下到期回调。','수정: 툴팁 표시가 재진입해도 삭제된 컨트롤의 만료 콜백이 남지 않습니다.'),
     'Improved: Folder-heavy searches coalesce progress updates while preserving exact counts and live completion status.': ('改善：大量資料夾搜尋合併進度更新，保留精確計數與即時完成狀態。','改善：大量文件夹搜索合并进度更新，保留精确计数与实时完成状态。','개선: 폴더가 많은 검색의 진행 업데이트를 통합하면서 정확한 개수와 실시간 완료 상태를 유지합니다.'),
     'Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.': ('修正：關閉對話框、預覽與比較分頁時，釋放專屬 Tk 資源並取消延後的介面工作。','修正：关闭对话框、预览与比较标签页时，释放专属 Tk 资源并取消延后的界面任务。','수정: 대화 상자, 미리보기 및 비교 탭을 닫을 때 소유한 Tk 리소스를 해제하고 지연된 UI 작업을 취소합니다.'),
@@ -1976,6 +1978,254 @@ def is_hidden(path: Path) -> bool:
     return attributes not in (-1, 0xffffffff) and bool(attributes & 2)
 
 
+# Source: pycommander/latency.py
+"""Bounded UI stall watchdog and folder-operation timing; no Tk on the worker."""
+from functools import wraps
+import os
+from pathlib import Path
+import queue
+import sys
+import threading
+import time
+import uuid
+
+
+_LATENCY_FILE_TYPES = frozenset(
+    '.lnk .url .ico .exe .dll .zip .7z .rar .pdf .doc .docx .xls .xlsx .ppt .pptx '
+    '.md .txt .json .csv .html .svg .png .jpg .jpeg .mp4 .reg .py'.split())
+
+
+def _latency_file_type(item, is_dir):
+    if item is None:
+        return None
+    if is_dir:
+        return 'folder'
+    suffix = item.suffix.casefold()
+    return suffix if suffix in _LATENCY_FILE_TYPES else 'other entry'
+
+
+class UiLatencyMonitor:
+    """One UI producer, one independent writer. Fast operations never write logs."""
+
+    def __init__(self, log, *, stall=5., total=3., phase=1., sample=.1, repeats=5,
+                 poll=.5, cooldown=60.):
+        self._log = log
+        self._stall, self._total, self._phase = stall, total, phase
+        self._sample, self._repeats, self._poll, self._cooldown = sample, repeats, poll, cooldown
+        self._ui_thread = threading.get_ident()
+        self._beat = time.monotonic()
+        self._active = None
+        self._sequence = 0
+        self._last_slow = {}
+        self._records = queue.Queue(maxsize=32)
+        self._stop = threading.Event()
+        self._source = Path(__file__).absolute()
+        self._thread = threading.Thread(target=self._watch, name='PFC-UI-watchdog', daemon=True)
+        self._thread.start()
+
+    def heartbeat(self):
+        self._beat = time.monotonic()
+
+    def close(self):
+        self._stop.set()
+        self._enqueue(None, None)
+
+    def _enqueue(self, event, data):
+        try:
+            self._records.put_nowait((event, data))
+        except queue.Full:
+            pass
+
+    def action(self, action, callback, *args, **kwargs):
+        if self._active is not None or self._stop.is_set():
+            return callback(*args, **kwargs)
+        started = time.monotonic()
+        # Keep stats local to this UI operation. The worker reads the current
+        # phase snapshot only, never the stats dictionary or Tk objects.
+        self._sequence += 1
+        operation = {'action':action, 'stats':{}, 'incident':f'ui-{self._sequence:x}',
+                     'watched':False, 'user_wait':0.}
+        self._active = (operation, None)
+        try:
+            return callback(*args, **kwargs)
+        finally:
+            self._active = None
+            elapsed = max(0., time.monotonic()-started-operation['user_wait'])
+            self._completed(operation, elapsed)
+
+    def measure(self, name, callback, *args, item=None, is_dir=False, **kwargs):
+        active = self._active
+        if active is None:
+            return callback(*args, **kwargs)
+        operation, parent = active
+        started = time.monotonic()
+        current = [name, started, item, is_dir, 0.]
+        self._active = (operation, current)
+        try:
+            return callback(*args, **kwargs)
+        finally:
+            elapsed = time.monotonic()-started
+            self._active = active
+            if parent is not None:
+                parent[4] += elapsed
+            own = max(0., elapsed-current[4])
+            stats = operation['stats'].get(name)
+            if stats is None:
+                stats = operation['stats'][name] = [0., 0, 0, 0., None]
+            stats[0] += own
+            stats[1] += 1
+            if own >= self._sample:
+                stats[2] += 1
+            if own > stats[3]:
+                stats[3] = own
+                stats[4] = _latency_file_type(item, is_dir) if own >= self._sample else None
+
+    def rows(self, count):
+        if self._active is not None:
+            self._active[0]['rows'] = count
+
+    def _completed(self, operation, elapsed):
+        stats = operation['stats']
+        if not operation['watched'] and elapsed < min(self._total, self._phase, self._sample*self._repeats):
+            return
+        ranked = sorted(stats, key=lambda key: stats[key][0], reverse=True)
+        slow = [name for name in ranked if stats[name][0] >= self._phase
+                or stats[name][2] >= self._repeats]
+        if not (operation['watched'] or elapsed >= self._total or slow
+                or sum(value[2] for value in stats.values()) >= self._repeats):
+            return
+        key = (operation['action'], (slow or ranked or [None])[0])
+        now = time.monotonic()
+        if not operation['watched'] and now-self._last_slow.get(key, float('-inf')) < self._cooldown:
+            return
+        # Action/phase identifiers are fixed application strings.
+        self._last_slow[key] = now
+        phases = []
+        for name in (slow + [name for name in ranked if name not in slow])[:4]:
+            total, calls, delayed, longest, file_type = stats[name]
+            value = dict(phase=name, elapsed_ms=round(total*1000), calls=calls,
+                         slow_calls=delayed, longest_ms=round(longest*1000))
+            if file_type:
+                value['file_type'] = file_type
+            phases.append(value)
+        data = dict(action=operation['action'], duration_ms=round(elapsed*1000), phases=phases)
+        other = elapsed-sum(stats[name][0] for name in ranked)
+        if other >= self._phase:
+            data['other_ui_ms'] = round(other*1000)
+        if 'rows' in operation:
+            data['rows'] = operation['rows']
+        self._enqueue('ui.operation.slow', (operation['incident'], data, []))
+
+    def _stack(self):
+        # Do not use traceback/linecache: don't read source, locals, arguments,
+        # document paths or arbitrary code outside PFC.
+        frame = sys._current_frames().get(self._ui_thread)
+        frames = []
+        for _ in range(48):
+            if frame is None:
+                break
+            code = frame.f_code
+            if code is latency_user_wait.__code__ or (
+                    code.co_name == 'show' and frame.f_globals.get('__name__') == 'tkinter.commondialog'):
+                return None  # OS modal dialogs wait for the user, not I/O.
+            path = Path(code.co_filename)
+            if len(frames) < 6 and (path == self._source or (
+                    self._source.name == 'latency.py' and path.parent == self._source.parent)):
+                if code.co_name not in {'measure', 'action', 'wrapped', 'latency_call'}:
+                    frames.append(dict(module='pfc.py' if path == self._source and not __package__
+                                       else path.name, line=frame.f_lineno, function=code.co_name))
+            frame = frame.f_back
+        return list(reversed(frames))
+
+    def _emit(self, event, record):
+        incident, data, frames = record
+        self._log.event(event, severity='WARNING', include_context=False, incident=incident,
+                        latency=data, **({'frames':frames} if frames else {}))
+
+    def _watch(self):
+        reported = None
+        previous = floor = time.monotonic()
+        while not self._stop.is_set():
+            try:
+                event, record = self._records.get(timeout=self._poll)
+                if event is not None and not self._stop.is_set():
+                    self._emit(event, record)
+            except queue.Empty:
+                pass
+            if self._stop.is_set():
+                return
+            now, beat = time.monotonic(), self._beat
+            if reported and beat > reported[0]:
+                old, incident = reported
+                self._emit('ui.stall.recovered', (incident, {'resumed_ms':round((beat-old)*1000)}, []))
+                reported = None
+            # If the worker itself was not scheduled (e.g. system suspended),
+            # don't count that entire gap as evidence of a Tk-only stall.
+            if now-previous >= self._stall:
+                floor = now
+            previous = now
+            since = max(beat, floor)
+            if reported or now-since < self._stall:
+                continue
+            frames = self._stack()
+            if frames is None:
+                floor = now
+                continue
+            data = {'stalled_ms':round((now-since)*1000)}
+            active = self._active
+            incident = uuid.uuid4().hex[:12]
+            if active is not None:
+                operation, phase = active
+                incident = operation['incident']
+                operation['watched'] = True
+                data['action'] = operation['action']
+                if phase is not None:
+                    name, started, item, is_dir, _ = phase
+                    data.update(pending_phase=name, pending_ms=round((now-started)*1000))
+                    file_type = _latency_file_type(item, is_dir)
+                    if file_type:
+                        data['pending_type'] = file_type
+            reported = (beat, incident)
+            self._emit('ui.stall.detected', (incident, data, frames))
+
+
+def latency_action(name):
+    """Wrap a Tk callback without touching Tk or changing its return contract."""
+    def decorate(callback):
+        @wraps(callback)
+        def wrapped(owner, *args, **kwargs):
+            monitor = getattr(owner, '_ui_latency', None)
+            if monitor is None:
+                return callback(owner, *args, **kwargs)
+            return monitor.action(name, callback, owner, *args, **kwargs)
+        return wrapped
+    return decorate
+
+
+def latency_call(monitor, name, callback, *args, item=None, is_dir=False, **kwargs):
+    if monitor is None:
+        return callback(*args, **kwargs)
+    return monitor.measure(name, callback, *args, item=item, is_dir=is_dir, **kwargs)
+
+
+def latency_user_wait(monitor, callback, *args, **kwargs):
+    """Exclude an intentional modal wait without excluding its preparation."""
+    active = monitor._active if monitor is not None else None
+    if active is None:
+        return callback(*args, **kwargs)
+    started = time.monotonic()
+    monitor._active = None
+    try:
+        return callback(*args, **kwargs)
+    finally:
+        elapsed = time.monotonic()-started
+        operation, phase = active
+        operation['user_wait'] += elapsed
+        if phase is not None:
+            phase[4] += elapsed
+        monitor._active = active
+
+
 # Source: pycommander/directorydata.py
 """Per-listing metadata snapshots: one stat per item, no persistent disk cache."""
 from dataclasses import dataclass
@@ -1995,20 +2245,31 @@ class DirectoryItem:
         return self.metadata is not None and statlib.S_ISDIR(self.metadata.st_mode)
 
 
-def listing_items(paths):
+def listing_items(paths, *, latency=None):
     rows=[]
+    measure = latency.measure if latency is not None else None
     for path in paths:
-        try:metadata=path.stat()
+        try:
+            metadata = path.stat() if measure is None else measure('Read file metadata', path.stat, item=path)
         except OSError:metadata=None
         rows.append(DirectoryItem(path,metadata))
     return tuple(rows)
 
 
-def directory_items(folder,show_hidden=False,show_system=False,reveal=None):
+def directory_items(folder,show_hidden=False,show_system=False,reveal=None, *, latency=None):
     # Preserve GetFileAttributesW visibility semantics for Windows links rather
     # than substituting the followed target's stat attributes.
-    return listing_items(path for path in folder.iterdir() if path==reveal or
-        ((show_hidden or not is_hidden(path)) and (show_system or not is_system(path))))
+    def visible(path):
+        return (show_hidden or not is_hidden(path)) and (show_system or not is_system(path))
+    if show_hidden and show_system:
+        return listing_items(folder.iterdir(), latency=latency)
+    if latency is not None:
+        measure = latency.measure
+        def checked(path):
+            return measure('Read visibility attributes', visible, path, item=path)
+    else:
+        checked = visible
+    return listing_items((path for path in folder.iterdir() if path==reveal or checked(path)), latency=latency)
 
 
 def listing_signature(rows):
@@ -2424,6 +2685,8 @@ from pathlib import Path
 from tkinter import PhotoImage
 
 
+
+
 VCS_BADGE_SPECS = {
     "clean": ("#218838", "check", "#ffffff"),
     "modified": ("#e02f2f", "alert", "#ffffff"),
@@ -2807,10 +3070,11 @@ class ShellIconProvider:
     """Bounded native icon cache. Widgets must retain images while displaying them."""
 
     def __init__(self, size: int = 16, text_gap: int | None = None,
-                 *, cache_limit: int = 512) -> None:
+                 *, cache_limit: int = 512, latency=None) -> None:
         self.size = size
         self.text_gap = max(4, round(size * 0.3)) if text_gap is None else text_gap
         self.cache_limit = max(1, cache_limit)
+        self._ui_latency = latency
         self.cache: OrderedDict[tuple, PhotoImage] = OrderedDict()
         self.blank = PhotoImage(width=size + self.text_gap, height=size)
 
@@ -2828,7 +3092,8 @@ class ShellIconProvider:
             base_key = ('type', suffix)
         key = (base_key, overlay or '', cloud or '')
         if key not in self.cache:
-            icon = self._load(path, is_dir)
+            icon = latency_call(self._ui_latency, 'Load Windows Shell icon', self._load,
+                                path, is_dir, item=path, is_dir=is_dir)
             if icon is None:
                 # A transient Shell lookup failure must not hide known status
                 # badges or poison the cache with an invisible image.
@@ -7466,7 +7731,40 @@ def diagnostic_incidents(*snapshots):
             first=groups[key]
             if row['event'] not in first['events']:first['events'].append(row['event'])
             if len(row.get('frames',[]))>len(first.get('frames',[])):first['frames']=row['frames']
+            if isinstance(row.get('latency'), dict):
+                previous = first.get('latency')
+                first['latency'] = {**(previous if isinstance(previous, dict) else {}), **row['latency']}
     return result
+
+
+def _diagnostic_latency_lines(latency):
+    lines = []
+    if isinstance(latency, dict):
+        lines.append('Action: '+str(latency.get('action','Main window (unclassified)')))
+        try:
+            if 'pending_phase' in latency:
+                lines.append('Waiting at capture: '+str(latency['pending_phase'])+
+                             (f" ({latency['pending_type']})" if latency.get('pending_type') else '')+
+                             f" · {latency['pending_ms']/1000:.2f} s")
+            if 'duration_ms' in latency:
+                lines.append(f"Operation finished: {latency['duration_ms']/1000:.2f} s"+
+                             (f" · {latency['rows']:,} entries" if 'rows' in latency else ''))
+            if 'resumed_ms' in latency:
+                lines.append(f"UI responded again after {latency['resumed_ms']/1000:.2f} s")
+            elif 'stalled_ms' in latency:
+                lines.append(f"UI unresponsive at capture: ≥ {latency['stalled_ms']/1000:.2f} s")
+            for phase in latency.get('phases', [])[:4]:
+                if phase['elapsed_ms'] < 100 and not phase['slow_calls']:
+                    continue
+                lines.append(f"  {phase['phase']}: {phase['elapsed_ms']/1000:.2f} s"
+                             f" · calls: {phase['calls']:,}, delayed: {phase['slow_calls']:,}"
+                             f" · max {phase['longest_ms']/1000:.2f} s"+
+                             (f" ({phase['file_type']})" if phase.get('file_type') else ''))
+            if 'other_ui_ms' in latency:
+                lines.append(f"  Other UI work (not timed separately): {latency['other_ui_ms']/1000:.2f} s")
+        except (KeyError, TypeError, ValueError, OverflowError):
+            lines.append('Some timing details could not be read.')
+    return lines
 
 
 def diagnostic_summary(row):
@@ -7474,6 +7772,7 @@ def diagnostic_summary(row):
     lines=['PFC '+str(row.get('version','—'))+' · '+str(row.get('severity','—'))+
            ' · '+str(row.get('error') or row.get('event','—')),
            str(row.get('time','—'))]
+    lines.extend(_diagnostic_latency_lines(row.get('latency')))
     frames=row.get('frames',[])
     if frames:
         root=frames[-1]
@@ -7488,7 +7787,8 @@ def diagnostic_summary(row):
         for frame in reversed(frames[-3:-1]):
             lines.append('  '+str(frame.get('module','?'))+':'+str(frame.get('line','?'))+' · '+str(frame.get('function','?')))
     events=row.get('events',[])
-    lines.append(('Same incident: '+' → '.join(events)) if len(events)>1 else 'Event: '+str(row.get('event','—')))
+    if not row.get('latency'):
+        lines.append(('Same incident: '+' → '.join(events)) if len(events)>1 else 'Event: '+str(row.get('event','—')))
     lines.append('Incident: '+str(row.get('incident','—')))
     return '\n'.join(lines)
 
@@ -7607,7 +7907,7 @@ class DiagnosticLog:
             self.handler = None
             return False
 
-    def event(self, event, severity='INFO', automatic=False, **metadata):
+    def event(self, event, severity='INFO', automatic=False, include_context=True, **metadata):
         with self._lock:
             handlers = [h for h in (self.handler, self.error_handler
                         if automatic or severity in ('WARNING','ERROR','CRITICAL') else None) if h]
@@ -7616,7 +7916,7 @@ class DiagnosticLog:
                             utc_time=datetime.now(timezone.utc).isoformat(), version=self.version,
                             session=self.session, event=event, severity=severity)
             serious = severity in ('WARNING','ERROR','CRITICAL')
-            if serious and self.error_handler and self._recent:
+            if serious and include_context and self.error_handler and self._recent:
                 metadata['context'] = [json.loads(record) for record in self._recent]
             try:
                 payload = json.dumps(metadata, ensure_ascii=True)
@@ -7627,9 +7927,9 @@ class DiagnosticLog:
             # No normal-operation disk stream: keep a bounded, detached snapshot
             # for the next failure, without recursively buffering old contexts.
             metadata.pop('context',None)
-            if serious:
+            if serious and include_context:
                 self._recent.clear()
-            elif self.error_handler:
+            elif not serious and self.error_handler:
                 recent=json.dumps(metadata,ensure_ascii=True)
                 if len(recent)<=1024:self._recent.append(recent)
 
@@ -42301,6 +42601,7 @@ import os
 from pathlib import Path
 
 
+
 S_OK = 0
 COINIT_APARTMENTTHREADED = 0x2
 CMF_NORMAL = 0
@@ -42421,8 +42722,9 @@ def show_shell_context_menu(hwnd: int, paths, x_root: int, y_root: int) -> bool:
         if _failed(status):
             raise OSError("Windows could populate the Explorer context menu.")
         user32.SetForegroundWindow(ctypes.c_void_p(hwnd))
-        command = user32.TrackPopupMenu(ctypes.c_void_p(menu), TPM_RIGHTBUTTON | TPM_RETURNCMD,
-                                        int(x_root), int(y_root), 0, ctypes.c_void_p(hwnd), None)
+        command = latency_user_wait(None, user32.TrackPopupMenu, ctypes.c_void_p(menu),
+                                    TPM_RIGHTBUTTON | TPM_RETURNCMD, int(x_root), int(y_root),
+                                    0, ctypes.c_void_p(hwnd), None)
         if command:
             invoke = _method(context, 4, ctypes.POINTER(_CMINVOKECOMMANDINFO))
             info = _CMINVOKECOMMANDINFO(
@@ -42467,7 +42769,8 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.19.1"
+__version__ = "0.19.2"
+
 
 
 
@@ -42592,6 +42895,10 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = "2026/11/10"
 VERSION_HISTORY = (
+    ("v0.19.2", "2026/11/10", (
+        "Added: The automatic Error / Warning log records prolonged UI stalls while they are happening and summarizes slow folder operations without collecting filenames or file contents.",
+        "Fixed in v0.19.1: F3 Markdown table columns stay aligned with mixed-language text and enlarged fonts.",
+    )),
     ("v0.19.0", "2026/11/06", (
         "Fixed: Closed dialogs, previews and comparison tabs release owned Tk resources and cancel deferred UI work.",
         "Fixed: Failed replacement moves preserve recovery copies; stale space scans no longer replace newer results.",
@@ -43557,7 +43864,8 @@ class FilePane(ttk.Frame):
         self._inline_placeholder = False
         self.heading_labels = {"name": tr("Name"), "ext": tr("Ext"), "size": tr("Size"),
                                "modified": tr("Date Modified")}
-        self.icons = ShellIconProvider()
+        self._ui_latency = getattr(self.winfo_toplevel(), '_ui_latency', None)
+        self.icons = ShellIconProvider(latency=self._ui_latency)
         # Treeview stores Tcl image names, not Python references. Pin displayed
         # images independently of the bounded provider cache (and zoom changes).
         self._row_icons = {}
@@ -43995,6 +44303,7 @@ class FilePane(ttk.Frame):
         icons=getattr(self,'icons',None)
         if icons is not None:release_owned_images(icons,'cache','blank')
 
+    @latency_action('Apply Git/SVN icons')
     def _apply_vcs_icons(self, previous: dict[str, str] | None = None) -> None:
         previous = previous or {}
         def apply(parent=""):
@@ -44003,7 +44312,9 @@ class FilePane(ttk.Frame):
                 if tags and tags[0] != "PFC_INLINE_PLACEHOLDER":
                     path = Path(tags[0])
                     if status_for(previous, path) != status_for(self._vcs_statuses, path):
-                        try: self.tree.item(iid, image=self._icon(path, path.is_dir()))
+                        try:
+                            is_dir = latency_call(self._ui_latency, 'Read file metadata', path.is_dir, item=path)
+                            self.tree.item(iid, image=self._icon(path, is_dir))
                         except OSError: pass
                 apply(iid)
         apply()
@@ -44012,9 +44323,10 @@ class FilePane(ttk.Frame):
         visible = path.name if is_dir or self.show_extensions else path.stem
         return ("└─ " if is_last else "├─ ") + visible
 
+    @latency_action('Expand folder tree')
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
-            entries = directory_items(folder,self.show_hidden,self.show_system)
+            entries = self._read_directory(folder)
         except OSError:
             return 0
         needle = self.quick_filter_var.get().strip().casefold()
@@ -44281,10 +44593,12 @@ class FilePane(ttk.Frame):
         if self._inline_editor is not None:
             self._finish_inline_name(False, lambda _name: None)
 
+    @latency_action('Open folder')
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
         try:
-            path = path.expanduser().resolve()
-            if not path.is_dir():
+            monitor = getattr(self, '_ui_latency', None)
+            path = latency_call(monitor, 'Resolve folder path', path.expanduser().resolve)
+            if not latency_call(monitor, 'Check folder path', path.is_dir):
                 raise NotADirectoryError(path)
             if not bypass_lock and self.lock_mode == "locked" and path != self.path:
                 self.on_locked_navigation(path)
@@ -44292,7 +44606,7 @@ class FilePane(ttk.Frame):
             # Validate the listing before committing history, path or widgets.
             # Reuse this exact snapshot in refresh rather than scanning twice.
             reveal=self._search_reveal_path if getattr(self,'_search_reveal_path',None) is not None and self._search_reveal_path.parent==path else None
-            prepared=directory_items(path,self.show_hidden,self.show_system,reveal)
+            prepared=self._read_directory(path,reveal)
             previous = self.path
             focused = self.tree.focus()
             if not focused and self.tree.selection():
@@ -44317,7 +44631,7 @@ class FilePane(ttk.Frame):
                                       else self.archive_session.archive_path.name)
             else:
                 self.display_title = path.name or str(path)
-            self.path_bar.set_location(self.display_path())
+            latency_call(monitor, 'Update breadcrumb', self.path_bar.set_location, self.display_path())
             self.drive.set(path.anchor or os.sep)
             self.refresh()
             self.on_change()
@@ -44326,7 +44640,7 @@ class FilePane(ttk.Frame):
             self.path_var.set(str(self.path))
             log=getattr(self.winfo_toplevel(),'debug_log',None)
             if log is not None:log.exception('navigation.failed',exc)
-            messagebox.showerror(tr("Cannot open folder"), str(exc))
+            latency_user_wait(monitor, messagebox.showerror, tr("Cannot open folder"), str(exc))
             return False
 
     def up(self) -> None:
@@ -44425,6 +44739,15 @@ class FilePane(ttk.Frame):
         return (self.mode,self.path,self.show_hidden,self.show_system,self._search_reveal_path,
                 self._result_listing_paths if self.mode=='search_results' else ())
 
+    def _read_directory(self, folder, reveal=None):
+        monitor = getattr(self, '_ui_latency', None)
+        if monitor is None:
+            return directory_items(folder, self.show_hidden, self.show_system, reveal)
+        rows = monitor.measure('Enumerate folder', directory_items, folder, self.show_hidden,
+                               self.show_system, reveal, latency=monitor)
+        monitor.rows(len(rows))
+        return rows
+
     def _listing_failed(self,exc):
         self.status.configure(text=tr('Cannot read folder; previous list retained'))
         key=(self.path,type(exc).__name__,getattr(exc,'errno',None),getattr(exc,'winerror',None))
@@ -44433,6 +44756,7 @@ class FilePane(ttk.Frame):
             if log is not None:log.exception('directory.read.failed',exc,severity='WARNING')
         self._listing_failure_key=key
 
+    @latency_action('Refresh file list')
     def refresh(self, *, _reuse_listing=False) -> None:
         if self._inline_editor is not None:
             return
@@ -44443,6 +44767,7 @@ class FilePane(ttk.Frame):
             self._refresh_after_drag = True
             return
         self._refresh_after_drag = False
+        monitor = getattr(self, '_ui_latency', None)
         key=self._listing_key()
         fresh=True
         try:
@@ -44451,14 +44776,16 @@ class FilePane(ttk.Frame):
             elif (_reuse_listing and self._listing_snapshot_key==key
                   and (self.view_mode=='list' or self.mode=='search_results')):
                 rows=self._listing_rows;fresh=False
-            elif self.mode=='search_results':rows=listing_items(self._result_listing_paths)
-            else:rows=directory_items(self.path,self.show_hidden,self.show_system,self._search_reveal_path)
+            elif self.mode=='search_results':rows=listing_items(self._result_listing_paths,latency=monitor)
+            else:rows=self._read_directory(self.path,self._search_reveal_path)
         except OSError as exc:
             self._listing_failed(exc)
-            messagebox.showerror(tr('Cannot read folder'),str(exc),parent=self.winfo_toplevel())
+            latency_user_wait(monitor, messagebox.showerror, tr('Cannot read folder'),str(exc),
+                              parent=self.winfo_toplevel())
             return
         finally:self._prepared_listing=None
         self._listing_rows=rows;self._listing_snapshot_key=key
+        if monitor is not None: monitor.rows(len(rows))
         if fresh:self._listing_failure_key=None
         self.name_marquee.stop()
         self.size_units.hide()
@@ -44477,14 +44804,14 @@ class FilePane(ttk.Frame):
         scroll_position = self.tree.yview()[0] if self.tree.get_children() else 0.0
         if reset_view:
             selected, expanded, scroll_position = set(), set(), 0.0
-        self.tree.delete(*self.tree.get_children())
+        latency_call(monitor, 'Clear previous file rows', self.tree.delete, *self.tree.get_children())
         self._row_icons.clear()
         self._date_values.clear()
         try:
-            self._request_vcs_statuses()
+            latency_call(monitor, 'Prepare Git/SVN status', self._request_vcs_statuses)
             if self.mode == "files" and self.view_mode != "list":
                 self._signature = listing_signature(rows)
-                root_stat = self.path.stat()
+                root_stat = latency_call(monitor, 'Read file metadata', self.path.stat, item=self.path, is_dir=True)
                 root_label = self.path.name or str(self.path)
                 root_iid = self.tree.insert("", "end", text=root_label,
                                             image=self._icon(self.path, True),
@@ -44518,27 +44845,9 @@ class FilePane(ttk.Frame):
             needle = self.quick_filter_var.get().strip().casefold()
             if needle:
                 entries = [row for row in entries if row.path == reveal or needle in row.path.name.casefold()]
-            entries=ordered_listing(entries,self.sort_column,self.reverse,self.mix_sorting)
-            total = 0
-            for row in entries:
-                p=row.path
-                if row.metadata is None:continue
-                try:
-                    stat = row.metadata
-                    is_dir = row.is_dir
-                    total += 0 if is_dir else stat.st_size
-                    visible_name = p.name if is_dir or self.show_extensions else p.stem
-                    name = f"[{visible_name}]" if is_dir else visible_name
-                    values = ("" if is_dir else p.suffix[1:].upper(),
-                              "<DIR>" if is_dir else compact_file_size(stat.st_size),
-                              self.format_modified(stat.st_mtime, p))
-                    iid = self.tree.insert("", "end", text=name, image=self._icon(p, is_dir), values=values, tags=(str(p),))
-                    if str(p) in selected:
-                        self.tree.selection_add(iid)
-                        if str(p) == focused_path:
-                            self.tree.focus(iid)
-                except OSError:
-                    continue
+            entries=latency_call(monitor, 'Sort file rows', ordered_listing, entries,
+                                 self.sort_column,self.reverse,self.mix_sorting)
+            total = latency_call(monitor, 'Build file rows', self._build_file_rows, entries, selected, focused_path)
             filter_status = tr(" — filter: {filter}", filter=self.quick_filter_var.get().strip()) if needle else ""
             self.status.configure(text=tr("{count} items   {size}", count=len(self.tree.get_children()),
                                           size=format_size(total)) + filter_status)
@@ -44559,7 +44868,30 @@ class FilePane(ttk.Frame):
                 self.tree.yview_moveto(scroll_position)
             self._schedule_column_autosize()
         except OSError as exc:
-            messagebox.showerror(tr("Cannot read folder"), str(exc))
+            latency_user_wait(monitor, messagebox.showerror, tr("Cannot read folder"), str(exc))
+
+    def _build_file_rows(self, entries, selected, focused_path):
+        total = 0
+        for row in entries:
+            p = row.path
+            if row.metadata is None:
+                continue
+            try:
+                stat, is_dir = row.metadata, row.is_dir
+                total += 0 if is_dir else stat.st_size
+                visible_name = p.name if is_dir or self.show_extensions else p.stem
+                name = f"[{visible_name}]" if is_dir else visible_name
+                values = ("" if is_dir else p.suffix[1:].upper(),
+                          "<DIR>" if is_dir else compact_file_size(stat.st_size),
+                          self.format_modified(stat.st_mtime, p))
+                iid = self.tree.insert("", "end", text=name, image=self._icon(p, is_dir), values=values, tags=(str(p),))
+                if str(p) in selected:
+                    self.tree.selection_add(iid)
+                    if str(p) == focused_path:
+                        self.tree.focus(iid)
+            except OSError:
+                continue
+        return total
 
     def _schedule_column_autosize(self) -> None:
         if self._column_resize_job is not None:
@@ -44569,6 +44901,7 @@ class FilePane(ttk.Frame):
                 pass
         self._column_resize_job = self.after_idle(self._autosize_columns)
 
+    @latency_action('Measure file columns')
     def _autosize_columns(self) -> None:
         """Fit detail fields to visible data and give all remaining width to Name."""
         self._column_resize_job = None
@@ -44647,13 +44980,15 @@ class FilePane(ttk.Frame):
                 signature.append((path.name, None, None, None))
         return tuple(sorted(signature))
 
+    @latency_action('Check folder for changes')
     def refresh_if_changed(self) -> bool:
         if self.mode != "files" or self._inline_editor is not None:
             return False
-        self._request_vcs_statuses()
+        monitor = getattr(self, '_ui_latency', None)
+        latency_call(monitor, 'Prepare Git/SVN status', self._request_vcs_statuses)
         try:
-            rows=directory_items(self.path,self.show_hidden,self.show_system,self._search_reveal_path)
-            signature = listing_signature(rows)
+            rows=self._read_directory(self.path,self._search_reveal_path)
+            signature = latency_call(monitor, 'Compare file-list snapshot', listing_signature, rows)
         except OSError as exc:
             self._listing_failed(exc)
             return False
@@ -44832,7 +45167,7 @@ class FilePane(ttk.Frame):
         linespace = tkfont.nametofont("TkDefaultFont").metrics("linespace")
         icon_size = max(16, round(scaled_tree_row_height(linespace, scale) * .9))
         if self.icons.size != icon_size:
-            self.icons = ShellIconProvider(icon_size)
+            self.icons = ShellIconProvider(icon_size, latency=self._ui_latency)
         self.refresh(_reuse_listing=True)
         self._schedule_column_autosize()
 
@@ -45034,6 +45369,8 @@ class Commander(tk.Tk):
         self.debug_log = DiagnosticLog(__version__, automatic=True,
                                       runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
+        self._ui_latency = UiLatencyMonitor(self.debug_log) if self.debug_log.error_handler else None
+        self._ui_latency_job = self.after(500, self._ui_latency_tick) if self._ui_latency is not None else None
         # Tcl may report an already-deleted idle command without entering a
         # Python callback. Route that separate error channel to automatic logs.
         background_error=self._register(self._report_tcl_background_error)
@@ -45628,8 +45965,17 @@ class Commander(tk.Tk):
 
     def _close_diagnostics(self,event):
         if event.widget is self:
+            if self._ui_latency_job is not None:
+                self.after_cancel(self._ui_latency_job)
+                self._ui_latency_job = None
+            if self._ui_latency is not None:
+                self._ui_latency.close()
             try:self.debug_log.close()
             except OSError:pass  # Diagnostic storage must never prevent exit.
+
+    def _ui_latency_tick(self):
+        self._ui_latency.heartbeat()
+        self._ui_latency_job = self.after(500, self._ui_latency_tick)
 
     def close_app(self) -> None:
         running=[w for w in getattr(self,'_progress_operations',set()) if w.winfo_exists()]
@@ -45817,6 +46163,7 @@ class Commander(tk.Tk):
                     rows.append((pane, iid, Path(tags[0])))
         return rows
 
+    @latency_action('Apply OneDrive icons')
     def _update_cloud_icons(self, rows):
         for pane, iid, path in rows:
             if pane._drag_press_item is None:

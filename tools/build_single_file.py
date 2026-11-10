@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # Keep definition order: some class bases/defaults are evaluated during import.
 # Runtime-only references may deliberately point to a later module.
 MODULES = (
-    "i18n", "fileops", "directorydata", "clipboard", "icons", "startup", "dirwatch", "vcs",
+    "i18n", "fileops", "latency", "directorydata", "clipboard", "icons", "startup", "dirwatch", "vcs",
     "tabicons", "tabs", "tooltip", "columnsettings", "pathbar", "homeprefix",
     "cloudstatus", "marquee", "detailcells", "singlepanel", "windowplacement",
     "settingsshots", "workflowdata", "nativecrash", "debuglog", "dialogs", "workflows",

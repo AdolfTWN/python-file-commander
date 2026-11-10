@@ -17,7 +17,7 @@ import time
 from contextlib import contextmanager
 
 ALLOWED = {'deep_tasks_check.py', 'surface_walkthrough_check.py', 'compact_tasks_check.py', 'cloud_overlay_check.py', 'folder_icon_check.py', 'ux_walkthrough_check.py', 'search_results_check.py', 'vcs_gui_check.py', 'architecture_check.py', 'reliability_check.py', 'tooltip_check.py', 'preview_tabs_check.py', 'settings_check.py',
-           'display_matrix_check.py', 'markdown_preview_check.py',
+           'display_matrix_check.py', 'markdown_preview_check.py', 'folder_latency_check.py',
            'screen_transition_check.py', 'column_layout_check.py', 'operation_soak_check.py',
            'interaction_soak_check.py', 'move_recovery_check.py',
            'dialog_lifecycle_check.py', 'early_close_check.py', 'tcl_diagnostics_check.py',
