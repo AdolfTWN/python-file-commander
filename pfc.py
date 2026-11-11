@@ -21,6 +21,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Folder metadata scans use background workers, discard obsolete results, and schedule the next audit after completion.': ('修正：資料夾屬性掃描改在背景執行，捨棄過期結果，並於完成後安排下一次稽核。','修正：文件夹属性扫描改在后台执行，丢弃过期结果，并在完成后安排下一次检查。','수정: 폴더 메타데이터를 백그라운드에서 검사하고 오래된 결과를 버리며 완료 후 다음 검사를 예약합니다.'),
+    'Fixed: Preview syntax styling uses line-local positions and cancellable batches to keep the interface responsive.': ('修正：預覽語法樣式使用行內位置及可取消的分批處理，保持介面回應。','修正：预览语法样式使用行内位置及可取消的分批处理，保持界面响应。','수정: 미리보기 구문 스타일에 줄 내부 위치와 취소 가능한 배치를 사용하여 UI 응답성을 유지합니다.'),
+    'Improved: Preview styling and divider layout delays have named automatic diagnostics.': ('改善：預覽套色與分隔條配置的延遲會記錄具名自動診斷。','改善：预览着色与分隔条布局的延迟会记录具名自动诊断。','개선: 미리보기 스타일 및 분할선 배치 지연을 이름 있는 자동 진단으로 기록합니다.'),
+    'Reading folder…': ('正在讀取資料夾…','正在读取文件夹…','폴더를 읽는 중…'),
+    'Applying preview styles…': ('正在套用預覽樣式…','正在应用预览样式…','미리보기 스타일 적용 중…'),
     'Added: The automatic Error / Warning log records prolonged UI stalls while they are happening and summarizes slow folder operations without collecting filenames or file contents.': ('新增：自動錯誤／警告日誌會在介面長時間無回應時留下紀錄，並摘要耗時的資料夾操作，不收集檔名或檔案內容。','新增：自动错误／警告日志会在界面长时间无响应时留下记录，并摘要耗时的文件夹操作，不收集文件名或文件内容。','추가: 자동 오류/경고 로그는 UI가 오래 응답하지 않을 때 즉시 기록하고, 파일명이나 내용을 수집하지 않고 느린 폴더 작업을 요약합니다.'),
     'Fixed in v0.19.1: F3 Markdown table columns stay aligned with mixed-language text and enlarged fonts.': ('v0.19.1 修正：F3 Markdown 表格在混合語言及放大字體時仍保持欄位對齊。','v0.19.1 修正：F3 Markdown 表格在混合语言及放大字体时仍保持列对齐。','v0.19.1 수정: F3 Markdown 표에서 여러 언어를 섞거나 글꼴을 확대해도 열 정렬이 유지됩니다.'),
     'Fixed: Reentrant tooltip display no longer leaves expiry callbacks for destroyed controls.': ('修正：提示視窗顯示重入時，不再替已銷毀的控制項留下到期回呼。','修正：提示窗口显示重入时，不再为已销毁的控件留下到期回调。','수정: 툴팁 표시가 재진입해도 삭제된 컨트롤의 만료 콜백이 남지 않습니다.'),
@@ -1981,6 +1986,7 @@ def is_hidden(path: Path) -> bool:
 # Source: pycommander/latency.py
 """Bounded UI stall watchdog and folder-operation timing; no Tk on the worker."""
 from functools import wraps
+from itertools import count
 import os
 from pathlib import Path
 import queue
@@ -2013,15 +2019,27 @@ class UiLatencyMonitor:
         self._stall, self._total, self._phase = stall, total, phase
         self._sample, self._repeats, self._poll, self._cooldown = sample, repeats, poll, cooldown
         self._ui_thread = threading.get_ident()
+        self._timing_local = threading.local()
+        self._ui_active = None
         self._beat = time.monotonic()
         self._active = None
-        self._sequence = 0
+        self._sequence = count(1)
         self._last_slow = {}
         self._records = queue.Queue(maxsize=32)
         self._stop = threading.Event()
         self._source = Path(__file__).absolute()
         self._thread = threading.Thread(target=self._watch, name='PFC-UI-watchdog', daemon=True)
         self._thread.start()
+
+    @property
+    def _active(self):
+        return getattr(self._timing_local, 'active', None)
+
+    @_active.setter
+    def _active(self, value):
+        self._timing_local.active = value
+        if threading.get_ident() == self._ui_thread:
+            self._ui_active = value
 
     def heartbeat(self):
         self._beat = time.monotonic()
@@ -2042,8 +2060,7 @@ class UiLatencyMonitor:
         started = time.monotonic()
         # Keep stats local to this UI operation. The worker reads the current
         # phase snapshot only, never the stats dictionary or Tk objects.
-        self._sequence += 1
-        operation = {'action':action, 'stats':{}, 'incident':f'ui-{self._sequence:x}',
+        operation = {'action':action, 'stats':{}, 'incident':f'ui-{next(self._sequence):x}',
                      'watched':False, 'user_wait':0.}
         self._active = (operation, None)
         try:
@@ -2172,7 +2189,7 @@ class UiLatencyMonitor:
                 floor = now
                 continue
             data = {'stalled_ms':round((now-since)*1000)}
-            active = self._active
+            active = self._ui_active
             incident = uuid.uuid4().hex[:12]
             if active is not None:
                 operation, phase = active
@@ -2210,6 +2227,15 @@ def latency_call(monitor, name, callback, *args, item=None, is_dir=False, **kwar
 
 def latency_user_wait(monitor, callback, *args, **kwargs):
     """Exclude an intentional modal wait without excluding its preparation."""
+    return _latency_wait(monitor, callback, *args, **kwargs)
+
+
+def latency_responsive_wait(monitor, callback, *args, **kwargs):
+    """Pause outer timing while Tk processes events; do not mask nested stalls."""
+    return _latency_wait(monitor, callback, *args, **kwargs)
+
+
+def _latency_wait(monitor, callback, *args, **kwargs):
     active = monitor._active if monitor is not None else None
     if active is None:
         return callback(*args, **kwargs)
@@ -2231,6 +2257,10 @@ def latency_user_wait(monitor, callback, *args, **kwargs):
 from dataclasses import dataclass
 from pathlib import Path
 import stat as statlib
+from collections import OrderedDict
+import threading
+import os
+import ctypes
 
 
 
@@ -2245,10 +2275,16 @@ class DirectoryItem:
         return self.metadata is not None and statlib.S_ISDIR(self.metadata.st_mode)
 
 
-def listing_items(paths, *, latency=None):
+class DirectoryReadCancelled(Exception):
+    pass
+
+
+def listing_items(paths, *, latency=None, cancelled=None):
     rows=[]
     measure = latency.measure if latency is not None else None
     for path in paths:
+        if cancelled is not None and cancelled.is_set():
+            raise DirectoryReadCancelled()
         try:
             metadata = path.stat() if measure is None else measure('Read file metadata', path.stat, item=path)
         except OSError:metadata=None
@@ -2256,20 +2292,123 @@ def listing_items(paths, *, latency=None):
     return tuple(rows)
 
 
-def directory_items(folder,show_hidden=False,show_system=False,reveal=None, *, latency=None):
+def directory_items(folder,show_hidden=False,show_system=False,reveal=None, *, latency=None, cancelled=None):
     # Preserve GetFileAttributesW visibility semantics for Windows links rather
     # than substituting the followed target's stat attributes.
     def visible(path):
+        if os.name == 'nt':
+            if not show_hidden and path.name.startswith('.'):
+                return False
+            # Inspect the link itself (not followed stat attributes), once.
+            attrs = ctypes.windll.kernel32.GetFileAttributesW(str(path))
+            unknown = attrs in (-1, 0xffffffff)
+            return unknown or ((show_hidden or not attrs & 2) and (show_system or not attrs & 4))
         return (show_hidden or not is_hidden(path)) and (show_system or not is_system(path))
     if show_hidden and show_system:
-        return listing_items(folder.iterdir(), latency=latency)
+        return listing_items(folder.iterdir(), latency=latency, cancelled=cancelled)
     if latency is not None:
         measure = latency.measure
         def checked(path):
             return measure('Read visibility attributes', visible, path, item=path)
     else:
         checked = visible
-    return listing_items((path for path in folder.iterdir() if path==reveal or checked(path)), latency=latency)
+    return listing_items((path for path in folder.iterdir() if path==reveal or checked(path)),
+                         latency=latency, cancelled=cancelled)
+
+
+class DirectoryRead:
+    def __init__(self, folder, hidden, system, reveal, resolve, monitor):
+        self.arguments = (folder, hidden, system, reveal)
+        self.resolve, self.monitor = resolve, monitor
+        self.cancelled, self.done = threading.Event(), threading.Event()
+        self.result = self.error = None
+        self.finished = None
+
+    def cancel(self):
+        self.cancelled.set()
+        self.done.set()
+
+
+class DirectoryReads:
+    """Two bounded, data-only workers; replacing a pending key cancels it.
+
+    OS metadata calls cannot be forcibly interrupted; cancelled calls stop at
+    their next boundary. No worker owns a widget, Tk variable or UI callback.
+    """
+    def __init__(self):
+        self._condition = threading.Condition()
+        self._pending = OrderedDict()
+        self._running = set()
+        self._closed = False
+        self._threads = []
+
+    def submit(self, key, folder, hidden, system, reveal=None, *, resolve=False, monitor=None):
+        job = DirectoryRead(folder, hidden, system, reveal, resolve, monitor)
+        with self._condition:
+            if self._closed:
+                raise DirectoryReadCancelled()
+            previous = self._pending.pop(key, None)
+            if previous is not None:
+                previous.cancel()
+            if len(self._pending) >= 64:
+                raise OSError('Folder reader queue is busy.')
+            self._pending[key] = job
+            if not self._threads:
+                for _ in range(2):
+                    worker = threading.Thread(target=self._work, name='PFC-directory-reader', daemon=True)
+                    self._threads.append(worker)
+                    worker.start()
+            self._condition.notify()
+        return job
+
+    def _work(self):
+        import time
+        while True:
+            with self._condition:
+                self._condition.wait_for(lambda: self._closed or self._pending)
+                if self._closed:
+                    return
+                _, job = self._pending.popitem(last=False)
+                self._running.add(job)
+            try:
+                def read():
+                    folder, hidden, system, reveal = job.arguments
+                    if job.cancelled.is_set():
+                        raise DirectoryReadCancelled()
+                    if job.resolve:
+                        folder = folder.expanduser().resolve()
+                        if not folder.is_dir():
+                            raise NotADirectoryError(folder)
+                    rows = directory_items(folder, hidden, system, reveal,
+                                           latency=job.monitor, cancelled=job.cancelled)
+                    if job.monitor is not None:
+                        job.monitor.rows(len(rows))
+                    return folder, rows, listing_signature(rows)
+                result = (read() if job.monitor is None else
+                          job.monitor.action('Read folder in background', read))
+                if not job.cancelled.is_set():
+                    job.result = result
+            except DirectoryReadCancelled:
+                job.cancelled.set()
+            except OSError as exc:
+                # Do not transfer worker traceback frames/locals to Tk.
+                job.error = exc.with_traceback(None)
+            except Exception as exc:
+                # An unexpected reader failure must wake its UI consumer too.
+                job.error = OSError('Folder reader failed: '+type(exc).__name__)
+            finally:
+                job.finished = time.monotonic()
+                job.done.set()
+                with self._condition:
+                    self._running.discard(job)
+
+    def close(self):
+        with self._condition:
+            self._closed = True
+            for job in (*self._pending.values(), *self._running):
+                job.cancel()
+            self._pending.clear()
+            self._condition.notify_all()
 
 
 def listing_signature(rows):
@@ -37654,6 +37793,7 @@ class WrappedTreeview(ttk.Treeview):
 # Source: pycommander/renderui.py
 """One compact read-only view for structured, tabular, textual and image models."""
 import base64
+from bisect import bisect_right
 from itertools import chain,islice
 import re
 import time
@@ -37682,6 +37822,7 @@ class FormatRenderView(ttk.Frame):
     def __init__(self,master):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
+        self._document_cancelled=False
         self._row_lookup={};self._search_extra=[]
         self._structured_widths=None
         self._grid_widths=None
@@ -37713,6 +37854,7 @@ class FormatRenderView(ttk.Frame):
                 except tk.TclError:pass
             release_owned_images(self,'_tree_icons','images','original','display_image')
     def clear(self):
+        self._document_cancelled=False
         self.cancel_tree_reveal()
         self._generation+=1
         if self._insert_job is not None:
@@ -37905,16 +38047,53 @@ class FormatRenderView(ttk.Frame):
             self._insert_job=None
             if generation!=self._generation or not self.winfo_exists():return
             self.text.configure(state='normal');self.text.insert('end',content[offset:offset+65536]);self.text.configure(state='disabled');offset+=65536
-            if offset<len(content):self._insert_job=self.after(1,insert)
-            else:
-                for start,end,tag in self.model.get('spans',[]):
-                    if start<len(content):self.text.tag_add(tag,f'1.0+{start}c',f'1.0+{min(end,len(content))}c')
-        insert()
+            if offset<len(content):
+                self._insert_job=self.after(1,lambda:self._document_work('Insert Preview text',insert))
+            else:self._style_document(content)
+        self._document_work('Insert Preview text',insert)
         sections=self.model.get('sections',[])
         if sections:
             self.choice.configure(values=tuple(s['title'][:100] for s in sections));self.choice.set(tr('Changes'))
             self.choice.pack(side='right',padx=4)
             self.text.bind('<F7>',lambda e:self._section(-1));self.text.bind('<F8>',lambda e:self._section(1))
+    def _document_work(self, label, callback):
+        monitor=getattr(self._root(), '_ui_latency', None)
+        return callback() if monitor is None else monitor.action(label,callback)
+
+    def _style_document(self, content, origin=0):
+        generation=self._generation
+        offsets=[0]+[match.end() for match in re.finditer('\n',content)]
+        def index(position):
+            position=max(0,min(len(content),position-origin))
+            line=bisect_right(offsets,position)-1
+            # Tk Unicode character modifier, not UTF-16 column arithmetic.
+            return f'{line+1}.0+{position-offsets[line]}c'
+        spans=iter(self.model.get('spans',()))
+        self.detail.configure(text=tr('Applying preview styles…'))
+        def style():
+            self._insert_job=None
+            if generation!=self._generation or not self.winfo_exists():return
+            start=time.monotonic();grouped={};count=0;finished=False
+            while count<300 and time.monotonic()-start<.008:
+                try:a,b,tag=next(spans)
+                except StopIteration:finished=True;break
+                count+=1
+                if b>origin and a<origin+len(content):
+                    grouped.setdefault(tag,[]).extend((index(a),index(b)))
+            for tag,ranges in grouped.items():self.text.tag_add(tag,*ranges)
+            self.text.tag_raise('format_match')
+            self.text.tag_raise('sel')
+            if finished:self.detail.configure(text=tr('Document'))
+            else:self._insert_job=self.after(1,lambda:self._document_work('Apply Preview styles',style))
+        self._insert_job=self.after(1,lambda:self._document_work('Apply Preview styles',style))
+
+    def cancel_document_work(self):
+        if self.text is None or self.model.get('kind')!='document':return
+        if self._insert_job is not None:
+            self.after_cancel(self._insert_job);self._insert_job=None
+        self._generation+=1
+        self._document_cancelled=True
+        self.detail.configure(text=tr('Preview canceled; press F5 to retry'))
     def set_wrap(self,enabled):
         self.wrap=bool(enabled)
         if self.text:self.text.configure(wrap='word' if self.wrap and not self.model.get('wrap_limited') else 'none')
@@ -37932,12 +38111,12 @@ class FormatRenderView(ttk.Frame):
             if self._grid_hit:self.tree.see('r'+str(self._grid_hit[0]))
     def _document_position(self,offset):
         if self.model.get('wrap_limited'):
+            if self._insert_job is not None:self.after_cancel(self._insert_job);self._insert_job=None
             content=self.model['content'];start=max(0,offset-512)
             self._document_offset=start
             self.text.configure(state='normal');self.text.delete('1.0','end')
             self.text.insert('1.0',content[start:start+16384]);self.text.configure(state='disabled')
-            for a,b,tag in self.model.get('spans',[]):
-                if b>start and a<start+16384:self.text.tag_add(tag,f'1.0+{max(0,a-start)}c',f'1.0+{min(b-start,16384)}c')
+            self._style_document(content[start:start+16384],start)
         return f'1.0+{offset-self._document_offset}c'
     def _section(self,direction):
         sections=self.model.get('sections',[])
@@ -38106,6 +38285,8 @@ class FormatRenderView(ttk.Frame):
                 else:raise
         insert()
     def find(self,needle,case=False,direction=1):
+        if self._document_cancelled:
+            return tr('Preview canceled; press F5 to retry')
         self._clear_find_display()
         if not needle:return tr('Enter search text')
         flags=0 if case else re.I;pattern=re.compile(re.escape(needle),flags);hits=[]
@@ -38959,6 +39140,12 @@ class PreviewPage(tk.Frame):
         self._format_searching=False
 
     def _cancel_format_ui(self):
+        if (self.render_view.model.get('kind')=='document' and self.render_view.text is not None
+                and self.render_view._insert_job is not None):
+            self.render_view.cancel_document_work()
+            self.status.configure(text=tr('Preview canceled; press F5 to retry'))
+            self._sync_preview_activity()
+            return
         expanding=self.render_view._expand_restore is not None
         reflowing=bool(getattr(self.render_view.tree,'_layout_job',None))
         searching=self._format_searching or self.render_view._tree_revealing or expanding
@@ -39062,7 +39249,8 @@ class PreviewPage(tk.Frame):
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
                   or (self._format_active and (self.render_view._insert_job is not None or reflow)))
-        if self._format_queued or self._format_request or self.render_view._tree_revealing or reflow:self.format_cancel.place(relx=1,rely=.5,anchor='e')
+        if (self._format_queued or self._format_request or self.render_view._tree_revealing or reflow
+                or (self._format_active and self.render_view._insert_job is not None)):self.format_cancel.place(relx=1,rely=.5,anchor='e')
         else:self.format_cancel.place_forget()
         if busy!=self._activity_busy:
             self._activity_busy=busy
@@ -42769,7 +42957,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.19.2"
+__version__ = "0.19.3"
 
 
 
@@ -42893,8 +43081,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/11/10"
+BUILD_DATE = "2026/11/11"
 VERSION_HISTORY = (
+    ("v0.19.3", "2026/11/11", (
+        "Fixed: Folder metadata scans use background workers, discard obsolete results, and schedule the next audit after completion.",
+        "Fixed: Preview syntax styling uses line-local positions and cancellable batches to keep the interface responsive.",
+        "Improved: Preview styling and divider layout delays have named automatic diagnostics.",
+    )),
     ("v0.19.2", "2026/11/10", (
         "Added: The automatic Error / Warning log records prolonged UI stalls while they are happening and summarizes slow folder operations without collecting filenames or file contents.",
         "Fixed in v0.19.1: F3 Markdown table columns stay aligned with mixed-language text and enlarged fonts.",
@@ -43852,6 +44045,11 @@ class FilePane(ttk.Frame):
         self._prepared_listing = None
         self._result_listing_paths = ()
         self._listing_failure_key=None
+        self._directory_request = None
+        self._directory_wait = None
+        self._directory_waiters = {}
+        self._directory_disposed = False
+        self._listing_revision = 0
         self._search_reveal_path = None
         self.quick_filter_var = tk.StringVar()
         self._drag_press_item = None
@@ -44292,6 +44490,12 @@ class FilePane(ttk.Frame):
 
     def _dispose_file_pane(self,event):
         if event.widget is not self:return
+        self._directory_disposed = True
+        if self._directory_request is not None:
+            self._directory_request.cancel()
+        for job, variable in tuple(self._directory_waiters.items()):
+            job.cancel()
+            variable.set(True)
         for name in ('_vcs_poll_job','_column_resize_job'):
             job=getattr(self,name,None)
             if job is not None:
@@ -44327,7 +44531,7 @@ class FilePane(ttk.Frame):
     def _populate_tree_children(self, parent_iid: str, folder: Path) -> int:
         try:
             entries = self._read_directory(folder)
-        except OSError:
+        except (OSError, DirectoryReadCancelled):
             return 0
         needle = self.quick_filter_var.get().strip().casefold()
         if needle:
@@ -44595,18 +44799,16 @@ class FilePane(ttk.Frame):
 
     @latency_action('Open folder')
     def navigate(self, path: Path, bypass_lock: bool = False) -> bool:
+        if self._directory_request is not None:
+            self._directory_request.cancel()
         try:
             monitor = getattr(self, '_ui_latency', None)
-            path = latency_call(monitor, 'Resolve folder path', path.expanduser().resolve)
-            if not latency_call(monitor, 'Check folder path', path.is_dir):
-                raise NotADirectoryError(path)
+            path, prepared, _ = self._directory_snapshot(path, self._search_reveal_path, resolve=True)
             if not bypass_lock and self.lock_mode == "locked" and path != self.path:
                 self.on_locked_navigation(path)
                 return False
             # Validate the listing before committing history, path or widgets.
             # Reuse this exact snapshot in refresh rather than scanning twice.
-            reveal=self._search_reveal_path if getattr(self,'_search_reveal_path',None) is not None and self._search_reveal_path.parent==path else None
-            prepared=self._read_directory(path,reveal)
             previous = self.path
             focused = self.tree.focus()
             if not focused and self.tree.selection():
@@ -44636,6 +44838,8 @@ class FilePane(ttk.Frame):
             self.refresh()
             self.on_change()
             return True
+        except DirectoryReadCancelled:
+            return False
         except OSError as exc:
             self.path_var.set(str(self.path))
             log=getattr(self.winfo_toplevel(),'debug_log',None)
@@ -44740,13 +44944,54 @@ class FilePane(ttk.Frame):
                 self._result_listing_paths if self.mode=='search_results' else ())
 
     def _read_directory(self, folder, reveal=None):
-        monitor = getattr(self, '_ui_latency', None)
-        if monitor is None:
-            return directory_items(folder, self.show_hidden, self.show_system, reveal)
-        rows = monitor.measure('Enumerate folder', directory_items, folder, self.show_hidden,
-                               self.show_system, reveal, latency=monitor)
-        monitor.rows(len(rows))
-        return rows
+        return self._directory_snapshot(folder, reveal)[1]
+
+    def _directory_snapshot(self, folder, reveal=None, *, resolve=False):
+        reader = getattr(self.winfo_toplevel(), '_directory_reader', None)
+        if reader is None:
+            folder = folder.expanduser().resolve() if resolve else folder
+            rows = directory_items(folder, self.show_hidden, self.show_system, reveal)
+            return folder, rows, listing_signature(rows)
+        job = reader.submit(('pane', id(self)), folder, self.show_hidden, self.show_system,
+                            reveal, resolve=resolve, monitor=self._ui_latency)
+        self._directory_request = job
+        variable = tk.BooleanVar(self, value=False)
+        self._directory_wait = variable
+        self._directory_waiters[job] = variable
+        token = [None]
+        previous = self.status.cget('text')
+        self.status.configure(text=tr('Reading folder…'))
+        def poll():
+            token[0] = None
+            if job.done.is_set() or self._directory_disposed:
+                variable.set(True)
+            else:
+                token[0] = self.after(20, poll)
+        poll()
+        try:
+            if not variable.get():
+                latency_responsive_wait(self._ui_latency, self.wait_variable, variable)
+            if self._directory_disposed or job.cancelled.is_set():
+                raise DirectoryReadCancelled()
+            if (self.show_hidden, self.show_system) != job.arguments[1:3]:
+                raise DirectoryReadCancelled()
+            if job.error is not None:
+                raise job.error
+            return job.result
+        finally:
+            job.cancel()
+            self._directory_waiters.pop(job, None)
+            if token[0] is not None:
+                try:self.after_cancel(token[0])
+                except tk.TclError:pass
+            if self._directory_request is job:
+                self._directory_request = self._directory_wait = None
+                if not self._directory_disposed:
+                    self.status.configure(text=previous)
+            # Break the self-referential poll closure on the Tk thread.
+            # Otherwise a future metadata worker's GC can finalize this Var.
+            variable = None
+            poll = None
 
     def _listing_failed(self,exc):
         self.status.configure(text=tr('Cannot read folder; previous list retained'))
@@ -44758,6 +45003,8 @@ class FilePane(ttk.Frame):
 
     @latency_action('Refresh file list')
     def refresh(self, *, _reuse_listing=False) -> None:
+        if self._directory_request is not None:
+            return
         if self._inline_editor is not None:
             return
         # Preserve Treeview IDs from mouse-down through drop. A filesystem
@@ -44783,8 +45030,11 @@ class FilePane(ttk.Frame):
             latency_user_wait(monitor, messagebox.showerror, tr('Cannot read folder'),str(exc),
                               parent=self.winfo_toplevel())
             return
+        except DirectoryReadCancelled:
+            return
         finally:self._prepared_listing=None
         self._listing_rows=rows;self._listing_snapshot_key=key
+        if fresh:self._listing_revision += 1
         if monitor is not None: monitor.rows(len(rows))
         if fresh:self._listing_failure_key=None
         self.name_marquee.stop()
@@ -44818,6 +45068,8 @@ class FilePane(ttk.Frame):
                                             values=self._tree_values(self.path, True, root_stat),
                                             tags=(str(self.path),), open=True)
                 count = self._populate_tree_children(root_iid, self.path)
+                if self._directory_disposed:
+                    return
                 self._restore_tree_expansion(root_iid, expanded)
                 mode_label = tr("Folder Tree") if self.view_mode == "folder" else tr("File Tree")
                 self.status.configure(text=tr("{mode} — {count} items", mode=mode_label,
@@ -44982,7 +45234,7 @@ class FilePane(ttk.Frame):
 
     @latency_action('Check folder for changes')
     def refresh_if_changed(self) -> bool:
-        if self.mode != "files" or self._inline_editor is not None:
+        if self.mode != "files" or self._inline_editor is not None or self._directory_request is not None:
             return False
         monitor = getattr(self, '_ui_latency', None)
         latency_call(monitor, 'Prepare Git/SVN status', self._request_vcs_statuses)
@@ -44991,6 +45243,8 @@ class FilePane(ttk.Frame):
             signature = latency_call(monitor, 'Compare file-list snapshot', listing_signature, rows)
         except OSError as exc:
             self._listing_failed(exc)
+            return False
+        except DirectoryReadCancelled:
             return False
         if signature == self._signature and self._listing_failure_key is None:
             return False
@@ -45370,6 +45624,8 @@ class Commander(tk.Tk):
                                       runtime={'tk':'Tk '+str(self.tk.call('package','provide','Tk'))})
         self.debug_log.install_hooks()
         self._ui_latency = UiLatencyMonitor(self.debug_log) if self.debug_log.error_handler else None
+        self._directory_reader = DirectoryReads()
+        self._directory_audits = {}
         self._ui_latency_job = self.after(500, self._ui_latency_tick) if self._ui_latency is not None else None
         # Tcl may report an already-deleted idle command without entering a
         # Python callback. Route that separate error channel to automatic logs.
@@ -45558,7 +45814,7 @@ class Commander(tk.Tk):
         split.bind('<ButtonRelease-1>', self._remember_tree_ratio, add='+')
         split.bind('<ButtonPress-1>', self._auto_font_sash_press, add='+')
         split.bind('<ButtonRelease-1>', self._auto_font_sash_release, add='+')
-        split.bind('<Configure>', lambda _e:self.after_idle(self._place_tree_sash), add='+')
+        split.bind('<Configure>', lambda _e:schedule_owned_idle(self, 'tree-sash', self._place_tree_sash), add='+')
         try:
             order = json.loads(self.config_data.get('state', 'single_tab_order', fallback='[]'))
             self.single_tabs._tabs = [self.panel_tabs[group].panes()[index] for group,index in order
@@ -45965,6 +46221,7 @@ class Commander(tk.Tk):
 
     def _close_diagnostics(self,event):
         if event.widget is self:
+            self._directory_reader.close()
             if self._ui_latency_job is not None:
                 self.after_cancel(self._ui_latency_job)
                 self._ui_latency_job = None
@@ -46108,6 +46365,21 @@ class Commander(tk.Tk):
                        if enabled and pane.mode == "files" and pane.archive_session is None
                        and is_local_watch_path(pane.path)]
         self._directory_watches.sync(watch_paths)
+        if hasattr(self, '_directory_reader'):
+            if enabled:
+                self._pending_directory_changes.update(self._directory_watches.drain())
+                self._audit_visible_panes(panes)
+            else:
+                for job in self._directory_audits.values():
+                    job.cancel()
+                self._directory_audits.clear()
+                self._pending_directory_changes.clear()
+            if self.cloud_status.roots:
+                rows = self._visible_cloud_rows(panes)
+                if self.onedrive_overlay_var.get():
+                    self.cloud_status.poll(path for pane, iid, path in rows)
+                self._update_cloud_icons(rows)
+            return
         if enabled:
             self._pending_directory_changes.update(self._directory_watches.drain())
             for key in tuple(self._pending_directory_changes):
@@ -46137,7 +46409,7 @@ class Commander(tk.Tk):
                 if now >= self._network_refresh_due.get(key, 0):
                     for pane in matching:
                         pane.refresh_if_changed()
-                    self._network_refresh_due[key] = now + max(1.0, interval)
+                    self._network_refresh_due[key] = time.monotonic() + max(1.0, interval)
         else:
             self._pending_directory_changes.clear()
         # Optional overlay failures must not prevent file-list updates above.
@@ -46146,6 +46418,54 @@ class Commander(tk.Tk):
             if self.onedrive_overlay_var.get():
                 self.cloud_status.poll(path for pane, iid, path in rows)
             self._update_cloud_icons(rows)
+
+    def _audit_visible_panes(self, panes):
+        notified_dirs = set(self._pending_directory_changes)
+        groups = {}
+        for pane in panes:
+            if pane.mode == 'files' and pane.archive_session is None and not pane._directory_disposed:
+                key = (directory_key(pane.path), pane.show_hidden, pane.show_system, pane._search_reveal_path)
+                groups.setdefault(key, []).append(pane)
+        for key in tuple(self._directory_audits):
+            if key not in groups:
+                self._directory_audits.pop(key).cancel()
+        self._network_refresh_due = {k:v for k,v in self._network_refresh_due.items() if k in groups}
+        for key, matching in groups.items():
+            if any(p._inline_editor is not None or p._drag_press_item is not None or
+                   p._directory_request is not None for p in matching):
+                continue
+            interval = max(1., self.config_data.getint('refresh',
+                'network_interval_ms' if str(matching[0].path).startswith('\\\\') else
+                'active_interval_ms' if self.active in matching else 'background_interval_ms',
+                fallback=2000)/1000)
+            job = self._directory_audits.get(key)
+            if job is not None:
+                if not job.done.is_set():
+                    continue
+                self._directory_audits.pop(key)
+                # Never schedule from the START of a slow scan.
+                self._network_refresh_due[key] = time.monotonic()+interval
+                if not job.cancelled.is_set():
+                    for pane in matching:
+                        if job.views.get(id(pane)) != pane._listing_revision:
+                            continue  # A newer manual refresh wins.
+                        if job.error is not None:
+                            pane._listing_failed(job.error)
+                        elif job.result is not None:
+                            _, rows, signature = job.result
+                            if signature != pane._signature or pane._listing_failure_key is not None:
+                                pane._prepared_listing = (pane._listing_key(), rows)
+                                pane.refresh()
+                self._pending_directory_changes.discard(key[0])
+                continue
+            notified = key[0] in notified_dirs
+            if not notified and time.monotonic() < self._network_refresh_due.get(key, 0):
+                continue
+            pane = matching[0]
+            self._directory_audits[key] = self._directory_reader.submit(
+                ('audit', key), pane.path, key[1], key[2], key[3], monitor=self._ui_latency)
+            self._directory_audits[key].views = {id(p):p._listing_revision for p in matching}
+            self._pending_directory_changes.discard(key[0])
 
     def _visible_cloud_rows(self, panes):
         rows = []
@@ -46719,13 +47039,13 @@ class Commander(tk.Tk):
             return [self._tabs_for(active)] if active is not None else self.panel_tabs[:1]
         return self.panel_tabs[:max(2, min(4, self.panel_count_var.get()))]
 
+    @latency_action('Arrange panel divider')
     def _place_tree_sash(self):
         if getattr(self, '_placing_tree_sash', False): return
         self._placing_tree_sash = True
         try:
             # Complete notebook/font geometry negotiation before restoring the
             # divider, otherwise a late size request can collapse the tree.
-            self.split.update_idletasks()
             if self._single_layout and len(self.split.panes()) == 2:
                 self.split.sashpos(0, round(self.split.winfo_width()*self._tree_ratio))
         finally:

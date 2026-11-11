@@ -1,6 +1,11 @@
 # Python File Commander
 
-Current code: **v0.19.2** — Help > Error / Warning log automatically records an
+Current code: **v0.19.3** — folder metadata is scanned in two bounded background
+workers while the interface continues processing input. Obsolete results are
+discarded and repeated audits wait until after the previous scan finishes.
+Preview syntax styling uses line-local positions and cancellable batches.
+
+Since **v0.19.2**, Help > Error / Warning log automatically records an
 unresponsive UI after 5 seconds and summarizes unusually slow folder opens,
 refreshes, and icon loads. The photo summary shows the current or slowest known
 step, durations and counts. The new records omit filenames and file contents

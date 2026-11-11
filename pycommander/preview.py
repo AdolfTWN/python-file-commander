@@ -778,6 +778,12 @@ class PreviewPage(tk.Frame):
         self._format_searching=False
 
     def _cancel_format_ui(self):
+        if (self.render_view.model.get('kind')=='document' and self.render_view.text is not None
+                and self.render_view._insert_job is not None):
+            self.render_view.cancel_document_work()
+            self.status.configure(text=tr('Preview canceled; press F5 to retry'))
+            self._sync_preview_activity()
+            return
         expanding=self.render_view._expand_restore is not None
         reflowing=bool(getattr(self.render_view.tree,'_layout_job',None))
         searching=self._format_searching or self.render_view._tree_revealing or expanding
@@ -881,7 +887,8 @@ class PreviewPage(tk.Frame):
         busy=bool(self._md_insert or (self._md_queued and not self._md_queued['probe'])
                   or (self._md_request and not self._md_request['probe']) or self._format_queued or self._format_request
                   or (self._format_active and (self.render_view._insert_job is not None or reflow)))
-        if self._format_queued or self._format_request or self.render_view._tree_revealing or reflow:self.format_cancel.place(relx=1,rely=.5,anchor='e')
+        if (self._format_queued or self._format_request or self.render_view._tree_revealing or reflow
+                or (self._format_active and self.render_view._insert_job is not None)):self.format_cancel.place(relx=1,rely=.5,anchor='e')
         else:self.format_cancel.place_forget()
         if busy!=self._activity_busy:
             self._activity_busy=busy

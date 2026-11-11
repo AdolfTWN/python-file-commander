@@ -27,6 +27,8 @@ xvfb-run -a python3 tools/settings_diagnostics_check.py
 xvfb-run -a python3 tools/settings_diagnostics_check.py pfc
 xvfb-run -a python3 tools/folder_latency_check.py
 xvfb-run -a python3 tools/folder_latency_check.py pfc
+xvfb-run -a python3 tools/responsive_work_check.py
+xvfb-run -a python3 tools/responsive_work_check.py pfc
 xvfb-run -a python3 tools/search_worker_lifetime_check.py
 xvfb-run -a python3 tools/search_worker_lifetime_check.py pfc
 xvfb-run -a python3 tools/search_progress_check.py

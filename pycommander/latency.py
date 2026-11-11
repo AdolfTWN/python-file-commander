@@ -1,5 +1,6 @@
 """Bounded UI stall watchdog and folder-operation timing; no Tk on the worker."""
 from functools import wraps
+from itertools import count
 import os
 from pathlib import Path
 import queue
@@ -32,15 +33,27 @@ class UiLatencyMonitor:
         self._stall, self._total, self._phase = stall, total, phase
         self._sample, self._repeats, self._poll, self._cooldown = sample, repeats, poll, cooldown
         self._ui_thread = threading.get_ident()
+        self._timing_local = threading.local()
+        self._ui_active = None
         self._beat = time.monotonic()
         self._active = None
-        self._sequence = 0
+        self._sequence = count(1)
         self._last_slow = {}
         self._records = queue.Queue(maxsize=32)
         self._stop = threading.Event()
         self._source = Path(__file__).absolute()
         self._thread = threading.Thread(target=self._watch, name='PFC-UI-watchdog', daemon=True)
         self._thread.start()
+
+    @property
+    def _active(self):
+        return getattr(self._timing_local, 'active', None)
+
+    @_active.setter
+    def _active(self, value):
+        self._timing_local.active = value
+        if threading.get_ident() == self._ui_thread:
+            self._ui_active = value
 
     def heartbeat(self):
         self._beat = time.monotonic()
@@ -61,8 +74,7 @@ class UiLatencyMonitor:
         started = time.monotonic()
         # Keep stats local to this UI operation. The worker reads the current
         # phase snapshot only, never the stats dictionary or Tk objects.
-        self._sequence += 1
-        operation = {'action':action, 'stats':{}, 'incident':f'ui-{self._sequence:x}',
+        operation = {'action':action, 'stats':{}, 'incident':f'ui-{next(self._sequence):x}',
                      'watched':False, 'user_wait':0.}
         self._active = (operation, None)
         try:
@@ -191,7 +203,7 @@ class UiLatencyMonitor:
                 floor = now
                 continue
             data = {'stalled_ms':round((now-since)*1000)}
-            active = self._active
+            active = self._ui_active
             incident = uuid.uuid4().hex[:12]
             if active is not None:
                 operation, phase = active
@@ -229,6 +241,15 @@ def latency_call(monitor, name, callback, *args, item=None, is_dir=False, **kwar
 
 def latency_user_wait(monitor, callback, *args, **kwargs):
     """Exclude an intentional modal wait without excluding its preparation."""
+    return _latency_wait(monitor, callback, *args, **kwargs)
+
+
+def latency_responsive_wait(monitor, callback, *args, **kwargs):
+    """Pause outer timing while Tk processes events; do not mask nested stalls."""
+    return _latency_wait(monitor, callback, *args, **kwargs)
+
+
+def _latency_wait(monitor, callback, *args, **kwargs):
     active = monitor._active if monitor is not None else None
     if active is None:
         return callback(*args, **kwargs)

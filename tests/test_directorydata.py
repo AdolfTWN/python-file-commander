@@ -2,12 +2,29 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from types import SimpleNamespace
 
 from pycommander.directorydata import directory_items,listing_items,listing_signature,ordered_listing
 from pycommander.columnsettings import modified_text
 
 
 class DirectoryDataTests(unittest.TestCase):
+    def test_windows_flags_share_one_link_attribute_read(self):
+        import pycommander.directorydata as data
+        with tempfile.TemporaryDirectory() as raw:
+            folder=Path(raw)
+            for name in ('hidden', 'system', 'visible', '.dot'):(folder/name).touch()
+            calls=[]
+            def attributes(path):
+                calls.append(Path(path).name)
+                return {'hidden':2,'system':4,'visible':0,'.dot':0}[Path(path).name]
+            api=SimpleNamespace(kernel32=SimpleNamespace(GetFileAttributesW=attributes))
+            with patch.object(data,'os',SimpleNamespace(name='nt')),patch.object(data.ctypes,'windll',api,create=True):
+                self.assertEqual(['visible'],[r.path.name for r in data.directory_items(folder)])
+                self.assertEqual(3,len(calls))
+                calls.clear()
+                self.assertEqual(4,len(data.directory_items(folder,True,True)))
+                self.assertEqual([],calls)
     def test_cross_folder_same_name_missing_result_has_stable_full_identity(self):
         with tempfile.TemporaryDirectory() as raw:
             root=Path(raw);(root/'one').mkdir();(root/'two').mkdir()

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from pycommander.debuglog import DiagnosticLog, diagnostic_incidents, diagnostic_records, diagnostic_summary
-from pycommander.latency import UiLatencyMonitor, latency_user_wait
+from pycommander.latency import UiLatencyMonitor, latency_user_wait, latency_responsive_wait
 
 
 class LatencyTests(unittest.TestCase):
@@ -93,6 +93,12 @@ class LatencyTests(unittest.TestCase):
         row = self.wait(lambda: next((r for r in self.records() if r['event']=='ui.operation.slow'), None))
         self.assertGreaterEqual(row['latency']['duration_ms'], 100)
         self.assertLessEqual(len(row['latency']['phases']), 4)
+
+    def test_responsive_wait_does_not_hide_a_nested_stall(self):
+        self.monitor.action('Open folder',lambda:latency_responsive_wait(self.monitor,time.sleep,.22))
+        self.monitor.heartbeat()
+        row=self.wait(lambda:next((r for r in self.records() if r['event']=='ui.stall.detected'),None))
+        self.assertIn('stalled_ms',row['latency'])
 
 
 if __name__ == '__main__':

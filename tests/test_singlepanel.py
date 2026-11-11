@@ -95,19 +95,19 @@ class FolderTreeTests(unittest.TestCase):
                 self.assertIn((90,0,90,30 if flags[-1] else 15),lines)
                 self.assertEqual((110,15,110,30) in lines,expanded)
 
-    def test_tree_divider_waits_for_geometry_and_ignores_reentry(self):
+    def test_tree_divider_does_not_drain_idle_work_and_ignores_reentry(self):
         from pycommander.app import Commander
         split=Mock();split.panes.return_value=('tree','files');split.winfo_width.return_value=900
         owner=SimpleNamespace(split=split,_single_layout=True,_tree_ratio=1/3)
         events=[]
-        def geometry():
-            events.append('geometry')
-            Commander._place_tree_sash(owner)
-        split.update_idletasks.side_effect=geometry
         split.sashpos.side_effect=lambda *args:events.append(args)
         Commander._place_tree_sash(owner)
-        self.assertEqual(events,['geometry',(0,300)])
+        self.assertEqual(events,[(0,300)])
+        split.update_idletasks.assert_not_called()
         self.assertFalse(owner._placing_tree_sash)
+        owner._placing_tree_sash=True
+        Commander._place_tree_sash(owner)
+        self.assertEqual(events,[(0,300)])
 
     def test_scan_reveal_keeps_whole_row_but_respects_user_scroll_and_collapse(self):
         from pycommander.singlepanel import RootFolderTree

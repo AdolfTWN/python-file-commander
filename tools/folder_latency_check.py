@@ -61,6 +61,7 @@ with tempfile.TemporaryDirectory() as raw:
         pane = app.panes()[0]
         original_stat = Path.stat
         original_icon = type(pane.icons)._load
+        original_get = pane.icons.get
         seen_pending = []
 
         def records():
@@ -80,9 +81,13 @@ with tempfile.TemporaryDirectory() as raw:
         def controlled_stat(path, *args, **kwargs):
             if path.parent == repeated and path.suffix == '.json':
                 time.sleep(.115)
-            if path == slow_file and os.name != 'nt' and not seen_pending:
-                stall('Read file metadata')
             return original_stat(path, *args, **kwargs)
+
+        def controlled_get(path, is_dir, *args, **kwargs):
+            if path == slow_file and os.name != 'nt' and not seen_pending:
+                app._ui_latency.measure('Synthetic UI callback',
+                                       lambda:stall('Synthetic UI callback'),item=path)
+            return original_get(path,is_dir,*args,**kwargs)
 
         def controlled_icon(provider, path, is_dir):
             if path == slow_file and not seen_pending:
@@ -102,7 +107,7 @@ with tempfile.TemporaryDirectory() as raw:
         assert not find('ui.stall.detected')
 
         app._ui_latency.heartbeat()
-        with patch.object(Path, 'stat', controlled_stat), patch.object(type(pane.icons), '_load', controlled_icon):
+        with patch.object(Path, 'stat', controlled_stat), patch.object(type(pane.icons), '_load', controlled_icon), patch.object(pane.icons,'get',controlled_get):
             assert pane.navigate(blocked)
         assert len(seen_pending)==1 and seen_pending[0]['latency']['stalled_ms'] >= 5000
         incident = seen_pending[0]['incident']

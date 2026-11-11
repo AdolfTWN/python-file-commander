@@ -1,5 +1,6 @@
 """One compact read-only view for structured, tabular, textual and image models."""
 import base64
+from bisect import bisect_right
 from itertools import chain,islice
 import re
 import time
@@ -28,6 +29,7 @@ class FormatRenderView(ttk.Frame):
     def __init__(self,master):
         super().__init__(master)
         self.model={};self.images=[];self.match_index=-1;self._generation=0;self._insert_job=None
+        self._document_cancelled=False
         self._row_lookup={};self._search_extra=[]
         self._structured_widths=None
         self._grid_widths=None
@@ -59,6 +61,7 @@ class FormatRenderView(ttk.Frame):
                 except tk.TclError:pass
             release_owned_images(self,'_tree_icons','images','original','display_image')
     def clear(self):
+        self._document_cancelled=False
         self.cancel_tree_reveal()
         self._generation+=1
         if self._insert_job is not None:
@@ -251,16 +254,53 @@ class FormatRenderView(ttk.Frame):
             self._insert_job=None
             if generation!=self._generation or not self.winfo_exists():return
             self.text.configure(state='normal');self.text.insert('end',content[offset:offset+65536]);self.text.configure(state='disabled');offset+=65536
-            if offset<len(content):self._insert_job=self.after(1,insert)
-            else:
-                for start,end,tag in self.model.get('spans',[]):
-                    if start<len(content):self.text.tag_add(tag,f'1.0+{start}c',f'1.0+{min(end,len(content))}c')
-        insert()
+            if offset<len(content):
+                self._insert_job=self.after(1,lambda:self._document_work('Insert Preview text',insert))
+            else:self._style_document(content)
+        self._document_work('Insert Preview text',insert)
         sections=self.model.get('sections',[])
         if sections:
             self.choice.configure(values=tuple(s['title'][:100] for s in sections));self.choice.set(tr('Changes'))
             self.choice.pack(side='right',padx=4)
             self.text.bind('<F7>',lambda e:self._section(-1));self.text.bind('<F8>',lambda e:self._section(1))
+    def _document_work(self, label, callback):
+        monitor=getattr(self._root(), '_ui_latency', None)
+        return callback() if monitor is None else monitor.action(label,callback)
+
+    def _style_document(self, content, origin=0):
+        generation=self._generation
+        offsets=[0]+[match.end() for match in re.finditer('\n',content)]
+        def index(position):
+            position=max(0,min(len(content),position-origin))
+            line=bisect_right(offsets,position)-1
+            # Tk Unicode character modifier, not UTF-16 column arithmetic.
+            return f'{line+1}.0+{position-offsets[line]}c'
+        spans=iter(self.model.get('spans',()))
+        self.detail.configure(text=tr('Applying preview styles…'))
+        def style():
+            self._insert_job=None
+            if generation!=self._generation or not self.winfo_exists():return
+            start=time.monotonic();grouped={};count=0;finished=False
+            while count<300 and time.monotonic()-start<.008:
+                try:a,b,tag=next(spans)
+                except StopIteration:finished=True;break
+                count+=1
+                if b>origin and a<origin+len(content):
+                    grouped.setdefault(tag,[]).extend((index(a),index(b)))
+            for tag,ranges in grouped.items():self.text.tag_add(tag,*ranges)
+            self.text.tag_raise('format_match')
+            self.text.tag_raise('sel')
+            if finished:self.detail.configure(text=tr('Document'))
+            else:self._insert_job=self.after(1,lambda:self._document_work('Apply Preview styles',style))
+        self._insert_job=self.after(1,lambda:self._document_work('Apply Preview styles',style))
+
+    def cancel_document_work(self):
+        if self.text is None or self.model.get('kind')!='document':return
+        if self._insert_job is not None:
+            self.after_cancel(self._insert_job);self._insert_job=None
+        self._generation+=1
+        self._document_cancelled=True
+        self.detail.configure(text=tr('Preview canceled; press F5 to retry'))
     def set_wrap(self,enabled):
         self.wrap=bool(enabled)
         if self.text:self.text.configure(wrap='word' if self.wrap and not self.model.get('wrap_limited') else 'none')
@@ -278,12 +318,12 @@ class FormatRenderView(ttk.Frame):
             if self._grid_hit:self.tree.see('r'+str(self._grid_hit[0]))
     def _document_position(self,offset):
         if self.model.get('wrap_limited'):
+            if self._insert_job is not None:self.after_cancel(self._insert_job);self._insert_job=None
             content=self.model['content'];start=max(0,offset-512)
             self._document_offset=start
             self.text.configure(state='normal');self.text.delete('1.0','end')
             self.text.insert('1.0',content[start:start+16384]);self.text.configure(state='disabled')
-            for a,b,tag in self.model.get('spans',[]):
-                if b>start and a<start+16384:self.text.tag_add(tag,f'1.0+{max(0,a-start)}c',f'1.0+{min(b-start,16384)}c')
+            self._style_document(content[start:start+16384],start)
         return f'1.0+{offset-self._document_offset}c'
     def _section(self,direction):
         sections=self.model.get('sections',[])
@@ -452,6 +492,8 @@ class FormatRenderView(ttk.Frame):
                 else:raise
         insert()
     def find(self,needle,case=False,direction=1):
+        if self._document_cancelled:
+            return tr('Preview canceled; press F5 to retry')
         self._clear_find_display()
         if not needle:return tr('Enter search text')
         flags=0 if case else re.I;pattern=re.compile(re.escape(needle),flags);hits=[]

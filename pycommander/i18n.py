@@ -11,6 +11,11 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: Folder metadata scans use background workers, discard obsolete results, and schedule the next audit after completion.': ('修正：資料夾屬性掃描改在背景執行，捨棄過期結果，並於完成後安排下一次稽核。','修正：文件夹属性扫描改在后台执行，丢弃过期结果，并在完成后安排下一次检查。','수정: 폴더 메타데이터를 백그라운드에서 검사하고 오래된 결과를 버리며 완료 후 다음 검사를 예약합니다.'),
+    'Fixed: Preview syntax styling uses line-local positions and cancellable batches to keep the interface responsive.': ('修正：預覽語法樣式使用行內位置及可取消的分批處理，保持介面回應。','修正：预览语法样式使用行内位置及可取消的分批处理，保持界面响应。','수정: 미리보기 구문 스타일에 줄 내부 위치와 취소 가능한 배치를 사용하여 UI 응답성을 유지합니다.'),
+    'Improved: Preview styling and divider layout delays have named automatic diagnostics.': ('改善：預覽套色與分隔條配置的延遲會記錄具名自動診斷。','改善：预览着色与分隔条布局的延迟会记录具名自动诊断。','개선: 미리보기 스타일 및 분할선 배치 지연을 이름 있는 자동 진단으로 기록합니다.'),
+    'Reading folder…': ('正在讀取資料夾…','正在读取文件夹…','폴더를 읽는 중…'),
+    'Applying preview styles…': ('正在套用預覽樣式…','正在应用预览样式…','미리보기 스타일 적용 중…'),
     'Added: The automatic Error / Warning log records prolonged UI stalls while they are happening and summarizes slow folder operations without collecting filenames or file contents.': ('新增：自動錯誤／警告日誌會在介面長時間無回應時留下紀錄，並摘要耗時的資料夾操作，不收集檔名或檔案內容。','新增：自动错误／警告日志会在界面长时间无响应时留下记录，并摘要耗时的文件夹操作，不收集文件名或文件内容。','추가: 자동 오류/경고 로그는 UI가 오래 응답하지 않을 때 즉시 기록하고, 파일명이나 내용을 수집하지 않고 느린 폴더 작업을 요약합니다.'),
     'Fixed in v0.19.1: F3 Markdown table columns stay aligned with mixed-language text and enlarged fonts.': ('v0.19.1 修正：F3 Markdown 表格在混合語言及放大字體時仍保持欄位對齊。','v0.19.1 修正：F3 Markdown 表格在混合语言及放大字体时仍保持列对齐。','v0.19.1 수정: F3 Markdown 표에서 여러 언어를 섞거나 글꼴을 확대해도 열 정렬이 유지됩니다.'),
     'Fixed: Reentrant tooltip display no longer leaves expiry callbacks for destroyed controls.': ('修正：提示視窗顯示重入時，不再替已銷毀的控制項留下到期回呼。','修正：提示窗口显示重入时，不再为已销毁的控件留下到期回调。','수정: 툴팁 표시가 재진입해도 삭제된 컨트롤의 만료 콜백이 남지 않습니다.'),
