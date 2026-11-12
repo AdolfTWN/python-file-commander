@@ -15,6 +15,14 @@ from pycommander.debuglog import DiagnosticLog, diagnostic_records, diagnostic_i
 
 
 class DebugLogTests(unittest.TestCase):
+    def test_placement_recovery_has_a_photo_card_without_document_data(self):
+        card=diagnostic_summary(dict(version='test',event='window.placement.recovery',
+            window=dict(role='F3 Preview',reason='Outside current display',
+                        before=[5000,100,6100,820],target=[0,0,1100,720],
+                        work_areas=[[0,0,1280,720]])))
+        for text in ('F3 Preview','Outside current display','5000','1280','Requested'):
+            self.assertIn(text,card)
+
     def test_finalizer_failures_are_automatically_recorded_without_private_values_and_hook_is_restored(self):
         with tempfile.TemporaryDirectory() as raw:
             previous=Mock()

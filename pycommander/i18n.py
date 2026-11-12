@@ -11,6 +11,9 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: F3 Preview recovers offscreen positions and fits the current monitor after activation, display changes and scaling.': ('修正：F3 預覽在喚出、螢幕切換及縮放後，會找回離屏位置並符合目前螢幕範圍。','修正：F3 预览在唤出、屏幕切换及缩放后，会找回离屏位置并适配当前屏幕范围。','수정: F3 미리보기를 활성화하거나 화면 및 배율을 변경하면 현재 모니터 안으로 복구합니다.'),
+    'Improved: Windows folder listings reuse enumeration metadata instead of reopening ordinary files for attributes and size.': ('改善：Windows 檔案清單重用目錄列舉資料，不再逐一重新開啟一般檔案查詢屬性與大小。','改善：Windows 文件列表复用目录枚举数据，不再逐一重新打开普通文件查询属性与大小。','개선: Windows 폴더 목록은 일반 파일을 다시 열지 않고 디렉터리 열거 메타데이터를 재사용합니다.'),
+    'Added: Automatic window-placement diagnostics include a photo-ready geometry summary without document names.': ('新增：視窗位置自動診斷提供可拍照的位置摘要，不包含文件名稱。','新增：窗口位置自动诊断提供可拍照的位置摘要，不包含文档名称。','추가: 창 위치 자동 진단은 문서 이름 없이 촬영 가능한 위치 요약을 제공합니다.'),
     'Fixed: Folder metadata scans use background workers, discard obsolete results, and schedule the next audit after completion.': ('修正：資料夾屬性掃描改在背景執行，捨棄過期結果，並於完成後安排下一次稽核。','修正：文件夹属性扫描改在后台执行，丢弃过期结果，并在完成后安排下一次检查。','수정: 폴더 메타데이터를 백그라운드에서 검사하고 오래된 결과를 버리며 완료 후 다음 검사를 예약합니다.'),
     'Fixed: Preview syntax styling uses line-local positions and cancellable batches to keep the interface responsive.': ('修正：預覽語法樣式使用行內位置及可取消的分批處理，保持介面回應。','修正：预览语法样式使用行内位置及可取消的分批处理，保持界面响应。','수정: 미리보기 구문 스타일에 줄 내부 위치와 취소 가능한 배치를 사용하여 UI 응답성을 유지합니다.'),
     'Improved: Preview styling and divider layout delays have named automatic diagnostics.': ('改善：預覽套色與分隔條配置的延遲會記錄具名自動診斷。','改善：预览着色与分隔条布局的延迟会记录具名自动诊断。','개선: 미리보기 스타일 및 분할선 배치 지연을 이름 있는 자동 진단으로 기록합니다.'),

@@ -89,6 +89,13 @@ def diagnostic_summary(row):
            ' · '+str(row.get('error') or row.get('event','—')),
            str(row.get('time','—'))]
     lines.extend(_diagnostic_latency_lines(row.get('latency')))
+    placement=row.get('window')
+    if isinstance(placement,dict):
+        lines.append('Window: '+str(placement.get('role','Window')))
+        lines.append(str(placement.get('reason','Placement recovery')))
+        if 'before' in placement:lines.append('Before (left, top, right, bottom): '+str(placement['before']))
+        if 'target' in placement:lines.append('Requested (x, y, width, height): '+str(placement['target']))
+        if 'work_areas' in placement:lines.append('Available work areas: '+str(placement['work_areas']))
     frames=row.get('frames',[])
     if frames:
         root=frames[-1]

@@ -41,6 +41,7 @@ with tempfile.TemporaryDirectory() as raw:
     pfc.Commander._find_ini_path=staticmethod(lambda:base/'pfc.ini')
     pfc.Commander._sync_auto_start=lambda self,**kwargs:True
     app=pfc.Commander();errors=[]
+    data=sys.modules[pfc.DirectoryReads.__module__]
     app.report_callback_exception=lambda *args:errors.append(str(args))
     reader=app._directory_reader
     try:
@@ -58,13 +59,13 @@ with tempfile.TemporaryDirectory() as raw:
                     and not pane._directory_request.done.is_set()):
                 responsive_while_reading.append(True)
             if running[0]:app.after(10,tick)
-        stat=Path.stat;entered=threading.Event()
+        stat=data._listing_stat;entered=threading.Event()
         tick()
         def delayed(path,*args,**kwargs):
             if path==slow/'lag.txt':
                 threads.add(threading.get_ident());entered.set();time.sleep(.5)
             return stat(path,*args,**kwargs)
-        with patch.object(Path,'stat',delayed):
+        with patch.object(data,'_listing_stat',delayed):
             started=time.monotonic()
             assert pane.navigate(slow)
             assert time.monotonic()-started>=.5
@@ -142,7 +143,7 @@ with tempfile.TemporaryDirectory() as raw:
         print(f'PASS: {len(content)} characters / {len(spans)} styles in {elapsed:.3f}s; heartbeat, Unicode, cancel, replacement and Find verified',flush=True)
         assert not errors,errors
         # Root closure must wake the navigation waiter and drop all UI callbacks.
-        with patch.object(Path,'stat',delayed):
+        with patch.object(data,'_listing_stat',delayed):
             app.after(80,app.destroy)
             assert pane.navigate(slow) is False
         running[0]=False

@@ -31,6 +31,7 @@ from .renderbrowser import raster_preview
 from .renderui import FormatRenderView
 from .flowlayout import FlowToolbar, schedule_owned_idle
 from .dialogs import release_owned_variables, release_owned_fonts
+from .windowplacement import WindowVisibilityGuard
 
 
 TEXT_EXTENSIONS = {
@@ -1616,8 +1617,11 @@ class PreviewWindow(tk.Toplevel):
         self.pages = {}
         self.active_page = None
         self._diagram_directory=None
+        # Install before any document work: a failed/slow page must not prevent
+        # periodic recovery or leave its window unreachable after undocking.
         self.geometry(config.get('preview', 'geometry', fallback='1100x720'))
-        self.minsize(640, 400)
+        self.minsize(min(640,self.winfo_screenwidth()), min(400,self.winfo_screenheight()))
+        self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True,role='F3 Preview')
         self.protocol('WM_DELETE_WINDOW', self.close)
         bar = ttk.Frame(self); bar.pack(fill='x', padx=6, pady=(4,0))
         self.document_menu = ttk.Menubutton(bar, text=tr('Open documents'))
@@ -1754,6 +1758,7 @@ class PreviewWindow(tk.Toplevel):
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()
+        schedule_owned_idle(self,'preview-recover',self._window_visibility.recover)
         if self.active_page:
             page=self.active_page
             widget=(page.render_view.tree or page.render_view.text or page.render_view.canvas) if page._format_active else page.text
@@ -1778,6 +1783,7 @@ class PreviewWindow(tk.Toplevel):
 
     def apply_scale(self, scale):
         for page in self.pages.values(): page.apply_scale(scale)
+        schedule_owned_idle(self,'preview-recover',self._window_visibility.recover)
 
     def apply_color_scheme(self, palette):
         self.configure(background=palette['window'])

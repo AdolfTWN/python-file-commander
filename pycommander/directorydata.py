@@ -5,7 +5,6 @@ import stat as statlib
 from collections import OrderedDict
 import threading
 import os
-import ctypes
 
 from .fileops import is_hidden, is_system
 
@@ -24,6 +23,13 @@ class DirectoryReadCancelled(Exception):
     pass
 
 
+def _listing_stat(path, entry=None):
+    # A Windows DirEntry reuses FindFirst/NextFile metadata for ordinary
+    # entries. Reparse points use Path.stat explicitly below. Never retain
+    # DirEntry objects across listings: the next audit must enumerate anew.
+    return path.stat() if entry is None else entry.stat()
+
+
 def listing_items(paths, *, latency=None, cancelled=None):
     rows=[]
     measure = latency.measure if latency is not None else None
@@ -31,23 +37,17 @@ def listing_items(paths, *, latency=None, cancelled=None):
         if cancelled is not None and cancelled.is_set():
             raise DirectoryReadCancelled()
         try:
-            metadata = path.stat() if measure is None else measure('Read file metadata', path.stat, item=path)
+            metadata = _listing_stat(path) if measure is None else measure('Read file metadata', _listing_stat, path, item=path)
         except OSError:metadata=None
         rows.append(DirectoryItem(path,metadata))
     return tuple(rows)
 
 
 def directory_items(folder,show_hidden=False,show_system=False,reveal=None, *, latency=None, cancelled=None):
-    # Preserve GetFileAttributesW visibility semantics for Windows links rather
-    # than substituting the followed target's stat attributes.
+    if os.name == 'nt':
+        return _windows_directory_items(folder, show_hidden, show_system, reveal,
+                                        latency=latency, cancelled=cancelled)
     def visible(path):
-        if os.name == 'nt':
-            if not show_hidden and path.name.startswith('.'):
-                return False
-            # Inspect the link itself (not followed stat attributes), once.
-            attrs = ctypes.windll.kernel32.GetFileAttributesW(str(path))
-            unknown = attrs in (-1, 0xffffffff)
-            return unknown or ((show_hidden or not attrs & 2) and (show_system or not attrs & 4))
         return (show_hidden or not is_hidden(path)) and (show_system or not is_system(path))
     if show_hidden and show_system:
         return listing_items(folder.iterdir(), latency=latency, cancelled=cancelled)
@@ -59,6 +59,41 @@ def directory_items(folder,show_hidden=False,show_system=False,reveal=None, *, l
         checked = visible
     return listing_items((path for path in folder.iterdir() if path==reveal or checked(path)),
                          latency=latency, cancelled=cancelled)
+
+
+def _windows_directory_items(folder, hidden, system, reveal, *, latency=None, cancelled=None):
+    rows=[]
+    def measured(label, callback, *args, **kwargs):
+        return (callback(*args) if latency is None else
+                latency.measure(label, callback, *args, **kwargs))
+    # Enumeration already carries link attributes and ordinary-file metadata.
+    # Avoid reopening every file twice (GetFileAttributesW + Path.stat).
+    with os.scandir(folder) as entries:
+        while True:
+            if cancelled is not None and cancelled.is_set():
+                raise DirectoryReadCancelled()
+            try:entry=measured('Enumerate directory',next,entries)
+            except StopIteration:break
+            path=folder/entry.name
+            if path != reveal and not hidden and entry.name.startswith('.'):
+                continue
+            try:
+                info=measured('Read enumerated attributes',lambda:entry.stat(follow_symlinks=False),item=path)
+                attrs=info.st_file_attributes
+            except OSError:
+                # Unknown attributes retain visibility and use a path query.
+                attrs=None
+            if path != reveal and attrs is not None:
+                if (not hidden and attrs & 2) or (not system and attrs & 4):
+                    continue
+            # Native Windows validation found junction timestamp differences
+            # in DirEntry.stat. Preserve the original target/path semantics for
+            # ALL reparse tags, including cloud placeholders and junctions.
+            cached=entry if attrs is not None and not attrs & 0x400 else None
+            try:metadata=measured('Read file metadata',_listing_stat,path,cached,item=path)
+            except OSError:metadata=None
+            rows.append(DirectoryItem(path,metadata))
+    return tuple(rows)
 
 
 class DirectoryRead:

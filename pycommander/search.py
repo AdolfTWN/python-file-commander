@@ -297,7 +297,7 @@ class SearchWindow(tk.Toplevel):
         self._update_criteria_summary()
         self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
-        self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True)
+        self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True,role='F4 Search')
         install_button_tooltips(self); schedule_owned_idle(self,'activate',self.activate)
 
     def _layout_controls(self,event=None):

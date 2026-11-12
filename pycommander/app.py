@@ -148,6 +148,11 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
 # The single-file builder replaces this fallback with a fixed date literal.
 BUILD_DATE = datetime.now().strftime("%Y/%m/%d")
 VERSION_HISTORY = (
+    ("v0.19.4", "2026/11/12", (
+        "Fixed: F3 Preview recovers offscreen positions and fits the current monitor after activation, display changes and scaling.",
+        "Improved: Windows folder listings reuse enumeration metadata instead of reopening ordinary files for attributes and size.",
+        "Added: Automatic window-placement diagnostics include a photo-ready geometry summary without document names.",
+    )),
     ("v0.19.3", "2026/11/11", (
         "Fixed: Folder metadata scans use background workers, discard obsolete results, and schedule the next audit after completion.",
         "Fixed: Preview syntax styling uses line-local positions and cancellable batches to keep the interface responsive.",
@@ -3003,7 +3008,7 @@ class Commander(tk.Tk):
         self._schedule_clipboard_summary(250)
         self._schedule_auto_font_size(delay=300)
 
-        self._window_visibility = WindowVisibilityGuard(self, fit_to_monitor=True)
+        self._window_visibility = WindowVisibilityGuard(self, fit_to_monitor=True, role='Main window')
         self.after_idle(self._window_visibility.recover)
 
     def _settings_are_open(self):
@@ -5561,6 +5566,8 @@ class Commander(tk.Tk):
 
     def show_debug_log(self):
         win = tk.Toplevel(self); win.title(tr('Error / Warning log')); win.geometry('1000x650')
+        win._window_visibility=WindowVisibilityGuard(win,fit_to_monitor=True,role='Error / Warning log')
+        schedule_owned_idle(win,'log-recover',win._window_visibility.recover)
         bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
         identity = ttk.Label(win, text='PFC '+__version__+' · '+
                              tr('Automatic Error / Warning log' if self.debug_log.error_handler

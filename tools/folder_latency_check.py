@@ -59,7 +59,8 @@ with tempfile.TemporaryDirectory() as raw:
         app.auto_font_size_var.set(False)
         app.update()
         pane = app.panes()[0]
-        original_stat = Path.stat
+        data=sys.modules[pfc.DirectoryReads.__module__]
+        original_stat = data._listing_stat
         original_icon = type(pane.icons)._load
         original_get = pane.icons.get
         seen_pending = []
@@ -98,7 +99,7 @@ with tempfile.TemporaryDirectory() as raw:
         assert pane.navigate(fast)
         app.update()
         assert not records()
-        with patch.object(Path, 'stat', controlled_stat):
+        with patch.object(data, '_listing_stat', controlled_stat):
             assert pane.navigate(repeated)
         slow = until(lambda: find('ui.operation.slow'), app.update)
         phase = next(p for p in slow['latency']['phases'] if p['phase']=='Read file metadata')
@@ -107,7 +108,7 @@ with tempfile.TemporaryDirectory() as raw:
         assert not find('ui.stall.detected')
 
         app._ui_latency.heartbeat()
-        with patch.object(Path, 'stat', controlled_stat), patch.object(type(pane.icons), '_load', controlled_icon), patch.object(pane.icons,'get',controlled_get):
+        with patch.object(data, '_listing_stat', controlled_stat), patch.object(type(pane.icons), '_load', controlled_icon), patch.object(pane.icons,'get',controlled_get):
             assert pane.navigate(blocked)
         assert len(seen_pending)==1 and seen_pending[0]['latency']['stalled_ms'] >= 5000
         incident = seen_pending[0]['incident']

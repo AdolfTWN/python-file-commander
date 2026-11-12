@@ -2,6 +2,7 @@
 import ctypes
 from ctypes import wintypes
 import os
+import time
 import tkinter as tk
 
 
@@ -133,18 +134,22 @@ class WindowsWindowPlacement:
             self.user.ShowWindow(hwnd, 9)  # Restore only an unreachable maximized window.
         # Absolute signed coordinates, no activation or z-order change. Tk's '-x'
         # geometry syntax instead means distance from the RIGHT edge of a screen.
-        self.user.SetWindowPos(hwnd, None, *target, 0x0014)  # NOZORDER | NOACTIVATE
+        if not self.user.SetWindowPos(hwnd, None, *target, 0x0014):  # NOZORDER | NOACTIVATE
+            raise ctypes.WinError(ctypes.get_last_error())
 
 
 class WindowVisibilityGuard:
     """Lightweight Tk-thread check at startup, after undocking, and after resume."""
-    def __init__(self, widget, backend=None, *, fit_to_monitor=False):
+    def __init__(self, widget, backend=None, *, fit_to_monitor=False, role='Window'):
         self.widget = widget
         self.backend = backend if backend is not None else (
             WindowsWindowPlacement(widget) if os.name == 'nt' else None)
         self.previous = None
         self.work_areas = None
         self.fit_to_monitor = fit_to_monitor
+        self.role = role
+        self._last_notice = -float('inf')
+        self._failed = False
         self.job = widget.after(250, self._tick)
         widget.bind('<Destroy>', self._destroyed, add='+')
 
@@ -160,7 +165,20 @@ class WindowVisibilityGuard:
     def recover(self):
         """Best-effort immediate recovery after an explicit window activation."""
         try:self.check(force=True)
-        except (tk.TclError,OSError):self.previous=None
+        except (tk.TclError,OSError):
+            self.previous=None
+            self._failure()
+
+    def _record(self, event, **details):
+        log=getattr(self.widget._root(), 'debug_log', None)
+        if log is not None:
+            log.event(event, severity='WARNING', include_context=False,
+                      window=dict(role=self.role, **details))
+
+    def _failure(self):
+        if not self._failed:
+            self._record('window.placement.unavailable', reason='Display placement API unavailable; will retry')
+        self._failed=True
 
     def check(self, *, force=False):
         if self.widget.state() in ('withdrawn', 'iconic') or not self.widget.winfo_ismapped():
@@ -186,6 +204,12 @@ class WindowVisibilityGuard:
                 else:
                     x, y, width, height = target
                     self.widget.geometry(f'{width}x{height}+{x}+{y}')
+                if time.monotonic()-self._last_notice>=5:
+                    self._record('window.placement.recovery', before=list(snapshot[0]),
+                                 target=list(target), work_areas=[list(a) for a in snapshot[1][:8]],
+                                 reason='Fit current work area' if fit else 'Outside current display')
+                    self._last_notice=time.monotonic()
+                self._failed=False
                 self.previous = None
                 return
         self.previous = snapshot
@@ -197,5 +221,6 @@ class WindowVisibilityGuard:
         except (tk.TclError, OSError):
             # Display APIs can temporarily fail while Windows switches displays.
             self.previous = None
+            self._failure()
         if self.widget.winfo_exists():
             self.job = self.widget.after(1000, self._tick)

@@ -21,6 +21,9 @@ LANGUAGES = (
 _language = "en"
 
 _SINGLE_PANEL_TRANSLATIONS = {
+    'Fixed: F3 Preview recovers offscreen positions and fits the current monitor after activation, display changes and scaling.': ('修正：F3 預覽在喚出、螢幕切換及縮放後，會找回離屏位置並符合目前螢幕範圍。','修正：F3 预览在唤出、屏幕切换及缩放后，会找回离屏位置并适配当前屏幕范围。','수정: F3 미리보기를 활성화하거나 화면 및 배율을 변경하면 현재 모니터 안으로 복구합니다.'),
+    'Improved: Windows folder listings reuse enumeration metadata instead of reopening ordinary files for attributes and size.': ('改善：Windows 檔案清單重用目錄列舉資料，不再逐一重新開啟一般檔案查詢屬性與大小。','改善：Windows 文件列表复用目录枚举数据，不再逐一重新打开普通文件查询属性与大小。','개선: Windows 폴더 목록은 일반 파일을 다시 열지 않고 디렉터리 열거 메타데이터를 재사용합니다.'),
+    'Added: Automatic window-placement diagnostics include a photo-ready geometry summary without document names.': ('新增：視窗位置自動診斷提供可拍照的位置摘要，不包含文件名稱。','新增：窗口位置自动诊断提供可拍照的位置摘要，不包含文档名称。','추가: 창 위치 자동 진단은 문서 이름 없이 촬영 가능한 위치 요약을 제공합니다.'),
     'Fixed: Folder metadata scans use background workers, discard obsolete results, and schedule the next audit after completion.': ('修正：資料夾屬性掃描改在背景執行，捨棄過期結果，並於完成後安排下一次稽核。','修正：文件夹属性扫描改在后台执行，丢弃过期结果，并在完成后安排下一次检查。','수정: 폴더 메타데이터를 백그라운드에서 검사하고 오래된 결과를 버리며 완료 후 다음 검사를 예약합니다.'),
     'Fixed: Preview syntax styling uses line-local positions and cancellable batches to keep the interface responsive.': ('修正：預覽語法樣式使用行內位置及可取消的分批處理，保持介面回應。','修正：预览语法样式使用行内位置及可取消的分批处理，保持界面响应。','수정: 미리보기 구문 스타일에 줄 내부 위치와 취소 가능한 배치를 사용하여 UI 응답성을 유지합니다.'),
     'Improved: Preview styling and divider layout delays have named automatic diagnostics.': ('改善：預覽套色與分隔條配置的延遲會記錄具名自動診斷。','改善：预览着色与分隔条布局的延迟会记录具名自动诊断。','개선: 미리보기 스타일 및 분할선 배치 지연을 이름 있는 자동 진단으로 기록합니다.'),
@@ -2260,7 +2263,6 @@ import stat as statlib
 from collections import OrderedDict
 import threading
 import os
-import ctypes
 
 
 
@@ -2279,6 +2281,13 @@ class DirectoryReadCancelled(Exception):
     pass
 
 
+def _listing_stat(path, entry=None):
+    # A Windows DirEntry reuses FindFirst/NextFile metadata for ordinary
+    # entries. Reparse points use Path.stat explicitly below. Never retain
+    # DirEntry objects across listings: the next audit must enumerate anew.
+    return path.stat() if entry is None else entry.stat()
+
+
 def listing_items(paths, *, latency=None, cancelled=None):
     rows=[]
     measure = latency.measure if latency is not None else None
@@ -2286,23 +2295,17 @@ def listing_items(paths, *, latency=None, cancelled=None):
         if cancelled is not None and cancelled.is_set():
             raise DirectoryReadCancelled()
         try:
-            metadata = path.stat() if measure is None else measure('Read file metadata', path.stat, item=path)
+            metadata = _listing_stat(path) if measure is None else measure('Read file metadata', _listing_stat, path, item=path)
         except OSError:metadata=None
         rows.append(DirectoryItem(path,metadata))
     return tuple(rows)
 
 
 def directory_items(folder,show_hidden=False,show_system=False,reveal=None, *, latency=None, cancelled=None):
-    # Preserve GetFileAttributesW visibility semantics for Windows links rather
-    # than substituting the followed target's stat attributes.
+    if os.name == 'nt':
+        return _windows_directory_items(folder, show_hidden, show_system, reveal,
+                                        latency=latency, cancelled=cancelled)
     def visible(path):
-        if os.name == 'nt':
-            if not show_hidden and path.name.startswith('.'):
-                return False
-            # Inspect the link itself (not followed stat attributes), once.
-            attrs = ctypes.windll.kernel32.GetFileAttributesW(str(path))
-            unknown = attrs in (-1, 0xffffffff)
-            return unknown or ((show_hidden or not attrs & 2) and (show_system or not attrs & 4))
         return (show_hidden or not is_hidden(path)) and (show_system or not is_system(path))
     if show_hidden and show_system:
         return listing_items(folder.iterdir(), latency=latency, cancelled=cancelled)
@@ -2314,6 +2317,41 @@ def directory_items(folder,show_hidden=False,show_system=False,reveal=None, *, l
         checked = visible
     return listing_items((path for path in folder.iterdir() if path==reveal or checked(path)),
                          latency=latency, cancelled=cancelled)
+
+
+def _windows_directory_items(folder, hidden, system, reveal, *, latency=None, cancelled=None):
+    rows=[]
+    def measured(label, callback, *args, **kwargs):
+        return (callback(*args) if latency is None else
+                latency.measure(label, callback, *args, **kwargs))
+    # Enumeration already carries link attributes and ordinary-file metadata.
+    # Avoid reopening every file twice (GetFileAttributesW + Path.stat).
+    with os.scandir(folder) as entries:
+        while True:
+            if cancelled is not None and cancelled.is_set():
+                raise DirectoryReadCancelled()
+            try:entry=measured('Enumerate directory',next,entries)
+            except StopIteration:break
+            path=folder/entry.name
+            if path != reveal and not hidden and entry.name.startswith('.'):
+                continue
+            try:
+                info=measured('Read enumerated attributes',lambda:entry.stat(follow_symlinks=False),item=path)
+                attrs=info.st_file_attributes
+            except OSError:
+                # Unknown attributes retain visibility and use a path query.
+                attrs=None
+            if path != reveal and attrs is not None:
+                if (not hidden and attrs & 2) or (not system and attrs & 4):
+                    continue
+            # Native Windows validation found junction timestamp differences
+            # in DirEntry.stat. Preserve the original target/path semantics for
+            # ALL reparse tags, including cloud placeholders and junctions.
+            cached=entry if attrs is not None and not attrs & 0x400 else None
+            try:metadata=measured('Read file metadata',_listing_stat,path,cached,item=path)
+            except OSError:metadata=None
+            rows.append(DirectoryItem(path,metadata))
+    return tuple(rows)
 
 
 class DirectoryRead:
@@ -7295,6 +7333,7 @@ class SharedTabBar(ChamferNotebook):
 import ctypes
 from ctypes import wintypes
 import os
+import time
 import tkinter as tk
 
 
@@ -7426,18 +7465,22 @@ class WindowsWindowPlacement:
             self.user.ShowWindow(hwnd, 9)  # Restore only an unreachable maximized window.
         # Absolute signed coordinates, no activation or z-order change. Tk's '-x'
         # geometry syntax instead means distance from the RIGHT edge of a screen.
-        self.user.SetWindowPos(hwnd, None, *target, 0x0014)  # NOZORDER | NOACTIVATE
+        if not self.user.SetWindowPos(hwnd, None, *target, 0x0014):  # NOZORDER | NOACTIVATE
+            raise ctypes.WinError(ctypes.get_last_error())
 
 
 class WindowVisibilityGuard:
     """Lightweight Tk-thread check at startup, after undocking, and after resume."""
-    def __init__(self, widget, backend=None, *, fit_to_monitor=False):
+    def __init__(self, widget, backend=None, *, fit_to_monitor=False, role='Window'):
         self.widget = widget
         self.backend = backend if backend is not None else (
             WindowsWindowPlacement(widget) if os.name == 'nt' else None)
         self.previous = None
         self.work_areas = None
         self.fit_to_monitor = fit_to_monitor
+        self.role = role
+        self._last_notice = -float('inf')
+        self._failed = False
         self.job = widget.after(250, self._tick)
         widget.bind('<Destroy>', self._destroyed, add='+')
 
@@ -7453,7 +7496,20 @@ class WindowVisibilityGuard:
     def recover(self):
         """Best-effort immediate recovery after an explicit window activation."""
         try:self.check(force=True)
-        except (tk.TclError,OSError):self.previous=None
+        except (tk.TclError,OSError):
+            self.previous=None
+            self._failure()
+
+    def _record(self, event, **details):
+        log=getattr(self.widget._root(), 'debug_log', None)
+        if log is not None:
+            log.event(event, severity='WARNING', include_context=False,
+                      window=dict(role=self.role, **details))
+
+    def _failure(self):
+        if not self._failed:
+            self._record('window.placement.unavailable', reason='Display placement API unavailable; will retry')
+        self._failed=True
 
     def check(self, *, force=False):
         if self.widget.state() in ('withdrawn', 'iconic') or not self.widget.winfo_ismapped():
@@ -7479,6 +7535,12 @@ class WindowVisibilityGuard:
                 else:
                     x, y, width, height = target
                     self.widget.geometry(f'{width}x{height}+{x}+{y}')
+                if time.monotonic()-self._last_notice>=5:
+                    self._record('window.placement.recovery', before=list(snapshot[0]),
+                                 target=list(target), work_areas=[list(a) for a in snapshot[1][:8]],
+                                 reason='Fit current work area' if fit else 'Outside current display')
+                    self._last_notice=time.monotonic()
+                self._failed=False
                 self.previous = None
                 return
         self.previous = snapshot
@@ -7490,6 +7552,7 @@ class WindowVisibilityGuard:
         except (tk.TclError, OSError):
             # Display APIs can temporarily fail while Windows switches displays.
             self.previous = None
+            self._failure()
         if self.widget.winfo_exists():
             self.job = self.widget.after(1000, self._tick)
 
@@ -7912,6 +7975,13 @@ def diagnostic_summary(row):
            ' · '+str(row.get('error') or row.get('event','—')),
            str(row.get('time','—'))]
     lines.extend(_diagnostic_latency_lines(row.get('latency')))
+    placement=row.get('window')
+    if isinstance(placement,dict):
+        lines.append('Window: '+str(placement.get('role','Window')))
+        lines.append(str(placement.get('reason','Placement recovery')))
+        if 'before' in placement:lines.append('Before (left, top, right, bottom): '+str(placement['before']))
+        if 'target' in placement:lines.append('Requested (x, y, width, height): '+str(placement['target']))
+        if 'work_areas' in placement:lines.append('Available work areas: '+str(placement['work_areas']))
     frames=row.get('frames',[])
     if frames:
         root=frames[-1]
@@ -38395,6 +38465,7 @@ from urllib.parse import quote
 
 
 
+
 TEXT_EXTENSIONS = {
     ".txt", ".md", ".csv", ".tsv", ".log", ".py", ".ini", ".json", ".xml",
     ".yaml", ".yml", ".html", ".htm", ".css", ".js", ".ps1", ".bat", ".cmd",
@@ -39978,8 +40049,11 @@ class PreviewWindow(tk.Toplevel):
         self.pages = {}
         self.active_page = None
         self._diagram_directory=None
+        # Install before any document work: a failed/slow page must not prevent
+        # periodic recovery or leave its window unreachable after undocking.
         self.geometry(config.get('preview', 'geometry', fallback='1100x720'))
-        self.minsize(640, 400)
+        self.minsize(min(640,self.winfo_screenwidth()), min(400,self.winfo_screenheight()))
+        self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True,role='F3 Preview')
         self.protocol('WM_DELETE_WINDOW', self.close)
         bar = ttk.Frame(self); bar.pack(fill='x', padx=6, pady=(4,0))
         self.document_menu = ttk.Menubutton(bar, text=tr('Open documents'))
@@ -40116,6 +40190,7 @@ class PreviewWindow(tk.Toplevel):
 
     def activate(self):
         self.deiconify(); self.lift(); self.focus_force()
+        schedule_owned_idle(self,'preview-recover',self._window_visibility.recover)
         if self.active_page:
             page=self.active_page
             widget=(page.render_view.tree or page.render_view.text or page.render_view.canvas) if page._format_active else page.text
@@ -40140,6 +40215,7 @@ class PreviewWindow(tk.Toplevel):
 
     def apply_scale(self, scale):
         for page in self.pages.values(): page.apply_scale(scale)
+        schedule_owned_idle(self,'preview-recover',self._window_visibility.recover)
 
     def apply_color_scheme(self, palette):
         self.configure(background=palette['window'])
@@ -40468,7 +40544,7 @@ class SearchWindow(tk.Toplevel):
         self._update_criteria_summary()
         self._show_search_state()
         self.apply_color_scheme(getattr(master, "palette", color_scheme("light")))
-        self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True)
+        self._window_visibility=WindowVisibilityGuard(self,fit_to_monitor=True,role='F4 Search')
         install_button_tooltips(self); schedule_owned_idle(self,'activate',self.activate)
 
     def _layout_controls(self,event=None):
@@ -42957,7 +43033,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-__version__ = "0.19.3"
+__version__ = "0.19.4"
 
 
 
@@ -43081,8 +43157,13 @@ def middle_ellipsize(text: str, max_width: int, measure) -> str:
     return text[:left] + marker + text[-right:]
 
 # The single-file builder replaces this fallback with a fixed date literal.
-BUILD_DATE = "2026/11/11"
+BUILD_DATE = "2026/11/12"
 VERSION_HISTORY = (
+    ("v0.19.4", "2026/11/12", (
+        "Fixed: F3 Preview recovers offscreen positions and fits the current monitor after activation, display changes and scaling.",
+        "Improved: Windows folder listings reuse enumeration metadata instead of reopening ordinary files for attributes and size.",
+        "Added: Automatic window-placement diagnostics include a photo-ready geometry summary without document names.",
+    )),
     ("v0.19.3", "2026/11/11", (
         "Fixed: Folder metadata scans use background workers, discard obsolete results, and schedule the next audit after completion.",
         "Fixed: Preview syntax styling uses line-local positions and cancellable batches to keep the interface responsive.",
@@ -45938,7 +46019,7 @@ class Commander(tk.Tk):
         self._schedule_clipboard_summary(250)
         self._schedule_auto_font_size(delay=300)
 
-        self._window_visibility = WindowVisibilityGuard(self, fit_to_monitor=True)
+        self._window_visibility = WindowVisibilityGuard(self, fit_to_monitor=True, role='Main window')
         self.after_idle(self._window_visibility.recover)
 
     def _settings_are_open(self):
@@ -48496,6 +48577,8 @@ class Commander(tk.Tk):
 
     def show_debug_log(self):
         win = tk.Toplevel(self); win.title(tr('Error / Warning log')); win.geometry('1000x650')
+        win._window_visibility=WindowVisibilityGuard(win,fit_to_monitor=True,role='Error / Warning log')
+        schedule_owned_idle(win,'log-recover',win._window_visibility.recover)
         bar = ttk.Frame(win, padding=6); bar.pack(fill='x')
         identity = ttk.Label(win, text='PFC '+__version__+' · '+
                              tr('Automatic Error / Warning log' if self.debug_log.error_handler

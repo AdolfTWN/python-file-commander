@@ -321,6 +321,12 @@ def windows_checks(guest, checks, ready_timeout, test_timeout, cleanup=None, evi
             for test in result.get('tests', []):
                 name = test['check']
                 (evidence_dir/(name+'.log')).write_bytes(guest.read(directory+'\\'+name+'.log'))
+            if result['status']=='passed' and 'preview_visibility_check.py' in checks:
+                from PIL import Image
+                import io
+                for name in ('startup','laptop200','diagnostics'):
+                    data=guest.image_data(directory+'\\evidence-preview-visibility-'+name+'.bmp')
+                    Image.open(io.BytesIO(data)).save(evidence_dir/('preview-visibility-'+name+'.png'))
             if result['status']=='passed' and 'responsive_work_check.py' in checks:
                 from PIL import Image
                 import io

@@ -7,6 +7,21 @@ from pycommander.windowplacement import WindowVisibilityGuard, visible_window_ta
 class WindowPlacementTests(unittest.TestCase):
     primary = (0, 0, 1920, 1040)
 
+    def test_offscreen_recovery_records_geometry_automatically_and_bounds_repeats(self):
+        widget,backend=Mock(),Mock()
+        widget.state.return_value='normal';widget.winfo_ismapped.return_value=True
+        backend.snapshot.return_value=((5000,100,6100,820),(self.primary,),8)
+        guard=WindowVisibilityGuard(widget,backend,fit_to_monitor=True,role='F3 Preview')
+        guard.recover();guard.recover()
+        log=widget._root().debug_log
+        log.event.assert_called_once()
+        args,kwargs=log.event.call_args
+        self.assertEqual(args,('window.placement.recovery',))
+        self.assertEqual(kwargs['severity'],'WARNING')
+        self.assertFalse(kwargs['include_context'])
+        self.assertEqual(kwargs['window']['before'],[5000,100,6100,820])
+        guard.close()
+
     def test_popup_uses_owner_monitor_work_area_not_full_screen(self):
         owner = Mock()
         owner._root.return_value = owner

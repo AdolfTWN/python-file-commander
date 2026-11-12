@@ -1,6 +1,13 @@
 # Python File Commander
 
-Current code: **v0.19.3** — folder metadata is scanned in two bounded background
+Current code: **v0.19.4** — F3 Preview now recovers saved/live offscreen positions,
+fits the current work area on activation and display/scale changes, and records
+automatic photo-ready placement diagnostics. The log viewer is fitted too.
+Windows folder scans reuse each fresh enumeration's attributes and ordinary-file
+metadata; reparse points retain followed-target semantics. No persistent metadata
+cache is added.
+
+Since **v0.19.3**, folder metadata is scanned in two bounded background
 workers while the interface continues processing input. Obsolete results are
 discarded and repeated audits wait until after the previous scan finishes.
 Preview syntax styling uses line-local positions and cancellable batches.
